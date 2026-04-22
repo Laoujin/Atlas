@@ -5,6 +5,7 @@ depth: ceo
 format: md
 topic: "test: top 3 static site generators in 2026"
 tags: [static-site-generators, web, frameworks, astro, hugo, nextjs]
+cover: cover.svg
 summary: One-page pick guide for Astro, Hugo, and Next.js in 2026 with a decision framework.
 citations: 5
 reading_time_min: 2

@@ -5,6 +5,7 @@ depth: deep
 format: md
 topic: "Survey of research agents / deep-research tools available in 2026 that could serve a role like Scout (my custom Claude-Code-based research engine). Compare the main options, note what's production-ready vs experimental, and flag anything I should steal ideas from."
 tags: [deep-research, agents, claude-code, llm, survey]
+cover: cover.svg
 summary: Landscape of 2026 deep-research agents — commercial (OpenAI, Perplexity, Gemini, Claude, Grok), OSS (GPT-Researcher, open_deep_research, STORM, smolagents), and Claude-Code skills — with a short list of ideas worth porting into Scout.
 citations: 23
 reading_time_min: 9
