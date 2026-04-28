@@ -37,10 +37,24 @@ children:
     summary: How to coordinate a Slack message → Claude Code → PR → preview-deployment pipeline — what state to keep, where to keep it, and which orchestrator (if any) earns its weight.
     citations: 28
     reading_time_min: 6
-cost_usd: 24.41
-duration_sec: 2949
-citations: 168
-reading_time_min: 31
+  - slug: branch-and-pr-automation-from-a-remote-trigger-alt
+    title: "Branch and PR automation from a remote trigger (alt)"
+    depth: standard
+    status: success
+    summary: Three patterns for turning a remote signal into a branch and a pull request — repository_dispatch + create-pull-request, issue/comment workflows, and hosted AI agents — and the GITHUB_TOKEN gotcha that bites all three.
+    citations: 26
+    reading_time_min: 6
+  - slug: slack-claude-code-remote-control-what-works-in-april-2026
+    title: "Slack ↔ Claude Code remote control: what works in April 2026"
+    depth: deep
+    status: success
+    summary: How Anthropic's first-party Slack integration, OSS bridges, and competing surfaces (Cursor, Codex, Devin) compare for driving Claude Code from chat — with the security patterns teams converge on.
+    citations: 65
+    reading_time_min: 9
+cost_usd: 34.89
+duration_sec: 4249
+citations: 259
+reading_time_min: 46
 ---
 
 > **Recommended shape.** Slack Events API → ack-and-queue worker → `repository_dispatch` into a private GitHub repo → `anthropics/claude-code-action@v1` job authenticated by a GitHub App installation token → `pull_request.opened` triggers a deploy job that SSH's into the Synology and runs `docker compose -p pr-N pull && up -d` against an image pulled from GHCR → Cloudflare Tunnel publishes `pr-N.preview.sangu.be` via a wildcard hostname. State is one row per Slack `thread_ts` in Redis or a Cloudflare Durable Object. No durable-execution engine, no Coolify, no k3s — every component pulled in must justify its weight against this minimum.
