@@ -2,7 +2,7 @@
 layout: expedition
 title: Birthday-gift decision brief — Flanders, 30-something, beyond the obvious
 date: 2026-04-27
-topic: Long-form HTML birthday-gift decision brief with 12–20 fresh, decision-actionable candidates for a 30-something girlfriend in Flanders (interests: jewellery, murder docs, salmon, Mark Anthony, afro music, reality TV, butterflies, F1) — excluding the recon's seven picks and near-clones, prioritising makers/experiences reachable in a day from Ghent.
+topic: "Long-form HTML birthday-gift decision brief with 12–20 fresh, decision-actionable candidates for a 30-something girlfriend in Flanders (interests: jewellery, murder docs, salmon, Mark Anthony, afro music, reality TV, butterflies, F1) — excluding the recon's seven picks and near-clones, prioritising makers/experiences reachable in a day from Ghent."
 format: auto
 tags: [gifts, belgium, ghent, expedition, decision-brief]
 cover: cover.svg

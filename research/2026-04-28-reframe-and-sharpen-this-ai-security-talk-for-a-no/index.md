@@ -5,7 +5,7 @@ date: 2026-04-28
 topic: "Reframe and sharpen the AI-Security-Talk for a non-technical audience: propose laymen-friendly titles, triage the existing deck, graft in concrete 2026 angles."
 format: md
 tags: [ai-security, talk-prep, laymen-audience, deepfakes, hallucinations]
-summary: Keep "ProbLLMs: Why You Can't Trust the Robot", cut the developer-jargon half of the deck, and graft in four 2026 angles (voice-clone scams, kids + AI companions, AI-injected ads, deepfake nudes) that show up in actual public-concern polls.
+summary: "Keep 'ProbLLMs: Why You Can't Trust the Robot', cut the developer-jargon half of the deck, and graft in four 2026 angles (voice-clone scams, kids + AI companions, AI-injected ads, deepfake nudes) that show up in actual public-concern polls."
 cover: cover.svg
 synthesis: true
 children:
