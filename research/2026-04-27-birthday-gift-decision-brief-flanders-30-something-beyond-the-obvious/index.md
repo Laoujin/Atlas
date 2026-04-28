@@ -9,27 +9,27 @@ cover: cover.svg
 summary: Expedition aborted — all five sub-topic runs failed before producing research; the recon's seven picks remain the only material on file.
 synthesis: false
 children:
-  - slug: belgian-eu-artisan-studios-producing-one-off-objec
+  - slug: belgian-eu-artisan-studios-for-one-off-objects
     title: Belgian / EU artisan studios producing one-off objects
     depth: standard
     status: failed
     summary: child run.sh exit 1
-  - slug: private-access-or-insider-experiences-reachable-fr
+  - slug: private-access-experiences-reachable-from-ghent-in-a-day
     title: Private-access or insider experiences reachable from Ghent in a day
     depth: standard
     status: failed
     summary: child run.sh exit 1
-  - slug: made-by-her-experiences-where-the-deliverable-is-t
+  - slug: made-by-her-workshops-where-the-artefact-goes-home-with-her-that-night
     title: Made-by-her experiences where the deliverable is the artefact she walks home with
     depth: standard
     status: failed
     summary: child run.sh exit 1
-  - slug: personalised-published-artefacts-that-aren-t-trink
+  - slug: personalised-published-artefacts-that-aren-t-trinkets
     title: Personalised published artefacts that aren't trinkets
     depth: standard
     status: failed
     summary: child run.sh exit 1
-  - slug: time-extended-gifts-in-obscure-niches-matching-her
+  - slug: time-extended-gifts-in-obscure-niches
     title: Time-extended gifts in obscure niches matching her interests
     depth: standard
     status: failed

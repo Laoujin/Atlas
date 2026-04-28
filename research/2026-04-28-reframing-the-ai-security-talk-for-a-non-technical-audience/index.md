@@ -9,14 +9,14 @@ summary: "Keep 'ProbLLMs: Why You Can't Trust the Robot', cut the developer-jarg
 cover: cover.svg
 synthesis: true
 children:
-  - slug: title-candidates
+  - slug: title-candidates-for-ai-security-laymen-edition
     title: Title candidates
     depth: ceo
     status: success
     summary: Eight title candidates for the laymen reframing of the AI-Security-Talk, with a recommended pick and the patterns behind each.
     citations: 7
     reading_time_min: 2
-  - slug: existing-deck-triage
+  - slug: existing-deck-triage-for-the-laymen-reframing
     title: Existing deck triage
     depth: deep
     status: success
@@ -37,7 +37,7 @@ children:
     summary: Field guide to the 2026 AI scam landscape — named cases, dollar losses, attacker tooling, and the four defense layers that actually move the needle.
     citations: 99
     reading_time_min: 14
-  - slug: data-harvesting-and-privacy
+  - slug: data-harvesting-and-privacy-what-a-non-technical-audience-needs-to-know
     title: Data harvesting and privacy
     depth: standard
     status: success
@@ -51,7 +51,7 @@ children:
     summary: The ad-funded internet was already a manipulation engine; AI cheapens every step and accelerates a measurable decade-long collapse of trust.
     citations: 26
     reading_time_min: 5
-  - slug: misinformation-hallucination-harms-and-election-me
+  - slug: where-ai-hallucinations-are-actually-hurting-people-legal-medical-electoral
     title: Misinformation, hallucination harms, and election/medical/legal risks
     depth: standard
     status: success

@@ -9,7 +9,7 @@ summary: An end-to-end blueprint for chatting a feature into Claude Code on Slac
 cover: cover.svg
 synthesis: true
 children:
-  - slug: slack-claude-code-remote-control
+  - slug: slack-claude-code-remote-control-architectures-recipes-and-traps
     title: "Slack ↔ Claude Code remote control"
     depth: deep
     status: success
@@ -30,14 +30,14 @@ children:
     summary: How to wire per-PR preview deployments on a Synology NAS — the building blocks, the CI/CD patterns, the orchestrator that fits, and the gotchas that bite.
     citations: 78
     reading_time_min: 10
-  - slug: orchestration-and-state
+  - slug: orchestration-and-state-tying-slack-claude-code-github-and-synology-together
     title: "Orchestration and state"
     depth: standard
     status: success
     summary: How to coordinate a Slack message → Claude Code → PR → preview-deployment pipeline — what state to keep, where to keep it, and which orchestrator (if any) earns its weight.
     citations: 28
     reading_time_min: 6
-  - slug: branch-and-pr-automation-from-a-remote-trigger-alt
+  - slug: branch-and-pr-automation-from-a-remote-trigger-2
     title: "Branch and PR automation from a remote trigger (alt)"
     depth: standard
     status: success
@@ -61,15 +61,15 @@ reading_time_min: 46
 
 ## The same auth footgun fires twice
 
-Both arms of the pipeline have a "default token quietly breaks the next stage" trap. On the Slack side, Claude Code's MCP client requires OAuth 2.0 Dynamic Client Registration which Slack's first-party MCP server does not ship — admins must hand-roll an internal Slack app and pass `--client-id`/`--client-secret` ([slack-claude-code-remote-control/](slack-claude-code-remote-control/), source [[github.com/anthropics/claude-code/issues/30564]](https://github.com/anthropics/claude-code/issues/30564)). On the GitHub side, the default `GITHUB_TOKEN` opens the PR fine but **downstream CI never runs on it**, so the preview-deploy workflow silently never fires ([branch-and-pr-automation-from-a-remote-trigger/](branch-and-pr-automation-from-a-remote-trigger/), source [[peter-evans/create-pull-request docs]](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md)). Mint the token via `actions/create-github-app-token` for every push that should trigger anything downstream.
+Both arms of the pipeline have a "default token quietly breaks the next stage" trap. On the Slack side, Claude Code's MCP client requires OAuth 2.0 Dynamic Client Registration which Slack's first-party MCP server does not ship — admins must hand-roll an internal Slack app and pass `--client-id`/`--client-secret` ([slack-claude-code-remote-control/](slack-claude-code-remote-control-architectures-recipes-and-traps/), source [[github.com/anthropics/claude-code/issues/30564]](https://github.com/anthropics/claude-code/issues/30564)). On the GitHub side, the default `GITHUB_TOKEN` opens the PR fine but **downstream CI never runs on it**, so the preview-deploy workflow silently never fires ([branch-and-pr-automation-from-a-remote-trigger/](branch-and-pr-automation-from-a-remote-trigger/), source [[peter-evans/create-pull-request docs]](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md)). Mint the token via `actions/create-github-app-token` for every push that should trigger anything downstream.
 
 ## `thread_ts` is the only stable correlation key
 
-Before a PR exists, nothing else identifies the work. Generate `thread_ts` once at the Slack ingress, pass it through every `repository_dispatch` payload, and stash `slack:thread:{thread_ts} → {run_id, branch, pr_number, preview_url, status}` in one small KV ([orchestration-and-state/](orchestration-and-state/)). The same key carries through to the preview subdomain (`pr-N.preview.sangu.be` once the PR exists, `feature-{slug-of-thread}` before that). This is also how the "go" message lands — the Slack button's interaction handler reads the row and emits the second `repository_dispatch` to promote.
+Before a PR exists, nothing else identifies the work. Generate `thread_ts` once at the Slack ingress, pass it through every `repository_dispatch` payload, and stash `slack:thread:{thread_ts} → {run_id, branch, pr_number, preview_url, status}` in one small KV ([orchestration-and-state/](orchestration-and-state-tying-slack-claude-code-github-and-synology-together/)). The same key carries through to the preview subdomain (`pr-N.preview.sangu.be` once the PR exists, `feature-{slug-of-thread}` before that). This is also how the "go" message lands — the Slack button's interaction handler reads the row and emits the second `repository_dispatch` to promote.
 
 ## "Clean context between features" is a cwd contract
 
-The user's instinct to clear context per feature aligns with a Claude Code gotcha worth pinning down: headless transcripts are keyed on `<encoded-cwd>`, so a worker that resumes from a different directory than the original run silently starts a fresh session ([slack-claude-code-remote-control/](slack-claude-code-remote-control/), source [[code.claude.com agent-sdk/sessions]](https://code.claude.com/docs/en/agent-sdk/sessions)). One cwd per Slack thread (clone repo to `/tmp/<thread_ts>/`) gives per-feature isolation *and* per-thread continuation for free. `--fork-session` makes the per-feature split explicit when the user wants to branch a thread.
+The user's instinct to clear context per feature aligns with a Claude Code gotcha worth pinning down: headless transcripts are keyed on `<encoded-cwd>`, so a worker that resumes from a different directory than the original run silently starts a fresh session ([slack-claude-code-remote-control/](slack-claude-code-remote-control-architectures-recipes-and-traps/), source [[code.claude.com agent-sdk/sessions]](https://code.claude.com/docs/en/agent-sdk/sessions)). One cwd per Slack thread (clone repo to `/tmp/<thread_ts>/`) gives per-feature isolation *and* per-thread continuation for free. `--fork-session` makes the per-feature split explicit when the user wants to branch a thread.
 
 ## The Synology layer is where the integration risk lives
 
