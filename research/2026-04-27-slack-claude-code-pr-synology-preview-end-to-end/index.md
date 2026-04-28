@@ -16,12 +16,26 @@ children:
     summary: Four working architectures for driving Claude Code from Slack, the projects that ship each, the SDK surface they lean on, and the security/cost traps every public deploy hits.
     citations: 44
     reading_time_min: 9
+  - slug: slack-claude-code-remote-control-what-works-in-april-2026
+    title: "Slack ↔ Claude Code remote control (alt)"
+    depth: deep
+    status: success
+    summary: How Anthropic's first-party Slack integration, OSS bridges, and competing surfaces (Cursor, Codex, Devin) compare for driving Claude Code from chat — with the security patterns teams converge on.
+    citations: 65
+    reading_time_min: 9
   - slug: branch-and-pr-automation-from-a-remote-trigger
     title: "Branch and PR automation from a remote trigger"
     depth: standard
     status: success
     summary: How to translate a remote event (Slack message, webhook, schedule, label) into a branch and pull request — transports, tokens, and the mechanics that actually push the commit.
     citations: 18
+    reading_time_min: 6
+  - slug: branch-and-pr-automation-from-a-remote-trigger-2
+    title: "Branch and PR automation from a remote trigger (alt)"
+    depth: standard
+    status: success
+    summary: Three patterns for turning a remote signal into a branch and a pull request — repository_dispatch + create-pull-request, issue/comment workflows, and hosted AI agents — and the GITHUB_TOKEN gotcha that bites all three.
+    citations: 26
     reading_time_min: 6
   - slug: synology-preview-deployments
     title: "Synology preview deployments"
@@ -37,20 +51,6 @@ children:
     summary: How to coordinate a Slack message → Claude Code → PR → preview-deployment pipeline — what state to keep, where to keep it, and which orchestrator (if any) earns its weight.
     citations: 28
     reading_time_min: 6
-  - slug: branch-and-pr-automation-from-a-remote-trigger-2
-    title: "Branch and PR automation from a remote trigger (alt)"
-    depth: standard
-    status: success
-    summary: Three patterns for turning a remote signal into a branch and a pull request — repository_dispatch + create-pull-request, issue/comment workflows, and hosted AI agents — and the GITHUB_TOKEN gotcha that bites all three.
-    citations: 26
-    reading_time_min: 6
-  - slug: slack-claude-code-remote-control-what-works-in-april-2026
-    title: "Slack ↔ Claude Code remote control: what works in April 2026"
-    depth: deep
-    status: success
-    summary: How Anthropic's first-party Slack integration, OSS bridges, and competing surfaces (Cursor, Codex, Devin) compare for driving Claude Code from chat — with the security patterns teams converge on.
-    citations: 65
-    reading_time_min: 9
 cost_usd: 34.89
 duration_sec: 4249
 citations: 259
