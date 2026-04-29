@@ -1,0 +1,5 @@
+Q1. NAS-oriented OS landscape 2026: TrueNAS Scale (Community/Enterprise), Unraid, OpenMediaVault, Proxmox VE, Debian/Ubuntu DIY, NixOS — what each is, licensing, community state, release cadence, target operator profile.
+Q2. Storage stack/filesystem options for a home NAS in 2026: ZFS (OpenZFS 2.x), btrfs, bcachefs, mdadm + ext4/xfs, mergerfs + SnapRAID — data integrity guarantees, hardware/RAM requirements, vdev/expansion behavior, snapshot/replication primitives.
+Q3. Lock-in vectors and portability: how each NAS OS makes configs portable or trapped (GUI-locked config, proprietary share/plugin/app formats, partition layout assumptions, custom volume managers like SHR/btrfs-on-LVM); criteria for evaluating exit cost.
+Q4. Migration paths: getting data off Synology DSM (Btrfs/SHR/ext4) onto each stack; moving between TrueNAS/Unraid/OMV/Proxmox; rsync vs ZFS send vs btrfs send/receive; what survives, what doesn't.
+Q5. Operator experience day-to-day: snapshots, off-site replication, scrubs, SMART/alerting, OS updates, container/VM workloads; which stack is least painful for a single-admin home setup, and where the community says each one goes wrong.

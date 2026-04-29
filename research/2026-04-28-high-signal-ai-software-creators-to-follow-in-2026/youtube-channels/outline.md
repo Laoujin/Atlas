@@ -1,0 +1,6 @@
+AI research & paper-explainer YouTube channels (Yannic Kilcher, 3Blue1Brown, Two Minute Papers, AI Coffee Break, Welch Labs, Computerphile) — who actually delivers technical depth in 2026, signal vs. surface-level
+AI news & industry discourse YouTube channels (Matt Wolfe, AI Explained, Wes Roth, MattVidPro, Bycloud) — which are genuinely high-signal vs. hype/clickbait, what the AI/ML community on Reddit and HN says
+Software engineering & programming YouTube channels (Fireship, ThePrimeagen, Theo - t3.gg, Coderized, Ben Awad, Web Dev Simplified) — most-recommended in 2026 for staying current as a working engineer
+AI building / agentic-dev / coding-with-LLMs channels (David Ondrej, IndyDevDan, AI Jason, Cole Medin, Riley Brown) — the newer 2024-2026 wave of practitioners who actually ship with AI
+Long-form podcast/interview channels on YouTube relevant to AI and software (Lex Fridman, Dwarkesh Patel, Latent Space, Machine Learning Street Talk, Cognitive Revolution, No Priors) — guest quality, depth, frequency
+Lab, lecturer & conference YouTube channels (Andrej Karpathy, Stanford Online / CS25, MIT 6.S191, DeepLearning.AI, OpenAI, Anthropic, Google DeepMind, NeurIPS) — primary-source talks and free university lectures worth subscribing to
