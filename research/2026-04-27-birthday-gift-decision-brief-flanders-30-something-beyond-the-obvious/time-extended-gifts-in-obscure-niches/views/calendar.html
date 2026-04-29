@@ -1,0 +1,1244 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "Time-extended gifts in obscure niches — Calendar"
+---
+
+<style>
+  .cal * { box-sizing: border-box; }
+  .cal {
+    --bg: #0e0c0a;
+    --bg-2: #161310;
+    --panel: #1a1612;
+    --rule: #2a241d;
+    --rule-2: #3d3528;
+    --ink: #f4ecdc;
+    --ink-2: #c9bfa9;
+    --ink-3: #8a8270;
+    --hot: #d4623a;
+    --warm: #c89a48;
+    --cool: #5a8a8c;
+    --year: #b8693c;
+    --decade: #6a8c5a;
+    --once: #b85565;
+
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+  }
+  .cal .mono { font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace; }
+  .cal .serif { font-family: 'DM Serif Display', 'Cormorant Garamond', Georgia, serif; }
+  .cal a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule-2); text-underline-offset: 3px; }
+  .cal a:hover { text-decoration-color: var(--warm); }
+  .cal sup a { color: var(--ink-3); }
+
+  /* === MASTHEAD ============================================ */
+  .cal .masthead {
+    border-bottom: 1px solid var(--rule);
+    padding: 36px clamp(20px, 4vw, 56px) 28px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px 40px;
+    align-items: end;
+  }
+  .cal .kicker {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 14px 0;
+  }
+  .cal .kicker .pulse { color: var(--hot); }
+  .cal h1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(40px, 7.2vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .cal h1 em {
+    font-style: italic;
+    color: var(--warm);
+  }
+  .cal .deck {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 38ch;
+    border-left: 2px solid var(--warm);
+    padding-left: 14px;
+    margin: 0;
+  }
+
+  /* === CADENCE KEY (rhythm legend) ========================== */
+  .cal .key {
+    border-bottom: 1px solid var(--rule);
+    padding: 24px clamp(20px, 4vw, 56px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 18px 28px;
+    background: var(--bg-2);
+  }
+  .cal .key h3 {
+    grid-column: 1 / -1;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 4px 0;
+    font-weight: 500;
+  }
+  .cal .key-row { display: flex; flex-direction: column; gap: 8px; }
+  .cal .key-pattern {
+    height: 14px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .cal .key-pattern .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--hot); }
+  .cal .key-pattern.daily .dot { width: 4px; height: 4px; gap: 2px; }
+  .cal .key-pattern.monthly .dot { background: var(--warm); }
+  .cal .key-pattern.quarter .dot { background: var(--cool); }
+  .cal .key-pattern.year .dot { background: var(--year); width: 16px; height: 16px; }
+  .cal .key-pattern.multi {
+    background: linear-gradient(90deg, var(--decade) 0%, var(--decade) 60%, transparent 100%);
+    height: 4px;
+  }
+  .cal .key-pattern.once .marker {
+    width: 14px; height: 14px;
+    background: var(--once);
+    transform: rotate(45deg);
+  }
+  .cal .key-label { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--ink-2); letter-spacing: 0.05em; }
+  .cal .key-detail { font-size: 12px; color: var(--ink-3); }
+
+  /* === TLDR BANNER ========================================== */
+  .cal .tldr {
+    padding: 28px clamp(20px, 4vw, 56px);
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  .cal .tldr-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--hot);
+    border-top: 2px solid var(--hot);
+    padding-top: 8px;
+  }
+  .cal .tldr-body {
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink);
+    max-width: 78ch;
+  }
+  .cal .tldr-body strong { color: var(--warm); font-weight: 600; }
+
+  /* === CHRONOGRAM (the core viz) ============================ */
+  .cal .chronogram {
+    padding: 36px clamp(16px, 3vw, 40px) 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cal .chrono-head {
+    display: grid;
+    grid-template-columns: 320px 1fr 110px;
+    gap: 16px;
+    padding: 0 4px 14px;
+    border-bottom: 1px dashed var(--rule-2);
+    margin-bottom: 18px;
+    align-items: end;
+  }
+  .cal .chrono-head .col {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .cal .months {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0;
+  }
+  .cal .months .m {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    text-align: center;
+    padding-bottom: 4px;
+    border-right: 1px dotted var(--rule);
+  }
+  .cal .months .m:last-child { border-right: none; }
+
+  .cal .row {
+    display: grid;
+    grid-template-columns: 320px 1fr 110px;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cal .row:last-child { border-bottom: none; }
+  .cal .row.archetype-break {
+    background: var(--bg-2);
+    padding: 18px 4px 8px;
+    border-bottom: 1px dashed var(--rule-2);
+  }
+  .cal .arch-title {
+    grid-column: 1 / -1;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 22px;
+    color: var(--warm);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .cal .arch-title small {
+    display: block;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .cal .gift {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .cal .gift-thumb {
+    width: 56px; height: 56px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--rule-2);
+    border: 1px solid var(--rule-2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+  .cal .gift-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; display: block; }
+  .cal .gift-name {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.15;
+    color: var(--ink);
+    margin: 2px 0 4px;
+  }
+  .cal .gift-meta {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .cal .gift-meta .price { color: var(--warm); }
+
+  /* the firing track */
+  .cal .track {
+    position: relative;
+    height: 36px;
+    background: linear-gradient(to right,
+      transparent 0,
+      var(--rule) 1px,
+      transparent 1px
+    );
+    background-size: calc(100% / 12) 100%;
+    border-top: 1px dotted var(--rule);
+    border-bottom: 1px dotted var(--rule);
+  }
+  .cal .track::before, .cal .track::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+  .cal .track::before { left: 0; }
+  .cal .track::after { right: 0; }
+  .cal .fire {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--warm);
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+  .cal .fire.daily { width: 5px; height: 5px; background: var(--hot); box-shadow: none; }
+  .cal .fire.year { width: 18px; height: 18px; background: var(--year); }
+  .cal .fire.once { width: 16px; height: 16px; background: var(--once); transform: translate(-50%, -50%) rotate(45deg); border-radius: 0; }
+  .cal .fire.quarter { background: var(--cool); width: 14px; height: 14px; }
+  .cal .span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 4px;
+    background: linear-gradient(90deg, var(--decade) 0%, var(--decade) 70%, transparent 100%);
+    border-radius: 2px;
+  }
+  .cal .span.harvest::after {
+    content: "★";
+    position: absolute;
+    right: -2px; top: -10px;
+    color: var(--year);
+    font-size: 14px;
+  }
+  .cal .span-label {
+    position: absolute;
+    bottom: -2px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+  }
+
+  .cal .pulses {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* a quick rhythm summary on the right */
+  .cal .rhythm {
+    text-align: right;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--ink-2);
+  }
+  .cal .rhythm .num {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 32px;
+    color: var(--warm);
+    line-height: 1;
+    display: block;
+  }
+  .cal .rhythm .num.long { color: var(--decade); }
+  .cal .rhythm .num.once { color: var(--once); }
+  .cal .rhythm .num.quarter { color: var(--cool); }
+  .cal .rhythm .unit {
+    display: block;
+    font-size: 9px;
+    color: var(--ink-3);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  /* === ARTIFACT GALLERY (smaller chunky strip) =============== */
+  .cal .gallery {
+    padding: 36px clamp(20px, 4vw, 56px);
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+  .cal .gallery h3 {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 18px 0;
+    font-weight: 500;
+  }
+  .cal .gallery h3 .pull { color: var(--warm); margin-left: 18px; font-family: 'DM Serif Display', Georgia, serif; font-style: italic; font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+  .cal .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+  }
+  .cal .strip .tile {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--rule-2);
+  }
+  .cal .strip .tile img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: saturate(0.92) brightness(0.92);
+  }
+  .cal .strip .tile .caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 18px 12px 10px;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.85));
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+  }
+  .cal .strip .tile .caption .cad {
+    color: var(--warm);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  /* === DECISION LADDER ====================================== */
+  .cal .ladder {
+    padding: 40px clamp(20px, 4vw, 56px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .cal .ladder h3 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 28px;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .cal .ladder .ladder-deck {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin: 0 0 22px;
+  }
+  .cal .ladder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .cal .ladder-step {
+    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+    padding: 18px 20px;
+    background: var(--bg-2);
+  }
+  .cal .ladder-step:last-child { border-right: none; }
+  .cal .ladder-step .step-n {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 44px;
+    color: var(--warm);
+    line-height: 0.9;
+    margin-bottom: 8px;
+  }
+  .cal .ladder-step .step-q {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 0 0 10px;
+  }
+  .cal .ladder-step .step-a {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .cal .ladder-step .step-a strong { color: var(--warm); font-weight: 600; }
+
+  /* === WARNING BAND ========================================= */
+  .cal .warning {
+    padding: 24px clamp(20px, 4vw, 56px);
+    background: #2a1612;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 20px;
+    align-items: center;
+  }
+  .cal .warning .glyph {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 56px;
+    color: var(--once);
+    line-height: 1;
+    text-align: center;
+  }
+  .cal .warning .body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .cal .warning .body strong { color: var(--once); font-weight: 600; }
+
+  /* === COLOPHON ============================================= */
+  .cal .colophon {
+    padding: 32px clamp(20px, 4vw, 56px) 56px;
+    background: var(--bg);
+    color: var(--ink-3);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .cal .colophon h4 {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    margin: 0 0 14px;
+    color: var(--ink-2);
+  }
+  .cal .colophon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px 36px;
+  }
+  .cal .colophon a { color: var(--ink-2); }
+  .cal .colophon ul { margin: 0; padding: 0; list-style: none; }
+  .cal .colophon ul li { margin: 0 0 7px; }
+  .cal .source-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 4px 24px;
+    margin-top: 10px;
+  }
+  .cal .source-list a {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 11px;
+    color: var(--ink-3);
+    text-decoration: none;
+  }
+  .cal .source-list a:hover { color: var(--ink); }
+  .cal .source-list .n {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: var(--ink-3);
+    width: 28px; text-align: right; flex-shrink: 0;
+    border-right: 1px solid var(--rule-2);
+    padding-right: 8px;
+  }
+  .cal .source-list img { width: 14px; height: 14px; border-radius: 2px; }
+
+  @media (max-width: 820px) {
+    .cal .chrono-head, .cal .row { grid-template-columns: 200px 1fr 80px; }
+    .cal .gift { grid-template-columns: 1fr; }
+    .cal .gift-thumb { width: 100%; height: 80px; }
+    .cal .tldr { grid-template-columns: 1fr; gap: 12px; }
+    .cal .rhythm .num { font-size: 24px; }
+  }
+  @media (max-width: 600px) {
+    .cal .chrono-head, .cal .row { grid-template-columns: 1fr; }
+    .cal .row { padding: 18px 8px; }
+    .cal .track { margin: 8px 0 4px; }
+    .cal .rhythm { text-align: left; }
+    .cal .months .m:nth-child(odd) { font-size: 0; }
+    .cal h1 { font-size: 44px; }
+  }
+</style>
+
+<div class="cal">
+
+  <header class="masthead">
+    <div>
+      <p class="kicker"><span class="pulse">●</span> &nbsp; CADENCE FIRST · NICHE SECOND · A FIRING DIAGRAM</p>
+      <h1>Each gift, plotted on the year it <em>fires</em>.</h1>
+    </div>
+    <p class="deck">Twenty slow-burn gifts arranged not by category but by the rhythm at which they hit her: daily door, monthly drip, quarterly bouquet, annual payoff, multi-year hold, once-and-permanent. The pattern <em>is</em> the gift.</p>
+  </header>
+
+  <section class="key">
+    <h3>· Cadence legend ·</h3>
+    <div class="key-row">
+      <div class="key-pattern daily">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="key-label">DAILY · 24 doors</div>
+      <div class="key-detail">Advent shape — she opens one a day for a fixed window.</div>
+    </div>
+    <div class="key-row">
+      <div class="key-pattern monthly">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="key-label">MONTHLY · 12 events</div>
+      <div class="key-detail">Twelve small surprises. The default subscription shape.</div>
+    </div>
+    <div class="key-row">
+      <div class="key-pattern quarter">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="key-label">SEASONAL · 4–6 events</div>
+      <div class="key-detail">Aligned to bloom or harvest. Lower noise.</div>
+    </div>
+    <div class="key-row">
+      <div class="key-pattern year">
+        <span class="dot"></span>
+      </div>
+      <div class="key-label">ANNUAL ARC · 1 payoff</div>
+      <div class="key-detail">A year of build-up landing on a single moment.</div>
+    </div>
+    <div class="key-row">
+      <div class="key-pattern multi"></div>
+      <div class="key-label">MULTI-YEAR HOLD</div>
+      <div class="key-detail">The gift is the time itself — 10, 15, 20 years.</div>
+    </div>
+    <div class="key-row">
+      <div class="key-pattern once">
+        <span class="marker"></span>
+      </div>
+      <div class="key-label">ONCE · PERMANENT</div>
+      <div class="key-detail">A single fixed moment: a future-dated letter, an engraved stone.</div>
+    </div>
+  </section>
+
+  <section class="tldr">
+    <div class="tldr-label">DECISION</div>
+    <p class="tldr-body">Match the <strong>cadence</strong> to her relationship with novelty before you match the niche. Monthly drip suits someone who likes a small recurring surprise; an annual arc with a payoff suits someone who likes a story; a multi-year hold suits someone who likes the idea of <strong>you having thought this far ahead</strong>. The shape below is what the year looks like for each candidate.</p>
+  </section>
+
+  <section class="chronogram">
+
+    <div class="chrono-head">
+      <div class="col">· GIFT &nbsp;/&nbsp; ARCHETYPE</div>
+      <div class="months">
+        <div class="m">JAN</div><div class="m">FEB</div><div class="m">MAR</div><div class="m">APR</div><div class="m">MAY</div><div class="m">JUN</div><div class="m">JUL</div><div class="m">AUG</div><div class="m">SEP</div><div class="m">OCT</div><div class="m">NOV</div><div class="m">DEC</div>
+      </div>
+      <div class="col" style="text-align:right;">· RHYTHM ·</div>
+    </div>
+
+    <!-- ============ SENSORY / COLLECTOR ============ -->
+    <div class="row archetype-break">
+      <h3 class="arch-title">The Sensory Collector <small>· palate, nose, eye · monthly drip native</small></h3>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/olfactif.jpg" alt="Olfactif"></div>
+        <div>
+          <div class="gift-name">Olfactif niche perfume<sup><a href="https://www.olfactif.com/products/subscriptions">[6]</a></sup></div>
+          <div class="gift-meta"><span class="price">$$ · indie houses</span><br>3 fragrances/mo · women's, men's, unisex</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">parcels / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">⌥</div>
+        <div>
+          <div class="gift-name">Mushroom of the Month<sup><a href="https://themushroomcap.com/product/mushroom-of-the-month-club/">[3]</a></sup></div>
+          <div class="gift-meta"><span class="price">$15–20/mo</span><br>Fresh, dried, gourmet — 3/6/9/12-mo terms</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">flushes / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/cheesegrotto.png" alt="Cheese Grotto"></div>
+        <div>
+          <div class="gift-name">Murray's Cheese Explorers<sup><a href="https://www.murrayscheese.com/dp/cheese-explorers-club">[16]</a></sup> · Cheese Grotto<sup><a href="https://cheesegrotto.com/products/monthly-cheese-subscription">[17]</a></sup></div>
+          <div class="gift-meta"><span class="price">from $70/mo</span><br>2× ½-lb cuts hand-picked monthly</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">cuts / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">☕</div>
+        <div>
+          <div class="gift-name">Driftaway / Trade single-origin coffee<sup><a href="https://driftaway.coffee/coffee-subscription/">[32]</a></sup><sup><a href="https://www.cnn.com/cnn-underscored/reviews/best-coffee-subscription-boxes">[33]</a></sup></div>
+          <div class="gift-meta"><span class="price">$16–24/box</span><br>Tuned to her palate via taste-quiz</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">brews / yr</span></div>
+    </div>
+
+    <!-- ============ MAKER / FIBRE ============ -->
+    <div class="row archetype-break">
+      <h3 class="arch-title">The Maker <small>· materials over months · she finishes things</small></h3>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/sweetgeorgia.jpg" alt="SweetGeorgia yarn"></div>
+        <div>
+          <div class="gift-name">Indie Untangled · Where We Knit<sup><a href="https://shop.indieuntangled.com/collections/subscriptions">[18]</a></sup></div>
+          <div class="gift-meta"><span class="price">12-mo arc · indie dyer / mo</span><br>Year ends with one finished blanket she made</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+        <span class="fire year" style="left:99%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">skeins → 1 blanket</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/clothpaper.jpg" alt="Cloth & Paper"></div>
+        <div>
+          <div class="gift-name">Cloth &amp; Paper Intention Box<sup><a href="https://www.clothandpaper.com/products/the-intention-box-stationery-and-pen-subscription-month-to-month">[28]</a></sup></div>
+          <div class="gift-meta"><span class="price">monthly</span><br>7–9 stationery items + 1–2 premium pens</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">drops / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/kombucha.jpg" alt="Kombucha brewing kit"></div>
+        <div>
+          <div class="gift-name">Kombucha Shop SCOBY kit<sup><a href="https://www.thekombuchashop.com/products/kombucha-brewing-kit">[24]</a></sup></div>
+          <div class="gift-meta"><span class="price">one-time gift, ongoing ritual</span><br>SCOBY shelf-stable 1 yr · 1-gallon brews q.1–3 wks</div>
+        </div>
+      </div>
+      <div class="track">
+        <!-- weekly to fortnightly cadence rendered as dense dots -->
+        <span class="fire daily" style="left:3%"></span><span class="fire daily" style="left:6%"></span><span class="fire daily" style="left:9%"></span><span class="fire daily" style="left:12%"></span>
+        <span class="fire daily" style="left:15%"></span><span class="fire daily" style="left:18%"></span><span class="fire daily" style="left:21%"></span><span class="fire daily" style="left:24%"></span>
+        <span class="fire daily" style="left:27%"></span><span class="fire daily" style="left:30%"></span><span class="fire daily" style="left:33%"></span><span class="fire daily" style="left:36%"></span>
+        <span class="fire daily" style="left:39%"></span><span class="fire daily" style="left:42%"></span><span class="fire daily" style="left:45%"></span><span class="fire daily" style="left:48%"></span>
+        <span class="fire daily" style="left:51%"></span><span class="fire daily" style="left:54%"></span><span class="fire daily" style="left:57%"></span><span class="fire daily" style="left:60%"></span>
+        <span class="fire daily" style="left:63%"></span><span class="fire daily" style="left:66%"></span><span class="fire daily" style="left:69%"></span><span class="fire daily" style="left:72%"></span>
+        <span class="fire daily" style="left:75%"></span><span class="fire daily" style="left:78%"></span><span class="fire daily" style="left:81%"></span><span class="fire daily" style="left:84%"></span>
+        <span class="fire daily" style="left:87%"></span><span class="fire daily" style="left:90%"></span><span class="fire daily" style="left:93%"></span><span class="fire daily" style="left:96%"></span>
+      </div>
+      <div class="rhythm"><span class="num">~32</span><span class="unit">brews / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/fatfox.jpg" alt="Live mushroom kit"></div>
+        <div>
+          <div class="gift-name">Midnight Mushroom live farm kit<sup><a href="https://midnightmushroomco.com/pages/mushroom-farm-kit-monthly-subscription">[5]</a></sup></div>
+          <div class="gift-meta"><span class="price">monthly</span><br>Different live ready-to-fruit kit each month</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">flushes / yr</span></div>
+    </div>
+
+    <!-- ============ NARRATIVE ============ -->
+    <div class="row archetype-break">
+      <h3 class="arch-title">The Storyteller <small>· build → land · annual-arc native</small></h3>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">✎</div>
+        <div>
+          <div class="gift-name">StoryWorth memoir<sup><a href="https://welcome.storyworth.com/">[8]</a></sup><sup><a href="https://welcome.storyworth.com/storyworth-pricing">[9]</a></sup></div>
+          <div class="gift-meta"><span class="price">$59 B&amp;W / $109 colour</span><br>52 weekly prompts → bound hardcover at year-end</div>
+        </div>
+      </div>
+      <div class="track">
+        <!-- 52 weekly prompts with one BIG payoff at end -->
+        <span class="fire daily" style="left:2%"></span><span class="fire daily" style="left:4%"></span><span class="fire daily" style="left:6%"></span><span class="fire daily" style="left:8%"></span>
+        <span class="fire daily" style="left:10%"></span><span class="fire daily" style="left:12%"></span><span class="fire daily" style="left:14%"></span><span class="fire daily" style="left:16%"></span>
+        <span class="fire daily" style="left:18%"></span><span class="fire daily" style="left:20%"></span><span class="fire daily" style="left:22%"></span><span class="fire daily" style="left:24%"></span>
+        <span class="fire daily" style="left:26%"></span><span class="fire daily" style="left:28%"></span><span class="fire daily" style="left:30%"></span><span class="fire daily" style="left:32%"></span>
+        <span class="fire daily" style="left:34%"></span><span class="fire daily" style="left:36%"></span><span class="fire daily" style="left:38%"></span><span class="fire daily" style="left:40%"></span>
+        <span class="fire daily" style="left:42%"></span><span class="fire daily" style="left:44%"></span><span class="fire daily" style="left:46%"></span><span class="fire daily" style="left:48%"></span>
+        <span class="fire daily" style="left:50%"></span><span class="fire daily" style="left:52%"></span><span class="fire daily" style="left:54%"></span><span class="fire daily" style="left:56%"></span>
+        <span class="fire daily" style="left:58%"></span><span class="fire daily" style="left:60%"></span><span class="fire daily" style="left:62%"></span><span class="fire daily" style="left:64%"></span>
+        <span class="fire daily" style="left:66%"></span><span class="fire daily" style="left:68%"></span><span class="fire daily" style="left:70%"></span><span class="fire daily" style="left:72%"></span>
+        <span class="fire daily" style="left:74%"></span><span class="fire daily" style="left:76%"></span><span class="fire daily" style="left:78%"></span><span class="fire daily" style="left:80%"></span>
+        <span class="fire daily" style="left:82%"></span><span class="fire daily" style="left:84%"></span><span class="fire daily" style="left:86%"></span><span class="fire daily" style="left:88%"></span>
+        <span class="fire daily" style="left:90%"></span><span class="fire daily" style="left:92%"></span>
+        <span class="fire year" style="left:97%"></span>
+      </div>
+      <div class="rhythm"><span class="num">52</span><span class="unit">prompts → ★ book</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">⊠</div>
+        <div>
+          <div class="gift-name">Hunt A Killer · 6-episode arc<sup><a href="https://www.amazon.com/Hunt-Killer-Immersive-Subscription-Experience/dp/B07S63NKNB">[30]</a></sup></div>
+          <div class="gift-meta"><span class="price">$30/mo or $165 prepaid</span><br>6 mo · evidence accumulates · she names the killer<br><span style="color:var(--once)">⚠ check fulfillment<sup><a href="https://www.trustpilot.com/review/huntakiller.com">[31]</a></sup></span></div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:8.33%"></span>
+        <span class="fire monthly" style="left:16.66%"></span>
+        <span class="fire monthly" style="left:25%"></span>
+        <span class="fire monthly" style="left:33.33%"></span>
+        <span class="fire monthly" style="left:41.66%"></span>
+        <span class="fire year" style="left:50%"></span>
+        <span class="span-label" style="left:8.33%; bottom: -14px;">Mo 1</span>
+        <span class="span-label" style="left:50%; bottom: -14px; transform: translateX(-50%);">★ reveal</span>
+      </div>
+      <div class="rhythm"><span class="num">6</span><span class="unit">months → ★ reveal</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">📖</div>
+        <div>
+          <div class="gift-name">Literati Insisto indie paperbacks<sup><a href="https://literatibookstore.com/literati-insisto-indie-paperback-subscription">[36]</a></sup></div>
+          <div class="gift-meta"><span class="price">$16–19/mo</span><br>Curator-picked from small US presses</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">books / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">∞</div>
+        <div>
+          <div class="gift-name">FutureMe / Letter to Yourself<sup><a href="https://www.futureme.org/">[14]</a></sup><sup><a href="https://lettertoyourself.com/">[15]</a></sup></div>
+          <div class="gift-meta"><span class="price">one-time write</span><br>Email or physical letter dated 1mo–10yr ahead</div>
+        </div>
+      </div>
+      <div class="track">
+        <!-- single deferred fire near end -->
+        <span class="fire once" style="left:88%"></span>
+        <span class="span-label" style="left:88%; bottom: -14px; transform: translateX(-50%);">… some future date</span>
+      </div>
+      <div class="rhythm"><span class="num once">1</span><span class="unit">deferred moment</span></div>
+    </div>
+
+    <!-- ============ NATURALIST ============ -->
+    <div class="row archetype-break">
+      <h3 class="arch-title">The Naturalist <small>· something living, on a multi-year clock</small></h3>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/vine.jpg" alt="Adopt-a-vine"></div>
+        <div>
+          <div class="gift-name">Adopt-a-Vine · Provence / UK<sup><a href="https://pourrada.com/product/one-year-adopt-a-vine-subscription/">[20]</a></sup><sup><a href="https://www.hencote.com/shropshire-vineyard/adopt-a-vine/">[21]</a></sup></div>
+          <div class="gift-meta"><span class="price">£65–£250</span><br>12-mo arc → harvest invitation + bottle</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%; opacity:0.55"></span>
+        <span class="fire monthly" style="left:20.83%; opacity:0.55"></span>
+        <span class="fire monthly" style="left:37.5%; opacity:0.55"></span>
+        <span class="fire monthly" style="left:54.16%; opacity:0.55"></span>
+        <span class="fire year" style="left:75%"></span>
+        <span class="span-label" style="left:75%; bottom: -14px; transform: translateX(-50%);">★ harvest invite</span>
+      </div>
+      <div class="rhythm"><span class="num">1</span><span class="unit">harvest moment</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/centralpark.jpg" alt="Tree adoption"></div>
+        <div>
+          <div class="gift-name">Tree adoption — three flavours<sup><a href="https://www.treesforachange.com/">[10]</a></sup><sup><a href="https://adopt-a-tree.net/">[11]</a></sup><sup><a href="https://mytreehood.com/adopt-a-tree-gift">[12]</a></sup><sup><a href="https://www.centralparknyc.org/giving/adopt-a-tree">[13]</a></sup></div>
+          <div class="gift-meta"><span class="price">$30 – $300+</span><br>US national-forest plant · Hawaii Koa with GPS · 10/15/20-yr harvest · Central Park stone</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="span" style="left:0%; right:-2%; background: linear-gradient(90deg, var(--decade) 0%, var(--decade) 95%, transparent 100%);"></span>
+        <span class="span-label" style="left:0%; bottom: -14px;">↓ planted</span>
+        <span class="span-label" style="right:0%; bottom: -14px;">+10–20 yrs →</span>
+      </div>
+      <div class="rhythm"><span class="num long">10–20</span><span class="unit">years of growth</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/flowercsa.webp" alt="Flower CSA"></div>
+        <div>
+          <div class="gift-name">Flower CSA — May→Sep<sup><a href="https://www.brightmoorflowerfarm.com/store/p/seasonal-monthly-bouquet-subscription">[34]</a></sup></div>
+          <div class="gift-meta"><span class="price">$150–300/share</span><br>Tulip share May · peonies Jun · 2 bouquets/mo through Sep</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire quarter" style="left:37.5%"></span>
+        <span class="fire quarter" style="left:45.83%"></span>
+        <span class="fire quarter" style="left:54.16%"></span>
+        <span class="fire quarter" style="left:62.5%"></span>
+        <span class="fire quarter" style="left:70.83%"></span>
+        <span class="span-label" style="left:37.5%; bottom: -14px; transform: translateX(-50%);">tulips</span>
+        <span class="span-label" style="left:46%; bottom: -14px; transform: translateX(-50%);">peonies</span>
+      </div>
+      <div class="rhythm"><span class="num quarter">5</span><span class="unit">summer bouquets</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">▾</div>
+        <div>
+          <div class="gift-name">Whisky barrel · age-your-own<sup><a href="https://www.tetondistillery.com/gifts/age-your-own-whiskey-barrel">[22]</a></sup><sup><a href="https://www.uncommongoods.com/product/personalized-whiskey-barrel">[23]</a></sup></div>
+          <div class="gift-meta"><span class="price">$60–200</span><br>Personalised charred-oak cask · weeks-to-months</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="span" style="left:5%; width: 35%; background: linear-gradient(90deg, var(--year), var(--year) 80%, transparent);"></span>
+        <span class="fire year" style="left:40%"></span>
+        <span class="span-label" style="left:5%; bottom: -14px;">↓ start</span>
+        <span class="span-label" style="left:40%; bottom: -14px; transform: translateX(-50%);">★ first pour</span>
+      </div>
+      <div class="rhythm"><span class="num">1</span><span class="unit">aged pour</span></div>
+    </div>
+
+    <!-- ============ CURIOSITY ============ -->
+    <div class="row archetype-break">
+      <h3 class="arch-title">The Curious <small>· access to oddness · long-tail interests</small></h3>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">★</div>
+        <div>
+          <div class="gift-name">Atlas Obscura membership<sup><a href="https://www.atlasobscura.com/articles/atlas-obscura-membership">[35]</a></sup></div>
+          <div class="gift-meta"><span class="price">annual</span><br>Member events · live talks · $100 trip credit</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire daily" style="left:6%"></span>
+        <span class="fire daily" style="left:14%"></span>
+        <span class="fire daily" style="left:22%"></span>
+        <span class="fire daily" style="left:30%"></span>
+        <span class="fire daily" style="left:38%"></span>
+        <span class="fire daily" style="left:46%"></span>
+        <span class="fire daily" style="left:54%"></span>
+        <span class="fire daily" style="left:62%"></span>
+        <span class="fire daily" style="left:70%"></span>
+        <span class="fire daily" style="left:78%"></span>
+        <span class="fire daily" style="left:86%"></span>
+        <span class="fire daily" style="left:94%"></span>
+      </div>
+      <div class="rhythm"><span class="num">~12+</span><span class="unit">talks &amp; events</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">⌬</div>
+        <div>
+          <div class="gift-name">Cryptid Crate · Murder &amp; Co · Zine-o-Matic<sup><a href="https://www.cratejoy.com/blogs/box-insider/unique-monthly-subscription-boxes">[37]</a></sup></div>
+          <div class="gift-meta"><span class="price">$30–45/mo</span><br>Cryptozoology · puzzles · indie zines from a US city</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">crates / yr</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">☃</div>
+        <div>
+          <div class="gift-name">Tea / hot-sauce / candle advent<sup><a href="https://www.amazon.com/VAHDAM-Advent-Calendar-Limited-Folding/dp/B0C8ST8KVL">[25]</a></sup><sup><a href="https://www.uncommongoods.com/holiday/advent-calendars/advent-calendars">[26]</a></sup></div>
+          <div class="gift-meta"><span class="price">$30–200</span><br>VAHDAM 24 loose-leaf doors · Dec-anchored only</div>
+        </div>
+      </div>
+      <div class="track">
+        <!-- 24 doors crammed into December (last 8% or so) -->
+        <span class="fire daily" style="left:91%"></span><span class="fire daily" style="left:91.4%"></span><span class="fire daily" style="left:91.8%"></span>
+        <span class="fire daily" style="left:92.2%"></span><span class="fire daily" style="left:92.6%"></span><span class="fire daily" style="left:93%"></span>
+        <span class="fire daily" style="left:93.4%"></span><span class="fire daily" style="left:93.8%"></span><span class="fire daily" style="left:94.2%"></span>
+        <span class="fire daily" style="left:94.6%"></span><span class="fire daily" style="left:95%"></span><span class="fire daily" style="left:95.4%"></span>
+        <span class="fire daily" style="left:95.8%"></span><span class="fire daily" style="left:96.2%"></span><span class="fire daily" style="left:96.6%"></span>
+        <span class="fire daily" style="left:97%"></span><span class="fire daily" style="left:97.4%"></span><span class="fire daily" style="left:97.8%"></span>
+        <span class="fire daily" style="left:98.2%"></span><span class="fire daily" style="left:98.6%"></span><span class="fire daily" style="left:99%"></span>
+        <span class="fire daily" style="left:99.4%"></span><span class="fire daily" style="left:99.6%"></span><span class="fire daily" style="left:99.8%"></span>
+        <span class="span-label" style="left:91%; bottom: -14px;">Dec 1 → 24</span>
+      </div>
+      <div class="rhythm"><span class="num">24</span><span class="unit">doors · 1 month</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb"><img src="calendar/images/penpal.jpg" alt="Pen pal kit"></div>
+        <div>
+          <div class="gift-name">Monthly Pen Pal Kit<sup><a href="https://www.cratejoy.com/products/monthly-pen-pal-kit-talesfromlanternlighthollow">[29]</a></sup></div>
+          <div class="gift-meta"><span class="price">monthly</span><br>Ephemera · wax seals · dried flowers · stationery</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="fire monthly" style="left:4.16%"></span>
+        <span class="fire monthly" style="left:12.5%"></span>
+        <span class="fire monthly" style="left:20.83%"></span>
+        <span class="fire monthly" style="left:29.16%"></span>
+        <span class="fire monthly" style="left:37.5%"></span>
+        <span class="fire monthly" style="left:45.83%"></span>
+        <span class="fire monthly" style="left:54.16%"></span>
+        <span class="fire monthly" style="left:62.5%"></span>
+        <span class="fire monthly" style="left:70.83%"></span>
+        <span class="fire monthly" style="left:79.16%"></span>
+        <span class="fire monthly" style="left:87.5%"></span>
+        <span class="fire monthly" style="left:95.83%"></span>
+      </div>
+      <div class="rhythm"><span class="num">12</span><span class="unit">letters out</span></div>
+    </div>
+
+    <div class="row">
+      <div class="gift">
+        <div class="gift-thumb">▢</div>
+        <div>
+          <div class="gift-name">MasterClass annual<sup><a href="https://hellosubscription.com/2026/01/masterclass-give-the-gift-of-lifelong-skills-and-knowledge/">[27]</a></sup></div>
+          <div class="gift-meta"><span class="price">annual</span><br>200+ tracks · 10-min units for ambient watching</div>
+        </div>
+      </div>
+      <div class="track">
+        <span class="span" style="left:2%; right: 2%; background: linear-gradient(90deg, var(--cool), var(--cool) 92%, transparent);"></span>
+        <span class="span-label" style="left:2%; bottom: -14px;">↔ ambient access · all year</span>
+      </div>
+      <div class="rhythm"><span class="num quarter">365</span><span class="unit">days of access</span></div>
+    </div>
+
+  </section>
+
+  <section class="gallery">
+    <h3>· Image references · <span class="pull">(yes, these are the actual products — pulled from each vendor's site)</span></h3>
+    <div class="strip">
+      <div class="tile">
+        <img src="calendar/images/olfactif.jpg" alt="Olfactif niche perfume">
+        <div class="caption"><span class="cad">monthly · 12×</span>Olfactif decants</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/cheesegrotto.png" alt="Cheese Grotto monthly box">
+        <div class="caption"><span class="cad">monthly · 12×</span>Cheese Grotto</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/sweetgeorgia.jpg" alt="SweetGeorgia yarn club">
+        <div class="caption"><span class="cad">12 → 1 blanket</span>Yarn club</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/clothpaper.jpg" alt="Cloth and Paper Intention Box">
+        <div class="caption"><span class="cad">monthly · 12×</span>Intention Box</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/kombucha.jpg" alt="Kombucha brewing kit">
+        <div class="caption"><span class="cad">~32× / yr</span>SCOBY kit</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/fatfox.jpg" alt="Mushroom box">
+        <div class="caption"><span class="cad">monthly · 12×</span>Mushroom kit</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/vine.jpg" alt="Adopt a vine">
+        <div class="caption"><span class="cad">12 → ★ harvest</span>Adopt-a-vine</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/centralpark.jpg" alt="Tree adoption">
+        <div class="caption"><span class="cad">10–20 yrs →</span>Adopt-a-Tree</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/flowercsa.webp" alt="Flower CSA">
+        <div class="caption"><span class="cad">5 summer fires</span>Flower CSA</div>
+      </div>
+      <div class="tile">
+        <img src="calendar/images/penpal.jpg" alt="Monthly pen pal kit">
+        <div class="caption"><span class="cad">monthly · 12×</span>Pen Pal Kit</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ladder">
+    <h3>Pick the rhythm <em style="font-style:italic;color:var(--ink-3)">first</em>.</h3>
+    <p class="ladder-deck">Behavioural research finds joy compounds across anticipation, the moment, and the memory<sup><a href="https://greatergood.berkeley.edu/article/item/how_psychology_can_help_you_choose_a_great_gift">[1]</a></sup><sup><a href="https://www.udel.edu/udaily/2025/december/amit-kumar-holiday-gift-research/">[2]</a></sup>. Pick the cadence that matches how she experiences time. Then the niche.</p>
+
+    <div class="ladder-grid">
+      <div class="ladder-step">
+        <div class="step-n">①</div>
+        <p class="step-q">Does she want a <strong>small recurring surprise</strong>?</p>
+        <p class="step-a">Monthly drip — Olfactif, Driftaway, Cryptid Crate, mushroom kit. <strong>12 events / year.</strong></p>
+      </div>
+      <div class="ladder-step">
+        <div class="step-n">②</div>
+        <p class="step-q">Does she want <strong>one emotional payoff</strong>?</p>
+        <p class="step-a">Annual arc — StoryWorth memoir, Hunt A Killer reveal, harvest at her vine. <strong>Build, then land.</strong></p>
+      </div>
+      <div class="ladder-step">
+        <div class="step-n">③</div>
+        <p class="step-q">Does she like the idea of <strong>you having thought this far ahead</strong>?</p>
+        <p class="step-a">Multi-year hold — adopted tree, aged whisky, FutureMe letter on her 40th. <strong>Time IS the gift.</strong></p>
+      </div>
+      <div class="ladder-step">
+        <div class="step-n">④</div>
+        <p class="step-q">Anchored to <strong>December</strong>?</p>
+        <p class="step-a">Niche advent — VAHDAM tea, hot-sauce, candles. Only if her birthday lives near the calendar's tail.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="warning">
+    <div class="glyph">✕</div>
+    <div class="body"><strong>Skip:</strong> commercial "name a star" registries are <em>symbolic only</em> — the IAU explicitly states they have no scientific or official validity, and the name will never appear in any astronomical record<sup><a href="https://iauarchive.eso.org/public/themes/buying_star_names/">[38]</a></sup>. Fine if you frame it as a metaphor she'll see through anyway, bad if you let her think the star is "really" hers.</div>
+  </section>
+
+  <section class="colophon">
+    <div class="colophon-grid">
+      <div>
+        <h4>Read the rest of the brief</h4>
+        <ul>
+          <li><a href="../">Time-extended gifts (the canonical)</a></li>
+          <li><a href="../../">↑ Gift-brief expedition</a></li>
+          <li><a href="../../belgian-eu-artisan-studios-for-one-off-objects/">Belgian / EU artisan studios</a></li>
+          <li><a href="../../private-access-experiences-reachable-from-ghent-in-a-day/">Private-access experiences from Ghent</a></li>
+          <li><a href="../../made-by-her-workshops-where-the-artefact-goes-home-with-her-that-night/">Made-by-her workshops</a></li>
+          <li><a href="../../personalised-published-artefacts-that-aren-t-trinkets/">Personalised published artefacts</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Method</h4>
+        <p style="margin:0;">Each row plots how often the gift fires across one calendar year. Cadence colour-coded: <span style="color:var(--hot)">●</span> dense / weekly · <span style="color:var(--warm)">●</span> monthly · <span style="color:var(--cool)">●</span> seasonal · <span style="color:var(--year)">●</span> annual payoff · <span style="color:var(--decade)">━</span> multi-year hold · <span style="color:var(--once)">◆</span> once / permanent. The pattern is the answer before you read the prose.</p>
+      </div>
+      <div>
+        <h4>Citations · 39 sources</h4>
+        <div class="source-list">
+          <a href="https://greatergood.berkeley.edu/article/item/how_psychology_can_help_you_choose_a_great_gift"><span class="n">1</span><img src="https://www.google.com/s2/favicons?domain=greatergood.berkeley.edu&sz=128">Greater Good · gift psychology</a>
+          <a href="https://www.udel.edu/udaily/2025/december/amit-kumar-holiday-gift-research/"><span class="n">2</span><img src="https://www.google.com/s2/favicons?domain=udel.edu&sz=128">UDaily · Amit Kumar</a>
+          <a href="https://themushroomcap.com/product/mushroom-of-the-month-club/"><span class="n">3</span><img src="https://www.google.com/s2/favicons?domain=themushroomcap.com&sz=128">Mushroom of the Month</a>
+          <a href="https://www.fatfoxmushrooms.com/product-page/year-long-gift-mystery-mushroom-box-subscription"><span class="n">4</span><img src="https://www.google.com/s2/favicons?domain=fatfoxmushrooms.com&sz=128">Fat Fox · year mystery</a>
+          <a href="https://midnightmushroomco.com/pages/mushroom-farm-kit-monthly-subscription"><span class="n">5</span><img src="https://www.google.com/s2/favicons?domain=midnightmushroomco.com&sz=128">Midnight Mushroom · live kit</a>
+          <a href="https://www.olfactif.com/products/subscriptions"><span class="n">6</span><img src="https://www.google.com/s2/favicons?domain=olfactif.com&sz=128">Olfactif · niche perfume</a>
+          <a href="https://ajevie.com/"><span class="n">7</span><img src="https://www.google.com/s2/favicons?domain=ajevie.com&sz=128">Ajevie · indie decants</a>
+          <a href="https://welcome.storyworth.com/"><span class="n">8</span><img src="https://www.google.com/s2/favicons?domain=storyworth.com&sz=128">StoryWorth</a>
+          <a href="https://welcome.storyworth.com/storyworth-pricing"><span class="n">9</span><img src="https://www.google.com/s2/favicons?domain=storyworth.com&sz=128">StoryWorth · pricing</a>
+          <a href="https://www.treesforachange.com/"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=treesforachange.com&sz=128">Trees for a Change</a>
+          <a href="https://adopt-a-tree.net/"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=adopt-a-tree.net&sz=128">Adopt-a-Tree Hawaii</a>
+          <a href="https://mytreehood.com/adopt-a-tree-gift"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=mytreehood.com&sz=128">MyTreeHood · 10–20 yr</a>
+          <a href="https://www.centralparknyc.org/giving/adopt-a-tree"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=centralparknyc.org&sz=128">Central Park · Adopt-a-Tree</a>
+          <a href="https://www.futureme.org/"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=futureme.org&sz=128">FutureMe</a>
+          <a href="https://lettertoyourself.com/"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=lettertoyourself.com&sz=128">LetterToYourself</a>
+          <a href="https://www.murrayscheese.com/dp/cheese-explorers-club"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=murrayscheese.com&sz=128">Murray's Cheese</a>
+          <a href="https://cheesegrotto.com/products/monthly-cheese-subscription"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=cheesegrotto.com&sz=128">Cheese Grotto</a>
+          <a href="https://shop.indieuntangled.com/collections/subscriptions"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=indieuntangled.com&sz=128">Indie Untangled · Blanket</a>
+          <a href="https://shop.sweetgeorgiayarns.com/products/secret-stash-club"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=sweetgeorgiayarns.com&sz=128">SweetGeorgia · stash</a>
+          <a href="https://pourrada.com/product/one-year-adopt-a-vine-subscription/"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=pourrada.com&sz=128">Le Pourrada · vine</a>
+          <a href="https://www.hencote.com/shropshire-vineyard/adopt-a-vine/"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=hencote.com&sz=128">Hencote · vine</a>
+          <a href="https://www.tetondistillery.com/gifts/age-your-own-whiskey-barrel"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=tetondistillery.com&sz=128">Grand Teton · barrel</a>
+          <a href="https://www.uncommongoods.com/product/personalized-whiskey-barrel"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=uncommongoods.com&sz=128">Uncommon Goods · barrel</a>
+          <a href="https://www.thekombuchashop.com/products/kombucha-brewing-kit"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=thekombuchashop.com&sz=128">Kombucha Shop · kit</a>
+          <a href="https://www.amazon.com/VAHDAM-Advent-Calendar-Limited-Folding/dp/B0C8ST8KVL"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=amazon.com&sz=128">VAHDAM · advent</a>
+          <a href="https://www.uncommongoods.com/holiday/advent-calendars/advent-calendars"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=uncommongoods.com&sz=128">Uncommon · advent</a>
+          <a href="https://hellosubscription.com/2026/01/masterclass-give-the-gift-of-lifelong-skills-and-knowledge/"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=hellosubscription.com&sz=128">MasterClass annual</a>
+          <a href="https://www.clothandpaper.com/products/the-intention-box-stationery-and-pen-subscription-month-to-month"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=clothandpaper.com&sz=128">Cloth &amp; Paper</a>
+          <a href="https://www.cratejoy.com/products/monthly-pen-pal-kit-talesfromlanternlighthollow"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=cratejoy.com&sz=128">Pen Pal Kit</a>
+          <a href="https://www.amazon.com/Hunt-Killer-Immersive-Subscription-Experience/dp/B07S63NKNB"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=amazon.com&sz=128">Hunt A Killer</a>
+          <a href="https://www.trustpilot.com/review/huntakiller.com"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=trustpilot.com&sz=128">Trustpilot · HAK</a>
+          <a href="https://driftaway.coffee/coffee-subscription/"><span class="n">32</span><img src="https://www.google.com/s2/favicons?domain=driftaway.coffee&sz=128">Driftaway Coffee</a>
+          <a href="https://www.cnn.com/cnn-underscored/reviews/best-coffee-subscription-boxes"><span class="n">33</span><img src="https://www.google.com/s2/favicons?domain=cnn.com&sz=128">CNN · coffee subs</a>
+          <a href="https://www.brightmoorflowerfarm.com/store/p/seasonal-monthly-bouquet-subscription"><span class="n">34</span><img src="https://www.google.com/s2/favicons?domain=brightmoorflowerfarm.com&sz=128">Brightmoor · CSA</a>
+          <a href="https://www.atlasobscura.com/articles/atlas-obscura-membership"><span class="n">35</span><img src="https://www.google.com/s2/favicons?domain=atlasobscura.com&sz=128">Atlas Obscura</a>
+          <a href="https://literatibookstore.com/literati-insisto-indie-paperback-subscription"><span class="n">36</span><img src="https://www.google.com/s2/favicons?domain=literatibookstore.com&sz=128">Literati · Insisto</a>
+          <a href="https://www.cratejoy.com/blogs/box-insider/unique-monthly-subscription-boxes"><span class="n">37</span><img src="https://www.google.com/s2/favicons?domain=cratejoy.com&sz=128">Cratejoy · niche</a>
+          <a href="https://iauarchive.eso.org/public/themes/buying_star_names/"><span class="n">38</span><img src="https://www.google.com/s2/favicons?domain=eso.org&sz=128">IAU · buying star names</a>
+          <a href="https://www.cratejoy.com/blogs/box-insider/odd-unique-gifts-guide"><span class="n">39</span><img src="https://www.google.com/s2/favicons?domain=cratejoy.com&sz=128">Cratejoy · quirky</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
