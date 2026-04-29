@@ -1,0 +1,873 @@
+---
+layout: view
+view_name: "Shortlist"
+view_of: ../
+title: "Hardware platform shortlist for an always-on box in 2026 — Shortlist"
+---
+
+<style>
+  /* === LAB BENCH register =========================================
+     Engineer's spec sheet. Measurement-first. Bars, cells, swatches.
+     Cool blueprint paper + amber accents on the wattage axis.
+     ============================================================== */
+  *{box-sizing:border-box}
+  :root{
+    --paper:#f1ece1;
+    --paper-2:#e8e2d3;
+    --rule:#1d2733;
+    --rule-2:#aea892;
+    --ink:#1a232f;
+    --ink-2:#3d4a5b;
+    --dim:#6e7888;
+    --hot:#d35427;       /* idle watts amber-red */
+    --warm:#e89635;
+    --mild:#c9a437;
+    --cool:#3d8260;      /* good / pass */
+    --steel:#274764;     /* steel blue accent */
+    --steel-2:#3a648d;
+    --bad:#a93535;
+    --crt:#fdfbf3;
+    --shadow:0 1px 0 rgba(0,0,0,.04), 0 12px 28px -18px rgba(20,30,45,.35);
+  }
+  .lb{font-family:"Inter","Helvetica Neue",sans-serif;color:var(--ink);background:var(--paper);
+       /* faint blueprint grid */
+       background-image:
+         linear-gradient(rgba(39,71,100,.05) 1px, transparent 1px),
+         linear-gradient(90deg, rgba(39,71,100,.05) 1px, transparent 1px);
+       background-size:24px 24px;
+       padding:0;margin:0;font-size:14px;line-height:1.5;}
+  .lb .mono{font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;}
+  .lb a{color:var(--steel);text-decoration:none;border-bottom:1px solid rgba(39,71,100,.25);}
+  .lb a:hover{color:var(--hot);border-color:var(--hot);}
+  .lb sup a{border:0;}
+
+  /* ----- Spec-sheet header ------------------------------------ */
+  .sheet-head{padding:36px 44px 18px;border-bottom:2px solid var(--rule);
+    background:linear-gradient(180deg,var(--crt) 0%, var(--paper) 100%);}
+  .sheet-tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);}
+  .sheet-tag b{background:var(--rule);color:var(--crt);padding:2px 8px;border-radius:2px;letter-spacing:.16em;}
+  .sheet-head h1{font-family:"IBM Plex Serif","Source Serif Pro",Georgia,serif;
+                  font-weight:600;font-size:46px;line-height:1.05;letter-spacing:-0.015em;
+                  margin:14px 0 4px;max-width:18ch;}
+  .sheet-head .deck{color:var(--ink-2);max-width:64ch;font-size:15px;line-height:1.55;margin-top:6px;}
+  .sheet-head .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;
+                       font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);}
+  .sheet-head .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .sheet-head .legend .sw{width:14px;height:14px;border:1px solid var(--rule-2);}
+
+  /* ----- Idle-wattage strip — the centrepiece ----------------- */
+  .watt-strip{padding:36px 44px;border-bottom:2px solid var(--rule);background:var(--paper);}
+  .watt-strip .axis-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;
+                            text-transform:uppercase;color:var(--steel);margin-bottom:6px;}
+  .watt-strip h2{font-family:"IBM Plex Serif",serif;font-weight:600;font-size:26px;margin:0 0 8px;}
+  .watt-strip .caption{color:var(--ink-2);max-width:62ch;margin-bottom:24px;}
+  .watt-strip .caption b{color:var(--ink);}
+  .watt-strip .scale{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;
+                       font-size:10px;color:var(--dim);margin:0 0 6px;padding:0 4px;}
+  .watt-strip .ruler{height:1px;background:var(--rule-2);margin-bottom:14px;
+                       background-image:repeating-linear-gradient(90deg,var(--rule-2) 0 1px,transparent 1px 12.5%);
+                       background-size:100% 1px;}
+  .watt-row{display:grid;grid-template-columns:240px 1fr 70px;gap:14px;align-items:center;
+              padding:7px 0;border-bottom:1px dashed rgba(174,168,146,0.55);}
+  .watt-row .name{font-size:13px;color:var(--ink);}
+  .watt-row .name small{display:block;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);
+                         letter-spacing:.08em;text-transform:uppercase;margin-top:1px;}
+  .watt-row .bar{position:relative;height:20px;background:linear-gradient(90deg,var(--paper-2) 0%, var(--paper-2) 100%);border:1px solid var(--rule-2);}
+  .watt-row .bar .fill{position:absolute;left:0;top:0;bottom:0;
+        background:linear-gradient(90deg,#3d8260 0%, #c9a437 35%, #e89635 65%, #d35427 100%);}
+  .watt-row .bar .tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(20,30,45,.16);}
+  .watt-row .num{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink);text-align:right;font-weight:700;}
+  .watt-row.hero .name{font-weight:700;}
+  .watt-row.hero{background:rgba(232,150,53,.06);}
+
+  /* ----- Verdict bar ------------------------------------------ */
+  .verdict{padding:30px 44px;background:var(--rule);color:var(--crt);
+            display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:center;}
+  .verdict .stamp{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;
+                   text-transform:uppercase;border:1.5px solid var(--crt);padding:6px 14px;
+                   transform:rotate(-2deg);align-self:start;color:var(--crt);}
+  .verdict .copy{font-family:"IBM Plex Serif",serif;font-size:22px;line-height:1.4;}
+  .verdict .copy b{color:var(--warm);}
+  .verdict a{color:var(--warm);border-color:rgba(232,150,53,.4);}
+  .verdict a:hover{color:var(--crt);border-color:var(--crt);}
+
+  /* ----- Bench cards ------------------------------------------ */
+  .bench{padding:42px 44px 28px;}
+  .bench-title{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:20px;}
+  .bench-title h2{font-family:"IBM Plex Serif",serif;font-size:26px;margin:0;font-weight:600;}
+  .bench-title .meta{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);
+                       letter-spacing:.16em;text-transform:uppercase;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px;}
+  .card{background:var(--crt);border:1.5px solid var(--rule);box-shadow:var(--shadow);
+         display:flex;flex-direction:column;position:relative;}
+  .card .photo{aspect-ratio:5/3;background:#fff;border-bottom:1.5px solid var(--rule);
+                display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .card .photo img{width:100%;height:100%;object-fit:contain;background:#fff;}
+  .card .photo.fallback{background:linear-gradient(135deg,#2a3a4d 0%, #486277 100%);color:var(--crt);
+        font-family:"IBM Plex Serif",serif;font-weight:600;font-size:24px;letter-spacing:-0.01em;
+        text-align:center;padding:0 22px;line-height:1.2;
+        background-image:
+          linear-gradient(135deg,#2a3a4d 0%, #486277 100%),
+          repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 8px, transparent 8px 16px);}
+  .card .photo.fallback.amber{background:linear-gradient(135deg,#7a4a1d 0%, #c47a30 100%);}
+  .card .photo.fallback.steel{background:linear-gradient(135deg,#1f3344 0%, #3a648d 100%);}
+  .card .photo.fallback.olive{background:linear-gradient(135deg,#3d4a25 0%, #6e7c3c 100%);}
+  .card .photo.fallback.brick{background:linear-gradient(135deg,#552a25 0%, #a04a40 100%);}
+  .card .pn{position:absolute;top:12px;right:12px;font-family:"JetBrains Mono",monospace;font-size:10px;
+              background:var(--rule);color:var(--crt);padding:3px 8px;letter-spacing:.14em;z-index:2;}
+
+  .card .head{padding:14px 18px 10px;border-bottom:1px solid var(--rule-2);}
+  .card .head h3{font-family:"IBM Plex Serif",serif;font-size:20px;margin:0;font-weight:600;line-height:1.15;}
+  .card .head .sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);margin-top:3px;letter-spacing:.06em;}
+
+  .card .specs{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule-2);}
+  .card .spec{padding:9px 14px;border-right:1px solid var(--rule-2);border-bottom:1px solid var(--rule-2);
+                background:var(--paper);}
+  .card .spec:nth-child(2n){border-right:0;}
+  .card .spec .lbl{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--dim);
+                     letter-spacing:.16em;text-transform:uppercase;}
+  .card .spec .val{font-size:14px;color:var(--ink);font-weight:500;margin-top:2px;}
+  .card .spec.good{background:rgba(61,130,96,.10);}
+  .card .spec.good .val{color:#2c5d44;font-weight:700;}
+  .card .spec.warn{background:rgba(201,164,55,.10);}
+  .card .spec.warn .val{color:#85691b;}
+  .card .spec.bad{background:rgba(169,53,53,.08);}
+  .card .spec.bad .val{color:var(--bad);}
+
+  .card .watts{padding:12px 18px 10px;background:var(--crt);}
+  .card .watts .row{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;
+                      font-size:10.5px;letter-spacing:.10em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+  .card .watts .row b{color:var(--hot);font-size:14px;letter-spacing:0;text-transform:none;}
+  .card .watts .bar{height:6px;background:var(--paper-2);border:1px solid var(--rule-2);position:relative;}
+  .card .watts .bar .fill{position:absolute;left:0;top:0;bottom:0;
+        background:linear-gradient(90deg,#3d8260 0%, #e89635 60%, #d35427 100%);}
+
+  .card .verdict-tag{padding:10px 18px;font-size:13px;color:var(--ink-2);background:var(--paper-2);
+                       border-top:1px solid var(--rule-2);font-style:italic;}
+  .card .verdict-tag b{color:var(--ink);font-style:normal;}
+
+  .card .foot{padding:10px 18px 14px;display:flex;justify-content:space-between;align-items:center;
+                font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);}
+  .card .foot .price{color:var(--ink);font-weight:700;font-size:13px;}
+  .card .foot .links{display:flex;gap:10px;}
+  .card .foot .links a{font-size:11px;}
+
+  .card.hero{border-width:2.5px;box-shadow:0 0 0 4px rgba(232,150,53,.18), var(--shadow);}
+  .card.hero .pn{background:var(--hot);}
+
+  /* ----- Profile picks ---------------------------------------- */
+  .profiles{padding:42px 44px;border-top:2px solid var(--rule);background:var(--paper-2);}
+  .profiles .ttl{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:24px;}
+  .profiles h2{font-family:"IBM Plex Serif",serif;font-size:26px;margin:0;font-weight:600;}
+  .profiles .ttl .meta{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase;}
+  .profile-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
+  .pick{background:var(--crt);border:1.5px solid var(--rule);padding:18px 20px;display:flex;flex-direction:column;gap:8px;
+        position:relative;}
+  .pick .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .pick .if{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--steel);letter-spacing:.16em;text-transform:uppercase;}
+  .pick .num{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);}
+  .pick .pick-name{font-family:"IBM Plex Serif",serif;font-size:19px;font-weight:600;line-height:1.2;color:var(--ink);}
+  .pick .why{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .pick .price{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink);margin-top:auto;
+                 padding-top:8px;border-top:1px dashed var(--rule-2);}
+  .pick .price b{color:var(--hot);}
+  .pick.avoid{background:#fbf1ee;border-color:var(--bad);}
+  .pick.avoid .if{color:var(--bad);}
+  .pick.avoid .pick-name{color:var(--bad);}
+
+  /* ----- ECC chart -------------------------------------------- */
+  .ecc{padding:42px 44px;border-top:2px solid var(--rule);background:var(--paper);}
+  .ecc h2{font-family:"IBM Plex Serif",serif;font-size:26px;margin:0 0 6px;font-weight:600;}
+  .ecc .deck{color:var(--ink-2);max-width:64ch;margin-bottom:22px;}
+  .ecc-quote{padding:14px 22px;border-left:4px solid var(--steel);background:var(--crt);
+                font-family:"IBM Plex Serif",serif;font-style:italic;font-size:15px;color:var(--ink-2);
+                margin-bottom:24px;max-width:78ch;}
+  .ecc-quote b{color:var(--ink);font-style:normal;font-family:"JetBrains Mono",monospace;font-size:11px;
+                 letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:5px;}
+  .ecc-table{display:grid;grid-template-columns:1.4fr 1fr 0.6fr 0.6fr 1.4fr;border:1.5px solid var(--rule);background:var(--crt);}
+  .ecc-table .h, .ecc-table .c{padding:10px 14px;border-right:1px solid var(--rule-2);border-bottom:1px solid var(--rule-2);
+                                  font-size:13px;}
+  .ecc-table .h{background:var(--rule);color:var(--crt);font-family:"JetBrains Mono",monospace;font-size:10.5px;
+                 letter-spacing:.16em;text-transform:uppercase;}
+  .ecc-table .h:last-child, .ecc-table .c:nth-child(5n){border-right:0;}
+  .ecc-table .c.yes{background:rgba(61,130,96,.18);color:#2c5d44;font-weight:700;text-align:center;}
+  .ecc-table .c.no{background:rgba(169,53,53,.10);color:var(--bad);font-weight:700;text-align:center;}
+  .ecc-table .c.warn{background:rgba(201,164,55,.16);color:#85691b;font-weight:700;text-align:center;}
+  .ecc-table .c.path{font-weight:600;}
+
+  /* ----- Storage ceilings ------------------------------------- */
+  .storage{padding:42px 44px;background:var(--paper-2);border-top:2px solid var(--rule);}
+  .storage h2{font-family:"IBM Plex Serif",serif;font-size:26px;margin:0 0 14px;font-weight:600;}
+  .storage .deck{color:var(--ink-2);max-width:64ch;margin-bottom:18px;}
+  .stmatrix{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:1px;background:var(--rule);border:1.5px solid var(--rule);}
+  .stmatrix > div{background:var(--crt);padding:9px 12px;font-size:13px;}
+  .stmatrix .hdr{background:var(--rule);color:var(--crt);font-family:"JetBrains Mono",monospace;font-size:10.5px;
+                  letter-spacing:.14em;text-transform:uppercase;}
+  .stmatrix .cell{font-family:"JetBrains Mono",monospace;font-size:13px;text-align:center;color:var(--ink);}
+  .stmatrix .name{font-family:"Inter",sans-serif;font-weight:500;}
+  /* heatmap classes for capacity cells */
+  .h0{background:var(--paper-2);color:var(--dim);}
+  .h1{background:rgba(201,164,55,.14);color:#85691b;}
+  .h2{background:rgba(232,150,53,.20);color:#85691b;}
+  .h3{background:rgba(61,130,96,.18);color:#2c5d44;}
+  .h4{background:rgba(61,130,96,.32);color:#1d4731;font-weight:700;}
+  .stmatrix .cell.h0,.stmatrix .cell.h1,.stmatrix .cell.h2,.stmatrix .cell.h3,.stmatrix .cell.h4{font-weight:600;}
+
+  /* ----- Hazards strip ---------------------------------------- */
+  .hazards{padding:42px 44px;background:var(--paper);border-top:2px solid var(--rule);}
+  .hazards h2{font-family:"IBM Plex Serif",serif;font-size:26px;margin:0 0 16px;font-weight:600;}
+  .hazlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .haz{background:#fbf1ee;border-left:5px solid var(--bad);padding:14px 18px;}
+  .haz .tag{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--bad);
+              font-weight:700;margin-bottom:5px;}
+  .haz .body{font-size:13.5px;color:var(--ink-2);line-height:1.5;}
+  .haz .body b{color:var(--ink);}
+
+  /* ----- Drive power table ------------------------------------ */
+  .drives{padding:42px 44px;background:var(--paper-2);border-top:2px solid var(--rule);}
+  .drives h2{font-family:"IBM Plex Serif",serif;font-size:26px;margin:0 0 6px;font-weight:600;}
+  .drives .deck{color:var(--ink-2);max-width:64ch;margin-bottom:18px;}
+  .drives .formula{background:var(--rule);color:var(--crt);padding:10px 18px;font-family:"JetBrains Mono",monospace;
+                     font-size:12.5px;letter-spacing:.04em;display:inline-block;margin-bottom:18px;}
+  .drives .formula b{color:var(--warm);}
+  .drow{display:grid;grid-template-columns:1.7fr repeat(4,1fr);gap:1px;background:var(--rule);border:1.5px solid var(--rule);}
+  .drow > div{background:var(--crt);padding:9px 12px;font-size:13px;}
+  .drow .hdr{background:var(--rule);color:var(--crt);font-family:"JetBrains Mono",monospace;font-size:10.5px;
+              letter-spacing:.14em;text-transform:uppercase;}
+  .drow .num{font-family:"JetBrains Mono",monospace;text-align:right;}
+
+  /* ----- Sibling rail ----------------------------------------- */
+  .siblings{padding:42px 44px;background:var(--rule);color:var(--crt);}
+  .siblings h2{font-family:"IBM Plex Serif",serif;font-size:24px;margin:0 0 14px;font-weight:600;color:var(--crt);}
+  .sib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .sib{background:rgba(255,255,255,.04);border:1px solid rgba(253,251,243,.18);padding:16px;}
+  .sib .depth{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--warm);}
+  .sib h4{font-family:"IBM Plex Serif",serif;font-size:17px;margin:6px 0 6px;font-weight:600;}
+  .sib h4 a{color:var(--crt);border-color:rgba(253,251,243,.3);}
+  .sib h4 a:hover{color:var(--warm);border-color:var(--warm);}
+  .sib p{font-size:12.5px;color:rgba(253,251,243,.72);line-height:1.5;margin:0;}
+
+  /* ----- Colophon --------------------------------------------- */
+  .colophon{padding:30px 44px;border-top:1px solid var(--rule-2);background:var(--paper);
+              font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);
+              display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;letter-spacing:.10em;}
+  .colophon .right{text-align:right;}
+  .colophon a{color:var(--steel);border-color:rgba(39,71,100,.25);}
+
+  @media (max-width:760px){
+    .sheet-head h1{font-size:34px;}
+    .ecc-table{grid-template-columns:1fr 1fr;}
+    .ecc-table .h:nth-child(3),.ecc-table .h:nth-child(4),.ecc-table .h:nth-child(5),
+    .ecc-table .c:nth-child(5n+3),.ecc-table .c:nth-child(5n+4),.ecc-table .c:nth-child(5n){display:none;}
+    .stmatrix{grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;}
+    .verdict{grid-template-columns:1fr;gap:14px;}
+    .watt-row{grid-template-columns:140px 1fr 56px;}
+  }
+</style>
+
+<div class="lb">
+
+<!-- ============================== HEADER ============================== -->
+<header class="sheet-head">
+  <div class="sheet-tag"><b>SPEC&nbsp;SHEET</b> &nbsp; HW-2026-001 &nbsp;·&nbsp; ALWAYS-ON BOX &nbsp;·&nbsp; REV 04-28</div>
+  <h1>Five categories. Twelve boxes. One Kill-A-Watt.</h1>
+  <p class="deck">Synology&nbsp;DSM is still the best NAS software, but the 2025 Plus drive lock-in pulled ServeTheHome's recommendation<sup><a href="https://www.servethehome.com/synology-lost-the-plot-with-hard-drive-locking-move/">[3]</a></sup> and prices keep rising with no real hardware upgrade<sup><a href="https://www.xda-developers.com/synology-nas-hardware-pricing-value-problem/">[5]</a></sup>. This sheet is the alternatives — measured at the wall, not vibed. Idle-watts axis is the centrepiece because every continuous watt is <span class="mono">€2.63/yr</span> at €0.30/kWh.</p>
+  <div class="legend">
+    <span><span class="sw" style="background:#3d8260;"></span>good (axis-positive)</span>
+    <span><span class="sw" style="background:#c9a437;"></span>caveat / unofficial</span>
+    <span><span class="sw" style="background:#a93535;"></span>missing / hard&nbsp;NO</span>
+    <span><span class="sw" style="background:linear-gradient(90deg,#3d8260,#d35427);"></span>idle-watts gradient</span>
+    <span style="margin-left:auto;">N=12 platforms · 101 citations · 5 categories</span>
+  </div>
+</header>
+
+<!-- ============================== WATT STRIP ========================== -->
+<section class="watt-strip">
+  <div class="axis-label">FIG. 01 · IDLE WATTAGE AT THE WALL — HEADLESS, NO DISKS</div>
+  <h2>The axis everyone ignores until the bill arrives.</h2>
+  <p class="caption">A box that idles 24W instead of 7W costs an extra <b>€44/year</b> at €0.30/kWh — for the next decade. The cheapest mini-NAS often loses on TCO before year three. Bars below are wall-meter measurements (Kill-A-Watt class), headless and diskless unless noted. Scale: 0–35W.</p>
+
+  <div class="scale"><span>0W</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span><span>35W</span></div>
+  <div class="ruler"></div>
+
+  <div class="watt-row">
+    <div class="name">Radxa Rock 5B<small>RK3588 · eMMC only</small></div>
+    <div class="bar"><div class="fill" style="width:4.85%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">1.7&nbsp;W<sup><a href="https://bret.dk/radxa-rock_5b-review-powerful-rk3588-sbc/">[23]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Raspberry Pi 5 (D0)<small>2GB · BCM2712</small></div>
+    <div class="bar"><div class="fill" style="width:5.7%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">2.0&nbsp;W<sup><a href="https://www.jeffgeerling.com/blog/2024/new-2gb-pi-5-has-33-smaller-die-30-idle-power-savings/">[22]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Beelink S12 Pro<small>N100 · Proxmox headless</small></div>
+    <div class="bar"><div class="fill" style="width:20%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">7&nbsp;W<sup><a href="https://bishalkshah.com.np/blog/low-power-homelab-n100-mini-pc">[16]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">ASRock N100DC-ITX<small>DIY · 19V DC-in</small></div>
+    <div class="bar"><div class="fill" style="width:20%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">7&nbsp;W<sup><a href="https://www.tqdev.com/2023-asrock-n100dc-itx/">[28]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Intel i5-12400 ITX<small>ASUS H770 · powertop tuned</small></div>
+    <div class="bar"><div class="fill" style="width:20%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">7&nbsp;W<sup><a href="https://mattgadient.com/7-watts-idle-on-intel-12th-13th-gen-the-foundation-for-building-a-low-power-server-nas/">[19]</a></sup></div>
+  </div>
+  <div class="watt-row hero">
+    <div class="name">Beelink ME mini<small>N150 · 6× M.2 NVMe</small></div>
+    <div class="bar"><div class="fill" style="width:20%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">7&nbsp;W<sup><a href="https://www.techradar.com/computing/beelink-me-mini-nas-mini-pc-review">[50]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">i3-N305 fanless firewall<small>ServeTheHome · Proxmox VE 8</small></div>
+    <div class="bar"><div class="fill" style="width:28.6%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">10&nbsp;W<sup><a href="https://www.servethehome.com/almost-a-decade-in-the-making-our-fanless-intel-i3-n305-2-5gbe-firewall-review/4/">[18]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Lenovo M90q Tiny Gen2<small>i7 · used enterprise</small></div>
+    <div class="bar"><div class="fill" style="width:37.1%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">13&nbsp;W<sup><a href="https://www.servethehome.com/lenovo-thinkcentre-m90q-tiny-gen2-tinyminimicro-review-intel/4/">[20]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Beelink SER5 Max<small>Ryzen 7 5800H</small></div>
+    <div class="bar"><div class="fill" style="width:51.4%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">18&nbsp;W<sup><a href="https://selfhosting.sh/hardware/mini-pc-power-consumption/">[17]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">UGREEN DXP4800 Plus<small>Pentium 8505 · 4-bay loaded</small></div>
+    <div class="bar"><div class="fill" style="width:68.6%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">24&nbsp;W<sup><a href="https://www.techpowerup.com/review/ugreen-nasync-dxp4800-plus/13.html">[33]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Ryzen 5600G NAS<small>DIY AM4 · no disks</small></div>
+    <div class="bar"><div class="fill" style="width:80%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">28&nbsp;W<sup><a href="https://blog.patshead.com/2024/03/how-efficient-is-the-most-power-efficient-nas.html">[71]</a></sup></div>
+  </div>
+  <div class="watt-row">
+    <div class="name">Minisforum N5 Pro<small>HX PRO 370 · 5-bay loaded</small></div>
+    <div class="bar"><div class="fill" style="width:94.3%;"></div><div class="tick" style="left:14.3%;"></div><div class="tick" style="left:28.6%;"></div><div class="tick" style="left:42.9%;"></div><div class="tick" style="left:57.1%;"></div><div class="tick" style="left:71.4%;"></div><div class="tick" style="left:85.7%;"></div></div>
+    <div class="num">33&nbsp;W<sup><a href="https://www.servethehome.com/minisforum-n5-pro-review-an-awesome-nas-platform/4/">[46]</a></sup></div>
+  </div>
+</section>
+
+<!-- ============================== VERDICT ============================= -->
+<section class="verdict">
+  <div class="stamp">VERDICT&nbsp;·&nbsp;1&nbsp;OF&nbsp;5</div>
+  <div class="copy">
+    For all-flash, lowest power, no spinning disks: <b>Beelink ME mini</b> ($209-329, ~7W idle, six M.2&nbsp;NVMe slots in a 99mm cube)<sup><a href="https://nascompares.com/review/beelink-me-mini-nas-review/">[49]</a></sup><sup><a href="https://www.techradar.com/computing/beelink-me-mini-nas-mini-pc-review">[50]</a></sup>. For a turnkey 4–6&nbsp;HDD Synology replacement: <b>UGREEN DXP4800 Plus</b> at $620 with 10GbE+2.5GbE, BYO-OS friendly<sup><a href="https://nascompares.com/guide/truenas-on-a-ugreen-nas-installation-guide/">[34]</a></sup>. For maximum bays without DIY: <b>Aoostar WTR Max</b>, 11 bays + dual 10GbE SFP+, $649<sup><a href="https://aoostar.com/blogs/news/the-aoostar-wtr-max11bay-is-about-to-meet-you-all">[37]</a></sup>.
+  </div>
+</section>
+
+<!-- ============================== BENCH CARDS ========================= -->
+<section class="bench">
+  <div class="bench-title">
+    <h2>The bench — cards by sample.</h2>
+    <div class="meta">FIG. 02 · 8 prebuilt + DIY references</div>
+  </div>
+  <div class="cards">
+
+    <!-- HERO: Beelink ME mini -->
+    <article class="card hero">
+      <div class="pn">SAMPLE&nbsp;A · HERO</div>
+      <div class="photo"><img src="shortlist/images/beelink-me-mini.jpg" alt="Beelink ME mini all-flash NAS"></div>
+      <div class="head">
+        <h3>Beelink ME mini</h3>
+        <div class="sub">Intel N150 · 99mm cube · 12GB LPDDR5</div>
+      </div>
+      <div class="specs">
+        <div class="spec good"><div class="lbl">Idle</div><div class="val">~7&nbsp;W</div></div>
+        <div class="spec good"><div class="lbl">M.2 slots</div><div class="val">6× NVMe</div></div>
+        <div class="spec"><div class="lbl">SATA bays</div><div class="val">0</div></div>
+        <div class="spec"><div class="lbl">NIC</div><div class="val">2× 2.5GbE</div></div>
+        <div class="spec bad"><div class="lbl">ECC</div><div class="val">No</div></div>
+        <div class="spec bad"><div class="lbl">IPMI</div><div class="val">No</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>7&nbsp;W</b></div>
+        <div class="bar"><div class="fill" style="width:20%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want all-flash, lowest power, no spinning rust — this is it.</div>
+      <div class="foot">
+        <span class="price">$209–329</span>
+        <span class="links"><a href="https://nascompares.com/review/beelink-me-mini-nas-review/">[49]</a> <a href="https://www.techradar.com/computing/beelink-me-mini-nas-mini-pc-review">[50]</a></span>
+      </div>
+    </article>
+
+    <!-- UGREEN DXP4800 Plus -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;B</div>
+      <div class="photo"><img src="shortlist/images/ugreen-dxp4800.png" alt="UGREEN DXP4800 Plus"></div>
+      <div class="head">
+        <h3>UGREEN DXP4800 Plus</h3>
+        <div class="sub">Pentium Gold 8505 · DDR5 · UGOS Pro or BYO</div>
+      </div>
+      <div class="specs">
+        <div class="spec warn"><div class="lbl">Idle</div><div class="val">~24&nbsp;W</div></div>
+        <div class="spec good"><div class="lbl">SATA bays</div><div class="val">4 + 2&nbsp;M.2</div></div>
+        <div class="spec good"><div class="lbl">NIC</div><div class="val">10GbE + 2.5GbE</div></div>
+        <div class="spec good"><div class="lbl">Warranty</div><div class="val">2 yr</div></div>
+        <div class="spec bad"><div class="lbl">ECC</div><div class="val">No</div></div>
+        <div class="spec good"><div class="lbl">BYO-OS</div><div class="val">Yes</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>24&nbsp;W</b></div>
+        <div class="bar"><div class="fill" style="width:69%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want a 4–6 HDD Synology replacement that runs Proxmox or TrueNAS day&nbsp;one.</div>
+      <div class="foot">
+        <span class="price">$620</span>
+        <span class="links"><a href="https://nas.ugreen.com/products/ugreen-nasync-dxp4800-plus-nas-storage">[29]</a> <a href="https://www.techpowerup.com/review/ugreen-nasync-dxp4800-plus/13.html">[33]</a> <a href="https://nascompares.com/guide/truenas-on-a-ugreen-nas-installation-guide/">[34]</a></span>
+      </div>
+    </article>
+
+    <!-- Aoostar WTR Max -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;C</div>
+      <div class="photo"><img src="shortlist/images/aoostar-wtr-max.jpg" alt="Aoostar WTR Max 11-bay NAS"></div>
+      <div class="head">
+        <h3>Aoostar WTR Max</h3>
+        <div class="sub">Ryzen 7 PRO 8845HS · BYO ECC · 11 bays</div>
+      </div>
+      <div class="specs">
+        <div class="spec"><div class="lbl">Idle</div><div class="val">n/a (BYO)</div></div>
+        <div class="spec good"><div class="lbl">Bays</div><div class="val">6 SATA + 5 NVMe</div></div>
+        <div class="spec good"><div class="lbl">NIC</div><div class="val">dual 10GbE SFP+</div></div>
+        <div class="spec good"><div class="lbl">Expansion</div><div class="val">OCuLink + USB4</div></div>
+        <div class="spec good"><div class="lbl">ECC</div><div class="val">Yes (DDR5)</div></div>
+        <div class="spec bad"><div class="lbl">Vendor OS</div><div class="val">None — BYO</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>~25–32&nbsp;W est.</b></div>
+        <div class="bar"><div class="fill" style="width:80%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want maximum bays without going DIY. "Almost perfect" per virtualizationhowto.</div>
+      <div class="foot">
+        <span class="price">$649–699</span>
+        <span class="links"><a href="https://nascompares.com/review/aoostar-wtr-max-nas-review-nas-perfection/">[36]</a> <a href="https://aoostar.com/blogs/news/the-aoostar-wtr-max11bay-is-about-to-meet-you-all">[37]</a> <a href="https://www.virtualizationhowto.com/2025/06/aoostar-wtr-max-review-the-almost-perfect-nas-mini-pc/">[56]</a></span>
+      </div>
+    </article>
+
+    <!-- Minisforum N5 Pro -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;D</div>
+      <div class="photo"><img src="shortlist/images/minisforum-n5pro.jpg" alt="Minisforum N5 Pro"></div>
+      <div class="head">
+        <h3>Minisforum N5 Pro</h3>
+        <div class="sub">Ryzen AI 9 HX PRO 370 · up to 96GB ECC · BYO</div>
+      </div>
+      <div class="specs">
+        <div class="spec bad"><div class="lbl">Idle</div><div class="val">32–34&nbsp;W</div></div>
+        <div class="spec good"><div class="lbl">Bays</div><div class="val">5 SATA + 3 M.2</div></div>
+        <div class="spec good"><div class="lbl">NIC</div><div class="val">10GbE + 5GbE</div></div>
+        <div class="spec good"><div class="lbl">RAM</div><div class="val">96GB ECC</div></div>
+        <div class="spec good"><div class="lbl">ECC</div><div class="val">Yes</div></div>
+        <div class="spec bad"><div class="lbl">IPMI</div><div class="val">No</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>33&nbsp;W</b></div>
+        <div class="bar"><div class="fill" style="width:94%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want Zen 5 NAS perf and ECC in one box — but pay for it in watts.</div>
+      <div class="foot">
+        <span class="price">$1,019 barebone</span>
+        <span class="links"><a href="https://store.minisforum.com/products/minisforum-n5-pro-ai-nas">[44]</a> <a href="https://www.notebookcheck.net/Minisforum-updates-N5-and-N5-Pro-NAS-systems-with-new-pricing-and-more-storage.1084560.0.html">[45]</a> <a href="https://www.servethehome.com/minisforum-n5-pro-review-an-awesome-nas-platform/4/">[46]</a></span>
+      </div>
+    </article>
+
+    <!-- TerraMaster F4-424 Pro -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;E</div>
+      <div class="photo"><img src="shortlist/images/terramaster-f4-424.jpg" alt="TerraMaster F4-424 Pro"></div>
+      <div class="head">
+        <h3>TerraMaster F4-424 Pro</h3>
+        <div class="sub">i3-N305 · 32GB DDR5 · TOS or BYO</div>
+      </div>
+      <div class="specs">
+        <div class="spec"><div class="lbl">Idle</div><div class="val">n/a published</div></div>
+        <div class="spec good"><div class="lbl">Bays</div><div class="val">4 SATA + 2 M.2</div></div>
+        <div class="spec warn"><div class="lbl">NIC</div><div class="val">2× 2.5GbE only</div></div>
+        <div class="spec good"><div class="lbl">RAM</div><div class="val">32GB DDR5</div></div>
+        <div class="spec good"><div class="lbl">Warranty</div><div class="val">2 yr replace</div></div>
+        <div class="spec warn"><div class="lbl">Vendor OS</div><div class="val">TOS — gripes</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>~12&nbsp;W est.</b></div>
+        <div class="bar"><div class="fill" style="width:35%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> 2.5GbE is enough and you want a 2-year brand-new replacement warranty.</div>
+      <div class="foot">
+        <span class="price">$450–550</span>
+        <span class="links"><a href="https://www.terra-master.com/products/f4-424-pro">[40]</a> <a href="https://tecnoyfoto.com/en/terramaster-f4-424-pro-review-2026">[41]</a> <a href="https://forums.truenas.com/t/buying-a-non-diy-nas-is-it-true-what-brave-ki-tells-me-about-terramaster-vs-ugreen/37094">[55]</a></span>
+      </div>
+    </article>
+
+    <!-- Lenovo M90q (used) -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;F</div>
+      <div class="photo"><img src="shortlist/images/lenovo-m90q.jpg" alt="Lenovo ThinkCentre M90q Tiny Gen2"></div>
+      <div class="head">
+        <h3>Lenovo M90q Tiny Gen2</h3>
+        <div class="sub">Used enterprise · "tiny trio" + JetKVM pairing</div>
+      </div>
+      <div class="specs">
+        <div class="spec good"><div class="lbl">Idle</div><div class="val">12–14&nbsp;W</div></div>
+        <div class="spec warn"><div class="lbl">Storage</div><div class="val">2× M.2 + 1× 2.5"</div></div>
+        <div class="spec"><div class="lbl">NIC</div><div class="val">1× 2.5GbE</div></div>
+        <div class="spec good"><div class="lbl">Price</div><div class="val">$100–250</div></div>
+        <div class="spec bad"><div class="lbl">ECC</div><div class="val">No</div></div>
+        <div class="spec bad"><div class="lbl">IPMI</div><div class="val">No (use JetKVM)</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>13&nbsp;W</b></div>
+        <div class="bar"><div class="fill" style="width:37%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want $169 cluster nodes from corporate refresh fleets and don't need bulk HDD bays.</div>
+      <div class="foot">
+        <span class="price">$100–250 + $69 KVM</span>
+        <span class="links"><a href="https://2ndboot.com/mini-pc-buying-guide-2026/">[7]</a> <a href="https://www.servethehome.com/lenovo-thinkcentre-m90q-tiny-gen2-tinyminimicro-review-intel/4/">[20]</a> <a href="https://www.cnx-software.com/2025/03/21/jetkvm-a-69-kvm-over-ip-solution-with-open-source-software/">[83]</a></span>
+      </div>
+    </article>
+
+    <!-- DIY Jonsbo N3 + CWWK N305 -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;G · DIY</div>
+      <div class="photo fallback steel">JONSBO&nbsp;N3<br><span style="font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:.18em;opacity:.7;">+ CWWK i3-N305</span></div>
+      <div class="head">
+        <h3>Jonsbo N3 + CWWK i3-N305</h3>
+        <div class="sub">DIY 8-bay budget · 32GB DDR5 · TrueNAS SCALE</div>
+      </div>
+      <div class="specs">
+        <div class="spec good"><div class="lbl">Idle (target)</div><div class="val">~14–20&nbsp;W</div></div>
+        <div class="spec good"><div class="lbl">Bays</div><div class="val">8× 3.5" + 2× M.2</div></div>
+        <div class="spec good"><div class="lbl">NIC</div><div class="val">4× 2.5GbE</div></div>
+        <div class="spec warn"><div class="lbl">CPU</div><div class="val">Soldered N305</div></div>
+        <div class="spec warn"><div class="lbl">Cooler</div><div class="val">Replace stock</div></div>
+        <div class="spec warn"><div class="lbl">Warranty</div><div class="val">Topton/CWWK risk</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>~17&nbsp;W</b></div>
+        <div class="bar"><div class="fill" style="width:48%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want 8 spinning bays for $650–770 diskless and accept the soldered-CPU risk.</div>
+      <div class="foot">
+        <span class="price">$650–770 diskless</span>
+        <span class="links"><a href="https://selfhosting.sh/hardware/diy-nas-build/">[74]</a> <a href="https://cwwk.net/products/12th-i3-n305-n100-nas-motherboard-6-bay-dc-power-2xm-2-nvme-6xsata3-0-pcie-x1-4x-i226-v-2-5g-lan-ddr5-itx-mainboard">[61]</a> <a href="https://nascompares.com/answer/cwwk-n100-vs-n305-pros-cons-and-common-questions-answered/">[73]</a></span>
+      </div>
+    </article>
+
+    <!-- ASRock Rack B650D4U -->
+    <article class="card">
+      <div class="pn">SAMPLE&nbsp;H · ECC&nbsp;+&nbsp;IPMI</div>
+      <div class="photo fallback olive">ASROCK&nbsp;RACK<br>B650D4U<br><span style="font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:.18em;opacity:.7;">µATX · AM5 · BMC</span></div>
+      <div class="head">
+        <h3>ASRock Rack B650D4U</h3>
+        <div class="sub">µATX · AM5 / EPYC 4004 · DDR5 ECC · onboard IPMI</div>
+      </div>
+      <div class="specs">
+        <div class="spec good"><div class="lbl">ECC</div><div class="val">DDR5 UDIMM</div></div>
+        <div class="spec good"><div class="lbl">IPMI</div><div class="val">Onboard BMC</div></div>
+        <div class="spec good"><div class="lbl">PCIe</div><div class="val">5.0</div></div>
+        <div class="spec"><div class="lbl">CPU</div><div class="val">Ryzen 7000–9000</div></div>
+        <div class="spec"><div class="lbl">NIC base</div><div class="val">Dual 1GbE</div></div>
+        <div class="spec good"><div class="lbl">Price</div><div class="val">~$264</div></div>
+      </div>
+      <div class="watts">
+        <div class="row"><span>Idle&nbsp;wattage</span><b>~25–35&nbsp;W est.</b></div>
+        <div class="bar"><div class="fill" style="width:85%;"></div></div>
+      </div>
+      <div class="verdict-tag"><b>If</b> you want the cleanest path to ECC + IPMI in 2026. Pair with Jonsbo N5 for 12 bays.</div>
+      <div class="foot">
+        <span class="price">~$264 board</span>
+        <span class="links"><a href="https://www.asrockrack.com/general/productdetail.asp?Model=B650D4U">[66]</a> <a href="https://sunshowers.io/posts/am5-ryzen-7000-ecc-ram/">[79]</a></span>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============================== ECC TABLE =========================== -->
+<section class="ecc">
+  <h2>ECC + IPMI — what's actually required, and what works.</h2>
+  <p class="deck">The "ZFS demands ECC" religion outpaces the data. Use ECC if your platform supports it. Don't avoid ZFS if it doesn't. Below: every realistic 2026 path to ECC, and where IPMI sits on each.</p>
+  <div class="ecc-quote">
+    <b>Matt Ahrens · ZFS co-creator</b>
+    "There's nothing special about ZFS that requires/encourages the use of ECC RAM more so than any other filesystem. […] If you love your data, use ECC RAM. Additionally, use a filesystem that checksums your data, such as ZFS." <sup><a href="https://news.ycombinator.com/item?id=18480016">[75]</a></sup>
+  </div>
+
+  <div class="ecc-table">
+    <div class="h">Path</div>
+    <div class="h">Memory</div>
+    <div class="h">ECC</div>
+    <div class="h">IPMI</div>
+    <div class="h">Notes</div>
+
+    <div class="c path">Intel N97/N305 In-Band ECC</div>
+    <div class="c">soldered LPDDR5 only</div>
+    <div class="c warn">caveat</div>
+    <div class="c no">No</div>
+    <div class="c">SO-DIMM doesn't qualify <sup><a href="https://medium.com/@hassanalisardar001/best-mini-itx-motherboard-for-nas-n100-low-power-vs-ecc-f55932fa550b">[81]</a></sup></div>
+
+    <div class="c path">ASRock Rack B650D4U (AM5)</div>
+    <div class="c">DDR5 ECC UDIMM</div>
+    <div class="c yes">Yes</div>
+    <div class="c yes">Yes</div>
+    <div class="c">Cleanest AM5 path <sup><a href="https://www.asrockrack.com/general/productdetail.asp?Model=B650D4U">[66]</a></sup></div>
+
+    <div class="c path">ASRock Rack EC266D2I (Xeon E-2400)</div>
+    <div class="c">DDR5 ECC</div>
+    <div class="c yes">Yes</div>
+    <div class="c yes">Yes</div>
+    <div class="c">Cleanest Intel path <sup><a href="https://www.asrockrack.com/general/productdetail.de.asp?Model=EC266D2I">[77]</a></sup></div>
+
+    <div class="c path">Ryzen 7000 non-PRO on ASRock Rack</div>
+    <div class="c">DDR5 ECC</div>
+    <div class="c warn">unofficial</div>
+    <div class="c yes">Yes</div>
+    <div class="c">Works via AGESA <sup><a href="https://sunshowers.io/posts/am5-ryzen-7000-ecc-ram/">[79]</a></sup></div>
+
+    <div class="c path">Ryzen 8000G non-PRO</div>
+    <div class="c">—</div>
+    <div class="c no">No</div>
+    <div class="c no">No</div>
+    <div class="c">OEM PRO only <sup><a href="https://www.tomshardware.com/pc-components/cpus/amd-confirms-ryzen-8000g-apus-dont-support-ecc-ram-despite-initial-claims">[80]</a></sup></div>
+
+    <div class="c path">Minisforum N5 Pro / Aoostar WTR Max</div>
+    <div class="c">DDR5 ECC SO-DIMM</div>
+    <div class="c yes">Yes</div>
+    <div class="c no">No</div>
+    <div class="c">Pair with PiKVM/JetKVM <sup><a href="https://store.minisforum.com/products/minisforum-n5-pro-ai-nas">[44]</a></sup><sup><a href="https://pikvm.org/">[82]</a></sup></div>
+  </div>
+</section>
+
+<!-- ============================== STORAGE MATRIX ====================== -->
+<section class="storage">
+  <h2>Storage ceilings — bays, NVMe, and where the lanes go.</h2>
+  <p class="deck">Heatmap on capacity counts: darker green = more. The all-flash pure-M.2 platforms split their NVMe lanes asymmetrically — only the headline slot runs full Gen4 x4. <a href="https://www.thefpsreview.com/2024/11/14/asustor-flashstor-gen2-series-released-quad-core-3-8-ghz-amd-ryzen-cpu-ecc-ddr5-ram-2x-usb4-10-gigabit-ethernet-pcie-4-0-and-12-m-2-slots-for-nvme-ssds/">Asustor's Flashstor</a> is the canonical example: one Gen4 x4, three x2, four x1.</p>
+  <div class="stmatrix">
+    <div class="hdr">Platform</div>
+    <div class="hdr">HDD bays</div>
+    <div class="hdr">M.2 NVMe</div>
+    <div class="hdr">PCIe slot</div>
+    <div class="hdr">External</div>
+
+    <div class="name">Beelink ME mini</div>
+    <div class="cell h0">0</div>
+    <div class="cell h3">6</div>
+    <div class="cell h0">—</div>
+    <div class="cell h1">USB</div>
+
+    <div class="name">UGREEN DXP4800 Plus</div>
+    <div class="cell h2">4</div>
+    <div class="cell h1">2</div>
+    <div class="cell h0">—</div>
+    <div class="cell h1">USB</div>
+
+    <div class="name">UGREEN DXP8800 Plus <sup><a href="https://nascompares.com/2024/04/26/ugreen-dxp8800-plus-nas-review/">[105]</a></sup></div>
+    <div class="cell h3">8</div>
+    <div class="cell h1">2</div>
+    <div class="cell h2">PCIe 4.0 x4 (awkward)</div>
+    <div class="cell h1">USB</div>
+
+    <div class="name">Aoostar WTR Max</div>
+    <div class="cell h3">6</div>
+    <div class="cell h3">5 (mixed lanes)</div>
+    <div class="cell h2">OCuLink + USB4</div>
+    <div class="cell h2">OCuLink</div>
+
+    <div class="name">Asustor Flashstor 12 Pro</div>
+    <div class="cell h0">0</div>
+    <div class="cell h4">12 (asymmetric)</div>
+    <div class="cell h0">—</div>
+    <div class="cell h1">USB</div>
+
+    <div class="name">Jonsbo N3 + CWWK N305</div>
+    <div class="cell h3">8</div>
+    <div class="cell h1">2</div>
+    <div class="cell h1">1× PCIe x1</div>
+    <div class="cell h0">—</div>
+
+    <div class="name">Jonsbo N5 + ASRock Rack + LSI 9300-8i</div>
+    <div class="cell h4">12 → 24+</div>
+    <div class="cell h2">2–3</div>
+    <div class="cell h4">8 slots, full ATX</div>
+    <div class="cell h3">HBA expanders</div>
+  </div>
+</section>
+
+<!-- ============================== DRIVE POWER ========================= -->
+<section class="drives">
+  <h2>The drives dominate the meter. Eventually.</h2>
+  <p class="deck">Idle wattage of the platform is a third of the story; the spinners do the rest. Per-watt math: <span class="formula"><b>1W</b> continuous = 8.76 kWh/yr = €2.63/yr (€0.30/kWh)</span></p>
+
+  <div class="drow">
+    <div class="hdr">Drive</div>
+    <div class="hdr">Idle (spinning)</div>
+    <div class="hdr">Standby</div>
+    <div class="hdr">Active</div>
+    <div class="hdr">€/yr × 4 always-on</div>
+
+    <div>Seagate IronWolf Pro 20TB <sup><a href="https://www.seagate.com/content/dam/seagate/assets/products/nas-drives/ironwolf-pro-hard-drive/files/Seagate_IronWolf_Pro_SATA_Product_Manual_24-20-16-12TB_206815300B.pdf">[24]</a></sup></div>
+    <div class="num">5.5 W</div>
+    <div class="num">1.0 W</div>
+    <div class="num">7.7 W</div>
+    <div class="num">€58</div>
+
+    <div>WD Red 14TB <sup><a href="https://aphnetworks.com/reviews/western-digital-red-wd140effx-14tb/2">[25]</a></sup></div>
+    <div class="num">3.0 W</div>
+    <div class="num">0.8 W</div>
+    <div class="num">6.5 W</div>
+    <div class="num">€32</div>
+
+    <div>Consumer NVMe (Linux ASPM) <sup><a href="https://forum.level1techs.com/t/nvme-power-consumption-when-idle-zfs/191241">[26]</a></sup></div>
+    <div class="num">0.5–1 W</div>
+    <div class="num">—</div>
+    <div class="num">3–5 W</div>
+    <div class="num">€8</div>
+
+    <div>Consumer NVMe (broken BIOS / FreeBSD) <sup><a href="https://forum.level1techs.com/t/nvme-power-consumption-when-idle-zfs/191241">[26]</a></sup></div>
+    <div class="num">~4 W</div>
+    <div class="num">—</div>
+    <div class="num">5 W</div>
+    <div class="num">€42</div>
+  </div>
+
+  <p style="margin-top:18px;color:var(--ink-2);max-width:78ch;">ZFS resists effective spindown — transaction groups close every 5–30 s and metadata writes touch every disk <sup><a href="https://www.truenas.com/community/threads/any-point-or-benefit-to-spinning-down-disks.105861/">[27]</a></sup>, so for ZFS users the always-spinning column is the realistic one. Backblaze 2025 fleet AFR fell to <b>1.36%</b> with 20TB+ drives now ~23% of the fleet <sup><a href="https://www.backblaze.com/blog/backblaze-drive-stats-for-2025/">[100]</a></sup>; 24TB rebuilds run 2–3 days <sup><a href="https://www.actualtechmedia.com/io/raid-disk-rebuild-times/">[102]</a></sup> so IBM recommends RAID-6/RAIDZ2 over RAID-5 once drives cross 20TB <sup><a href="https://www.ibm.com/support/pages/re-evaluating-raid-5-and-raid-6-slower-larger-drives">[103]</a></sup>. <b>Buy fewer, bigger drives.</b></p>
+</section>
+
+<!-- ============================== PROFILES ============================ -->
+<section class="profiles">
+  <div class="ttl">
+    <h2>Pick by profile.</h2>
+    <div class="meta">FIG. 03 · DECISION CARDS</div>
+  </div>
+  <div class="profile-list">
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;01</span></div>
+      <div class="if">All-flash, lowest power</div>
+      <div class="pick-name">Beelink ME mini</div>
+      <div class="why">$209–329, ~7W idle, 6× M.2 NVMe in a 99mm cube. <sup><a href="https://nascompares.com/review/beelink-me-mini-nas-review/">[49]</a></sup><sup><a href="https://www.techradar.com/computing/beelink-me-mini-nas-mini-pc-review">[50]</a></sup></div>
+      <div class="price">~7W idle · <b>$209–329</b></div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;02</span></div>
+      <div class="if">Synology replacement, 4–6 HDD</div>
+      <div class="pick-name">UGREEN DXP4800 Plus or DXP6800 Pro</div>
+      <div class="why">10GbE, BYO-OS friendly, 2-year warranty. <sup><a href="https://nas.ugreen.com/products/ugreen-nasync-dxp4800-plus-nas-storage">[29]</a></sup><sup><a href="https://nas.ugreen.com/products/ugreen-nasync-dxp6800-pro-nas-storage">[30]</a></sup><sup><a href="https://nascompares.com/guide/truenas-on-a-ugreen-nas-installation-guide/">[34]</a></sup></div>
+      <div class="price">~24W idle · <b>$620 / $1,028</b></div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;03</span></div>
+      <div class="if">Maximum bays prebuilt</div>
+      <div class="pick-name">UGREEN DXP8800 Plus or Aoostar WTR Max</div>
+      <div class="why">8 SATA / 11 mixed bays + dual 10GbE. <sup><a href="https://nascompares.com/guide/the-ugreen-nasync-nas-dxp2800-dxp4800-dxp6800-dxp8800-and-dxp480t-should-you-buy/">[31]</a></sup><sup><a href="https://nascompares.com/review/aoostar-wtr-max-nas-review-nas-perfection/">[36]</a></sup></div>
+      <div class="price"><b>$649 – $1,283</b></div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;04</span></div>
+      <div class="if">DIY 8-bay budget</div>
+      <div class="pick-name">Jonsbo N3 + CWWK i3-N305 + 32GB DDR5</div>
+      <div class="why">$650–770 diskless; soldered CPU is the tradeoff. <sup><a href="https://selfhosting.sh/hardware/diy-nas-build/">[74]</a></sup></div>
+      <div class="price">DIY · <b>$650–770</b></div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;05</span></div>
+      <div class="if">DIY 12-bay scale-out, ECC + IPMI</div>
+      <div class="pick-name">Jonsbo N5 + ASRock Rack B650D4U + LSI 9300-8i</div>
+      <div class="why">12 HDD + HBA expanders, BMC, AM5 ECC. <sup><a href="https://www.newegg.com/jonsbo-e-atx-full-tower-case-n-series-1mm-steel-plate-2mm-aluminium-plate-8mm-north-american-walnut-wood-cases-black-n5/p/2AM-006A-000F6">[58]</a></sup><sup><a href="https://www.asrockrack.com/general/productdetail.asp?Model=B650D4U">[66]</a></sup><sup><a href="https://www.storagereview.com/review/lsi-sas-9300-8i-and-9300-8e-hbas-review">[94]</a></sup></div>
+      <div class="price">$249 case + $264 board · DIY</div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;06</span></div>
+      <div class="if">Used enterprise / cluster nodes</div>
+      <div class="pick-name">Lenovo M720q / M90q + JetKVM</div>
+      <div class="why">$100–150 + $69 KVM. Pair for remote console. <sup><a href="https://2ndboot.com/mini-pc-buying-guide-2026/">[7]</a></sup><sup><a href="https://www.servethehome.com/lenovo-thinkcentre-m90q-tiny-gen2-tinyminimicro-review-intel/4/">[20]</a></sup><sup><a href="https://www.cnx-software.com/2025/03/21/jetkvm-a-69-kvm-over-ip-solution-with-open-source-software/">[83]</a></sup></div>
+      <div class="price">$100–250 + $69</div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;07</span></div>
+      <div class="if">ECC + IPMI compact</div>
+      <div class="pick-name">ASRock Rack EC266D2I + Xeon E-2400 + Jonsbo N3</div>
+      <div class="why">Compact, ECC, BMC — Intel side of the same coin. <sup><a href="https://www.asrockrack.com/general/productdetail.de.asp?Model=EC266D2I">[77]</a></sup><sup><a href="https://www.servethehome.com/intel-xeon-e-2400-series-brings-raptor-lake-to-servers/">[78]</a></sup></div>
+      <div class="price">DIY · ECC + BMC</div>
+    </div>
+
+    <div class="pick">
+      <div class="row1"><span class="if">If you want…</span><span class="num">PROFILE&nbsp;08</span></div>
+      <div class="if">Replace a Pi for general home server</div>
+      <div class="pick-name">Beelink S12 Pro N100</div>
+      <div class="why">~4× perf, x86, NVMe, 16GB at the same accessorized price as a Pi. <sup><a href="https://www.xda-developers.com/intel-n100-killed-raspberry-pi-home-servers/">[9]</a></sup></div>
+      <div class="price">~7W idle · <b>$130–160</b></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================== HAZARDS ============================= -->
+<section class="hazards">
+  <h2>Avoid — measured failures, not vibes.</h2>
+  <div class="hazlist">
+    <div class="haz">
+      <div class="tag">⊠ AVOID</div>
+      <div class="body"><b>SBC / Raspberry Pi for general home server.</b> No Quick Sync; ARM cores can't keep up with a single 1080p software transcode. <sup><a href="https://selfhosting.sh/hardware/raspberry-pi-home-server/">[10]</a></sup></div>
+    </div>
+    <div class="haz">
+      <div class="tag">⊠ AVOID</div>
+      <div class="body"><b>USB-DAS for ZFS pools.</b> TrueNAS warns explicitly. <a href="https://github.com/openzfs/zfs">openzfs/zfs</a> ⭐&nbsp;12k discussions document Zen/Zen2 + UAS checksum/I-O errors and pool-locking USB resets. <sup><a href="https://www.truenas.com/community/threads/why-you-should-avoid-usb-attached-drives-for-data-pool-disks.104596/">[96]</a></sup><sup><a href="https://github.com/openzfs/zfs/discussions/11741">[97]</a></sup><sup><a href="https://github.com/openzfs/zfs/issues/12007">[98]</a></sup></div>
+    </div>
+    <div class="haz">
+      <div class="tag">⊠ AVOID</div>
+      <div class="body"><b>Ryzen 8000G non-PRO if you want ECC.</b> AMD confirmed it's missing despite initial claims. <sup><a href="https://www.tomshardware.com/pc-components/cpus/amd-confirms-ryzen-8000g-apus-dont-support-ecc-ram-despite-initial-claims">[80]</a></sup></div>
+    </div>
+    <div class="haz">
+      <div class="tag">⊠ AVOID</div>
+      <div class="body"><b>Synology Plus 2025+ with existing third-party 16TB+ drives.</b> Lock-in restricts dedup, lifespan analysis, firmware updates, pool creation. <sup><a href="https://www.servethehome.com/synology-lost-the-plot-with-hard-drive-locking-move/">[3]</a></sup><sup><a href="https://www.synoforum.com/threads/synology-2025-nas-hard-drive-and-ssd-lock-in-confirmed-bye-bye-seagate-and-wd.14682/">[4]</a></sup></div>
+    </div>
+    <div class="haz">
+      <div class="tag">⊠ AVOID</div>
+      <div class="body"><b>Topton/CWWK boards if you want a warranty path.</b> Generic Chinese silicon, no clear support, soldered CPUs, weak stock coolers. <sup><a href="https://homenode.tech/ultimate-guide-building-nas-want-build-hurts-2026/">[12]</a></sup><sup><a href="https://rovingclimber.com/2024/09/09/cwwk-i3-n305-nas-mini-itx-board/">[62]</a></sup></div>
+    </div>
+    <div class="haz">
+      <div class="tag">⊠ AVOID</div>
+      <div class="body"><b>PicoPSU once 10GbE NICs and HDD spin-up enter.</b> PicoPSUs are efficient at &lt;40–50W; move to Flex-ATX/SFX when surge enters. <sup><a href="https://www.truenas.com/community/threads/flex-atx-or-picopsu.98913/">[72]</a></sup></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SIBLING RAIL ======================== -->
+<section class="siblings">
+  <h2>The other three angles of this expedition.</h2>
+  <div class="sib-grid">
+    <div class="sib">
+      <div class="depth">expedition</div>
+      <h4><a href="../../os-and-storage-stack-without-lock-in/">OS and storage stack without lock-in</a></h4>
+      <p>Picking a NAS OS and storage stack for a 2026 self-built home server, with portability and Synology-migration cost as the primary axes.</p>
+    </div>
+    <div class="sib">
+      <div class="depth">survey</div>
+      <h4><a href="../../migrating-off-synology-dsm/">Migrating off Synology DSM</a></h4>
+      <p>How to leave DSM in 2026: where to land (TrueNAS/Unraid/Proxmox/UGREEN), how to move the data without losing it, and which open-source apps replace which DSM packages.</p>
+    </div>
+    <div class="sib">
+      <div class="depth">survey</div>
+      <h4><a href="../../remote-access-and-always-on-operations/">Remote access and always-on operations</a></h4>
+      <p>Default stack for replacing Synology QuickConnect, plus a survey of mesh VPNs, public tunnels, UPS/NUT, WoL, IP-KVM, and uptime monitoring for an always-on home server.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== COLOPHON ============================ -->
+<footer class="colophon">
+  <div>SHEET&nbsp;HW-2026-001 · COMPILED 2026-04-28 · <a href="../../">parent expedition</a> · <a href="../">canonical</a></div>
+  <div class="right">N=12 · CITATIONS=101 · MEASURE=Kill-A-Watt · PRICES=USD/EUR @ Apr-2026</div>
+</footer>
+
+</div>
