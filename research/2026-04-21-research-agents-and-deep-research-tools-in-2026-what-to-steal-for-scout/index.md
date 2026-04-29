@@ -6,10 +6,13 @@ format: md
 topic: "Survey of research agents / deep-research tools available in 2026 that could serve a role like Scout (my custom Claude-Code-based research engine). Compare the main options, note what's production-ready vs experimental, and flag anything I should steal ideas from."
 tags: [deep-research, agents, claude-code, llm, survey]
 cover: cover.svg
-summary: Landscape of 2026 deep-research agents — commercial (OpenAI, Perplexity, Gemini, Claude, Grok), OSS (GPT-Researcher, open_deep_research, STORM, smolagents), and Claude-Code skills — with a short list of ideas worth porting into Scout.
-citations: 23
-reading_time_min: 9
+summary: Landscape of 2026 deep-research agents — commercial, OSS, and Claude-Code skills — plus a verified head-to-head Scout vs 199-biotech vs Weizhena and a status check on which "ideas to steal" Scout has actually shipped.
+citations: 26
+reading_time_min: 19
+updated: 2026-04-29
 ---
+
+> **Update — 2026-04-29.** Eight days later, most of the gaps this survey named are closed in [Scout](https://github.com/Laoujin/Scout) ⭐ 0 (Apr 2026) [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md): disk-persisted `citations.jsonl`, reflect-and-requery, perspective-guided outline (deep tier's "breadth heuristic"), per-source `source_type` taxonomy, GitHub-stars on every link, planner/researcher/writer split for `deep`, post-write reviewer, date-injection before querying, format auto-selection, topic sharpening, multi-angle decomposition, and bespoke per-page HTML "views" via the `scout-view-author` skill [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md)[[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md). A real head-to-head also ran on issue #7 [[26]](https://github.com/Laoujin/Scout/issues/7) — Scout vs 199-biotech vs Weizhena on the same topic — and the verdict is honest: **Scout wins on density, named picks, paste-ready code, unattended single-shot, and publication; loses on corpus breadth, epistemic honesty (no per-claim confidence, no `[uncertain]`), and re-renderability.** See the [Status of "ideas to steal"](#ideas-to-steal-for-scout-status-apr-2026) and [Head-to-head verified](#head-to-head-verified--scout-vs-199-biotech-vs-weizhena-apr-2026) sections below.
 
 ## TL;DR for a Scout-shaped tool
 
@@ -116,18 +119,93 @@ DeepResearch Bench: 100 PhD-level tasks across 22 fields, scored on **RACE** (re
 
 None of these benchmarks directly evaluate the thing Scout does — citation-inline markdown with per-topic source rubrics. The closest proxy is FACT's citation-trustworthiness axis.
 
-## Ideas to steal for Scout (ranked)
+## Ideas to steal for Scout (status, Apr 2026)
 
-1. **Disk-persisted `{claim, url}` store** that survives context compaction. Currently Scout's citations live in the model's working memory until the Write happens — a long deep run risks losing cites [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill).
-2. **Reflect-and-requery loop** à la local-deep-researcher: after initial synthesis, explicitly list knowledge gaps and fire a second round of searches targeting them [[17]](https://github.com/langchain-ai/local-deep-researcher). Cleaner than today's ad-hoc "did I miss anything" check.
-3. **Multi-persona critique pass** before writing: Skeptical Practitioner + Adversarial Reviewer reads the draft and flags unsupported claims [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill). Pairs well with the existing "every claim has ≥1 URL" self-check.
-4. **Perspective-guided outline** (STORM): before planning sub-questions, enumerate stakeholder perspectives implied by the topic and ensure the outline covers each [[14]](https://storm-project.stanford.edu/research/storm/). Especially useful for deep depth.
-5. **Per-source credibility scoring** in comparison tables (Elicit pattern): not just "cite the URL" but a one-token tag — e.g., official-docs / peer-reviewed / vendor-blog / forum-consensus [[19]](https://elicit.com/solutions/literature-review). Scout already labels opinions by source; formalizing this into a taxonomy tightens it.
-6. **Publisher role split**: GPT-Researcher's clean planner/executor/publisher boundary means the final writer sees only the evidence bundle, not the noisy search trajectory [[2]](https://github.com/assafelovic/gpt-researcher). In Scout terms: synthesize into a citation ledger first, write the markdown second.
-7. **Auto-continuation for long reports**: Scout's `deep` mode can blow past context; the 199-biotech pattern uses recursive sub-agents to keep going past 18K words [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill).
-8. **Fetch today's date before querying** — trivial, prevents stale-year queries when the runtime's clock disagrees with training data [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill).
-9. **MCP-first search backend**: both open_deep_research and GPT-Researcher standardized on MCP as the pluggable search interface [[3]](https://github.com/langchain-ai/open_deep_research)[[2]](https://github.com/assafelovic/gpt-researcher) — swapping Tavily / SearXNG / Exa becomes config, not code.
-10. **Claude Managed Agents as a hosting target** if Scout ever outgrows GitHub Actions — the Environment/Session/Events model maps 1:1 onto research-per-run [[12]](https://platform.claude.com/docs/en/managed-agents/overview).
+Restructured 2026-04-29: status markers reflect what Scout has actually shipped vs what's still open. Open items first.
+
+### Still open
+
+1. **✗ Multi-persona critique pass before writing** — 199-biotech runs Skeptical Practitioner + Adversarial Reviewer + Implementation Engineer over the draft and surfaces unsupported claims [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill). Scout's `deep` tier has a single `scout-reviewer` sub-agent [[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md) — same shape, one persona; splitting into two-three named personas is cheap and worth doing.
+2. **✗ Per-claim confidence labels (High / Med / Low) and an explicit Claims-Evidence Table** — 199-biotech appends a table mapping load-bearing claims → sources → confidence rating [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill). Scout's "no claim without URL" rule is weaker because it doesn't surface *which* claims are thinly supported. Cheapest big win flagged in the verified head-to-head below.
+3. **✗ `[uncertain]` markers on unverifiable fields** (Weizhena pattern) [[18]](https://github.com/Weizhena/Deep-Research-skills) — and a tail list of the exact uncertain field paths. Honest epistemics, prompt-level change.
+4. **✗ Editable analytic schema before research (`fields.yaml` style)** — Weizhena lets the user define ~50 analytic axes per item before `/research-deep` fans out [[18]](https://github.com/Weizhena/Deep-Research-skills). Scout has no equivalent lever; depth/format flags don't shape the analytic axes. Architectural lift but worth piloting on survey-shaped topics.
+5. **✗ Research/render split** — Weizhena emits per-item JSON (`results/*.json`) and a `generate_report.py` that synthesizes the markdown; you can re-render against a different template without re-researching [[18]](https://github.com/Weizhena/Deep-Research-skills). Scout's `index.md` IS the artifact. The new `scout-view-author` skill is partial coverage (you can author alternate visual treatments without re-running) but the data shape is still narrative-only, not structured.
+6. **✗ MCP-first search backend** — both [open_deep_research](https://github.com/langchain-ai/open_deep_research) ⭐ 11.2k (Apr 2026) [[3]](https://github.com/langchain-ai/open_deep_research) and [GPT-Researcher](https://github.com/assafelovic/gpt-researcher) ⭐ 26.6k (Apr 2026) [[2]](https://github.com/assafelovic/gpt-researcher) standardized on MCP as the pluggable search interface — swapping Tavily / SearXNG / Exa becomes config. Scout still uses `WebSearch` + `WebFetch` + `playwright` fallback hardcoded in the skill [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md).
+7. **✗ Source-type breakdown in the artifact** — derived from `citations.jsonl` (Anthropic / GH / security firms / blogs etc.). Scout already tags `source_type` per ledger entry [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md); surfacing the histogram in the artifact is a one-prompt change.
+8. **✗ Methodology metadata block** — 199-biotech appends a footer naming phases, source counts, triangulation rule, persona names, validation status [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill). Cheap auditability win.
+9. **✗ Claude Managed Agents as a hosting target** — if Scout outgrows the self-hosted GitHub Actions runner [[12]](https://platform.claude.com/docs/en/managed-agents/overview). Not a current pain point but the migration path is open.
+
+### Shipped or partial
+
+10. **✓ Disk-persisted `{claim, url}` store** — Scout writes `citations.jsonl` for `standard` and `deep`, with `n` matching every `[[n]]` in the body [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md). Schema includes `source_type`, `quote`, `github_stars`. Hard rule: every `[[n]]` has a ledger entry; every entry has a non-empty `url`.
+11. **✓ Reflect-and-requery loop** — `standard` runs one explicit gap-listing + targeted requery round; `deep` does the same per researcher sub-agent plus one parent remediation round [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md)[[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md).
+12. **✓ Perspective-guided outline (STORM-shaped)** — `deep.md`'s breadth heuristic enumerates the chooser / maintainer / skeptic / operator / competitor / history angles before dispatching researchers [[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md).
+13. **✓ Per-source credibility taxonomy** — `official` / `peer-reviewed` / `vendor-blog` / `forum` / `news` / `wiki` tags on every ledger entry [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md).
+14. **✓ Planner / researcher / writer split** — `deep` tier: parent plans + writes, researcher sub-agents fan out (max 6 concurrent), each owns its own `citations.a<N>.jsonl`, `merge_ledgers.sh` dedupes into `citations.jsonl`, parent writes from compressed researcher summaries [[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md). Each researcher gets its own 200K context so the parent never sees raw search trajectories.
+15. **✓ Fetch today's date before querying** — `DATE` is injected by `run.sh`; `WebSearch` queries include the literal year [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md).
+16. **◑ Auto-continuation for long reports** — sidestepped rather than solved. The researcher sub-agent split keeps the parent context small, so the 18K-word ceiling that drove 199-biotech's recursive auto-continuation [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill) hasn't been hit. Open if Scout ever wants single-page reports >18K words.
+17. **◑ Re-renderability** — the new `scout-view-author` skill produces bespoke HTML "views" of an existing canonical (`<canonical>/views/<view_name>.html`) without re-running research [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md). This covers "render the same data with a different visual register" but not "edit the analytic schema and re-emit the matrix" — the canonical is still narrative, not a queryable JSON.
+
+### Adjacent capabilities Scout shipped that weren't in the original "ideas to steal" list
+
+18. **Topic sharpening** — pre-research LLM step proposes a tightened topic with optional decomposition for multi-angle expeditions [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md). User edits in place via GitHub Issue, then ticks Start.
+19. **Decomposition with synthesis** — multi-angle topics fan out into one sub-research per angle plus a parent overview that names contradictions and dependencies between children [[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md).
+20. **Format auto-selection** — `auto` heuristic picks `.md` for narrative analyses and `.html` for comparison-heavy / visual topics [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md). Neither commercial nor OSS competitor varies format by topic shape.
+21. **Cost / duration in frontmatter** — `cost_usd` and `duration_sec` injected by `run.sh` after the run, surfaced on the Atlas card. Neither 199-biotech nor Weizhena exposes cost.
+22. **Profile-driven localization** — `profile.yml` with `location` / `languages` / `currency` / `interests` localizes sharpening (e.g., "best ramen" → "best ramen in Ghent, EUR") [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md).
+
+## Head-to-head verified — Scout vs 199-biotech vs Weizhena (Apr 2026)
+
+Same topic (Yolo Claude Code in Docker, [issue #7](https://github.com/Laoujin/Scout/issues/7)) [[26]](https://github.com/Laoujin/Scout/issues/7), three tools, three artifacts, all read end-to-end. Numbers below are from the verified comparison run.
+
+### Run footprint
+
+| Metric | Scout (`deep`) | [199-biotech](https://github.com/199-biotechnologies/claude-deep-research-skill) ⭐ 509 [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill) | [Weizhena](https://github.com/Weizhena/Deep-Research-skills) ⭐ 483 [[18]](https://github.com/Weizhena/Deep-Research-skills) |
+|---|---|---|---|
+| Lines | 423 | 621 | 8,901 |
+| Words | 4,915 | 9,502 | 232,197 |
+| Distinct citations | 77 | 34 (self-reported) | ≥150 across 75 items |
+| Unique domains | 38 | not tallied | not tallied |
+| Wall-clock | 18.5 min | ~25 min | ~7.5 hr (interactive, multi-phase gates) |
+| API cost | $10.70 declared | not disclosed | not disclosed |
+| Subscription footprint | "blip on the subscription" | comparable to Scout | **exceeded Max-$200 6-hour cap** on this single topic — required pause/resume on a fresh window |
+| Artifacts | `index.md` + `outline.md` + `citations.jsonl` + 8 per-agent ledgers | `.md` + `.html` (advertised JSONL/PDF not produced) | `report.md` + `outline.yaml` + `fields.yaml` + `generate_report.py` + 75 `results/*.json` |
+
+### Where Scout actually loses
+
+- **Corpus breadth.** Weizhena's 75-tool sweep names tools Scout doesn't (Ona Veto, NVIDIA OpenShell, Cloudflare Outbound Workers, kubernetes-sigs/agent-sandbox, Spritz, sbox, claucker, VibePod, rivet-dev, …). On a survey-style topic, Weizhena is the right tool.
+- **Incident / CVE breadth.** Weizhena cites ~9 distinct CVE/incident classes (CVE-2025-59536, CVE-2026-21852, CVE-2025-66032, CVE-2026-25725, CVE-2026-39861, Claudy Day, Mar 2026 source leak, axios RAT, LiteLLM, Ona disclosure, Adversa deny-rule bypass). Scout covers ~5; 199-biotech ~3 (and missed CVE-2025-59536 entirely).
+- **Epistemic honesty.** No `[uncertain]` markers, no per-claim confidence labels, no source-type histogram in the artifact. Both competitors do better here in different ways.
+- **Re-renderability.** Once a Scout run is done, the template can't change without re-researching. Weizhena lets you edit `generate_report.py` and re-render from `results/*.json`.
+- **Auditability of major claims.** 199-biotech's Claims-Evidence Table maps 10 load-bearing claims → sources → High/Med/Low confidence; Scout's "no claim without URL" treats every URL-cited claim as equally weighted.
+- **Methodology transparency.** 199-biotech names its 8 phases, persona names, triangulation rule, source-type breakdown. Scout has citation count + per-agent ledgers but no methodology block in the artifact.
+- **Track record.** [Scout](https://github.com/Laoujin/Scout) ⭐ 0 (Apr 2026), 4 outputs total. 199-biotech (⭐ 509) and Weizhena (⭐ 483) have months of use. Failure modes that show up at scale haven't been observed yet for Scout.
+
+### Where Scout actually wins
+
+- **Density for a narrative reader.** 4.9k words gets to a decision faster than 9.5k or 232k.
+- **Picks named with context.** "Fastest start: Docker Sandboxes. Specific toolbelt: roll your own. Multi-project: claudebox." That's what an expert who's read enough actually wants. 199-biotech recommends an architecture without comparing alternatives. Weizhena scores all 75 0–5 and lets the reader choose — more honest, less direct.
+- **Paste-ready code in one place.** Complete Dockerfile + `init-firewall.sh` + `docker run` + `compose.yaml` in one read. 199-biotech splits across sections; Weizhena has snippets per-item.
+- **Currency on 2026 CVEs.** Scout names CVE-2025-59536, Cyata, MCP-STDIO, Trail of Bits, Invariant. (Still behind Weizhena's depth here, but ahead of 199-biotech.)
+- **Format auto-selection.** Scout's `auto` heuristic picked `.md` for this topic; neither competitor varies format by topic shape.
+- **Unattended single-shot.** 18.5 min one-shot. 199-biotech ~25 min, also single-shot. Weizhena needs three human gates (`/research`, `/research-deep`, `/research-report`) — incompatible with overnight or scheduled runs.
+- **Publication pipeline.** Scout lands on a public Atlas URL via GitHub Pages. The others sit on disk.
+- **Cost transparency.** `cost_usd: 10.70`, `duration_sec: 1110` in frontmatter. Neither competitor exposes cost.
+- **Subscription footprint.** Weizhena exceeded the Max-$200 6-hour cap on this single topic; Scout was a "blip." (User-observed, not measured rigorously.)
+
+### Situational picks
+
+- **"What should I do tonight?" with a developer who'll act on it** → Scout. Density + paste-ready code + named picks beats both alternatives for this shape.
+- **"Map the entire landscape, score everything, let me decide"** → Weizhena on output quality. Caveat: the Max-$200 6-hour cap. Scout's `deep` (`expedition`) tier exists and is shape-similar but hasn't been benchmarked head-to-head.
+- **"Polished narrative essay with audit trail"** → 199-biotech. Claims-Evidence Table + 8-phase methodology block read like a vendor white paper.
+- **"Reproducibility — re-render with a new template later"** → Weizhena (only one with the data/render split).
+- **"Unattended overnight runs"** → Scout or 199-biotech. Weizhena's interactive gates rule it out.
+
+### Bottom line
+
+Scout is **good for the use case it's designed for** — terse decision-oriented narrative with paste-ready code, single-shot, published. It is **not "best overall"** by any objective measure on this topic. Weizhena beats it on breadth, epistemics, and re-renderability. 199-biotech beats it on auditability and methodology transparency. The right benchmark is "for what shape of question?", not "which one wins?"
+
+The cheapest large wins from this comparison: **multi-persona critique** (split today's single reviewer into 2-3 personas), **Claims-Evidence Table** (load-bearing claims → sources → High/Med/Low confidence appended after the body), **`[uncertain]` markers** (prompt-level), **source-type histogram** (one-prompt change against existing `citations.jsonl`).
 
 ## Production-ready vs experimental
 
