@@ -1,0 +1,1095 @@
+---
+layout: view
+view_name: "Inbox"
+view_of: ../
+title: "Obsidian 2026: low-friction capture and AI-assisted backfill — Inbox"
+---
+
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg-elev: #11141b;
+    --bg-card: #161922;
+    --bg-rail: #0e1117;
+    --border: #1f2430;
+    --border-soft: #161922;
+    --fg: #d6dae3;
+    --fg-mute: #8b93a7;
+    --fg-dim: #5a6376;
+    --teal: #4ec9b0;
+    --teal-dim: #1f6f63;
+    --purple: #b794f4;
+    --purple-dim: #5b3d8a;
+    --amber: #e6a23c;
+    --rose: #f87171;
+    --green: #7ee787;
+    --line: #2a3040;
+  }
+
+  .obs-inbox {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .obs-inbox a { color: var(--teal); text-decoration: none; border-bottom: 1px dotted var(--teal-dim); }
+  .obs-inbox a:hover { color: var(--purple); border-bottom-color: var(--purple-dim); }
+  .obs-inbox sup { font-size: 0.72em; line-height: 1; }
+  .obs-inbox sup a { border: none; color: var(--fg-mute); padding: 0 1px; }
+  .obs-inbox sup a:hover { color: var(--teal); }
+
+  /* terminal title bar */
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(180deg, #1a1e29 0%, #14171f 100%);
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--fg-mute);
+  }
+  .term-bar .dots { display: inline-flex; gap: 6px; }
+  .term-bar .dots i {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+  .term-bar .dots i:nth-child(1) { background: #ff5f57; }
+  .term-bar .dots i:nth-child(2) { background: #febc2e; }
+  .term-bar .dots i:nth-child(3) { background: #28c840; }
+  .term-bar .path { color: var(--fg-mute); }
+  .term-bar .path b { color: var(--purple); font-weight: 600; }
+  .term-bar .right { margin-left: auto; color: var(--fg-dim); font-size: 11px; letter-spacing: 0.04em; }
+
+  /* prompt strip */
+  .prompt {
+    padding: 16px 20px 6px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .prompt .user { color: var(--green); }
+  .prompt .at { color: var(--fg-dim); }
+  .prompt .host { color: var(--purple); }
+  .prompt .pwd { color: var(--teal); }
+  .prompt .sigil { color: var(--fg-mute); margin: 0 6px; }
+  .prompt .cmd { color: var(--fg); }
+  .prompt .cmd em { color: var(--amber); font-style: normal; }
+  .prompt .out { color: var(--fg-mute); display: block; padding-left: 0; margin-top: 6px; font-size: 12.5px; }
+  .prompt .out span { color: var(--fg); }
+  .prompt .cursor { display: inline-block; width: 9px; height: 16px; background: var(--teal); vertical-align: -2px; margin-left: 4px; }
+
+  /* masthead */
+  .masthead {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(ellipse at top right, rgba(183,148,244,0.08), transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(78,201,176,0.06), transparent 60%);
+  }
+  .kicker {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-bottom: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  .kicker span { color: var(--teal); }
+  .kicker .sep { color: var(--fg-dim); }
+  .masthead h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(28px, 4.4vw, 52px);
+    line-height: 1.05;
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .masthead h1 .accent { color: var(--purple); }
+  .masthead h1 .plus { color: var(--teal); padding: 0 4px; }
+  .masthead .lede {
+    font-size: 14px;
+    color: var(--fg-mute);
+    max-width: 64ch;
+  }
+
+  /* meta strip */
+  .meta-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .meta-strip .cell {
+    padding: 12px 18px;
+    border-right: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+  .meta-strip .cell:last-child { border-right: none; }
+  .meta-strip .lab { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-dim); margin-bottom: 4px; }
+  .meta-strip .val { font-size: 18px; font-weight: 600; color: var(--fg); }
+  .meta-strip .val .unit { font-size: 11px; color: var(--fg-mute); margin-left: 4px; }
+
+  /* main 2-col layout */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(280px, 1fr);
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .triage { border-left: none !important; border-top: 1px solid var(--border) !important; position: static !important; }
+  }
+
+  .entries { padding: 24px 20px; min-width: 0; }
+  .entries-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .entries-head .h { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-mute); }
+  .entries-head .count { color: var(--teal); }
+  .entries-head .arrow { color: var(--fg-dim); margin-left: auto; font-size: 11px; }
+
+  .entry {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    margin-bottom: 22px;
+    position: relative;
+  }
+  .entry[data-status="ship"]   { border-left-color: var(--green); }
+  .entry[data-status="mixed"]  { border-left-color: var(--amber); }
+  .entry[data-status="watch"]  { border-left-color: var(--rose); }
+
+  .entry-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--fg-mute);
+    flex-wrap: wrap;
+  }
+  .entry-head .lineno {
+    font-weight: 700;
+    color: var(--fg-dim);
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    letter-spacing: 0.05em;
+  }
+  .entry-head .ts { color: var(--teal); font-variant-numeric: tabular-nums; }
+  .entry-head .file { color: var(--fg); flex: 1 1 auto; }
+  .entry-head .file b { color: var(--purple); font-weight: 600; }
+  .entry-head .verdict {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 3px 9px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+  .v-ship   { background: rgba(126,231,135,0.12); color: var(--green); border: 1px solid rgba(126,231,135,0.35); }
+  .v-mixed  { background: rgba(230,162,60,0.12); color: var(--amber); border: 1px solid rgba(230,162,60,0.35); }
+  .v-watch  { background: rgba(248,113,113,0.12); color: var(--rose); border: 1px solid rgba(248,113,113,0.35); }
+
+  .entry-body { padding: 16px 18px 14px; }
+  .entry-body h2 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .entry-body .sub {
+    font-size: 11px;
+    color: var(--fg-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .entry-body p.lede {
+    color: var(--fg);
+    margin: 8px 0 12px;
+    font-size: 14px;
+  }
+  .entry-body p.lede .hi { color: var(--purple); font-weight: 600; }
+  .entry-body p.lede .term { color: var(--teal); }
+
+  .entry-body ul.picks {
+    list-style: none;
+    margin: 8px 0 4px;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .entry-body ul.picks li {
+    padding: 6px 10px 6px 26px;
+    border-left: 1px solid var(--border);
+    color: var(--fg-mute);
+    position: relative;
+    font-size: 13px;
+  }
+  .entry-body ul.picks li::before {
+    content: "▸";
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    color: var(--teal);
+    font-size: 11px;
+  }
+  .entry-body ul.picks li b { color: var(--fg); font-weight: 600; }
+  .entry-body ul.picks li .star { color: var(--amber); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .entry-body ul.picks li.warn { border-left-color: var(--amber); color: var(--fg-mute); }
+  .entry-body ul.picks li.warn::before { content: "⚠"; color: var(--amber); }
+  .entry-body ul.picks li.dead { border-left-color: var(--rose); color: var(--fg-mute); }
+  .entry-body ul.picks li.dead::before { content: "✗"; color: var(--rose); }
+
+  .entry-body .pull {
+    margin: 14px 0 6px;
+    padding: 10px 14px;
+    background: rgba(78,201,176,0.05);
+    border-left: 2px solid var(--teal);
+    color: var(--fg);
+    font-size: 13px;
+  }
+  .entry-body .pull b { color: var(--teal); }
+
+  .entry-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg-rail);
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--fg-dim);
+  }
+  .entry-foot .kbd {
+    font-family: inherit;
+    font-size: 10.5px;
+    color: var(--fg-mute);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+  .entry-foot .tag {
+    color: var(--purple);
+    font-size: 11px;
+  }
+  .entry-foot .srcs { margin-left: auto; color: var(--fg-mute); }
+  .entry-foot .srcs b { color: var(--teal); }
+  .entry-foot .favicons { display: inline-flex; gap: 4px; align-items: center; }
+  .entry-foot .favicons img {
+    width: 14px; height: 14px; border-radius: 2px; opacity: 0.8;
+    background: var(--bg);
+  }
+
+  /* triage rail */
+  .triage {
+    background: var(--bg-rail);
+    border-left: 1px solid var(--border);
+    padding: 24px 18px;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  .triage .block { margin-bottom: 22px; }
+  .triage .block-h {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .triage .block-h::before {
+    content: "▣";
+    color: var(--teal);
+    font-size: 11px;
+  }
+  .triage .decision-body {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--purple);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--fg);
+    line-height: 1.55;
+  }
+  .triage .decision-body b { color: var(--purple); }
+  .triage .decision-body .dim { color: var(--fg-mute); }
+
+  .triage ul.surfaces {
+    list-style: none; margin: 0; padding: 0;
+  }
+  .triage ul.surfaces li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--fg-mute);
+    border-bottom: 1px dashed var(--border-soft);
+  }
+  .triage ul.surfaces li:last-child { border-bottom: none; }
+  .triage ul.surfaces li .pill {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    min-width: 38px;
+    text-align: center;
+  }
+  .triage ul.surfaces li .name { color: var(--fg); flex: 1; }
+  .triage ul.surfaces li .why { color: var(--fg-dim); font-size: 10.5px; }
+
+  .triage ol.steps {
+    list-style: none; counter-reset: s; margin: 0; padding: 0;
+  }
+  .triage ol.steps li {
+    counter-increment: s;
+    padding: 6px 0 6px 28px;
+    position: relative;
+    font-size: 12px;
+    color: var(--fg);
+    border-bottom: 1px dashed var(--border-soft);
+  }
+  .triage ol.steps li:last-child { border-bottom: none; }
+  .triage ol.steps li::before {
+    content: counter(s, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 6px;
+    color: var(--teal);
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .triage ol.steps li code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--purple);
+    font-size: 11px;
+  }
+  .triage ol.steps li .arrow { color: var(--teal); margin: 0 2px; }
+  .triage ol.steps li .strike { color: var(--fg-dim); text-decoration: line-through; }
+
+  .triage .hw {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    font-size: 11.5px;
+    color: var(--fg-mute);
+    line-height: 1.65;
+  }
+  .triage .hw .row {
+    display: flex; justify-content: space-between; gap: 8px;
+    border-bottom: 1px dotted var(--border);
+    padding: 3px 0;
+  }
+  .triage .hw .row:last-child { border-bottom: none; }
+  .triage .hw .row .k { color: var(--fg-dim); }
+  .triage .hw .row .v { color: var(--fg); font-variant-numeric: tabular-nums; }
+  .triage .hw .row .v b { color: var(--teal); }
+
+  /* siblings tree */
+  .tree-wrap {
+    padding: 24px 24px 10px;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+  }
+  .tree-head {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-bottom: 14px;
+  }
+  .tree-head b { color: var(--purple); letter-spacing: 0.04em; text-transform: none; font-size: 12px; }
+  .tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.85;
+  }
+  .tree li {
+    color: var(--fg-mute);
+  }
+  .tree .branch { color: var(--fg-dim); }
+  .tree li a { color: var(--fg); border: none; }
+  .tree li a:hover { color: var(--teal); }
+  .tree .self { color: var(--purple); }
+  .tree .self::before { content: "★ "; color: var(--purple); }
+  .tree .here { color: var(--fg-dim); margin-left: 8px; font-size: 11px; }
+  .tree .depth-tag {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .tree .depth-tag.expedition { color: var(--purple); border-color: var(--purple-dim); }
+  .tree .depth-tag.survey { color: var(--teal); border-color: var(--teal-dim); }
+  .tree .summary {
+    display: block;
+    padding-left: 28px;
+    font-size: 11.5px;
+    color: var(--fg-dim);
+    line-height: 1.5;
+    margin: -2px 0 4px;
+  }
+
+  /* sources grid */
+  .sources {
+    padding: 24px 20px 32px;
+    background: var(--bg);
+  }
+  .sources-head {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-bottom: 14px;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .sources-head b { color: var(--teal); letter-spacing: 0.04em; }
+  .sources-head .legend {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--fg-dim);
+    letter-spacing: 0.1em;
+  }
+  .sources-head .legend i {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin: 0 4px 0 10px;
+    vertical-align: 1px;
+  }
+  .sources-head .legend .official { background: var(--teal); }
+  .sources-head .legend .forum { background: var(--purple); }
+  .sources-head .legend .news { background: var(--amber); }
+  .sources-head .legend .blog { background: var(--fg-dim); }
+  .sources-head .legend .wiki { background: var(--rose); }
+
+  .src-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 4px 14px;
+  }
+  .src {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-left: 2px solid var(--border);
+    font-size: 11.5px;
+    color: var(--fg-mute);
+    line-height: 1.4;
+    min-width: 0;
+  }
+  .src.official { border-left-color: var(--teal); }
+  .src.forum    { border-left-color: var(--purple); }
+  .src.news     { border-left-color: var(--amber); }
+  .src.blog     { border-left-color: var(--fg-dim); }
+  .src.wiki     { border-left-color: var(--rose); }
+
+  .src .n {
+    color: var(--fg-dim);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    width: 22px;
+    text-align: right;
+  }
+  .src img.fav {
+    width: 14px; height: 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .src a {
+    color: var(--fg);
+    border: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .src a:hover { color: var(--teal); }
+  .src .stars {
+    color: var(--amber);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
+  /* footer prompt */
+  .closing {
+    padding: 18px 24px 26px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-rail);
+    font-size: 12px;
+    color: var(--fg-dim);
+  }
+  .closing .line { margin-bottom: 4px; }
+  .closing .pwd { color: var(--teal); }
+  .closing .user { color: var(--green); }
+  .closing .out { color: var(--fg-mute); }
+  .closing .out b { color: var(--purple); }
+  .closing .nav { margin-top: 14px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; }
+  .closing .nav a { color: var(--teal); border: none; }
+  .closing .nav a:hover { color: var(--purple); }
+  .closing .nav .sep { color: var(--fg-dim); }
+
+  .ascii {
+    font-size: 10px;
+    color: var(--border);
+    white-space: pre;
+    line-height: 1;
+    margin: 0 0 12px;
+    overflow-x: auto;
+  }
+</style>
+
+<div class="obs-inbox">
+
+  <div class="term-bar">
+    <span class="dots"><i></i><i></i><i></i></span>
+    <span class="path">~/vault/.inbox/<b>2026-04-30-low-friction-capture.md</b></span>
+    <span class="right">obsidian · 80 cited · expedition · 13 min</span>
+  </div>
+
+  <div class="prompt">
+    <span class="user">scout</span><span class="at">@</span><span class="host">vault</span><span class="sigil">:</span><span class="pwd">~/inbox</span><span class="sigil">$</span>
+    <span class="cmd">cat capture-surfaces.md | <em>scout</em> --triage --backfill</span>
+    <span class="out">› opening 6 entries · routing decisions to triage column · piping 80 sources<span class="cursor"></span></span>
+  </div>
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>OBSIDIAN</span><span class="sep">·</span>
+      <span>2026-04-30</span><span class="sep">·</span>
+      <span>EXPEDITION</span><span class="sep">·</span>
+      <span>06 SURFACES</span><span class="sep">·</span>
+      <span>80 SOURCES</span>
+    </div>
+    <h1>Low-friction capture<span class="plus">+</span><br><span class="accent">AI-assisted backfill</span></h1>
+    <p class="lede">Six capture surfaces feed one inbox. The 2026 baseline pairs <b>QuickAdd + Templater</b> on desktop, the official <b>Web Clipper</b> in browsers, <b>nikdanilov's Whisper</b> for voice, and <b>AI Tagger Universe</b> + a local Ollama backbone for retro-tagging the existing vault.</p>
+  </header>
+
+  <div class="meta-strip">
+    <div class="cell"><div class="lab">entries</div><div class="val">06</div></div>
+    <div class="cell"><div class="lab">cited</div><div class="val">80<span class="unit">sources</span></div></div>
+    <div class="cell"><div class="lab">read</div><div class="val">13<span class="unit">min</span></div></div>
+    <div class="cell"><div class="lab">verdict</div><div class="val" style="color: var(--green);">SHIP</div></div>
+    <div class="cell"><div class="lab">backbone</div><div class="val" style="color: var(--purple);">local</div></div>
+  </div>
+
+  <div class="layout">
+
+    <main class="entries">
+
+      <div class="entries-head">
+        <span class="h">▾ inbox <span class="count">— 6 entries</span></span>
+        <span class="arrow">→ triage</span>
+      </div>
+
+      <!-- 01 desktop -->
+      <article class="entry" data-status="ship">
+        <header class="entry-head">
+          <span class="lineno">01</span>
+          <span class="ts">09:14:02</span>
+          <span class="file">~/inbox/<b>desktop-quick-capture</b>.md</span>
+          <span class="verdict v-ship">ship</span>
+        </header>
+        <div class="entry-body">
+          <div class="sub">surface · keyboard-driven · two-plugin layer cake</div>
+          <h2>Desktop quick capture</h2>
+          <p class="lede">The 2026 baseline is unchanged from 2024: <span class="hi">today's daily note is the inbox</span>, processing happens at review time, capture is one hotkey away<sup><a href="https://www.obsibrain.com/blog/obsidian-daily-notes-documentation">[12]</a></sup>. What changed is that the two plugins doing the work are both still actively maintained and explicitly complementary — <span class="term">QuickAdd</span> handles menu/prompt/routing, <span class="term">Templater</span> handles dynamic variables and JS<sup><a href="https://www.dsebastien.net/the-must-have-obsidian-plugins-for-2026/">[7]</a></sup>.</p>
+          <ul class="picks">
+            <li><b>QuickAdd</b> <span class="star">⭐ 2.2k</span> v2.12.0 (Mar 5 2026) — Capture, Template, Macro, Multi choices<sup><a href="https://github.com/chhoumann/quickadd">[1]</a><a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">[2]</a></sup></li>
+            <li><b>Templater</b> <span class="star">⭐ 4.9k</span> v2.20.0 (Apr 29 2026) — JS execution + per-template hotkeys<sup><a href="https://github.com/SilentVoid13/Templater">[3]</a><a href="https://silentvoid13.github.io/Templater/settings.html">[4]</a></sup></li>
+            <li><b>Journals</b> (srg-kostyrko) — actively-maintained 2025/2026 Periodic Notes replacement; daily→yearly + interval journals + bulk import<sup><a href="https://forum.obsidian.md/t/plugin-journals/76946">[6]</a></sup></li>
+            <li class="warn"><b>Periodic Notes</b> <span class="star">⭐ 1.3k</span> — last release Apr 2022; treated as effectively unmaintained<sup><a href="https://github.com/liamcain/obsidian-periodic-notes">[5]</a></sup></li>
+            <li class="warn"><b>Thino</b> <span class="star">⭐ 1.3k</span> — closed-source from v2.0.0 with paid pro<sup><a href="https://github.com/Quorafind/Obsidian-Thino">[11]</a></sup></li>
+          </ul>
+          <div class="pull"><b>System-wide hotkey.</b> Obsidian's own hotkeys only fire when Obsidian has focus. Cross-platform: QuickAdd + the Global Hotkeys plugin, Ctrl+Alt+A is a common binding<sup><a href="https://obsidian.rocks/obsidian-quick-capture/">[8]</a></sup>. Windows: AutoHotkey script bound to Ctrl+Alt+V activates Obsidian and forwards Ctrl+Alt+C into QuickAdd's capture window<sup><a href="https://forum.obsidian.md/t/global-hotkey-to-launch-obsidian-and-open-quickadd-capture-window-using-autohotkey-script/22626">[9]</a></sup>. macOS: Alfred/Raycast workflows hitting QuickAdd's URI<sup><a href="https://obsidian.rocks/obsidian-quick-capture/">[8]</a></sup>.</div>
+          <div class="pull"><b>Inbox-processing pattern.</b> Advanced URI + Templater + Hotkeys for Templates with <code style="color:var(--purple)">Opt+A</code>/<code style="color:var(--purple)">Opt+D</code>/<code style="color:var(--purple)">Opt+M</code> bindings to archive, trash, or move each captured fleeting note during a daily review pass<sup><a href="https://forum.obsidian.md/t/quick-capture-mac-ios-and-inbox-processing/21808">[10]</a></sup>. Capture is dumb and fast; processing is concentrated.</div>
+        </div>
+        <footer class="entry-foot">
+          <span class="kbd">⌃⌥A</span>
+          <span class="kbd">⌃⌥V</span>
+          <span class="kbd">⌃⌥C</span>
+          <span class="kbd">⌥A</span>
+          <span class="kbd">⌥D</span>
+          <span class="kbd">⌥M</span>
+          <span class="favicons">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=obsidian.rocks&sz=32" alt="">
+          </span>
+          <span class="srcs"><b>10</b> sources cited</span>
+        </footer>
+      </article>
+
+      <!-- 02 mobile -->
+      <article class="entry" data-status="mixed">
+        <header class="entry-head">
+          <span class="lineno">02</span>
+          <span class="ts">10:32:47</span>
+          <span class="file">~/inbox/<b>mobile-capture</b>.md</span>
+          <span class="verdict v-mixed">mixed</span>
+        </header>
+        <div class="entry-body">
+          <div class="sub">surface · iOS / Android / watchOS · cold-start friction</div>
+          <h2>Mobile capture</h2>
+          <p class="lede">The headline 2026 shift: Obsidian Mobile finally shipped first-party capture surfaces — but architectural friction remains. Even widget taps still cold-start the full vault, so iOS power users still front-end with <span class="term">Drafts</span> or <span class="term">Actions for Obsidian</span>.</p>
+          <ul class="picks">
+            <li><b>Mobile 1.11</b> (Jan 2026) — iOS Lock Screen / Control Center / Home Screen widgets; Android home-screen widgets + Quick Settings Tile; Siri "Capture using Obsidian"; "Capture to a note" Shortcut<sup><a href="https://obsidian.md/changelog/2026-01-12-mobile-v1.11.4/">[14]</a></sup></li>
+            <li><b>Mobile 1.12</b> (Feb 27 2026) — native iOS Share extension; "Bookmark Link" Shortcut; "Unique note" home-screen long-press<sup><a href="https://obsidian.md/changelog/2026-02-27-mobile-v1.12.4/">[13]</a></sup></li>
+            <li><b>Drafts</b> (since v28 Bookmarks) — writes Markdown into iCloud-stored vault without launching Obsidian; Watch complication<sup><a href="https://thesweetsetup.com/quick-capture-to-obsidian-using-drafts/">[19]</a></sup></li>
+            <li><b>Actions for Obsidian</b> (iOS 18.4+) — 40+ Shortcuts actions: append, prepend, create-from-template, fetch frontmatter<sup><a href="https://apps.apple.com/us/app/actions-for-obsidian/id1659667937">[17]</a></sup></li>
+            <li><b>Quick Draft</b> — free Android/iOS companion: text/voice/image, OCR, date-formatted paths, template wrapping, Siri shortcuts<sup><a href="https://forum.obsidian.md/t/quick-draft-for-obsidian-companion-mobile-app-android-ios/108209">[18]</a></sup></li>
+            <li><b>Tasker</b> (Android) — direct-write timestamped Markdown into vault folder; sync only fires when Obsidian opens<sup><a href="https://forum.obsidian.md/t/tasker-for-mobile-quick-capture/95141">[20]</a></sup></li>
+            <li><b>Fleeting Notes</b> — Android-first scratch-note frontend that syncs into the vault<sup><a href="https://www.fleetingnotes.app/posts/put-quick-notes-into-obsidian-from-anywhere">[24]</a></sup></li>
+            <li class="warn">Apple Watch — still no first-party Obsidian app in 2026; Drafts complication / Siri Shortcuts via iCloud / third-party Uplink<sup><a href="https://forum.obsidian.md/t/feature-apple-watch-app/17820">[23]</a></sup></li>
+          </ul>
+          <div class="pull"><b>2026 Report Card scores mobile 3.1/5</b> — widget taps still cold-start the full vault; community sentiment "still awkward and kludgy" despite 1.11/1.12<sup><a href="https://practicalpkm.com/2026-obsidian-report-card/">[16]</a></sup>. The two-tier flow holds: short thoughts via iOS Shortcut popup + #QuickNotes append; longer captures via Drafts<sup><a href="https://nullpat.ch/posts/2025/04/quick-capture/">[22]</a></sup>.</div>
+        </div>
+        <footer class="entry-foot">
+          <span class="tag">#mobile</span>
+          <span class="tag">#ios</span>
+          <span class="tag">#android</span>
+          <span class="tag">#watchos</span>
+          <span class="favicons">
+            <img src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=apps.apple.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=thesweetsetup.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=practicalpkm.com&sz=32" alt="">
+          </span>
+          <span class="srcs"><b>12</b> sources cited</span>
+        </footer>
+      </article>
+
+      <!-- 03 web -->
+      <article class="entry" data-status="ship">
+        <header class="entry-head">
+          <span class="lineno">03</span>
+          <span class="ts">12:04:18</span>
+          <span class="file">~/inbox/<b>web-article-email-rss</b>.md</span>
+          <span class="verdict v-ship">ship</span>
+        </header>
+        <div class="entry-body">
+          <div class="sub">surface · browser · highlights · feeds</div>
+          <h2>Web, article, email, RSS</h2>
+          <p class="lede">Omnivore's <span class="hi">November 2024 shutdown</span> after the ElevenLabs acquihire reset the field<sup><a href="https://gleamr.io/blog/omnivore-shut-down-alternatives">[29]</a></sup>. The official <span class="term">Web Clipper</span> with the <span class="term">Interpreter</span> LLM template-fill replaced Omnivore, MarkDownload, and most third-party clippers.</p>
+          <ul class="picks">
+            <li><b>Obsidian Web Clipper</b> <span class="star">⭐ 4.1k</span> v1.6.2 — official cross-browser (Chrome/Safari/Firefox/Edge/Brave/Arc/Orion/Vivaldi + mobile); templates for articles/recipes/references/academic<sup><a href="https://github.com/obsidianmd/obsidian-clipper">[25]</a><a href="https://obsidian.md/clipper">[26]</a></sup></li>
+            <li><b>Interpreter</b> — pipes page context + <code style="color:var(--purple)">{{"prompt"}}</code> to BYO-LLM (Claude/GPT/Gemini/local) for summary/tags/author fields<sup><a href="https://help.obsidian.md/web-clipper/interpreter">[27]</a></sup></li>
+            <li><b>Readwise</b> <span class="star">⭐ 335</span> — highlight-centric: Kindle/Apple Books/Pocket/Twitter/PDFs/Reader; V2 added mobile sync + MCP server<sup><a href="https://github.com/readwiseio/obsidian-readwise">[30]</a><a href="https://www.stefanimhoff.de/note-taking-obsidian-readwise-ai/">[31]</a></sup></li>
+            <li><b>MarkDownload</b> <span class="star">⭐ 3.8k</span> — generic page→Markdown via Advanced Obsidian URI fallback when Web Clipper templates don't fit<sup><a href="https://github.com/deathau/markdownload">[32]</a></sup></li>
+            <li><b>Hypothes.is annotations</b> — weichenw <span class="star">⭐ 270</span> (one-way) or lindylearn fork (bi-directional, vault edits propagate back)<sup><a href="https://github.com/weichenw/obsidian-hypothesis-plugin">[35]</a><a href="https://github.com/lindylearn/obsidian-annotations">[36]</a></sup></li>
+            <li><b>Email → vault</b> — Email2Obsidian (free 10 lifetime, $2.49/mo Starter) or TaskRobin (forwarded emails + attachments)<sup><a href="https://email2obsidian.com/">[37]</a><a href="https://www.obsidianstats.com/plugins/taskrobin">[38]</a></sup></li>
+            <li><b>RSS Dashboard</b> <span class="star">⭐ 499</span> — aggregates RSS + YouTube + podcasts with smart tagging and embedded media<sup><a href="https://github.com/amatya-aditya/obsidian-rss-dashboard">[40]</a></sup></li>
+            <li class="dead"><b>joethei RSS Reader</b> <span class="star">⭐ 468</span> — archived August 25 2025; last release v1.2.2 (June 2022)<sup><a href="https://github.com/joethei/obsidian-rss">[39]</a></sup></li>
+            <li class="dead"><b>Matter</b> <span class="star">⭐ 128</span> — Obsidian plugin inactive since November 2022; Matter Premium $60/yr is still maintained but the plugin isn't<sup><a href="https://github.com/getmatterapp/obsidian-matter">[33]</a><a href="https://www.readless.app/blog/matter-app-pricing-2026">[34]</a></sup></li>
+          </ul>
+          <div class="pull"><b>Self-hosted escape hatch.</b> <a href="https://danielprindii.com/blog/read-it-later-alternatives-after-omnivore-shutting-down">Wallabag</a> for users who want full data ownership rather than another SaaS<sup><a href="https://danielprindii.com/blog/read-it-later-alternatives-after-omnivore-shutting-down">[41]</a></sup>. Raindrop.io works as a triage inbox alongside Web Clipper but does not store full Markdown bodies<sup><a href="https://forum.obsidian.md/t/replacing-omnivore-with-obsidian-web-clipper-available-at-firefox-chrome-add-on-store/90927">[28]</a></sup>.</div>
+        </div>
+        <footer class="entry-foot">
+          <span class="tag">#clipping</span>
+          <span class="tag">#highlights</span>
+          <span class="tag">#interpreter</span>
+          <span class="tag">#rss</span>
+          <span class="favicons">
+            <img src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=readwise.io&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=hypothes.is&sz=32" alt="">
+          </span>
+          <span class="srcs"><b>13</b> sources cited</span>
+        </footer>
+      </article>
+
+      <!-- 04 voice -->
+      <article class="entry" data-status="mixed">
+        <header class="entry-head">
+          <span class="lineno">04</span>
+          <span class="ts">14:47:03</span>
+          <span class="file">~/inbox/<b>voice-to-note</b>.md</span>
+          <span class="verdict v-mixed">mixed</span>
+        </header>
+        <div class="entry-body">
+          <div class="sub">surface · whisper · on-device · pipelines</div>
+          <h2>Voice-to-note</h2>
+          <p class="lede">A clear hierarchy emerged in 2026. Whisper is the engine; <span class="term">nikdanilov's plugin</span> is the in-vault default. <span class="hi">iOS 18+ Voice Memos on-device transcription</span> handles short captures well enough that many users skip Whisper for them.</p>
+          <ul class="picks">
+            <li><b>nikdanilov/whisper-obsidian-plugin</b> <span class="star">⭐ 350</span> v1.9.1 (Apr 2026) — OpenAI/Groq/Azure/Ollama/LM Studio; hotkey recording (Alt+Q); LLM post-processing; URL automation for iOS Shortcuts<sup><a href="https://github.com/nikdanilov/whisper-obsidian-plugin">[42]</a></sup></li>
+            <li><b>iOS 18+ Voice Memos</b> — on-device transcription on iPhone 12+, ~85–90% accuracy on clean single-speaker<sup><a href="https://www.plaud.ai/blogs/news/how-to-transcribe-iphone-voice-memos">[49]</a></sup></li>
+            <li><b>Vox</b> <span class="star">⭐ 78</span> — folder-watcher with filename-prefix metadata tokens; dev's free server (100/day); no API keys needed<sup><a href="https://github.com/vincentbavitz/obsidian-vox">[51]</a></sup></li>
+            <li><b>Smart Memos</b> <span class="star">⭐ 79</span> — OpenAI-only one-shot transcript+summary+expansion; local-model on roadmap<sup><a href="https://github.com/Mossy1022/Smart-Memos">[44]</a></sup></li>
+            <li><b>Wispr Flow</b> — system-wide voice keyboard; vendor claims ~220 wpm vs 45 wpm typing (~4×)<sup><a href="https://wisprflow.ai/use-cases/obsidian">[52]</a></sup></li>
+            <li><b>AudioPen → Obsidian</b> <span class="star">⭐ 7</span> — webhooks with templated <code style="color:var(--purple)">{title}/{body}/{orig_transcript}</code> for users already paying for AudioPen<sup><a href="https://github.com/jonashaefele/audiopen-obsidian">[50]</a></sup></li>
+            <li class="warn"><b>djmango/obsidian-transcription</b> <span class="star">⭐ 222</span> — last release v3.4.0 (Apr 2024); stagnant<sup><a href="https://github.com/djmango/obsidian-transcription">[43]</a></sup></li>
+          </ul>
+          <div class="pull"><b>Cost &amp; accuracy.</b> OpenAI Whisper API ~$1 per 2h45m of audio with strong accent handling<sup><a href="https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/">[45]</a></sup>. Local whisper.cpp: reduced accuracy, occasional accent failures, 16GB RAM floor<sup><a href="https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/">[45]</a></sup>. Whisper Large-v3: <b>2.7% WER on clean English / 8–12% on real-world / 8–15% on accented</b><sup><a href="https://novascribe.ai/how-accurate-is-whisper">[46]</a></sup>.</div>
+          <div class="pull"><b>Forum pipeline.</b> The 2026 r/ObsidianMD pattern is a four-stage pipeline: <code style="color:var(--purple)">voice memo → transcription → AI summary → structured note → vault</code>. Friction concentrates around fragmented recordings (interruptions, Bluetooth switching) rather than transcription quality<sup><a href="https://forum.obsidian.md/t/anyone-using-voice-memos-ai-obsidian-workflow/113197">[47]</a></sup>. iPhone DIY: iOS Shortcuts + RoutineHub piping Voice Memos through Whisper (cloud or local Aiko) and ChatGPT, then iCloud → vault<sup><a href="https://forum.obsidian.md/t/iphone-voice-memo-obsidian/63540">[48]</a></sup>.</div>
+        </div>
+        <footer class="entry-foot">
+          <span class="kbd">Alt+Q</span>
+          <span class="tag">#whisper</span>
+          <span class="tag">#voice</span>
+          <span class="tag">#transcription</span>
+          <span class="favicons">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=plaud.ai&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=novascribe.ai&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=wisprflow.ai&sz=32" alt="">
+          </span>
+          <span class="srcs"><b>11</b> sources cited</span>
+        </footer>
+      </article>
+
+      <!-- 05 backfill -->
+      <article class="entry" data-status="ship">
+        <header class="entry-head">
+          <span class="lineno">05</span>
+          <span class="ts">16:21:55</span>
+          <span class="file">~/inbox/<b>ai-backfill</b>.md</span>
+          <span class="verdict v-ship">ship</span>
+        </header>
+        <div class="entry-body">
+          <div class="sub">batch · retro-fill · taxonomy</div>
+          <h2>AI-assisted metadata backfill</h2>
+          <p class="lede">The 2026 field has fragmented into lanes — there is no single winner. Pick the lane that matches the job. <span class="term">AI Tagger Universe</span> is the clearest fit when the job is <span class="hi">batch tag/frontmatter generation over an existing vault</span>.</p>
+          <ul class="picks">
+            <li><b>AI Tagger Universe</b> <span class="star">⭐ 84</span> v1.0.17 (Mar 2026) — batch tag entire folders or whole vault; nested hierarchical tags into frontmatter; 15+ providers (Ollama, LM Studio, OpenAI, Claude, Gemini, DeepSeek, Bedrock, Vertex AI)<sup><a href="https://github.com/niehu2018/obsidian-ai-tagger-universe">[53]</a></sup></li>
+            <li><b>Note Companion</b> <span class="star">⭐ 832</span> v3.6.18 — folder/tag/title/template suggestions; inbox-automation processes raw captures in batch; cloud sub, self-host, BYO key; desktop-only<sup><a href="https://github.com/Nexus-JPF/note-companion">[59]</a><a href="https://systemsculpt.com/blog/best-obsidian-ai-plugins-2026">[63]</a></sup></li>
+            <li><b>Text Generator</b> <span class="star">⭐ 1.9k</span> — template-driven generation; reusable prompts + frontmatter-configurable settings to batch-generate metadata/summaries/aliases<sup><a href="https://github.com/nhaouari/obsidian-textgenerator-plugin">[58]</a></sup></li>
+            <li><b>Metadata Auto Classifier</b> <span class="star">⭐ 52</span> — 2025 entrant; OpenAI GPT only; classifies tags + custom frontmatter fields by user rules<sup><a href="https://www.obsidianstats.com/plugins/metadata-auto-classifier">[60]</a></sup></li>
+            <li><b>LLM Tagger</b> — Ollama-only auto-tagging on new/modified notes; lighter alternative for fully-local users<sup><a href="https://www.obsidianstats.com/plugins/llm-tagger">[64]</a></sup></li>
+            <li><b>Frontmatter Generator</b> <span class="star">⭐ 46</span> — non-AI deterministic JS/JSON template fallback; whole-vault and per-folder commands<sup><a href="https://github.com/HananoshikaYomaru/Obsidian-Frontmatter-Generator">[65]</a></sup></li>
+            <li class="warn"><b>Smart Connections</b> <span class="star">⭐ 4.9k</span> — semantic discovery via embeddings, <em>not</em> backfill; source-available license + 2026 pricing complaints<sup><a href="https://github.com/brianpetro/obsidian-smart-connections">[54]</a><a href="https://github.com/brianpetro/obsidian-smart-connections/discussions/1294">[55]</a></sup></li>
+            <li class="warn"><b>Copilot for Obsidian</b> <span class="star">⭐ 6.8k</span> — agentic chat + RAG + Composer V2; <em>not</em> a dedicated backfill tool<sup><a href="https://github.com/logancyang/obsidian-copilot">[56]</a><a href="https://github.com/logancyang/obsidian-copilot/blob/master/RELEASES.md">[57]</a></sup></li>
+          </ul>
+          <div class="pull"><b>Hands-on validation.</b> A 2026 MakeUseOf walkthrough paired AI Tagger Universe with Auto Note Mover and locally-hosted Gemma 3 12B (LM Studio) — the <code style="color:var(--purple)">Generate tags for vault</code> command retro-tagged hundreds of existing notes in <b>under an hour of setup</b><sup><a href="https://www.makeuseof.com/letting-local-llm-organize-obsidian-notes/">[61]</a></sup>.</div>
+          <div class="pull"><b>Reddit splits picks across three lanes.</b> Smart Composer (fastest, free Llama 3.2) for writing assist; Smart Connections for semantic search; Copilot for vault-wide RAG chat<sup><a href="https://www.aitooldiscovery.com/guides/obsidian-reddit">[62]</a></sup>. New entrants on the agent-and-retrieval frontier: Obsilo Agent (55+ tools), Sonar (local-first)<sup><a href="https://systemsculpt.com/blog/best-obsidian-ai-plugins-2026">[63]</a></sup>.</div>
+        </div>
+        <footer class="entry-foot">
+          <span class="tag">#tagging</span>
+          <span class="tag">#frontmatter</span>
+          <span class="tag">#batch</span>
+          <span class="tag">#retro-fill</span>
+          <span class="favicons">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=makeuseof.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=systemsculpt.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=obsidianstats.com&sz=32" alt="">
+          </span>
+          <span class="srcs"><b>12</b> sources cited</span>
+        </footer>
+      </article>
+
+      <!-- 06 local backbone -->
+      <article class="entry" data-status="ship">
+        <header class="entry-head">
+          <span class="lineno">06</span>
+          <span class="ts">18:55:41</span>
+          <span class="file">~/inbox/<b>local-first-ai-backbone</b>.md</span>
+          <span class="verdict v-ship">ship</span>
+        </header>
+        <div class="entry-body">
+          <div class="sub">infrastructure · ollama · mlx · zero per-token cost</div>
+          <h2>Local-first AI backbone</h2>
+          <p class="lede">The 2026 case is concrete: <span class="hi">notes never leave the machine</span>, the workflow runs offline, and there is no per-token cost once the model is downloaded<sup><a href="https://www.xda-developers.com/using-my-local-llm-with-obsidian/">[80]</a></sup>. Two engines and two GUIs cover essentially the field.</p>
+          <ul class="picks">
+            <li><b>llama.cpp</b> <span class="star">⭐ 100k</span> — crossed 100K stars March 2026, faster than PyTorch (~7y) or TensorFlow (~8y)<sup><a href="https://aithinkerlab.com/llama-cpp-100k-github-stars-2026/">[71]</a></sup></li>
+            <li><b>Ollama</b> <span class="star">⭐ 110k</span> — wraps llama.cpp's inference backend; on Apple Silicon now built on <b>MLX</b><sup><a href="https://www.morphllm.com/comparisons/llama-cpp-vs-ollama">[72]</a><a href="https://ollama.com/blog/mlx">[74]</a></sup></li>
+            <li><b>LM Studio</b> (closed-source) — built-in HuggingFace browser; OpenAI-compatible server on <code style="color:var(--purple)">localhost:1234/v1</code><sup><a href="https://tech-insider.org/lm-studio-vs-ollama-2026/">[79]</a></sup></li>
+            <li><b>whisper.cpp</b> <span class="star">⭐ 49k</span> — C/C++ port of Whisper; offline GPU-accelerated<sup><a href="https://github.com/ggml-org/whisper.cpp">[75]</a></sup></li>
+            <li><b>Apple Foundation Models SDK</b> — Python bindings <span class="star">⭐ 1.0k</span> (apple/python-apple-fm-sdk); Swift API exposes guided generation, constrained tool calling, LoRA adapters<sup><a href="https://github.com/apple/python-apple-fm-sdk">[77]</a><a href="https://www.libertify.com/interactive-library/apple-intelligence-foundation-models-2025/">[78]</a></sup></li>
+          </ul>
+          <div class="pull"><b>Apple Silicon throughput</b> (Llama 3.1 8B). M1/M2/M3/M4 base hit 15–28 tok/s through Metal; M3 Pro/Max with 18+ GPU cores reach <b>28–35 tok/s</b> via unified memory<sup><a href="https://localaimaster.com/blog/mac-local-ai-setup">[73]</a></sup>. ⚠ Single vendor-blog source — corroborate against Ollama's own benchmarks before sizing hardware.</div>
+          <div class="pull"><b>Recommended models for tagging/summary 2026:</b> <b>Llama 3.3 70B</b> (40GB VRAM, 86.0 MMLU) top quality; <b>Qwen 2.5 32B</b> (20GB, 83.2 MMLU) best mid-range; <b>Llama 3.1 8B</b> (6GB) default for 8GB box; <b>Mistral 7B v0.3</b> (6GB) terse summary specialist for emails/meetings<sup><a href="https://localaimaster.com/blog/best-ollama-models">[69]</a><a href="https://localaimaster.com/blog/best-local-ai-models-8gb-ram">[70]</a></sup>.</div>
+          <div class="pull"><b>Plugin integration.</b> Both dominant AI plugins speak local. Copilot needs <code style="color:var(--purple)">OLLAMA_ORIGINS=app://obsidian.md*</code> exported to bypass CORS; pull <code style="color:var(--purple)">nomic-embed-text</code> or <code style="color:var(--purple)">mxbai-embed-large</code> for fully offline RAG<sup><a href="https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md">[66]</a></sup>. Smart Connections embeds locally by default — 786K community plugin downloads (Jan 2026)<sup><a href="https://smartconnections.app/smart-connections/">[67]</a><a href="https://grokipedia.com/page/Smart_Connections_Obsidian_plugin">[68]</a></sup>. Apple Intelligence Writing Tools partially exposed in Obsidian's Edit menu on macOS 15.1+<sup><a href="https://forum.obsidian.md/t/support-apple-intelligence-writing-tools-on-desktop/84137">[76]</a></sup>; no plugin yet wraps the Foundation Models SDK directly — open opportunity for 2026.</div>
+        </div>
+        <footer class="entry-foot">
+          <span class="tag">#ollama</span>
+          <span class="tag">#mlx</span>
+          <span class="tag">#localhost:11434</span>
+          <span class="tag">#offline</span>
+          <span class="favicons">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=ollama.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=localaimaster.com&sz=32" alt="">
+            <img src="https://www.google.com/s2/favicons?domain=smartconnections.app&sz=32" alt="">
+          </span>
+          <span class="srcs"><b>11</b> sources cited</span>
+        </footer>
+      </article>
+
+    </main>
+
+    <!-- TRIAGE RAIL -->
+    <aside class="triage">
+
+      <div class="block">
+        <div class="block-h">decision</div>
+        <div class="decision-body">
+          <span class="dim">$</span> <b>QuickAdd + Templater + daily-note inbox</b> on desktop. The official <b>Web Clipper</b> for browsers. <b>nikdanilov's Whisper</b> plugin for voice. <b>AI Tagger Universe</b> over a local <b>Ollama</b> backbone for batch retro-tagging the existing vault.
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-h">surfaces — triaged</div>
+        <ul class="surfaces">
+          <li>
+            <span class="pill v-ship">SHIP</span>
+            <span class="name">desktop</span>
+            <span class="why">QuickAdd + Templater</span>
+          </li>
+          <li>
+            <span class="pill v-mixed">MIXED</span>
+            <span class="name">mobile</span>
+            <span class="why">cold-start friction</span>
+          </li>
+          <li>
+            <span class="pill v-ship">SHIP</span>
+            <span class="name">web</span>
+            <span class="why">Web Clipper + Interpreter</span>
+          </li>
+          <li>
+            <span class="pill v-mixed">MIXED</span>
+            <span class="name">voice</span>
+            <span class="why">Whisper + iOS Voice Memos</span>
+          </li>
+          <li>
+            <span class="pill v-ship">SHIP</span>
+            <span class="name">backfill</span>
+            <span class="why">AI Tagger Universe</span>
+          </li>
+          <li>
+            <span class="pill v-ship">SHIP</span>
+            <span class="name">local AI</span>
+            <span class="why">Ollama + Llama 3.1 8B</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div class="block-h">$ migrate</div>
+        <ol class="steps">
+          <li><span class="strike">periodic-notes</span> <span class="arrow">→</span> <code>journals</code> (bulk import)</li>
+          <li>install <code>web-clipper</code>, retire <span class="strike">markdownload</span> + <span class="strike">omnivore</span></li>
+          <li>stand up <code>ollama</code> + <code>nomic-embed-text</code> + <code>llama3.1:8b</code></li>
+          <li>run <code>AI Tagger</code> · <em>generate tags for vault</em></li>
+          <li>add <code>smart-connections</code> sidebar + one of <code>copilot</code>/<code>composer</code></li>
+          <li>mobile: <code>actions-for-obsidian</code> (iOS) or <code>tasker</code> (Android)</li>
+        </ol>
+      </div>
+
+      <div class="block">
+        <div class="block-h">hardware · M-series</div>
+        <div class="hw">
+          <div class="row"><span class="k">M1/M2/M3/M4 base</span><span class="v"><b>15–28</b> tok/s</span></div>
+          <div class="row"><span class="k">M3 Pro/Max 18+ GPU</span><span class="v"><b>28–35</b> tok/s</span></div>
+          <div class="row"><span class="k">whisper.cpp local</span><span class="v"><b>16</b> GB floor</span></div>
+          <div class="row"><span class="k">whisper API</span><span class="v"><b>$1</b> / 2h45m</span></div>
+          <div class="row"><span class="k">WER (clean)</span><span class="v"><b>2.7</b>%</span></div>
+          <div class="row"><span class="k">WER (real-world)</span><span class="v"><b>8–12</b>%</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-h">watch</div>
+        <ul class="surfaces">
+          <li><span class="pill v-watch">DEAD</span><span class="name">periodic-notes</span><span class="why">2022</span></li>
+          <li><span class="pill v-watch">DEAD</span><span class="name">omnivore</span><span class="why">Nov 2024</span></li>
+          <li><span class="pill v-watch">DEAD</span><span class="name">joethei rss</span><span class="why">Aug 2025</span></li>
+          <li><span class="pill v-watch">DEAD</span><span class="name">matter plugin</span><span class="why">Nov 2022</span></li>
+          <li><span class="pill v-watch">DEAD</span><span class="name">djmango whisper</span><span class="why">Apr 2024</span></li>
+          <li><span class="pill v-mixed">CLOSED</span><span class="name">thino</span><span class="why">v2.0+ paid</span></li>
+        </ul>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- siblings tree -->
+  <section class="tree-wrap">
+    <div class="tree-head">→ <b>~/atlas/research/2026-04-30-obsidian-workflow/</b></div>
+    <ul class="tree">
+      <li><span class="branch">┌──</span> <a href="../../">Upgrading a personal Obsidian workflow in 2026</a> <span class="depth-tag expedition">expedition</span><span class="here">parent · synthesis</span></li>
+      <li><span class="branch">│</span></li>
+      <li><span class="branch">├──</span> <span class="self">low-friction-capture-ai-assisted-backfill/</span> <span class="depth-tag expedition">expedition</span><span class="here">you are here · 80 cited · 13 min</span>
+        <span class="summary">Capture across desktop, mobile, web, voice — and AI tag/metadata backfill across an existing vault in 2026.</span>
+      </li>
+      <li><span class="branch">├──</span> <a href="../../frontmatter-tagging-schemas-for-extraction/">frontmatter-tagging-schemas-for-extraction/</a> <span class="depth-tag expedition">expedition</span>
+        <span class="summary">YAML frontmatter and tag taxonomies designed for external extraction, querying, and validation.</span>
+      </li>
+      <li><span class="branch">├──</span> <a href="../../knowledge-base-patterns-for-a-technical-vault/">knowledge-base-patterns-for-a-technical-vault/</a> <span class="depth-tag expedition">expedition</span>
+        <span class="summary">Hybrid PARA+Zettel skeleton, Properties-first metadata, MOCs over deep folders, small high-value plugin set.</span>
+      </li>
+      <li><span class="branch">├──</span> <a href="../../automated-media-tracking-books-movies-series/">automated-media-tracking-books-movies-series/</a> <span class="depth-tag survey">survey</span>
+        <span class="summary">Hardcover (books) + Simkl (film/TV); Readwise + CrossWatch automate capture into Media DB / Book Search.</span>
+      </li>
+      <li><span class="branch">├──</span> <a href="../../selective-publishing-to-github-pages-or-equivalents/">selective-publishing-to-github-pages-or-equivalents/</a> <span class="depth-tag survey">survey</span>
+        <span class="summary">Opt-in (whitelist) frontmatter pattern beats draft-style opt-out; Quartz + ExplicitPublish is the closest free Obsidian Publish.</span>
+      </li>
+      <li><span class="branch">└──</span> <a href="../../ai-plugins-for-in-vault-retrieval-summarization/">ai-plugins-for-in-vault-retrieval-summarization/</a> <span class="depth-tag survey">survey</span>
+        <span class="summary">Smart Connections (retrieval), Copilot (vault chat), Smart Composer (Cursor-style edits), Khoj (self-hosted).</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- sources -->
+  <section class="sources">
+    <div class="sources-head">
+      <span>sources</span>
+      <b>80 cited</b>
+      <span class="legend">
+        <i class="official"></i>official
+        <i class="forum"></i>forum
+        <i class="news"></i>news
+        <i class="blog"></i>blog
+        <i class="wiki"></i>wiki
+      </span>
+    </div>
+    <div class="src-grid">
+      <div class="src official"><span class="n">01</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/chhoumann/quickadd">github.com/chhoumann/quickadd</a><span class="stars">⭐ 2.2k</span></div>
+      <div class="src official"><span class="n">02</span><img class="fav" src="https://www.google.com/s2/favicons?domain=quickadd.obsidian.guide&sz=32" alt=""><a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">quickadd.obsidian.guide/CaptureChoice</a></div>
+      <div class="src official"><span class="n">03</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/SilentVoid13/Templater">github.com/SilentVoid13/Templater</a><span class="stars">⭐ 4.9k</span></div>
+      <div class="src official"><span class="n">04</span><img class="fav" src="https://www.google.com/s2/favicons?domain=silentvoid13.github.io&sz=32" alt=""><a href="https://silentvoid13.github.io/Templater/settings.html">Templater settings</a></div>
+      <div class="src official"><span class="n">05</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/liamcain/obsidian-periodic-notes">liamcain/obsidian-periodic-notes</a><span class="stars">⭐ 1.3k</span></div>
+      <div class="src forum"><span class="n">06</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/plugin-journals/76946">forum — Journals plugin</a></div>
+      <div class="src blog"><span class="n">07</span><img class="fav" src="https://www.google.com/s2/favicons?domain=dsebastien.net&sz=32" alt=""><a href="https://www.dsebastien.net/the-must-have-obsidian-plugins-for-2026/">dsebastien — must-have 2026</a></div>
+      <div class="src blog"><span class="n">08</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidian.rocks&sz=32" alt=""><a href="https://obsidian.rocks/obsidian-quick-capture/">obsidian.rocks — quick capture</a></div>
+      <div class="src forum"><span class="n">09</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/global-hotkey-to-launch-obsidian-and-open-quickadd-capture-window-using-autohotkey-script/22626">forum — AHK QuickAdd</a></div>
+      <div class="src forum"><span class="n">10</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/quick-capture-mac-ios-and-inbox-processing/21808">forum — inbox processing</a></div>
+      <div class="src official"><span class="n">11</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/Quorafind/Obsidian-Thino">Quorafind/Obsidian-Thino</a><span class="stars">⭐ 1.3k</span></div>
+      <div class="src blog"><span class="n">12</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsibrain.com&sz=32" alt=""><a href="https://www.obsibrain.com/blog/obsidian-daily-notes-documentation">obsibrain — daily notes</a></div>
+      <div class="src official"><span class="n">13</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=32" alt=""><a href="https://obsidian.md/changelog/2026-02-27-mobile-v1.12.4/">obsidian.md — mobile v1.12.4</a></div>
+      <div class="src official"><span class="n">14</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=32" alt=""><a href="https://obsidian.md/changelog/2026-01-12-mobile-v1.11.4/">obsidian.md — mobile v1.11.4</a></div>
+      <div class="src official"><span class="n">15</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=32" alt=""><a href="https://obsidian.md/roadmap/">obsidian.md/roadmap</a></div>
+      <div class="src news"><span class="n">16</span><img class="fav" src="https://www.google.com/s2/favicons?domain=practicalpkm.com&sz=32" alt=""><a href="https://practicalpkm.com/2026-obsidian-report-card/">practicalpkm — 2026 Report Card</a></div>
+      <div class="src blog"><span class="n">17</span><img class="fav" src="https://www.google.com/s2/favicons?domain=apps.apple.com&sz=32" alt=""><a href="https://apps.apple.com/us/app/actions-for-obsidian/id1659667937">apps.apple — Actions for Obsidian</a></div>
+      <div class="src forum"><span class="n">18</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/quick-draft-for-obsidian-companion-mobile-app-android-ios/108209">forum — Quick Draft</a></div>
+      <div class="src blog"><span class="n">19</span><img class="fav" src="https://www.google.com/s2/favicons?domain=thesweetsetup.com&sz=32" alt=""><a href="https://thesweetsetup.com/quick-capture-to-obsidian-using-drafts/">thesweetsetup — Drafts</a></div>
+      <div class="src forum"><span class="n">20</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/tasker-for-mobile-quick-capture/95141">forum — Tasker quick capture</a></div>
+      <div class="src forum"><span class="n">21</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/i-built-a-android-home-screen-widget-for-obsidian-view-notes-tick-off-tasks-and-quick-capture-without-opening-the-app/112819">forum — Android widget</a></div>
+      <div class="src blog"><span class="n">22</span><img class="fav" src="https://www.google.com/s2/favicons?domain=nullpat.ch&sz=32" alt=""><a href="https://nullpat.ch/posts/2025/04/quick-capture/">nullpat.ch — quick capture</a></div>
+      <div class="src forum"><span class="n">23</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/feature-apple-watch-app/17820">forum — Apple Watch</a></div>
+      <div class="src blog"><span class="n">24</span><img class="fav" src="https://www.google.com/s2/favicons?domain=fleetingnotes.app&sz=32" alt=""><a href="https://www.fleetingnotes.app/posts/put-quick-notes-into-obsidian-from-anywhere">fleetingnotes — quick notes</a></div>
+      <div class="src official"><span class="n">25</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/obsidianmd/obsidian-clipper">obsidianmd/obsidian-clipper</a><span class="stars">⭐ 4.1k</span></div>
+      <div class="src official"><span class="n">26</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=32" alt=""><a href="https://obsidian.md/clipper">obsidian.md/clipper</a></div>
+      <div class="src official"><span class="n">27</span><img class="fav" src="https://www.google.com/s2/favicons?domain=help.obsidian.md&sz=32" alt=""><a href="https://help.obsidian.md/web-clipper/interpreter">help — Interpreter</a></div>
+      <div class="src forum"><span class="n">28</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/replacing-omnivore-with-obsidian-web-clipper-available-at-firefox-chrome-add-on-store/90927">forum — replacing Omnivore</a></div>
+      <div class="src blog"><span class="n">29</span><img class="fav" src="https://www.google.com/s2/favicons?domain=gleamr.io&sz=32" alt=""><a href="https://gleamr.io/blog/omnivore-shut-down-alternatives">gleamr — Omnivore shutdown</a></div>
+      <div class="src official"><span class="n">30</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/readwiseio/obsidian-readwise">readwiseio/obsidian-readwise</a><span class="stars">⭐ 335</span></div>
+      <div class="src blog"><span class="n">31</span><img class="fav" src="https://www.google.com/s2/favicons?domain=stefanimhoff.de&sz=32" alt=""><a href="https://www.stefanimhoff.de/note-taking-obsidian-readwise-ai/">stefanimhoff — Readwise + AI</a></div>
+      <div class="src official"><span class="n">32</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/deathau/markdownload">deathau/markdownload</a><span class="stars">⭐ 3.8k</span></div>
+      <div class="src official"><span class="n">33</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/getmatterapp/obsidian-matter">getmatterapp/obsidian-matter</a><span class="stars">⭐ 128</span></div>
+      <div class="src blog"><span class="n">34</span><img class="fav" src="https://www.google.com/s2/favicons?domain=readless.app&sz=32" alt=""><a href="https://www.readless.app/blog/matter-app-pricing-2026">readless — Matter pricing 2026</a></div>
+      <div class="src official"><span class="n">35</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/weichenw/obsidian-hypothesis-plugin">weichenw/obsidian-hypothesis-plugin</a><span class="stars">⭐ 270</span></div>
+      <div class="src official"><span class="n">36</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/lindylearn/obsidian-annotations">lindylearn/obsidian-annotations</a></div>
+      <div class="src blog"><span class="n">37</span><img class="fav" src="https://www.google.com/s2/favicons?domain=email2obsidian.com&sz=32" alt=""><a href="https://email2obsidian.com/">email2obsidian.com</a></div>
+      <div class="src blog"><span class="n">38</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidianstats.com&sz=32" alt=""><a href="https://www.obsidianstats.com/plugins/taskrobin">obsidianstats — TaskRobin</a></div>
+      <div class="src official"><span class="n">39</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/joethei/obsidian-rss">joethei/obsidian-rss</a><span class="stars">⭐ 468</span></div>
+      <div class="src official"><span class="n">40</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/amatya-aditya/obsidian-rss-dashboard">amatya-aditya/rss-dashboard</a><span class="stars">⭐ 499</span></div>
+      <div class="src news"><span class="n">41</span><img class="fav" src="https://www.google.com/s2/favicons?domain=danielprindii.com&sz=32" alt=""><a href="https://danielprindii.com/blog/read-it-later-alternatives-after-omnivore-shutting-down">danielprindii — read-it-later</a></div>
+      <div class="src official"><span class="n">42</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/nikdanilov/whisper-obsidian-plugin">nikdanilov/whisper-obsidian-plugin</a><span class="stars">⭐ 350</span></div>
+      <div class="src official"><span class="n">43</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/djmango/obsidian-transcription">djmango/obsidian-transcription</a><span class="stars">⭐ 222</span></div>
+      <div class="src official"><span class="n">44</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/Mossy1022/Smart-Memos">Mossy1022/Smart-Memos</a><span class="stars">⭐ 79</span></div>
+      <div class="src news"><span class="n">45</span><img class="fav" src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=32" alt=""><a href="https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/">xda — voice notes PC</a></div>
+      <div class="src blog"><span class="n">46</span><img class="fav" src="https://www.google.com/s2/favicons?domain=novascribe.ai&sz=32" alt=""><a href="https://novascribe.ai/how-accurate-is-whisper">novascribe — Whisper accuracy</a></div>
+      <div class="src forum"><span class="n">47</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/anyone-using-voice-memos-ai-obsidian-workflow/113197">forum — voice memo AI</a></div>
+      <div class="src forum"><span class="n">48</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/iphone-voice-memo-obsidian/63540">forum — iPhone voice memo</a></div>
+      <div class="src blog"><span class="n">49</span><img class="fav" src="https://www.google.com/s2/favicons?domain=plaud.ai&sz=32" alt=""><a href="https://www.plaud.ai/blogs/news/how-to-transcribe-iphone-voice-memos">plaud — Voice Memos transcribe</a></div>
+      <div class="src official"><span class="n">50</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/jonashaefele/audiopen-obsidian">jonashaefele/audiopen-obsidian</a><span class="stars">⭐ 7</span></div>
+      <div class="src official"><span class="n">51</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/vincentbavitz/obsidian-vox">vincentbavitz/obsidian-vox</a><span class="stars">⭐ 78</span></div>
+      <div class="src blog"><span class="n">52</span><img class="fav" src="https://www.google.com/s2/favicons?domain=wisprflow.ai&sz=32" alt=""><a href="https://wisprflow.ai/use-cases/obsidian">wisprflow.ai — Obsidian</a></div>
+      <div class="src official"><span class="n">53</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/niehu2018/obsidian-ai-tagger-universe">niehu2018/ai-tagger-universe</a><span class="stars">⭐ 84</span></div>
+      <div class="src official"><span class="n">54</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/brianpetro/obsidian-smart-connections">brianpetro/smart-connections</a><span class="stars">⭐ 4.9k</span></div>
+      <div class="src forum"><span class="n">55</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/brianpetro/obsidian-smart-connections/discussions/1294">smart-connections — pricing</a></div>
+      <div class="src official"><span class="n">56</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/logancyang/obsidian-copilot">logancyang/obsidian-copilot</a><span class="stars">⭐ 6.8k</span></div>
+      <div class="src official"><span class="n">57</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/logancyang/obsidian-copilot/blob/master/RELEASES.md">copilot — RELEASES.md</a></div>
+      <div class="src official"><span class="n">58</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/nhaouari/obsidian-textgenerator-plugin">nhaouari/textgenerator-plugin</a><span class="stars">⭐ 1.9k</span></div>
+      <div class="src official"><span class="n">59</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/Nexus-JPF/note-companion">Nexus-JPF/note-companion</a><span class="stars">⭐ 832</span></div>
+      <div class="src blog"><span class="n">60</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidianstats.com&sz=32" alt=""><a href="https://www.obsidianstats.com/plugins/metadata-auto-classifier">obsidianstats — auto-classifier</a></div>
+      <div class="src news"><span class="n">61</span><img class="fav" src="https://www.google.com/s2/favicons?domain=makeuseof.com&sz=32" alt=""><a href="https://www.makeuseof.com/letting-local-llm-organize-obsidian-notes/">makeuseof — local LLM organize</a></div>
+      <div class="src news"><span class="n">62</span><img class="fav" src="https://www.google.com/s2/favicons?domain=aitooldiscovery.com&sz=32" alt=""><a href="https://www.aitooldiscovery.com/guides/obsidian-reddit">aitooldiscovery — Obsidian Reddit</a></div>
+      <div class="src blog"><span class="n">63</span><img class="fav" src="https://www.google.com/s2/favicons?domain=systemsculpt.com&sz=32" alt=""><a href="https://systemsculpt.com/blog/best-obsidian-ai-plugins-2026">systemsculpt — best AI 2026</a></div>
+      <div class="src blog"><span class="n">64</span><img class="fav" src="https://www.google.com/s2/favicons?domain=obsidianstats.com&sz=32" alt=""><a href="https://www.obsidianstats.com/plugins/llm-tagger">obsidianstats — LLM Tagger</a></div>
+      <div class="src official"><span class="n">65</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/HananoshikaYomaru/Obsidian-Frontmatter-Generator">HananoshikaYomaru/Frontmatter-Generator</a><span class="stars">⭐ 46</span></div>
+      <div class="src official"><span class="n">66</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md">copilot — local_copilot.md</a></div>
+      <div class="src official"><span class="n">67</span><img class="fav" src="https://www.google.com/s2/favicons?domain=smartconnections.app&sz=32" alt=""><a href="https://smartconnections.app/smart-connections/">smartconnections.app</a></div>
+      <div class="src wiki"><span class="n">68</span><img class="fav" src="https://www.google.com/s2/favicons?domain=grokipedia.com&sz=32" alt=""><a href="https://grokipedia.com/page/Smart_Connections_Obsidian_plugin">grokipedia — Smart Connections</a></div>
+      <div class="src blog"><span class="n">69</span><img class="fav" src="https://www.google.com/s2/favicons?domain=localaimaster.com&sz=32" alt=""><a href="https://localaimaster.com/blog/best-ollama-models">localaimaster — best Ollama</a></div>
+      <div class="src blog"><span class="n">70</span><img class="fav" src="https://www.google.com/s2/favicons?domain=localaimaster.com&sz=32" alt=""><a href="https://localaimaster.com/blog/best-local-ai-models-8gb-ram">localaimaster — 8GB models</a></div>
+      <div class="src news"><span class="n">71</span><img class="fav" src="https://www.google.com/s2/favicons?domain=aithinkerlab.com&sz=32" alt=""><a href="https://aithinkerlab.com/llama-cpp-100k-github-stars-2026/">aithinkerlab — llama.cpp 100K</a></div>
+      <div class="src blog"><span class="n">72</span><img class="fav" src="https://www.google.com/s2/favicons?domain=morphllm.com&sz=32" alt=""><a href="https://www.morphllm.com/comparisons/llama-cpp-vs-ollama">morphllm — llama.cpp vs Ollama</a></div>
+      <div class="src blog"><span class="n">73</span><img class="fav" src="https://www.google.com/s2/favicons?domain=localaimaster.com&sz=32" alt=""><a href="https://localaimaster.com/blog/mac-local-ai-setup">localaimaster — Mac AI setup</a></div>
+      <div class="src official"><span class="n">74</span><img class="fav" src="https://www.google.com/s2/favicons?domain=ollama.com&sz=32" alt=""><a href="https://ollama.com/blog/mlx">ollama.com/blog/mlx</a></div>
+      <div class="src official"><span class="n">75</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/ggml-org/whisper.cpp">ggml-org/whisper.cpp</a><span class="stars">⭐ 49k</span></div>
+      <div class="src forum"><span class="n">76</span><img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=32" alt=""><a href="https://forum.obsidian.md/t/support-apple-intelligence-writing-tools-on-desktop/84137">forum — Apple Intelligence</a></div>
+      <div class="src official"><span class="n">77</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""><a href="https://github.com/apple/python-apple-fm-sdk">apple/python-apple-fm-sdk</a><span class="stars">⭐ 1.0k</span></div>
+      <div class="src blog"><span class="n">78</span><img class="fav" src="https://www.google.com/s2/favicons?domain=libertify.com&sz=32" alt=""><a href="https://www.libertify.com/interactive-library/apple-intelligence-foundation-models-2025/">libertify — Foundation Models</a></div>
+      <div class="src blog"><span class="n">79</span><img class="fav" src="https://www.google.com/s2/favicons?domain=tech-insider.org&sz=32" alt=""><a href="https://tech-insider.org/lm-studio-vs-ollama-2026/">tech-insider — LM Studio vs Ollama</a></div>
+      <div class="src news"><span class="n">80</span><img class="fav" src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=32" alt=""><a href="https://www.xda-developers.com/using-my-local-llm-with-obsidian/">xda — local LLM with Obsidian</a></div>
+    </div>
+  </section>
+
+  <div class="closing">
+    <div class="line"><span class="user">scout</span><span style="color:var(--fg-dim)">@</span><span style="color:var(--purple)">vault</span><span style="color:var(--fg-dim)">:</span><span class="pwd">~/inbox</span><span style="color:var(--fg-dim)">$</span> <span style="color:var(--fg)">echo "triage complete · 80/80 cited · zero orphans"</span></div>
+    <div class="line out">› <b>migration order in 6 steps</b> · backbone is local · Bases-first schema lives next door</div>
+    <div class="nav">
+      <a href="../">📄 default view</a>
+      <span class="sep">·</span>
+      <a href="../../">↑ expedition synthesis</a>
+      <span class="sep">·</span>
+      <a href="../../frontmatter-tagging-schemas-for-extraction/">→ frontmatter schemas</a>
+      <span class="sep">·</span>
+      <a href="../../knowledge-base-patterns-for-a-technical-vault/">→ kb patterns</a>
+      <span class="sep">·</span>
+      <a href="../../ai-plugins-for-in-vault-retrieval-summarization/">→ ai plugins</a>
+    </div>
+  </div>
+
+</div>

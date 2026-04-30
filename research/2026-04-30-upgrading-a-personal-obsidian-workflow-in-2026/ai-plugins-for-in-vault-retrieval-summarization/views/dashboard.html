@@ -1,0 +1,872 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Obsidian AI plugins for in-vault retrieval & summarization (Apr 2026) — Dashboard"
+---
+
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #11141b;
+    --panel-2: #161a23;
+    --line: #232836;
+    --line-2: #2c3243;
+    --ink: #e8ecf3;
+    --dim: #8a93a6;
+    --dim-2: #5b6378;
+    --accent: #a78bfa;
+    --accent-2: #7c3aed;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --info: #60a5fa;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: -apple-system, "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  .dash { background: var(--bg); color: var(--ink); font-family: var(--sans); margin: 0; }
+  .dash a { color: inherit; text-decoration: none; }
+
+  /* TOPBAR */
+  .topbar {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(11,13,18,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: .65rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  }
+  .topbar .crumbs { color: var(--dim); display: flex; gap: .55rem; align-items: center; flex-wrap: wrap; }
+  .topbar .crumbs a:hover { color: var(--accent); }
+  .topbar .crumbs .sep { color: var(--dim-2); }
+  .topbar .pill {
+    margin-left: auto; display: flex; gap: .4rem; align-items: center;
+  }
+  .topbar .pill span {
+    background: var(--panel-2); border: 1px solid var(--line);
+    padding: .25rem .55rem; border-radius: 3px; color: var(--dim);
+  }
+  .topbar .pill span b { color: var(--ink); font-weight: 600; }
+  .topbar .live {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--good);
+    box-shadow: 0 0 8px var(--good); animation: blink 2.4s infinite;
+  }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  /* HERO */
+  .hero { padding: 2.4rem 1.4rem 1.6rem; border-bottom: 1px solid var(--line); }
+  .hero .meta { font-family: var(--mono); font-size: 10px; color: var(--dim-2); letter-spacing: .12em; margin-bottom: 1rem; }
+  .hero .meta b { color: var(--accent); font-weight: 600; }
+  .hero h1 { font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3.4rem); font-weight: 600; line-height: 1.05; margin: 0 0 .9rem; letter-spacing: -.02em; max-width: 28ch; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero .deck { font-size: 1.05rem; line-height: 1.55; color: var(--dim); max-width: 78ch; margin: 0; }
+  .hero .deck b { color: var(--ink); font-weight: 500; }
+
+  /* GLOBAL KPI BAND */
+  .kpi-band {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .kpi-band .cell { padding: 1.1rem 1.4rem; border-right: 1px solid var(--line); }
+  .kpi-band .cell:last-child { border-right: none; }
+  .kpi-band .label { font-family: var(--mono); font-size: 10px; color: var(--dim-2); letter-spacing: .14em; margin-bottom: .35rem; }
+  .kpi-band .value { font-family: var(--serif); font-size: 1.85rem; font-weight: 600; line-height: 1; color: var(--ink); }
+  .kpi-band .value small { font-family: var(--sans); font-size: .65rem; font-weight: 500; color: var(--dim); margin-left: .35rem; vertical-align: top; }
+  .kpi-band .sub { font-size: .72rem; color: var(--dim); margin-top: .35rem; font-family: var(--mono); }
+
+  /* SECTION HEADERS */
+  .sec { padding: 2.2rem 1.4rem 1.2rem; }
+  .sec h2 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .2em;
+    color: var(--dim); margin: 0 0 1rem; text-transform: uppercase;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .sec h2::before { content: ""; display: block; width: 24px; height: 1px; background: var(--accent); }
+  .sec h2 small { color: var(--dim-2); letter-spacing: .14em; font-weight: 400; margin-left: auto; }
+
+  /* PLUGIN TILES — 4 main */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .tile { background: var(--panel); padding: 0; display: flex; flex-direction: column; min-height: 460px; }
+  .tile .photo { aspect-ratio: 1.91/1; background: #0a0c10; border-bottom: 1px solid var(--line); position: relative; overflow: hidden; }
+  .tile .photo img { width: 100%; height: 100%; object-fit: cover; opacity: .92; }
+  .tile .photo .role {
+    position: absolute; top: .6rem; left: .6rem;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .2em;
+    background: rgba(11,13,18,.85); border: 1px solid var(--line-2);
+    padding: .25rem .5rem; border-radius: 2px; color: var(--accent);
+  }
+  .tile .photo .stars {
+    position: absolute; top: .6rem; right: .6rem;
+    font-family: var(--mono); font-size: 11px;
+    background: rgba(11,13,18,.85); border: 1px solid var(--line-2);
+    padding: .25rem .5rem; border-radius: 2px; color: var(--warn);
+  }
+  .tile .body { padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; flex: 1; }
+  .tile .name { font-family: var(--serif); font-size: 1.4rem; font-weight: 600; line-height: 1.1; margin: 0 0 .15rem; }
+  .tile .org { font-family: var(--mono); font-size: 10px; color: var(--dim-2); letter-spacing: .08em; margin-bottom: .8rem; }
+  .tile .verdict {
+    font-size: .92rem; line-height: 1.45; color: var(--ink);
+    border-left: 2px solid var(--accent); padding-left: .7rem;
+    margin: 0 0 .9rem;
+  }
+  .tile .specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem .8rem; font-family: var(--mono); font-size: 10px; margin-bottom: .8rem; }
+  .tile .specs div { color: var(--dim); }
+  .tile .specs div b { color: var(--ink); font-weight: 500; display: block; font-size: 11px; margin-top: .15rem; }
+  .tile .price {
+    margin-top: auto; padding-top: .7rem; border-top: 1px dashed var(--line-2);
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+  }
+  .tile .price b { color: var(--ink); }
+  .tile .repo { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: .5rem; display: block; }
+  .tile .repo:hover { color: var(--ink); }
+
+  /* FEATURE MATRIX */
+  .matrix-wrap { padding: 0 1.4rem 1.6rem; }
+  .matrix {
+    width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px;
+    background: var(--panel); border: 1px solid var(--line);
+  }
+  .matrix th, .matrix td { padding: .65rem .7rem; text-align: left; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .matrix th:last-child, .matrix td:last-child { border-right: none; }
+  .matrix thead th {
+    background: var(--panel-2); color: var(--dim); font-weight: 500;
+    text-transform: uppercase; letter-spacing: .12em; font-size: 9.5px;
+    border-bottom: 1px solid var(--line-2);
+    position: sticky; top: 0;
+  }
+  .matrix tbody th { color: var(--ink); font-weight: 500; background: var(--panel-2); }
+  .matrix tbody th small { display: block; color: var(--dim-2); font-size: 9.5px; margin-top: .15rem; font-weight: 400; }
+  .matrix td { color: var(--dim); }
+  .matrix .yes { color: var(--good); font-weight: 600; }
+  .matrix .no { color: var(--bad); font-weight: 600; }
+  .matrix .opt { color: var(--warn); font-weight: 600; }
+  .matrix .note { color: var(--ink); font-weight: 500; }
+  .matrix sup a { color: var(--accent); }
+  .matrix tr:last-child td, .matrix tr:last-child th { border-bottom: none; }
+
+  /* LANES */
+  .lanes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); padding: 0 1.4rem; margin-bottom: 1.6rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .lanes { padding: 0; }
+  .lane { background: var(--panel); padding: 1.1rem 1.2rem; }
+  .lane .lk { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: .14em; }
+  .lane .lk-num { color: var(--dim-2); margin-right: .5rem; }
+  .lane h3 { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; margin: .5rem 0 .35rem; }
+  .lane p { font-size: .82rem; color: var(--dim); line-height: 1.5; margin: 0 0 .7rem; }
+  .lane .pick {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink);
+    border-top: 1px dashed var(--line-2); padding-top: .55rem;
+  }
+  .lane .pick b { color: var(--accent); font-weight: 600; }
+  .lane .pick sup a { color: var(--accent); }
+
+  /* WARNINGS */
+  .warnings { padding: 0 1.4rem 1.6rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .warn-card {
+    border-left: 3px solid var(--bad);
+    background: linear-gradient(90deg, rgba(248,113,113,.08), transparent 60%);
+    padding: 1rem 1.1rem;
+  }
+  .warn-card.amber { border-color: var(--warn); background: linear-gradient(90deg, rgba(251,191,36,.08), transparent 60%); }
+  .warn-card.info { border-color: var(--info); background: linear-gradient(90deg, rgba(96,165,250,.08), transparent 60%); }
+  .warn-card .tag {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em;
+    color: var(--bad); margin-bottom: .35rem;
+  }
+  .warn-card.amber .tag { color: var(--warn); }
+  .warn-card.info .tag { color: var(--info); }
+  .warn-card h4 { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin: 0 0 .35rem; }
+  .warn-card p { font-size: .85rem; line-height: 1.5; color: var(--dim); margin: 0; }
+  .warn-card p b { color: var(--ink); font-weight: 500; }
+  .warn-card sup a { color: var(--accent); }
+
+  /* SUMMARIZATION ROW */
+  .sub-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .sub-tile { background: var(--panel); padding: 1rem 1.2rem; min-height: 200px; display: flex; flex-direction: column; }
+  .sub-tile .glyph {
+    width: 40px; height: 40px; border: 1px solid var(--line-2);
+    display: grid; place-items: center; font-family: var(--mono); font-size: 14px;
+    color: var(--accent); border-radius: 3px; margin-bottom: .8rem;
+  }
+  .sub-tile h4 { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; margin: 0 0 .25rem; }
+  .sub-tile .stars { font-family: var(--mono); font-size: 10px; color: var(--warn); margin-bottom: .55rem; }
+  .sub-tile p { font-size: .82rem; color: var(--dim); line-height: 1.5; margin: 0 0 .6rem; }
+  .sub-tile .when { font-family: var(--mono); font-size: 10px; color: var(--dim-2); margin-top: auto; padding-top: .6rem; border-top: 1px dashed var(--line-2); }
+  .sub-tile .when b { color: var(--ink); }
+  .sub-tile a { color: var(--accent); font-family: var(--mono); font-size: 10px; }
+
+  /* INSTALL ORDER */
+  .install { padding: 0 1.4rem 1.6rem; }
+  .install-row { display: flex; gap: .7rem; flex-wrap: wrap; align-items: stretch; }
+  .step { flex: 1; min-width: 180px; background: var(--panel); border: 1px solid var(--line); padding: .85rem 1rem; position: relative; }
+  .step .num {
+    font-family: var(--serif); font-size: 1.6rem; font-weight: 600; color: var(--accent); line-height: 1;
+  }
+  .step h5 { font-size: .9rem; font-weight: 600; margin: .35rem 0 .25rem; color: var(--ink); }
+  .step p { font-size: .76rem; color: var(--dim); margin: 0; line-height: 1.4; font-family: var(--mono); }
+
+  /* SOURCES STRIP */
+  .sources { padding: 1.6rem 1.4rem 2rem; background: var(--panel); border-top: 1px solid var(--line); }
+  .sources h2 { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--dim); margin: 0 0 1rem; text-transform: uppercase; }
+  .src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .6rem; }
+  .src {
+    display: flex; gap: .65rem; padding: .65rem .75rem;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px;
+    align-items: flex-start; transition: border-color .15s;
+  }
+  .src:hover { border-color: var(--accent-2); }
+  .src .fav { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+  .src .body { flex: 1; min-width: 0; }
+  .src .num { font-family: var(--mono); font-size: 9.5px; color: var(--accent); letter-spacing: .1em; }
+  .src .domain { font-family: var(--mono); font-size: 11px; color: var(--ink); display: block; margin-top: .15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .src .claim { font-size: .76rem; color: var(--dim); line-height: 1.4; margin-top: .25rem; }
+  .src .type { font-family: var(--mono); font-size: 9px; color: var(--dim-2); letter-spacing: .1em; margin-top: .35rem; }
+
+  /* SIBLING RAIL */
+  .siblings { padding: 1.4rem 1.4rem 2.2rem; border-top: 1px solid var(--line); }
+  .siblings h2 { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--dim); margin: 0 0 1rem; text-transform: uppercase; }
+  .sib-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .8rem; }
+  .sib {
+    background: var(--panel); border: 1px solid var(--line); padding: .8rem .9rem;
+    transition: transform .15s, border-color .15s;
+  }
+  .sib:hover { border-color: var(--accent-2); transform: translateY(-1px); }
+  .sib .depth { font-family: var(--mono); font-size: 9.5px; color: var(--dim-2); letter-spacing: .14em; }
+  .sib .depth.expedition { color: var(--accent); }
+  .sib h4 { font-family: var(--serif); font-size: 1rem; font-weight: 600; margin: .3rem 0 .35rem; }
+  .sib p { font-size: .78rem; color: var(--dim); line-height: 1.45; margin: 0; }
+
+  /* COLOPHON */
+  .colophon {
+    padding: 1.2rem 1.4rem 2rem; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 10px; color: var(--dim-2);
+    display: flex; flex-wrap: wrap; gap: 1.4rem;
+    letter-spacing: .12em;
+  }
+  .colophon a { color: var(--accent); }
+
+  @media (max-width: 920px) {
+    .kpi-band { grid-template-columns: repeat(2, 1fr); }
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .lanes { grid-template-columns: 1fr; }
+    .sub-tiles { grid-template-columns: 1fr; }
+    .warnings { grid-template-columns: 1fr; }
+    .matrix { font-size: 10px; }
+  }
+  @media (max-width: 560px) {
+    .tiles { grid-template-columns: 1fr; }
+    .kpi-band { grid-template-columns: 1fr; }
+    .matrix-wrap { overflow-x: auto; }
+  }
+</style>
+
+<div class="dash">
+
+  <div class="topbar">
+    <div class="crumbs">
+      <a href="/">ATLAS</a>
+      <span class="sep">/</span>
+      <a href="../../">OBSIDIAN-2026</a>
+      <span class="sep">/</span>
+      <a href="../">AI-PLUGINS</a>
+      <span class="sep">/</span>
+      <span style="color: var(--ink);">DASHBOARD</span>
+    </div>
+    <div class="pill">
+      <span class="live"></span>
+      <span>SURVEY · <b>20 SRC</b></span>
+      <span><b>5 MIN</b> READ</span>
+      <span>APR <b>2026</b></span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="meta">CONSOLE / <b>OBSIDIAN AI PLUGINS</b> / IN-VAULT RETRIEVAL · SUMMARIZATION</div>
+    <h1>Four plugins worth installing.<br><em>One you should never run together.</em></h1>
+    <p class="deck">
+      The 2026 ecosystem split into clear lanes — <b>retrieval</b>, <b>chat-with-vault</b>, <b>editor-grade writing</b>, <b>cross-device second brain</b>. Most users only need one from each of the first two columns. Smart Connections is the local-first retrieval default; Copilot is the polished chat; Smart Composer is Cursor-in-Obsidian; Khoj wins when "vault" extends past Obsidian. Everything else is niche or duplicative.
+    </p>
+  </div>
+
+  <div class="kpi-band">
+    <div class="cell">
+      <div class="label">PLUGINS SURVEYED</div>
+      <div class="value">12</div>
+      <div class="sub">4 main · 3 summarization · 5 niche</div>
+    </div>
+    <div class="cell">
+      <div class="label">COMBINED ⭐</div>
+      <div class="value">50.3<small>k</small></div>
+      <div class="sub">khoj 34k · copilot 6.8k · sc 4.9k · sm-comp 2.2k</div>
+    </div>
+    <div class="cell">
+      <div class="label">FREE-TIER COVERAGE</div>
+      <div class="value">100<small>%</small></div>
+      <div class="sub">all four ship a working free tier</div>
+    </div>
+    <div class="cell">
+      <div class="label">FIRST-INDEX TIME</div>
+      <div class="value">20–30<small>min</small></div>
+      <div class="sub">5,000-note vault, local embeds<sup><a href="https://insiderllm.com/guides/obsidian-local-llm-guide/">[15]</a></sup></div>
+    </div>
+    <div class="cell">
+      <div class="label">DOUBLE-INDEX RISK</div>
+      <div class="value" style="color: var(--bad);">3×</div>
+      <div class="sub">SC + Copilot QA + SC RAG = 3 indexes<sup><a href="https://forum.obsidian.md/t/alternatives-to-smart-connections/108886">[13]</a></sup></div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <h2>Plugin Tiles · Top Picks <small>SORTED BY ROLE</small></h2>
+  </section>
+
+  <div class="tiles">
+
+    <div class="tile">
+      <div class="photo">
+        <img src="dashboard/images/smart-connections.png" alt="Smart Connections preview">
+        <span class="role">RETRIEVAL</span>
+        <span class="stars">⭐ 4.9k</span>
+      </div>
+      <div class="body">
+        <div class="name">Smart Connections</div>
+        <div class="org">brianpetro · obsidian-smart-connections</div>
+        <p class="verdict">The only plugin here that ships local on-device embeddings with zero config and keeps working offline once indexed<sup><a href="https://smartconnections.app/smart-connections/">[2]</a></sup>.</p>
+        <div class="specs">
+          <div>EMBEDS<b>local, on-device</b></div>
+          <div>RAG<b>Smart Chat (free)</b></div>
+          <div>EDITS<b>— retrieval only</b></div>
+          <div>AGENT<b>via MCP<sup><a href="https://3sztof.github.io/posts/obsidian-smart-connections-mcp/">[19]</a></sup></b></div>
+        </div>
+        <div class="price">PRICE · <b>FREE core</b> · Pro via supporter sub<sup><a href="https://smartconnections.app/pro-plugins/">[3]</a></sup></div>
+        <a class="repo" href="https://github.com/brianpetro/obsidian-smart-connections">→ github.com/brianpetro/…</a>
+      </div>
+    </div>
+
+    <div class="tile">
+      <div class="photo">
+        <img src="dashboard/images/copilot.png" alt="Copilot for Obsidian preview">
+        <span class="role">VAULT CHAT</span>
+        <span class="stars">⭐ 6.8k</span>
+      </div>
+      <div class="body">
+        <div class="name">Copilot for Obsidian</div>
+        <div class="org">logancyang · obsidian-copilot</div>
+        <p class="verdict">Most polished local-LLM chat experience — native Ollama, "Relevant Notes" auto-context, broadest multimodal handling<sup><a href="https://www.xda-developers.com/using-my-local-llm-with-obsidian/">[14]</a></sup>.</p>
+        <div class="specs">
+          <div>EMBEDS<b>opt-in (Ollama)</b></div>
+          <div>RAG<b>Vault QA mode</b></div>
+          <div>EDITS<b>command palette</b></div>
+          <div>AGENT<b>Plus tier only</b></div>
+        </div>
+        <div class="price">PRICE · BYOK <b>free</b> · Plus <b>$14.99/mo</b> · self-host <b>$349.99 once</b><sup><a href="https://www.obsidiancopilot.com/en/pricing">[5]</a></sup></div>
+        <a class="repo" href="https://github.com/logancyang/obsidian-copilot">→ github.com/logancyang/…</a>
+      </div>
+    </div>
+
+    <div class="tile">
+      <div class="photo">
+        <img src="dashboard/images/smart-composer.png" alt="Smart Composer preview">
+        <span class="role">EDITOR + CHAT</span>
+        <span class="stars">⭐ 2.2k</span>
+      </div>
+      <div class="body">
+        <div class="name">Smart Composer</div>
+        <div class="org">glowingjade · obsidian-smart-composer</div>
+        <p class="verdict">Cursor-in-Obsidian. <code>@file</code> mentions feed exact files into context, <code>@Vault</code> triggers RAG, Apply-Edit accepts rewrites with one click<sup><a href="https://github.com/glowingjade/obsidian-smart-composer/wiki/2.3-Vault-Search-(RAG)">[8]</a></sup>.</p>
+        <div class="specs">
+          <div>EMBEDS<b>via Ollama / LM Studio</b></div>
+          <div>RAG<b>@Vault · ⌘⇧⏎</b></div>
+          <div>EDITS<b>✓ one-click Apply</b></div>
+          <div>AGENT<b>MCP tools</b></div>
+        </div>
+        <div class="price">PRICE · <b>FREE</b> with own keys/subs · Gemini API works as free tier<sup><a href="https://github.com/glowingjade/obsidian-smart-composer">[7]</a></sup></div>
+        <a class="repo" href="https://github.com/glowingjade/obsidian-smart-composer">→ github.com/glowingjade/…</a>
+      </div>
+    </div>
+
+    <div class="tile">
+      <div class="photo">
+        <img src="dashboard/images/khoj.png" alt="Khoj preview">
+        <span class="role">SELF-HOST</span>
+        <span class="stars">⭐ 34k</span>
+      </div>
+      <div class="body">
+        <div class="name">Khoj</div>
+        <div class="org">khoj-ai · khoj</div>
+        <p class="verdict">A self-hostable second brain reachable from Obsidian, Emacs, browser, desktop, phone, or WhatsApp — the most actively maintained of the bunch<sup><a href="https://github.com/khoj-ai/khoj">[9]</a></sup>.</p>
+        <div class="specs">
+          <div>EMBEDS<b>self-hosted server</b></div>
+          <div>RAG<b>chat over docs + web</b></div>
+          <div>EDITS<b>— chat-only</b></div>
+          <div>AGENT<b>custom agents</b></div>
+        </div>
+        <div class="price">PRICE · <b>FREE</b> open-source self-host · managed cloud tiers<sup><a href="https://github.com/khoj-ai/khoj">[9]</a></sup></div>
+        <a class="repo" href="https://github.com/khoj-ai/khoj">→ github.com/khoj-ai/…</a>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="sec">
+    <h2>Feature Matrix Console <small>● YES &nbsp;◯ OPTIONAL &nbsp;✗ NO</small></h2>
+  </section>
+
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th style="width: 22%;">Feature</th>
+          <th>Smart Connections</th>
+          <th>Copilot</th>
+          <th>Smart Composer</th>
+          <th>Khoj</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Local embeddings out of box <small>zero-config offline</small></th>
+          <td><span class="yes">●</span> on-device model<sup><a href="https://smartconnections.app/smart-connections/">[2]</a></sup></td>
+          <td><span class="opt">◯</span> Ollama + nomic-embed-text<sup><a href="https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md">[6]</a></sup></td>
+          <td><span class="opt">◯</span> via Ollama / LM Studio<sup><a href="https://github.com/glowingjade/obsidian-smart-composer">[7]</a></sup></td>
+          <td><span class="yes">●</span> self-hosted server<sup><a href="https://github.com/khoj-ai/khoj">[9]</a></sup></td>
+        </tr>
+        <tr>
+          <th>LLM provider span <small>cloud + local</small></th>
+          <td>local + 100+ APIs<sup><a href="https://github.com/brianpetro/obsidian-smart-connections">[1]</a></sup></td>
+          <td>OpenRouter, OpenAI, Anthropic, Gemini, Cohere, Ollama, LM Studio<sup><a href="https://github.com/logancyang/obsidian-copilot">[4]</a></sup></td>
+          <td>OpenAI, Anthropic, Gemini, Groq, DeepSeek, OpenRouter, Azure, Ollama, LM Studio<sup><a href="https://github.com/glowingjade/obsidian-smart-composer">[7]</a></sup></td>
+          <td>gpt, claude, gemini, llama, qwen, mistral<sup><a href="https://github.com/khoj-ai/khoj">[9]</a></sup></td>
+        </tr>
+        <tr>
+          <th>RAG / vault chat <small>conversational Q&amp;A</small></th>
+          <td><span class="yes">●</span> Smart Chat (free in core)</td>
+          <td><span class="yes">●</span> Vault QA mode</td>
+          <td><span class="yes">●</span> @Vault · ⌘⇧⏎<sup><a href="https://github.com/glowingjade/obsidian-smart-composer/wiki/2.3-Vault-Search-(RAG)">[8]</a></sup></td>
+          <td><span class="yes">●</span> chat over docs + web<sup><a href="https://docs.khoj.dev/clients/obsidian/">[10]</a></sup></td>
+        </tr>
+        <tr>
+          <th>Apply-Edit / inline rewrites <small>writer surface</small></th>
+          <td><span class="no">✗</span> retrieval only</td>
+          <td><span class="opt">◯</span> command palette quick actions</td>
+          <td><span class="yes">●</span> one-click Apply</td>
+          <td><span class="no">✗</span> chat-only</td>
+        </tr>
+        <tr>
+          <th>Multimodal context <small>YouTube · PDF · images</small></th>
+          <td><span class="no">✗</span></td>
+          <td>YouTube, web, PDF, EPUB, images</td>
+          <td>websites, images, YouTube transcripts</td>
+          <td>PDF, image, Word, Notion, org-mode</td>
+        </tr>
+        <tr>
+          <th>Agent / tool-use <small>autonomous calls</small></th>
+          <td><span class="opt">◯</span> external via MCP<sup><a href="https://3sztof.github.io/posts/obsidian-smart-connections-mcp/">[19]</a></sup></td>
+          <td><span class="opt">◯</span> Plus tier: Agent mode</td>
+          <td><span class="yes">●</span> MCP support</td>
+          <td><span class="yes">●</span> custom agents, automations</td>
+        </tr>
+        <tr>
+          <th>Privacy posture <small>cloud vs local default</small></th>
+          <td>local-first, offline after index</td>
+          <td>local with Ollama; cloud by default</td>
+          <td>local with Ollama; cloud optional</td>
+          <td>self-host or Khoj cloud</td>
+        </tr>
+        <tr>
+          <th>Pricing <small>floor → ceiling</small></th>
+          <td><span class="note">Free core</span> · Pro via sub<sup><a href="https://smartconnections.app/pro-plugins/">[3]</a></sup></td>
+          <td><span class="note">BYOK free</span> · Plus $14.99/mo · $139.99/yr<sup><a href="https://www.obsidiancopilot.com/en/pricing">[5]</a></sup></td>
+          <td><span class="note">Free</span> with own keys</td>
+          <td><span class="note">Free OSS</span> · managed cloud tiers</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="sec">
+    <h2>Ecosystem Lanes <small>SIX LANES · TOP PICK PER LANE<sup><a href="https://systemsculpt.com/blog/best-obsidian-ai-plugins-2026">[12]</a></sup></small></h2>
+  </section>
+
+  <div class="lanes">
+    <div class="lane">
+      <div class="lk"><span class="lk-num">L01</span>RETRIEVAL / DISCOVERY</div>
+      <h3>Embeds every note locally, surfaces related ones in a sidebar</h3>
+      <p>A Lookup view + related-notes pane while you write. Local-first, offline after first build.</p>
+      <div class="pick">PICK · <b>Smart Connections</b><sup><a href="https://smartconnections.app/smart-connections/">[2]</a></sup></div>
+    </div>
+    <div class="lane">
+      <div class="lk"><span class="lk-num">L02</span>CHAT WITH VAULT (RAG)</div>
+      <h3>Conversational Q&amp;A grounded in your notes via embeddings + LLM</h3>
+      <p>Three viable choices. Pick exactly one — never run two embedding indexes over the same vault.</p>
+      <div class="pick">PICK · <b>Copilot</b><sup><a href="https://github.com/logancyang/obsidian-copilot">[4]</a></sup>, <b>Smart Composer</b><sup><a href="https://github.com/glowingjade/obsidian-smart-composer">[7]</a></sup>, <b>Khoj</b><sup><a href="https://docs.khoj.dev/clients/obsidian/">[10]</a></sup></div>
+    </div>
+    <div class="lane">
+      <div class="lk"><span class="lk-num">L03</span>EDITOR-GRADE WRITING ASSIST</div>
+      <h3><code>@file</code> mentions, Apply-Edit, inline rewrites</h3>
+      <p>Cursor-style flow inside Obsidian. The chat-and-write boundary blurs.</p>
+      <div class="pick">PICK · <b>Smart Composer</b><sup><a href="https://github.com/glowingjade/obsidian-smart-composer/wiki/2.3-Vault-Search-(RAG)">[8]</a></sup></div>
+    </div>
+    <div class="lane">
+      <div class="lk"><span class="lk-num">L04</span>TEMPLATE-DRIVEN GENERATION</div>
+      <h3>Reusable prompts (summary, outline, expand) tied to frontmatter</h3>
+      <p>Ships GPT-5 + thinking-model support; community template gallery.</p>
+      <div class="pick">PICK · <b>Text Generator</b><sup><a href="https://github.com/nhaouari/obsidian-textgenerator-plugin">[11]</a></sup></div>
+    </div>
+    <div class="lane">
+      <div class="lk"><span class="lk-num">L05</span>DEDICATED SUMMARIZATION</div>
+      <h3>One-shot summarize commands with chunking</h3>
+      <p>Mostly redundant in 2026 — Copilot, Smart Composer, and Text Generator already cover this. Two niche cases below.</p>
+      <div class="pick">NICHE · <b>obsidian-ai-summary</b><sup><a href="https://github.com/irbull/obsidian-ai-summary">[16]</a></sup>, <b>obsidian-ai-summarize</b><sup><a href="https://github.com/ravenwits/obsidian-ai-summarize">[17]</a></sup></div>
+    </div>
+    <div class="lane">
+      <div class="lk"><span class="lk-num">L06</span>AGENTIC (READ + EDIT + CREATE)</div>
+      <h3>Autonomous tool calls that modify the vault</h3>
+      <p>Interesting but immature. Reliable 2026 pattern: wire Smart Connections retrieval into an external agent via MCP<sup><a href="https://3sztof.github.io/posts/obsidian-smart-connections-mcp/">[19]</a></sup>.</p>
+      <div class="pick">EARLY · <b>Obsidian Chat</b>, <b>Vault AI Chat</b><sup><a href="https://forum.obsidian.md/t/plugin-obsidian-chat-an-agentic-ai-assistant-that-lives-in-your-vault/112346">[20]</a></sup></div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <h2>Operational Warnings <small>4 GOTCHAS · READ BEFORE INSTALLING</small></h2>
+  </section>
+
+  <div class="warnings">
+    <div class="warn-card">
+      <div class="tag">⊠ HARD RULE</div>
+      <h4>Don't double-index</h4>
+      <p>Running <b>Smart Connections + Copilot Vault QA + Smart Composer RAG</b> simultaneously means three separate embedding indexes over the same vault<sup><a href="https://forum.obsidian.md/t/alternatives-to-smart-connections/108886">[13]</a></sup>. Pick <b>one chat plugin</b>; let Smart Connections handle the discovery sidebar.</p>
+    </div>
+    <div class="warn-card amber">
+      <div class="tag">⏱ FIRST-RUN COST</div>
+      <h4>20–30 min on a 5,000-note vault</h4>
+      <p>First-build embedding indexing locally takes <b>20–30 minutes</b> on a 5k-note vault. Index lives in <code>.obsidian/</code> and updates incrementally afterward<sup><a href="https://insiderllm.com/guides/obsidian-local-llm-guide/">[15]</a></sup>. Plan for the first run, not the steady state.</p>
+    </div>
+    <div class="warn-card info">
+      <div class="tag">▣ KNOWN-GOOD STACK</div>
+      <h4>Local-only: Ollama + nomic-embed-text + Qwen 2.5</h4>
+      <p>2026's known-good local stack: <b>Ollama</b> + <b>nomic-embed-text</b> for embeddings + <b>Qwen 2.5</b> (or Llama 3) for chat, wired into Copilot or Smart Composer<sup><a href="https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md">[6]</a></sup><sup><a href="https://www.xda-developers.com/using-my-local-llm-with-obsidian/">[14]</a></sup>.</p>
+    </div>
+    <div class="warn-card amber">
+      <div class="tag">⚠ IMMATURE LANE</div>
+      <h4>Agentic plugins are early</h4>
+      <p>Plugins like Obsidian Chat and Vault AI Chat can read+edit+create files autonomously<sup><a href="https://forum.obsidian.md/t/plugin-obsidian-chat-an-agentic-ai-assistant-that-lives-in-your-vault/112346">[20]</a></sup> — interesting but immature. The <b>more reliable 2026 pattern</b>: wire Smart Connections retrieval into Claude Code or another external agent via MCP<sup><a href="https://3sztof.github.io/posts/obsidian-smart-connections-mcp/">[19]</a></sup>.</p>
+    </div>
+  </div>
+
+  <section class="sec">
+    <h2>Summarization Niche <small>SKIP UNLESS YOU MATCH ONE OF THESE</small></h2>
+  </section>
+
+  <div class="sub-tiles">
+    <div class="sub-tile">
+      <div class="glyph">∑</div>
+      <h4>obsidian-ai-summary</h4>
+      <div class="stars">⭐ 39</div>
+      <p>Walks links from the current note and summarizes each linked note in a dialog<sup><a href="https://github.com/irbull/obsidian-ai-summary">[16]</a></sup>.</p>
+      <div class="when">USE WHEN · <b>weekly/monthly review note</b> walking all linked notes</div>
+      <a href="https://github.com/irbull/obsidian-ai-summary">→ irbull/obsidian-ai-summary</a>
+    </div>
+    <div class="sub-tile">
+      <div class="glyph">⊟</div>
+      <h4>obsidian-ai-summarize</h4>
+      <div class="stars">⭐ 18</div>
+      <p>One-shot summarize command with chunking + placement profiles<sup><a href="https://github.com/ravenwits/obsidian-ai-summarize">[17]</a></sup>.</p>
+      <div class="when">USE WHEN · <b>simpler UX than Text Generator</b>, smaller scope</div>
+      <a href="https://github.com/ravenwits/obsidian-ai-summarize">→ ravenwits/obsidian-ai-summarize</a>
+    </div>
+    <div class="sub-tile">
+      <div class="glyph">✎</div>
+      <h4>Text Generator</h4>
+      <div class="stars">⭐ 1.9k</div>
+      <p>Reusable summary templates with frontmatter overrides; community gallery, GPT-5 + thinking-model support<sup><a href="https://github.com/nhaouari/obsidian-textgenerator-plugin">[11]</a></sup>.</p>
+      <div class="when">USE WHEN · <b>template-driven generation</b> tied to frontmatter</div>
+      <a href="https://github.com/nhaouari/obsidian-textgenerator-plugin">→ nhaouari/obsidian-textgenerator-plugin</a>
+    </div>
+  </div>
+
+  <section class="sec">
+    <h2>Install Order <small>THE TWO-PLUGIN BASELINE + OPTIONAL ADDS</small></h2>
+  </section>
+
+  <div class="install">
+    <div class="install-row">
+      <div class="step">
+        <div class="num">01</div>
+        <h5>Install Smart Connections</h5>
+        <p>Local-first sidebar. Zero config. Index first. Offline after.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h5>Pick ONE chat plugin</h5>
+        <p>Copilot for polish · Smart Composer for editing · Khoj if cross-device.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h5>Stand up Ollama</h5>
+        <p>Pull <code>nomic-embed-text</code> + Qwen 2.5 / Llama 3. Point chat at <code>localhost:11434</code>.</p>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <h5>Resist double-indexing</h5>
+        <p>Disable any second RAG index. Smart Connections owns discovery.</p>
+      </div>
+      <div class="step">
+        <div class="num">05</div>
+        <h5>(Optional) Wire MCP</h5>
+        <p>Expose retrieval to Claude Code or external agents. The 2026 advanced pattern.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sources">
+    <h2>Sources Console · 20 cited</h2>
+    <div class="src-grid">
+
+      <a class="src" href="https://github.com/brianpetro/obsidian-smart-connections">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[01]</div>
+          <span class="domain">brianpetro/obsidian-smart-connections</span>
+          <div class="claim">Smart Connections — chat with notes via AI embeddings; local + 100+ API providers.</div>
+          <div class="type">OFFICIAL · ⭐ 4.9k</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://smartconnections.app/smart-connections/">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=smartconnections.app&sz=128" alt="">
+        <div class="body">
+          <div class="num">[02]</div>
+          <span class="domain">smartconnections.app</span>
+          <div class="claim">Indexing and retrieval run locally by default; offline after first index.</div>
+          <div class="type">VENDOR-BLOG</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://smartconnections.app/pro-plugins/">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=smartconnections.app&sz=128" alt="">
+        <div class="body">
+          <div class="num">[03]</div>
+          <span class="domain">smartconnections.app/pro-plugins</span>
+          <div class="claim">Core remains free; Pro tier with 14-day trial yearly or monthly plan.</div>
+          <div class="type">VENDOR-BLOG</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/logancyang/obsidian-copilot">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[04]</div>
+          <span class="domain">logancyang/obsidian-copilot</span>
+          <div class="claim">Vault-aware chat with Vault QA / RAG, @ mentions, Ollama support, Plus-tier Agent mode.</div>
+          <div class="type">OFFICIAL · ⭐ 6.8k</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://www.obsidiancopilot.com/en/pricing">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=obsidiancopilot.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[05]</div>
+          <span class="domain">obsidiancopilot.com/en/pricing</span>
+          <div class="claim">Plus $14.99/mo or $139.99/yr; one-time $349.99 Self-Host Supporter.</div>
+          <div class="type">OFFICIAL</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[06]</div>
+          <span class="domain">obsidian-copilot/local_copilot.md</span>
+          <div class="claim">Run fully local with Ollama at localhost:11434 + nomic-embed-text.</div>
+          <div class="type">OFFICIAL</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/glowingjade/obsidian-smart-composer">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[07]</div>
+          <span class="domain">glowingjade/obsidian-smart-composer</span>
+          <div class="claim">Cursor-style chat with @file/@vault, Apply-Edit, MCP support across many providers.</div>
+          <div class="type">OFFICIAL · ⭐ 2.2k</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/glowingjade/obsidian-smart-composer/wiki/2.3-Vault-Search-(RAG)">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[08]</div>
+          <span class="domain">smart-composer/wiki/2.3-Vault-Search-(RAG)</span>
+          <div class="claim">Vault Search RAG triggered via Cmd+Shift+Enter or @Vault.</div>
+          <div class="type">OFFICIAL</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/khoj-ai/khoj">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[09]</div>
+          <span class="domain">khoj-ai/khoj</span>
+          <div class="claim">Self-hostable AI second brain accessible from Obsidian, browser, phone, WhatsApp.</div>
+          <div class="type">OFFICIAL · ⭐ 34k</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://docs.khoj.dev/clients/obsidian/">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=docs.khoj.dev&sz=128" alt="">
+        <div class="body">
+          <div class="num">[10]</div>
+          <span class="domain">docs.khoj.dev/clients/obsidian</span>
+          <div class="claim">Khoj Obsidian plugin: chat, transformer-based incremental search, similar-notes discovery.</div>
+          <div class="type">OFFICIAL</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/nhaouari/obsidian-textgenerator-plugin">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[11]</div>
+          <span class="domain">nhaouari/obsidian-textgenerator-plugin</span>
+          <div class="claim">Template-driven generation across OpenAI, Anthropic, Google, HuggingFace, local.</div>
+          <div class="type">OFFICIAL · ⭐ 1.9k</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://systemsculpt.com/blog/best-obsidian-ai-plugins-2026">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=systemsculpt.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[12]</div>
+          <span class="domain">systemsculpt.com — Best Obsidian AI 2026</span>
+          <div class="claim">April 2026 review notes the ecosystem now splits into retrieval/workflow/agent surfaces.</div>
+          <div class="type">VENDOR-BLOG</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://forum.obsidian.md/t/alternatives-to-smart-connections/108886">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=128" alt="">
+        <div class="body">
+          <div class="num">[13]</div>
+          <span class="domain">forum.obsidian.md — alternatives</span>
+          <div class="claim">Copilot's Vault QA indexes notes for semantic search similar to Smart Connections.</div>
+          <div class="type">FORUM</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://www.xda-developers.com/using-my-local-llm-with-obsidian/">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[14]</div>
+          <span class="domain">xda-developers.com — local LLM with Obsidian</span>
+          <div class="claim">XDA recommends Copilot as the most polished local-LLM option; Relevant Notes auto-context.</div>
+          <div class="type">NEWS</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://insiderllm.com/guides/obsidian-local-llm-guide/">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=insiderllm.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[15]</div>
+          <span class="domain">insiderllm.com — Obsidian local LLM guide</span>
+          <div class="claim">First-build embedding indexing on 5k-note vault: 20–30 min locally.</div>
+          <div class="type">VENDOR-BLOG</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/irbull/obsidian-ai-summary">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[16]</div>
+          <span class="domain">irbull/obsidian-ai-summary</span>
+          <div class="claim">Walks links from current note, summarizes each linked note in a dialog.</div>
+          <div class="type">OFFICIAL · ⭐ 39</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/ravenwits/obsidian-ai-summarize">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[17]</div>
+          <span class="domain">ravenwits/obsidian-ai-summarize</span>
+          <div class="claim">Small dedicated summarization with chunking and placement profiles.</div>
+          <div class="type">OFFICIAL · ⭐ 18</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://github.com/danielrosehill/awesome-obsidian-ai-tools">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="body">
+          <div class="num">[18]</div>
+          <span class="domain">danielrosehill/awesome-obsidian-ai-tools</span>
+          <div class="claim">Community-maintained list of retrieval, summarization, and agent plugins.</div>
+          <div class="type">OFFICIAL · ⭐ 115</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://3sztof.github.io/posts/obsidian-smart-connections-mcp/">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=3sztof.github.io&sz=128" alt="">
+        <div class="body">
+          <div class="num">[19]</div>
+          <span class="domain">3sztof.github.io — SC + MCP</span>
+          <div class="claim">Wiring Smart Connections retrieval into a full agent loop via MCP.</div>
+          <div class="type">FORUM</div>
+        </div>
+      </a>
+
+      <a class="src" href="https://forum.obsidian.md/t/plugin-obsidian-chat-an-agentic-ai-assistant-that-lives-in-your-vault/112346">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=128" alt="">
+        <div class="body">
+          <div class="num">[20]</div>
+          <span class="domain">forum.obsidian.md — Obsidian Chat agentic</span>
+          <div class="claim">Newer agentic plugins read notes, edit, and create files autonomously.</div>
+          <div class="type">FORUM</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="siblings">
+    <h2>Sibling Angles · Obsidian 2026 Expedition</h2>
+    <div class="sib-list">
+      <a class="sib" href="../../low-friction-capture-ai-assisted-backfill/">
+        <div class="depth expedition">EXPEDITION</div>
+        <h4>Low-friction capture &amp; AI-assisted backfill</h4>
+        <p>Lowering capture friction across desktop, mobile, web, voice — and AI tag/metadata backfill across an existing vault.</p>
+      </a>
+      <a class="sib" href="../../frontmatter-tagging-schemas-for-extraction/">
+        <div class="depth expedition">EXPEDITION</div>
+        <h4>Frontmatter &amp; tagging schemas for extraction</h4>
+        <p>Designing Obsidian YAML and tag taxonomies so external tools can reliably extract, query, and validate metadata.</p>
+      </a>
+      <a class="sib" href="../../knowledge-base-patterns-for-a-technical-vault/">
+        <div class="depth expedition">EXPEDITION</div>
+        <h4>Knowledge-base patterns for a technical vault</h4>
+        <p>Hybrid PARA+Zettel skeleton, Properties-first metadata, daily-note capture, MOCs over deep folders.</p>
+      </a>
+      <a class="sib" href="../../automated-media-tracking-books-movies-series/">
+        <div class="depth">SURVEY</div>
+        <h4>Automated media tracking</h4>
+        <p>Hardcover for books, Simkl for film/TV; automate capture with Readwise + CrossWatch into Obsidian.</p>
+      </a>
+      <a class="sib" href="../../selective-publishing-to-github-pages-or-equivalents/">
+        <div class="depth">SURVEY</div>
+        <h4>Selective publishing to GitHub Pages</h4>
+        <p>Opt-in (whitelist) frontmatter pattern; Quartz + ExplicitPublish as the closest free Obsidian-Publish match.</p>
+      </a>
+      <a class="sib" href="../../">
+        <div class="depth">↑ PARENT</div>
+        <h4>Upgrading a personal Obsidian workflow in 2026</h4>
+        <p>Six-angle expedition synthesis with Bases-first design and local-first AI as the unifying threads.</p>
+      </a>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span>VIEW · DASHBOARD</span>
+    <span>CANONICAL · <a href="../">↩ DEFAULT VIEW</a></span>
+    <span>TOPIC · OBSIDIAN AI PLUGINS · APR 2026</span>
+    <span>20 SOURCES · 5 MIN</span>
+  </div>
+
+</div>
