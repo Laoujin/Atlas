@@ -1,0 +1,5 @@
+Which European destinations reliably hit ≥20°C daytime in late October — what's the climatology (avg high, rainfall, sea temp, sunshine hours)? Cover Canary Islands (Tenerife, Gran Canaria, Lanzarote, Fuerteventura), Madeira, Malta, Cyprus (Paphos/Larnaca), southern Crete, Rhodes/Kos, Sicily (Catania/Palermo), Algarve (Faro), Andalusia (Málaga/Seville), Athens/Peloponnese — flag which are borderline vs reliable.
+What are accessibility/connectivity options from Brussels (BRU) and Charleroi (CRL) to each shortlisted destination — direct flights (carriers, frequency, typical durations) and train/drive alternatives where relevant?
+What are the top sights, signature activities, and local vibe/pace for each shortlisted destination — what would a week-long itinerary realistically include?
+What are indicative week-long trip costs in EUR for two travelers ex-Belgium in late October — flights, mid-range accommodation, food, transport, activities — for each shortlisted destination?
+What are late-October risk factors and gotchas at these "warm" destinations — rain spikes, storm/hurricane tail, closed seasonal sites, low-season service gaps, crowd levels?
