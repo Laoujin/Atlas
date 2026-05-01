@@ -72,22 +72,22 @@ Depth over breadth. These are the shows you put on for a flight, not a commute.
 
 | Show | Hosts | Why |
 |---|---|---|
-| **Acquired** [[10]](https://www.acquired.fm/about) | Ben Gilbert, David Rosenthal | 4-hour deep dives on company histories. #1 tech podcast on Apple/Spotify, >1M listeners per episode [[10]](https://www.acquired.fm/about). The right format when you want to understand how a category was built — NVIDIA, TSMC, Amazon. ⚠ Long; treat each episode as a half-day commitment. |
-| **BG2** [[25]](https://www.bg2pod.com/) | Brad Gerstner (Altimeter), Bill Gurley | Biweekly markets/AI/tech. 2026 episodes featured Jensen Huang on the OpenAI $100B partnership and OpenAI's Nick Turley on ChatGPT-as-super-assistant [[25]](https://www.bg2pod.com/). Closest you'll get to listening in on a Sand Hill Road dinner. |
-| **Sharp Tech** [[26]](https://stratechery.com/company/sharp-tech/) | Andrew Sharp, Ben Thompson | Twice-weekly Stratechery-aligned analysis. Recent: TSMC pricing power, Meta CapEx, OpenAI's enterprise pivot, NVIDIA's inference pivot [[26]](https://stratechery.com/company/sharp-tech/). Pair with Dithering for short + long Ben Thompson. |
+| [**Acquired**](https://www.acquired.fm/) [[10]](https://www.acquired.fm/about) | Ben Gilbert, David Rosenthal | 4-hour deep dives on company histories. #1 tech podcast on Apple/Spotify, >1M listeners per episode [[10]](https://www.acquired.fm/about). The right format when you want to understand how a category was built — NVIDIA, TSMC, Amazon. ⚠ Long; treat each episode as a half-day commitment. |
+| [**BG2**](https://www.bg2pod.com/) [[25]](https://www.bg2pod.com/) | Brad Gerstner (Altimeter), Bill Gurley | Biweekly markets/AI/tech. 2026 episodes featured Jensen Huang on the OpenAI $100B partnership and OpenAI's Nick Turley on ChatGPT-as-super-assistant [[25]](https://www.bg2pod.com/). Closest you'll get to listening in on a Sand Hill Road dinner. |
+| [**Sharp Tech**](https://stratechery.com/company/sharp-tech/) [[26]](https://stratechery.com/company/sharp-tech/) | Andrew Sharp, [Ben Thompson](https://stratechery.com/) | Twice-weekly [Stratechery](https://stratechery.com/)-aligned analysis. Recent: TSMC pricing power, Meta CapEx, OpenAI's enterprise pivot, NVIDIA's inference pivot [[26]](https://stratechery.com/company/sharp-tech/). Pair with [Dithering](https://dithering.fm/) for short + long Ben Thompson. |
 
 ## Pick-by-time-budget
 
 | Listening budget | Stack |
 |---|---|
-| **< 1 hr/week** | AI Daily Brief (skim) + 1 Dithering. |
-| **2–3 hrs/week** | + Latent Space + The Pragmatic Engineer. |
-| **5+ hrs/week** | + Dwarkesh / MLST (alternating) + Interconnects + Cognitive Revolution. |
-| **Audiobook-replacement** | Acquired's NVIDIA episodes [[10]](https://www.acquired.fm/about) and Dwarkesh's longer interviews [[4]](https://www.dwarkesh.com/). |
+| **< 1 hr/week** | [AI Daily Brief](https://www.youtube.com/@AIDailyBrief) (skim) + 1 [Dithering](https://dithering.fm/). |
+| **2–3 hrs/week** | + [Latent Space](https://www.latent.space/) + [The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/). |
+| **5+ hrs/week** | + [Dwarkesh](https://www.dwarkesh.com/) / [MLST](https://www.mlst.ai/) (alternating) + [Interconnects](https://www.interconnects.ai/) + [Cognitive Revolution](https://www.cognitiverevolution.ai/). |
+| **Audiobook-replacement** | [Acquired](https://www.acquired.fm/)'s NVIDIA episodes [[10]](https://www.acquired.fm/about) and [Dwarkesh](https://www.dwarkesh.com/)'s longer interviews [[4]](https://www.dwarkesh.com/). |
 
 ## Notes on what's *not* on the list
 
 - **Generalist tech-celebrity interviews** that don't add information beyond what a guest already posts on X — skipped.
 - **Vendor podcasts disguised as content.** A handful of enterprise-AI shows are sales channels with light editorial polish; listen with that lens or skip.
 - **Daily news bulletins beyond AI Daily Brief.** Marginal returns drop fast — one daily AI brief plus a weekly recap (Hard Fork or Practical AI) covers most listeners.
-- **Sharp China, Greatest of All Talk** and other Stratechery-network spinoffs [[20]](https://stratechery.com/2026/please-listen-to-my-podcast/) are excellent if you've already maxed out on Sharp Tech and Dithering — tier 2 only because they're behind the paywall.
+- [**Sharp China**](https://stratechery.com/company/sharp-china/), [**Greatest of All Talk**](https://stratechery.com/company/greatest-of-all-talk/) and other [Stratechery](https://stratechery.com/)-network spinoffs [[20]](https://stratechery.com/2026/please-listen-to-my-podcast/) are excellent if you've already maxed out on Sharp Tech and Dithering — tier 2 only because they're behind the paywall.
