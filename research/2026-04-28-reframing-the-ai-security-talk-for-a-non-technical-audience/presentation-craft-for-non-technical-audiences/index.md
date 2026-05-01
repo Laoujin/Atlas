@@ -21,7 +21,7 @@ duration_sec: 83
 
 | Move | What it looks like | Why it works |
 |---|---|---|
-| **Lead with BLUF** | First 2–3 sentences carry situation, complication, and your recommendation [[2]](https://en.wikipedia.org/wiki/BLUF_(communication)) | Executives are problem-solvers; they decide whether to keep listening in ~30 seconds [[1]](https://lsaglobal.com/4-proven-ways-to-present-technical-ideas-to-non-technical-audiences/) |
+| **Lead with BLUF** | First 2–3 sentences carry situation, complication, and your recommendation [[2]](https://en.wikipedia.org/wiki/BLUF_%28communication%29) | Executives are problem-solvers; they decide whether to keep listening in ~30 seconds [[1]](https://lsaglobal.com/4-proven-ways-to-present-technical-ideas-to-non-technical-audiences/) |
 | **Audience is the hero, you're the mentor** | Use Duarte's *Sparkline*: toggle between "what is" and "what could be," ending on a call to action [[3]](https://www.duarte.com/resources/talks/the-secret-structure-of-great-talks/) | Empathy frames the talk around their stakes, not your work |
 | **One analogy per concept, no jargon** | "Prompt injection is SQL injection for English" — anchor every term in something they already know [[4]](https://online.stanford.edu/10-tips-communicating-technical-ideas-non-technical-people) | Buzzwords and acronyms make non-technical audiences tune out fast [[1]](https://lsaglobal.com/4-proven-ways-to-present-technical-ideas-to-non-technical-audiences/) |
 | **10-7 rule** | Identify the most essential 10% of the message, repeat it ~7 times across the talk [[1]](https://lsaglobal.com/4-proven-ways-to-present-technical-ideas-to-non-technical-audiences/) | Recall is driven by repetition, not novelty |

@@ -67,9 +67,9 @@ duration_sec: 502
 
 | Venue | Rooms | Rating | Pick |
 |---|---|---|---|
-| **Exit Games Ghent** | 6 | 4.8[[16]](https://www.tripadvisor.com/Attractions-g188666-Activities-c56-t208-Ghent_East_Flanders_Province.html) | Highest-rated in Ghent — start here for first-timers. |
-| **Lockdown** (Stapelplein + Dok Noord) | 6 | 4.6[[15]](https://www.tripadvisor.com/Attraction_Review-g188666-d12277047-Reviews-Lockdown-Ghent_East_Flanders_Province.html) | "Rum Rebellion" has a live pirate-captain actor — best immersive. Reviewers note ~€130/team is the upper end but worth it. |
-| **The Box** | 7 | — | 90-minute rooms (vs. usual 60) — for couples who like to think out loud. |
+| **[Exit Games Ghent](https://www.exitgames.be/en_GB/escape-room-gent)** | 6 | 4.8[[16]](https://www.tripadvisor.com/Attractions-g188666-Activities-c56-t208-Ghent_East_Flanders_Province.html) | Highest-rated in Ghent — start here for first-timers. |
+| **[Lockdown](https://www.lockdown-escape.be/)** (Stapelplein + Dok Noord) | 6 | 4.6[[15]](https://www.tripadvisor.com/Attraction_Review-g188666-d12277047-Reviews-Lockdown-Ghent_East_Flanders_Province.html) | "Rum Rebellion" has a live pirate-captain actor — best immersive. Reviewers note ~€130/team is the upper end but worth it. |
+| **[The Box](https://www.thebox.gent/)** | 7 | — | 90-minute rooms (vs. usual 60) — for couples who like to think out loud. |
 
 ## Weekend-getaway picks (workshops as the centre of gravity)
 

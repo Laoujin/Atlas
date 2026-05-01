@@ -21,11 +21,11 @@ duration_sec: 144
 
 | Option | When (2026) | Where | Cost | Date-night fit |
 |---|---|---|---|---|
-| Six Days of Ghent | 17–22 Nov [[1]](https://en.wikipedia.org/wiki/Six_Days_of_Ghent) | 't Kuipke, Citadelpark | ~€25–80, tickets via lottozesdaagse.be [[4]](https://lottozesdaagse.be/en/) | ⭐ Iconic — beer, frites, derny races, indoors, 10 min from centre |
-| KAA Gent (Jupiler Pro League) | Aug–May, weekend evenings | Ghelamco Arena (20k seats) [[5]](https://visit.gent.be/en/see-do/kaa-gent-football-stadium) | €20 standard, €25 top-six clash [[3]](https://footballtripper.com/belgium/kaa-gent-stadium/) | ✓ Easy logistics, tram 4; cashless venue |
-| Tour of Flanders | Sun 5 Apr [[6]](https://www.olympics.com/en/news/road-cycling-route-start-time-key-sections-riders-mens-womens-watch-2026-tour-of-flanders) | Antwerp → Oudenaarde, 278 km | Free roadside | ✓ Day trip; pick a Koppenberg / Oude Kwaremont café |
-| In Flanders Fields (Gent–Wevelgem) | Sun 29 Mar [[7]](https://www.cyclingweekly.com/racing/watch-in-flanders-fields-2026-gent-wevelgem) | Middelkerke → Wevelgem | Free roadside | ✓ Coastal start, finish-line festival |
-| Omloop Het Nieuwsblad | Sat 28 Feb [[8]](https://cyclinguptodate.com/cycling/how-to-watch-2026-tour-of-bruges-e3-saxo-classic-middelkerke-wevelgem-and-dwars-door-vlaanderen-live-and-on-tv-in-the-uk-and-usa-dates-and-schedules) | Ghent → Ninove, ~200 km | Free roadside | ✓ Race actually starts in Ghent — walk to the départ |
+| [Six Days of Ghent](https://lottozesdaagse.be/en/) | 17–22 Nov [[1]](https://en.wikipedia.org/wiki/Six_Days_of_Ghent) | 't Kuipke, Citadelpark | ~€25–80, tickets via lottozesdaagse.be [[4]](https://lottozesdaagse.be/en/) | ⭐ Iconic — beer, frites, derny races, indoors, 10 min from centre |
+| [KAA Gent](https://www.kaagent.be/) (Jupiler Pro League) | Aug–May, weekend evenings | Ghelamco Arena (20k seats) [[5]](https://visit.gent.be/en/see-do/kaa-gent-football-stadium) | €20 standard, €25 top-six clash [[3]](https://footballtripper.com/belgium/kaa-gent-stadium/) | ✓ Easy logistics, tram 4; cashless venue |
+| [Tour of Flanders](https://www.rondevanvlaanderen.be/en) | Sun 5 Apr [[6]](https://www.olympics.com/en/news/road-cycling-route-start-time-key-sections-riders-mens-womens-watch-2026-tour-of-flanders) | Antwerp → Oudenaarde, 278 km | Free roadside | ✓ Day trip; pick a Koppenberg / Oude Kwaremont café |
+| [In Flanders Fields (Gent–Wevelgem)](https://www.inflandersfieldsmiddelkerkewevelgem.be/en) | Sun 29 Mar [[7]](https://www.cyclingweekly.com/racing/watch-in-flanders-fields-2026-gent-wevelgem) | Middelkerke → Wevelgem | Free roadside | ✓ Coastal start, finish-line festival |
+| [Omloop Het Nieuwsblad](https://www.omloophetnieuwsblad.be/en) | Sat 28 Feb [[8]](https://cyclinguptodate.com/cycling/how-to-watch-2026-tour-of-bruges-e3-saxo-classic-middelkerke-wevelgem-and-dwars-door-vlaanderen-live-and-on-tv-in-the-uk-and-usa-dates-and-schedules) | Ghent → Ninove, ~200 km | Free roadside | ✓ Race actually starts in Ghent — walk to the départ |
 
 ## Why the Zesdaagse wins
 

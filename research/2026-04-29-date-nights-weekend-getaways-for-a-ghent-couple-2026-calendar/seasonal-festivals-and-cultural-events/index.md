@@ -49,10 +49,10 @@ This is the single best stretch of the year for a Ghent couple — the city itse
 
 | Date | Event | Where | Why bother |
 |---|---|---|---|
-| **19 Mar – 10 May** | Keukenhof Gardens | Lisse, NL (3 h+ train via Brussels/Amsterdam) | 7 million bulbs, 800 tulip varieties; peak mid-Apr – early May. The full overnight near Leiden makes the day-trip math work [[24]](https://keukenhof.nl/en/) |
-| **1–10 May** | **Floraliën Ghent** | Floraliënhal, Kuipke, Botanical Garden | The five-yearly Ghent flower-and-plant festival — three venues, ~70 k visitors over ten days [[4]](https://floralien.be/en/welcome/) |
-| **13–17 May** | **Gent Smaakt** | Korenmarkt, Goudenleeuwplein, Poeljemarkt | Five free days of Ghent's best chefs serving in-the-square portions on Ascension long-weekend [[5]](https://www.gentsmaakt.be/en/practical-info/) |
-| **Thu 14 May** | **Procession of the Holy Blood** | Bruges (Dijver → Burg) | UNESCO; ~1,700 costumed participants, 30,000–45,000 spectators, 14:30–17:30. Reserve a bench at In&Uit if you want to sit still for the full route [[10]](https://www.visitbruges.be/en/whats-on/events-calendar/procession-holy-blood-2026)[[11]](https://ich.unesco.org/en/RL/procession-of-the-holy-blood-in-bruges-00263) |
+| **19 Mar – 10 May** | [Keukenhof Gardens](https://keukenhof.nl/en/) | Lisse, NL (3 h+ train via Brussels/Amsterdam) | 7 million bulbs, 800 tulip varieties; peak mid-Apr – early May. The full overnight near Leiden makes the day-trip math work [[24]](https://keukenhof.nl/en/) |
+| **1–10 May** | **[Floraliën Ghent](https://floralien.be/en/welcome/)** | Floraliënhal, Kuipke, Botanical Garden | The five-yearly Ghent flower-and-plant festival — three venues, ~70 k visitors over ten days [[4]](https://floralien.be/en/welcome/) |
+| **13–17 May** | **[Gent Smaakt](https://www.gentsmaakt.be/en/practical-info/)** | Korenmarkt, Goudenleeuwplein, Poeljemarkt | Five free days of Ghent's best chefs serving in-the-square portions on Ascension long-weekend [[5]](https://www.gentsmaakt.be/en/practical-info/) |
+| **Thu 14 May** | **[Procession of the Holy Blood](https://www.bloedprocessiebrugge.be/en/home/)** | Bruges (Dijver → Burg) | UNESCO; ~1,700 costumed participants, 30,000–45,000 spectators, 14:30–17:30. Reserve a bench at In&Uit if you want to sit still for the full route [[10]](https://www.visitbruges.be/en/whats-on/events-calendar/procession-holy-blood-2026)[[11]](https://ich.unesco.org/en/RL/procession-of-the-holy-blood-in-bruges-00263) |
 
 **Sequencing tip.** Floraliën (1–10 May) → Holy Blood (14 May) → Gent Smaakt (13–17 May) lands a single fortnight where you barely have to leave home and still hit two flagship events.
 
@@ -64,18 +64,18 @@ The dense stretch. Gentse Feesten alone is the year's centrepiece; surrounding i
 
 | Date | Event | Where | Vibe |
 |---|---|---|---|
-| 26–28 Jun | Couleur Café | Osseghem Park (Atomium), Brussels | Global/world-music three-dayer, picnic-on-the-grass energy [[21]](https://www.musicfestivalwizard.com/festivals/couleur-cafe-2026/) |
-| 27–29 Jun | Live is Live | Antwerp | Compact Antwerp pop/rock weekender [[23]](https://www.brusselsmusicagenda.com/post/belgian-summer-festival-guide-2026) |
-| Late Jun – Aug | **Zomer van Antwerpen** | Eilandje, Het Zuid | All-summer programme of street theatre, circus, open-air cinema — many free [[29]](https://press.visitantwerpen.be/summer-2026-in-antwerp) |
-| 2–5 Jul | Rock Werchter | Werchter | Belgium's biggest rock festival [[23]](https://www.brusselsmusicagenda.com/post/belgian-summer-festival-guide-2026) |
-| 3–18 Jul | Gent Jazz Festival | Bijloke site, Ghent | Two-week jazz programme, walkable from anywhere in the centre [[3]](https://visit.gent.be/en/festivals-feasts) |
-| 10–12 Jul | Cactusfestival | Minnewaterpark, Bruges | Alternative pop/rock by the Lake of Love — best small-festival setting in Belgium [[12]](https://www.tripologiste.com/events/cactusfestival) |
-| **17–26 Jul** | **Gentse Feesten** | All over central Ghent | Ten free days; one of Europe's largest popular festivals, ~2 m visitors. Polé Polé runs in parallel on the waterways [[1]](https://visit.gent.be/en/calendar/ghent-festivities)[[2]](https://en.wikipedia.org/wiki/Gentse_Feesten)[[6]](https://www.polepole.be/en/events/pole-pole-gentse-feesten-2026) |
-| 17–19 + 24–26 Jul | Tomorrowland | De Schorre, Boom | Two-weekend electronic mega-festival; Full Madness passes already sold out [[20]](https://djmag.com/news/tomorrowland-belgium-2026-dates-announced) |
-| **13–16 Aug** | **Brussels Flower Carpet** | Grand-Place | Biennial; 24th edition, 70 × 24 m of begonias laid by ~120 volunteers. **2026 honours Japan.** Pay for the Town-Hall balcony view — ground level is a mosh-pit [[19]](https://www.brussels.be/flower-carpet) |
-| 14–16 Aug | Patershol Festivities | Patershol quarter, Ghent | Neighbourhood street party, flea market on Sunday, kaarskensstoet candle parade closing Saturday [[3]](https://visit.gent.be/en/festivals-feasts) |
-| 20–23 Aug | Pukkelpop | Hasselt | Indie/rock/electronic four-dayer — younger crowd than Werchter [[22]](https://www.musicfestivalwizard.com/festivals/pukkelpop-2026/) |
-| 20–30 Aug | Bijloke Wonderland | Bijloke site, Ghent | Multi-disciplinary music + theatre — the cool-down after Gentse Feesten [[3]](https://visit.gent.be/en/festivals-feasts) |
+| 26–28 Jun | [Couleur Café](https://www.couleurcafe.be/en/) | Osseghem Park (Atomium), Brussels | Global/world-music three-dayer, picnic-on-the-grass energy [[21]](https://www.musicfestivalwizard.com/festivals/couleur-cafe-2026/) |
+| 27–29 Jun | [Live is Live](https://liveislive.be/en/) | Antwerp | Compact Antwerp pop/rock weekender [[23]](https://www.brusselsmusicagenda.com/post/belgian-summer-festival-guide-2026) |
+| Late Jun – Aug | **[Zomer van Antwerpen](https://www.zva.be/)** | Eilandje, Het Zuid | All-summer programme of street theatre, circus, open-air cinema — many free [[29]](https://press.visitantwerpen.be/summer-2026-in-antwerp) |
+| 2–5 Jul | [Rock Werchter](https://www.rockwerchter.be/en/) | Werchter | Belgium's biggest rock festival [[23]](https://www.brusselsmusicagenda.com/post/belgian-summer-festival-guide-2026) |
+| 3–18 Jul | [Gent Jazz Festival](https://www.gentjazz.com/en) | Bijloke site, Ghent | Two-week jazz programme, walkable from anywhere in the centre [[3]](https://visit.gent.be/en/festivals-feasts) |
+| 10–12 Jul | [Cactusfestival](https://www.cactusfestival.be/home-en/) | Minnewaterpark, Bruges | Alternative pop/rock by the Lake of Love — best small-festival setting in Belgium [[12]](https://www.tripologiste.com/events/cactusfestival) |
+| **17–26 Jul** | **[Gentse Feesten](https://gentsefeesten.stad.gent/)** | All over central Ghent | Ten free days; one of Europe's largest popular festivals, ~2 m visitors. [Polé Polé](https://www.polepole.be/en/) runs in parallel on the waterways [[1]](https://visit.gent.be/en/calendar/ghent-festivities)[[2]](https://en.wikipedia.org/wiki/Gentse_Feesten)[[6]](https://www.polepole.be/en/events/pole-pole-gentse-feesten-2026) |
+| 17–19 + 24–26 Jul | [Tomorrowland](https://www.tomorrowland.com/) | De Schorre, Boom | Two-weekend electronic mega-festival; Full Madness passes already sold out [[20]](https://djmag.com/news/tomorrowland-belgium-2026-dates-announced) |
+| **13–16 Aug** | **[Brussels Flower Carpet](https://www.flowercarpet.brussels/en)** | Grand-Place | Biennial; 24th edition, 70 × 24 m of begonias laid by ~120 volunteers. **2026 honours Japan.** Pay for the Town-Hall balcony view — ground level is a mosh-pit [[19]](https://www.brussels.be/flower-carpet) |
+| 14–16 Aug | [Patershol Festivities](https://www.patersholfeesten.be/) | Patershol quarter, Ghent | Neighbourhood street party, flea market on Sunday, kaarskensstoet candle parade closing Saturday [[3]](https://visit.gent.be/en/festivals-feasts) |
+| 20–23 Aug | [Pukkelpop](https://www.pukkelpop.be/en/) | Hasselt | Indie/rock/electronic four-dayer — younger crowd than Werchter [[22]](https://www.musicfestivalwizard.com/festivals/pukkelpop-2026/) |
+| 20–30 Aug | [Bijloke Wonderland](https://www.bijloke.be/) | Bijloke site, Ghent | Multi-disciplinary music + theatre — the cool-down after [Gentse Feesten](https://gentsefeesten.stad.gent/) [[3]](https://visit.gent.be/en/festivals-feasts) |
 
 **The one not to miss outside Ghent:** the **Flower Carpet 13–16 Aug**. It's biennial, Japan is the 2026 honoured guest, and the next chance is 2028. Book the Town-Hall balcony slot the moment tickets open.
 
@@ -85,11 +85,11 @@ The dense stretch. Gentse Feesten alone is the year's centrepiece; surrounding i
 
 | Date | Event | Where | Why |
 |---|---|---|---|
-| **5–6 Sep** | **Braderie de Lille** | Lille (75 min train) | Europe's largest flea market — ~100 km of stalls, 2–3 m visitors, free; mussels-and-fries by the kilo. Goes Saturday 06:00 to Sunday 23:00 nonstop [[25]](https://braderiedelille.com/en/) |
-| 12–13 Sep | Bruges Beer Festival | BMCC, Bruges | 18th edition; pace yourself [[13]](https://www.visitbruges.be/en/whats-on/events-calendar/bruges-beer-festival-2026) |
-| Mid-Sep (annual) | OdeGand | Ghent canals | Floating-stage opening of Festival van Vlaanderen — concerts on barges along the Leie [[3]](https://visit.gent.be/en/festivals-feasts) |
-| 10–27 Sep | Flanders Festival Ghent | Various venues, Ghent | Classical music programme through the autumn [[3]](https://visit.gent.be/en/festivals-feasts) |
-| **7–18 Oct** | **Film Fest Gent** | Sphinx, Studio Skoop, Capitole | International cinema with red-carpet premieres in your own city — cheaper and quieter than running to a film festival weekend abroad [[3]](https://visit.gent.be/en/festivals-feasts) |
+| **5–6 Sep** | **[Braderie de Lille](https://braderiedelille.com/en/)** | Lille (75 min train) | Europe's largest flea market — ~100 km of stalls, 2–3 m visitors, free; mussels-and-fries by the kilo. Goes Saturday 06:00 to Sunday 23:00 nonstop [[25]](https://braderiedelille.com/en/) |
+| 12–13 Sep | [Bruges Beer Festival](https://www.brugsbierfestival.be/en/) | BMCC, Bruges | 18th edition; pace yourself [[13]](https://www.visitbruges.be/en/whats-on/events-calendar/bruges-beer-festival-2026) |
+| Mid-Sep (annual) | [OdeGand](https://www.odegand.gent/en/) | Ghent canals | Floating-stage opening of [Festival van Vlaanderen](https://www.gentfestival.be/en/) — concerts on barges along the Leie [[3]](https://visit.gent.be/en/festivals-feasts) |
+| 10–27 Sep | [Flanders Festival Ghent](https://www.gentfestival.be/en/) | Various venues, Ghent | Classical music programme through the autumn [[3]](https://visit.gent.be/en/festivals-feasts) |
+| **7–18 Oct** | **[Film Fest Gent](https://www.filmfestival.be/en)** | Sphinx, Studio Skoop, [Capitole](https://www.capitole-gent.be/en) | International cinema with red-carpet premieres in your own city — cheaper and quieter than running to a film festival weekend abroad [[3]](https://visit.gent.be/en/festivals-feasts) |
 
 **Pick:** Lille Braderie weekend if you want a city break, Film Fest Gent if you want quiet date nights with a glass of wine after.
 
@@ -101,11 +101,11 @@ The Ghent / Bruges / Brussels triangle and the German border both fire up in lat
 
 | Date | Where | What | Travel |
 |---|---|---|---|
-| **17–22 Nov** | Ghent ('t Kuipke) | **Six Days of Ghent (Lotto Zesdaagse)** — the floodlit indoor track-cycling spectacle, more party than sport in the late evenings [[7]](https://www.uci.org/competition-details/2026/PIS/77857) | walking distance |
-| 25 Nov – 23 Dec | Cologne (Köln Hbf) | **Cathedral Christmas Market** — 150+ stalls under the cathedral spires, 3 min from the central station [[27]](https://www.colognecathedral.de/christmas-market.html) | ~3 h via Brussels (Thalys/ICE) |
-| 20 Nov – 14 Feb | Bruges (Markt + Simon Stevinplein) | **Winter Glow** — runs almost three months. Markt is traditional; Simon Stevinplein focuses on craft/short-chain goods [[14]](https://www.visitbruges.be/en/winter-glow/christmas-markets) | 30 min |
-| 3 Dec – 3 Jan | **Ghent** (Korenmarkt → Sint-Baafsplein) | **Winterfeesten / Christmas Market** — 150+ chalets, 44 m Ferris wheel, ice rink, "Winter Wonder Castle" at Gravensteen [[8]](https://visit.gent.be/en/calendar/christmas-market) | walking distance |
-| Late Nov – early Jan | Maastricht (Vrijthof) | **Magisch Maastricht** — 45 m enclosed-gondola Ferris wheel + skating + curling rink on the Vrijthof, against the basilica [[26]](https://www.magischmaastrichtvrijthof.nl/home-en) | ~3 h via Brussels |
+| **17–22 Nov** | Ghent ('t Kuipke) | **[Six Days of Ghent (Lotto Zesdaagse)](https://lottozesdaagse.be/en/)** — the floodlit indoor track-cycling spectacle, more party than sport in the late evenings [[7]](https://www.uci.org/competition-details/2026/PIS/77857) | walking distance |
+| 25 Nov – 23 Dec | Cologne (Köln Hbf) | **[Cathedral Christmas Market](https://www.koelnerweihnachtsmarkt.com/en/)** — 150+ stalls under the cathedral spires, 3 min from the central station [[27]](https://www.colognecathedral.de/christmas-market.html) | ~3 h via Brussels (Thalys/ICE) |
+| 20 Nov – 14 Feb | Bruges (Markt + Simon Stevinplein) | **[Winter Glow](https://www.visitbruges.be/en/winter-glow)** — runs almost three months. Markt is traditional; Simon Stevinplein focuses on craft/short-chain goods [[14]](https://www.visitbruges.be/en/winter-glow/christmas-markets) | 30 min |
+| 3 Dec – 3 Jan | **Ghent** (Korenmarkt → Sint-Baafsplein) | **[Winterfeesten / Christmas Market](https://gentsewinterfeesten.be/)** — 150+ chalets, 44 m Ferris wheel, ice rink, "Winter Wonder Castle" at Gravensteen [[8]](https://visit.gent.be/en/calendar/christmas-market) | walking distance |
+| Late Nov – early Jan | Maastricht (Vrijthof) | **[Magisch Maastricht](https://www.magischmaastrichtvrijthof.nl/home-en)** — 45 m enclosed-gondola Ferris wheel + skating + curling rink on the Vrijthof, against the basilica [[26]](https://www.magischmaastrichtvrijthof.nl/home-en) | ~3 h via Brussels |
 
 **One-trip pick.** Cologne for a single overnight: the Cathedral market is the densest, most visually arresting Christmas market within Thalys reach, and you can chain it with the Heumarkt and Heinzels markets in a single day.
 
