@@ -13,34 +13,34 @@ children:
     title: "General software-engineering conferences in Europe"
     depth: standard
     status: success
-    summary: "Cross-cutting (non-language-specific) developer conferences across Europe in 2026, ranked for senior devs by content depth, format and price."
-    citations: 28
-    reading_time_min: 6
+    summary: "Cross-cutting (non-language-specific) developer conferences across Europe in 2026, ranked for senior devs by content depth, format and price. Now includes CFP status for speakers."
+    citations: 33
+    reading_time_min: 7
   - slug: ai-applied-ml-conferences-in-europe
     title: "AI / applied-ML conferences in Europe"
     depth: standard
     status: success
-    summary: "Categorized 2026 calendar of AI/applied-ML conferences in Europe with dates, venues, ticket bands, and a Belgian-dev pick list."
-    citations: 26
-    reading_time_min: 8
+    summary: "Categorized 2026 calendar of AI/applied-ML conferences in Europe with dates, venues, ticket bands, and a Belgian-dev pick list. Now includes a CFP-status section for speakers."
+    citations: 30
+    reading_time_min: 9
   - slug: software-architecture-conferences-in-europe
     title: "Software architecture conferences in Europe"
     depth: standard
     status: success
-    summary: "Categorised guide to the architecture-relevant conferences a senior developer in Europe can attend in the rest of 2026 (and Q1 2027)."
-    citations: 22
-    reading_time_min: 5
+    summary: "Categorised guide to the architecture-relevant conferences a senior developer in Europe can attend in the rest of 2026 (and Q1 2027). Now includes CFP status and the GSAS→CONVEX Madrid correction."
+    citations: 28
+    reading_time_min: 6
   - slug: c-net-conferences-in-europe
     title: "C# / .NET conferences in Europe"
     depth: standard
     status: success
-    summary: "Calendar and breakdown of the .NET-focused conferences in Europe for the rest of 2026, with prices, locations, and who each one is for."
-    citations: 28
-    reading_time_min: 6
+    summary: "Calendar and breakdown of the .NET-focused conferences in Europe for the rest of 2026, with prices, locations, and who each one is for. Now includes a CFP-status section for speakers."
+    citations: 37
+    reading_time_min: 7
 cost_usd: 12.25
 duration_sec: 2042
-citations: 104
-reading_time_min: 25
+citations: 128
+reading_time_min: 27
 ---
 
 The four sub-reports converge on a single, almost embarrassing fact for a Ghent-based senior dev: the densest concentration of 2026 flagships happens within an hour of home. Antwerp alone hosts **Techorama Belgium** (May 11-13) [[1]](https://techorama.be/), **DDD Europe** (Jun 8-12) [[2]](https://2026.dddeurope.com/), and **Devoxx Belgium** (Oct 5-9) [[3]](https://devoxx.be/) — covering .NET, architecture, and the Java/AI generalist circuit respectively. Brussels adds **FOSDEM** (Jan 31-Feb 1) for free [[4]](https://fosdem.org/2026/). The "short flight or train" filter barely needs to be applied; staying local already buys three of the strongest events on the European calendar.
@@ -54,3 +54,7 @@ The four sub-reports converge on a single, almost embarrassing fact for a Ghent-
 **Already past for 2026** (mark for 2027 cycle): FOSDEM Brussels [[4]](https://fosdem.org/2026/), KubeCon EU Amsterdam Mar 23-26 [[15]](https://www.cncf.io/blog/2025/08/05/kubecon-cloudnativecon-europe-2026-returning-to-amsterdam-23-26-march/), QCon London Mar 16-19 [[25]](https://qconlondon.com/), OOP Munich (next: Feb 2-5, 2027) [[26]](https://www.oop-konferenz.de/en), NDC London (next: Jan 25-29, 2027) [[27]](https://ndclondon.com/), WAICF Cannes, AMLD Lausanne, PyTorch Conf Europe Paris, PyCon DE Darmstadt, Voxxed Days Bucharest. The most striking absence on the autumn calendar is **GOTO Aarhus / Amsterdam** — both dark in 2026, leaving Copenhagen as the year's only European GOTO stop [[28]](https://gotopia.tech/events/upcoming).
 
 If the budget allows one paid flagship plus one local: **Techorama Belgium + GOTO Copenhagen** is the highest-signal pairing — home-turf .NET depth in May, agnostic engineering practice in late September, with FOSDEM and Devoxx Belgium as free / low-cost bookends. The open question worth answering before booking: does the Techorama Netherlands edition in late October [[14]](https://www.techorama.nl/) ever justify a second .NET conference in the same year, or is Update Conference Prague (Nov 12-13) [[29]](https://prague.updateconference.net/) the better second .NET stop?
+
+## CFP picture for speakers
+
+A May-1 follow-up sweep across the same calendar surfaced a sharper CFP picture than the children captured. **Open right now and worth submitting**: [NDC TechTown](https://ndctechtown.com/call-for-papers) Kongsberg (closes 3 May ⚠), [.NET DeveloperDays Warsaw](https://sessionize.com/net-developerdays-2026/) (10 May), [Techorama NL](https://sessionize.com/techorama-2026-netherlands/) (29 May), [DDC Cologne](https://sessionize.com/dotnet-developer-conference-26/) (15 Jun), [iSAQB SAG Berlin](https://www.software-architecture-gathering.com/call-for-papers/) opens 5 May, and [Devoxx Belgium](https://devoxx.be/) opens 1 Jun. **Academic windows still ahead**: [NeurIPS](https://neurips.cc/Conferences/2026/CallForPapers) (Paris node, 4/6 May), [ECSA Bolzano](https://conf.researchr.org/dates/ecsa-2026) (multiple deadlines through 26 Jun), [BMVC Lancaster](https://bmvc2026.bmva.org/) (22/29 May), [EMNLP Budapest](https://2026.emnlp.org/) (25 May ARR), [CIKM Rome](https://cikm2026.diag.uniroma1.it/) (16/23 May full, 30 May / 6 Jun short). **Recently closed** (note for the 2027 cycle): [NDC Oslo](https://ndcoslo.com/) (19 Apr), [JavaZone](https://2026.javazone.no/) (13 Apr), [JAX London](https://jaxlondon.com/) (13 Apr), [Øredev](https://oredev.org/) (31 Mar), [Voxxed Days Luxembourg](https://luxembourg.voxxeddays.com/en/) (29 Mar), [Craft Budapest](https://craft-conf.com/2026) (31 Jan), [Devoxx UK](https://www.devoxx.co.uk/) (9 Jan), [PyData London](https://pydata.org/london2026/) (16 Feb), [DevSum Stockholm](https://www.devsum.se/) (8 Dec '25), [NDC London 2027](https://ndclondon.com/) (7 Sep '25). **Curated, no public CFP**: [GOTO Copenhagen](https://gotocph.com/2026/speakers), [QCon London](https://qconlondon.com/), [Update Conference Prague](https://prague.updateconference.net/) (~65 invited), [ai-PULSE Paris](https://www.ai-pulse.eu/), [World Summit AI](https://worldsummit.ai/). One major correction surfaced: [GSAS Barcelona](https://gsas.io/) has rebranded to [CONVEX Summit](https://www.convexsummit.com/), now in **Madrid, 17-18 June 2026** — earlier in the year and a different city than initially indexed. See the per-topic CFP tables in the child reports for details, and `UPCOMING_CFP.md` next to this file for the consolidated cross-Europe view.

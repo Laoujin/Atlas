@@ -7,8 +7,8 @@ topic: "C# / .NET conferences in Europe"
 topic_raw: "C# / .NET conferences in Europe"
 issue: 53
 tags: [dotnet, csharp, conferences, europe, 2026]
-summary: "Calendar and breakdown of the .NET-focused conferences in Europe for the rest of 2026, with prices, locations, and who each one is for."
-citations: 28
+summary: "Calendar and breakdown of the .NET-focused conferences in Europe for the rest of 2026, with prices, locations, and who each one is for. Now includes a CFP-status section for speakers."
+citations: 37
 reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.66
@@ -40,6 +40,43 @@ Sorted by start date; includes only events after today (2026-05-01).
 | [CloudBrew](https://www.cloudbrew.be) | 10-11 December | Mechelen, BE | 2-day | see site [[20]](https://www.cloudbrew.be/) | AZUG community, Azure-focused [[20]](https://www.cloudbrew.be/) |
 
 `see site` = pricing tiers exposed only in the live ticket portal at the time of writing; check the linked URL for current numbers.
+
+## CFP status (as of 2026-05-01)
+
+For senior devs who also want to **speak**, here's the CFP picture across the same calendar. Sessionize / cfp.dev / cfp.watch verified on May 1.
+
+### Open CFPs
+
+| Conference | CFP closes | Submit |
+|---|---|---|
+| [NDC TechTown 2026](https://ndctechtown.com/) | **May 3, 2026 ⚠** [[29]](https://ndctechtown.com/call-for-papers) | [ndctechtown.com/call-for-papers](https://ndctechtown.com/call-for-papers) |
+| [.NET DeveloperDays Warsaw 2026](https://developerdays.eu/warsaw/) | May 10, 2026 [[30]](https://sessionize.com/net-developerdays-2026/) | [sessionize.com/net-developerdays-2026](https://sessionize.com/net-developerdays-2026/) |
+| [Techorama Netherlands 2026](https://www.techorama.nl/) | May 29, 2026 [[31]](https://sessionize.com/techorama-2026-netherlands/) | [Sessionize](https://sessionize.com/techorama-2026-netherlands/) |
+| [DDC Cologne '26](https://www.developer-world.com/ddc) | Jun 15, 2026 [[32]](https://sessionize.com/dotnet-developer-conference-26/) | [Sessionize](https://sessionize.com/dotnet-developer-conference-26/) |
+| [Azure Summit](https://events.m365-summits.de/AzureSummit2425November2026/) (online, DE) | Jun 15, 2026 [[33]](https://sessionize.com/azure-summit-24-25-november-2026/) | [Sessionize](https://sessionize.com/azure-summit-24-25-november-2026/) |
+| [M365 Summit Mainz](https://www.m365-summit.de/) | Aug 30, 2026 [[34]](https://sessionize.com/m365-summit-mainz-12-14-oktober-2026/) | [Sessionize](https://sessionize.com/m365-summit-mainz-12-14-oktober-2026/) |
+| [MWCP Paris](https://modern-workplace.pro/) | Rolling [[8]](https://modern-workplace.pro/) | [modern-workplace.pro](https://modern-workplace.pro/) |
+| [VISUG / VisugXL](https://www.visug.be/) | Rolling (Sessionize) | [visug.be](https://www.visug.be/) |
+
+### Upcoming CFPs (not yet open)
+
+| Conference | Expected open | Conf dates |
+|---|---|---|
+| [Devoxx Belgium 2026](https://devoxx.be/) | **Jun 1, 2026** (closes Jul 17) [[22]](https://devoxx.be/) | Oct 5-9, 2026 |
+| [CloudBrew 2026](https://www.cloudbrew.be/) | ~Jun-Aug 2026 (est.) [[20]](https://www.cloudbrew.be/) | Dec 10-11, 2026 |
+| [Build Stuff Vilnius 2026](https://buildstuff.events/) | ~Jun-Sep 2026 (est.) [[16]](https://buildstuff.events/) | Dec 2-4, 2026 |
+| [Future Tech 2027](https://futuretech.nl/) | ~Sep 2026 (est.) [[13]](https://futuretech.nl/) | Mar 10-11, 2027 |
+
+### Recently closed (for 2027 cycle planning)
+
+- [NDC Oslo 2026](https://ndcoslo.com/) — closed **Apr 19, 2026** [[35]](https://cfp.watch/cfps/2026-ndc-oslo/); 150 speakers / 160 sessions selected.
+- [NDC Copenhagen 2026](https://ndccopenhagen.com/) — closed; program live.
+- [NDC AI Oslo 2026](https://ndc-ai.com/) — closed; program live [[7]](https://ndc-ai.com/).
+- [NDC London 2027](https://ndclondon.com/) — closed **Sep 7, 2025** [[36]](https://ndclondon.com/call-for-papers); event 25-29 Jan 2027.
+- [DevSum Stockholm 2026](https://www.devsum.se/) — closed Dec 8, 2025 [[37]](https://sessionize.com/devsum-2026/).
+- [Voxxed Days Luxembourg 2026](https://luxembourg.voxxeddays.com/en/) — closed Mar 29, 2026.
+- [Update Conference Prague 2026](https://prague.updateconference.net/) — **curated by program committee, no public CFP**; ~65 speakers selected directly.
+- BASTA! Spring Frankfurt, DWX, BASTA! Herbst Mainz, Techorama Belgium — all already closed earlier this cycle.
 
 ## The flagship picks
 
