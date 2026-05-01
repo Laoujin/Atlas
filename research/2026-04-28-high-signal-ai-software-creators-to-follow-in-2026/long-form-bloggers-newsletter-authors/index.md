@@ -15,7 +15,7 @@ cost_usd: 9.28
 duration_sec: 779
 ---
 
-> **TL;DR.** If you only have five slots: **Simon Willison** (near-daily, ground truth on every model release [[1]]), **Sebastian Raschka's Ahead of AI** (monthly architecture deep-dives, 150k+ readers [[2]][[19]]), **Nathan Lambert's Interconnects** (1–3×/week on open models and post-training [[15]]), **Gergely Orosz's Pragmatic Engineer** (weekly, original eng-org survey reporting, paid [[25]]), and **Ben Thompson's Stratechery** (daily strategy lens, paid [[51]]). Add **Hamel Husain** for evals and applied AI [[8]], **Marc Brooker** for distributed systems [[31]], **Zvi Mowshowitz** for rapid model + policy synthesis [[17]], and **Ethan Mollick** for "what to do with the thing" [[18]]. Cap at 2–3 newsletters in your inbox; the rest belongs in an RSS reader [[76]]. Drop anything unopened for 30+ days [[75]].
+> **TL;DR.** If you only have five slots: [**Simon Willison**](https://simonwillison.net/) (near-daily, ground truth on every model release [[1]]), [**Sebastian Raschka's Ahead of AI**](https://magazine.sebastianraschka.com/) (monthly architecture deep-dives, 150k+ readers [[2]][[19]]), [**Nathan Lambert's Interconnects**](https://www.interconnects.ai/) (1–3×/week on open models and post-training [[15]]), [**Gergely Orosz's Pragmatic Engineer**](https://newsletter.pragmaticengineer.com/) (weekly, original eng-org survey reporting, paid [[25]]), and [**Ben Thompson's Stratechery**](https://stratechery.com/) (daily strategy lens, paid [[51]]). Add [**Hamel Husain**](https://hamel.dev/) for evals and applied AI [[8]], [**Marc Brooker**](https://brooker.co.za/blog/) for distributed systems [[31]], [**Zvi Mowshowitz**](https://thezvi.substack.com/) for rapid model + policy synthesis [[17]], and [**Ethan Mollick**](https://www.oneusefulthing.org/) for "what to do with the thing" [[18]]. Cap at 2–3 newsletters in your inbox; the rest belongs in an RSS reader [[76]]. Drop anything unopened for 30+ days [[75]].
 
 ## Why the 2026 list looks different
 
@@ -160,15 +160,15 @@ The "what does it mean" lens — split by sub-lens.
 
 > **Decisions, not options.** Pick one. Add later if you're under-fed.
 
-**The frontier-research follower (5 slots).** Simon Willison [[1]] · Sebastian Raschka [[2]] · Nathan Lambert [[15]] · Jack Clark [[16]] · Cameron R. Wolfe [[12]].
+**The frontier-research follower (5 slots).** [Simon Willison](https://simonwillison.net/) [[1]] · [Sebastian Raschka](https://magazine.sebastianraschka.com/) [[2]] · [Nathan Lambert](https://www.interconnects.ai/) [[15]] · [Jack Clark](https://importai.substack.com/) [[16]] · [Cameron R. Wolfe](https://cameronrwolfe.substack.com/) [[12]].
 
-**The shipping-engineer (5 slots).** Hamel Husain [[8]] · Eugene Yan [[28]] · Jason Liu [[43]] · Latent Space [[42]] · Phillip Carter / Honeycomb [[46]].
+**The shipping-engineer (5 slots).** [Hamel Husain](https://hamel.dev/) [[8]] · [Eugene Yan](https://eugeneyan.com/) [[28]] · [Jason Liu](https://jxnl.co/) [[43]] · [Latent Space](https://www.latent.space/) [[42]] · [Phillip Carter / Honeycomb](https://www.honeycomb.io/blog/llms-demand-observability-driven-development) [[46]].
 
-**The eng-leader / staff+ (5 slots).** Pragmatic Engineer (paid) [[25]] · Will Larson [[33]] · Charity Majors [[34]] · Marc Brooker [[31]] · Julia Evans [[29]].
+**The eng-leader / staff+ (5 slots).** [Pragmatic Engineer](https://newsletter.pragmaticengineer.com/) (paid) [[25]] · [Will Larson](https://lethain.com/) [[33]] · [Charity Majors](https://charity.wtf/) [[34]] · [Marc Brooker](https://brooker.co.za/blog/) [[31]] · [Julia Evans](https://jvns.ca/) [[29]].
 
-**The strategist / exec (5 slots).** Stratechery (paid) [[51]] · Benedict Evans [[55]] · Exponential View [[27]] · Platformer [[57]] · Matt Levine's Money Stuff [[65]].
+**The strategist / exec (5 slots).** [Stratechery](https://stratechery.com/) (paid) [[51]] · [Benedict Evans](https://www.ben-evans.com/) [[55]] · [Exponential View](https://www.exponentialview.co/) [[27]] · [Platformer](https://www.platformer.news/) [[57]] · [Matt Levine's Money Stuff](https://www.bloomberg.com/opinion/authors/ARbTQlRLRjE/matthew-s-levine) [[65]].
 
-**The "I want one big thinker who'll have a take on everything" (1 slot).** Zvi Mowshowitz, Don't Worry About the Vase [[17]] — speed-premium short-term updates plus long-term world-model building, in one feed.
+**The "I want one big thinker who'll have a take on everything" (1 slot).** [Zvi Mowshowitz, Don't Worry About the Vase](https://thezvi.substack.com/) [[17]] — speed-premium short-term updates plus long-term world-model building, in one feed.
 
 ## What this list isn't
 

@@ -29,12 +29,12 @@ Scout-relevant picks to steal from:
 
 | Tool | Kind | License / access | Depth mechanism | Citation rigor | Scout-fit |
 |---|---|---|---|---|---|
-| OpenAI Deep Research | SaaS | ChatGPT Pro/Plus | o3-tuned agent, 15–25 min runs | 87% cited accuracy [[6]](https://glasp.co/articles/deep-research-tools-compared), 26.6% HLE [[7]](https://openai.com/index/introducing-deep-research/) | low — closed, no artifact, no steering |
-| Perplexity Sonar Deep Research | API + SaaS | Commercial, $2/$8 per M tok + $5/1K searches [[8]](https://pricepertoken.com/pricing-page/model/perplexity-sonar-deep-research) | Short loops, 2–3 min [[6]](https://glasp.co/articles/deep-research-tools-compared) | 94.3% Sonar Pro [[6]](https://glasp.co/articles/deep-research-tools-compared) | medium — API-driven, but opaque |
-| Gemini Deep Research | SaaS | AI Pro $19.99/mo [[9]](https://screenapp.io/blog/gemini-pricing) | Gmail/Drive + web, multi-page reports [[10]](https://www.engagecoders.com/google-gemini-deep-research-workspace-integration/) | closed metric | low — Workspace-locked |
-| Claude Research / Advanced | SaaS | Claude Pro/Max | Up to 45 min, hundreds of sources [[11]](https://www.anthropic.com/news/research) | closed metric | low — not programmable as artifact |
-| Claude Managed Agents | API (beta, 2026-04-01) | Commercial | Harness: sandbox, tools, web [[12]](https://platform.claude.com/docs/en/managed-agents/overview) | depends on system prompt | high — could host Scout |
-| Grok DeepSearch | SaaS | X Premium | Real-time X/web synthesis [[13]](https://www.tryprofound.com/blog/understanding-grok-a-comprehensive-guide-to-grok-websearch-grok-deepsearch) | closed metric | low — X-centric |
+| [OpenAI Deep Research](https://openai.com/index/introducing-deep-research/) | SaaS | ChatGPT Pro/Plus | o3-tuned agent, 15–25 min runs | 87% cited accuracy [[6]](https://glasp.co/articles/deep-research-tools-compared), 26.6% HLE [[7]](https://openai.com/index/introducing-deep-research/) | low — closed, no artifact, no steering |
+| [Perplexity Sonar Deep Research](https://www.perplexity.ai/) | API + SaaS | Commercial, $2/$8 per M tok + $5/1K searches [[8]](https://pricepertoken.com/pricing-page/model/perplexity-sonar-deep-research) | Short loops, 2–3 min [[6]](https://glasp.co/articles/deep-research-tools-compared) | 94.3% Sonar Pro [[6]](https://glasp.co/articles/deep-research-tools-compared) | medium — API-driven, but opaque |
+| [Gemini Deep Research](https://gemini.google.com/) | SaaS | AI Pro $19.99/mo [[9]](https://screenapp.io/blog/gemini-pricing) | Gmail/Drive + web, multi-page reports [[10]](https://www.engagecoders.com/google-gemini-deep-research-workspace-integration/) | closed metric | low — Workspace-locked |
+| [Claude Research / Advanced](https://www.anthropic.com/news/research) | SaaS | Claude Pro/Max | Up to 45 min, hundreds of sources [[11]](https://www.anthropic.com/news/research) | closed metric | low — not programmable as artifact |
+| [Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) | API (beta, 2026-04-01) | Commercial | Harness: sandbox, tools, web [[12]](https://platform.claude.com/docs/en/managed-agents/overview) | depends on system prompt | high — could host Scout |
+| [Grok DeepSearch](https://grok.com/) | SaaS | X Premium | Real-time X/web synthesis [[13]](https://www.tryprofound.com/blog/understanding-grok-a-comprehensive-guide-to-grok-websearch-grok-deepsearch) | closed metric | low — X-centric |
 | [GPT-Researcher](https://github.com/assafelovic/gpt-researcher) | OSS | Apache-2.0, 26.6k stars (Apr 2026) [[2]](https://github.com/assafelovic/gpt-researcher) | Planner+execution+publisher; tree Deep Research [[2]](https://github.com/assafelovic/gpt-researcher) | inline, 20+ sources | high — closest analogue |
 | [open_deep_research](https://github.com/langchain-ai/open_deep_research) | OSS | MIT, 11.2k stars (Apr 2026) [[3]](https://github.com/langchain-ai/open_deep_research) | LangGraph; MCP; #6 DR Bench 0.4943 [[3]](https://github.com/langchain-ai/open_deep_research) | depends on search tool | high — swap backend |
 | [STORM / Co-STORM](https://github.com/stanford-oval/storm) | OSS | MIT, 28.1k stars (Apr 2026) [[5]](https://github.com/stanford-oval/storm) | Perspective-guided Q&A [[14]](https://storm-project.stanford.edu/research/storm/) | Wikipedia-style, polished | medium — long-form only |
@@ -42,27 +42,27 @@ Scout-relevant picks to steal from:
 | [local-deep-researcher](https://github.com/langchain-ai/local-deep-researcher) | OSS | MIT | Ollama/LMStudio; iterative reflect-and-requery [[17]](https://github.com/langchain-ai/local-deep-researcher) | inline markdown sources | medium — offline mode |
 | [199-biotech claude-deep-research-skill](https://github.com/199-biotechnologies/claude-deep-research-skill) | Claude Skill | MIT, 509 stars [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill) | 8-phase; critique loop-back; auto-continue [[4]](https://github.com/199-biotechnologies/claude-deep-research-skill) | disk-persisted citations | very high — same substrate |
 | [Weizhena Deep-Research-skills](https://github.com/Weizhena/Deep-Research-skills) | Claude Skill | MIT, 483 stars [[18]](https://github.com/Weizhena/Deep-Research-skills) | Two-phase: outline + deep [[18]](https://github.com/Weizhena/Deep-Research-skills) | inline | high — HITL checkpoints |
-| Elicit | SaaS (academic) | Commercial | 138M papers + 545K trials, abstract screening [[19]](https://elicit.com/solutions/literature-review) | 99.4% field-extraction accuracy [[19]](https://elicit.com/solutions/literature-review) | low — PubMed-only |
-| FutureHouse (Crow/Falcon/Owl/Phoenix) | SaaS + API (science) | Commercial | Modular agents per task [[20]](https://www.futurehouse.org/research-announcements/launching-futurehouse-platform-ai-agents) | paper-grounded | low — science-only |
+| [Elicit](https://elicit.com/) | SaaS (academic) | Commercial | 138M papers + 545K trials, abstract screening [[19]](https://elicit.com/solutions/literature-review) | 99.4% field-extraction accuracy [[19]](https://elicit.com/solutions/literature-review) | low — PubMed-only |
+| [FutureHouse](https://www.futurehouse.org/) (Crow/Falcon/Owl/Phoenix) | SaaS + API (science) | Commercial | Modular agents per task [[20]](https://www.futurehouse.org/research-announcements/launching-futurehouse-platform-ai-agents) | paper-grounded | low — science-only |
 
 ## Commercial "Deep Research" products
 
-### OpenAI Deep Research
+### [OpenAI Deep Research](https://openai.com/index/introducing-deep-research/)
 Launched February 2025 in ChatGPT Pro; powered by an o3 variant tuned for browsing and analysis; 26.6% on Humanity's Last Exam at launch — highest in its cohort [[7]](https://openai.com/index/introducing-deep-research/). Runs are the longest (15–25 min) and the reports the most essay-like [[6]](https://glasp.co/articles/deep-research-tools-compared). The sibling OSS reproduction on smolagents hits 55.15% on GAIA against OpenAI's 67.36% [[16]](https://huggingface.co/blog/open-deep-research) — so the production gap is still real, mostly in browser tooling and vision.
 
-### Perplexity Sonar Deep Research
+### [Perplexity Sonar Deep Research](https://www.perplexity.ai/)
 Only one of the "big five" with a production API, at $2/$8 input/output per million tokens on the base rate; Deep Research stacks $2/1M citation tokens, $3/1M reasoning tokens, and $5 per 1K searches — a full query typically lands around $0.41 [[8]](https://pricepertoken.com/pricing-page/model/perplexity-sonar-deep-research). Fastest of the commercial options (2–3 min) and claims 94.3% citation accuracy on Sonar Pro vs ~87% for GPT-5.2 Deep Research [[6]](https://glasp.co/articles/deep-research-tools-compared). The API is the obvious drop-in if you want to delegate the search+synth step from Scout.
 
-### Gemini Deep Research
+### [Gemini Deep Research](https://gemini.google.com/)
 Lives inside Google AI Pro at $19.99/mo and differentiates on Workspace: it pulls from Gmail, Drive, and the public web simultaneously and drops multi-page reports back into Docs [[9]](https://screenapp.io/blog/gemini-pricing)[[10]](https://www.engagecoders.com/google-gemini-deep-research-workspace-integration/). Useless for a Scout-style standalone artifact unless you live in Workspace.
 
-### Claude Research / Advanced Research
+### [Claude Research / Advanced Research](https://www.anthropic.com/news/research)
 Anthropic calls it "Research" and "Advanced Research" — the latter runs up to 45 min across hundreds of sources autonomously [[11]](https://www.anthropic.com/news/research). The important thing for Scout is that Anthropic renamed the "Claude Code SDK" to "Claude Agent SDK" precisely because internal use was dominated by research, video, and note-taking — not just coding [[21]](https://www.buildfastwithai.com/blogs/claude-ai-complete-guide-2026). Claude-Code-as-research-platform is the officially sanctioned pattern.
 
-### Claude Managed Agents (beta, Apr 2026)
+### [Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) (beta, Apr 2026)
 Hosted agent harness released in public beta behind the `managed-agents-2026-04-01` header; it provides the sandbox, Bash, file ops, web search/fetch, and MCP servers that Scout currently gets from the local runner [[12]](https://platform.claude.com/docs/en/managed-agents/overview). If Scout ever wants cloud execution without the GitHub Actions runner, this is the migration path — and the Environment/Session/Events model maps cleanly onto "one research run = one Session."
 
-### Grok DeepSearch
+### [Grok DeepSearch](https://grok.com/)
 Only interesting when the topic is breaking news or social sentiment — direct X-timeline access is the one thing competitors can't match [[13]](https://www.tryprofound.com/blog/understanding-grok-a-comprehensive-guide-to-grok-websearch-grok-deepsearch). No API relevant to Scout.
 
 ## Open-source agents
@@ -107,10 +107,10 @@ Scout sits between (1) and (3). The direction to move is lift-specific ideas fro
 
 ## Domain-specific agents
 
-### Elicit
+### [Elicit](https://elicit.com/)
 Best-in-class for academic literature, not general research. 138M papers + 545K clinical trials, PubMed/ClinicalTrials.gov search, 80% time saved on abstract screening with every screening decision backed by quote-level rationale, 99.4% data-extraction accuracy on a real German policy review [[19]](https://elicit.com/solutions/literature-review). Systematic Review reports cap at 80 papers. Ideas worth stealing: **per-claim rationale + source quote**, and **quality scoring of each source against the screening criteria**, not a binary in/out.
 
-### FutureHouse (Crow, Falcon, Owl, Phoenix)
+### [FutureHouse](https://www.futurehouse.org/) (Crow, Falcon, Owl, Phoenix)
 Scientific-discovery platform built on Claude [[23]](https://claude.com/customers/futurehouse); agents are task-specialized — Crow extracts genes/markers from papers, Falcon does background, Owl checks whether a hypothesis has already been investigated, Phoenix designs chemistry [[20]](https://www.futurehouse.org/research-announcements/launching-futurehouse-platform-ai-agents). The transferable pattern is **one agent per epistemic move** rather than one generalist — Scout already does this implicitly via Explore sub-agents, but not with distinct named roles.
 
 ## Benchmarks: what "good" means in 2026
