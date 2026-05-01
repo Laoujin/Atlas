@@ -29,7 +29,7 @@ Six named systems show up in 2026 technical-vault writeups. None survives intact
 | **PARA + Zettelkasten** | Top-level Projects/Areas/Resources/Archives, atomic notes inside | ✓ Best documented hybrid; engineer running 6k notes uses numbered `00–99` layout [[1]](https://www.stefanimhoff.de/agentic-note-taking-obsidian-claude-code/) | Dominant default [[2]](https://medium.com/obsidian-observer/fusing-the-two-most-powerful-note-taking-systems-in-obsidian-331d7c4fb2df) |
 | **LYT / ACE** | Atlas (knowledge) / Calendar (time) / Efforts (action) + `+` inbox + `X` meta | ✓ Cleaner than ACCESS; topical structure pushed into MOCs not folders [[47]](https://blog.warrenweb.net/ace/) | Current LYT shipping artifact is **Ideaverse Pro** with ACE + ARC (Add/Relate/Communicate) [[46]](https://www.linkingyourthinking.com/ideaverse-pro) |
 | **ACCESS** (LYT v1) | Six folders: Atlas, Calendar, Cards, Extras, Sources, Spaces | ⚠ Author called it a starting template, "not the gospel" [[4]](https://x.com/nickmilo/status/1530162446459019265) | Superseded by ACE [[3]](https://blog.linkingyourthinking.com/notes/ace-folder-framework) |
-| **Johnny Decimal** | Numeric IDs (`61.14 Bill`) inside `ALPPS` folders | ⚠ Friction-as-feature for some; scaling pain past ~100 IDs/category [[5]](https://medium.com/@geetduggal/tech-habits-how-i-moved-into-my-johnny-decimal-and-obsidian-bases-system-for-organizing-notes-6bc7a00747e7) [[6]](https://forum.obsidian.md/t/q-for-those-using-johnny-decimal-system/87070) | Niche but vocal; pairs well with Bases [[5]](https://medium.com/@geetduggal/tech-habits-how-i-moved-into-my-johnny-decimal-and-obsidian-bases-system-for-organizing-notes-6bc7a00747e7) |
+| [**Johnny Decimal**](https://johnnydecimal.com/) | Numeric IDs (`61.14 Bill`) inside `ALPPS` folders | ⚠ Friction-as-feature for some; scaling pain past ~100 IDs/category [[5]](https://medium.com/@geetduggal/tech-habits-how-i-moved-into-my-johnny-decimal-and-obsidian-bases-system-for-organizing-notes-6bc7a00747e7) [[6]](https://forum.obsidian.md/t/q-for-those-using-johnny-decimal-system/87070) | Niche but vocal; pairs well with Bases [[5]](https://medium.com/@geetduggal/tech-habits-how-i-moved-into-my-johnny-decimal-and-obsidian-bases-system-for-organizing-notes-6bc7a00747e7) |
 | **Folderless / Jellyfish** | Everything in one folder; structure via Properties + Bases | ✓ Steph Ango (Obsidian CEO) runs near-folderless vault, routes via `categories` property [[7]](https://stephango.com/vault); Jellyfish dumps all notes in one folder, organises via YAML + Dataview [[8]](https://ajy.co/how-i-organize-my-notes-in-obsidian-the-jellyfish-vault/) | Viable only with strong metadata discipline |
 | **Pure Zettelkasten** | Atomic, ID-prefixed notes only; no folders | ✗ "Does not adjust very good when writing technical documents" — forum consensus [[10]](https://forum.obsidian.md/t/developer-how-to-tech-notes/75794) | Better split by content type: snippets, tools, runbooks, conceptual notes [[10]](https://forum.obsidian.md/t/developer-how-to-tech-notes/75794) |
 
@@ -102,7 +102,7 @@ Forum consensus: **capture first, organise later** — categorising at capture t
 
 ## 4. Linking strategy — atomic notes, MOC navigation, tags as state
 
-Andy Matuschak's two load-bearing rules anchor the technical end of the spectrum:
+[Andy Matuschak](https://andymatuschak.org/)'s two load-bearing rules anchor the technical end of the spectrum:
 
 1. **Atomicity** → "only about one thing… capture the entirety of that thing… separate concerns from one another" [[44]](https://notes.andymatuschak.org/Evergreen_notes_should_be_atomic).
 2. **Concept-orientation** → factor by concept rather than by author/book/event/project, so synthesis pressure surfaces cross-domain links [[45]](https://notes.andymatuschak.org/Evergreen_notes_should_be_concept-oriented).
@@ -206,7 +206,7 @@ The dominant pattern uses **Periodic Notes** to nest daily / weekly / monthly / 
 | **Obsidian Publish** [[78]](https://unmarkdown.com/blog/obsidian-publish-alternatives) | $8–10/mo | Zero-config from inside the app | When you'll pay to skip ops |
 | **Material for MkDocs** [[80]](https://squidfunk.github.io/mkdocs-material/) | free | Polished docs theme | Vault is more documentation than garden |
 | **Astro Starlight** [[81]](https://starlight.astro.build/) | free | Fast docs theme on Astro framework | JS-leaning gardeners migrating from MkDocs |
-| **Flowershow / Hugo / Jekyll / Eleventy / Enveloppe / Share Note** [[78]](https://unmarkdown.com/blog/obsidian-publish-alternatives) | free or $50/yr | Various trade-offs | Need a specific deployment target |
+| **[Flowershow](https://flowershow.app/) / [Hugo](https://gohugo.io/) / [Jekyll](https://jekyllrb.com/) / [Eleventy](https://www.11ty.dev/) / [Enveloppe](https://enveloppe.ovh/) / Share Note** [[78]](https://unmarkdown.com/blog/obsidian-publish-alternatives) | free or $50/yr | Various trade-offs | Need a specific deployment target |
 
 The **canonical Quartz workflow** keeps the vault as source-of-truth and gates publication via `publish: true` frontmatter using Quartz's `ExplicitPublish` filter, with attachments protected by a `public-` filename prefix [[79]](https://oliverfalvai.com/evergreen/my-quartz-+-obsidian-note-publishing-setup).
 

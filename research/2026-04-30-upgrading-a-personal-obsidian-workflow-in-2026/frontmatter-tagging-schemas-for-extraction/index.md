@@ -15,7 +15,7 @@ cost_usd: 7.88
 duration_sec: 920
 ---
 
-> **TL;DR.** Design for **extraction first, presentation second**. Put canonical data in YAML frontmatter (Bases ignores inline `key:: value` Dataview fields [[5]]); use a `type:` discriminator [[5]] plus reusable property names (`created`, `author`, `topic`) [[13]]; keep YAML keys flat (Properties does not support nested objects [[8]]); reserve hashtags for note-state signals (`#status/active`, `#seedling`) and namespace them so Bases/Dataview can `FROM` the parent prefix [[20]] [[17]]; validate with a code-first schema (Zod for JS, Pydantic/Yamale for Python) [[35]] [[42]] [[38]]; for Markdown pipelines use **gray-matter** in JS (⭐ 4.4k) or **python-frontmatter** in Python (⭐ 412), and add **obsidiantools** (⭐ 553) when you need wikilink/tag awareness [[25]] [[24]] [[28]]. New schemas in 2026 should target Bases, not Dataview — Dataview has stagnated [[9]].
+> **TL;DR.** Design for **extraction first, presentation second**. Put canonical data in YAML frontmatter (Bases ignores inline `key:: value` Dataview fields [[5]]); use a `type:` discriminator [[5]] plus reusable property names (`created`, `author`, `topic`) [[13]]; keep YAML keys flat (Properties does not support nested objects [[8]]); reserve hashtags for note-state signals (`#status/active`, `#seedling`) and namespace them so Bases/Dataview can `FROM` the parent prefix [[20]] [[17]]; validate with a code-first schema ([Zod](https://zod.dev/) for JS, [Pydantic](https://docs.pydantic.dev/)/[Yamale](https://github.com/23andMe/Yamale) for Python) [[35]] [[42]] [[38]]; for Markdown pipelines use **gray-matter** in JS (⭐ 4.4k) or **python-frontmatter** in Python (⭐ 412), and add **obsidiantools** (⭐ 553) when you need wikilink/tag awareness [[25]] [[24]] [[28]]. New schemas in 2026 should target Bases, not Dataview — Dataview has stagnated [[9]].
 
 ## Why the schema question matters now
 
@@ -106,7 +106,7 @@ Validation gives you typed extraction. Three lanes are mature in 2026.
 
 ### 3a. JS / TypeScript: Zod via Astro and Eleventy
 
-Astro content collections are the canonical reference [[35]]:
+[Astro](https://astro.build/) content collections (powered by [Zod](https://zod.dev/)) are the canonical reference [[35]]:
 
 ```ts
 import { defineCollection, reference, z } from 'astro:content';
@@ -127,7 +127,7 @@ const notes = defineCollection({
 
 ### 3b. Python: Pydantic and Yamale
 
-`pydantic_yaml` parses YAML directly into BaseModels with `str`-Enum subclasses for status fields, nested models, and round-tripping via `parse_yaml_raw_as()` and `to_yaml_str()` [[42]]:
+[`pydantic_yaml`](https://docs.pydantic.dev/) parses YAML directly into BaseModels with `str`-Enum subclasses for status fields, nested models, and round-tripping via `parse_yaml_raw_as()` and `to_yaml_str()` [[42]]:
 
 ```python
 from enum import Enum
@@ -145,7 +145,7 @@ class Note(BaseModel):
     tags: list[str] = []
 ```
 
-For lighter-weight validation without a Python class, **Yamale** (⭐ 764) ships with `str()`, `int(min, max)`, `num()`, `bool()`, `day()` (YYYY-MM-DD), `timestamp()`, `list()`, `enum()`, `regex()`, and `include()` for reusable schemas [[38]].
+For lighter-weight validation without a Python class, [**Yamale**](https://github.com/23andMe/Yamale) (⭐ 764) ships with `str()`, `int(min, max)`, `num()`, `bool()`, `day()` (YYYY-MM-DD), `timestamp()`, `list()`, `enum()`, `regex()`, and `include()` for reusable schemas [[38]].
 
 ### 3c. JSON Schema in the Markdown pipeline
 
@@ -212,7 +212,7 @@ Three patterns are converging.
 
 | Plugin | ⭐ Stars | Pattern |
 |---|---|---|
-| [AI Tagger Universe](https://github.com/niehu2018/obsidian-ai-tagger-universe) | ⭐ 84 | 15+ providers (Ollama, LM Studio, OpenAI, Claude, Gemini, Mistral); hybrid mode matches existing tags before suggesting new ones; configurable hierarchical depth (1-3 levels) and naming convention (kebab/snake-case) [[45]] |
+| [AI Tagger Universe](https://github.com/niehu2018/obsidian-ai-tagger-universe) | ⭐ 84 | 15+ providers (Ollama, LM Studio, OpenAI, Claude, Gemini, [Mistral](https://mistral.ai/)); hybrid mode matches existing tags before suggesting new ones; configurable hierarchical depth (1-3 levels) and naming convention (kebab/snake-case) [[45]] |
 | [Auto Tag](https://github.com/CtrlAltFocus/obsidian-plugin-auto-tag) | ⭐ 66 | OpenAI-only; analyses full note or selection; creates frontmatter when missing [[56]] |
 | Metadata Auto Classifier | – | OpenAI; surfaces both tags and arbitrary frontmatter fields via on-demand commands [[55]] |
 | [Smart Connections](https://github.com/brianpetro/obsidian-smart-connections) | ⭐ 4.9k | Embeddings-first, not tag-generation; bulk metadata edits are Connect Pro only [[47]] |

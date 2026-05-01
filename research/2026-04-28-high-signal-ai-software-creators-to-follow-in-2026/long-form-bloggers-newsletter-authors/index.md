@@ -42,13 +42,13 @@ Personal blogs, deep posts, individual author. Confirmed active in 2026.
 | Author | Site | Cadence | Distinctive angle |
 |---|---|---|---|
 | **Simon Willison** | [simonwillison.net](https://simonwillison.net/) | Near-daily [[1]] | Hands-on tests of every new model the day it ships; "pelican on a bicycle" SVG benchmark; multiple posts per week through April 2026 |
-| **Sebastian Raschka** | [magazine.sebastianraschka.com](https://magazine.sebastianraschka.com/archive) | ~Monthly [[2]] | Visual architecture deep-dives — "A Visual Guide to Attention Variants in Modern LLMs" (Mar 2026), "Components of A Coding Agent" (Apr 2026) [[2]] |
-| **Andrej Karpathy** | [karpathy.github.io](http://karpathy.github.io/2026/02/12/microgpt/) | Occasional [[7]] | Pedagogical: Feb 2026 "microgpt" — a 200-line dependency-free GPT trainer [[7]] |
-| **Eugene Yan** | [eugeneyan.com](https://eugeneyan.com/writing/) | Every 4–8 weeks [[5]] | 2–66 min essays on evals, RecSys, and senior-IC career; Member of Technical Staff at Anthropic as of 2026 [[5]][[28]] |
-| **Vicki Boykis** | [vickiboykis.com](https://vickiboykis.com/) | ~Biweekly [[6]] | Mixes ML-infra ("Querying 3 billion vectors", Feb 2026) with culture essays ("On Programming Joy and Octocat") [[6]] |
-| **Hamel Husain** | [hamel.dev](https://hamel.dev/) | Active 2026 [[8]] | Evals and applied AI engineering — "Evals Skills for Coding Agents" (Mar 2026), "The Revenge of the Data Scientist" (Mar 2026) [[8]] |
-| **Cameron R. Wolfe** | [cameronrwolfe.substack.com](https://cameronrwolfe.substack.com/) | Several times/week [[12]] | Deep (Learning) Focus — accessible research overviews to tens of thousands [[12]] |
-| **Finbarr Timbers** | [artfintel.com](https://www.artfintel.com/) | Active [[11]] | Artificial Fintelligence — read by 5,000+ researchers at OpenAI, DeepMind, Midjourney, Google [[11]] |
+| [**Sebastian Raschka**](https://magazine.sebastianraschka.com/) | [magazine.sebastianraschka.com](https://magazine.sebastianraschka.com/archive) | ~Monthly [[2]] | Visual architecture deep-dives — "A Visual Guide to Attention Variants in Modern LLMs" (Mar 2026), "Components of A Coding Agent" (Apr 2026) [[2]] |
+| [**Andrej Karpathy**](http://karpathy.github.io/) | [karpathy.github.io](http://karpathy.github.io/2026/02/12/microgpt/) | Occasional [[7]] | Pedagogical: Feb 2026 "microgpt" — a 200-line dependency-free GPT trainer [[7]] |
+| [**Eugene Yan**](https://eugeneyan.com/) | [eugeneyan.com](https://eugeneyan.com/writing/) | Every 4–8 weeks [[5]] | 2–66 min essays on evals, RecSys, and senior-IC career; Member of Technical Staff at Anthropic as of 2026 [[5]][[28]] |
+| [**Vicki Boykis**](https://vickiboykis.com/) | [vickiboykis.com](https://vickiboykis.com/) | ~Biweekly [[6]] | Mixes ML-infra ("Querying 3 billion vectors", Feb 2026) with culture essays ("On Programming Joy and Octocat") [[6]] |
+| [**Hamel Husain**](https://hamel.dev/) | [hamel.dev](https://hamel.dev/) | Active 2026 [[8]] | Evals and applied AI engineering — "Evals Skills for Coding Agents" (Mar 2026), "The Revenge of the Data Scientist" (Mar 2026) [[8]] |
+| [**Cameron R. Wolfe**](https://cameronrwolfe.substack.com/) | [cameronrwolfe.substack.com](https://cameronrwolfe.substack.com/) | Several times/week [[12]] | Deep (Learning) Focus — accessible research overviews to tens of thousands [[12]] |
+| [**Finbarr Timbers**](https://www.artfintel.com/) | [artfintel.com](https://www.artfintel.com/) | Active [[11]] | Artificial Fintelligence — read by 5,000+ researchers at OpenAI, DeepMind, Midjourney, Google [[11]] |
 
 ## 2. AI/ML newsletter authors
 
@@ -56,19 +56,19 @@ Substack/email ecosystem; mostly solo authors. Subscriber counts are author-disc
 
 | Author | Newsletter | Cadence / Audience | Lens |
 |---|---|---|---|
-| **Nathan Lambert** | [Interconnects](https://www.interconnects.ai/about) | 1–3×/week, 300+ posts; Ai2 post-training lead [[15]] | Open models, post-training, RLHF, frontier research |
-| **Jack Clark** | [Import AI](https://importai.substack.com/) | Weekly, ~70k readers [[16]] | Frontier-research synthesis; sharpened policy lens since Anthropic Institute launch (Mar 2026) [[66]] |
-| **Zvi Mowshowitz** | [Don't Worry About the Vase](https://thezvi.substack.com/) | Weekly news rollups + multi-part model breakdowns (GPT-5.5, Claude Opus 4.7) [[17]] | Speed + long-term world-model building |
-| **Ethan Mollick** | [One Useful Thing](https://www.oneusefulthing.org/about) | Active; Wharton [[18]] | "How do I actually use this?" — work, education, applied [[18]] |
-| **Sebastian Raschka** | [Ahead of AI](https://magazine.sebastianraschka.com/about) | 150k+ subs [[19]] | LLM architecture rigour; pairs with the personal blog [[19]] |
-| **Eugene Yan** | [eugeneyan.com newsletter](https://eugeneyan.com/) | 11.8k+ subs [[28]] | RecSys + LLMs from Anthropic [[28]] |
-| **Rohit Krishnan** | [Strange Loop Canon](https://www.strangeloopcanon.com/about) | ~Weekly [[20]] | AI × economics × innovation [[20]] |
+| [**Nathan Lambert**](https://www.interconnects.ai/) | [Interconnects](https://www.interconnects.ai/about) | 1–3×/week, 300+ posts; Ai2 post-training lead [[15]] | Open models, post-training, RLHF, frontier research |
+| [**Jack Clark**](https://importai.substack.com/) | [Import AI](https://importai.substack.com/) | Weekly, ~70k readers [[16]] | Frontier-research synthesis; sharpened policy lens since Anthropic Institute launch (Mar 2026) [[66]] |
+| [**Zvi Mowshowitz**](https://thezvi.substack.com/) | [Don't Worry About the Vase](https://thezvi.substack.com/) | Weekly news rollups + multi-part model breakdowns (GPT-5.5, Claude Opus 4.7) [[17]] | Speed + long-term world-model building |
+| [**Ethan Mollick**](https://www.oneusefulthing.org/) | [One Useful Thing](https://www.oneusefulthing.org/about) | Active; Wharton [[18]] | "How do I actually use this?" — work, education, applied [[18]] |
+| [**Sebastian Raschka**](https://magazine.sebastianraschka.com/) | [Ahead of AI](https://magazine.sebastianraschka.com/about) | 150k+ subs [[19]] | LLM architecture rigour; pairs with the personal blog [[19]] |
+| [**Eugene Yan**](https://eugeneyan.com/) | [eugeneyan.com newsletter](https://eugeneyan.com/) | 11.8k+ subs [[28]] | RecSys + LLMs from Anthropic [[28]] |
+| [**Rohit Krishnan**](https://www.strangeloopcanon.com/) | [Strange Loop Canon](https://www.strangeloopcanon.com/about) | ~Weekly [[20]] | AI × economics × innovation [[20]] |
 | **Simon Willison** | [simonw.substack.com](https://simonw.substack.com/) | Mirrors weblog [[26]] | "State of LLMs" updates, agentic engineering patterns [[26]] |
-| **swyx + Alessio Fanelli** | [Latent Space](https://www.latent.space/p/2026) | 10M+ cumulative readers/listeners through 2025; 2026 thesis = "coding agents breaking containment" [[24]][[42]] | The AI Engineer beat |
-| **Gergely Orosz** | [The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/about) | Weekly, $15/mo or $150/yr; #1 software/AI eng newsletter on Substack [[25]] | Original survey reporting on engineering orgs and AI's effect on them |
-| **Azeem Azhar** | [Exponential View](https://www.exponentialview.co/about) | 100k+ subs [[27]] | 3–5 yr horizon; 2026 thesis = AI-as-workforce, advantage to orchestrators [[54]] |
+| [**swyx + Alessio Fanelli**](https://www.latent.space/) | [Latent Space](https://www.latent.space/p/2026) | 10M+ cumulative readers/listeners through 2025; 2026 thesis = "coding agents breaking containment" [[24]][[42]] | The AI Engineer beat |
+| [**Gergely Orosz**](https://newsletter.pragmaticengineer.com/) | [The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/about) | Weekly, $15/mo or $150/yr; #1 software/AI eng newsletter on Substack [[25]] | Original survey reporting on engineering orgs and AI's effect on them |
+| [**Azeem Azhar**](https://www.exponentialview.co/) | [Exponential View](https://www.exponentialview.co/about) | 100k+ subs [[27]] | 3–5 yr horizon; 2026 thesis = AI-as-workforce, advantage to orchestrators [[54]] |
 | **The Batch** (Andrew Ng / DeepLearning.AI) | [deeplearning.ai/the-batch](https://www.deeplearning.ai/the-batch/) | Weekly team-run [[22]] | Industry + research roundup with Ng's letter [[22]] |
-| **Ben's Bites** | [bensbites.com](https://www.bensbites.com/) | Daily, ~120k subs [[23]] | Builder/startup ecosystem [[23]] |
+| [**Ben's Bites**](https://www.bensbites.com/) | [bensbites.com](https://www.bensbites.com/) | Daily, ~120k subs [[23]] | Builder/startup ecosystem [[23]] |
 
 ## 3. Long-form software-engineering bloggers
 
@@ -76,13 +76,13 @@ The non-AI core — systems, formal methods, career, observability. All confirme
 
 | Author | Site | Cadence | Distinctive angle |
 |---|---|---|---|
-| **Julia Evans** | [jvns.ca](https://jvns.ca/) | Steady [[29]] | Beginner-respecting deep posts on Unix/Git internals; March 2026 tcpdump+dig examples; January 2026 Git data-model series [[29]] |
-| **Marc Brooker** | [brooker.co.za](https://brooker.co.za/blog/) | ~Every 2–3 weeks [[31]] | Distributed systems from AWS principal-eng vantage; "SFQ: Simple Stateless Stochastic Fairness" (Feb 2026), "Pass@k is Mostly Bunk" (Jan 2026) [[31]] |
-| **Hillel Wayne** | [Computer Things](https://buttondown.com/hillelwayne/archive/) | Returned Jan 2026 [[30]] | Formal methods, software philosophy, exotic tooling [[30]] |
-| **Will Larson** | [lethain.com](https://lethain.com/) | Near-weekly [[33]] | Engineering leadership + how agents reshape staff-plus work — "Agents as scaffolding for recurring tasks" (Apr 2026) [[33]] |
-| **Charity Majors** | [charity.wtf](https://charity.wtf/) | Frequent [[34]] | Observability, SRE culture, management; "Bring Back Ops Pride" (Jan 2026) [[34]] |
-| **Brendan Gregg** | [brendangregg.com](https://www.brendangregg.com/blog/) | Active [[32]] | Performance; joined OpenAI Feb 2026 to focus on ChatGPT performance [[32]] |
-| **Murat Demirbas** | [muratbuffalo.blogspot.com](http://muratbuffalo.blogspot.com/) | Multiple posts/month [[35]] | Consensus, formal methods, databases, AI-for-systems benchmarks; deep BugBash'26 conference notes [[35]] |
+| [**Julia Evans**](https://jvns.ca/) | [jvns.ca](https://jvns.ca/) | Steady [[29]] | Beginner-respecting deep posts on Unix/Git internals; March 2026 tcpdump+dig examples; January 2026 Git data-model series [[29]] |
+| [**Marc Brooker**](https://brooker.co.za/blog/) | [brooker.co.za](https://brooker.co.za/blog/) | ~Every 2–3 weeks [[31]] | Distributed systems from AWS principal-eng vantage; "SFQ: Simple Stateless Stochastic Fairness" (Feb 2026), "Pass@k is Mostly Bunk" (Jan 2026) [[31]] |
+| [**Hillel Wayne**](https://buttondown.com/hillelwayne/archive/) | [Computer Things](https://buttondown.com/hillelwayne/archive/) | Returned Jan 2026 [[30]] | Formal methods, software philosophy, exotic tooling [[30]] |
+| [**Will Larson**](https://lethain.com/) | [lethain.com](https://lethain.com/) | Near-weekly [[33]] | Engineering leadership + how agents reshape staff-plus work — "Agents as scaffolding for recurring tasks" (Apr 2026) [[33]] |
+| [**Charity Majors**](https://charity.wtf/) | [charity.wtf](https://charity.wtf/) | Frequent [[34]] | Observability, SRE culture, management; "Bring Back Ops Pride" (Jan 2026) [[34]] |
+| [**Brendan Gregg**](https://www.brendangregg.com/) | [brendangregg.com](https://www.brendangregg.com/blog/) | Active [[32]] | Performance; joined OpenAI Feb 2026 to focus on ChatGPT performance [[32]] |
+| [**Murat Demirbas**](http://muratbuffalo.blogspot.com/) | [muratbuffalo.blogspot.com](http://muratbuffalo.blogspot.com/) | Multiple posts/month [[35]] | Consensus, formal methods, databases, AI-for-systems benchmarks; deep BugBash'26 conference notes [[35]] |
 
 **Mostly talks, included for completeness:** **Kelsey Hightower** has shifted from long-form posts to conference talks — at KubeCon Europe 2026 he framed the year's lesson as "Everyone is a junior engineer when it comes to AI" [[39]].
 
@@ -94,10 +94,10 @@ The original "What We Learned from a Year of Building with LLMs" essays were co-
 
 | Author | Outlet | What they uniquely cover |
 |---|---|---|
-| **Hamel Husain** | [hamel.dev](https://hamel.dev/) + [Parlance Labs](https://maven.com/parlance-labs/evals) | Evals, error analysis, LLM-as-judge methodology [[8]][[40]] |
-| **Shreya Shankar** | [sh-reya.com](https://www.sh-reya.com/) | Trustworthy LLM-as-judge research; O'Reilly Evals book ships Spring 2026 [[45]] |
-| **Eugene Yan** | [eugeneyan.com](https://eugeneyan.com/) | RAG, fine-tuning, caching, guardrails, defensive UX [[28]] |
-| **Jason Liu** | [jxnl.co](https://jxnl.co/) + [Maven RAG Playbook](https://maven.com/applied-llms/rag-playbook) | RAG-in-production; Instructor (6M+ monthly downloads) [[43]][[44]] |
+| [**Hamel Husain**](https://hamel.dev/) | [hamel.dev](https://hamel.dev/) + [Parlance Labs](https://maven.com/parlance-labs/evals) | Evals, error analysis, LLM-as-judge methodology [[8]][[40]] |
+| [**Shreya Shankar**](https://www.sh-reya.com/) | [sh-reya.com](https://www.sh-reya.com/) | Trustworthy LLM-as-judge research; O'Reilly Evals book ships Spring 2026 [[45]] |
+| [**Eugene Yan**](https://eugeneyan.com/) | [eugeneyan.com](https://eugeneyan.com/) | RAG, fine-tuning, caching, guardrails, defensive UX [[28]] |
+| [**Jason Liu**](https://jxnl.co/) | [jxnl.co](https://jxnl.co/) + [Maven RAG Playbook](https://maven.com/applied-llms/rag-playbook) | RAG-in-production; Instructor (6M+ monthly downloads) [[43]][[44]] |
 | **Bryan Bischof** | [O'Reilly: Year of Building with LLMs](https://www.oreilly.com/radar/what-we-learned-from-a-year-of-building-with-llms-part-i/) | Head of AI at Hex (the Magic copilot); co-author of the year-of-building essays [[48]] |
 | **Charles Frye** | [Modal](https://www.youtube.com/watch?v=y-UGrYbJsJk) | GPU/infra; "What every AI engineer needs to know about GPUs" [[47]] |
 
@@ -117,9 +117,9 @@ The "what does it mean" lens — split by sub-lens.
 
 | Author | Outlet | Notes |
 |---|---|---|
-| **Ben Thompson** | [Stratechery](https://stratechery.com/) | Paid; Daily Update + weekly Articles. 2026 essays apply Aggregation Theory to OpenAI/Anthropic — "Aggregators and AI", "AI Power, Now and In 100 Years", "AI and the Human Condition" [[51]][[52]] |
-| **Benedict Evans** | [ben-evans.com](https://www.ben-evans.com/newsletter) | Free, ~200k subs, ~50% open rate; sharply skeptic 2026 take that "OpenAI lacks moat, network effects or stickiness" [[55]][[56]] |
-| **Azeem Azhar** | [Exponential View](https://www.exponentialview.co/) [[53]] | 100k+ subs; 2026 = year AI feels less like tools, more like a workforce [[27]][[54]] |
+| [**Ben Thompson**](https://stratechery.com/) | [Stratechery](https://stratechery.com/) | Paid; Daily Update + weekly Articles. 2026 essays apply Aggregation Theory to OpenAI/Anthropic — "Aggregators and AI", "AI Power, Now and In 100 Years", "AI and the Human Condition" [[51]][[52]] |
+| [**Benedict Evans**](https://www.ben-evans.com/) | [ben-evans.com](https://www.ben-evans.com/newsletter) | Free, ~200k subs, ~50% open rate; sharply skeptic 2026 take that "OpenAI lacks moat, network effects or stickiness" [[55]][[56]] |
+| [**Azeem Azhar**](https://www.exponentialview.co/) | [Exponential View](https://www.exponentialview.co/) [[53]] | 100k+ subs; 2026 = year AI feels less like tools, more like a workforce [[27]][[54]] |
 
 ### Platform / policy reporting
 

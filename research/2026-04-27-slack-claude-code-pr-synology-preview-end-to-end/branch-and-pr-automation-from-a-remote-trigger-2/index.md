@@ -18,7 +18,7 @@ duration_sec: 404
 > **Decision.** Pick by where the trigger lives.
 > - **External system (webhook, cron job, other repo)** → fire `repository_dispatch` and let `peter-evans/create-pull-request` do the branch+PR work [[1]](https://docs.github.com/actions/using-workflows/events-that-trigger-workflows) [[7]](https://github.com/peter-evans/create-pull-request).
 > - **Inside GitHub (issue, label, comment)** → an `issues` or `issue_comment` workflow, optionally fan-out via `slash-command-dispatch` [[9]](https://github.com/peter-evans/slash-command-dispatch).
-> - **Chat / ticket (Slack, Linear, Jira)** → hand off to a hosted agent (Copilot coding agent, Devin, Cursor, Codex Cloud) that owns the branch+PR step itself [[13]](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-coding-agent) [[17]](https://devin.ai/) [[20]](https://cursor.com/blog/automations).
+> - **Chat / ticket (Slack, [Linear](https://linear.app), [Jira](https://www.atlassian.com/software/jira))** → hand off to a hosted agent (Copilot coding agent, [Devin](https://devin.ai), [Cursor](https://cursor.com), [Codex](https://openai.com/codex) Cloud) that owns the branch+PR step itself [[13]](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-coding-agent) [[17]](https://devin.ai/) [[20]](https://cursor.com/blog/automations).
 >
 > All three hit the same gotcha: a PR opened with the default `GITHUB_TOKEN` will not trigger downstream `push`/`pull_request` workflows — you need a PAT or a GitHub App token if you want CI to run on the bot's PRs [[6]](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) [[8]](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md).
 
@@ -69,7 +69,7 @@ Label-triggered shape is the same idea with `issues: types: [labeled]` and a con
 
 For dependency PRs the trigger is "the dependency moved", not a human action. Two tools dominate.
 
-| | Dependabot | Renovate ⭐ 21k |
+| | [Dependabot](https://github.com/dependabot) | [Renovate](https://www.mend.io/renovate/) ⭐ 21k |
 |---|---|---|
 | Trigger | Schedule + GitHub Security Advisories | Configurable schedule per dep/manager [[24]](https://docs.renovatebot.com/bot-comparison/) |
 | Platforms | GitHub only (official) | GitHub, GitLab, Bitbucket, Azure DevOps, Forgejo, Gitea [[23]](https://github.com/renovatebot/renovate) |
@@ -87,8 +87,8 @@ These compress the whole pipeline (trigger → branch → edit → push → PR) 
 | **Claude Code action** ⭐ 7.3k | `@claude` in issue/PR/comment, or issue assignment | Your GitHub Actions runner | [[11]](https://github.com/anthropics/claude-code-action) [[12]](https://code.claude.com/docs/en/github-actions) |
 | **OpenAI Codex Cloud** ⭐ 78k | `@codex` on issue/PR; ChatGPT web app; Codex CLI | OpenAI-hosted sandbox | [[15]](https://github.com/openai/codex) [[16]](https://developers.openai.com/codex/integrations/github) |
 | **Devin** | Slack mention, Linear/Jira ticket, web app | Cognition-hosted | [[17]](https://devin.ai/) [[18]](https://docs.devin.ai/release-notes/2026) |
-| **Cursor background agents** | `@cursor` in PR/issue; Slack message; new Linear issue; merged GitHub PR; PagerDuty incident | Cursor-hosted | [[19]](https://docs.cursor.com/en/integrations/github) [[20]](https://cursor.com/blog/automations) |
-| **Aider + GitHub Action** ⭐ 44k | Label `aider` on an issue | Your GitHub Actions runner | [[21]](https://github.com/Aider-AI/aider) [[22]](https://github.com/mirrajabi/aider-github-action) |
+| **Cursor background agents** | `@cursor` in PR/issue; Slack message; new Linear issue; merged GitHub PR; [PagerDuty](https://www.pagerduty.com) incident | Cursor-hosted | [[19]](https://docs.cursor.com/en/integrations/github) [[20]](https://cursor.com/blog/automations) |
+| **[Aider](https://aider.chat) + GitHub Action** ⭐ 44k | Label `aider` on an issue | Your GitHub Actions runner | [[21]](https://github.com/Aider-AI/aider) [[22]](https://github.com/mirrajabi/aider-github-action) |
 
 Two axes to weigh:
 

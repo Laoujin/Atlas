@@ -34,7 +34,7 @@ QuickAdd's *Capture* choice is the primitive — it appends or prepends formatte
 **System-wide capture hotkey.** Obsidian's own hotkeys only fire when Obsidian has focus. The dominant 2026 wirings:
 
 - **Cross-platform:** QuickAdd + the Global Hotkeys community plugin (Ctrl+Alt+A is a common binding) [[8]](https://obsidian.rocks/obsidian-quick-capture/).
-- **Windows:** AutoHotkey script bound to Ctrl+Alt+V activates Obsidian (or launches it) and forwards Ctrl+Alt+C into QuickAdd's capture window [[9]](https://forum.obsidian.md/t/global-hotkey-to-launch-obsidian-and-open-quickadd-capture-window-using-autohotkey-script/22626).
+- **Windows:** [AutoHotkey](https://www.autohotkey.com/) script bound to Ctrl+Alt+V activates Obsidian (or launches it) and forwards Ctrl+Alt+C into QuickAdd's capture window [[9]](https://forum.obsidian.md/t/global-hotkey-to-launch-obsidian-and-open-quickadd-capture-window-using-autohotkey-script/22626).
 - **macOS:** Alfred/Raycast workflows launching the same QuickAdd capture-choice URI [[8]](https://obsidian.rocks/obsidian-quick-capture/).
 
 **Inbox-processing pattern.** A widely-shared workflow combines Advanced URI + Templater + Hotkeys for Templates with `Opt+A`/`Opt+D`/`Opt+M` to archive, trash, or move each captured fleeting note during a daily review pass [[10]](https://forum.obsidian.md/t/quick-capture-mac-ios-and-inbox-processing/21808). The principle: capture is dumb and fast, processing is concentrated.
@@ -97,7 +97,7 @@ A clear hierarchy emerged in 2026.
 | [Vox](https://github.com/vincentbavitz/obsidian-vox) (vincentbavitz) | ⭐ 78 | dev's free server (100/day) | Hands-off folder-watcher with filename-prefix metadata tokens; no API keys needed [[51]](https://github.com/vincentbavitz/obsidian-vox) |
 | Wispr Flow | — | proprietary | System-wide voice keyboard; vendor claims ~220 wpm vs 45 wpm typing (~4×) [[52]](https://wisprflow.ai/use-cases/obsidian) |
 
-**Accuracy and cost.** OpenAI Whisper API: ~$1 per 2h45m of audio with strong accent handling [[45]](https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/). Local whisper.cpp: reduced accuracy, occasional accent failures, 16GB RAM floor [[45]](https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/). WER data: Whisper Large-v3 hits 2.7% on clean English but degrades to 8–12% on real-world meetings/podcasts; accented English (Indian, Scottish) lands at 8–15% [[46]](https://novascribe.ai/how-accurate-is-whisper).
+**Accuracy and cost.** [OpenAI Whisper API](https://platform.openai.com/docs/guides/speech-to-text): ~$1 per 2h45m of audio with strong accent handling [[45]](https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/). Local whisper.cpp: reduced accuracy, occasional accent failures, 16GB RAM floor [[45]](https://www.xda-developers.com/free-obsidian-plugin-turns-voice-notes-pc/). WER data: Whisper Large-v3 hits 2.7% on clean English but degrades to 8–12% on real-world meetings/podcasts; accented English (Indian, Scottish) lands at 8–15% [[46]](https://novascribe.ai/how-accurate-is-whisper).
 
 **iPhone-native option.** iOS 18+ Voice Memos does on-device transcription on iPhone 12+, ~85–90% accuracy on clean single-speaker audio — good enough that many users skip Whisper for short captures [[49]](https://www.plaud.ai/blogs/news/how-to-transcribe-iphone-voice-memos). For longer captures, the dominant DIY route is iOS Shortcuts + RoutineHub piping Voice Memos through Whisper (cloud or local Aiko) and ChatGPT, then dropping output into iCloud where the vault picks it up [[48]](https://forum.obsidian.md/t/iphone-voice-memo-obsidian/63540).
 
@@ -140,10 +140,10 @@ The 2026 case for running tagging/summary/voice locally is concrete: notes never
 
 | Use case | Model | VRAM | MMLU |
 |---|---|---|---|
-| Top quality | Llama 3.3 70B | 40 GB | 86.0 [[69]](https://localaimaster.com/blog/best-ollama-models) |
-| Best mid-range | Qwen 2.5 32B | 20 GB | 83.2 [[69]](https://localaimaster.com/blog/best-ollama-models) |
-| Default 8 GB box | Llama 3.1 8B | 6 GB | — handles summarization, conversation, light coding [[70]](https://localaimaster.com/blog/best-local-ai-models-8gb-ram) |
-| Email/meeting summaries | Mistral 7B v0.3 | 6 GB | — terse summary specialist [[70]](https://localaimaster.com/blog/best-local-ai-models-8gb-ram) |
+| Top quality | [Llama 3.3 70B](https://www.llama.com/) | 40 GB | 86.0 [[69]](https://localaimaster.com/blog/best-ollama-models) |
+| Best mid-range | [Qwen 2.5 32B](https://qwenlm.ai/) | 20 GB | 83.2 [[69]](https://localaimaster.com/blog/best-ollama-models) |
+| Default 8 GB box | [Llama 3.1 8B](https://www.llama.com/) | 6 GB | — handles summarization, conversation, light coding [[70]](https://localaimaster.com/blog/best-local-ai-models-8gb-ram) |
+| Email/meeting summaries | [Mistral 7B v0.3](https://mistral.ai/) | 6 GB | — terse summary specialist [[70]](https://localaimaster.com/blog/best-local-ai-models-8gb-ram) |
 
 **Plugin integration.** Both dominant AI plugins speak local:
 
@@ -171,7 +171,7 @@ A pragmatic baseline that covers all four capture surfaces and keeps backfill lo
 | Backfill — tags/frontmatter | AI Tagger Universe + local Ollama | Validated batch backfill; 15+ providers; runs locally [[53]](https://github.com/niehu2018/obsidian-ai-tagger-universe) [[61]](https://www.makeuseof.com/letting-local-llm-organize-obsidian-notes/) |
 | Backfill — inbox triage | Note Companion | Folder/tag/title suggestions over raw captures [[59]](https://github.com/Nexus-JPF/note-companion) |
 | Semantic discovery | Smart Connections (local mode) | Embeddings local-first; complementary to tagging [[67]](https://smartconnections.app/smart-connections/) |
-| Local engine | Ollama + Llama 3.1 8B (default) or Qwen 2.5 32B (quality) | Apple Silicon MLX-accelerated; nomic-embed-text for RAG [[66]](https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md) [[69]](https://localaimaster.com/blog/best-ollama-models) [[74]](https://ollama.com/blog/mlx) |
+| Local engine | Ollama + [Llama 3.1 8B](https://www.llama.com/) (default) or [Qwen 2.5 32B](https://qwenlm.ai/) (quality) | Apple Silicon MLX-accelerated; nomic-embed-text for RAG [[66]](https://github.com/logancyang/obsidian-copilot/blob/master/local_copilot.md) [[69]](https://localaimaster.com/blog/best-ollama-models) [[74]](https://ollama.com/blog/mlx) |
 
 **Migration order for an existing vault:**
 

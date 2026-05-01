@@ -21,18 +21,18 @@ duration_sec: 684
 
 | Pick | When | Where | Why this shortlist |
 |---|---|---|---|
-| OPUS (Bach × Papadopoulos ballet) | May 7, 9, 10 | Capitole Gent [[30]](https://bachtrack.com/dance-event/opus-opera-ballet-vlaanderen-opera-vlaanderen-ghent-7-may-2026/425468) | Date-night-perfect: 5 min walk from Korenmarkt, language-free, Opera Gent's relocated season [[29]](https://www.operaballet.be/en/stories/opera-ghent-wont-let-you-go) |
-| Sol Gabetta / Antwerp Symphony — Elgar | May 9 | De Bijloke, Gent [[31]](https://www.bijloke.be/nl/programma/Klassiek) | Star cellist; the Bijloke 13th-century hospital hall is the room itself [[79]](https://www.bijloke.be/en/about-the-concerthall-j49y) |
-| Carmen (Wim Vandekeybus) | May 29 → June 13 (10 dates) | Opera Antwerpen [[27]](https://bachtrack.com/opera-event/carmen-opera-ballet-vlaanderen-opera-vlaanderen-antwerp-29-may-2026/425451) | Choreographer's first opera; broad reach via dance idiom |
-| Massive Attack | June 8 | Forest National, Brussels [[3]](https://concerts50.com/venues/belgium/forest/vorst-nationaal-forest-national) | Rare Belgium date for a milestone act |
-| Gent Jazz | July 2–18 | Bijlokesite, Gent [[11]](https://www.gentjazz.com/en) | Walk home; Patti Smith Quartet, Marcus Miller, Einaudi nights [[12]](https://www.jambase.com/festival/gent-jazz-festival-2026) |
-| Wicked 20th-anniversary | Sept 26–27 | Apollo Victoria, London [[51]](https://www.westendtheatre.com/288912/news/wicked-extends-london-run-as-booking-opens-to-may-2026/) | Eurostar weekend: ~3 h Ghent → London via Brussels [[62]](https://www.seat61.com/international-trains/trains-from-Paris.htm) |
-| Bryan Adams | Oct 15 | AFAS Dome, Antwerp [[1]](https://www.jambase.com/venue/sportpaleis-antwerpen-antwerp-be) | Classic-rock crowd-pleaser, broad appeal |
-| Evita — 50 Years (English) | Nov 13 | Stadsschouwburg Antwerpen [[41]](https://www.stadsschouwburg-antwerpen.be/nieuws/rockmusical-evita-viert-gouden-jubileum-in-antwerpen) | Belgian premiere, 30-piece orchestra, Vajèn van den Bosch as Eva Perón |
+| OPUS (Bach × Papadopoulos ballet) | May 7, 9, 10 | [Capitole Gent](https://www.capitole-gent.be/en) [[30]](https://bachtrack.com/dance-event/opus-opera-ballet-vlaanderen-opera-vlaanderen-ghent-7-may-2026/425468) | Date-night-perfect: 5 min walk from Korenmarkt, language-free, [Opera Gent](https://www.operaballet.be/en)'s relocated season [[29]](https://www.operaballet.be/en/stories/opera-ghent-wont-let-you-go) |
+| Sol Gabetta / Antwerp Symphony — Elgar | May 9 | [De Bijloke](https://www.bijloke.be/), Gent [[31]](https://www.bijloke.be/nl/programma/Klassiek) | Star cellist; the Bijloke 13th-century hospital hall is the room itself [[79]](https://www.bijloke.be/en/about-the-concerthall-j49y) |
+| Carmen (Wim Vandekeybus) | May 29 → June 13 (10 dates) | [Opera Antwerpen](https://www.operaballet.be/en) [[27]](https://bachtrack.com/opera-event/carmen-opera-ballet-vlaanderen-opera-vlaanderen-antwerp-29-may-2026/425451) | Choreographer's first opera; broad reach via dance idiom |
+| Massive Attack | June 8 | [Forest National](https://www.forest-national.be/en), Brussels [[3]](https://concerts50.com/venues/belgium/forest/vorst-nationaal-forest-national) | Rare Belgium date for a milestone act |
+| [Gent Jazz](https://www.gentjazz.com/en) | July 2–18 | Bijlokesite, Gent [[11]](https://www.gentjazz.com/en) | Walk home; Patti Smith Quartet, Marcus Miller, Einaudi nights [[12]](https://www.jambase.com/festival/gent-jazz-festival-2026) |
+| Wicked 20th-anniversary | Sept 26–27 | Apollo Victoria, London [[51]](https://www.westendtheatre.com/288912/news/wicked-extends-london-run-as-booking-opens-to-may-2026/) | [Eurostar](https://www.eurostar.com/) weekend: ~3 h Ghent → London via Brussels [[62]](https://www.seat61.com/international-trains/trains-from-Paris.htm) |
+| Bryan Adams | Oct 15 | [AFAS Dome](https://www.afas-dome.be/en), Antwerp [[1]](https://www.jambase.com/venue/sportpaleis-antwerpen-antwerp-be) | Classic-rock crowd-pleaser, broad appeal |
+| Evita — 50 Years (English) | Nov 13 | [Stadsschouwburg Antwerpen](https://www.stadsschouwburg-antwerpen.be/en) [[41]](https://www.stadsschouwburg-antwerpen.be/nieuws/rockmusical-evita-viert-gouden-jubileum-in-antwerpen) | Belgian premiere, 30-piece orchestra, Vajèn van den Bosch as Eva Perón |
 
 ## Belgian arena & big-room concerts, May–December 2026
 
-Sportpaleis Antwerp now operates as **AFAS Dome** [[73]](https://www.afas-dome.be/en); ING Arena Brussels is the Heysel-plateau arena formerly known as Palais 12 [[74]](https://ing.arena.brussels/en/). Lotto Arena is the smaller room sharing the AFAS Dome complex [[4]](https://www.songkick.com/venues/56494-lotto-arena).
+[Sportpaleis Antwerp](https://www.sportpaleis.be/) now operates as **[AFAS Dome](https://www.afas-dome.be/en)** [[73]](https://www.afas-dome.be/en); [ING Arena Brussels](https://ing.arena.brussels/en/) is the Heysel-plateau arena formerly known as Palais 12 [[74]](https://ing.arena.brussels/en/). [Lotto Arena](https://www.lotto-arena.be/en) is the smaller room sharing the AFAS Dome complex [[4]](https://www.songkick.com/venues/56494-lotto-arena).
 
 ### Spring (May–June)
 
@@ -91,21 +91,21 @@ Sportpaleis Antwerp now operates as **AFAS Dome** [[73]](https://www.afas-dome.b
 
 | Festival | When | Where | Vibe | Best for |
 |---|---|---|---|---|
-| **Gent Jazz** | Jul 2–18 [[11]](https://www.gentjazz.com/en) | Bijlokesite, Gent | ✓ Date-night | Walk-home jazz; Terence Blanchard, Marcus Miller, Patti Smith, Einaudi (Jul 14–15) [[12]](https://www.jambase.com/festival/gent-jazz-festival-2026) |
-| **Jazz Middelheim** | May 23–25 [[21]](https://www.jazzmiddelheim.eu/en/) | Park Den Brandt, Antwerp | ✓ Date-night | Cécile McLorin Salvant in a flowering park |
-| **Cactusfestival** | Jul 10–12 [[19]](https://www.cactusmusic.be/EN/Concerts/Calendar/Cactusfestival-2026-12.07) | Minnewaterpark, Brugge | ✓ Date-night | Single-stage, scenic; Madness, Editors, Aldous Harding |
-| **Couleur Café** | Jun 26–28 [[15]](https://www.couleurcafe.be/en/) | Atomium, Brussels | ✓ Date-night (no camping) | Rema, Ezra Collective, Skepta + global food market [[16]](https://www.jambase.com/festival/couleur-cafe-2026) |
-| **OdeGand** | Sep 19 [[17]](https://visit.gent.be/en/calendar/odegand) | Across Ghent (15 sites) | ✓ Date-night | 60 boat-and-foot concerts; world + classical, one evening |
-| **Polé Polé** | Jul 17–26 [[20]](https://visit.gent.be/en/calendar/pole-pole-ghent) | Graslei / Korenlei, Gent | ✓ Free, date-night | Open-air, world/latin/pop on the water |
-| **Boomtown** | Jul 17–23 [[23]](https://www.boomtown.be/) | Kouter + Handelsbeurs, Gent | ✓ Date-night | Curated emerging acts; capped at 3,500/day |
-| **Bijloke Wonderland** | Aug 20–30 [[32]](https://www.bijloke.be/nl/bijloke-wonderland-2026-zomers-cultuurfestival-op-de-bijlokesite-q1kg) | Bijlokesite, Gent | ✓ Date-night | Sunrise concerts, free summer-bar shows |
-| **Sfinks Mixed** | Jul 23–26 [[24]](https://www.sfinks.be/sfinks-mixed-2/?lang=en) | Boechout (Antwerp) | ✓ Free, family/date | Free four-day world music |
-| **Gentse Feesten** | Jul 17–26 [[25]](https://gentsefeesten.stad.gent/) | Ghent old town | Mixed | Free, crowded, 100k+/day; pick early evenings |
-| **Lokerse Feesten** | Jul 31–Aug 9 [[18]](https://www.lokersefeesten.be/en/) | Lokeren city park | Mixed | Lenny Kravitz (Aug 8), Diana Ross (Jul 31), Editors+Suede (Aug 7) |
-| **Festival Dranouter** | Aug 7–9 [[26]](https://www.songkick.com/festivals/122651-dranouter/id/42918077-dranouter-festival-2026) | Dranouter, W-Vl | Mixed | Folk, family-friendly |
-| **Rock Werchter** | Jul 2–5 [[8]](https://www.rockwerchter.be/en/line-up/a-z) | Werchter | ⚠ Camping/mosh | The Cure, Twenty One Pilots, Mumford & Sons, Gorillaz |
-| **Tomorrowland** | Jul 17–19, 24–26 [[9]](https://djmag.com/news/tomorrowland-belgium-2026-dates-announced) | De Schorre, Boom | ⚠ Sold out | "CONSCIENCIA" theme; passes gone [[10]](https://www.jambase.com/festival/tomorrowland-belgium-2026) |
-| **Pukkelpop** | Aug 20–23 [[13]](https://www.pukkelpop.be/en/) | Kiewit, Hasselt | ⚠ Camping | Tyler The Creator, Florence + The Machine, Deftones [[14]](https://ultimatefestivals4all.com/pukkelpop-2026-power-up-over-60-new-artists-join-the-massive-summer-lineup/) |
+| **[Gent Jazz](https://www.gentjazz.com/en)** | Jul 2–18 [[11]](https://www.gentjazz.com/en) | Bijlokesite, Gent | ✓ Date-night | Walk-home jazz; Terence Blanchard, Marcus Miller, Patti Smith, Einaudi (Jul 14–15) [[12]](https://www.jambase.com/festival/gent-jazz-festival-2026) |
+| **[Jazz Middelheim](https://www.jazzmiddelheim.eu/en/)** | May 23–25 [[21]](https://www.jazzmiddelheim.eu/en/) | Park Den Brandt, Antwerp | ✓ Date-night | Cécile McLorin Salvant in a flowering park |
+| **[Cactusfestival](https://www.cactusfestival.be/home-en/)** | Jul 10–12 [[19]](https://www.cactusmusic.be/EN/Concerts/Calendar/Cactusfestival-2026-12.07) | Minnewaterpark, Brugge | ✓ Date-night | Single-stage, scenic; Madness, Editors, Aldous Harding |
+| **[Couleur Café](https://www.couleurcafe.be/en/)** | Jun 26–28 [[15]](https://www.couleurcafe.be/en/) | Atomium, Brussels | ✓ Date-night (no camping) | Rema, Ezra Collective, Skepta + global food market [[16]](https://www.jambase.com/festival/couleur-cafe-2026) |
+| **[OdeGand](https://www.odegand.gent/en/)** | Sep 19 [[17]](https://visit.gent.be/en/calendar/odegand) | Across Ghent (15 sites) | ✓ Date-night | 60 boat-and-foot concerts; world + classical, one evening |
+| **[Polé Polé](https://www.polepole.be/en/)** | Jul 17–26 [[20]](https://visit.gent.be/en/calendar/pole-pole-ghent) | Graslei / Korenlei, Gent | ✓ Free, date-night | Open-air, world/latin/pop on the water |
+| **[Boomtown](https://www.boomtown.be/)** | Jul 17–23 [[23]](https://www.boomtown.be/) | Kouter + Handelsbeurs, Gent | ✓ Date-night | Curated emerging acts; capped at 3,500/day |
+| **[Bijloke Wonderland](https://www.bijloke.be/)** | Aug 20–30 [[32]](https://www.bijloke.be/nl/bijloke-wonderland-2026-zomers-cultuurfestival-op-de-bijlokesite-q1kg) | Bijlokesite, Gent | ✓ Date-night | Sunrise concerts, free summer-bar shows |
+| **[Sfinks Mixed](https://www.sfinks.be/sfinks-mixed-2/?lang=en)** | Jul 23–26 [[24]](https://www.sfinks.be/sfinks-mixed-2/?lang=en) | Boechout (Antwerp) | ✓ Free, family/date | Free four-day world music |
+| **[Gentse Feesten](https://gentsefeesten.stad.gent/)** | Jul 17–26 [[25]](https://gentsefeesten.stad.gent/) | Ghent old town | Mixed | Free, crowded, 100k+/day; pick early evenings |
+| **[Lokerse Feesten](https://www.lokersefeesten.be/en/)** | Jul 31–Aug 9 [[18]](https://www.lokersefeesten.be/en/) | Lokeren city park | Mixed | Lenny Kravitz (Aug 8), Diana Ross (Jul 31), Editors+Suede (Aug 7) |
+| **[Festival Dranouter](https://www.festivaldranouter.be/)** | Aug 7–9 [[26]](https://www.songkick.com/festivals/122651-dranouter/id/42918077-dranouter-festival-2026) | Dranouter, W-Vl | Mixed | Folk, family-friendly |
+| **[Rock Werchter](https://www.rockwerchter.be/en/)** | Jul 2–5 [[8]](https://www.rockwerchter.be/en/line-up/a-z) | Werchter | ⚠ Camping/mosh | The Cure, Twenty One Pilots, Mumford & Sons, Gorillaz |
+| **[Tomorrowland](https://www.tomorrowland.com/)** | Jul 17–19, 24–26 [[9]](https://djmag.com/news/tomorrowland-belgium-2026-dates-announced) | De Schorre, Boom | ⚠ Sold out | "CONSCIENCIA" theme; passes gone [[10]](https://www.jambase.com/festival/tomorrowland-belgium-2026) |
+| **[Pukkelpop](https://www.pukkelpop.be/en/)** | Aug 20–23 [[13]](https://www.pukkelpop.be/en/) | Kiewit, Hasselt | ⚠ Camping | Tyler The Creator, Florence + The Machine, Deftones [[14]](https://ultimatefestivals4all.com/pukkelpop-2026-power-up-over-60-new-artists-join-the-massive-summer-lineup/) |
 
 Klarafestival 2026 already wrapped on Mar 29 [[22]](https://klarafestival.brussels/en) — note for the 2027 calendar.
 

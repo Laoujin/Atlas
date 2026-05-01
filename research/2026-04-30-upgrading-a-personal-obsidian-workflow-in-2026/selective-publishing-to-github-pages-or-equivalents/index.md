@@ -29,11 +29,11 @@ Three patterns dominate, in increasing order of safety:
 
 | Pattern | What you mark | Default state of a new note | Failure mode |
 |---|---|---|---|
-| **Draft opt-out** | `draft: true` (Hugo, Jekyll, Astro) | Public | A typo or forgotten flag publishes a note you didn't mean to share |
+| **Draft opt-out** | `draft: true` ([Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/), [Astro](https://astro.build/)) | Public | A typo or forgotten flag publishes a note you didn't mean to share |
 | **Frontmatter opt-in** | `publish: true` / `dg-publish: true` / `share: true` | Private | Forgotten flag means a note doesn't appear — annoying but safe |
 | **UI-selected** | Tick a box in a publication center | Private | None at the metadata layer; only what you click moves |
 
-Hugo natively supports `draft`, `publishDate`, `expiryDate` [[13]](https://gohugo.io/content-management/front-matter/), but those are designed for *blog scheduling*, not *what's in my private vault stays in my private vault*. For an Obsidian-style "tens of thousands of notes, publish ten" workload, the opt-in pattern is the only one that fails closed.
+[Hugo](https://gohugo.io/) natively supports `draft`, `publishDate`, `expiryDate` [[13]](https://gohugo.io/content-management/front-matter/), but those are designed for *blog scheduling*, not *what's in my private vault stays in my private vault*. For an Obsidian-style "tens of thousands of notes, publish ten" workload, the opt-in pattern is the only one that fails closed.
 
 ## Tools that implement opt-in publishing
 
@@ -65,8 +65,8 @@ Concrete mitigations:
 - **You want a polished docs site, not a network of notes.** Enveloppe (`share: true`) → MkDocs Material in a separate repo [[3]](https://github.com/Enveloppe/obsidian-enveloppe) [[15]](https://github.com/squidfunk/mkdocs-material).
 - **You hate maintaining frontmatter.** Quartz Syncer — pick notes from a UI per publish [[9]](https://github.com/saberzero1/quartz-syncer).
 - **You want zero plumbing and don't mind paying.** Obsidian Publish; set the site to opt-in mode and use `publish: true` on the few notes you want exposed [[8]](https://unmarkdown.com/blog/obsidian-publish-alternatives).
-- **You're already deep in Hugo/Jekyll/Astro.** Don't bolt selective publishing onto the SSG itself — put a publisher plugin in front of it (Enveloppe or a frontmatter-aware mirror script). Native `draft: true` is opt-out and the wrong default for a private vault [[13]](https://gohugo.io/content-management/front-matter/) [[16]](https://www.emgoto.com/obsidian-digital-garden/).
+- **You're already deep in [Hugo](https://gohugo.io/)/[Jekyll](https://jekyllrb.com/)/[Astro](https://astro.build/).** Don't bolt selective publishing onto the SSG itself — put a publisher plugin in front of it (Enveloppe or a frontmatter-aware mirror script). Native `draft: true` is opt-out and the wrong default for a private vault [[13]](https://gohugo.io/content-management/front-matter/) [[16]](https://www.emgoto.com/obsidian-digital-garden/).
 
 ## Self-check
 
-Forum consensus aligns: cost-driven users settle on Quartz, Hugo or Jekyll as the practical free trio, with Eleventy/Flowershow as smaller niches [[7]](https://forum.obsidian.md/t/obsidian-publish-alternatives/22886). Nothing in 2026 has displaced the opt-in frontmatter pattern as the default safe choice — and the non-markdown leak is still the single most-cited footgun.
+Forum consensus aligns: cost-driven users settle on [Quartz](https://quartz.jzhao.xyz/), [Hugo](https://gohugo.io/) or [Jekyll](https://jekyllrb.com/) as the practical free trio, with Eleventy/Flowershow as smaller niches [[7]](https://forum.obsidian.md/t/obsidian-publish-alternatives/22886). Nothing in 2026 has displaced the opt-in frontmatter pattern as the default safe choice — and the non-markdown leak is still the single most-cited footgun.
