@@ -1,0 +1,1594 @@
+---
+layout: view
+view_name: "Trail Map"
+view_of: ../
+title: "Weekend in the Semois Valley: what to do around Our (Paliseul) — Trail Map"
+---
+
+<style>
+  .trailmap {
+    --paper: #f3e9d2;
+    --paper-deep: #e8dab8;
+    --paper-shadow: #d4c39a;
+    --ink: #2a221a;
+    --ink-soft: #5a4a3a;
+    --ink-fade: #8a7a6a;
+    --rule: #b4a280;
+    --water: #5e8aa8;
+    --water-deep: #3d6480;
+    --forest: #5d7a4e;
+    --forest-deep: #3e5535;
+    --moss: #8a9974;
+    --route-red: #b8442a;
+    --route-blue: #2c5878;
+    --route-green: #4a7045;
+    --route-amber: #c08a3a;
+    --route-violet: #6a4a78;
+    --route-pink: #a86880;
+    --hazard: #b8442a;
+    --calm: #4a7045;
+    --paper-tint: #faf2dd;
+    font-family: "Iowan Old Style", "Charter", "Source Serif Pro", Georgia, serif;
+    color: var(--ink);
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(180,162,128,0.10) 0%, transparent 30%),
+      radial-gradient(circle at 80% 80%, rgba(180,162,128,0.10) 0%, transparent 35%),
+      repeating-linear-gradient(0deg, transparent 0 19px, rgba(138,110,78,0.04) 19px 20px),
+      repeating-linear-gradient(90deg, transparent 0 19px, rgba(138,110,78,0.04) 19px 20px);
+    padding: 0;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .trailmap a { color: var(--water-deep); text-decoration: none; border-bottom: 1px dotted var(--water-deep); }
+  .trailmap a:hover { color: var(--hazard); border-bottom-color: var(--hazard); }
+  .trailmap sup a { border: none; font-variant-numeric: tabular-nums; }
+
+  /* ───── SHEET HEADER ───── */
+  .sheet-head {
+    border-bottom: 3px double var(--ink-soft);
+    padding: 2.5rem 3rem 1.75rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: end;
+  }
+  .sheet-head .titles { }
+  .sheet-head .kicker {
+    font-family: "IBM Plex Mono", "JetBrains Mono", "Menlo", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    margin: 0 0 0.5rem;
+  }
+  .sheet-head h1 {
+    font-family: "Playfair Display", "Iowan Old Style", Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.05;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .sheet-head h1 em {
+    font-style: italic;
+    color: var(--water-deep);
+    font-weight: 400;
+  }
+  .sheet-head .subtitle {
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    margin: 0;
+    max-width: 60ch;
+  }
+  .sheet-meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    text-align: right;
+    color: var(--ink-fade);
+    line-height: 1.8;
+    border-left: 1px solid var(--rule);
+    padding-left: 1.25rem;
+  }
+  .sheet-meta strong { color: var(--ink); font-weight: 600; }
+
+  /* ───── VERDICT BAND ───── */
+  .verdict {
+    background: var(--ink);
+    color: var(--paper-tint);
+    padding: 1.5rem 3rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .verdict .stamp {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    border: 2px solid var(--paper-tint);
+    padding: 0.6rem 0.9rem;
+    text-align: center;
+    transform: rotate(-2deg);
+    line-height: 1.4;
+  }
+  .verdict .stamp strong { display: block; font-size: 0.95rem; letter-spacing: 0.2em; }
+  .verdict p { margin: 0; font-size: 1.02rem; line-height: 1.55; }
+  .verdict p a { color: #f5d572; border-bottom-color: #f5d572; }
+
+  /* ───── MAP ───── */
+  .map-wrap {
+    padding: 2.5rem 3rem 1.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 2rem;
+  }
+  .map-frame {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    box-shadow: 0 1px 0 var(--paper-shadow), 0 6px 18px rgba(60,40,20,0.10);
+    padding: 0.5rem;
+    border-radius: 3px;
+  }
+  .map-frame svg { display: block; width: 100%; height: auto; }
+
+  .legend {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    padding: 1.1rem 1.2rem;
+    font-size: 0.85rem;
+    align-self: start;
+  }
+  .legend h3 {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    margin: 0 0 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.4rem;
+  }
+  .legend ul { list-style: none; padding: 0; margin: 0 0 1.1rem; }
+  .legend li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.18rem 0;
+    line-height: 1.3;
+  }
+  .legend .swatch { display: inline-block; height: 4px; width: 22px; }
+  .legend .swatch.dashed-red { background: repeating-linear-gradient(90deg, var(--route-red) 0 5px, transparent 5px 9px); }
+  .legend .swatch.dashed-blue { background: repeating-linear-gradient(90deg, var(--route-blue) 0 5px, transparent 5px 9px); }
+  .legend .swatch.dashed-green { background: repeating-linear-gradient(90deg, var(--route-green) 0 5px, transparent 5px 9px); }
+  .legend .swatch.dashed-amber { background: repeating-linear-gradient(90deg, var(--route-amber) 0 5px, transparent 5px 9px); }
+  .legend .swatch.dashed-violet { background: repeating-linear-gradient(90deg, var(--route-violet) 0 5px, transparent 5px 9px); }
+  .legend .swatch.dashed-pink { background: repeating-linear-gradient(90deg, var(--route-pink) 0 5px, transparent 5px 9px); }
+  .legend .swatch.solid-water { background: var(--water); height: 3px; }
+  .legend .marker {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem; font-weight: 700;
+    background: var(--paper); border: 1.5px solid var(--ink);
+  }
+  .legend .marker.triangle {
+    width: 0; height: 0; border: none;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 14px solid var(--route-red);
+  }
+  .legend .marker.dot {
+    border-radius: 50%; background: var(--ink); width: 10px; height: 10px; margin: 0 4px;
+  }
+  .legend .marker.square { background: var(--forest); border-color: var(--forest-deep); color: var(--paper-tint); }
+
+  /* ───── SECTION HEADS ───── */
+  .section {
+    padding: 2rem 3rem 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .section.no-rule { border-top: none; }
+  .section-head {
+    display: flex; align-items: baseline; gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .section-head .num {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 2.4rem; font-weight: 900;
+    color: var(--water-deep);
+    line-height: 1;
+  }
+  .section-head h2 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.5rem; font-weight: 700;
+    margin: 0;
+  }
+  .section-head .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem; letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    margin-left: auto;
+  }
+
+  /* ───── VIEWPOINT POSTCARDS ───── */
+  .viewpoints {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+  .vp {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 2px 0 var(--paper-shadow);
+    display: flex; flex-direction: column;
+  }
+  .vp-photo {
+    height: 160px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border-bottom: 1px solid var(--rule);
+  }
+  .vp-photo.fallback {
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 2.2rem; font-weight: 900;
+    color: var(--paper-tint);
+    text-align: center; padding: 1rem;
+  }
+  .vp-photo .vp-num {
+    position: absolute; top: 8px; left: 8px;
+    width: 32px; height: 32px;
+    background: var(--paper); border: 2px solid var(--ink);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.95rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .vp-body { padding: 0.9rem 1rem 1rem; flex: 1; display: flex; flex-direction: column; }
+  .vp-body h4 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.05rem; margin: 0 0 0.2rem; line-height: 1.25;
+  }
+  .vp-body .vp-meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    color: var(--ink-fade); text-transform: uppercase;
+    margin-bottom: 0.55rem;
+  }
+  .vp-body p { margin: 0 0 0.6rem; font-size: 0.88rem; line-height: 1.45; }
+  .vp-body .vp-note {
+    font-size: 0.78rem; color: var(--ink-soft);
+    font-style: italic;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--rule);
+  }
+  .vp-body .vp-note .hazard { color: var(--hazard); font-style: normal; font-weight: 600; }
+
+  /* ───── TRAIL ROSTER ───── */
+  .trail-roster {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .trail-roster th, .trail-roster td {
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .trail-roster th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    background: var(--paper-deep);
+    font-weight: 600;
+  }
+  .trail-roster .swatch-cell { width: 6px; padding: 0; }
+  .trail-roster .swatch-cell div { width: 6px; height: 100%; min-height: 36px; }
+  .trail-roster .hike-name { font-weight: 600; font-size: 0.95rem; }
+  .trail-roster .difficulty {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .trail-roster .difficulty.easy { background: #d8e5c8; color: #3e5535; }
+  .trail-roster .difficulty.medium { background: #f0e0b8; color: #6a4f1a; }
+  .trail-roster .difficulty.hard { background: #f0c8b0; color: #7a2a18; }
+  .trail-roster .hazard { color: var(--hazard); font-size: 0.78rem; }
+
+  /* ───── RIVER GAUGE ───── */
+  .gauge-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+  .gauge {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    padding: 1.2rem 1.5rem;
+  }
+  .gauge-bar {
+    position: relative;
+    height: 38px;
+    margin: 1.2rem 0 0.6rem;
+    background: linear-gradient(90deg,
+      var(--hazard) 0%, var(--hazard) 4.4%,
+      var(--ink-fade) 4.4%, var(--ink-fade) 11%,
+      var(--calm) 11%, var(--calm) 30%,
+      var(--water) 30%, var(--water) 80%,
+      var(--calm) 80%, var(--calm) 100%);
+    border: 1px solid var(--ink);
+  }
+  .gauge-bar .now-marker {
+    position: absolute;
+    left: 30%; width: 50%;
+    top: -8px; height: 54px;
+    border-left: 2px solid var(--ink);
+    border-right: 2px solid var(--ink);
+  }
+  .gauge-bar .now-marker::after {
+    content: "LATE MAY ZONE";
+    position: absolute;
+    top: -18px; left: 50%; transform: translateX(-50%);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.6rem; letter-spacing: 0.2em;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .gauge-scale {
+    display: flex; justify-content: space-between;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--ink-fade);
+  }
+  .gauge h3 {
+    font-family: "Playfair Display", Georgia, serif;
+    margin: 0; font-size: 1.15rem;
+  }
+  .gauge .sub {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ink-fade);
+    margin-top: 0.2rem;
+  }
+  .gauge-zones {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .gauge-zones span {
+    text-align: center; padding: 0.3rem 0.2rem;
+    color: var(--paper-tint); border-radius: 2px;
+    line-height: 1.2;
+  }
+  .gauge-zones .z1 { background: var(--hazard); }
+  .gauge-zones .z2 { background: var(--calm); }
+  .gauge-zones .z3 { background: var(--water-deep); }
+  .gauge-zones .z4 { background: var(--ink-fade); }
+  .gauge-zones small { display: block; font-size: 0.55rem; opacity: 0.85; margin-top: 0.1rem; }
+
+  .operators {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    padding: 1.2rem 1.5rem;
+  }
+  .operators h3 {
+    font-family: "Playfair Display", Georgia, serif;
+    margin: 0 0 0.8rem; font-size: 1.15rem;
+  }
+  .operators .op {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 0.6rem 1rem;
+    padding: 0.55rem 0;
+    border-top: 1px dashed var(--rule);
+    font-size: 0.85rem;
+  }
+  .operators .op:first-of-type { border-top: 1px solid var(--rule); }
+  .operators .op strong { font-size: 0.95rem; }
+  .operators .op .where { color: var(--ink-fade); font-size: 0.78rem; }
+  .operators .op .price {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 700; font-size: 0.95rem;
+    color: var(--water-deep);
+    text-align: right;
+  }
+  .operators .op .price small { display: block; font-weight: 400; color: var(--ink-fade); font-size: 0.65rem; }
+
+  /* ───── FORECAST STRIP ───── */
+  .forecast {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  .forecast-panel {
+    border: 1px solid var(--rule);
+    padding: 1.2rem 1.4rem;
+    position: relative;
+  }
+  .forecast-panel.fair {
+    background: linear-gradient(180deg, #fef5d8 0%, var(--paper-tint) 100%);
+  }
+  .forecast-panel.rain {
+    background: linear-gradient(180deg, #d8e0e5 0%, var(--paper-tint) 100%);
+  }
+  .forecast-panel .head {
+    display: flex; align-items: center; gap: 0.7rem;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .forecast-panel .head .icon {
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+  .forecast-panel .head h3 {
+    margin: 0;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.25rem;
+  }
+  .forecast-panel .head .sub {
+    margin-left: auto;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+  }
+  .forecast-panel ol {
+    margin: 0; padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .forecast-panel ol li {
+    counter-increment: step;
+    position: relative;
+    padding: 0.55rem 0 0.55rem 2.5rem;
+    border-bottom: 1px dotted var(--rule);
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+  .forecast-panel ol li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0; top: 0.55rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-fade);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    width: 2rem;
+    text-align: center;
+    padding: 0.1rem 0;
+  }
+  .forecast-panel ol li:last-child { border-bottom: none; }
+  .forecast-panel li .time {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--ink-fade);
+    letter-spacing: 0.15em;
+    margin-right: 0.5rem;
+  }
+
+  /* ───── VILLAGES MARGIN COLUMN ───── */
+  .villages {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.9rem;
+  }
+  .village {
+    background: var(--paper-tint);
+    border-left: 3px solid var(--moss);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.85rem;
+  }
+  .village strong {
+    display: block;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  .village .badge {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.6rem; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    margin-top: 0.35rem;
+    display: block;
+  }
+  .village.gem { border-left-color: var(--route-amber); }
+  .village.gem .badge { color: var(--route-amber); font-weight: 700; }
+
+  /* ───── PROVISIONS BAR ───── */
+  .provisions {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.6rem 1.2rem;
+    font-size: 0.82rem;
+  }
+  .provisions .prov {
+    border-left: 1px dotted var(--rule);
+    padding-left: 0.9rem;
+  }
+  .provisions .prov:first-child { border-left: none; padding-left: 0; }
+  .provisions .prov strong {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 0.98rem;
+  }
+  .provisions .prov .meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.62rem;
+    color: var(--ink-fade);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0.2rem 0;
+  }
+
+  /* ───── WET-WEATHER GRID ───── */
+  .indoor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+  }
+  .indoor {
+    background: var(--paper-tint);
+    border: 1px solid var(--rule);
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    position: relative;
+  }
+  .indoor strong {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+  .indoor .meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.62rem;
+    color: var(--ink-fade);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0.2rem 0 0.4rem;
+  }
+  .indoor p { margin: 0; font-size: 0.82rem; line-height: 1.4; }
+  .indoor .hazard {
+    color: var(--hazard);
+    font-size: 0.75rem;
+    font-style: italic;
+    display: block;
+    margin-top: 0.4rem;
+  }
+
+  /* ───── CHECKLIST ───── */
+  .checklist {
+    background: var(--paper-tint);
+    border: 2px solid var(--ink);
+    padding: 1.4rem 1.8rem;
+    box-shadow: 4px 4px 0 var(--paper-shadow);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .checklist h3 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.25rem;
+    margin: 0 0 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--ink);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .checklist h3 small {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--ink-fade);
+    font-weight: 400;
+  }
+  .checklist ul { list-style: none; padding: 0; margin: 0; }
+  .checklist li {
+    padding: 0.55rem 0 0.55rem 2rem;
+    position: relative;
+    border-bottom: 1px dashed var(--rule);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: "☐";
+    position: absolute;
+    left: 0; top: 0.4rem;
+    font-size: 1.2rem;
+    color: var(--ink);
+  }
+  .checklist li strong { font-weight: 700; }
+  .checklist li .when {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    margin-left: 0.5rem;
+  }
+
+  /* ───── COLOPHON ───── */
+  .colophon {
+    border-top: 3px double var(--ink-soft);
+    padding: 1.5rem 3rem 2.5rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    color: var(--ink-fade);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    letter-spacing: 0.05em;
+  }
+  .colophon strong { color: var(--ink); }
+
+  @media (max-width: 880px) {
+    .sheet-head { grid-template-columns: 1fr; }
+    .sheet-meta { border-left: none; border-top: 1px solid var(--rule); padding: 0.8rem 0 0; text-align: left; }
+    .map-wrap { grid-template-columns: 1fr; padding: 1.5rem 1.25rem; }
+    .gauge-block, .forecast { grid-template-columns: 1fr; }
+    .section { padding: 1.5rem 1.25rem 0.5rem; }
+    .verdict { padding: 1.2rem 1.25rem; grid-template-columns: 1fr; }
+    .colophon { padding: 1rem 1.25rem 2rem; grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="trailmap">
+
+  <header class="sheet-head">
+    <div class="titles">
+      <p class="kicker">Field Sheet S-55 · Ardennes / Province de Luxembourg</p>
+      <h1>Semois Valley <em>around Our</em></h1>
+      <p class="subtitle">A late-May weekend, charted: three viewpoints, one river, one fortress town, and a Sunday loop that starts at the village church.</p>
+    </div>
+    <div class="sheet-meta">
+      <strong>SHEET</strong> S-55<br>
+      <strong>EDITION</strong> May 2026<br>
+      <strong>SCALE</strong> ~1 : 95 000<br>
+      <strong>DEPTH</strong> Expedition<br>
+      <strong>CITED</strong> 81 sources
+    </div>
+  </header>
+
+  <section class="verdict">
+    <div class="stamp">RECOMMENDED<br><strong>ROUTE</strong></div>
+    <p>Build the weekend around three anchors: <strong>Saturday 10:00</strong> kayak Poupehan → Frahan (4 km, 1 h, €25) with <a href="https://semois-kayaks.be/reservation/">Semois Kayaks</a> <sup><a href="https://semois-kayaks.be/reservation/">[19]</a></sup>, then the meander arc to the Tombeau du Géant belvedere at <a href="https://www.semois-parcnational.be/le-tombeau-du-geant">Botassart</a> <sup><a href="https://www.semois-parcnational.be/le-tombeau-du-geant">[31]</a></sup>. <strong>Saturday afternoon</strong> <a href="https://www.chateaudebouillon.com/en/pr%C3%A9parer-votre-visite-%C3%A9t%C3%A9">Château de Bouillon</a> — arrive 11:00 for the 11:30 falconry <sup><a href="https://visitwallonia.com/en-gb/content/bouillon-castle-and-its-falconry-shows">[26]</a></sup>. <strong>Sunday 09:00</strong> the 11.5 km <em><a href="https://www.sitytrail.com/en/trails/449048-paliseul--balade-au-pays-de-la-hautexlesse-x-au-fil-de-lxour/">Au fil de l'Our</a></em> signed loop from the village church <sup><a href="https://www.sitytrail.com/en/trails/449048-paliseul--balade-au-pays-de-la-hautexlesse-x-au-fil-de-lxour/">[1]</a></sup>. Late May puts the river at 15–60 m³/s — <em>ideal for sporty paddlers</em> <sup><a href="https://www.kayaksemois-ardenne.be/eng/water-level-semois">[22]</a></sup>.</p>
+  </section>
+
+  <!-- ────── THE MAP ────── -->
+  <div class="map-wrap">
+    <div class="map-frame">
+      <svg viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustrated trail map of the Semois valley around Our, Paliseul">
+        <defs>
+          <pattern id="forest-pat" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+            <rect width="14" height="14" fill="#cdd6b6"/>
+            <circle cx="3" cy="3" r="1.4" fill="#7a8a64"/>
+            <circle cx="10" cy="8" r="1.4" fill="#7a8a64"/>
+            <circle cx="6" cy="11" r="1.2" fill="#7a8a64"/>
+          </pattern>
+          <pattern id="paper-grain" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <rect width="40" height="40" fill="#faf2dd"/>
+            <circle cx="10" cy="14" r="0.5" fill="#c4b290" opacity="0.5"/>
+            <circle cx="28" cy="32" r="0.4" fill="#c4b290" opacity="0.5"/>
+            <circle cx="35" cy="6" r="0.3" fill="#c4b290" opacity="0.5"/>
+          </pattern>
+          <filter id="rough">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3"/>
+            <feDisplacementMap in="SourceGraphic" scale="1.4"/>
+          </filter>
+        </defs>
+
+        <!-- Paper background -->
+        <rect width="1000" height="620" fill="url(#paper-grain)"/>
+
+        <!-- Faint contour ovals (hill suggestions) -->
+        <g fill="none" stroke="#c4ad82" stroke-width="0.6" opacity="0.55">
+          <ellipse cx="220" cy="160" rx="120" ry="55"/>
+          <ellipse cx="220" cy="160" rx="90" ry="40"/>
+          <ellipse cx="220" cy="160" rx="60" ry="26"/>
+          <ellipse cx="820" cy="180" rx="110" ry="50"/>
+          <ellipse cx="820" cy="180" rx="80" ry="36"/>
+          <ellipse cx="500" cy="540" rx="180" ry="50"/>
+          <ellipse cx="500" cy="540" rx="130" ry="36"/>
+          <ellipse cx="100" cy="500" rx="80" ry="38"/>
+        </g>
+
+        <!-- Forest patches (Parc national) -->
+        <g opacity="0.85">
+          <path d="M 380 220 Q 360 200 380 180 Q 430 150 480 170 Q 530 150 560 200 Q 590 220 580 270 Q 550 310 480 320 Q 410 320 380 280 Z" fill="url(#forest-pat)" stroke="#7a8a64" stroke-width="0.8"/>
+          <path d="M 700 380 Q 690 350 720 340 Q 770 320 820 350 Q 860 360 850 410 Q 830 450 770 450 Q 720 450 700 420 Z" fill="url(#forest-pat)" stroke="#7a8a64" stroke-width="0.8"/>
+          <path d="M 130 360 Q 110 340 130 320 Q 180 305 220 330 Q 260 340 250 380 Q 230 410 180 410 Q 140 405 130 380 Z" fill="url(#forest-pat)" stroke="#7a8a64" stroke-width="0.8"/>
+        </g>
+        <text x="475" y="245" font-family="Playfair Display, Georgia, serif" font-size="11" font-style="italic" fill="#3e5535" text-anchor="middle" opacity="0.85">Parc national</text>
+        <text x="475" y="258" font-family="Playfair Display, Georgia, serif" font-size="10" font-style="italic" fill="#3e5535" text-anchor="middle" opacity="0.75">de la Semois</text>
+
+        <!-- The Semois river ribbon -->
+        <path id="semois" d="M 980 380
+                            C 920 380 900 340 850 350
+                            C 800 360 780 410 720 405
+                            C 650 400 620 350 580 360
+                            C 530 380 540 460 480 480
+                            C 420 500 380 460 350 430
+                            C 320 400 340 350 310 330
+                            C 270 305 220 340 180 360
+                            C 140 380 90 400 40 395"
+              fill="none" stroke="#5e8aa8" stroke-width="14" stroke-linecap="round" opacity="0.95"/>
+        <path d="M 980 380 C 920 380 900 340 850 350 C 800 360 780 410 720 405 C 650 400 620 350 580 360 C 530 380 540 460 480 480 C 420 500 380 460 350 430 C 320 400 340 350 310 330 C 270 305 220 340 180 360 C 140 380 90 400 40 395"
+              fill="none" stroke="#3d6480" stroke-width="1.2" opacity="0.7"/>
+
+        <!-- River label, following river -->
+        <text x="640" y="395" font-family="Playfair Display, Georgia, serif" font-size="13" font-style="italic" fill="#3d6480" font-weight="700">La Semois</text>
+
+        <!-- TRAIL ROUTES (dashed) -->
+        <!-- Au fil de l'Our (green) - loop from Our church -->
+        <path d="M 250 175 Q 200 180 180 210 Q 175 245 200 270 Q 230 290 270 280 Q 305 270 305 235 Q 295 200 250 175 Z"
+              fill="none" stroke="#4a7045" stroke-width="2.2" stroke-dasharray="5 4" opacity="0.85"/>
+
+        <!-- Au gré de la Semois (amber) - Bouillon riverside -->
+        <path d="M 700 405 Q 750 420 790 425 Q 830 430 860 415"
+              fill="none" stroke="#c08a3a" stroke-width="2.2" stroke-dasharray="5 4" opacity="0.85"/>
+
+        <!-- Échelles de Rochehaut (red) - Poupehan ladder scramble -->
+        <path d="M 420 430 Q 430 405 460 395 Q 480 380 480 360"
+              fill="none" stroke="#b8442a" stroke-width="2.5" stroke-dasharray="3 3" opacity="0.9"/>
+
+        <!-- 12 viewpoints loop (blue) — around Bouillon -->
+        <path d="M 720 405 Q 680 380 670 340 Q 690 290 740 280 Q 800 280 820 320 Q 850 360 830 405 Q 800 440 740 430 Q 720 420 720 405 Z"
+              fill="none" stroke="#2c5878" stroke-width="2" stroke-dasharray="6 3" opacity="0.78"/>
+
+        <!-- Bike Trail Center Bouillon enduro (violet) — wide loop -->
+        <path d="M 720 405 Q 640 480 540 490 Q 470 500 420 460 Q 410 420 450 380 Q 510 340 560 350 Q 620 360 660 380"
+              fill="none" stroke="#6a4a78" stroke-width="2.5" stroke-dasharray="2 5" opacity="0.7"/>
+
+        <!-- GR 16 / Sentier de la Semois (pink) hugging the river -->
+        <path d="M 950 370 Q 880 360 820 360 Q 760 380 700 395 Q 640 380 580 370 Q 540 390 480 470 Q 420 490 360 440 Q 320 410 280 380 Q 220 360 160 370 Q 110 385 60 385"
+              fill="none" stroke="#a86880" stroke-width="2" stroke-dasharray="8 4" opacity="0.55"/>
+
+        <!-- VILLAGE DOTS -->
+        <g font-family="Playfair Display, Georgia, serif" font-size="11" font-weight="600" fill="#2a221a">
+          <!-- OUR — highlighted -->
+          <g>
+            <rect x="232" y="217" width="36" height="36" fill="#fef5d8" stroke="#b8442a" stroke-width="2"/>
+            <text x="250" y="240" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.1em">OUR</text>
+            <text x="250" y="208" text-anchor="middle" font-size="9" font-style="italic" fill="#5a4a3a">★ basecamp</text>
+          </g>
+
+          <!-- Paliseul -->
+          <circle cx="200" cy="120" r="3" fill="#2a221a"/>
+          <text x="200" y="113" text-anchor="middle">Paliseul</text>
+
+          <!-- Bertrix -->
+          <circle cx="380" cy="100" r="3" fill="#2a221a"/>
+          <text x="380" y="93" text-anchor="middle">Bertrix</text>
+
+          <!-- Botassart -->
+          <circle cx="370" cy="380" r="3.5" fill="#2a221a"/>
+          <text x="370" y="372" text-anchor="middle" font-weight="700">Botassart</text>
+
+          <!-- Rochehaut -->
+          <circle cx="460" cy="370" r="3" fill="#2a221a"/>
+          <text x="460" y="362" text-anchor="middle">Rochehaut</text>
+
+          <!-- Frahan -->
+          <circle cx="490" cy="430" r="3" fill="#2a221a"/>
+          <text x="488" y="455" text-anchor="middle" font-size="10" font-style="italic">Frahan</text>
+
+          <!-- Poupehan -->
+          <circle cx="425" cy="445" r="3" fill="#2a221a"/>
+          <text x="416" y="465" text-anchor="middle" font-size="10">Poupehan</text>
+
+          <!-- Bouillon -->
+          <circle cx="720" cy="405" r="4.5" fill="#2a221a"/>
+          <text x="755" y="408" font-size="13" font-weight="700">BOUILLON</text>
+
+          <!-- Corbion -->
+          <circle cx="580" cy="370" r="2.5" fill="#2a221a"/>
+          <text x="580" y="362" text-anchor="middle" font-size="9">Corbion</text>
+
+          <!-- Sensenruth -->
+          <circle cx="680" cy="345" r="2.5" fill="#2a221a"/>
+          <text x="680" y="338" text-anchor="middle" font-size="9">Sensenruth</text>
+
+          <!-- Dohan -->
+          <circle cx="820" cy="370" r="3" fill="#2a221a"/>
+          <text x="820" y="362" text-anchor="middle" font-size="10">Dohan</text>
+
+          <!-- Cugnon / Mortehan -->
+          <circle cx="900" cy="345" r="2.5" fill="#2a221a"/>
+          <text x="900" y="338" text-anchor="middle" font-size="9">Mortehan</text>
+
+          <!-- Vresse -->
+          <circle cx="195" cy="370" r="3.5" fill="#2a221a"/>
+          <text x="195" y="395" text-anchor="middle" font-size="10">Vresse</text>
+
+          <!-- Alle -->
+          <circle cx="140" cy="335" r="3" fill="#2a221a"/>
+          <text x="135" y="328" text-anchor="end" font-size="10">Alle</text>
+
+          <!-- Membre -->
+          <circle cx="260" cy="350" r="2.5" fill="#2a221a"/>
+          <text x="260" y="343" text-anchor="middle" font-size="9">Membre</text>
+
+          <!-- Laforêt -->
+          <circle cx="225" cy="455" r="2.5" fill="#2a221a"/>
+          <text x="225" y="475" text-anchor="middle" font-size="9">Laforêt</text>
+
+          <!-- Chassepierre -->
+          <circle cx="945" cy="385" r="2.5" fill="#2a221a"/>
+          <text x="945" y="377" text-anchor="middle" font-size="9">Chassepierre</text>
+
+          <!-- Les Hayons -->
+          <circle cx="765" cy="430" r="2" fill="#2a221a"/>
+          <text x="765" y="448" text-anchor="middle" font-size="8" fill="#5a4a3a">Les Hayons</text>
+        </g>
+
+        <!-- NUMBERED VIEWPOINT MARKERS (triangles for vista) -->
+        <g font-family="IBM Plex Mono, monospace" font-size="9" font-weight="700">
+          <!-- 1: Tombeau du Géant - Botassart -->
+          <g transform="translate(370,396)">
+            <polygon points="0,0 -10,16 10,16" fill="#b8442a" stroke="#2a221a" stroke-width="1"/>
+            <circle cx="0" cy="22" r="9" fill="#fef5d8" stroke="#2a221a" stroke-width="1.5"/>
+            <text x="0" y="25" text-anchor="middle" fill="#2a221a">1</text>
+          </g>
+          <!-- 2: Panorama de Frahan - Rochehaut -->
+          <g transform="translate(478,348)">
+            <polygon points="0,0 -10,16 10,16" fill="#b8442a" stroke="#2a221a" stroke-width="1"/>
+            <circle cx="0" cy="22" r="9" fill="#fef5d8" stroke="#2a221a" stroke-width="1.5"/>
+            <text x="0" y="25" text-anchor="middle" fill="#2a221a">2</text>
+          </g>
+          <!-- 3: Belvédère de Bouillon -->
+          <g transform="translate(715,375)">
+            <polygon points="0,0 -10,16 10,16" fill="#b8442a" stroke="#2a221a" stroke-width="1"/>
+            <circle cx="0" cy="22" r="9" fill="#fef5d8" stroke="#2a221a" stroke-width="1.5"/>
+            <text x="0" y="25" text-anchor="middle" fill="#2a221a">3</text>
+          </g>
+          <!-- 4: Pic du Diable -->
+          <g transform="translate(648,355)">
+            <polygon points="0,0 -10,16 10,16" fill="#b8442a" stroke="#2a221a" stroke-width="1"/>
+            <circle cx="0" cy="22" r="9" fill="#fef5d8" stroke="#2a221a" stroke-width="1.5"/>
+            <text x="0" y="25" text-anchor="middle" fill="#2a221a">4</text>
+          </g>
+          <!-- 5: Jambon de la Semois (Membre) -->
+          <g transform="translate(258,332)">
+            <polygon points="0,0 -10,16 10,16" fill="#b8442a" stroke="#2a221a" stroke-width="1"/>
+            <circle cx="0" cy="22" r="9" fill="#fef5d8" stroke="#2a221a" stroke-width="1.5"/>
+            <text x="0" y="25" text-anchor="middle" fill="#2a221a">5</text>
+          </g>
+          <!-- 6: Roche aux Éperviers -->
+          <g transform="translate(560,348)">
+            <polygon points="0,0 -10,16 10,16" fill="#b8442a" stroke="#2a221a" stroke-width="1"/>
+            <circle cx="0" cy="22" r="9" fill="#fef5d8" stroke="#2a221a" stroke-width="1.5"/>
+            <text x="0" y="25" text-anchor="middle" fill="#2a221a">6</text>
+          </g>
+        </g>
+
+        <!-- CASTLE icon for Bouillon -->
+        <g transform="translate(745,388)">
+          <rect x="-1" y="-15" width="3" height="10" fill="#5a4a3a"/>
+          <polygon points="-7,-12 -7,-5 -3,-5 -3,-9 3,-9 3,-5 7,-5 7,-12 5,-12 5,-15 3,-15 3,-12 1,-12 1,-15 -1,-15 -1,-12 -3,-12 -3,-15 -5,-15 -5,-12" fill="#5a4a3a"/>
+        </g>
+
+        <!-- COMPASS ROSE (upper-right) -->
+        <g transform="translate(925,75)" font-family="Playfair Display, Georgia, serif">
+          <circle r="34" fill="#faf2dd" stroke="#2a221a" stroke-width="1.5"/>
+          <circle r="26" fill="none" stroke="#8a7a6a" stroke-width="0.5"/>
+          <polygon points="0,-30 4,0 0,4 -4,0" fill="#b8442a" stroke="#2a221a" stroke-width="0.8"/>
+          <polygon points="0,30 4,0 0,-4 -4,0" fill="#2a221a"/>
+          <polygon points="-30,0 0,-4 4,0 0,4" fill="#2a221a"/>
+          <polygon points="30,0 0,4 -4,0 0,-4" fill="#2a221a"/>
+          <text x="0" y="-36" text-anchor="middle" font-size="11" font-weight="700" fill="#2a221a">N</text>
+          <text x="0" y="46" text-anchor="middle" font-size="9" fill="#5a4a3a">S</text>
+          <text x="-40" y="3" text-anchor="middle" font-size="9" fill="#5a4a3a">W</text>
+          <text x="40" y="3" text-anchor="middle" font-size="9" fill="#5a4a3a">E</text>
+        </g>
+
+        <!-- SCALE BAR (bottom-left) -->
+        <g transform="translate(50,560)" font-family="IBM Plex Mono, monospace" font-size="9" fill="#2a221a">
+          <text x="0" y="-6" letter-spacing="0.2em" font-size="7">SCALE</text>
+          <rect x="0" y="0" width="40" height="6" fill="#2a221a"/>
+          <rect x="40" y="0" width="40" height="6" fill="#faf2dd" stroke="#2a221a" stroke-width="0.5"/>
+          <rect x="80" y="0" width="40" height="6" fill="#2a221a"/>
+          <rect x="120" y="0" width="40" height="6" fill="#faf2dd" stroke="#2a221a" stroke-width="0.5"/>
+          <text x="0" y="18">0</text>
+          <text x="40" y="18" text-anchor="middle">2.5</text>
+          <text x="80" y="18" text-anchor="middle">5</text>
+          <text x="120" y="18" text-anchor="middle">7.5</text>
+          <text x="160" y="18" text-anchor="end">10 km</text>
+        </g>
+
+        <!-- LATITUDE/LONGITUDE marginalia -->
+        <g font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a7a6a" letter-spacing="0.15em">
+          <text x="500" y="20" text-anchor="middle">49°55′N — Vallée de la Semois — 5°05′E</text>
+          <text x="500" y="610" text-anchor="middle">Source: Pays de Bouillon, Parc national, Maison du Tourisme</text>
+        </g>
+
+        <!-- "MOST PHOTOGRAPHED" callout near Frahan -->
+        <g transform="translate(545,490)" font-family="Playfair Display, Georgia, serif">
+          <text x="0" y="0" font-style="italic" font-size="10" fill="#3d6480">"one of Belgium's most</text>
+          <text x="0" y="12" font-style="italic" font-size="10" fill="#3d6480">photographed viewpoints"</text>
+          <text x="0" y="24" font-family="IBM Plex Mono, monospace" font-size="7" fill="#8a7a6a">— Jewel of Wallonia, 2015</text>
+          <path d="M -10 -4 Q -30 -10 -55 -55" fill="none" stroke="#3d6480" stroke-width="0.8" stroke-dasharray="2 2"/>
+        </g>
+
+      </svg>
+    </div>
+
+    <aside class="legend">
+      <h3>Map Key</h3>
+      <ul>
+        <li><span class="marker dot"></span><span>Village / hamlet</span></li>
+        <li><span class="marker square" style="display:flex;align-items:center;justify-content:center;font-size:7px;font-family:monospace;font-weight:700">★</span><span><strong>Our</strong> — basecamp</span></li>
+        <li><span class="marker triangle"></span><span>Numbered viewpoint <span style="font-family:monospace;color:var(--ink-fade)">①–⑥</span></span></li>
+        <li><span class="swatch solid-water"></span><span>Semois river</span></li>
+      </ul>
+
+      <h3>Routes</h3>
+      <ul>
+        <li><span class="swatch dashed-green"></span><span><strong>Au fil de l'Our</strong> · 11.5 km easy</span></li>
+        <li><span class="swatch dashed-red"></span><span><strong>Échelles de Rochehaut</strong> · scramble</span></li>
+        <li><span class="swatch dashed-blue"></span><span><strong>12 viewpoints</strong> · 14.6 km medium</span></li>
+        <li><span class="swatch dashed-amber"></span><span><strong>Au gré de la Semois</strong> · riverside</span></li>
+        <li><span class="swatch dashed-violet"></span><span><strong>BTC enduro</strong> · 42 km MTB</span></li>
+        <li><span class="swatch dashed-pink"></span><span><strong>GR 16 Sentier de la Semois</strong></span></li>
+      </ul>
+
+      <h3>Quick Stats</h3>
+      <ul style="font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; line-height: 1.5; color: var(--ink-soft); display: block;">
+        <li style="display:block;padding:0">⏱ ~3 h drive Brussels → Our</li>
+        <li style="display:block;padding:0">📐 Map covers ~30 × 18 km</li>
+        <li style="display:block;padding:0">🅿 Free parking Botassart + Bouillon</li>
+        <li style="display:block;padding:0">📅 Late May daylight to ~21:30</li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- ────── VIEWPOINT POSTCARDS ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">①</span>
+      <h2>Numbered Viewpoints</h2>
+      <span class="tag">From map · field-tested in late side-light</span>
+    </div>
+
+    <div class="viewpoints">
+      <article class="vp">
+        <div class="vp-photo" style="background-image: url('trailmap/images/tombeau.jpg');">
+          <span class="vp-num">1</span>
+        </div>
+        <div class="vp-body">
+          <h4>Tombeau du Géant</h4>
+          <div class="vp-meta">Botassart · 20 min drive</div>
+          <p>The hill the Semois winds around on three sides — classified "exceptional heritage of Wallonia" and one of Belgium's most photographed landscapes <sup><a href="https://www.semois-parcnational.be/le-tombeau-du-geant">[31]</a></sup>. Free parking; the belvedere is minutes from the lot <sup><a href="https://www.kayaksemois-ardenne.be/eng/tombeau-du-geant">[32]</a></sup>.</p>
+          <p class="vp-note"><span class="hazard">⚠</span> Snack bar &amp; toilets July–Aug only · free access 24/7 otherwise.</p>
+        </div>
+      </article>
+
+      <article class="vp">
+        <div class="vp-photo" style="background-image: url('trailmap/images/frahan.jpg');">
+          <span class="vp-num">2</span>
+        </div>
+        <div class="vp-body">
+          <h4>Panorama de Frahan</h4>
+          <div class="vp-meta">Rochehaut · 25 min drive</div>
+          <p>300 m of asphalt road with balustrade and free binoculars <sup><a href="https://www.luxembourg-belge.be/diffusio/fr/voir-faire/visiter/patrimoine-naturel/rochehaut/le-panorama-sur-frahan-et-la-boucle-de-la-semois_TFO11518.php">[36]</a></sup>. <strong>Jewel of Wallonia since 2015.</strong> The river-loop hamlet sits 130 m below; reach it on foot via the 9.5 km <a href="https://www.alltrails.com/trail/belgium/luxembourg/autour-de-frahan">Frahan loop from Laviot</a> <sup><a href="https://www.alltrails.com/trail/belgium/luxembourg/autour-de-frahan">[38]</a></sup>.</p>
+          <p class="vp-note">Best in late side-light · pair with Rochehaut lunch.</p>
+        </div>
+      </article>
+
+      <article class="vp">
+        <div class="vp-photo fallback" style="background: linear-gradient(135deg, #3d6480 0%, #5e8aa8 50%, #8aaec8 100%);">
+          <span class="vp-num">3</span>
+          BELVÉDÈRE<br>DE BOUILLON
+        </div>
+        <div class="vp-body">
+          <h4>Belvédère &amp; Pic du Diable</h4>
+          <div class="vp-meta">Bouillon · on the "12 viewpoints" loop</div>
+          <p>Twelve-viewpoint Bouillon loop: 14.62 km, +665 m, ~6 h <sup><a href="https://www.visorando.com/randonnee-12-points-de-vue-sur-la-semois-au-depart/">[8]</a></sup>. Chains Belvédère → Pic du Diable → Tombeau du Géant → Rocher du Pendu → Ramonette. <a href="https://www.alltrails.com/poi/belgium/luxembourg/bouillon/le-pic-du-diable">Pic du Diable</a> alone is a 18.7 km / 5h23 stand-alone <sup><a href="https://www.alltrails.com/poi/belgium/luxembourg/bouillon/le-pic-du-diable">[9]</a></sup>.</p>
+          <p class="vp-note">Ranger-guided walks Apr–Oct ·  <a href="https://www.semois-parcnational.be/en/post/discover-the-2026-guided-walk-calendar">~60 scheduled in 2026</a> <sup><a href="https://www.semois-parcnational.be/en/post/discover-the-2026-guided-walk-calendar">[16]</a></sup>.</p>
+        </div>
+      </article>
+
+      <article class="vp">
+        <div class="vp-photo fallback" style="background: linear-gradient(135deg, #8a6e4e 0%, #b89968 100%);">
+          <span class="vp-num">5</span>
+          JAMBON DE LA<br>SEMOIS
+        </div>
+        <div class="vp-body">
+          <h4>Jambon de la Semois</h4>
+          <div class="vp-meta">Membre · Corten-steel platform</div>
+          <p>Best reached by water — the Alle → Membre family descent ends at this Corten-steel cantilever above the meander, after 3 hours past beaver-dam sites and grey herons <sup><a href="https://www.kayaksemois-ardenne.be/eng/kayak-semois">[50]</a></sup>.</p>
+          <p class="vp-note">The official MdT Bouillon list omits any "Roche à 7 Heures" — that's <a href="https://www.ardennes.com/itineraire/la-roche-a-sept-heures/">a Monthermé Meuse site</a>, not local <sup><a href="https://www.paysdebouillon.be/points-de-vue-et-sites-naturels">[10]</a></sup><sup><a href="https://www.ardennes.com/itineraire/la-roche-a-sept-heures/">[11]</a></sup>.</p>
+        </div>
+      </article>
+
+      <article class="vp">
+        <div class="vp-photo fallback" style="background: linear-gradient(135deg, #5d7a4e 0%, #8a9974 100%);">
+          <span class="vp-num">6</span>
+          ROCHE AUX<br>ÉPERVIERS
+        </div>
+        <div class="vp-body">
+          <h4>Roche aux Éperviers</h4>
+          <div class="vp-meta">Bouillon · stairs &amp; railings</div>
+          <p>Fitted belvedere with stairs and safety rail above what tourism docs call <em>"the longest meander created by the Semois,"</em> overlooking Botassart and Poupehan woods <sup><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/le-point-de-vue-de-la-roche-aux-eperviers-bouillon_TFOLOD-01-0AVJ-507U/">[12]</a></sup>.</p>
+          <p class="vp-note">Pairs naturally with the 12-viewpoints walk.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ────── TRAIL ROSTER ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">②</span>
+      <h2>Trail Roster</h2>
+      <span class="tag">Colour-keyed to map · easy → suffer-fest</span>
+    </div>
+
+    <table class="trail-roster">
+      <thead>
+        <tr>
+          <th class="swatch-cell"></th>
+          <th>Trail</th>
+          <th>Distance</th>
+          <th>D+</th>
+          <th>Difficulty</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-green)"></div></td>
+          <td><span class="hike-name">Au fil de l'Our</span><br><a href="https://www.sitytrail.com/en/trails/449048-paliseul--balade-au-pays-de-la-hautexlesse-x-au-fil-de-lxour/">SityTrail 449048</a></td>
+          <td>11.5 km</td><td>222 m</td>
+          <td><span class="difficulty easy">Easy</span></td>
+          <td>Signed loop from Our church · ~3 h 9 <sup><a href="https://www.sitytrail.com/en/trails/449048-paliseul--balade-au-pays-de-la-hautexlesse-x-au-fil-de-lxour/">[1]</a></sup>. Sunday-morning default.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-green)"></div></td>
+          <td><span class="hike-name">Tombeau du Géant family loop</span><br><a href="https://soandbia.com/tombeau-du-geant/">Soandbia</a></td>
+          <td>6.5 km</td><td>—</td>
+          <td><span class="difficulty easy">Easy</span></td>
+          <td>Free parking + on-site bar at the belvedere <sup><a href="https://soandbia.com/tombeau-du-geant/">[3]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-green)"></div></td>
+          <td><span class="hike-name">Tombeau du Géant mini-loop</span><br><a href="https://www.komoot.com/fr-fr/smarttour/e1408238676/tombeau-du-geant-boucle-depuis-botassart-dans-le-parc-national-de-la-vallee-de-la-semois">Komoot</a></td>
+          <td>4.81 km</td><td>130 m</td>
+          <td><span class="difficulty easy">Easy</span></td>
+          <td>Via Moulin du Rivage · 1h24. <span class="hazard">⚠ slippery after rain.</span> <sup><a href="https://www.komoot.com/fr-fr/smarttour/e1408238676/tombeau-du-geant-boucle-depuis-botassart-dans-le-parc-national-de-la-vallee-de-la-semois">[4]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-amber)"></div></td>
+          <td><span class="hike-name">Au gré de la Semois</span><br><a href="https://visitwallonia.fr/fr/produit/attractions/activites/promenade-ou-randonnee-pedestre/au-gre-de-la-semois-balade-autour-de-bouillon/49750">Visit Wallonia</a></td>
+          <td>8.3 km</td><td>flat</td>
+          <td><span class="difficulty easy">Easy</span></td>
+          <td>Riverside Porte de France → suspended footbridge → Cordemois Abbey. Strong family default <sup><a href="https://visitwallonia.fr/fr/produit/attractions/activites/promenade-ou-randonnee-pedestre/au-gre-de-la-semois-balade-autour-de-bouillon/49750">[15]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-blue)"></div></td>
+          <td><span class="hike-name">Bouillon 12 viewpoints loop</span><br><a href="https://www.visorando.com/randonnee-12-points-de-vue-sur-la-semois-au-depart/">Visorando</a></td>
+          <td>14.62 km</td><td>665 m</td>
+          <td><span class="difficulty medium">Medium</span></td>
+          <td>Belvédère → Pic du Diable → Tombeau → Rocher du Pendu → Ramonette · ~6 h <sup><a href="https://www.visorando.com/randonnee-12-points-de-vue-sur-la-semois-au-depart/">[8]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-blue)"></div></td>
+          <td><span class="hike-name">Frahan loop (Laviot-Corbeaux)</span><br><a href="https://www.alltrails.com/trail/belgium/luxembourg/autour-de-frahan">AllTrails</a></td>
+          <td>9.5 km</td><td>300 m</td>
+          <td><span class="difficulty medium">Medium</span></td>
+          <td>Through Parc national · 2.5–3 h · descends to the meander hamlet <sup><a href="https://www.alltrails.com/trail/belgium/luxembourg/autour-de-frahan">[38]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-red)"></div></td>
+          <td><span class="hike-name">Échelles de Rochehaut</span><br><a href="https://www.ardenneresidences.com/fr/experiences/sport/randonnees/balade-des-echelles/">Ardenne Résidences</a></td>
+          <td>4.7 km</td><td>—</td>
+          <td><span class="difficulty hard">Difficile</span></td>
+          <td>Metal-ladder scramble up schist cliffs from Poupehan · ~1h30. <span class="hazard">⚠ avoid after heavy rain.</span> <sup><a href="https://www.ardenneresidences.com/fr/experiences/sport/randonnees/balade-des-echelles/">[6]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-red)"></div></td>
+          <td><span class="hike-name">Échelles + Crêtes de Frahan</span><br><a href="https://www.alltrails.com/trail/belgium/luxembourg/rochehaut-les-echelles-et-cretes-de-frahan">AllTrails</a></td>
+          <td>varies</td><td>—</td>
+          <td><span class="difficulty hard">Hard</span></td>
+          <td>The regional benchmark, 578 reviews — chains ladders with the Frahan ridge panoramas <sup><a href="https://www.alltrails.com/trail/belgium/luxembourg/rochehaut-les-echelles-et-cretes-de-frahan">[7]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-red)"></div></td>
+          <td><span class="hike-name">Tombeau du Géant adventure loop</span><br><a href="https://www.tim-tense.com/hike-tombeau-du-geant-botassart/">Tim Tense</a></td>
+          <td>17.5 km</td><td>700 m</td>
+          <td><span class="difficulty hard">Hard</span></td>
+          <td>Two Semois river fords. <span class="hazard">⚠ May–Oct only, low water.</span> Late May fits. <sup><a href="https://www.tim-tense.com/hike-tombeau-du-geant-botassart/">[5]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-red)"></div></td>
+          <td><span class="hike-name">Pic du Diable (Belvédère d'Auclin)</span><br><a href="https://www.alltrails.com/poi/belgium/luxembourg/bouillon/le-pic-du-diable">AllTrails</a></td>
+          <td>18.7 km</td><td>—</td>
+          <td><span class="difficulty hard">Difficile</span></td>
+          <td>Long way round to a rocky belvedere west of Bouillon · ~5h23 <sup><a href="https://www.alltrails.com/poi/belgium/luxembourg/bouillon/le-pic-du-diable">[9]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="swatch-cell"><div style="background: var(--route-pink)"></div></td>
+          <td><span class="hike-name">GR 16 Sentier de la Semois</span><br><a href="https://grsentiers.be/topo-guides/43-gr-16-sentier-de-la-semois.html">GR Sentiers</a></td>
+          <td>209 km</td><td>—</td>
+          <td><span class="difficulty hard">Long-haul</span></td>
+          <td>Arlon → Monthermé, white-red blazes · 7th-ed topo-guide €23 <sup><a href="https://grsentiers.be/topo-guides/43-gr-16-sentier-de-la-semois.html">[13]</a></sup>.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size: 0.82rem; color: var(--ink-soft); margin: 0.8rem 0 0; font-style: italic;">
+      Stop by the <strong>Syndicat d'Initiatives, Grand Place 7 · Paliseul</strong> on Friday evening for the 2021 commune map (€7.50) — 32 walking circuits + 9 VTT loops <sup><a href="https://www.randobel.be/commune/detail/id/538/lg/fr">[2]</a></sup><sup><a href="https://www.randobel.be/lg/fr/commune/paliseul">[64]</a></sup>.
+    </p>
+  </section>
+
+  <!-- ────── RIVER & KAYAK ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">③</span>
+      <h2>The River, by Gauge</h2>
+      <span class="tag">Pick by ambition · season Mar 15 – Oct 30</span>
+    </div>
+
+    <div class="gauge-block">
+      <div class="gauge">
+        <h3>Semois flow at Membre</h3>
+        <div class="sub">Authorised window 2.2–50 m³/s</div>
+        <div class="gauge-bar">
+          <div class="now-marker"></div>
+        </div>
+        <div class="gauge-scale">
+          <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50+ m³/s</span>
+        </div>
+        <div class="gauge-zones">
+          <span class="z1">Too low<small>&lt; 2.2 m³/s</small></span>
+          <span class="z2">Uninteresting<small>&lt; 35 m³/s</small></span>
+          <span class="z3">Rocks clear<small>&gt; 40 m³/s</small></span>
+          <span class="z1">Too high<small>&gt; 50 m³/s</small></span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--ink-soft); margin: 0.8rem 0 0; font-style: italic;">
+          Spring typically 15–60 m³/s — <em>"ideal for sporty paddlers"</em> per <a href="https://www.kayaksemois-ardenne.be/eng/water-level-semois">Kayak Semois Ardenne</a> <sup><a href="https://www.kayaksemois-ardenne.be/eng/water-level-semois">[22]</a></sup>. Class I (easy), year-round between Chiny and Bouillon <sup><a href="https://www.eauxvives.org/en/rivieres/voir/Semois">[24]</a></sup>.
+        </p>
+      </div>
+
+      <div class="operators">
+        <h3>Operators on the corridor</h3>
+        <div class="op">
+          <div>
+            <strong><a href="https://semois-kayaks.be/reservation/">Semois Kayaks</a></strong> <span class="where">· Poupehan</span><br>
+            <small>Poupehan → Frahan 4 km / 1 h · shuttle included</small>
+          </div>
+          <div class="price">€25<small>from / pp</small></div>
+        </div>
+        <div class="op">
+          <div>
+            <strong><a href="https://www.recrealle-kayaks.com/en/kayak-parcours">Récréalle</a></strong> <span class="where">· Alle-sur-Semois</span><br>
+            <small>Alle → Vresse 7 km / 1.5 h · free shuttle · 300-space lot</small>
+          </div>
+          <div class="price">€20<small>2-seater / pp</small></div>
+        </div>
+        <div class="op">
+          <div>
+            <strong><a href="https://www.kayaksemois-ardenne.be/eng/tarifs">Kayak Semois Ardenne</a></strong> <span class="where">· Poupehan</span><br>
+            <small>Alle → Vresse 7 km / 2 h up to Poupehan → Membre 23 km</small>
+          </div>
+          <div class="price">€23–38<small>/ pp</small></div>
+        </div>
+        <div class="op">
+          <div>
+            <strong><a href="https://www.kayak-lesepinoches.be/fr/parcours-kayak">Les Epinoches</a></strong> <span class="where">· Bouillon</span><br>
+            <small>Saty → Bouillon 7 km / 1h30 · free minibus return</small>
+          </div>
+          <div class="price">call<small>ahead</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── WEATHER-CONTINGENT FORECAST ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">④</span>
+      <h2>Two-Day Forecast Strip</h2>
+      <span class="tag">Plan A &amp; B · dinner 19:30 at La Table de Maxim'</span>
+    </div>
+
+    <div class="forecast">
+      <div class="forecast-panel fair">
+        <div class="head">
+          <span class="icon">☀</span>
+          <h3>Plan A · fair weather</h3>
+          <span class="sub">River + viewpoint chain</span>
+        </div>
+        <ol>
+          <li><span class="time">SAT 09:00</span> Pick up <a href="https://www.randobel.be/commune/detail/id/538/lg/fr">Paliseul map</a> at Syndicat, Grand Place 7 <sup><a href="https://www.randobel.be/commune/detail/id/538/lg/fr">[2]</a></sup>.</li>
+          <li><span class="time">SAT 10:00</span> Kayak Poupehan → Frahan, 4 km / 1 h, ~€25 with <a href="https://semois-kayaks.be/reservation/">Semois Kayaks</a> <sup><a href="https://semois-kayaks.be/reservation/">[19]</a></sup>.</li>
+          <li><span class="time">SAT 12:30</span> Riverside lunch in Bouillon · <a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/pont-de-liege-bouillon_TFOALD-01-08H4-08IP/">Pont de Liège</a> + Quai des Saulx <sup><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/pont-de-liege-bouillon_TFOALD-01-08H4-08IP/">[33]</a></sup>.</li>
+          <li><span class="time">SAT 14:00</span> <a href="https://www.chateaudebouillon.com/en/pr%C3%A9parer-votre-visite-%C3%A9t%C3%A9">Château de Bouillon</a> — falconry 14:00 / 15:30 <sup><a href="https://visitwallonia.com/en-gb/content/bouillon-castle-and-its-falconry-shows">[26]</a></sup>.</li>
+          <li><span class="time">SAT 17:00</span> Drive to Botassart for golden-hour at <a href="https://www.semois-parcnational.be/le-tombeau-du-geant">Tombeau du Géant</a> <sup><a href="https://www.semois-parcnational.be/le-tombeau-du-geant">[31]</a></sup>.</li>
+          <li><span class="time">SAT 19:30</span> Dinner — La Table de Maxim'.</li>
+          <li><span class="time">SUN 09:00</span> <em>Au fil de l'Our</em> from the village church · 11.5 km / ~3 h 9 <sup><a href="https://www.sitytrail.com/en/trails/449048-paliseul--balade-au-pays-de-la-hautexlesse-x-au-fil-de-lxour/">[1]</a></sup>.</li>
+          <li><span class="time">SUN 13:00</span> Lunch in <a href="https://www.luxembourg-belge.be/diffusio/fr/voir-faire/visiter/patrimoine-naturel/rochehaut/le-panorama-sur-frahan-et-la-boucle-de-la-semois_TFO11518.php">Rochehaut</a>, then Panorama de Frahan <sup><a href="https://www.luxembourg-belge.be/diffusio/fr/voir-faire/visiter/patrimoine-naturel/rochehaut/le-panorama-sur-frahan-et-la-boucle-de-la-semois_TFO11518.php">[36]</a></sup>.</li>
+          <li><span class="time">SUN 15:00</span> <a href="https://tourisme.vresse-sur-semois.be/decouvrir/patrimoine/le-tabac-de-la-semois">Semois tobacco route</a> drive <sup><a href="https://tourisme.vresse-sur-semois.be/decouvrir/patrimoine/le-tabac-de-la-semois">[39]</a></sup> · OR the <a href="https://www.lavenir.net/regions/luxembourg/bouillon/2022/04/18/bike-trail-center-de-bouillon-un-trace-de-42-km-et-cinq-boucles-de-pur-trail-R23S5C2WUJDSBPOCDVVCHXDUI4/">Bike Trail Center Bouillon</a> 42 km enduro <sup><a href="https://www.lavenir.net/regions/luxembourg/bouillon/2022/04/18/bike-trail-center-de-bouillon-un-trace-de-42-km-et-cinq-boucles-de-pur-trail-R23S5C2WUJDSBPOCDVVCHXDUI4/">[57]</a></sup>.</li>
+        </ol>
+      </div>
+
+      <div class="forecast-panel rain">
+        <div class="head">
+          <span class="icon">☔</span>
+          <h3>Plan B · rain falls in</h3>
+          <span class="sub">Indoor anchors + caves</span>
+        </div>
+        <ol>
+          <li><span class="time">SAT 09:00</span> Same: <a href="https://www.randobel.be/commune/detail/id/538/lg/fr">Paliseul map</a> pickup <sup><a href="https://www.randobel.be/commune/detail/id/538/lg/fr">[2]</a></sup>.</li>
+          <li><span class="time">SAT 10:00</span> <a href="https://www.bouillonmedievalexperience.be/en/home/">Bouillon Medieval Experience</a> + <a href="https://www.archeoscopebouillon.be/lang-en/">Archéoscope</a> <sup><a href="https://www.bouillonmedievalexperience.be/en/home/">[70]</a></sup><sup><a href="https://www.archeoscopebouillon.be/lang-en/">[71]</a></sup>.</li>
+          <li><span class="time">SAT 12:30</span> Same: riverside lunch in Bouillon.</li>
+          <li><span class="time">SAT 14:00</span> <a href="https://www.chateaudebouillon.com/en/pr%C3%A9parer-votre-visite-%C3%A9t%C3%A9">Château de Bouillon</a> indoor parts: casemates, vaulted halls, secret passages stay dry · then <a href="http://www.museeducalbouillon.be/">Musée Ducal</a> <sup><a href="http://www.museeducalbouillon.be/">[69]</a></sup>.</li>
+          <li><span class="time">SAT 17:00</span> <a href="https://www.fermedesfees.be/">La Ferme des Fées</a> at Les Hayons — free 1/4-scale fairy figurines <sup><a href="https://www.fermedesfees.be/">[80]</a></sup>.</li>
+          <li><span class="time">SAT 19:30</span> Dinner — La Table de Maxim'.</li>
+          <li><span class="time">SUN 09:00</span> <a href="https://grotte-de-han.be/en/opening-times">Grottes de Han</a> Cave Journey · 2 h, 510 steps. <span style="color: var(--hazard); font-size: 0.78rem">⚠ closed 11, 12, 18 May 2026.</span> <sup><a href="https://grotte-de-han.be/en/opening-times">[68]</a></sup></li>
+          <li><span class="time">SUN 13:00</span> Lunch + <a href="https://www.orval.be/en/page/468-contact-and-practical-information">Orval Abbey</a> ruins + Caves Dewez museum <sup><a href="https://www.orval.be/en/page/468-contact-and-practical-information">[73]</a></sup>.</li>
+          <li><span class="time">SUN 15:00</span> <a href="https://www.bertinchamps.be/en/brewery-visit">Brasserie de Bertinchamps</a> Sat/Sun 10:30 tour — <span class="hazard" style="color: var(--hazard)">⚠ booking required, shift to Sat AM if possible</span> <sup><a href="https://www.bertinchamps.be/en/brewery-visit">[76]</a></sup>.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── BOUILLON HALF-DAY ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">⑤</span>
+      <h2>Bouillon · half-day inset</h2>
+      <span class="tag">~20 min from Our · castle = ~1 h self-guided</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem;">
+      <div>
+        <table class="trail-roster">
+          <thead>
+            <tr><th style="width:80px">Time</th><th>Stop</th><th>Why now</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>10:30</strong></td>
+              <td><a href="https://www.chateaudebouillon.com/en/pr%C3%A9parer-votre-visite-%C3%A9t%C3%A9">Park free on the esplanade</a></td>
+              <td>~50 free spaces; town overflow free too <sup><a href="https://www.chateaudebouillon.com/en/pr%C3%A9parer-votre-visite-%C3%A9t%C3%A9">[25]</a></sup>.</td>
+            </tr>
+            <tr>
+              <td><strong>11:00</strong></td>
+              <td>Ramparts &amp; lower courtyard</td>
+              <td>~1 h self-guided · 1.5 h with audioguide <sup><a href="https://www.chateaudebouillon.com/en/pr%C3%A9parer-votre-visite-%C3%A9t%C3%A9">[25]</a></sup>.</td>
+            </tr>
+            <tr>
+              <td><strong>11:30</strong></td>
+              <td>Falconry show (~30 min)</td>
+              <td>Feb 22 – Nov 11; extra 17:00 weekends Apr–Jun + Sep <sup><a href="https://visitwallonia.com/en-gb/content/bouillon-castle-and-its-falconry-shows">[26]</a></sup>.</td>
+            </tr>
+            <tr>
+              <td><strong>12:30</strong></td>
+              <td>Lunch riverside</td>
+              <td><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/pont-de-liege-bouillon_TFOALD-01-08H4-08IP/">Pont de Liège</a> on this site since 1069, current span 1951 <sup><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/pont-de-liege-bouillon_TFOALD-01-08H4-08IP/">[33]</a></sup>.</td>
+            </tr>
+            <tr>
+              <td><strong>14:00</strong></td>
+              <td><a href="https://www.bouillonmedievalexperience.be/en/home/">Bouillon Medieval Experience</a></td>
+              <td>30–45 min in former Sépulcrines convent (1626), audio EN/FR/NL/DE · 4.3/5 <sup><a href="https://www.bouillonmedievalexperience.be/en/home/">[70]</a></sup><sup><a href="https://www.tripadvisor.com/Attraction_Review-g230017-d27722299-Reviews-Bouillon_Medieval_Experience-Bouillon_Luxembourg_Province_The_Ardennes_Wallonia.html">[30]</a></sup>.</td>
+            </tr>
+            <tr>
+              <td><strong>15:00</strong></td>
+              <td><a href="https://www.archeoscopebouillon.be/lang-en/">Archéoscope Godefroid</a></td>
+              <td>New screening every 35 min · walk into darkened Jerusalem-tomb replica <sup><a href="https://www.archeoscopebouillon.be/lang-en/">[71]</a></sup>.</td>
+            </tr>
+            <tr>
+              <td><strong>16:30</strong></td>
+              <td>Drive to Botassart belvedere</td>
+              <td>Late-afternoon side light on the meander.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="vp" style="margin: 0">
+        <div class="vp-photo" style="background-image: url('trailmap/images/bouillon.jpg'); height: 220px;"></div>
+        <div class="vp-body">
+          <h4>Château de Bouillon</h4>
+          <div class="vp-meta">€7 adult · 4.4/5 across 1,565 reviews</div>
+          <p>Belgium's largest preserved medieval fortress. Visitor pattern: secret passages, river panorama and falconry win; complaints are the uphill walk and weather-cancelled bird shows <sup><a href="https://www.tripadvisor.com/Attraction_Review-g230017-d318679-Reviews-Bouillon_Castle-Bouillon_Luxembourg_Province_The_Ardennes_Wallonia.html">[28]</a></sup>.</p>
+          <p class="vp-note">Buy the <strong>City Pass+ €16/€12</strong> if combining castle + Medieval Experience + Musée Ducal + Odyssée de Lumière <sup><a href="https://www.archeoscopebouillon.be/votre-visite/en-individuel/">[27]</a></sup><sup><a href="http://www.museeducalbouillon.be/">[69]</a></sup>. Musée Ducal alone is the weakest link (3.7/5) <sup><a href="https://www.tripadvisor.com/Attraction_Review-g230017-d318709-Reviews-Ducal_Museum_Musee_Ducal-Bouillon_Luxembourg_Province_The_Ardennes_Wallonia.html">[29]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── VILLAGES MARGIN ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">⑥</span>
+      <h2>Villages — pick three</h2>
+      <span class="tag">All within ~25 min of Our · resist all-of-them</span>
+    </div>
+
+    <div class="villages">
+      <div class="village">
+        <strong><a href="https://www.semois-parcnational.be/le-tombeau-du-geant">Botassart</a></strong>
+        Tombeau du Géant belvedere, free 24/7 <sup><a href="https://www.kayaksemois-ardenne.be/eng/tombeau-du-geant">[32]</a></sup>.
+        <span class="badge">30 min</span>
+      </div>
+      <div class="village">
+        <strong><a href="https://www.luxembourg-belge.be/diffusio/fr/voir-faire/visiter/patrimoine-naturel/rochehaut/le-panorama-sur-frahan-et-la-boucle-de-la-semois_TFO11518.php">Rochehaut</a></strong>
+        Panorama over Frahan · 300 m balustrade, binoculars <sup><a href="https://www.luxembourg-belge.be/diffusio/fr/voir-faire/visiter/patrimoine-naturel/rochehaut/le-panorama-sur-frahan-et-la-boucle-de-la-semois_TFO11518.php">[36]</a></sup>.
+        <span class="badge">30–45 min</span>
+      </div>
+      <div class="village gem">
+        <strong><a href="https://beauxvillages.be/en/villages/laforet/">Laforêt</a></strong>
+        Most Beautiful Village of Wallonia since 1955 <sup><a href="https://beauxvillages.be/en/villages/laforet/">[41]</a></sup>. <span style="color: var(--hazard)">⚠ Pont de Claies only mid-Jun → mid-Sep</span> <sup><a href="https://www.vresse-sur-semois.be/fr/loisirs/tourisme/centre-touristique-et-culturel/decouvrir/nos-villages/laforet">[42]</a></sup>.
+        <span class="badge">★ Beaux Villages · 30 min</span>
+      </div>
+      <div class="village">
+        <strong><a href="https://tourisme.vresse-sur-semois.be/decouvrir/patrimoine/le-tabac-de-la-semois">Vresse-sur-Semois</a></strong>
+        Tobacco-route loops + Vresse School of painters since ~1920 <sup><a href="https://www.kayaksemois-ardenne.be/eng/vresse-sur-semois">[40]</a></sup>.
+        <span class="badge">1–2 h</span>
+      </div>
+      <div class="village gem">
+        <strong><a href="https://www.chassepierre.be/en">Chassepierre</a></strong>
+        Most Beautiful Village + 52nd street-arts festival 15–16 Aug 2026 <sup><a href="https://www.chassepierre.be/en">[45]</a></sup><sup><a href="https://beauxvillages.be/en/villages/chassepierre/">[46]</a></sup>.
+        <span class="badge">★ festival weekend = full day</span>
+      </div>
+      <div class="village">
+        <strong>Frahan</strong>
+        River-loop hamlet · seen from above; reach on foot from Laviot, 9.5 km <sup><a href="https://www.alltrails.com/trail/belgium/luxembourg/autour-de-frahan">[38]</a></sup>.
+        <span class="badge">half-day</span>
+      </div>
+      <div class="village">
+        <strong><a href="https://www.tripadvisor.com/Attractions-g2308632-Activities-Alle_sur_Semois_The_Ardennes_Wallonia.html">Alle-sur-Semois</a></strong>
+        Récréalle hub (kayak, e-bike, bowling), <a href="https://www.tripadvisor.com/Attraction_Review-g2308632-d10383154-Reviews-Ardois_alle-Alle_sur_Semois_The_Ardennes_Wallonia.html">Ardois'Alle</a> ex-slate mine <sup><a href="https://www.tripadvisor.com/Attractions-g2308632-Activities-Alle_sur_Semois_The_Ardennes_Wallonia.html">[44]</a></sup><sup><a href="https://www.tripadvisor.com/Attraction_Review-g2308632-d10383154-Reviews-Ardois_alle-Alle_sur_Semois_The_Ardennes_Wallonia.html">[81]</a></sup>.
+        <span class="badge">half-day</span>
+      </div>
+      <div class="village">
+        <strong>Membre</strong>
+        Best by water — Jambon Belvedere Corten-steel takeout <sup><a href="https://www.kayaksemois-ardenne.be/eng/kayak-semois">[50]</a></sup>.
+        <span class="badge">30 min on shore</span>
+      </div>
+      <div class="village">
+        <strong><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/le-village-de-mortehan-et-son-cimetiere-classe-bertrix_TFOALD-01-08H4-0OLP/">Mortehan</a></strong>
+        Classified "marine" cemetery (1899 / listed 1972) + slate houses <sup><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/le-village-de-mortehan-et-son-cimetiere-classe-bertrix_TFOALD-01-08H4-0OLP/">[47]</a></sup>.
+        <span class="badge">30 min</span>
+      </div>
+      <div class="village">
+        <strong><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/le-village-de-dohan-bouillon_TFOALD-01-08H4-2SO6/">Dohan</a></strong>
+        17th-c. schist-and-sandstone castle on a rocky bluff <sup><a href="https://www.ardennebelge.be/diffusio/fr/p/decouverte-et-divertissement/le-village-de-dohan-bouillon_TFOALD-01-08H4-2SO6/">[48]</a></sup>.
+        <span class="badge">30 min</span>
+      </div>
+      <div class="village">
+        <strong><a href="https://www.kayaksemois-ardenne.be/eng/poupehan">Poupehan</a></strong>
+        Launchpad for Les Échelles de Rochehaut via GR 16 <sup><a href="https://www.kayaksemois-ardenne.be/eng/poupehan">[49]</a></sup>.
+        <span class="badge">half-day w/ hike</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns: 1fr 1fr;gap:1.5rem;margin-top:1.2rem">
+      <div class="vp" style="margin:0">
+        <div class="vp-photo" style="background-image: url('trailmap/images/laforet.jpg'); height: 180px;"></div>
+        <div class="vp-body">
+          <h4>Laforêt</h4>
+          <div class="vp-meta">Beaux Villages de Wallonie · 1955</div>
+          <p>One of the rare southern Ardenne villages to retain its original character — slate roofs and the seasonal Pont de Claies woven from hornbeam branches <sup><a href="https://beauxvillages.be/en/villages/laforet/">[41]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="vp" style="margin:0">
+        <div class="vp-photo" style="background-image: url('trailmap/images/echelles.jpg'); height: 180px;"></div>
+        <div class="vp-body">
+          <h4>Échelles de Rochehaut</h4>
+          <div class="vp-meta">Suffer-fest · 4.7 km · 1h30</div>
+          <p>Metal-ladder scramble up schist cliffs from Poupehan via GR 16 <sup><a href="https://www.ardenneresidences.com/fr/experiences/sport/randonnees/balade-des-echelles/">[6]</a></sup>. For the regional benchmark version, chain it with the Crêtes de Frahan ridge — 578 AllTrails reviews <sup><a href="https://www.alltrails.com/trail/belgium/luxembourg/rochehaut-les-echelles-et-cretes-de-frahan">[7]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── CYCLING ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">⑦</span>
+      <h2>Cycling · from Our's doorstep</h2>
+      <span class="tag">VTC / e-MTB for the D+</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+      <div style="background: var(--paper-tint); border: 1px solid var(--rule); padding: 1.1rem 1.3rem;">
+        <h3 style="font-family:'Playfair Display',Georgia,serif; margin: 0 0 0.5rem; font-size:1.1rem;">Loops passing Our</h3>
+        <p style="font-size: 0.9rem; margin: 0 0 0.7rem;">Two signed Points-Noeuds loops from the <a href="https://www.velo.province.luxembourg.be/fr/node/1752">Bouillon tourism office</a> explicitly pass through Our: <strong>Nature et Paysages 3</strong> (29 km, 480 m D+) and <strong>Villages d'Ardenne 2</strong> (23 km, 310 m D+) — PN 59 sits right by the village <sup><a href="https://www.velo.province.luxembourg.be/fr/node/1752">[53]</a></sup>.</p>
+        <p style="font-size: 0.9rem; margin: 0 0 0.7rem;">Province-wide <a href="https://province.luxembourg.be/pointsnoeuds/">Points-Noeuds</a> mesh: ~2,500 km / 530 numbered nodes / 44 communes / 85% paved <sup><a href="https://province.luxembourg.be/pointsnoeuds/">[52]</a></sup>. Regional route W7 fully signed Sainte-Ode → Libramont → Bertrix → Paliseul → Bouillon — point-to-point spine from Our <sup><a href="https://ravel.wallonie.be/news/litineraire-cyclable-regional-w7---sur-la-route-des-ardennes-est-compl">[56]</a></sup>.</p>
+        <p style="font-size: 0.85rem; margin: 0; color: var(--ink-soft); font-style: italic;">Gravel: <a href="https://www.paysdebouillon.be/circuit-gravel">six signed Pays de Bouillon loops</a> including Bertrix–Paliseul 35 km <sup><a href="https://www.paysdebouillon.be/circuit-gravel">[59]</a></sup>.</p>
+      </div>
+
+      <div style="background: var(--paper-tint); border: 1px solid var(--rule); padding: 1.1rem 1.3rem;">
+        <h3 style="font-family:'Playfair Display',Georgia,serif; margin: 0 0 0.5rem; font-size:1.1rem;">MTB headline · <a href="https://www.lavenir.net/regions/luxembourg/bouillon/2022/04/18/bike-trail-center-de-bouillon-un-trace-de-42-km-et-cinq-boucles-de-pur-trail-R23S5C2WUJDSBPOCDVVCHXDUI4/">Bike Trail Center Bouillon</a></h3>
+        <p style="font-size: 0.9rem; margin: 0 0 0.7rem;"><strong>42 km enduro</strong> · ~1,200 m D+ · linking Cordemois, Moulin de l'Épine, Poupehan, Frahan, Rochehaut, Botassart, Sensenruth · plus five short loops graded blue/red/black like ski slopes + two kids' lines (ages 5–10) <sup><a href="https://www.lavenir.net/regions/luxembourg/bouillon/2022/04/18/bike-trail-center-de-bouillon-un-trace-de-42-km-et-cinq-boucles-de-pur-trail-R23S5C2WUJDSBPOCDVVCHXDUI4/">[57]</a></sup>.</p>
+        <p style="font-size: 0.85rem; margin: 0; color: var(--ink-soft); font-style: italic;">Belgium's first officially-sanctioned trail-building project — sub-50 cm natural-terrain width with berms &amp; jumps from fallen branches <sup><a href="https://www.vojomag.com/enduro-permanent-a-bouillon-un-trail-building-day-historique/">[58]</a></sup>.</p>
+      </div>
+    </div>
+
+    <table class="trail-roster" style="margin-top: 1.2rem">
+      <thead>
+        <tr><th>Rental shop</th><th>Base</th><th>E-bike / day</th><th>VTT / day</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.kayak-capsemois.be/"><strong>Cap Semois</strong></a></td>
+          <td>Vresse-sur-Semois</td>
+          <td>€80</td><td>€30</td>
+          <td>Trek 500W Bosch · 40 km turbo / 100+ km eco · helmet free · signed 14/20/35 km itineraries <sup><a href="https://www.kayak-capsemois.be/">[61]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.recrealle.com/en/activities"><strong>Récréalle</strong></a></td>
+          <td>Alle-sur-Semois</td>
+          <td>€35</td><td>€30</td>
+          <td>Several marked MTB trails leave the leisure base <sup><a href="https://www.recrealle.com/en/activities">[62]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td colspan="2"><a href="https://www.paysdebouillon.be/loisirs-velos-et-autres-roues">L'Ami Pierre · Arde-Bike · Cellier du Baudet · Sports in Lux · AmuSemois</a></td>
+          <td colspan="2">call</td>
+          <td>Coordinated network listed by the <a href="https://www.paysdebouillon.be/loisirs-velos-et-autres-roues">Maison du Tourisme de Bouillon</a> <sup><a href="https://www.paysdebouillon.be/loisirs-velos-et-autres-roues">[63]</a></sup>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ────── WET-WEATHER INDOOR ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">⑧</span>
+      <h2>Indoor backups · the rainy-day bench</h2>
+      <span class="tag">More roof-and-walls than the valley's size suggests</span>
+    </div>
+
+    <div class="indoor-grid">
+      <div class="indoor">
+        <strong><a href="https://www.bouillonmedievalexperience.be/en/home/">Bouillon Medieval Experience</a></strong>
+        <div class="meta">20 min · 45 min · bundled</div>
+        <p>Indoor immersive show in the 1626 Sépulcrines convent <sup><a href="https://www.bouillonmedievalexperience.be/en/home/">[70]</a></sup>.</p>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.archeoscopebouillon.be/lang-en/">Archéoscope Godefroid</a></strong>
+        <div class="meta">20 min · 1 h · bundled</div>
+        <p>Crusades film + walk-through dark room, every 35 min <sup><a href="https://www.archeoscopebouillon.be/lang-en/">[71]</a></sup>.</p>
+      </div>
+      <div class="indoor">
+        <strong><a href="http://www.museeducalbouillon.be/">Château de Bouillon</a> (indoor)</strong>
+        <div class="meta">20 min · 1 h · €7</div>
+        <p>Casemates, vaulted halls, secret passages stay dry <sup><a href="http://www.museeducalbouillon.be/">[69]</a></sup>.</p>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.eurospacecenter.be/en/infos-tarifs">Euro Space Center</a></strong>
+        <div class="meta">30 min · ~6 h · call</div>
+        <p>Gravity sims, moonwalk, virtual missions in Transinne <sup><a href="https://www.eurospacecenter.be/en/infos-tarifs">[65]</a></sup>.</p>
+        <span class="hazard">⚠ Best ages 8–11 — mixed for younger <sup><a href="https://www.tripadvisor.com/Attraction_Review-g776162-d774884-Reviews-Euro_Space_Center-Transinne_Luxembourg_Province_The_Ardennes_Wallonia.html">[66]</a></sup>.</span>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://grotte-de-han.be/en/prices">Grottes de Han</a></strong>
+        <div class="meta">50 min · 2 h · €29</div>
+        <p>Cave Journey · 510 steps <sup><a href="https://grotte-de-han.be/en/prices">[67]</a></sup>.</p>
+        <span class="hazard">⚠ closed 11, 12, 18 May 2026 <sup><a href="https://grotte-de-han.be/en/opening-times">[68]</a></sup>.</span>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.orval.be/en/page/468-contact-and-practical-information">Orval Abbey</a></strong>
+        <div class="meta">1 h · 2 h · call</div>
+        <p>Cistercian ruins + Caves Dewez museum + brewery exhibition <sup><a href="https://www.orval.be/en/page/468-contact-and-practical-information">[73]</a></sup>.</p>
+        <span class="hazard">⚠ working brewery only on Open Door days.</span>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.basiliquesainthubert.be/">Basilique Saint-Hubert</a></strong>
+        <div class="meta">35 min · 1 h · free</div>
+        <p>Daily 10:00–18:00 Easter–All Saints · €2 guided / €3 attic <sup><a href="https://www.basiliquesainthubert.be/">[74]</a></sup>.</p>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.tabac-semois.com/musee.html">Musée du Tabac de la Semois</a></strong>
+        <div class="meta">25 min · 1 h · call</div>
+        <p>Corbion <sup><a href="https://www.tabac-semois.com/musee.html">[72]</a></sup>.</p>
+        <span class="hazard">⚠ Appointment only · +32 61 46 81 29.</span>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.fermedesfees.be/">La Ferme des Fées</a></strong>
+        <div class="meta">20 min · 1 h · free</div>
+        <p>Les Hayons · 1/4-scale handmade fairy figurines + Ardennes-life dioramas · Thu–Sat 10:00–12:30 &amp; 13:30–18:00 <sup><a href="https://www.fermedesfees.be/">[80]</a></sup>.</p>
+      </div>
+      <div class="indoor">
+        <strong><a href="https://www.tripadvisor.com/Attraction_Review-g2308632-d10383154-Reviews-Ardois_alle-Alle_sur_Semois_The_Ardennes_Wallonia.html">Ardois'Alle</a></strong>
+        <div class="meta">20 min · 1 h · call</div>
+        <p>Guided tour of a former slate mine in Alle-sur-Semois <sup><a href="https://www.tripadvisor.com/Attraction_Review-g2308632-d10383154-Reviews-Ardois_alle-Alle_sur_Semois_The_Ardennes_Wallonia.html">[81]</a></sup>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── PROVISIONS / BREWERIES ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">⑨</span>
+      <h2>Provisions · microbreweries</h2>
+      <span class="tag">Plan a Sunday-afternoon stop on the way home</span>
+    </div>
+
+    <div class="provisions">
+      <div class="prov">
+        <strong><a href="https://lupulus.be/en/visits">Lupulus</a></strong>
+        <div class="meta">Bovigny · 1 h</div>
+        Daily during Belgian school holidays. <span class="hazard" style="color: var(--hazard); font-style: italic">⚠ 16+ unless prearranged</span> <sup><a href="https://lupulus.be/en/visits">[75]</a></sup>.
+      </div>
+      <div class="prov">
+        <strong><a href="https://www.bertinchamps.be/en/brewery-visit">Bertinchamps</a></strong>
+        <div class="meta">1 h 15 · Sat/Sun 10:30</div>
+        1 h tour · €6 inc. gallopin · booking required <sup><a href="https://www.bertinchamps.be/en/brewery-visit">[76]</a></sup>.
+      </div>
+      <div class="prov">
+        <strong><a href="https://www.brasseriedelalesse.be/">De la Lesse</a></strong>
+        <div class="meta">50 min · €12 adult</div>
+        40 min tour + tasting on terrace · bookable online <sup><a href="https://www.brasseriedelalesse.be/">[77]</a></sup>.
+      </div>
+      <div class="prov">
+        <strong><a href="https://sainte-helene.be/index.php?page=brew">Sainte-Hélène</a></strong>
+        <div class="meta">Florenville · 45 min</div>
+        <span style="color: var(--hazard)">⚠ Appointment only · groups 5–50 · 15-day notice</span> <sup><a href="https://sainte-helene.be/index.php?page=brew">[78]</a></sup>.
+      </div>
+      <div class="prov">
+        <strong><a href="https://visitwallonia.com/en-gb/content/la-brasserie-de-bouillon-and-le-marche-de-nathalie">De Bouillon</a></strong>
+        <div class="meta">20 min · groups 8+</div>
+        Walk-in alternative: <em>Le Marché de Nathalie</em> in town, 300+ Belgian labels <sup><a href="https://visitwallonia.com/en-gb/content/la-brasserie-de-bouillon-and-le-marche-de-nathalie">[79]</a></sup>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── FIELD CHECKLIST ────── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">⑩</span>
+      <h2>Field Checklist</h2>
+      <span class="tag">All boxes ticked by Friday evening</span>
+    </div>
+
+    <div class="checklist">
+      <h3>Before you leave the house <small>BOOK / PACK / READ</small></h3>
+      <ul>
+        <li><strong>Kayak slot</strong> — <a href="https://semois-kayaks.be/reservation/">Semois Kayaks</a> Poupehan → Frahan 4 km <em>or</em> <a href="https://www.recrealle-kayaks.com/en/page/info-navigation-on-the-semois">Récréalle</a> Alle → Vresse 7 km <span class="when">BOOK ONLINE</span></li>
+        <li><strong>Bouillon City Pass+</strong> €16/€12 — saves the ticket queue at the castle <sup><a href="https://www.archeoscopebouillon.be/votre-visite/en-individuel/">[27]</a></sup> <span class="when">BUY ONLINE</span></li>
+        <li><strong>Paliseul commune map</strong> €7.50 — pick up at Syndicat d'Initiatives, Grand Place 7, Friday evening <sup><a href="https://www.randobel.be/commune/detail/id/538/lg/fr">[2]</a></sup> <span class="when">FRI 17–19h</span></li>
+        <li><strong>Brewery tour</strong> if Sunday — <a href="https://www.bertinchamps.be/en/brewery-visit">Bertinchamps 10:30 Sat/Sun</a> needs booking <sup><a href="https://www.bertinchamps.be/en/brewery-visit">[76]</a></sup> <span class="when">15 DAYS NOTICE FOR SAINTE-HÉLÈNE</span></li>
+        <li><strong><a href="https://www.fermedesfees.be/">La Ferme des Fées</a></strong> — Thu–Sat only <sup><a href="https://www.fermedesfees.be/">[80]</a></sup> <span class="when">CHECK DAY</span></li>
+        <li><strong>Sturdy boots</strong> — Échelles de Rochehaut, Tombeau mini-loop both go slippery after rain <sup><a href="https://www.ardenneresidences.com/fr/experiences/sport/randonnees/balade-des-echelles/">[6]</a></sup><sup><a href="https://www.komoot.com/fr-fr/smarttour/e1408238676/tombeau-du-geant-boucle-depuis-botassart-dans-le-parc-national-de-la-vallee-de-la-semois">[4]</a></sup> <span class="when">PACK</span></li>
+        <li><strong>Daylight to ~21:30</strong> — useful for the <a href="https://visitwallonia.fr/fr/produit/attractions/activites/promenade-ou-randonnee-pedestre/au-gre-de-la-semois-balade-autour-de-bouillon/49750">Au gré de la Semois</a> riverside walk as Sunday-evening unwind <sup><a href="https://visitwallonia.fr/fr/produit/attractions/activites/promenade-ou-randonnee-pedestre/au-gre-de-la-semois-balade-autour-de-bouillon/49750">[15]</a></sup> <span class="when">LATE MAY</span></li>
+        <li><strong>Where you're sleeping</strong> — see the companion sheet on lodging.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <div>
+      <strong>Field Sheet S-55 · Semois Valley</strong> — drawn for a late-May 2026 weekend basecamped at Our (Paliseul), province de Luxembourg, Belgium. River-flow data <a href="https://www.kayaksemois-ardenne.be/eng/water-level-semois">Kayak Semois Ardenne</a> &amp; <a href="https://www.recrealle-kayaks.com/en/page/info-navigation-on-the-semois">Récréalle</a>. Viewpoint canon: <a href="https://www.paysdebouillon.be/points-de-vue-et-sites-naturels">Maison du Tourisme de Bouillon</a>. Guided-walk programme: <a href="https://www.semois-parcnational.be/en/post/discover-the-2026-guided-walk-calendar">Parc national Vallée de la Semois</a>.
+    </div>
+    <div style="text-align: right">
+      <strong>81 cited sources</strong><br>
+      Latitude 49°55′ N · Longitude 5°05′ E
+    </div>
+  </footer>
+
+</div>
