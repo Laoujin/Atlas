@@ -1,0 +1,1212 @@
+---
+layout: view
+view_name: "Recipe Card"
+view_of: ../
+title: "Prompting workflow: ChatGPT-refine → Lovable-build — Recipe Card"
+---
+
+<style>
+  :root {
+    --paper:       #f3e8cf;
+    --paper-deep:  #e8d9b6;
+    --paper-edge:  #d6c190;
+    --ink:         #2c1d10;
+    --ink-soft:    #5a3f24;
+    --rule:        #8a6a3e;
+    --stamp:       #b21f1f;
+    --stamp-deep:  #7d1414;
+    --hand:        #1a3a6e;
+    --teal:        #1d6e72;
+    --gold:        #a87a18;
+    --cream:       #fbf6e9;
+    --coffee:      rgba(120, 70, 30, 0.16);
+    --coffee-deep: rgba(80, 40, 15, 0.22);
+  }
+
+  .rcp {
+    margin: 0;
+    background:
+      radial-gradient(circle at 12% 8%, var(--coffee-deep) 0 1.4%, transparent 1.7%),
+      radial-gradient(circle at 88% 14%, var(--coffee) 0 2.4%, transparent 2.8%),
+      radial-gradient(circle at 92% 78%, var(--coffee-deep) 0 1.8%, transparent 2.1%),
+      radial-gradient(circle at 6% 92%, var(--coffee) 0 2.6%, transparent 3%),
+      radial-gradient(circle at 50% 52%, rgba(140,100,55,0.05) 0 35%, transparent 60%),
+      repeating-linear-gradient(135deg, rgba(120, 80, 35, 0.018) 0 2px, transparent 2px 5px),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+    color: var(--ink);
+    font-family: "Cutive Mono", "Courier Prime", "Courier New", monospace;
+    line-height: 1.55;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  .rcp a { color: var(--hand); text-decoration: underline; text-decoration-style: dotted; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .rcp a:hover { color: var(--stamp); }
+
+  /* ============== HEADER / RECIPE FILE TAB ============== */
+  .file-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 36px 64px 0;
+    gap: 28px;
+    border-top: 6px double var(--rule);
+  }
+  .file-tab {
+    background: var(--cream);
+    border: 1.5px solid var(--rule);
+    padding: 6px 18px;
+    font-family: "Special Elite", "Courier Prime", monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    box-shadow: 2px 2px 0 rgba(80, 50, 20, 0.12);
+    transform: rotate(-1deg);
+  }
+  .file-no {
+    font-family: "Special Elite", monospace;
+    font-size: 13px;
+    color: var(--stamp);
+    border: 2px solid var(--stamp);
+    padding: 4px 10px;
+    letter-spacing: 0.15em;
+    transform: rotate(2.5deg);
+    background: rgba(255, 245, 230, 0.7);
+  }
+
+  .title-block {
+    padding: 14px 64px 8px;
+    text-align: center;
+    position: relative;
+  }
+  .kicker {
+    font-family: "Special Elite", monospace;
+    font-size: 12px;
+    letter-spacing: 0.5em;
+    color: var(--rule);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .kicker::before, .kicker::after { content: " ◆ "; opacity: 0.6; }
+  .rcp h1 {
+    font-family: "Playfair Display", "DM Serif Display", Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(40px, 5.6vw, 84px);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0 0 6px;
+    font-style: italic;
+  }
+  .arrow-rune {
+    font-family: "Playfair Display", serif;
+    color: var(--stamp);
+    font-style: normal;
+    font-size: 0.85em;
+    padding: 0 0.15em;
+  }
+  .subhead {
+    font-family: "Caveat", "Marker Felt", cursive;
+    font-size: 26px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .from-the-cookbook {
+    font-family: "Special Elite", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-top: 18px;
+  }
+  .from-the-cookbook em { color: var(--stamp); font-style: normal; }
+
+  /* ============== META STRIP (SERVES / PREP / COOK) ============== */
+  .meta-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-top: 3px double var(--rule);
+    border-bottom: 3px double var(--rule);
+    margin: 28px 64px 0;
+    background: rgba(255, 250, 235, 0.35);
+  }
+  .meta-cell {
+    padding: 14px 12px;
+    text-align: center;
+    border-right: 1px dashed var(--rule);
+    font-family: "Special Elite", monospace;
+  }
+  .meta-cell:last-child { border-right: none; }
+  .meta-cell .lbl {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .meta-cell .val {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 22px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .meta-cell .val small {
+    font-family: "Special Elite", monospace;
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: -2px;
+  }
+
+  /* ============== HEADNOTE ============== */
+  .headnote {
+    margin: 32px 80px 0;
+    padding: 22px 28px 22px 36px;
+    border-left: 4px double var(--stamp);
+    background: rgba(255, 248, 232, 0.45);
+    font-family: "Cutive Mono", monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink);
+    position: relative;
+  }
+  .headnote::before {
+    content: "“";
+    position: absolute;
+    left: -6px;
+    top: -34px;
+    font-family: "Playfair Display", serif;
+    font-size: 90px;
+    color: var(--stamp);
+    opacity: 0.7;
+    line-height: 1;
+  }
+  .headnote strong { color: var(--stamp); letter-spacing: 0.04em; }
+
+  /* ============== HERO PHOTO (cookbook plated-dish style) ============== */
+  .hero-photo {
+    margin: 32px 64px 0;
+    border: 8px solid var(--cream);
+    box-shadow: 0 0 0 1.5px var(--rule), 6px 8px 0 rgba(80, 50, 20, 0.12);
+    transform: rotate(-0.6deg);
+    position: relative;
+  }
+  .hero-photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 380px;
+    object-fit: cover;
+    filter: sepia(0.18) saturate(0.92) contrast(0.97);
+  }
+  .hero-photo .caption {
+    position: absolute;
+    bottom: -28px;
+    right: 18px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 4px 14px;
+    font-family: "Caveat", cursive;
+    font-size: 18px;
+    color: var(--ink-soft);
+    transform: rotate(1.5deg);
+    box-shadow: 2px 2px 0 rgba(80, 50, 20, 0.12);
+  }
+
+  /* ============== INGREDIENTS + METHOD GRID ============== */
+  .recipe-body {
+    display: grid;
+    grid-template-columns: 0.85fr 1.6fr;
+    gap: 48px;
+    margin: 56px 64px 0;
+  }
+  @media (max-width: 900px) {
+    .recipe-body { grid-template-columns: 1fr; gap: 36px; }
+  }
+
+  .section-head {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 32px;
+    color: var(--ink);
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+    letter-spacing: -0.01em;
+  }
+  .section-head .num {
+    font-family: "Special Elite", monospace;
+    font-size: 14px;
+    color: var(--stamp);
+    letter-spacing: 0.3em;
+    font-style: normal;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* INGREDIENTS */
+  .ingredients ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .ingredients li {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--rule);
+    align-items: baseline;
+  }
+  .ingredients .qty {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--stamp);
+    text-align: right;
+    line-height: 1.1;
+  }
+  .ingredients .item {
+    font-family: "Cutive Mono", monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .ingredients .item .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ingredients .item img {
+    width: 16px; height: 16px;
+    vertical-align: middle;
+    border-radius: 3px;
+  }
+  .ingredients .note {
+    display: block;
+    font-family: "Caveat", cursive;
+    font-size: 16px;
+    color: var(--hand);
+    margin-top: 2px;
+  }
+  .ingredients .stars {
+    color: var(--gold);
+    font-family: "Special Elite", monospace;
+    font-size: 12px;
+  }
+
+  .pantry-stamp {
+    margin-top: 22px;
+    border: 2px dashed var(--stamp);
+    padding: 14px;
+    transform: rotate(-1.2deg);
+    background: rgba(255, 240, 220, 0.4);
+  }
+  .pantry-stamp .ps-lbl {
+    font-family: "Permanent Marker", "Special Elite", monospace;
+    font-size: 13px;
+    color: var(--stamp);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pantry-stamp .ps-body {
+    font-family: "Caveat", cursive;
+    font-size: 19px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  /* METHOD */
+  .method {
+    counter-reset: step;
+  }
+  .method-step {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 18px;
+    margin-bottom: 32px;
+    align-items: start;
+  }
+  .step-num {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 56px;
+    line-height: 0.9;
+    color: var(--stamp);
+    border-right: 2px solid var(--rule);
+    padding-right: 14px;
+    text-align: right;
+  }
+  .step-num small {
+    display: block;
+    font-family: "Special Elite", monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--ink-soft);
+    font-style: normal;
+    margin-top: 6px;
+  }
+  .step-body {
+    font-family: "Cutive Mono", monospace;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .step-body h3 {
+    margin: 0 0 8px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .step-body h3 .stamp-inline {
+    display: inline-block;
+    font-family: "Special Elite", monospace;
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--cream);
+    background: var(--stamp);
+    padding: 2px 8px;
+    margin-left: 10px;
+    transform: rotate(-1.5deg) translateY(-3px);
+    vertical-align: middle;
+  }
+  .step-body p { margin: 6px 0 8px; }
+  .step-body sup { font-size: 0.72em; }
+  .step-body sup a { color: var(--stamp); text-decoration: none; }
+  .step-body ul.compact { padding-left: 18px; margin: 4px 0 10px; }
+  .step-body ul.compact li { padding: 2px 0; font-size: 14px; }
+  .step-body .four-q {
+    margin: 12px 0;
+    padding: 14px 16px;
+    border: 1px solid var(--rule);
+    background: rgba(255, 250, 235, 0.55);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 18px;
+  }
+  .step-body .four-q b {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    color: var(--stamp);
+    font-size: 15px;
+  }
+  .step-body .four-q span {
+    font-family: "Caveat", cursive;
+    font-size: 18px;
+    color: var(--hand);
+  }
+
+  /* ============== MASTER SAUCE (META-PROMPT) ============== */
+  .master-sauce {
+    margin: 56px 64px 0;
+    position: relative;
+  }
+  .ms-header {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .ms-header .ribbon {
+    display: inline-block;
+    font-family: "Special Elite", monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--stamp);
+    text-transform: uppercase;
+    padding: 4px 18px;
+    border-top: 1px solid var(--stamp);
+    border-bottom: 1px solid var(--stamp);
+  }
+  .ms-header h2 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 38px;
+    margin: 8px 0 4px;
+    color: var(--ink);
+  }
+  .ms-header .sub {
+    font-family: "Caveat", cursive;
+    font-size: 19px;
+    color: var(--ink-soft);
+  }
+
+  .master-card {
+    background: var(--cream);
+    border: 2px solid var(--ink-soft);
+    box-shadow: 6px 8px 0 rgba(80, 50, 20, 0.14);
+    padding: 28px 32px;
+    font-family: "Special Elite", "Courier Prime", monospace;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--ink);
+    position: relative;
+    white-space: pre-wrap;
+  }
+  .master-card::before {
+    content: "TYPED MANUSCRIPT — DO NOT FOLD";
+    position: absolute;
+    top: -11px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--paper);
+    padding: 0 12px;
+    font-family: "Special Elite", monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--ink-soft);
+  }
+  .master-card .placeholder {
+    background: rgba(178, 31, 31, 0.12);
+    border-bottom: 1px dashed var(--stamp);
+    padding: 0 4px;
+    font-style: italic;
+    color: var(--stamp);
+  }
+  .master-card .keyword { color: var(--teal); font-weight: bold; }
+
+  /* ============== BUZZWORD CHIPS ============== */
+  .buzzwords {
+    margin: 36px 64px 0;
+    text-align: center;
+  }
+  .buzzwords .lbl {
+    font-family: "Caveat", cursive;
+    font-size: 22px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .buzz-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+  }
+  .buzz {
+    background: var(--cream);
+    border: 1.5px dashed var(--rule);
+    font-family: "Special Elite", monospace;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 8px 18px;
+    transform: rotate(var(--r, 0deg));
+  }
+  .buzz:nth-child(1) { --r: -2deg; }
+  .buzz:nth-child(2) { --r: 1.5deg; }
+  .buzz:nth-child(3) { --r: -1deg; background: rgba(168, 122, 24, 0.12); }
+  .buzz:nth-child(4) { --r: 2deg; }
+  .buzz:nth-child(5) { --r: -1.8deg; background: rgba(178, 31, 31, 0.10); }
+  .buzz:nth-child(6) { --r: 1deg; }
+  .buzz small {
+    display: block;
+    font-family: "Caveat", cursive;
+    font-size: 14px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--hand);
+    margin-top: -2px;
+  }
+
+  /* ============== CHEF'S NOTES (failure modes) ============== */
+  .chefs-notes {
+    margin: 64px 64px 0;
+  }
+  .cn-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .cn-header h2 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 42px;
+    margin: 0;
+    color: var(--ink);
+  }
+  .cn-header .sub {
+    font-family: "Caveat", cursive;
+    font-size: 22px;
+    color: var(--stamp);
+  }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+  }
+  .note {
+    background: var(--cream);
+    border: 1.5px solid var(--rule);
+    padding: 20px 22px 22px;
+    position: relative;
+    transform: rotate(var(--r, -0.5deg));
+    box-shadow: 4px 5px 0 rgba(80, 50, 20, 0.10);
+    font-family: "Cutive Mono", monospace;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .note:nth-child(1) { --r: -1.2deg; }
+  .note:nth-child(2) { --r: 0.8deg; background: rgba(255, 244, 220, 0.95); }
+  .note:nth-child(3) { --r: -0.6deg; }
+  .note:nth-child(4) { --r: 1.4deg; background: rgba(255, 240, 230, 0.95); }
+  .note:nth-child(5) { --r: -1.0deg; }
+  .note .tape {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 90px; height: 22px;
+    background: repeating-linear-gradient(45deg, rgba(220, 180, 100, 0.55) 0 6px, rgba(220, 180, 100, 0.4) 6px 12px);
+    border: 1px solid rgba(140, 100, 40, 0.35);
+  }
+  .note h3 {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 22px;
+    margin: 6px 0 8px;
+    color: var(--stamp);
+  }
+  .note .verdict {
+    font-family: "Caveat", cursive;
+    font-size: 19px;
+    color: var(--hand);
+    border-top: 1px dashed var(--rule);
+    padding-top: 8px;
+    margin-top: 10px;
+  }
+  .note sup a { color: var(--stamp); text-decoration: none; }
+
+  /* ============== GOLDEN RULE PULL QUOTE ============== */
+  .golden-rule {
+    margin: 80px 64px 0;
+    padding: 64px 48px;
+    border-top: 6px double var(--ink);
+    border-bottom: 6px double var(--ink);
+    text-align: center;
+    background:
+      radial-gradient(ellipse at center, rgba(168, 122, 24, 0.10) 0%, transparent 70%),
+      rgba(255, 250, 230, 0.5);
+    position: relative;
+  }
+  .golden-rule .seal {
+    position: absolute;
+    top: -38px; left: 50%;
+    transform: translateX(-50%) rotate(-4deg);
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    border: 3px double var(--stamp);
+    background: var(--cream);
+    color: var(--stamp);
+    font-family: "Special Elite", monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.1;
+    box-shadow: 2px 3px 0 rgba(80, 50, 20, 0.12);
+  }
+  .golden-rule .lbl {
+    font-family: "Special Elite", monospace;
+    font-size: 12px;
+    letter-spacing: 0.5em;
+    color: var(--stamp);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .golden-rule blockquote {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: clamp(28px, 4vw, 48px);
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 0;
+    max-width: 900px;
+    margin-inline: auto;
+  }
+  .golden-rule blockquote em {
+    color: var(--stamp);
+    font-style: italic;
+  }
+  .golden-rule .attrib {
+    font-family: "Caveat", cursive;
+    font-size: 22px;
+    color: var(--ink-soft);
+    margin-top: 16px;
+  }
+
+  /* ============== TIMING TIMELINE ============== */
+  .timing {
+    margin: 56px 64px 0;
+    background: var(--cream);
+    border: 1.5px solid var(--rule);
+    padding: 24px 28px;
+    box-shadow: 4px 5px 0 rgba(80, 50, 20, 0.10);
+  }
+  .timing h3 {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 24px;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .timing .sub {
+    font-family: "Caveat", cursive;
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .timing-bar {
+    display: grid;
+    grid-template-columns: 30fr 60fr 30fr 30fr;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .timing-bar > div {
+    padding: 14px 12px;
+    border-right: 1.5px solid var(--ink);
+    text-align: center;
+  }
+  .timing-bar > div:last-child { border-right: none; }
+  .timing-bar .stage-lbl {
+    font-family: "Special Elite", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .timing-bar .stage-name {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .timing-bar .stage-time {
+    font-family: "Special Elite", monospace;
+    font-size: 14px;
+    color: var(--stamp);
+    margin-top: 4px;
+  }
+  .timing-bar .a { background: rgba(168, 122, 24, 0.18); }
+  .timing-bar .b { background: rgba(29, 110, 114, 0.18); }
+  .timing-bar .c { background: rgba(178, 31, 31, 0.14); }
+  .timing-bar .d { background: rgba(26, 58, 110, 0.14); }
+
+  /* ============== PANTRY (siblings + sources) ============== */
+  .pantry {
+    margin: 80px 64px 0;
+    border-top: 3px double var(--rule);
+    padding-top: 36px;
+  }
+  .pantry h2 {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 32px;
+    margin: 0 0 6px;
+    text-align: center;
+  }
+  .pantry .sub {
+    font-family: "Caveat", cursive;
+    text-align: center;
+    font-size: 19px;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+  .sibs-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .sib {
+    background: var(--cream);
+    border: 1.5px dashed var(--rule);
+    padding: 14px 16px;
+    font-family: "Cutive Mono", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform .08s ease;
+  }
+  .sib:hover { color: var(--ink); background: rgba(255, 240, 220, 0.7); transform: translate(-1px, -1px); }
+  .sib .depth {
+    font-family: "Special Elite", monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--stamp);
+    margin-bottom: 4px;
+  }
+  .sib .t {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .sib .s { color: var(--ink-soft); }
+
+  /* sources */
+  .sources-list {
+    columns: 2;
+    column-gap: 36px;
+    column-rule: 1px dashed var(--rule);
+    font-family: "Cutive Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  @media (max-width: 760px) { .sources-list { columns: 1; } }
+  .src {
+    break-inside: avoid;
+    margin-bottom: 12px;
+    padding-left: 28px;
+    position: relative;
+  }
+  .src .n {
+    position: absolute;
+    left: 0; top: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--stamp);
+    color: var(--stamp);
+    font-family: "Special Elite", monospace;
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cream);
+  }
+  .src .src-img {
+    width: 14px; height: 14px;
+    vertical-align: middle;
+    border-radius: 2px;
+    margin-right: 4px;
+  }
+  .src .type {
+    font-family: "Special Elite", monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-left: 6px;
+  }
+
+  /* ============== COLOPHON ============== */
+  .colophon {
+    margin: 72px 64px 64px;
+    padding: 22px 28px;
+    border-top: 6px double var(--rule);
+    text-align: center;
+    font-family: "Special Elite", monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .colophon strong { color: var(--stamp); }
+  .colophon a { color: var(--ink); }
+
+  @media (max-width: 760px) {
+    .file-strip, .title-block, .meta-strip, .headnote, .hero-photo,
+    .recipe-body, .master-sauce, .buzzwords, .chefs-notes, .golden-rule,
+    .timing, .pantry, .colophon { margin-left: 24px; margin-right: 24px; padding-left: 0; padding-right: 0; }
+    .meta-strip { grid-template-columns: repeat(2, 1fr); }
+    .meta-cell { border-bottom: 1px dashed var(--rule); }
+  }
+</style>
+
+<div class="rcp">
+
+  <!-- ============ FILE TAB / KICKER ============ -->
+  <div class="file-strip">
+    <div class="file-tab">Workshop&nbsp;Cookbook · Vol. 2026 · Chapter III</div>
+    <div class="file-no">Recipe № 56</div>
+  </div>
+
+  <header class="title-block">
+    <div class="kicker">Two-Tool Method</div>
+    <h1>ChatGPT-refine <span class="arrow-rune">→</span><br/>Lovable-build</h1>
+    <div class="subhead">A two-step prompt recipe for laymen-friendly app shipping</div>
+    <div class="from-the-cookbook">From the cookbook of <em>Atlas Workshop Recipes</em> · filed 23·V·2026</div>
+  </header>
+
+  <!-- ============ META STRIP ============ -->
+  <div class="meta-strip">
+    <div class="meta-cell">
+      <div class="lbl">Yield</div>
+      <div class="val">1<small>working&nbsp;web&nbsp;app</small></div>
+    </div>
+    <div class="meta-cell">
+      <div class="lbl">Serves</div>
+      <div class="val">20<small>attendees</small></div>
+    </div>
+    <div class="meta-cell">
+      <div class="lbl">Prep · ChatGPT</div>
+      <div class="val">≈ 30<small>minutes · free</small></div>
+    </div>
+    <div class="meta-cell">
+      <div class="lbl">Cook · Lovable</div>
+      <div class="val">≈ 60<small>minutes · ~2 credits</small></div>
+    </div>
+    <div class="meta-cell">
+      <div class="lbl">Fuel</div>
+      <div class="val">€0<small>shared free tier</small></div>
+    </div>
+  </div>
+
+  <!-- ============ HEADNOTE ============ -->
+  <p class="headnote">
+    <strong>The chef's intro.</strong> For a 2–3 hour workshop with laymen: refine the idea into a structured PRD in <a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">ChatGPT</a> (free, no <a href="https://lovable.dev">Lovable</a> credits burned <sup><a href="https://docs.lovable.dev/tips-tricks/chatgpt-app">[1]</a></sup>), then hand off to Lovable's <a href="https://docs.lovable.dev/features/modes">Agent mode</a> for the build. If every attendee already has a Lovable account, skip ChatGPT and use Lovable's built-in <a href="https://lovable.dev/blog/chat-mode-and-questions">Chat Mode</a> for the same conversation — it's purpose-built to precede a build <sup><a href="https://lovable.dev/blog/chat-mode-and-questions">[5]</a></sup>. The ChatGPT step earns its keep when attendees know ChatGPT but not Lovable, or you want one tool for ideation across the cohort before anyone signs in.
+  </p>
+
+  <!-- ============ HERO PHOTO ============ -->
+  <figure class="hero-photo">
+    <img src="recipe-card/images/chat-mode.jpg" alt="Lovable Chat Mode hero illustration"/>
+    <figcaption class="caption">Chat Mode — planning before any code is written</figcaption>
+  </figure>
+
+  <!-- ============ INGREDIENTS + METHOD ============ -->
+  <div class="recipe-body">
+
+    <section class="ingredients">
+      <h2 class="section-head"><span class="num">Mise · en · place</span>Ingredients</h2>
+      <ul>
+        <li>
+          <div class="qty">1×</div>
+          <div class="item">
+            <span class="brand">
+              <img src="https://www.google.com/s2/favicons?domain=chatgpt.com&sz=128" alt=""/>
+              <a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">ChatGPT</a> account
+            </span>
+            <span class="note">free tier is enough — refine is free</span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">1×</div>
+          <div class="item">
+            <span class="brand">
+              <img src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=128" alt=""/>
+              <a href="https://lovable.dev">Lovable</a> account
+            </span>
+            <span class="note">5 credits/day, 30/month cap on free <sup><a href="https://docs.lovable.dev/introduction/plans-and-credits">[7]</a></sup></span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">≈ 600</div>
+          <div class="item">
+            cohort credits<br/>
+            <span class="note">~30/seat × 20 attendees</span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">4</div>
+          <div class="item">
+            planning answers<br/>
+            <span class="note">what · who · why · key&nbsp;action</span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">2</div>
+          <div class="item">
+            design buzzwords<br/>
+            <span class="note">from the spice rack below</span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">3+3+3</div>
+          <div class="item">
+            real product names, testimonials, menu items<br/>
+            <span class="note">NO lorem ipsum — it cascades <sup><a href="https://docs.lovable.dev/prompting/prompting-one">[3]</a></sup></span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">1</div>
+          <div class="item">
+            optional helper:<br/>
+            <span class="brand">
+              <img src="https://www.google.com/s2/favicons?domain=chatgpt.com&sz=128" alt=""/>
+              <a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">Lovable PRD Generator</a>
+            </span>
+            <span class="note">Custom GPT — packages everything <sup><a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">[15]</a></sup></span>
+          </div>
+        </li>
+        <li>
+          <div class="qty">1</div>
+          <div class="item">
+            example bank: <a href="https://github.com/cporter202/lovable-for-beginners">cporter202/lovable-for-beginners</a> <span class="stars">⭐&nbsp;530</span><br/>
+            <span class="note">3–5 sample PRDs to hand out <sup><a href="https://github.com/cporter202/lovable-for-beginners">[16]</a></sup></span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="pantry-stamp">
+        <div class="ps-lbl">★ Cohort math</div>
+        <div class="ps-body">
+          600 credits ÷ ~15 iterations<br/>
+          ≈ 2 credits per attendee.<br/>
+          That's 1 landing page + 4 edits.<br/>
+          Tell them. They'll spend better.
+        </div>
+      </div>
+    </section>
+
+    <section class="method">
+      <h2 class="section-head"><span class="num">Two stages · one paste between</span>Method</h2>
+
+      <!-- STEP 1 -->
+      <div class="method-step">
+        <div class="step-num">I<small>REFINE</small></div>
+        <div class="step-body">
+          <h3>Refine in ChatGPT <span class="stamp-inline">≈ 30 MIN · FREE</span></h3>
+          <p>Goal: <strong>one structured paste</strong> for Lovable. The handoff is one-way — once you've seeded the project, Lovable's own docs say you must open Lovable to continue editing <sup><a href="https://docs.lovable.dev/tips-tricks/chatgpt-app">[1]</a></sup>. So the first paste matters more than any later one.</p>
+          <p>Have attendees answer Lovable's four-question planning frame <sup><a href="https://docs.lovable.dev/prompting/prompting-one">[3]</a></sup>:</p>
+          <div class="four-q">
+            <b>What is this?</b><span>one sentence</span>
+            <b>Who is it for?</b><span>target user</span>
+            <b>Why will they use it?</b><span>core value</span>
+            <b>What's the key action?</b><span>primary CTA</span>
+          </div>
+          <p>Then ask ChatGPT to expand into a PRD-style prompt — the meta-prompt is in <em>The Master Sauce</em> below. End with the magic tail: <em>"Ask me any clarifying questions before you start"</em> <sup><a href="https://docs.lovable.dev/prompting/prompting-one">[3]</a></sup>. Single highest-yield trick in the docs.</p>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="method-step">
+        <div class="step-num">II<small>BUILD</small></div>
+        <div class="step-body">
+          <h3>Build in Lovable <span class="stamp-inline">≈ 60 MIN · ~2 CREDITS</span></h3>
+          <p>Two routes from chat to a running app:</p>
+          <ul class="compact">
+            <li><strong><code>@Lovable</code> tag inside ChatGPT</strong> — one auth grant; the conversation context becomes the initial build; no credits until build fires <sup><a href="https://docs.lovable.dev/tips-tricks/chatgpt-app">[1]</a></sup>.</li>
+            <li><strong>Copy/paste into Lovable's "new project" box</strong> — two windows, one paste; same cost <sup><a href="https://lovable.dev/chatgpt-app">[2]</a></sup>.</li>
+          </ul>
+          <p>Either way, the first paste lands in <strong>Agent mode</strong> (a.k.a. Build mode) — the execution mode that actually writes files <sup><a href="https://docs.lovable.dev/features/modes">[6]</a></sup>.</p>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="method-step">
+        <div class="step-num">III<small>ITERATE</small></div>
+        <div class="step-body">
+          <h3>Iterate by component <span class="stamp-inline">SURGICAL · ~0.5 CR EACH</span></h3>
+          <p>Build by component, <em>not</em> by page. The docs are emphatic: <em>"build by component, not full pages at once"</em>, and <em>"use real content instead of placeholder text"</em> <sup><a href="https://docs.lovable.dev/prompting/prompting-one">[3]</a></sup>. Asking for "the whole landing page redone" burns 2+ credits and tends to regress unrelated parts; asking for the hero CTA costs ~0.5 <sup><a href="https://www.banani.co/blog/lovable-pricing-and-credits">[10]</a></sup>.</p>
+          <p>Drill the edit template — one sentence, two slots:</p>
+          <p style="text-align:center;font-family:'Special Elite',monospace;font-size:14px;background:rgba(178,31,31,0.08);border:1px dashed var(--stamp);padding:10px 14px;margin:8px 0;color:var(--ink);">
+            <em>"Change [specific element] to [new spec]. Keep [what stays the same]."</em>
+          </p>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="method-step">
+        <div class="step-num">IV<small>STIR · TASTE</small></div>
+        <div class="step-body">
+          <h3>Switch to Chat Mode for deeper changes</h3>
+          <p>For structural rework mid-build, leave Agent mode and re-enter <a href="https://lovable.dev/blog/chat-mode-and-questions">Chat Mode</a>. Conversational, no code touched — <em>"having a planning session with a technical co-founder before diving into development"</em> <sup><a href="https://lovable.dev/blog/chat-mode-and-questions">[5]</a></sup>.</p>
+          <p>The docs frame it cleanly: <em>"Plan mode is for decision-making. Agent mode is for execution"</em> <sup><a href="https://docs.lovable.dev/features/modes">[6]</a></sup>.</p>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- ============ BUZZWORDS / SPICE RACK ============ -->
+  <section class="buzzwords">
+    <div class="lbl">— the spice rack — pick exactly two —</div>
+    <div class="buzz-row">
+      <span class="buzz">minimal<small>clean / restrained</small></span>
+      <span class="buzz">expressive<small>punchy / bold</small></span>
+      <span class="buzz">cinematic<small>moody / dramatic</small></span>
+      <span class="buzz">playful<small>round / lively</small></span>
+      <span class="buzz">premium<small>refined / spacious</small></span>
+      <span class="buzz">developer-focused<small>monospace / dense</small></span>
+    </div>
+    <div class="lbl" style="margin-top:14px;font-size:16px;">
+      Each shifts typography, spacing, shadow, radius, palette <sup style="font-family:'Cutive Mono',monospace;"><a href="https://aiagentskit.com/blog/lovable-prompting-guide/">[14]</a></sup>
+    </div>
+  </section>
+
+  <!-- ============ MASTER SAUCE ============ -->
+  <section class="master-sauce">
+    <div class="ms-header">
+      <div class="ribbon">The Master Sauce</div>
+      <h2>A meta-prompt to start with</h2>
+      <div class="sub">paste into ChatGPT, swap the highlighted bits</div>
+    </div>
+    <div class="master-card">You are helping me brief <span class="keyword">Lovable.dev</span> to build a small web app.
+Here is my idea: <span class="placeholder">&lt;one paragraph from the attendee&gt;</span>.
+
+Produce a single prompt that includes:
+ · Project overview (one sentence)
+ · Target audience
+ · 2–4 key pages with the components on each
+ · Design direction: pick 2 buzzwords from
+   { minimal, expressive, cinematic, playful, premium, developer-focused }
+ · Empty / loading / error states for the main data view
+ · Mobile-first responsive note
+
+Keep it under 250 words.
+End with: <span class="keyword">"Ask me any clarifying questions before you start."</span></div>
+
+    <p style="text-align:center;font-family:'Caveat',cursive;font-size:21px;color:var(--ink-soft);margin-top:18px;">
+      Don't want to write your own? Use the <a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">Lovable PRD Generator</a> Custom GPT <sup><a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">[15]</a></sup>
+    </p>
+  </section>
+
+  <!-- ============ TIMING TIMELINE ============ -->
+  <section class="timing">
+    <h3>Workshop timing — the cooking schedule</h3>
+    <div class="sub">A 2½-hour run, plated end-to-end <sup style="font-family:'Cutive Mono',monospace;font-size:11px;"><a href="https://www.coursera.org/learn/vibe-coding-with-lovable-from-idea-to-app">[17]</a></sup></div>
+    <div class="timing-bar">
+      <div class="a">
+        <div class="stage-lbl">Stage I</div>
+        <div class="stage-name">Refine</div>
+        <div class="stage-time">~30 min</div>
+      </div>
+      <div class="b">
+        <div class="stage-lbl">Stage II</div>
+        <div class="stage-name">Build</div>
+        <div class="stage-time">~60 min</div>
+      </div>
+      <div class="c">
+        <div class="stage-lbl">Stage III</div>
+        <div class="stage-name">Polish · Deploy</div>
+        <div class="stage-time">~30 min</div>
+      </div>
+      <div class="d">
+        <div class="stage-lbl">Stage IV</div>
+        <div class="stage-name">Show &amp; tell</div>
+        <div class="stage-time">~30 min</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHEF'S NOTES ============ -->
+  <section class="chefs-notes">
+    <div class="cn-header">
+      <h2>Chef's notes</h2>
+      <div class="sub">~ failure modes to teach before they bite ~</div>
+    </div>
+    <div class="notes-grid">
+
+      <div class="note">
+        <div class="tape"></div>
+        <h3>Fix-one-break-ten</h3>
+        <p>The dominant Reddit complaint: <em>"AI is still just soooooo stupid and it will fix one thing but destroy 10 other things in your code."</em> <sup><a href="https://www.morphllm.com/reddit-vibe-coding">[9]</a></sup></p>
+        <div class="verdict">Counter with the edit template + the rule below.</div>
+      </div>
+
+      <div class="note">
+        <div class="tape"></div>
+        <h3>Two-strike rule</h3>
+        <p>Lovable's own guidance: three failed corrections = stop and reassess <sup><a href="https://www.lowcode.agency/blog/lovable-prompting-guide">[12]</a></sup>. For laymen the rule is harder: <strong>two failed corrections → revert and re-prompt from scratch with more context.</strong></p>
+        <div class="verdict">Set the egg timer. Pull from the heat.</div>
+      </div>
+
+      <div class="note">
+        <div class="tape"></div>
+        <h3>Vague prompt → vague app</h3>
+        <p><em>"A vague prompt leads to assumptions, and assumptions lead to apps that miss the mark"</em> <sup><a href="https://lovable.dev/blog/chat-mode-and-questions">[5]</a></sup>. The whole reason the ChatGPT step exists.</p>
+        <div class="verdict">Refine cold. Build hot.</div>
+      </div>
+
+      <div class="note">
+        <div class="tape"></div>
+        <h3>Security blind spot</h3>
+        <p>Independent assessment: 170 of 1,645 <a href="https://lovable.dev">Lovable</a>-built apps exposed personal data <sup><a href="https://www.morphllm.com/reddit-vibe-coding">[9]</a></sup>.</p>
+        <div class="verdict">Workshop rule: NO real PII into Supabase auth. Seed data only.</div>
+      </div>
+
+      <div class="note">
+        <div class="tape"></div>
+        <h3>The lorem-ipsum trap</h3>
+        <p>Placeholder text cascades — the AI builds layouts <em>around the placeholders</em> rather than the real content <sup><a href="https://docs.lovable.dev/prompting/prompting-one">[3]</a></sup>.</p>
+        <div class="verdict">3 real names · 3 real testimonials · 3 real items. Before paste.</div>
+      </div>
+
+      <div class="note">
+        <div class="tape"></div>
+        <h3>Label-rot ripples</h3>
+        <p>Small label changes can ripple through file paths <sup><a href="https://medium.com/design-bootcamp/from-prompt-to-prototype-get-the-most-out-of-lovable-3eedb5c8e756">[8]</a></sup>. Name panels, buttons, cards once. Stick to it.</p>
+        <div class="verdict">A lightweight PRD beats a heavy rebuild.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ GOLDEN RULE ============ -->
+  <section class="golden-rule">
+    <div class="seal">The<br/>House<br/>Rule</div>
+    <div class="lbl">— the one line to drill —</div>
+    <blockquote>
+      Plan the <em>whole thing</em> in chat.<br/>
+      Build <em>one component at a time</em> in code.
+    </blockquote>
+    <div class="attrib">— every other tip is a corollary —</div>
+  </section>
+
+  <!-- ============ PANTRY (siblings + sources) ============ -->
+  <section class="pantry">
+    <h2>From the pantry</h2>
+    <div class="sub">other recipes in the same cookbook · and the sources cited</div>
+
+    <div class="sibs-row">
+      <a class="sib" href="../../workshop-scale-app-ideas-for-laymen/">
+        <div class="depth">Expedition · sibling</div>
+        <span class="t">Workshop-scale app ideas for laymen</span>
+        <div class="s">Five reliable app-idea menus a non-developer can ship in 2-3 hours.</div>
+      </a>
+      <a class="sib" href="../../vibe-coding-tool-stack-on-shared-wifi-low-budget/">
+        <div class="depth">Expedition · sibling</div>
+        <span class="t">Tool stack on shared wifi, low budget</span>
+        <div class="s">Lovable default, Bolt.new backup, hosted hotspot, $0–$50 host spend.</div>
+      </a>
+      <a class="sib" href="../../take-home-deployment-for-non-technical-participants/">
+        <div class="depth">Expedition · sibling</div>
+        <span class="t">Take-home deployment for non-technical participants</span>
+        <div class="s">Picking the stack that survives the two-week tail after the room.</div>
+      </a>
+      <a class="sib" href="../../facilitation-logistics-and-failure-modes/">
+        <div class="depth">Recon · sibling</div>
+        <span class="t">Facilitation logistics &amp; failure modes</span>
+        <div class="s">Pre-flight checklist, room/tool fallbacks, what actually sinks workshops.</div>
+      </a>
+    </div>
+
+    <h3 style="font-family:'Playfair Display',serif;font-style:italic;text-align:center;font-size:22px;margin:24px 0 18px;color:var(--ink-soft);">Cited sources · 17</h3>
+    <div class="sources-list">
+      <div class="src"><span class="n">1</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=docs.lovable.dev&sz=128" alt=""/><a href="https://docs.lovable.dev/tips-tricks/chatgpt-app">Lovable docs — ChatGPT app</a><span class="type">official</span><br/>No credits until build fires; further editing requires opening Lovable.</div>
+      <div class="src"><span class="n">2</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=128" alt=""/><a href="https://lovable.dev/chatgpt-app">Lovable — ChatGPT app</a><span class="type">vendor</span><br/>Marketing page positioning plan-in-ChatGPT, build-in-Lovable.</div>
+      <div class="src"><span class="n">3</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=docs.lovable.dev&sz=128" alt=""/><a href="https://docs.lovable.dev/prompting/prompting-one">Lovable docs — Prompting</a><span class="type">official</span><br/>Four-question frame, edit template, clarifying-questions tail, real content rule.</div>
+      <div class="src"><span class="n">4</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=128" alt=""/><a href="https://lovable.dev/blog/2025-01-16-lovable-prompting-handbook">Lovable — Prompting handbook</a><span class="type">vendor</span><br/>Canonical long-form reference: meta-prompting, plan-then-build discipline.</div>
+      <div class="src"><span class="n">5</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=128" alt=""/><a href="https://lovable.dev/blog/chat-mode-and-questions">Lovable — Chat mode &amp; questions</a><span class="type">vendor</span><br/>Chat Mode allows planning before any code is written.</div>
+      <div class="src"><span class="n">6</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=docs.lovable.dev&sz=128" alt=""/><a href="https://docs.lovable.dev/features/modes">Lovable docs — Modes</a><span class="type">official</span><br/>"Plan mode is for decision-making. Agent mode is for execution."</div>
+      <div class="src"><span class="n">7</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=docs.lovable.dev&sz=128" alt=""/><a href="https://docs.lovable.dev/introduction/plans-and-credits">Lovable docs — Plans &amp; credits</a><span class="type">official</span><br/>Free: 5 daily credits, 30/month cap. Pro: $25/month for 100 credits.</div>
+      <div class="src"><span class="n">8</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""/><a href="https://medium.com/design-bootcamp/from-prompt-to-prototype-get-the-most-out-of-lovable-3eedb5c8e756">Design Bootcamp — From prompt to prototype</a><span class="type">vendor</span><br/>Stable naming discipline; label changes ripple through file paths.</div>
+      <div class="src"><span class="n">9</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=morphllm.com&sz=128" alt=""/><a href="https://www.morphllm.com/reddit-vibe-coding">MorphLLM — Reddit vibe-coding</a><span class="type">news</span><br/>Fix-one-break-ten complaint + 170/1645 apps exposed PII.</div>
+      <div class="src"><span class="n">10</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=banani.co&sz=128" alt=""/><a href="https://www.banani.co/blog/lovable-pricing-and-credits">Banani — Lovable pricing &amp; credits</a><span class="type">vendor</span><br/>Per-prompt credit costs: ~0.5 styling, ~1.2 auth, ~2 landing page.</div>
+      <div class="src"><span class="n">11</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=buildwithlovable.xyz&sz=128" alt=""/><a href="https://www.buildwithlovable.xyz/blog/15-lovable-prompt-examples-that-actually-work-in-2026">Build with Lovable — 15 prompt examples</a><span class="type">vendor</span><br/>Concrete budgeting-app starter prompt: audience + CTA + aesthetic.</div>
+      <div class="src"><span class="n">12</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=lowcode.agency&sz=128" alt=""/><a href="https://www.lowcode.agency/blog/lovable-prompting-guide">Lowcode Agency — Lovable prompting</a><span class="type">vendor</span><br/>Three-strike correction rule: stop after three corrections with no improvement.</div>
+      <div class="src"><span class="n">13</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=ai4dh.eu&sz=128" alt=""/><a href="https://ai4dh.eu/2026/04/20/vibe-coding-workshop-for-humanities-and-social-sciences/">AI4DH — Workshop announcement</a><span class="type">news</span><br/>Real beginner workshop (Ljubljana / AI4DH, May 2026), no programming required.</div>
+      <div class="src"><span class="n">14</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=aiagentskit.com&sz=128" alt=""/><a href="https://aiagentskit.com/blog/lovable-prompting-guide/">AI Agents Kit — Lovable prompting</a><span class="type">vendor</span><br/>Buzzwords interpreted as parameters: typography, spacing, shadow, radius, palette.</div>
+      <div class="src"><span class="n">15</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=chatgpt.com&sz=128" alt=""/><a href="https://chatgpt.com/g/g-67e1e85fbeac8191a69b95c6d5c42ef6-lovable-prd-generator">Lovable PRD Generator</a><span class="type">tool</span><br/>Custom GPT that packages an idea into a Lovable-shaped prompt.</div>
+      <div class="src"><span class="n">16</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""/><a href="https://github.com/cporter202/lovable-for-beginners">cporter202/lovable-for-beginners</a> <span class="stars" style="color:var(--gold);font-family:'Special Elite',monospace;font-size:11px;">⭐ 530</span><span class="type">forum</span><br/>Beginner course repo — usable as workshop example bank.</div>
+      <div class="src"><span class="n">17</span><img class="src-img" src="https://www.google.com/s2/favicons?domain=coursera.org&sz=128" alt=""/><a href="https://www.coursera.org/learn/vibe-coding-with-lovable-from-idea-to-app">Coursera — Vibe Coding with Lovable</a><span class="type">official</span><br/>Published course establishing the "first app in 1-2 hours" beginner norm.</div>
+    </div>
+  </section>
+
+  <!-- ============ COLOPHON ============ -->
+  <footer class="colophon">
+    <strong>Atlas Workshop Recipes</strong> · Recipe № 56 · filed 23·V·2026 · <a href="../">canonical version</a> · <a href="../../">whole cookbook</a>
+  </footer>
+
+</div>

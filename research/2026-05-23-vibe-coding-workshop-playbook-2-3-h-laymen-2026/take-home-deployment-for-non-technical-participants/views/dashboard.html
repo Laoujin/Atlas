@@ -1,0 +1,1120 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Take-home deployment for non-technical workshop participants — Dashboard"
+---
+
+<style>
+  .dash {
+    --bg:        #0a0e1a;
+    --panel:    #131826;
+    --panel-2:  #1a2034;
+    --line:     #1f2a40;
+    --line-2:   #2a3556;
+    --ink:      #e6edf6;
+    --mute:     #8b96b0;
+    --dim:      #5a6781;
+    --ok:       #4ade80;
+    --warn:     #fbbf24;
+    --crit:     #f87171;
+    --accent:   #60a5fa;
+    --gold:     #fcd34d;
+    --mono:     "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --sans:     "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0 0 4rem 0;
+    min-height: 100vh;
+  }
+
+  .dash a { color: var(--accent); text-decoration: none; }
+  .dash a:hover { text-decoration: underline; }
+  .dash sup a { color: var(--dim); font-weight: 400; }
+  .dash sup a:hover { color: var(--accent); }
+
+  /* ============ TOPBAR ============ */
+  .topbar {
+    background: linear-gradient(90deg, #06090f 0%, #0a0e1a 100%);
+    border-bottom: 1px solid var(--line);
+    padding: 0.7rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mute);
+    flex-wrap: wrap;
+  }
+  .topbar .breadcrumb a { color: var(--mute); }
+  .topbar .breadcrumb .sep { color: var(--dim); margin: 0 0.5rem; }
+  .topbar .breadcrumb .here { color: var(--ink); }
+  .topbar .pill {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: var(--ok);
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+  }
+  .topbar .pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 8px var(--ok);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .topbar .right { margin-left: auto; display: flex; gap: 1.5rem; }
+  .topbar .stat span { color: var(--ink); }
+
+  /* ============ HERO ============ */
+  .hero {
+    padding: 2rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 4.5vw, 44px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.6rem 0;
+    color: var(--ink);
+  }
+  .hero h1 .accent { color: var(--gold); }
+  .hero .lede {
+    font-size: 16px;
+    color: var(--mute);
+    max-width: 64ch;
+    margin: 0 0 1.3rem 0;
+  }
+  .hero .verdict-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .kpi {
+    background: var(--panel);
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .kpi .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+  }
+  .kpi .num {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .kpi .num.gold { color: var(--gold); }
+  .kpi .num.crit { color: var(--crit); }
+  .kpi .num.ok   { color: var(--ok); }
+  .kpi .sub { font-size: 11px; color: var(--mute); }
+
+  /* ============ SECTION HEADERS ============ */
+  .section-head {
+    padding: 2rem 1.5rem 0.8rem;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 1rem;
+  }
+  .section-head h2 {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink);
+    margin: 0;
+    font-weight: 600;
+  }
+  .section-head h2 .seq { color: var(--accent); margin-right: 0.5rem; }
+  .section-head .note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-left: auto;
+  }
+
+  /* ============ DECAY VECTORS ============ */
+  .vectors {
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 0.8rem;
+  }
+  .vector {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem 1.1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .vector.crit { border-left-color: var(--crit); }
+  .vector.warn { border-left-color: var(--warn); }
+  .vector.info { border-left-color: var(--accent); }
+
+  .vector .vhead {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .vector .sev-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 0.1em;
+  }
+  .sev-badge.crit { background: rgba(248, 113, 113, 0.15); color: var(--crit); }
+  .sev-badge.warn { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+  .sev-badge.info { background: rgba(96, 165, 250, 0.15); color: var(--accent); }
+
+  .vector .vname {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .vector .mttf {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--mute);
+  }
+  .vector .mttf strong { color: var(--ink); font-weight: 600; }
+  .vector .desc {
+    font-size: 12.5px;
+    color: var(--mute);
+    line-height: 1.5;
+  }
+  .vector .desc strong { color: var(--ink); font-weight: 500; }
+  .vector .affects {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-top: 1px dashed var(--line);
+    padding-top: 0.7rem;
+    margin-top: auto;
+  }
+  .vector .affects img {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    background: var(--panel-2);
+  }
+  .vector .mitigation {
+    background: var(--panel-2);
+    border-left: 2px solid var(--ok);
+    padding: 0.5rem 0.7rem;
+    font-size: 12px;
+    color: var(--ink);
+    border-radius: 2px;
+  }
+  .vector .mitigation .mlabel {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ok);
+    margin-right: 0.5rem;
+  }
+
+  /* ============ PLATFORM HEALTH GRID ============ */
+  .platforms {
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.7rem;
+  }
+  .plat {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--line);
+    border-radius: 4px;
+    padding: 0.9rem 1rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: border-color 0.1s;
+  }
+  .plat.ok   { border-top-color: var(--ok); }
+  .plat.warn { border-top-color: var(--warn); }
+  .plat.crit { border-top-color: var(--crit); }
+  .plat:hover { border-color: var(--line-2); }
+
+  .plat .phead {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .plat .phead img {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--panel-2);
+  }
+  .plat .pname {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .plat .pstatus {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+  }
+  .plat.ok   .pstatus { background: rgba(74, 222, 128, 0.12); color: var(--ok); }
+  .plat.warn .pstatus { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+  .plat.crit .pstatus { background: rgba(248, 113, 113, 0.12); color: var(--crit); }
+
+  .plat .pgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 0.7rem;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .plat .pgrid .k { color: var(--dim); text-transform: uppercase; font-size: 9px; letter-spacing: 0.08em; }
+  .plat .pgrid .v { color: var(--ink); }
+  .plat .pgrid .v.ok { color: var(--ok); }
+  .plat .pgrid .v.warn { color: var(--warn); }
+  .plat .pgrid .v.crit { color: var(--crit); }
+
+  .plat .verdict {
+    font-size: 12px;
+    color: var(--mute);
+    line-height: 1.45;
+    border-top: 1px dashed var(--line);
+    padding-top: 0.6rem;
+    margin-top: auto;
+  }
+  .plat .verdict strong { color: var(--ink); font-weight: 500; }
+
+  /* ============ DB STRIP ============ */
+  .dbs {
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.7rem;
+  }
+  .db {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    position: relative;
+  }
+  .db::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 4px 4px 0 0;
+  }
+  .db.ok::before   { background: var(--ok); }
+  .db.warn::before { background: var(--warn); }
+  .db.crit::before { background: var(--crit); }
+  .db .dname {
+    font-size: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .db .dname img { width: 18px; height: 18px; border-radius: 3px; background: var(--panel-2); }
+  .db .dmeta { font-family: var(--mono); font-size: 11px; color: var(--mute); margin-bottom: 0.4rem; }
+  .db .dmeta .label { color: var(--dim); text-transform: uppercase; font-size: 9px; letter-spacing: 0.08em; margin-right: 0.4rem; }
+  .db .dnote { font-size: 11.5px; color: var(--mute); margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed var(--line); }
+
+  /* ============ TIMELINE ============ */
+  .tl {
+    padding: 0 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .tl-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.2rem 1.4rem;
+  }
+  .tl-row {
+    display: grid;
+    grid-template-columns: 90px 90px 1fr;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--line);
+    align-items: baseline;
+  }
+  .tl-row:last-child { border-bottom: none; }
+  .tl-row .tdate {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--mute);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tl-row .tsev {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    justify-self: start;
+    align-self: center;
+  }
+  .tl-row .tsev.crit { background: rgba(248, 113, 113, 0.15); color: var(--crit); }
+  .tl-row .tsev.warn { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+  .tl-row .tsev.info { background: rgba(96, 165, 250, 0.15); color: var(--accent); }
+  .tl-row .ttxt { font-size: 13px; color: var(--ink); line-height: 1.5; }
+  .tl-row .ttxt em { color: var(--mute); font-style: normal; display: block; font-size: 12px; margin-top: 0.2rem; }
+
+  /* ============ RUNBOOK ============ */
+  .runbook {
+    padding: 0 1.5rem;
+  }
+  .runbook .rwrap {
+    background: #06090f;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.4rem 1.6rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+  .runbook .rwrap .prompt { color: var(--ok); }
+  .runbook .rwrap .step { color: var(--accent); }
+  .runbook .rwrap .comment { color: var(--dim); font-style: italic; }
+  .runbook .rwrap .out { color: var(--mute); padding-left: 1.5rem; display: block; }
+  .runbook .rwrap .crit-text { color: var(--crit); }
+  .runbook .rwrap .ok-text { color: var(--ok); }
+  .runbook .rwrap .warn-text { color: var(--warn); }
+  .runbook .rwrap .label-tag {
+    display: inline-block;
+    background: var(--panel);
+    color: var(--mute);
+    padding: 0 0.4rem;
+    border-radius: 2px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ============ RECOMMENDATION ============ */
+  .recos {
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.7rem;
+  }
+  .reco {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem 1.1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .reco .rshape {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .reco .rpick {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1.2;
+  }
+  .reco .rwhy { font-size: 12.5px; color: var(--mute); line-height: 1.5; }
+  .reco.avoid .rpick { color: var(--crit); }
+
+  /* ============ FOOTER NAV ============ */
+  .nav {
+    padding: 2.5rem 1.5rem 1rem;
+    border-top: 1px solid var(--line);
+    margin-top: 2rem;
+  }
+  .nav h3 {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    margin: 0 0 0.8rem 0;
+    font-weight: 600;
+  }
+  .siblings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.6rem;
+  }
+  .sib {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.7rem 0.9rem;
+    text-decoration: none;
+  }
+  .sib:hover { border-color: var(--accent); text-decoration: none; }
+  .sib .stitle { font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 0.2rem; }
+  .sib .sdepth { font-family: var(--mono); font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  .sib .ssum { font-size: 11.5px; color: var(--mute); margin-top: 0.3rem; line-height: 1.4; }
+</style>
+
+<div class="dash">
+
+  <!-- ============ TOPBAR ============ -->
+  <div class="topbar">
+    <span class="pill"><span class="dot"></span>system nominal</span>
+    <span class="breadcrumb">
+      <a href="/">atlas</a><span class="sep">/</span><a href="../../">workshop playbook</a><span class="sep">/</span><span class="here">take-home deployment</span>
+    </span>
+    <div class="right">
+      <span class="stat">depth: <span>expedition</span></span>
+      <span class="stat">sources: <span>74</span></span>
+      <span class="stat">scan: <span>2026-05-23</span></span>
+    </div>
+  </div>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <h1>Take-home deployment: <span class="accent">the deploy click is solved</span>. Six decay vectors aren't.</h1>
+    <p class="lede">Every major vibe-coding platform now publishes to a free auto-subdomain on a single click. The participant goes home with a working URL. Then it rots. This dashboard tracks the <strong>six decay vectors</strong> that silently kill workshop apps in the two-week tail, and ranks the platforms by which failure modes they expose.</p>
+
+    <div class="verdict-strip">
+      <div class="kpi">
+        <span class="label">Recommended default</span>
+        <span class="num gold" style="font-size: 22px;"><a href="https://bolt.new/blog/bolt-cloud" style="color: inherit;">Bolt.new + Cloud</a></span>
+        <span class="sub">no card, no sleep, 1M tok/mo <sup><a href="https://www.getaiperks.com/en/ai/bolt-new-free-tier-guide">[4]</a></sup></span>
+      </div>
+      <div class="kpi">
+        <span class="label">Platforms scanned</span>
+        <span class="num">13</span>
+        <span class="sub">7 deploy hosts + 6 databases</span>
+      </div>
+      <div class="kpi">
+        <span class="label">Decay vectors tracked</span>
+        <span class="num crit">6</span>
+        <span class="sub">all silent — none page the user</span>
+      </div>
+      <div class="kpi">
+        <span class="label">Tightest MTTF</span>
+        <span class="num crit">7d</span>
+        <span class="sub">Supabase pause / Google OAuth refresh <sup><a href="https://supabase.com/pricing">[27]</a></sup> <sup><a href="https://nango.dev/blog/google-oauth-invalid-grant-token-has-been-expired-or-revoked/">[66]</a></sup></span>
+      </div>
+      <div class="kpi">
+        <span class="label">Confirmed kill-shots</span>
+        <span class="num crit">3</span>
+        <span class="sub">paused DB · auth 401 · cred leak</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DECAY VECTORS ============ -->
+  <div class="section-head">
+    <h2><span class="seq">01 ▸</span> decay vectors</h2>
+    <span class="note">mean-time-to-failure, ordered by severity</span>
+  </div>
+  <div class="vectors">
+
+    <div class="vector crit">
+      <div class="vhead">
+        <span class="sev-badge crit">CRIT</span>
+        <span class="vname">DB pause — Supabase</span>
+        <span class="mttf">MTTF <strong>7d</strong></span>
+      </div>
+      <div class="desc"><strong>Free projects pause after 7 days of database inactivity.</strong> Dashboard visits don't count — only real DB queries reset the timer <sup><a href="https://shadhujan.medium.com/how-to-keep-supabase-free-tier-projects-active-d60fd4a17263">[52]</a></sup>. Data survives, but the resume is <strong>~30s typical, hours worst-case</strong>, and the unpause button has been known to fail entirely <sup><a href="https://github.com/orgs/supabase/discussions/38950">[54]</a></sup> <sup><a href="https://github.com/supabase/supabase/issues/43038">[55]</a></sup>.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>card line: "if it says 'paused' or 'unavailable', log into <a href="https://supabase.com/pricing">Supabase</a> and click resume — your data is safe" <sup><a href="https://aiagencyplus.com/keep-your-supabase-free-tier-project-live-past-the-limit/">[53]</a></sup>. Or pre-empt: ship with <a href="https://neon.com/docs/introduction/scale-to-zero">Neon</a> (sub-second resume) or <a href="https://turso.tech/pricing">Turso</a> (always-on) instead.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=supabase.com&sz=64" alt="Supabase">
+        <span>supabase-backed apps · any Lovable/Bolt default</span>
+      </div>
+    </div>
+
+    <div class="vector crit">
+      <div class="vhead">
+        <span class="sev-badge crit">CRIT</span>
+        <span class="vname">Auth rot — Google OAuth</span>
+        <span class="mttf">MTTF <strong>7d</strong></span>
+      </div>
+      <div class="desc">Google OAuth <strong>refresh tokens expire after 7 days</strong> while the consent screen is in Testing mode, and after ~6 months of non-use even when published <sup><a href="https://nango.dev/blog/google-oauth-invalid-grant-token-has-been-expired-or-revoked/">[66]</a></sup>. Workshop apps almost always ship in Testing mode → <strong>guaranteed silent death by day 8</strong>. Friends and family open the link and get nothing.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>use the platform's bundled auth (<a href="https://bolt.new/blog/bolt-cloud">Bolt Cloud</a>, <a href="https://docs.lovable.dev/integrations/cloud">Lovable Cloud</a>) instead of rolling Google sign-in. Removes the 7-day clock entirely <sup><a href="https://bolt.new/blog/bolt-cloud">[60]</a></sup>.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="Google">
+        <span>any app with "sign in with google"</span>
+      </div>
+    </div>
+
+    <div class="vector crit">
+      <div class="vhead">
+        <span class="sev-badge crit">CRIT</span>
+        <span class="vname">Authorization inverted</span>
+        <span class="mttf">MTTF <strong>at deploy</strong></span>
+      </div>
+      <div class="desc">A study of <strong>170 Lovable-built apps</strong> found anonymous visitors with full data access and logged-in users blocked <sup><a href="https://getautonoma.com/blog/vibe-coding-failures">[68]</a></sup>. The app <em>looks fine on the participant's own login</em> but breaks for the friend they share it with — the canonical "works on mine, broken for grandma" failure <sup><a href="https://buildtolaunch.substack.com/p/8-vibe-coding-mistakes-that-break-production">[71]</a></sup>.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>card line: "if a friend says it's broken but it works for you, ask the AI: <em>'anonymous users can see everything but logged-in users get nothing, fix it'</em>" <sup><a href="https://getautonoma.com/blog/vibe-coding-failures">[68]</a></sup>.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=64" alt="Lovable">
+        <span>vibe-coded apps with any login flow</span>
+      </div>
+    </div>
+
+    <div class="vector crit">
+      <div class="vhead">
+        <span class="sev-badge crit">CRIT</span>
+        <span class="vname">Credential leak — bundled API keys</span>
+        <span class="mttf">MTTF <strong>hours</strong></span>
+      </div>
+      <div class="desc"><a href="https://lovable.dev/pricing">Lovable</a> apps routinely embed Stripe / OpenAI / SendGrid keys <strong>directly in the JavaScript bundle</strong> where credential-harvesters find them within hours <sup><a href="https://vibe-eval.com/safety/lovable/">[61]</a></sup>. In March 2026 a single vibe-coded app leaked <strong>1.5M API keys</strong> and OWASP added a dedicated 2025 Top-10 category for vibe-coding patterns <sup><a href="https://modall.ca/blog/vibe-coding-security-risks">[62]</a></sup>.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>workshop policy: <strong>no real keys in workshop apps</strong>. Use bundled cloud (auto-managed creds) or test/throwaway keys only.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=64" alt="Lovable">
+        <img src="https://www.google.com/s2/favicons?domain=v0.dev&sz=64" alt="v0">
+        <span>any AI-generated app prompted naively</span>
+      </div>
+    </div>
+
+    <div class="vector crit">
+      <div class="vhead">
+        <span class="sev-badge crit">CRIT</span>
+        <span class="vname">DB deletion — Render free Postgres</span>
+        <span class="mttf">MTTF <strong>30d + 14d</strong></span>
+      </div>
+      <div class="desc">Render's free PostgreSQL databases <strong>expire 30 days after creation</strong> (cut from 90 in 2026), with a 14-day grace period before <em>deletion along with all data</em>. No backups available <sup><a href="https://render.com/changelog/free-postgresql-instances-now-expire-after-30-days-previously-90">[32]</a></sup>. A guaranteed data-loss event for any workshop participant who needed a DB on <a href="https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026">Render</a>.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>don't deploy take-home apps on Render free. Cold starts already kill the "show grandma" link <sup><a href="https://blog.samkiel.dev/your-render-free-tier-is-not-broken-its-just-cold">[31]</a></sup>; the 30-day DB clock makes it terminal.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=render.com&sz=64" alt="Render">
+        <span>any participant who picked Render manually</span>
+      </div>
+    </div>
+
+    <div class="vector warn">
+      <div class="vhead">
+        <span class="sev-badge warn">WARN</span>
+        <span class="vname">Credit ceiling — edit budget</span>
+        <span class="mttf">MTTF <strong>~1mo</strong></span>
+      </div>
+      <div class="desc">Free-tier edit caps vary wildly: <a href="https://docs.lovable.dev/introduction/plans-and-credits">Lovable</a> <strong>5/day, 30/month</strong> <sup><a href="https://docs.lovable.dev/introduction/plans-and-credits">[44]</a></sup>; <a href="https://v0.app/pricing">v0</a> $5 credit + 7 msg/day <sup><a href="https://uibakery.io/blog/vercel-v0-pricing-explained-what-you-get-and-how-it-compares">[47]</a></sup>; <a href="https://www.websitebuilderexpert.com/vibe-coding/base44-pricing/">Base44</a> 5/day, 25/month <sup><a href="https://www.websitebuilderexpert.com/vibe-coding/base44-pricing/">[11]</a></sup>; <a href="https://bolt.new/blog/bolt-cloud">Bolt</a> 1M tokens/mo (loosest) <sup><a href="https://www.getaiperks.com/en/ai/bolt-new-free-tier-guide">[4]</a></sup>. Participant burns the month in one afternoon trying to fix a bug.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>card line: "you have X edits per day on the free plan". Drill the <em>three-strike rule</em> (revert after 2 failed corrections) in session.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=64" alt="Lovable">
+        <img src="https://www.google.com/s2/favicons?domain=v0.dev&sz=64" alt="v0">
+        <img src="https://www.google.com/s2/favicons?domain=base44.com&sz=64" alt="Base44">
+        <span>all free-tier AI builders</span>
+      </div>
+    </div>
+
+    <div class="vector warn">
+      <div class="vhead">
+        <span class="sev-badge warn">WARN</span>
+        <span class="vname">Cold start — Replit free sleep</span>
+        <span class="mttf">MTTF <strong>5 min idle</strong></span>
+      </div>
+      <div class="desc"><a href="https://p0stman.com/guides/replit-limitations">Replit's free tier</a> sleeps after <strong>5 minutes of inactivity</strong> with <strong>10–30s cold starts</strong> on the next request <sup><a href="https://p0stman.com/guides/replit-limitations">[8]</a></sup>. The "show grandma" URL looks dead. Always-On requires the $20/mo Core plan. Render free has the same problem with longer (~60s) cold starts <sup><a href="https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026">[30]</a></sup>.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>avoid <a href="https://docs.replit.com/cloud-services/deployments/custom-domains">Replit free</a> and <a href="https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026">Render free</a> for take-home. <a href="https://vercel.com/docs/plans/hobby">Vercel</a>, <a href="https://www.netlify.com/pricing/">Netlify</a>, <a href="https://developers.cloudflare.com/workers/platform/pricing/">Cloudflare Pages</a> never sleep.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=replit.com&sz=64" alt="Replit">
+        <img src="https://www.google.com/s2/favicons?domain=render.com&sz=64" alt="Render">
+        <span>replit free · render free web services</span>
+      </div>
+    </div>
+
+    <div class="vector info">
+      <div class="vhead">
+        <span class="sev-badge info">INFO</span>
+        <span class="vname">Filesystem ephemeral — SQLite trap</span>
+        <span class="mttf">MTTF <strong>next redeploy</strong></span>
+      </div>
+      <div class="desc"><a href="https://vercel.com/kb/guide/is-sqlite-supported-in-vercel">Vercel</a> officially: SQLite cannot be used — each serverless function gets its own ephemeral filesystem <sup><a href="https://vercel.com/kb/guide/is-sqlite-supported-in-vercel">[56]</a></sup>. <a href="https://blog.replit.com/replspace-filesystems">Replit</a>: local filesystem writes disappear on every redeploy <sup><a href="https://blog.replit.com/replspace-filesystems">[58]</a></sup>. Both AIs happily generate SQLite code when prompted naively → "Save my todos" silently loses every entry on the participant's next edit.</div>
+      <div class="mitigation"><span class="mlabel">FIX</span>system-prompt or scaffolding must force a managed DB: <a href="https://bolt.new/blog/bolt-cloud">Bolt Cloud</a>, <a href="https://docs.lovable.dev/integrations/cloud">Lovable Cloud</a>, <a href="https://neon.com/docs/introduction/scale-to-zero">Neon</a>, or <a href="https://turso.tech/pricing">Turso</a>.</div>
+      <div class="affects">
+        <span>affects:</span>
+        <img src="https://www.google.com/s2/favicons?domain=vercel.com&sz=64" alt="Vercel">
+        <img src="https://www.google.com/s2/favicons?domain=replit.com&sz=64" alt="Replit">
+        <span>any naive AI scaffold</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ PLATFORM HEALTH ============ -->
+  <div class="section-head">
+    <h2><span class="seq">02 ▸</span> platform health · take-home survivability</h2>
+    <span class="note">green = stable · amber = degrades · red = fails the 2-week test</span>
+  </div>
+  <div class="platforms">
+
+    <div class="plat ok">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=bolt.new&sz=64" alt="Bolt.new">
+        <span class="pname"><a href="https://bolt.new/blog/bolt-cloud" style="color: inherit;">Bolt.new</a></span>
+        <span class="pstatus">STABLE</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.bolt.host</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v">1M tok/mo</span>
+        <span class="k">Sleeps</span><span class="v ok">no</span>
+        <span class="k">DB+Auth</span><span class="v ok">bundled</span>
+        <span class="k">Domain</span><span class="v warn">paid only</span>
+      </div>
+      <div class="verdict"><strong>The default.</strong> Loosest free tier, native auth + DB, never sleeps. <sup><a href="https://www.getaiperks.com/en/ai/bolt-new-free-tier-guide">[4]</a></sup> <sup><a href="https://bolt.new/blog/bolt-cloud">[60]</a></sup></div>
+    </div>
+
+    <div class="plat warn">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=64" alt="Lovable">
+        <span class="pname"><a href="https://lovable.dev/pricing" style="color: inherit;">Lovable</a></span>
+        <span class="pstatus">DEGRADES</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.lovable.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v warn">30/mo</span>
+        <span class="k">Sleeps</span><span class="v ok">no</span>
+        <span class="k">DB+Auth</span><span class="v ok">bundled</span>
+        <span class="k">Mobile app</span><span class="v ok">ios+android</span>
+      </div>
+      <div class="verdict"><strong>Pick when phone iteration matters</strong> — only mature mobile app in May 2026. Credit ceiling is the tradeoff. <sup><a href="https://techcrunch.com/2026/04/28/lovable-launches-its-vibe-coding-app-on-ios-and-android/">[41]</a></sup> <sup><a href="https://docs.lovable.dev/introduction/plans-and-credits">[44]</a></sup></div>
+    </div>
+
+    <div class="plat ok">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=v0.dev&sz=64" alt="v0">
+        <span class="pname"><a href="https://v0.dev/faq" style="color: inherit;">v0.dev</a></span>
+        <span class="pstatus">STABLE</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.vercel.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v warn">7 msg/day</span>
+        <span class="k">Sleeps</span><span class="v ok">no</span>
+        <span class="k">DB+Auth</span><span class="v crit">none</span>
+        <span class="k">Domain</span><span class="v ok">free attach</span>
+      </div>
+      <div class="verdict"><strong>UI-only prototypes.</strong> Best deploy path (Vercel Hobby), worst follow-up budget. <sup><a href="https://v0.app/pricing">[6]</a></sup> <sup><a href="https://uibakery.io/blog/vercel-v0-pricing-explained-what-you-get-and-how-it-compares">[47]</a></sup></div>
+    </div>
+
+    <div class="plat crit">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=replit.com&sz=64" alt="Replit">
+        <span class="pname"><a href="https://docs.replit.com/cloud-services/deployments/custom-domains" style="color: inherit;">Replit</a> (free)</span>
+        <span class="pstatus">FAILS</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.replit.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v warn">agent caps</span>
+        <span class="k">Sleeps</span><span class="v crit">5min/10-30s</span>
+        <span class="k">DB</span><span class="v ok">PG 20GB</span>
+        <span class="k">Domain</span><span class="v crit">paid only</span>
+      </div>
+      <div class="verdict"><strong>Avoid for take-home.</strong> 5-min sleep + 10-30s cold start is the "show grandma" killer. Core $20/mo fixes it. <sup><a href="https://p0stman.com/guides/replit-limitations">[8]</a></sup></div>
+    </div>
+
+    <div class="plat ok">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=vercel.com&sz=64" alt="Vercel">
+        <span class="pname"><a href="https://vercel.com/docs/plans/hobby" style="color: inherit;">Vercel</a> Hobby</span>
+        <span class="pstatus">STABLE</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.vercel.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v">non-commercial</span>
+        <span class="k">Sleeps</span><span class="v ok">never</span>
+        <span class="k">Domain</span><span class="v ok">free attach</span>
+        <span class="k">DB</span><span class="v crit">none + no SQLite</span>
+      </div>
+      <div class="verdict"><strong>Best static host.</strong> No suspension, retention unlimited. SQLite trap if AI scaffolds naively. <sup><a href="https://vercel.com/docs/plans/hobby">[29]</a></sup> <sup><a href="https://vercel.com/kb/guide/is-sqlite-supported-in-vercel">[56]</a></sup></div>
+    </div>
+
+    <div class="plat ok">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=netlify.com&sz=64" alt="Netlify">
+        <span class="pname"><a href="https://www.netlify.com/pricing/" style="color: inherit;">Netlify</a></span>
+        <span class="pstatus">STABLE</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.netlify.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v">100GB bw</span>
+        <span class="k">Sleeps</span><span class="v ok">never</span>
+        <span class="k">Domain</span><span class="v ok">free attach</span>
+        <span class="k">DB</span><span class="v crit">none</span>
+      </div>
+      <div class="verdict"><strong>Solid static.</strong> Only suspends if quota blown — no auto-recharge, no surprise bill. <sup><a href="https://www.netlify.com/pricing/">[39]</a></sup></div>
+    </div>
+
+    <div class="plat ok">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=cloudflare.com&sz=64" alt="Cloudflare">
+        <span class="pname"><a href="https://developers.cloudflare.com/workers/platform/pricing/" style="color: inherit;">Cloudflare Pages</a></span>
+        <span class="pstatus">STABLE</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.pages.dev</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v">100k req/day</span>
+        <span class="k">Cold start</span><span class="v ok">&lt;5ms</span>
+        <span class="k">Bandwidth</span><span class="v ok">unlimited</span>
+        <span class="k">Domain</span><span class="v ok">free attach</span>
+      </div>
+      <div class="verdict"><strong>Structurally immune</strong> to the cold-start problem — V8 isolates. Most boring + reliable option. <sup><a href="https://developers.cloudflare.com/workers/platform/pricing/">[35]</a></sup></div>
+    </div>
+
+    <div class="plat warn">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=claude.com&sz=64" alt="Claude">
+        <span class="pname"><a href="https://support.claude.com/en/articles/9547008-publishing-and-sharing-artifacts" style="color: inherit;">Claude Artifacts</a></span>
+        <span class="pstatus">DEGRADES</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">claude.ai/public</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v">claude plan</span>
+        <span class="k">Sleeps</span><span class="v ok">no</span>
+        <span class="k">Domain</span><span class="v crit">never</span>
+        <span class="k">Re-publish</span><span class="v crit">blocked</span>
+      </div>
+      <div class="verdict"><strong>Static one-shots only.</strong> Zero friction for non-account viewers. No DB, no auth, no custom domain ever. <sup><a href="https://support.claude.com/en/articles/9547008-publishing-and-sharing-artifacts">[9]</a></sup></div>
+    </div>
+
+    <div class="plat warn">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=base44.com&sz=64" alt="Base44">
+        <span class="pname"><a href="https://www.websitebuilderexpert.com/vibe-coding/base44-pricing/" style="color: inherit;">Base44</a></span>
+        <span class="pstatus">DEGRADES</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.base44.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v crit">5/day · 25/mo</span>
+        <span class="k">Sleeps</span><span class="v ok">no</span>
+        <span class="k">DB+Auth</span><span class="v ok">bundled</span>
+      </div>
+      <div class="verdict">Tightest follow-up budget of the bundled-cloud builders. <sup><a href="https://www.websitebuilderexpert.com/vibe-coding/base44-pricing/">[11]</a></sup></div>
+    </div>
+
+    <div class="plat crit">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=render.com&sz=64" alt="Render">
+        <span class="pname"><a href="https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026" style="color: inherit;">Render</a> (free)</span>
+        <span class="pstatus">FAILS</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.onrender.com</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Sleeps</span><span class="v crit">15min/~60s</span>
+        <span class="k">Free PG</span><span class="v crit">dies @ 30d</span>
+        <span class="k">Domain</span><span class="v dim">n/a</span>
+      </div>
+      <div class="verdict"><strong>Two strikes.</strong> Cold-start kills first visit; free Postgres deleted at day 44. <sup><a href="https://blog.samkiel.dev/your-render-free-tier-is-not-broken-its-just-cold">[31]</a></sup> <sup><a href="https://render.com/changelog/free-postgresql-instances-now-expire-after-30-days-previously-90">[32]</a></sup></div>
+    </div>
+
+    <div class="plat crit">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=railway.com&sz=64" alt="Railway">
+        <span class="pname"><a href="https://docs.railway.com/pricing/plans" style="color: inherit;">Railway</a></span>
+        <span class="pstatus">FAILS</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v dim">n/a</span>
+        <span class="k">Card</span><span class="v crit">required</span>
+        <span class="k">Free cap</span><span class="v crit">30d trial</span>
+        <span class="k">Trial</span><span class="v">$5 credit</span>
+      </div>
+      <div class="verdict"><strong>No real free tier.</strong> Card required at signup → not workshop-grade. <sup><a href="https://docs.railway.com/pricing/plans">[33]</a></sup></div>
+    </div>
+
+    <div class="plat crit">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=fly.io&sz=64" alt="Fly.io">
+        <span class="pname"><a href="https://www.saaspricepulse.com/blog/flyio-free-tier-2026" style="color: inherit;">Fly.io</a></span>
+        <span class="pstatus">FAILS</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v dim">n/a</span>
+        <span class="k">Card</span><span class="v crit">required</span>
+        <span class="k">Free cap</span><span class="v crit">7d trial</span>
+        <span class="k">Trial</span><span class="v">2 VM-hours</span>
+      </div>
+      <div class="verdict">Free tier removed for new signups in 2024. Same reason as Railway — not workshop-grade. <sup><a href="https://www.saaspricepulse.com/blog/flyio-free-tier-2026">[34]</a></sup></div>
+    </div>
+
+    <div class="plat ok">
+      <div class="phead">
+        <img src="https://www.google.com/s2/favicons?domain=create.xyz&sz=64" alt="Create.xyz">
+        <span class="pname"><a href="https://www.create.xyz/docs/publish-and-share/publish" style="color: inherit;">Create.xyz</a></span>
+        <span class="pstatus">STABLE</span>
+      </div>
+      <div class="pgrid">
+        <span class="k">URL</span><span class="v">*.created.app</span>
+        <span class="k">Card</span><span class="v ok">no</span>
+        <span class="k">Free cap</span><span class="v">in-editor</span>
+        <span class="k">Sleeps</span><span class="v ok">no</span>
+        <span class="k">DB+Auth</span><span class="v crit">none</span>
+      </div>
+      <div class="verdict">Lesser-known but no-friction publish. No bundled cloud. <sup><a href="https://www.create.xyz/docs/publish-and-share/publish">[12]</a></sup></div>
+    </div>
+
+  </div>
+
+  <!-- ============ DATABASE STRIP ============ -->
+  <div class="section-head">
+    <h2><span class="seq">03 ▸</span> database tier · left-alone-for-2-months ranking</h2>
+    <span class="note">the silent killer of workshop apps</span>
+  </div>
+  <div class="dbs">
+
+    <div class="db ok">
+      <div class="dname"><img src="https://www.google.com/s2/favicons?domain=turso.tech&sz=64" alt="Turso"><a href="https://turso.tech/pricing">Turso</a></div>
+      <div class="dmeta"><span class="label">pauses</span>never · <span class="label">free</span>9 GB</div>
+      <div class="dnote">Always-on. No ceremony. Survives months of dormancy. <sup><a href="https://turso.tech/pricing">[38]</a></sup></div>
+    </div>
+
+    <div class="db ok">
+      <div class="dname"><img src="https://www.google.com/s2/favicons?domain=neon.com&sz=64" alt="Neon"><a href="https://neon.com/docs/introduction/scale-to-zero">Neon</a></div>
+      <div class="dmeta"><span class="label">pauses</span>5min · <span class="label">wake</span>~100s of ms</div>
+      <div class="dnote">Transparent scale-to-zero. Resume effectively invisible to visitor. <sup><a href="https://neon.com/docs/introduction/scale-to-zero">[36]</a></sup></div>
+    </div>
+
+    <div class="db ok">
+      <div class="dname"><img src="https://www.google.com/s2/favicons?domain=replit.com&sz=64" alt="Replit"><a href="https://docs.replit.com/cloud-services/storage-and-databases/sql-database">Replit Postgres</a></div>
+      <div class="dmeta"><span class="label">pauses</span>no · <span class="label">free</span>20 GB</div>
+      <div class="dnote">Managed Postgres since Dec 2025 (off Neon). Reliable, but the host Repl sleeps. <sup><a href="https://docs.replit.com/cloud-services/storage-and-databases/sql-database">[57]</a></sup></div>
+    </div>
+
+    <div class="db warn">
+      <div class="dname"><img src="https://www.google.com/s2/favicons?domain=supabase.com&sz=64" alt="Supabase"><a href="https://supabase.com/pricing">Supabase</a></div>
+      <div class="dmeta"><span class="label">pauses</span>7 days · <span class="label">wake</span>30s typ / hrs worst</div>
+      <div class="dnote">Data survives the pause, but resume is manual and a community of <a href="https://github.com/travisvn/supabase-pause-prevention">cron pingers</a> exists only to defeat this. <sup><a href="https://supabase.com/pricing">[27]</a></sup> <sup><a href="https://github.com/travisvn/supabase-pause-prevention">[28]</a></sup></div>
+    </div>
+
+    <div class="db crit">
+      <div class="dname"><img src="https://www.google.com/s2/favicons?domain=render.com&sz=64" alt="Render">Render free PG</div>
+      <div class="dmeta"><span class="label">expires</span>30d · <span class="label">grace</span>14d → <span class="warn-text" style="color: var(--crit);">deleted</span></div>
+      <div class="dnote">Guaranteed data loss at day 44. Disqualifying. <sup><a href="https://render.com/changelog/free-postgresql-instances-now-expire-after-30-days-previously-90">[32]</a></sup></div>
+    </div>
+
+    <div class="db crit">
+      <div class="dname">PlanetScale free</div>
+      <div class="dmeta"><span class="label">free tier</span>removed apr 2024 · <span class="label">min</span>$5/mo</div>
+      <div class="dnote">No free path. Excluded from workshop options. <sup><a href="https://www.codu.co/niall/no-more-free-tier-on-planetscale-here-are-free-alternatives-q4wzqcu9">[37]</a></sup></div>
+    </div>
+
+  </div>
+
+  <!-- ============ AUTH-ROT TIMELINE ============ -->
+  <div class="section-head">
+    <h2><span class="seq">04 ▸</span> credential &amp; auth incident log · 2026</h2>
+    <span class="note">the dead-link of week three</span>
+  </div>
+  <div class="tl">
+    <div class="tl-wrap">
+
+      <div class="tl-row">
+        <span class="tdate">2026-03</span>
+        <span class="tsev crit">CRIT</span>
+        <span class="ttxt"><strong>1.5M API keys leaked</strong> from a single vibe-coded app shipped without security review. OWASP adds dedicated 2025 Top-10 category for vibe-coding risk patterns.<em>Lesson: assume any AI-generated app has secrets in the bundle. Workshop policy must forbid real keys. <sup><a href="https://modall.ca/blog/vibe-coding-security-risks">[62]</a></sup></em></span>
+      </div>
+
+      <div class="tl-row">
+        <span class="tdate">2026-04-04</span>
+        <span class="tsev crit">CRIT</span>
+        <span class="ttxt"><a href="https://www.anthropic.com/news/anthropic-teach-for-all">Anthropic</a> bans subscription OAuth tokens in third-party tools. Every app with an embedded Claude subscription token <strong>breaks instantly</strong>; pay-as-you-go API key migration required.<em>Lesson: any LLM key the AI bakes into the participant's app is a future fault. <sup><a href="https://blog.laozhang.ai/en/posts/openclaw-anthropic-api-key-error">[63]</a></sup></em></span>
+      </div>
+
+      <div class="tl-row">
+        <span class="tdate">2026-04-27</span>
+        <span class="tsev info">INFO</span>
+        <span class="ttxt"><a href="https://lovable.dev/blog/mobile-app">Lovable</a> ships free iOS + Android mobile app — first mature phone-iteration path. Voice or text prompts; project syncs with desktop.<em>Reframes the "two months later" iteration story for Lovable picks. <sup><a href="https://techcrunch.com/2026/04/28/lovable-launches-its-vibe-coding-app-on-ios-and-android/">[41]</a></sup></em></span>
+      </div>
+
+      <div class="tl-row">
+        <span class="tdate">2026-05-15</span>
+        <span class="tsev warn">WARN</span>
+        <span class="ttxt"><a href="https://blog.replit.com/mobile-apps">Replit</a> iPhone app ships first update in <strong>four months</strong> after App Store review dispute. Live fragility example for mobile-iteration path.<em>Don't promise alumni a smooth mobile-update cadence. <sup><a href="https://9to5mac.com/2026/05/15/iphone-vibe-coding-app-ships-first-update-in-four-months-after-app-store-review-issue/">[49]</a></sup></em></span>
+      </div>
+
+      <div class="tl-row">
+        <span class="tdate">ongoing</span>
+        <span class="tsev crit">CRIT</span>
+        <span class="ttxt"><strong>Google OAuth refresh tokens expire at 7 days</strong> while consent screen is in Testing mode. Workshop apps almost always ship in Testing mode → silent 401 on day 8.<em>Mitigation: use bundled-cloud auth, not Google sign-in. <sup><a href="https://nango.dev/blog/google-oauth-invalid-grant-token-has-been-expired-or-revoked/">[66]</a></sup></em></span>
+      </div>
+
+      <div class="tl-row">
+        <span class="tdate">ongoing</span>
+        <span class="tsev warn">WARN</span>
+        <span class="ttxt"><a href="https://clerk.com/docs/guides/development/deployment/production">Clerk</a> dev/prod key swap — common deploy failure with no obvious error surface for a non-technical user. Free tier now covers 50k MAU so cost cliff is gone.<em>Card line: "if your Clerk-built app says 'Invalid Publishable Key' check the dev/prod toggle". <sup><a href="https://clerk.com/docs/guides/development/deployment/production">[65]</a></sup> <sup><a href="https://supertokens.com/blog/clerk-pricing-the-complete-guide">[64]</a></sup></em></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ RUNBOOK ============ -->
+  <div class="section-head">
+    <h2><span class="seq">05 ▸</span> take-home card · printed runbook</h2>
+    <span class="note">no canonical published template exists; this is synthesised from failure-mode writeups</span>
+  </div>
+  <div class="runbook">
+    <div class="rwrap">
+<span class="comment"># take-home_card.md — print on 4×6, hand to participant at minute 175</span>
+
+<span class="step">[1] YOUR URL</span>
+   <span class="out">printed verbatim — plus a QR code <sup><a href="https://www.agentrank.tech/blog/bolt-new-hosting-review-free-deployment-fine-print">[5]</a></sup></span>
+
+<span class="step">[2] HOW YOU SIGNED IN</span>
+   <span class="out">"sign in with google, the address ending in @____"</span>
+   <span class="out comment"># handles the 'wrong account at home' failure <sup><a href="https://www.nocode.mba/articles/lovable-tutorial-google-signin">[42]</a></sup></span>
+
+<span class="step">[3] IF IT SAYS 'PAUSED' OR 'UNAVAILABLE'</span>
+   <span class="out">→ log into the platform dashboard</span>
+   <span class="out">→ click <span class="ok-text">resume</span></span>
+   <span class="out">→ <span class="ok-text">your data is safe</span> <sup><a href="https://aiagencyplus.com/keep-your-supabase-free-tier-project-live-past-the-limit/">[53]</a></sup></span>
+
+<span class="step">[4] IF A FRIEND SAYS IT'S BROKEN BUT IT WORKS FOR YOU</span>
+   <span class="out">→ ask the AI:</span>
+   <span class="out">  <span class="prompt">"anonymous users can see everything but logged-in users get nothing,</span></span>
+   <span class="out">  <span class="prompt"> fix it"</span> <sup><a href="https://getautonoma.com/blog/vibe-coding-failures">[68]</a></sup></span>
+
+<span class="step">[5] DAILY EDIT BUDGET</span>
+   <span class="out warn-text">you have X edits per day on the free plan</span>
+   <span class="out comment"># don't burn the month in a single afternoon <sup><a href="https://docs.lovable.dev/introduction/plans-and-credits">[44]</a></sup></span>
+
+<span class="step">[6] PERMISSION TO ABANDON</span>
+   <span class="out">if the prototype turned out wrong, throw it away.</span>
+   <span class="out comment"># reduces facilitator-help load <sup><a href="https://medium.com/design-bootcamp/we-vibe-coded-our-way-to-nowhere-and-learned-a-lot-66ca3e9ac969">[72]</a></sup></span>
+
+<span class="step">[7] RE-ENTRY URLS</span>
+   <span class="out"><a href="https://lovable.dev/community">discord</a> · <a href="https://www.meetup.com/vibe-coders-collective/">meetup</a> · office-hours · facilitator email</span>
+   <span class="out comment"># list multiple channels — not one <sup><a href="https://lovable.dev/community">[69]</a></sup> <sup><a href="https://www.anthropic.com/news/anthropic-teach-for-all">[73]</a></sup> <sup><a href="https://www.meetup.com/vibe-coders-collective/">[74]</a></sup></span>
+
+<span class="step">[8] SECURITY · ONE LINE</span>
+   <span class="out crit-text">don't put real API keys, passwords, or credit card details into your app</span> <sup><a href="https://vibe-eval.com/safety/lovable/">[61]</a></sup>
+
+<span class="comment"># debugging note for facilitators: the single most-reported pain point in-session
+# is debugging. The proven mitigation is teaching participants to query the AI to
+# explain errors rather than touch the code <sup><a href="https://benzatine.com/news-room/unlocking-app-creation-insights-from-a-vibe-coding-workshop">[67]</a></sup>.</span>
+    </div>
+  </div>
+
+  <!-- ============ RECOMMENDATIONS ============ -->
+  <div class="section-head">
+    <h2><span class="seq">06 ▸</span> recommended stack by workshop shape</h2>
+    <span class="note">match the pick to the participant population</span>
+  </div>
+  <div class="recos">
+
+    <div class="reco">
+      <span class="rshape">▸ Generic 2-3 hr "ship a working app" for laymen</span>
+      <span class="rpick"><a href="https://bolt.new/blog/bolt-cloud" style="color: inherit;">Bolt.new + Bolt Cloud</a></span>
+      <span class="rwhy">Most generous free tier, no card, persistent DB bundled, never sleeps. <sup><a href="https://www.getaiperks.com/en/ai/bolt-new-free-tier-guide">[4]</a></sup> <sup><a href="https://bolt.new/blog/bolt-cloud">[60]</a></sup></span>
+    </div>
+
+    <div class="reco">
+      <span class="rshape">▸ Participants likely to iterate on phones</span>
+      <span class="rpick"><a href="https://docs.lovable.dev/integrations/cloud" style="color: inherit;">Lovable + Lovable Cloud</a></span>
+      <span class="rwhy">Only mature mobile app in May 2026. Accept the 30/mo credit ceiling as the tradeoff. <sup><a href="https://techcrunch.com/2026/04/28/lovable-launches-its-vibe-coding-app-on-ios-and-android/">[41]</a></sup></span>
+    </div>
+
+    <div class="reco">
+      <span class="rshape">▸ UI prototyping only · no backend</span>
+      <span class="rpick"><a href="https://v0.dev/faq" style="color: inherit;">v0.dev → Vercel Hobby</a></span>
+      <span class="rwhy">One-click deploy, never sleeps, custom domain free. <sup><a href="https://v0.app/pricing">[6]</a></sup> <sup><a href="https://vercel.com/docs/plans/hobby">[29]</a></sup></span>
+    </div>
+
+    <div class="reco">
+      <span class="rshape">▸ Static "hello world" for absolute beginners</span>
+      <span class="rpick"><a href="https://support.claude.com/en/articles/9547008-publishing-and-sharing-artifacts" style="color: inherit;">Claude Artifacts</a></span>
+      <span class="rwhy">Zero account-creation friction for the viewer. Static only. <sup><a href="https://support.claude.com/en/articles/9547008-publishing-and-sharing-artifacts">[9]</a></sup></span>
+    </div>
+
+    <div class="reco avoid">
+      <span class="rshape">▸ Anything Replit-based</span>
+      <span class="rpick">⚠ Require Core ($20/mo)</span>
+      <span class="rwhy">Free tier's sleep + custom-domain lock kills the take-home demo. <sup><a href="https://p0stman.com/guides/replit-limitations">[8]</a></sup> <sup><a href="https://docs.replit.com/cloud-services/deployments/custom-domains">[18]</a></sup></span>
+    </div>
+
+    <div class="reco avoid">
+      <span class="rshape">▸ Render / Railway / Fly</span>
+      <span class="rpick">⚠ Skip entirely</span>
+      <span class="rwhy">Cold starts, deleted databases, or required cards. Wrong fit for laymen take-home. <sup><a href="https://blog.samkiel.dev/your-render-free-tier-is-not-broken-its-just-cold">[31]</a></sup> <sup><a href="https://docs.railway.com/pricing/plans">[33]</a></sup></span>
+    </div>
+
+  </div>
+
+  <!-- ============ SIBLING NAV ============ -->
+  <nav class="nav">
+    <h3>◄ siblings in this expedition</h3>
+    <div class="siblings">
+      <a class="sib" href="../../workshop-scale-app-ideas-for-laymen/">
+        <div class="stitle">Workshop-scale app ideas for laymen</div>
+        <div class="sdepth">▸ expedition</div>
+        <div class="ssum">Five reliable app-idea menus that a non-developer can ship in 2-3 hours, plus the failure modes to swap out.</div>
+      </a>
+      <a class="sib" href="../../vibe-coding-tool-stack-on-shared-wifi-low-budget/">
+        <div class="stitle">Vibe-coding tool stack on shared wifi, low budget</div>
+        <div class="sdepth">▸ expedition</div>
+        <div class="ssum">Lovable default, Bolt.new backup, hosted hotspot for wifi, $0-$50 host spend for 20 attendees.</div>
+      </a>
+      <a class="sib" href="../../prompting-workflow-chatgpt-refine-lovable-build/">
+        <div class="stitle">Prompting workflow: ChatGPT-refine → Lovable-build</div>
+        <div class="sdepth">▸ survey</div>
+        <div class="ssum">Plan a structured PRD in ChatGPT (free), then paste it once into Lovable's Agent mode to seed the build.</div>
+      </a>
+      <a class="sib" href="../../facilitation-logistics-and-failure-modes/">
+        <div class="stitle">Facilitation logistics and failure modes</div>
+        <div class="sdepth">▸ recon</div>
+        <div class="ssum">Pre-flight checklist, room and tool fallbacks, and the failure modes that sink 2-3 hour workshops.</div>
+      </a>
+    </div>
+  </nav>
+
+</div>
