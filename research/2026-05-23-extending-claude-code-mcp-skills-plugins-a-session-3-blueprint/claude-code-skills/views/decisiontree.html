@@ -1,0 +1,1066 @@
+---
+layout: view
+view_name: "Decision Tree"
+view_of: ../
+title: "Claude Code Skills: what they are, when to use them — Decision Tree"
+---
+
+<style>
+  .dtree {
+    --bg: #0a0f1e;
+    --panel: #0e1626;
+    --panel-2: #131c30;
+    --line: #1f2d4a;
+    --line-bright: #2b3d63;
+    --ink: #e6ecf7;
+    --ink-dim: #97a4c0;
+    --ink-faint: #5d6e91;
+    --cyan: #22d3ee;
+    --amber: #fbbf24;
+    --pink: #ec4899;
+    --violet: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: 0 0;
+  }
+
+  .dtree a { color: inherit; }
+
+  .dtree .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+  }
+
+  /* ───── COVER ───── */
+  .cover {
+    border: 1px solid var(--line-bright);
+    background: linear-gradient(180deg, rgba(34,211,238,0.04), transparent 60%), var(--panel);
+    padding: 36px 40px 32px;
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .cover-corner {
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 1px solid var(--cyan);
+  }
+  .cover-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .cover-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+  .cover-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+  .cover-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .cover-tag {
+    font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .cover h1 {
+    font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-size: clamp(36px, 5.6vw, 64px);
+    line-height: 1.02;
+    margin: 0 0 14px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .cover h1 span.accent { color: var(--cyan); }
+  .cover .sub {
+    color: var(--ink-dim);
+    font-size: 15px;
+    max-width: 760px;
+    margin: 0 0 24px;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .legend .dot {
+    display: inline-block; width: 10px; height: 10px;
+    margin-right: 8px; transform: translateY(1px);
+    border-radius: 2px;
+  }
+  .legend .swatch { display: flex; align-items: center; }
+
+  /* ───── VERDICT BAR ───── */
+  .verdict {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+    border: 1px solid var(--line-bright);
+    border-left: 4px solid var(--cyan);
+    padding: 20px 28px;
+    background: var(--panel-2);
+    margin-bottom: 48px;
+  }
+  .verdict-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+  .verdict-text {
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  .verdict-text strong { color: var(--pink); font-weight: 600; }
+
+  /* ───── SECTION HEAD ───── */
+  .h-rule {
+    display: flex; align-items: center; gap: 16px;
+    margin: 56px 0 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .h-rule::before, .h-rule::after {
+    content: ""; flex: 1; height: 1px;
+    background: var(--line-bright);
+  }
+
+  /* ───── DECISION TREE (SVG) ───── */
+  .tree-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    padding: 28px 24px 32px;
+    position: relative;
+  }
+  .tree-wrap svg { display: block; width: 100%; height: auto; }
+  .tree-cap {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-top: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ───── LEAF DETAIL CARDS ───── */
+  .leaves {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-top: 28px;
+  }
+  @media (max-width: 900px) {
+    .leaves { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .leaves { grid-template-columns: 1fr; }
+  }
+  .leaf {
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    padding: 20px 18px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .leaf .bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .leaf.amber .bar { background: var(--amber); }
+  .leaf.cyan  .bar { background: var(--cyan); }
+  .leaf.pink  .bar { background: var(--pink); }
+  .leaf.violet .bar { background: var(--violet); }
+
+  .leaf .glyph {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    margin: 4px 0 10px;
+  }
+  .leaf.amber .glyph  { color: var(--amber); }
+  .leaf.cyan  .glyph  { color: var(--cyan); }
+  .leaf.pink  .glyph  { color: var(--pink); }
+  .leaf.violet .glyph { color: var(--violet); }
+
+  .leaf h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px;
+    margin: 0 0 4px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .leaf .kind {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .leaf dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 6px 12px;
+    font-size: 12.5px;
+  }
+  .leaf dt {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-faint);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding-top: 2px;
+  }
+  .leaf dd {
+    margin: 0;
+    color: var(--ink);
+  }
+  .leaf .example {
+    margin-top: 14px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.025);
+    border-left: 2px solid var(--ink-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+  }
+
+  /* ───── MATRIX ───── */
+  .matrix-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    padding: 24px 20px;
+    overflow-x: auto;
+  }
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 640px;
+  }
+  table.matrix th, table.matrix td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  table.matrix thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    background: var(--panel-2);
+    font-weight: 500;
+  }
+  table.matrix tbody th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  table.matrix tbody th .swatch {
+    display: inline-block;
+    width: 8px; height: 8px;
+    margin-right: 8px;
+    transform: translateY(-1px);
+  }
+  table.matrix tr.row-amber  th .swatch { background: var(--amber); }
+  table.matrix tr.row-cyan   th .swatch { background: var(--cyan); }
+  table.matrix tr.row-pink   th .swatch { background: var(--pink); }
+  table.matrix tr.row-violet th .swatch { background: var(--violet); }
+
+  .cell-yes { color: var(--green); font-family: 'JetBrains Mono', monospace; }
+  .cell-no  { color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; }
+  .cell-mid { color: var(--amber); font-family: 'JetBrains Mono', monospace; }
+
+  /* ───── ANATOMY ───── */
+  .anatomy {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 24px;
+    margin-top: 8px;
+  }
+  @media (max-width: 820px) { .anatomy { grid-template-columns: 1fr; } }
+
+  .codeblock {
+    background: #06091a;
+    border: 1px solid var(--line-bright);
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  .codeblock .yaml-key { color: var(--cyan); }
+  .codeblock .yaml-str { color: var(--amber); }
+  .codeblock .yaml-fence { color: var(--ink-faint); }
+  .codeblock .comment { color: var(--ink-faint); font-style: italic; }
+  .codeblock .placeholder { color: var(--pink); }
+  .codeblock .hl { color: var(--green); }
+
+  .levers {
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    padding: 8px 0 0;
+  }
+  .levers h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    margin: 12px 20px 8px;
+    font-weight: 500;
+  }
+  .levers table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .levers td {
+    padding: 10px 20px;
+    border-top: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .levers td.k {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    width: 38%;
+    white-space: nowrap;
+    font-size: 11.5px;
+  }
+  .levers td.v {
+    color: var(--ink-dim);
+  }
+
+  /* ───── REACH-FOR / DON'T-REACH ───── */
+  .judgement {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 740px) { .judgement { grid-template-columns: 1fr; } }
+  .judgement .card {
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    padding: 22px 22px 18px;
+  }
+  .judgement .card.do { border-top: 3px solid var(--green); }
+  .judgement .card.dont { border-top: 3px solid var(--red); }
+  .judgement h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 0 0 14px;
+  }
+  .judgement .do h4 { color: var(--green); }
+  .judgement .dont h4 { color: var(--red); }
+  .judgement ul { margin: 0; padding: 0; list-style: none; }
+  .judgement li {
+    padding: 8px 0 8px 22px;
+    border-top: 1px dashed var(--line);
+    position: relative;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  .judgement li:first-child { border-top: 0; }
+  .judgement li::before {
+    position: absolute; left: 0; top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .judgement .do li::before { content: "→"; color: var(--green); }
+  .judgement .dont li::before { content: "×"; color: var(--red); }
+
+  /* ───── SECURITY CALLOUT ───── */
+  .danger {
+    background: var(--panel);
+    border: 1px solid #4a2230;
+    border-left: 4px solid var(--red);
+    padding: 22px 26px;
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 820px) { .danger { grid-template-columns: 1fr; } }
+  .danger .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+  .danger h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    margin: 0 0 12px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .danger p { margin: 0 0 10px; color: var(--ink-dim); font-size: 13.5px; line-height: 1.55; }
+  .danger .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    align-content: start;
+  }
+  .danger .stat {
+    background: rgba(248,113,113,0.05);
+    border: 1px solid #3a1a24;
+    padding: 12px 14px;
+  }
+  .danger .stat .n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--red);
+    line-height: 1;
+  }
+  .danger .stat .l {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* ───── MCP vs SKILL ───── */
+  .vs {
+    display: grid;
+    grid-template-columns: 1fr 56px 1fr;
+    gap: 0;
+    margin-top: 8px;
+    border: 1px solid var(--line-bright);
+    background: var(--panel);
+    overflow: hidden;
+  }
+  @media (max-width: 740px) { .vs { grid-template-columns: 1fr; } }
+  .vs .side { padding: 24px 24px 22px; }
+  .vs .side.l { border-right: 1px solid var(--line-bright); }
+  .vs .side.r { border-left: 1px solid var(--line-bright); }
+  @media (max-width: 740px) {
+    .vs .side.l, .vs .side.r { border: 0; border-bottom: 1px solid var(--line-bright); }
+  }
+  .vs .divider {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--panel-2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+  }
+  @media (max-width: 740px) {
+    .vs .divider { padding: 8px; border: 0; }
+  }
+  .vs h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    margin: 0 0 4px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .vs .when {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .vs .l .when { color: var(--violet); }
+  .vs .r .when { color: var(--pink); }
+  .vs p { margin: 0 0 8px; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+  .vs ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink); }
+  .vs li { margin-bottom: 4px; }
+
+  /* ───── ECOSYSTEM STRIP ───── */
+  .ecosystem {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: 8px;
+  }
+  @media (max-width: 900px) { .ecosystem { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .ecosystem { grid-template-columns: 1fr; } }
+  .repo {
+    background: var(--panel);
+    border: 1px solid var(--line-bright);
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+  .repo:hover { border-color: var(--cyan); }
+  .repo .head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .repo .head img {
+    width: 22px; height: 22px;
+    background: white; border-radius: 4px;
+    padding: 2px;
+  }
+  .repo .name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    line-height: 1.3;
+    word-break: break-all;
+  }
+  .repo .stars {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .repo .desc {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.45;
+  }
+
+  /* ───── SOURCES ───── */
+  .sources {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .src {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    font-size: 12px;
+    line-height: 1.4;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .src:hover { border-color: var(--cyan); background: var(--panel-2); }
+  .src img {
+    width: 16px; height: 16px;
+    background: white; border-radius: 3px;
+    padding: 1px; flex-shrink: 0;
+  }
+  .src .n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    width: 22px;
+    flex-shrink: 0;
+  }
+  .src .t {
+    flex: 1;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .src .kind {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  /* ───── COLOPHON ───── */
+  .colophon {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .colophon a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted var(--cyan); }
+
+  /* SVG tree internals */
+  .dtree svg .nlabel {
+    font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+    font-size: 14px;
+    fill: var(--ink);
+    font-weight: 500;
+  }
+  .dtree svg .nlabel.sm {
+    font-size: 12px;
+  }
+  .dtree svg .branch-yes,
+  .dtree svg .branch-no {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .dtree svg .branch-yes { fill: var(--green); }
+  .dtree svg .branch-no  { fill: var(--ink-faint); }
+  .dtree svg .qbox {
+    fill: var(--panel-2);
+    stroke: var(--cyan);
+    stroke-width: 1.2;
+  }
+  .dtree svg .startbox {
+    fill: var(--panel-2);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .dtree svg .leaf-amber  { fill: var(--panel); stroke: var(--amber);  stroke-width: 1.4; }
+  .dtree svg .leaf-cyan   { fill: var(--panel); stroke: var(--cyan);   stroke-width: 1.4; }
+  .dtree svg .leaf-pink   { fill: var(--panel); stroke: var(--pink);   stroke-width: 1.4; }
+  .dtree svg .leaf-violet { fill: var(--panel); stroke: var(--violet); stroke-width: 1.4; }
+
+  .dtree svg .leafname {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .dtree svg .leafname.amber  { fill: var(--amber); }
+  .dtree svg .leafname.cyan   { fill: var(--cyan); }
+  .dtree svg .leafname.pink   { fill: var(--pink); }
+  .dtree svg .leafname.violet { fill: var(--violet); }
+
+  .dtree svg .leafkind {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    fill: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .dtree svg .connector { stroke: var(--line-bright); stroke-width: 1.4; fill: none; }
+  .dtree svg .qmark {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    fill: var(--cyan);
+    letter-spacing: 0.16em;
+  }
+</style>
+
+<div class="dtree">
+<div class="container">
+
+  <!-- ── COVER ── -->
+  <section class="cover">
+    <div class="cover-corner tl"></div>
+    <div class="cover-corner tr"></div>
+    <div class="cover-corner bl"></div>
+    <div class="cover-corner br"></div>
+
+    <div class="cover-tag">Fig. 01 · Schematic · Claude Code Customization Primitives</div>
+    <h1>Which one do<br>I <span class="accent">actually</span> need?</h1>
+    <p class="sub">Four overlapping ways to teach Claude Code something new — CLAUDE.md, slash commands, <a href="https://code.claude.com/docs/en/skills">Skills</a>, and subagents. They look interchangeable in the docs. They are not. This page is the decision tree.</p>
+
+    <div class="legend">
+      <span class="swatch"><span class="dot" style="background:#fbbf24"></span>CLAUDE.md</span>
+      <span class="swatch"><span class="dot" style="background:#22d3ee"></span>Slash command</span>
+      <span class="swatch"><span class="dot" style="background:#ec4899"></span>Skill</span>
+      <span class="swatch"><span class="dot" style="background:#a78bfa"></span>Subagent</span>
+    </div>
+  </section>
+
+  <!-- ── VERDICT ── -->
+  <div class="verdict">
+    <div class="verdict-mark">↳ Rule of thumb</div>
+    <div class="verdict-text">
+      If the workflow has supporting files OR you want Claude to invoke it without being told, reach for a <strong>Skill</strong>. Otherwise climb the tree — the right primitive depends on whether the rule is always-on, whether you need an isolated context window, and whether the prompt is one file or many. <sup><a href="https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/">[5]</a></sup>
+    </div>
+  </div>
+
+  <!-- ── DECISION TREE (SVG) ── -->
+  <div class="h-rule">§ 01 · The branching diagram</div>
+
+  <div class="tree-wrap">
+    <svg viewBox="0 0 1180 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision tree from start node through three questions to four customization primitives.">
+
+      <!-- START -->
+      <rect x="120" y="20" width="340" height="64" rx="2" class="startbox"/>
+      <text x="290" y="48" text-anchor="middle" class="nlabel">I need to extend Claude Code…</text>
+      <text x="290" y="68" text-anchor="middle" class="nlabel sm" fill="#97a4c0">Start here. Read each question.</text>
+
+      <!-- Connector start -> Q1 -->
+      <path d="M 290 84 L 290 120" class="connector"/>
+
+      <!-- Q1 diamond -->
+      <polygon points="290,120 460,180 290,240 120,180" class="qbox"/>
+      <text x="290" y="165" text-anchor="middle" class="qmark">Q1</text>
+      <text x="290" y="184" text-anchor="middle" class="nlabel">Always-on project rule?</text>
+      <text x="290" y="204" text-anchor="middle" class="nlabel sm" fill="#97a4c0">A fact, a style guide, a setting</text>
+
+      <!-- Q1 YES branch -> CLAUDE.md leaf (right) -->
+      <path d="M 460 180 L 620 180" class="connector"/>
+      <text x="540" y="172" text-anchor="middle" class="branch-yes">yes ──→</text>
+      <rect x="620" y="138" width="440" height="84" rx="2" class="leaf-amber"/>
+      <text x="640" y="174" class="leafname amber">CLAUDE.md</text>
+      <text x="640" y="195" class="leafkind">AUTOMATIC AT STARTUP · SHARES MAIN WINDOW</text>
+      <text x="640" y="212" class="leafkind" fill="#e6ecf7">Pays a token cost every turn. Use sparingly.</text>
+
+      <!-- Q1 NO -> Q2 -->
+      <path d="M 290 240 L 290 280" class="connector"/>
+      <text x="305" y="263" class="branch-no">no ↓</text>
+
+      <!-- Q2 diamond -->
+      <polygon points="290,280 460,340 290,400 120,340" class="qbox"/>
+      <text x="290" y="325" text-anchor="middle" class="qmark">Q2</text>
+      <text x="290" y="344" text-anchor="middle" class="nlabel">Need isolated context window?</text>
+      <text x="290" y="364" text-anchor="middle" class="nlabel sm" fill="#97a4c0">Research-heavy / multi-step / parallel</text>
+
+      <!-- Q2 YES -> Subagent leaf -->
+      <path d="M 460 340 L 620 340" class="connector"/>
+      <text x="540" y="332" text-anchor="middle" class="branch-yes">yes ──→</text>
+      <rect x="620" y="298" width="440" height="84" rx="2" class="leaf-violet"/>
+      <text x="640" y="334" class="leafname violet">Subagent</text>
+      <text x="640" y="355" class="leafkind">AUTO-DELEGATED OR VIA TASK TOOL · FULL ISOLATION</text>
+      <text x="640" y="372" class="leafkind" fill="#e6ecf7">Separate context window. Returns a summary, not transcript.</text>
+
+      <!-- Q2 NO -> Q3 -->
+      <path d="M 290 400 L 290 440" class="connector"/>
+      <text x="305" y="423" class="branch-no">no ↓</text>
+
+      <!-- Q3 diamond -->
+      <polygon points="290,440 460,500 290,560 120,500" class="qbox"/>
+      <text x="290" y="485" text-anchor="middle" class="qmark">Q3</text>
+      <text x="290" y="504" text-anchor="middle" class="nlabel">Bundles files OR auto-trigger?</text>
+      <text x="290" y="524" text-anchor="middle" class="nlabel sm" fill="#97a4c0">Scripts / templates / no-slash invocation</text>
+
+      <!-- Q3 YES -> Skill leaf (the headline) -->
+      <path d="M 460 500 L 620 500" class="connector"/>
+      <text x="540" y="492" text-anchor="middle" class="branch-yes">yes ──→</text>
+      <rect x="620" y="458" width="440" height="84" rx="2" class="leaf-pink"/>
+      <text x="640" y="494" class="leafname pink">Skill</text>
+      <text x="640" y="515" class="leafkind">AUTO-TRIGGERED OR /name · DESCRIPTION ALWAYS, BODY ON DEMAND</text>
+      <text x="640" y="532" class="leafkind" fill="#e6ecf7">A folder: SKILL.md + scripts + references. Progressive disclosure.</text>
+
+      <!-- Q3 NO -> Slash command leaf -->
+      <path d="M 290 560 L 290 620" class="connector"/>
+      <text x="305" y="600" class="branch-no">no ↓</text>
+      <rect x="120" y="620" width="340" height="84" rx="2" class="leaf-cyan"/>
+      <text x="140" y="656" class="leafname cyan">Slash command</text>
+      <text x="140" y="677" class="leafkind">/name IN TERMINAL · SHARES MAIN WINDOW</text>
+      <text x="140" y="694" class="leafkind" fill="#e6ecf7">Single file. Manually triggered. Cheapest to author.</text>
+
+      <!-- Footer caption on canvas -->
+      <text x="1060" y="744" text-anchor="end" class="leafkind" fill="#5d6e91">PRIORITY ORDER: ALWAYS-ON  →  ISOLATION  →  FILES / AUTO  →  ELSE SLASH</text>
+
+    </svg>
+    <div class="tree-cap">Walk top-to-bottom. The first "yes" wins. <sup><a href="https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/">[5]</a></sup></div>
+  </div>
+
+  <!-- ── LEAF DETAIL CARDS ── -->
+  <div class="leaves">
+
+    <div class="leaf amber">
+      <div class="bar"></div>
+      <div class="glyph">☀</div>
+      <h3>CLAUDE.md</h3>
+      <div class="kind">Memory file · auto-loaded</div>
+      <dl>
+        <dt>Best for</dt><dd>Always-on project rules, facts, conventions</dd>
+        <dt>Invokes</dt><dd>Automatic at session start</dd>
+        <dt>Context</dt><dd>Pays tokens every turn</dd>
+        <dt>Isolation</dt><dd>None — main window</dd>
+      </dl>
+      <div class="example">"This repo uses pnpm, not npm. All tests live in <code>__tests__/</code>."</div>
+    </div>
+
+    <div class="leaf cyan">
+      <div class="bar"></div>
+      <div class="glyph">/</div>
+      <h3>Slash command</h3>
+      <div class="kind">Single-file prompt · manual</div>
+      <dl>
+        <dt>Best for</dt><dd>Explicit, repeatable workflows you'll type</dd>
+        <dt>Invokes</dt><dd><code>/name</code> in the terminal</dd>
+        <dt>Context</dt><dd>Shares main window when run</dd>
+        <dt>Isolation</dt><dd>None</dd>
+      </dl>
+      <div class="example">"<code>/deploy-staging</code> — kick off the staging rollout I keep mistyping."</div>
+    </div>
+
+    <div class="leaf pink">
+      <div class="bar"></div>
+      <div class="glyph">⊞</div>
+      <h3>Skill</h3>
+      <div class="kind">Folder · auto-invoked · scripts ok</div>
+      <dl>
+        <dt>Best for</dt><dd>Procedures with files, templates, or auto-trigger</dd>
+        <dt>Invokes</dt><dd>Auto (description match) OR <code>/name</code></dd>
+        <dt>Context</dt><dd>Description always · body on demand</dd>
+        <dt>Isolation</dt><dd>None (unless <code>context: fork</code>)</dd>
+      </dl>
+      <div class="example">"A section of CLAUDE.md that has grown into a procedure." <sup><a href="https://code.claude.com/docs/en/skills">[1]</a></sup></div>
+    </div>
+
+    <div class="leaf violet">
+      <div class="bar"></div>
+      <div class="glyph">◊</div>
+      <h3>Subagent</h3>
+      <div class="kind">Separate window · returns summary</div>
+      <dl>
+        <dt>Best for</dt><dd>Research, multi-step, anything that pollutes context</dd>
+        <dt>Invokes</dt><dd>Auto-delegated or via Task tool</dd>
+        <dt>Context</dt><dd>Separate window — full isolation</dd>
+        <dt>Isolation</dt><dd>Full</dd>
+      </dl>
+      <div class="example">"Explore the codebase for X, return a 200-word brief." Main thread stays clean.</div>
+    </div>
+  </div>
+
+  <!-- ── MATRIX ── -->
+  <div class="h-rule">§ 02 · Capability matrix</div>
+
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Auto-invoke</th>
+          <th>Manual <code>/name</code></th>
+          <th>Bundles files</th>
+          <th>Isolated context</th>
+          <th>Token cost when idle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-amber">
+          <th><span class="swatch"></span>CLAUDE.md</th>
+          <td class="cell-yes">●  always loaded</td>
+          <td class="cell-no">○  n/a</td>
+          <td class="cell-no">○  no</td>
+          <td class="cell-no">○  no</td>
+          <td class="cell-mid">◐  every turn</td>
+        </tr>
+        <tr class="row-cyan">
+          <th><span class="swatch"></span>Slash command</th>
+          <td class="cell-no">○  no</td>
+          <td class="cell-yes">●  yes</td>
+          <td class="cell-no">○  single file</td>
+          <td class="cell-no">○  no</td>
+          <td class="cell-yes">●  zero</td>
+        </tr>
+        <tr class="row-pink">
+          <th><span class="swatch"></span>Skill</th>
+          <td class="cell-yes">●  on description match</td>
+          <td class="cell-yes">●  yes</td>
+          <td class="cell-yes">●  folder</td>
+          <td class="cell-mid">◐  with <code>context: fork</code></td>
+          <td class="cell-mid">◐  ~dozen tokens (name+desc)</td>
+        </tr>
+        <tr class="row-violet">
+          <th><span class="swatch"></span>Subagent</th>
+          <td class="cell-yes">●  auto-delegated</td>
+          <td class="cell-yes">●  via Task tool</td>
+          <td class="cell-yes">●  via Skill</td>
+          <td class="cell-yes">●  full window</td>
+          <td class="cell-yes">●  zero</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── ANATOMY ── -->
+  <div class="h-rule">§ 03 · Anatomy of a SKILL.md</div>
+
+  <div class="anatomy">
+    <div class="codeblock"><span class="yaml-fence">---</span>
+<span class="yaml-key">description</span>: <span class="yaml-str">Summarizes uncommitted changes and flags
+  anything risky. Use when the user asks what
+  changed, wants a commit message, or asks to
+  review their diff.</span>
+<span class="yaml-key">allowed-tools</span>: <span class="yaml-str">Bash(git diff *) Bash(git status *)</span>
+<span class="yaml-fence">---</span>
+
+## Current changes
+
+<span class="hl">!`git diff HEAD`</span>      <span class="comment"># ← runs BEFORE model sees skill</span>
+
+## Instructions
+
+Summarize the changes above in two or three
+bullet points, then list any risks you notice
+such as missing error handling, hardcoded
+values, or tests that need updating.
+If the diff is empty, say so.</div>
+
+    <div class="levers">
+      <h4>↳ Frontmatter levers</h4>
+      <table>
+        <tr><td class="k">description</td><td class="v">The triage line. Capped at 1,536 chars. Front-load the use condition.</td></tr>
+        <tr><td class="k">allowed-tools</td><td class="v">Pre-approves tools while skill is active — skips per-call prompts.</td></tr>
+        <tr><td class="k">disable-model-invocation</td><td class="v"><code>true</code> = user-only. For <code>/deploy</code>, anything with side-effects.</td></tr>
+        <tr><td class="k">user-invocable</td><td class="v"><code>false</code> hides from <code>/</code> menu. Background knowledge Claude reads.</td></tr>
+        <tr><td class="k">context: fork</td><td class="v">Runs inside a subagent. Pair with <code>agent: Explore</code> or <code>Plan</code>.</td></tr>
+        <tr><td class="k">paths</td><td class="v">Glob. Auto-load only when working with matching files (monorepo-friendly).</td></tr>
+        <tr><td class="k">model, effort</td><td class="v">Per-skill overrides of session model / effort.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── REACH-FOR JUDGEMENT ── -->
+  <div class="h-rule">§ 04 · Reach for a Skill when…</div>
+
+  <div class="judgement">
+    <div class="card do">
+      <h4>★ Reach for Skill</h4>
+      <ul>
+        <li>You'd bundle scripts, templates, or reference docs alongside the prompt — slash commands are single-file. <sup><a href="https://code.claude.com/docs/en/skills">[1]</a></sup></li>
+        <li>You want Claude to invoke it on its own when the conversation matches the description. <sup><a href="https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/">[5]</a></sup></li>
+        <li>A section of CLAUDE.md has grown into a procedure rather than a fact — move it out, pay the tokens only on activation. <sup><a href="https://code.claude.com/docs/en/skills">[1]</a></sup></li>
+        <li>You want it to work in Cursor, Codex, Gemini CLI, OpenHands too — Skills are a cross-vendor open standard. <sup><a href="https://agentskills.io">[9]</a></sup></li>
+      </ul>
+    </div>
+    <div class="card dont">
+      <h4>⛔ Don't reach for Skill</h4>
+      <ul>
+        <li>The rule is a static fact about the repo ("uses pnpm") — that belongs in <code>CLAUDE.md</code>.</li>
+        <li>The workflow needs a long-lived stateful connection (DB session, OAuth, SaaS API) — that's an MCP server. <sup><a href="https://simonwillison.net/2025/Oct/16/claude-skills/">[3]</a></sup></li>
+        <li>The action has side-effects you want to keep behind explicit typing — a slash command's manual trigger is the feature.</li>
+        <li>The work would pollute the main context — use a subagent for the isolation; only wrap it in a Skill if you need auto-trigger or bundled files.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── SECURITY ── -->
+  <div class="h-rule">§ 05 · The dynamic-context footgun</div>
+
+  <div class="danger">
+    <div>
+      <div class="tag">⚠ Trust boundary · ToxicSkills audit</div>
+      <h3>The same low friction that makes Skills viral makes them a supply-chain target.</h3>
+      <p>The <code>` !`cmd` `</code> dynamic-context feature runs <strong>before</strong> the model ever sees the skill body. Model-level prompt-injection defenses never get a chance to fire. <sup><a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">[7]</a></sup></p>
+      <p style="margin-top:14px;color:#e6ecf7"><strong>Mitigations:</strong> review every project Skill before accepting workspace trust · for untrusted sources, set <code style="color:#22d3ee">disableSkillShellExecution: true</code> · prefer source-reference distribution (marketplaces that pin to upstream commits) over copy-paste. <sup><a href="https://github.com/netresearch/claude-code-marketplace">[12]</a></sup></p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n">36.8<span style="font-size:18px">%</span></div><div class="l">of audited skills carry at least one security flaw</div></div>
+      <div class="stat"><div class="n">13.4<span style="font-size:18px">%</span></div><div class="l">contain a critical-level issue (534 skills)</div></div>
+      <div class="stat"><div class="n">100<span style="font-size:18px">%</span></div><div class="l">of confirmed malicious skills carry malicious code</div></div>
+      <div class="stat"><div class="n">91<span style="font-size:18px">%</span></div><div class="l">of malicious skills also embed prompt-injection</div></div>
+    </div>
+  </div>
+
+  <!-- ── MCP vs SKILL ── -->
+  <div class="h-rule">§ 06 · Skill vs MCP — the live-wire question</div>
+
+  <div class="vs">
+    <div class="side l">
+      <div class="when">↳ Reach for MCP when</div>
+      <h4>You need a long-lived, stateful connection.</h4>
+      <p>A database, a SaaS API session, an OAuth handshake — anything the agent needs to <em>stay logged into</em> while it works.</p>
+      <ul>
+        <li>Persistent session state</li>
+        <li>Auth handshake required</li>
+        <li>Bidirectional streaming</li>
+        <li>Cross-agent reuse via protocol</li>
+      </ul>
+    </div>
+    <div class="divider">VS</div>
+    <div class="side r">
+      <div class="when">↳ Reach for Skill when</div>
+      <h4>"Run this CLI, read the output" is enough.</h4>
+      <p>A shell command, a Python script, a procedural recipe. Cheaper to build, cheaper to ship, cheaper to audit. <sup><a href="https://simonwillison.net/2025/Oct/16/claude-skills/">[3]</a></sup></p>
+      <ul>
+        <li>One-shot tool invocation</li>
+        <li>Procedural / recipe-shaped</li>
+        <li>Markdown + tiny YAML + scripts</li>
+        <li>Works across <a href="https://agentskills.io">30+ agents</a> reading the same <code>SKILL.md</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── ECOSYSTEM ── -->
+  <div class="h-rule">§ 07 · Where the skills live (May 2026)</div>
+
+  <div class="ecosystem">
+    <a class="repo" href="https://github.com/anthropics/skills">
+      <div class="head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="name">anthropics/skills</div>
+        <div class="stars">★ 140k</div>
+      </div>
+      <div class="desc">Canonical reference: PDF, DOCX, PPTX, XLSX, creative, enterprise. <sup><a href="https://github.com/anthropics/skills">[8]</a></sup></div>
+    </a>
+    <a class="repo" href="https://github.com/alirezarezvani/claude-skills">
+      <div class="head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="name">alirezarezvani/claude-skills</div>
+        <div class="stars">★ 16k</div>
+      </div>
+      <div class="desc">320+ skills, 70+ commands, 30+ agents. Portable to Codex, Gemini CLI, Cursor. <sup><a href="https://github.com/alirezarezvani/claude-skills">[10]</a></sup></div>
+    </a>
+    <a class="repo" href="https://github.com/daymade/claude-code-skills">
+      <div class="head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="name">daymade/claude-code-skills</div>
+        <div class="stars">★ 1.1k</div>
+      </div>
+      <div class="desc">Production-hardened fork of Anthropic's skill-creator. <sup><a href="https://github.com/daymade/claude-code-skills">[11]</a></sup></div>
+    </a>
+    <a class="repo" href="https://github.com/mhattingpete/claude-skills-marketplace">
+      <div class="head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="name">mhattingpete/claude-skills-marketplace</div>
+        <div class="stars">★ 585</div>
+      </div>
+      <div class="desc">Engineering workflows: git automation, test fixing, code review. <sup><a href="https://github.com/mhattingpete/claude-skills-marketplace">[13]</a></sup></div>
+    </a>
+  </div>
+
+  <!-- ── SOURCES ── -->
+  <div class="h-rule">§ 08 · Sources</div>
+
+  <div class="sources">
+    <a class="src" href="https://code.claude.com/docs/en/skills"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=64" alt=""><span class="t">Skills — Claude Code docs</span><span class="kind">official</span></a>
+    <a class="src" href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=64" alt=""><span class="t">Anthropic · Agent Skills launch</span><span class="kind">vendor</span></a>
+    <a class="src" href="https://simonwillison.net/2025/Oct/16/claude-skills/"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=simonwillison.net&sz=64" alt=""><span class="t">Simon Willison · Claude Skills</span><span class="kind">news</span></a>
+    <a class="src" href="https://www.infoq.com/news/2025/10/anthropic-claude-skills/"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=infoq.com&sz=64" alt=""><span class="t">InfoQ · Anthropic Claude Skills</span><span class="kind">news</span></a>
+    <a class="src" href="https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=alexop.dev&sz=64" alt=""><span class="t">alexop.dev · Customization Guide</span><span class="kind">vendor</span></a>
+    <a class="src" href="https://nimbalyst.com/blog/claude-code-skills-guide/"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=nimbalyst.com&sz=64" alt=""><span class="t">Nimbalyst · Skills Guide</span><span class="kind">vendor</span></a>
+    <a class="src" href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=snyk.io&sz=64" alt=""><span class="t">Snyk · ToxicSkills audit</span><span class="kind">vendor</span></a>
+    <a class="src" href="https://github.com/anthropics/skills"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="t">anthropics/skills · GitHub</span><span class="kind">official</span></a>
+    <a class="src" href="https://agentskills.io"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=agentskills.io&sz=64" alt=""><span class="t">agentskills.io · open standard</span><span class="kind">official</span></a>
+    <a class="src" href="https://github.com/alirezarezvani/claude-skills"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="t">alirezarezvani/claude-skills</span><span class="kind">forum</span></a>
+    <a class="src" href="https://github.com/daymade/claude-code-skills"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="t">daymade/claude-code-skills</span><span class="kind">forum</span></a>
+    <a class="src" href="https://github.com/netresearch/claude-code-marketplace"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="t">netresearch/claude-code-marketplace</span><span class="kind">forum</span></a>
+    <a class="src" href="https://github.com/mhattingpete/claude-skills-marketplace"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="t">mhattingpete/claude-skills-marketplace</span><span class="kind">forum</span></a>
+  </div>
+
+  <!-- ── COLOPHON ── -->
+  <div class="colophon">
+    <div>SCHEMATIC · v1.0 · 2026-05-24 · 13 citations · derived from <a href="../">canonical</a></div>
+    <div>↳ Part of: <a href="../../">Extending Claude Code · session-3 blueprint</a></div>
+  </div>
+
+</div>
+</div>

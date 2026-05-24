@@ -1,0 +1,1344 @@
+---
+layout: view
+view_name: "Run-of-Show"
+view_of: ../
+title: "Extending Claude Code: MCP, Skills, Plugins — a session-3 blueprint — Run-of-Show"
+---
+
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .ros *{box-sizing:border-box}
+  .ros{
+    --paper:#f5efe2;
+    --paper-2:#ede6d4;
+    --paper-edge:#d9cfb5;
+    --ink:#13110d;
+    --ink-2:#3b362c;
+    --ink-3:#6b6353;
+    --rule:#22201a;
+    --rule-2:#a89c80;
+    --amber:#d97706;
+    --amber-bg:#fef3c7;
+    --red:#9f1d1d;
+    --red-bg:#fde8e8;
+    --cue:#1e3a8a;
+    --cue-bg:#dce4f7;
+    --olive:#3f4a1e;
+    --olive-bg:#e7e4cf;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter','Helvetica Neue',sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    margin:0;
+    padding:0;
+  }
+  .ros .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+  .ros .serif{font-family:'Fraunces',Georgia,serif;}
+  .ros a{color:var(--cue);text-decoration:none;border-bottom:1px solid currentColor;}
+  .ros a:hover{background:var(--cue-bg);}
+  .ros sup a{border-bottom:none;}
+  .ros sup{font-size:9px;}
+
+  /* The binder */
+  .ros .binder{
+    max-width:1180px;
+    margin:0 auto;
+    background:
+      repeating-linear-gradient(90deg,transparent 0 79px,rgba(168,156,128,0.06) 79px 80px),
+      linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);
+    border-left:1px solid var(--paper-edge);
+    border-right:1px solid var(--paper-edge);
+    box-shadow:0 0 0 1px var(--paper-edge),0 30px 60px rgba(0,0,0,0.15);
+    padding:60px 60px 80px 110px;
+    position:relative;
+    overflow:hidden;
+  }
+  /* Hole-punch column on the left */
+  .ros .binder::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;width:60px;
+    background:
+      radial-gradient(circle at 50% 80px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 230px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 380px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 530px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 680px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 830px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 980px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 1130px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 1280px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 1430px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 1580px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 1730px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 1880px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2030px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2180px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2330px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2480px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2630px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2780px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 2930px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3080px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3230px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3380px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3530px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3680px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3830px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 3980px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 4130px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 4280px,#1a1814 9px,transparent 10px),
+      radial-gradient(circle at 50% 4430px,#1a1814 9px,transparent 10px),
+      linear-gradient(90deg,var(--paper-2),var(--paper));
+    border-right:1px solid var(--paper-edge);
+  }
+
+  /* COVER SHEET */
+  .ros .coversheet{
+    border:2px solid var(--rule);
+    padding:30px 36px 36px;
+    position:relative;
+    background:var(--paper);
+    margin-bottom:48px;
+  }
+  .ros .doc-strip{
+    display:flex;justify-content:space-between;gap:20px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    color:var(--ink-2);
+    border-bottom:1px solid var(--rule);
+    padding-bottom:14px;
+    margin-bottom:24px;
+  }
+  .ros .doc-strip span{white-space:nowrap;}
+  .ros .doc-strip b{color:var(--ink);font-weight:700;}
+  .ros .doc-title{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:32px;
+    align-items:end;
+  }
+  .ros .doc-title h1{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:54px;
+    line-height:0.98;
+    letter-spacing:-0.022em;
+    margin:0 0 12px;
+    color:var(--ink);
+  }
+  .ros .doc-title h1 em{font-style:italic;font-weight:400;color:var(--ink-2);}
+  .ros .doc-title .deck{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    line-height:1.4;
+    color:var(--ink-2);
+    max-width:680px;
+    margin:0;
+  }
+  .ros .cover-stamp{
+    border:2px solid var(--red);
+    color:var(--red);
+    padding:10px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    text-align:center;
+    transform:rotate(-3deg);
+    background:var(--red-bg);
+    line-height:1.2;
+    width:160px;
+    flex-shrink:0;
+  }
+  .ros .cover-stamp small{display:block;font-size:8px;font-weight:500;margin-top:4px;letter-spacing:0.1em;}
+
+  .ros .cover-facts{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--rule);
+    margin-top:30px;
+  }
+  .ros .cover-facts > div{
+    padding:14px 16px;
+    border-right:1px solid var(--rule-2);
+  }
+  .ros .cover-facts > div:last-child{border-right:none;}
+  .ros .cover-facts .lbl{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+    margin-bottom:6px;
+  }
+  .ros .cover-facts .val{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:24px;
+    color:var(--ink);
+    line-height:1;
+  }
+  .ros .cover-facts .val small{font-size:11px;font-weight:400;color:var(--ink-2);display:block;margin-top:4px;font-family:'Inter',sans-serif;}
+
+  /* Section header */
+  .ros .sec{margin:56px 0 0;}
+  .ros .sec-head{
+    display:flex;align-items:baseline;gap:18px;
+    border-bottom:2px solid var(--rule);
+    padding-bottom:10px;
+    margin-bottom:24px;
+  }
+  .ros .sec-tab{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.2em;
+    padding:6px 12px;
+    text-transform:uppercase;
+    font-weight:700;
+  }
+  .ros .sec-head h2{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:32px;
+    line-height:1;
+    letter-spacing:-0.015em;
+    margin:0;
+  }
+  .ros .sec-head .ts{
+    margin-left:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-3);
+    letter-spacing:0.1em;
+  }
+
+  /* Verdict callout */
+  .ros .verdict{
+    border-left:6px solid var(--amber);
+    background:var(--amber-bg);
+    padding:18px 22px;
+    margin:30px 0 0;
+    font-family:'Fraunces',serif;
+    font-size:20px;
+    line-height:1.4;
+    color:var(--ink);
+  }
+  .ros .verdict .label{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    background:var(--amber);
+    color:#fff;
+    padding:3px 8px;
+    margin-right:10px;
+    vertical-align:middle;
+    font-weight:700;
+  }
+
+  /* THE STACK / layer cake */
+  .ros .stack{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+    border:1px solid var(--rule);
+  }
+  .ros .layer{
+    display:grid;
+    grid-template-columns:120px 1fr;
+    border-bottom:1px solid var(--rule-2);
+  }
+  .ros .layer:last-child{border-bottom:none;}
+  .ros .layer .l-tag{
+    background:var(--ink);
+    color:var(--paper);
+    padding:14px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    display:flex;align-items:center;
+  }
+  .ros .layer:nth-child(1) .l-tag{background:#5b3617;}
+  .ros .layer:nth-child(2) .l-tag{background:#7b4b1c;}
+  .ros .layer:nth-child(3) .l-tag{background:#9a6020;}
+  .ros .layer:nth-child(4) .l-tag{background:#a87a2c;}
+  .ros .layer:nth-child(5) .l-tag{background:#b8902f;}
+  .ros .l-body{
+    padding:14px 18px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .ros .l-body .l-name{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:18px;
+    margin-right:6px;
+    min-width:120px;
+  }
+  .ros .l-body .l-role{
+    font-size:13px;
+    color:var(--ink-2);
+    flex:1;
+  }
+  .ros .l-body .l-q{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--ink-3);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    border-left:2px solid var(--rule-2);
+    padding-left:10px;
+  }
+
+  /* RUN OF SHOW table */
+  .ros .runtable{
+    border:1px solid var(--rule);
+    border-collapse:collapse;
+    width:100%;
+    margin-top:6px;
+  }
+  .ros .runtable th{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    padding:10px 14px;
+    text-align:left;
+    font-weight:700;
+    border-right:1px solid #2c2823;
+  }
+  .ros .runtable th:last-child{border-right:none;}
+  .ros .runtable td{
+    padding:14px 14px;
+    border-bottom:1px solid var(--rule-2);
+    border-right:1px solid var(--rule-2);
+    vertical-align:top;
+    font-size:13px;
+  }
+  .ros .runtable tr:last-child td{border-bottom:none;}
+  .ros .runtable td:last-child{border-right:none;}
+  .ros .runtable .ts{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    white-space:nowrap;
+    color:var(--ink);
+    background:var(--olive-bg);
+    width:120px;
+  }
+  .ros .runtable .blk{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--ink);
+    width:36%;
+  }
+  .ros .runtable .blk small{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    color:var(--ink-3);
+    font-weight:500;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin-top:3px;
+  }
+  .ros .runtable .cue{color:var(--ink-2);}
+  .ros .runtable .cue b{color:var(--cue);font-weight:600;}
+  .ros .runtable tr.recap td{background:#fef9e7;}
+  .ros .runtable tr.recap .blk{color:var(--amber);}
+  .ros .runtable tr.opening td,.ros .runtable tr.closing td{background:#f0e9d6;}
+  .ros .pill-tag{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    padding:2px 6px;
+    border:1px solid var(--rule-2);
+    color:var(--ink-2);
+    margin-right:4px;
+    font-weight:600;
+  }
+  .ros .pill-tag.demo{background:var(--cue-bg);border-color:var(--cue);color:var(--cue);}
+  .ros .pill-tag.live{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+  .ros .pill-tag.poll{background:var(--olive-bg);border-color:var(--olive);color:var(--olive);}
+
+  /* TRUST DOSSIER */
+  .ros .dossier{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:24px;
+  }
+  .ros .panel{
+    border:2px solid var(--red);
+    background:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  .ros .panel::before{
+    content:"⚠ TRUST BOUNDARY";
+    position:absolute;
+    top:0;right:0;
+    background:var(--red);
+    color:#fff;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0.18em;
+    padding:5px 10px;
+  }
+  .ros .panel-body{
+    display:grid;
+    grid-template-columns:200px 1fr;
+    gap:0;
+  }
+  .ros .panel-img{
+    background:#1a1814;
+    position:relative;
+    overflow:hidden;
+    border-right:2px solid var(--red);
+  }
+  .ros .panel-img img{
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+    filter:contrast(1.05) saturate(0.85);
+  }
+  .ros .panel-img .badge{
+    position:absolute;
+    bottom:8px;left:8px;
+    background:var(--red);
+    color:#fff;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    font-weight:700;
+    padding:3px 6px;
+    letter-spacing:0.1em;
+  }
+  .ros .panel-text{
+    padding:22px 24px;
+  }
+  .ros .panel-text h3{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:24px;
+    margin:0 0 4px;
+    color:var(--red);
+    letter-spacing:-0.01em;
+  }
+  .ros .panel-text .surface{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--ink-3);
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .ros .panel-text ul{
+    margin:0;padding-left:18px;
+    list-style:none;
+    padding:0;
+  }
+  .ros .panel-text li{
+    margin:10px 0;
+    padding:0 0 0 22px;
+    position:relative;
+    font-size:13px;
+    line-height:1.5;
+  }
+  .ros .panel-text li::before{
+    content:"!";
+    position:absolute;
+    left:0;top:0;
+    width:16px;height:16px;
+    background:var(--red);
+    color:#fff;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:11px;
+    text-align:center;
+    line-height:16px;
+    border-radius:50%;
+  }
+  .ros .panel-text li b{color:var(--ink);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+  /* TRIFECTA */
+  .ros .trifecta{
+    border:1px solid var(--rule);
+    background:linear-gradient(180deg,#1a1814 0%,#231f17 100%);
+    color:#f3eddc;
+    padding:40px 36px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:30px;
+    position:relative;
+  }
+  .ros .trifecta h3{
+    grid-column:1/-1;
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:28px;
+    margin:0 0 4px;
+    color:#fff;
+    letter-spacing:-0.01em;
+  }
+  .ros .trifecta .sub{
+    grid-column:1/-1;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:#b8a878;
+    margin-bottom:10px;
+  }
+  .ros .trifecta .leg{
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.12);
+    padding:22px 18px;
+    text-align:center;
+  }
+  .ros .trifecta .leg .ic{
+    font-family:'Fraunces',serif;
+    font-size:48px;
+    font-weight:900;
+    color:#d97706;
+    line-height:1;
+    margin-bottom:10px;
+  }
+  .ros .trifecta .leg .nm{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:#b8a878;
+    margin-bottom:6px;
+  }
+  .ros .trifecta .leg .desc{
+    font-family:'Fraunces',serif;
+    font-size:17px;
+    line-height:1.3;
+    color:#fff;
+  }
+  .ros .trifecta .plus{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:32px;
+    color:#d97706;
+    z-index:2;
+  }
+  .ros .trifecta .plus.p1{left:36.5%;}
+  .ros .trifecta .plus.p2{left:64%;}
+  .ros .trifecta .equals{
+    grid-column:1/-1;
+    text-align:center;
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:22px;
+    color:#f3eddc;
+    margin-top:12px;
+    border-top:1px dashed rgba(255,255,255,0.2);
+    padding-top:18px;
+  }
+  .ros .trifecta .equals b{color:#d97706;font-style:normal;font-weight:900;}
+
+  /* DEMO CARDS */
+  .ros .demos{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+  }
+  .ros .demo{
+    border:1px solid var(--rule);
+    background:#fff;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .ros .demo-head{
+    background:var(--cue);
+    color:#fff;
+    padding:8px 12px;
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    font-weight:700;
+  }
+  .ros .demo-body{padding:18px 18px 20px;flex:1;}
+  .ros .demo h4{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:20px;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .ros .demo .ld{
+    font-size:13px;
+    color:var(--ink-2);
+    line-height:1.5;
+    margin:0 0 14px;
+  }
+  .ros .demo code{
+    display:block;
+    background:#1a1814;
+    color:#d4c79a;
+    padding:8px 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    border-left:3px solid var(--amber);
+    margin:6px 0;
+    line-height:1.5;
+    white-space:pre-wrap;
+  }
+  .ros .demo .tools{
+    border-top:1px dashed var(--rule-2);
+    padding-top:10px;
+    margin-top:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--ink-3);
+    text-transform:uppercase;
+  }
+  .ros .demo .tools a{font-weight:700;letter-spacing:0;text-transform:none;font-size:11px;}
+
+  /* LIVE WIRE */
+  .ros .wire{
+    display:grid;
+    grid-template-columns:200px 1fr;
+    gap:32px;
+    border:1px solid var(--rule);
+    background:var(--paper);
+    padding:30px;
+    align-items:center;
+  }
+  .ros .wire-img{
+    border:1px solid var(--rule);
+    overflow:hidden;
+    aspect-ratio:1.91/1;
+  }
+  .ros .wire-img img{display:block;width:100%;height:100%;object-fit:cover;}
+  .ros .wire blockquote{
+    margin:0;
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:24px;
+    line-height:1.35;
+    color:var(--ink);
+    border-left:4px solid var(--amber);
+    padding:6px 0 6px 20px;
+  }
+  .ros .wire blockquote::before{
+    content:open-quote;
+    font-size:42px;
+    color:var(--amber);
+    margin-right:4px;
+    vertical-align:-8px;
+  }
+  .ros .wire blockquote cite{
+    display:block;
+    font-style:normal;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+    margin-top:14px;
+  }
+  .ros .wire .heur{
+    margin-top:18px;
+    background:var(--olive-bg);
+    border-left:4px solid var(--olive);
+    padding:14px 16px;
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    line-height:1.5;
+  }
+  .ros .wire .heur b{font-weight:900;color:var(--olive);}
+
+  /* HEURISTIC table */
+  .ros .heur-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:14px;
+    border:1px solid var(--rule-2);
+  }
+  .ros .heur-table th,.ros .heur-table td{
+    padding:10px 12px;
+    text-align:left;
+    border-bottom:1px solid var(--rule-2);
+    border-right:1px solid var(--rule-2);
+    font-size:13px;
+  }
+  .ros .heur-table th{
+    background:var(--ink);color:var(--paper);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:0.16em;text-transform:uppercase;
+  }
+  .ros .heur-table .who{
+    font-family:'JetBrains Mono',monospace;font-weight:700;
+    background:var(--olive-bg);width:90px;
+  }
+
+  /* CHILDREN DOSSIERS */
+  .ros .docs{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+  }
+  .ros .dochip{
+    border:1px solid var(--rule);
+    background:#fff;
+    padding:18px 20px;
+    display:block;
+    color:var(--ink);
+    border-bottom:1px solid var(--rule);
+    position:relative;
+  }
+  .ros .dochip:hover{background:var(--paper);}
+  .ros .dochip .nr{
+    position:absolute;
+    top:14px;right:18px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:var(--ink-3);
+    letter-spacing:0.16em;
+  }
+  .ros .dochip h4{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:19px;
+    margin:0 0 6px;
+    padding-right:80px;
+    letter-spacing:-0.01em;
+    line-height:1.15;
+  }
+  .ros .dochip .sum{
+    font-size:12.5px;
+    color:var(--ink-2);
+    line-height:1.45;
+    margin:0;
+  }
+  .ros .dochip .meta{
+    margin-top:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .ros .dochip .meta .depth{
+    display:inline-block;
+    background:var(--ink);color:var(--paper);
+    padding:2px 6px;
+    margin-right:6px;
+    font-weight:700;
+  }
+  .ros .dochip .meta .depth.recon{background:var(--olive);}
+  .ros .dochip .meta .depth.survey{background:var(--cue);}
+  .ros .dochip .meta .depth.expedition{background:var(--red);}
+
+  /* OPEN QUESTION (closer) */
+  .ros .closer{
+    background:#1a1814;
+    color:var(--paper);
+    padding:50px 44px 54px;
+    border:2px solid var(--ink);
+    margin-top:48px;
+    position:relative;
+  }
+  .ros .closer::before{
+    content:"END / 01:30";
+    position:absolute;
+    top:14px;right:18px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.18em;
+    color:var(--amber);
+  }
+  .ros .closer .lbl{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  .ros .closer h2{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-style:italic;
+    font-size:42px;
+    line-height:1.05;
+    letter-spacing:-0.018em;
+    margin:0 0 18px;
+    color:#fff;
+  }
+  .ros .closer p{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    line-height:1.5;
+    color:#e2d8be;
+    margin:0;
+    max-width:760px;
+  }
+  .ros .closer p b{color:#fff;font-weight:700;}
+  .ros .closer a{color:#d97706;border-color:#d97706;}
+
+  /* FOOTER STRIP */
+  .ros .footer-strip{
+    margin-top:40px;
+    padding-top:18px;
+    border-top:2px solid var(--rule);
+    display:flex;
+    justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .ros .footer-strip span:nth-child(2){color:var(--ink-2);}
+
+  /* SOURCE INDEX */
+  .ros .srcindex{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:0 24px;
+    margin-top:20px;
+    font-size:11.5px;
+    column-gap:30px;
+  }
+  .ros .srcrow{
+    display:grid;
+    grid-template-columns:28px 24px 1fr;
+    gap:8px;
+    align-items:center;
+    padding:6px 0;
+    border-bottom:1px dotted var(--rule-2);
+  }
+  .ros .srcrow .sn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;font-weight:700;
+    color:var(--ink-3);
+  }
+  .ros .srcrow img{
+    width:18px;height:18px;display:block;
+  }
+  .ros .srcrow a{
+    font-size:11.5px;
+    border-bottom:none;
+    color:var(--ink);
+  }
+  .ros .srcrow a:hover{text-decoration:underline;background:transparent;}
+
+  /* small print on right */
+  .ros .annot{
+    position:absolute;
+    right:18px;
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:13px;
+    color:var(--red);
+    transform:rotate(-2deg);
+    background:#fff;
+    border:1px solid var(--red);
+    padding:6px 10px;
+  }
+
+  /* responsive */
+  @media (max-width:900px){
+    .ros .binder{padding:30px 24px 50px 24px;}
+    .ros .binder::before{display:none;}
+    .ros .doc-title{grid-template-columns:1fr;}
+    .ros .doc-title h1{font-size:38px;}
+    .ros .cover-facts{grid-template-columns:repeat(2,1fr);}
+    .ros .demos{grid-template-columns:1fr;}
+    .ros .docs{grid-template-columns:1fr;}
+    .ros .trifecta{grid-template-columns:1fr;}
+    .ros .trifecta .plus{display:none;}
+    .ros .wire{grid-template-columns:1fr;}
+    .ros .panel-body{grid-template-columns:1fr;}
+    .ros .panel-img{aspect-ratio:2/1;border-right:none;border-bottom:2px solid var(--red);}
+    .ros .runtable .blk{width:auto;}
+    .ros .srcindex{grid-template-columns:1fr;}
+  }
+</style>
+
+<div class="ros">
+<div class="binder">
+
+<!-- COVER SHEET -->
+<section class="coversheet">
+  <div class="doc-strip">
+    <span><b>RUN-OF-SHOW</b> · BINDER COPY · DRAFT v3</span>
+    <span>SESSION 03 OF 04 · DEEP-DIVE SERIES</span>
+    <span>RECORDED 2026-05-23</span>
+  </div>
+
+  <div class="doc-title">
+    <div>
+      <h1>Extending<br>Claude Code <em>—</em><br>MCP · Skills · Plugins</h1>
+      <p class="deck">A 90-minute virtual deep-dive on the four extension primitives, the marketplace ecosystem around them, and the trust boundary the audience is already arguing about.</p>
+    </div>
+    <div class="cover-stamp">
+      Live Demos<br>× 3
+      <small>Pre-record each as fallback</small>
+    </div>
+  </div>
+
+  <div class="cover-facts">
+    <div>
+      <div class="lbl">Runtime</div>
+      <div class="val">90<small>min live + 15 buffer</small></div>
+    </div>
+    <div>
+      <div class="lbl">Active blocks</div>
+      <div class="val">8–12<small>min each, monologue ≤ 7</small></div>
+    </div>
+    <div>
+      <div class="lbl">Citations</div>
+      <div class="val">85<small>across 6 expedition children</small></div>
+    </div>
+    <div>
+      <div class="lbl">Depth</div>
+      <div class="val">expedition<small>3 survey · 3 recon children</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- THROUGH-LINE -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§1</span>
+    <h2>The through-line</h2>
+    <span class="ts">COLD-OPEN · 00:00 – 00:15</span>
+  </div>
+
+  <div class="verdict">
+    <span class="label">Verdict</span>
+    The four extension primitives don't compete — <b>they nest</b>. Teach the layer cake first, the comparison table second. Otherwise the audience hears four overlapping pitches and picks whichever you demo last.
+    <sup><a href="https://claude.com/blog/claude-code-plugins">[1]</a></sup><sup><a href="https://www.agensi.io/learn/claude-code-plugin-marketplace-guide">[2]</a></sup>
+  </div>
+
+  <div class="stack" style="margin-top:24px;">
+    <div class="layer">
+      <div class="l-tag">L4 · packaging</div>
+      <div class="l-body">
+        <span class="l-name">Plugin</span>
+        <span class="l-role">One directory installed via <code>/plugin</code>. Bundles skills, subagents, slash commands, hooks, <em>and</em> pre-configured MCP servers.</span>
+        <span class="l-q">defaults problem</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="l-tag">L3 · capability</div>
+      <div class="l-body">
+        <span class="l-name">Skill + MCP</span>
+        <span class="l-role">A Skill loaded on demand from <code>SKILL.md</code> — or a long-lived MCP server. Same plugin can ship both. <a href="https://agentskills.io">SKILL.md</a> is now cross-vendor.</span>
+        <span class="l-q">capability problem</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="l-tag">L2 · isolation</div>
+      <div class="l-body">
+        <span class="l-name">Subagent</span>
+        <span class="l-role">A Skill with <code>context: fork</code> runs inside a subagent.<sup><a href="https://code.claude.com/docs/en/skills">[3]</a></sup> Fresh context, returns a summary.</span>
+        <span class="l-q">context problem</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="l-tag">L1 · determinism</div>
+      <div class="l-body">
+        <span class="l-name">Hook</span>
+        <span class="l-role">Fires on tool calls — including a subagent's. Only <code>PreToolUse</code> can block.<sup><a href="https://code.claude.com/docs/en/hooks">[4]</a></sup></span>
+        <span class="l-q">determinism problem</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="l-tag">L0 · substrate</div>
+      <div class="l-body">
+        <span class="l-name">Config</span>
+        <span class="l-role">Permissions, settings, allowlists.<sup><a href="https://code.claude.com/docs/en/sub-agents">[5]</a></sup> Everything above sits on this.</span>
+        <span class="l-q">defaults problem</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RUN OF SHOW -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§2</span>
+    <h2>Run-of-show · 90 min</h2>
+    <span class="ts">75 MIN CONTENT + 15 BUFFER</span>
+  </div>
+
+  <table class="runtable">
+    <thead>
+      <tr><th>Time code</th><th>Block</th><th>Cue / why</th></tr>
+    </thead>
+    <tbody>
+      <tr class="opening">
+        <td class="ts">00:00 – 00:05</td>
+        <td class="blk">Cold open · callback to S1 + S2<small>opener animation reuse</small></td>
+        <td class="cue">60-sec visual recap of <b>S1 (AI)</b> and <b>S2 (Security)</b>. Series replays compound across episodes — re-anchor returning viewers in the first beat.<sup><a href="https://www.getcontrast.io/learn/webinar-benchmarks">[17]</a></sup></td>
+      </tr>
+      <tr>
+        <td class="ts">00:05 – 00:15</td>
+        <td class="blk">Frame the problem + live poll<small>passive-to-active pivot</small></td>
+        <td class="cue"><span class="pill-tag poll">poll</span> "Which extension primitive have you shipped to prod?" Average viewer checks email after 10 min of passive content — interrupt before they do.<sup><a href="https://webinarjam.com/blog/the-best-webinar-length-2026/">[18]</a></sup></td>
+      </tr>
+      <tr>
+        <td class="ts">00:15 – 00:30</td>
+        <td class="blk">Concept block 1 · the layer cake<small>plugin → skill+mcp → subagent → hook</small></td>
+        <td class="cue">Walk §1 stack top-down. Land the question "<em>context problem, determinism problem, or defaults problem?</em>" Monologue cap ≤ 7 min then chat prompt.</td>
+      </tr>
+      <tr>
+        <td class="ts">00:30 – 00:45</td>
+        <td class="blk">Demo A · FastMCP + Inspector<small>live build, ~12 min</small></td>
+        <td class="cue"><span class="pill-tag demo">demo</span><span class="pill-tag live">live</span> Build a FastMCP tool, run Inspector against it. <a href="https://github.com/PrefectHQ/fastmcp">FastMCP</a> ⭐ 14k. Show-don't-tell beats slide-heavy stretches.</td>
+      </tr>
+      <tr class="recap">
+        <td class="ts">00:45 – 00:50</td>
+        <td class="blk">Mid-session recap<small>attention dip · halfway mark</small></td>
+        <td class="cue">3-bullet recap of the layer cake. Tease the trust trifecta. Attention drops at 0:45 — recap pulls it back.<sup><a href="https://www.getcontrast.io/learn/webinar-benchmarks">[17]</a></sup></td>
+      </tr>
+      <tr>
+        <td class="ts">00:50 – 01:00</td>
+        <td class="blk">Concept block 2 · trust boundary<small>S2 callback compound</small></td>
+        <td class="cue">The session's reason to exist. Three primitives, three CVE timelines — see §3. This is the block that compounds on S2's audience habit.</td>
+      </tr>
+      <tr>
+        <td class="ts">01:00 – 01:12</td>
+        <td class="blk">Demo B · ship a plugin in one breath<small>mkdir → plugin.json → SKILL.md → --plugin-dir</small></td>
+        <td class="cue"><span class="pill-tag demo">demo</span><span class="pill-tag live">live</span> Four commands, one breath. Then demo C: <a href="https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/">sandboxed tool-poisoning repro</a>. Cued recording ready.<sup><a href="https://code.claude.com/docs/en/plugins">[21]</a></sup></td>
+      </tr>
+      <tr>
+        <td class="ts">01:12 – 01:22</td>
+        <td class="blk">Synthesis + Q&amp;A<small>co-host runs chat</small></td>
+        <td class="cue">Q&amp;A lifts retention <b>~32%</b> vs. no-Q&amp;A.<sup><a href="https://www.getcontrast.io/learn/webinar-benchmarks">[17]</a></sup> Co-host filters and surfaces. Speaker stays in flow.</td>
+      </tr>
+      <tr class="closing">
+        <td class="ts">01:22 – 01:30</td>
+        <td class="blk">Wrap · S4 teaser · continuity bridge<small>capture cohort while attention is hot</small></td>
+        <td class="cue">Hand the open question to the audience (§7). Tease S4 — <a href="https://www.merge.dev/blog/mcp-vs-a2a">A2A coordination</a>, or an auditability hard look. Continuity offer at end converts 25–40% of completers.<sup><a href="https://www.getcontrast.io/learn/webinar-benchmarks">[17]</a></sup></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- TRUST DOSSIER -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§3</span>
+    <h2>Trust dossier · the reason this session exists</h2>
+    <span class="ts">BLOCK 50:00 – 60:00</span>
+  </div>
+
+  <div class="verdict" style="border-color:var(--red);background:var(--red-bg);">
+    <span class="label" style="background:var(--red);">Do not paper over</span>
+    Session 2 was security. <b>Every extension layer has both a high-leverage distribution mechanism and a fresh CVE history.</b> Each row below is a slide.
+  </div>
+
+  <div class="dossier" style="margin-top:24px;">
+
+    <article class="panel">
+      <div class="panel-body">
+        <div class="panel-img">
+          <img src="runofshow/images/authzed-timeline.png" alt="Authzed — timeline of MCP breaches">
+          <span class="badge">AUTHZED · 2026</span>
+        </div>
+        <div class="panel-text">
+          <h3>MCP</h3>
+          <div class="surface">Surface: <b>110M+ SDK downloads / month</b> · Linux Foundation governance<sup><a href="https://aaif.io/blog/mcp-is-now-enterprise-infrastructure-everything-that-happened-at-mcp-dev-summit-north-america-2026/">[8]</a></sup><sup><a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">[9]</a></sup></div>
+          <ul>
+            <li><b>CVE-2025-6514</b> · <code>mcp-remote</code> RCE, 437k+ downloads<sup><a href="https://authzed.com/blog/timeline-mcp-breaches">[10]</a></sup></li>
+            <li><b>Postmark</b> · supply-chain BCC exfil<sup><a href="https://authzed.com/blog/timeline-mcp-breaches">[10]</a></sup></li>
+            <li><b>Smithery</b> · breach affecting 3,000+ servers<sup><a href="https://authzed.com/blog/timeline-mcp-breaches">[10]</a></sup></li>
+            <li><b>~200k</b> vulnerable instances exposed (2026 scan)<sup><a href="https://www.practical-devsecops.com/mcp-security-vulnerabilities/">[11]</a></sup></li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-body">
+        <div class="panel-img">
+          <img src="runofshow/images/snyk-toxicskills.png" alt="Snyk — ToxicSkills audit cover">
+          <span class="badge">SNYK · TOXICSKILLS</span>
+        </div>
+        <div class="panel-text">
+          <h3>Skills</h3>
+          <div class="surface">Surface: cross-vendor <code>SKILL.md</code> · 30+ agents read the same file<sup><a href="https://agentskills.io">[7]</a></sup></div>
+          <ul>
+            <li><b>36.8%</b> of skills have at least one flaw<sup><a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">[12]</a></sup></li>
+            <li><b>13.4% critical</b> · 91% of malicious skills embed prompt injection<sup><a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">[12]</a></sup></li>
+            <li><b>!`cmd` dynamic-context</b> runs <em>before</em> the model sees the skill — model-level defences never fire<sup><a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">[12]</a></sup></li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-body">
+        <div class="panel-img">
+          <img src="runofshow/images/checkpoint-flaws.jpg" alt="Check Point — Claude Code flaws">
+          <span class="badge">CHECK POINT · 2026</span>
+        </div>
+        <div class="panel-text">
+          <h3>Plugins</h3>
+          <div class="surface">Surface: marketplace install + hook config trust dialog<sup><a href="https://claude.com/blog/claude-code-plugins">[1]</a></sup></div>
+          <ul>
+            <li><b>CVE-2025-59536</b> · RCE via hook config <em>before</em> the trust dialog fires<sup><a href="https://blog.checkpoint.com/research/check-point-researchers-expose-critical-claude-code-flaws/">[13]</a></sup></li>
+            <li><b>TrustFall</b> · cloning a hostile repo executes code<sup><a href="https://www.darkreading.com/application-security/trustfall-exposes-claude-code-execution-risk">[14]</a></sup></li>
+            <li><b>Marketplace dependency-hijack</b> PoCs against the install flow<sup><a href="https://www.sentinelone.com/blog/marketplace-skills-and-dependency-hijack-in-claude-code/">[15]</a></sup></li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- TRIFECTA -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§4</span>
+    <h2>The unifying frame</h2>
+    <span class="ts">SLIDE · ONE</span>
+  </div>
+
+  <div class="trifecta">
+    <div class="sub">Simon Willison · the lethal trifecta</div>
+    <h3>Three ingredients. Any agent that has all three is a credential.</h3>
+    <div class="leg">
+      <div class="ic">A</div>
+      <div class="nm">Ingredient 1</div>
+      <div class="desc">Private data the agent can read</div>
+    </div>
+    <div class="plus p1">+</div>
+    <div class="leg">
+      <div class="ic">B</div>
+      <div class="nm">Ingredient 2</div>
+      <div class="desc">Untrusted instructions in the context</div>
+    </div>
+    <div class="plus p2">+</div>
+    <div class="leg">
+      <div class="ic">C</div>
+      <div class="nm">Ingredient 3</div>
+      <div class="desc">An exfiltration vector</div>
+    </div>
+    <div class="equals">= <b>data theft</b>, made accidentally easier by every extension layer above <sup><a href="https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/" style="color:#d97706;">[16]</a></sup></div>
+  </div>
+</section>
+
+<!-- LIVE WIRE -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§5</span>
+    <h2>The live wire · Skills vs MCP</h2>
+    <span class="ts">EXPECT THIS QUESTION</span>
+  </div>
+
+  <div class="wire">
+    <div class="wire-img">
+      <img src="runofshow/images/willison-skills.jpg" alt="Simon Willison on Claude Skills">
+    </div>
+    <div>
+      <blockquote>
+        I expect we'll see a Cambrian explosion in Skills which will make this year's MCP rush look pedestrian by comparison.
+        <cite>— <a href="https://simonwillison.net/2025/Oct/16/claude-skills/">Simon Willison, Oct 2025</a></cite>
+      </blockquote>
+      <div class="heur">
+        <b>Workable heuristic →</b> ask which problem you actually have. Both can ship inside the same plugin.
+      </div>
+      <table class="heur-table">
+        <thead>
+          <tr><th>Use…</th><th>When…</th><th>Because</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="who">MCP</td>
+            <td>Long-lived stateful connection — DB session, OAuth handshake, SaaS API</td>
+            <td>You need a server that holds state across calls<sup><a href="https://github.com/PrefectHQ/fastmcp">[19]</a></sup></td>
+          </tr>
+          <tr>
+            <td class="who">Skill</td>
+            <td>"Run this CLI, read the output" is enough</td>
+            <td>Markdown + bundled scripts; loads on demand<sup><a href="https://code.claude.com/docs/en/skills">[3]</a></sup></td>
+          </tr>
+          <tr>
+            <td class="who">Both</td>
+            <td>You want one install surface</td>
+            <td>Plugins bundle skills <em>and</em> pre-configured MCP servers<sup><a href="https://claude.com/blog/claude-code-plugins">[1]</a></sup></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE DEMOS -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§6</span>
+    <h2>Live demos · shot list</h2>
+    <span class="ts">3 EARNED SLOTS</span>
+  </div>
+
+  <div class="demos">
+    <article class="demo">
+      <div class="demo-head"><span>DEMO A · 12 min</span><span>00:30 – 00:42</span></div>
+      <div class="demo-body">
+        <h4>FastMCP + Inspector</h4>
+        <p class="ld">Build an MCP tool from scratch in Python, point the Inspector at it, watch the JSON-RPC traffic.</p>
+        <code>pip install fastmcp
+python server.py
+npx @modelcontextprotocol/inspector</code>
+        <div class="tools">Tools · <a href="https://github.com/PrefectHQ/fastmcp">FastMCP</a> ⭐ 14k · <a href="https://github.com/modelcontextprotocol/inspector">Inspector</a> ⭐ 5.4k</div>
+      </div>
+    </article>
+
+    <article class="demo">
+      <div class="demo-head"><span>DEMO B · 7 min</span><span>01:00 – 01:07</span></div>
+      <div class="demo-body">
+        <h4>Plugin in one breath</h4>
+        <p class="ld">Four commands. Ship a working plugin live without leaving the terminal — to land the "packaging unit" argument viscerally.</p>
+        <code>mkdir my-plugin && cd my-plugin
+echo '{...}' > plugin.json
+echo '---' > SKILL.md
+claude --plugin-dir .</code>
+        <div class="tools">Reference · <a href="https://code.claude.com/docs/en/plugins">code.claude.com/plugins</a></div>
+      </div>
+    </article>
+
+    <article class="demo">
+      <div class="demo-head" style="background:var(--red);"><span>DEMO C · 5 min</span><span>01:07 – 01:12</span></div>
+      <div class="demo-body">
+        <h4>Tool-poisoning repro<br><small style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;color:var(--red);font-weight:700;">SANDBOXED · NO LIVE TARGETS</small></h4>
+        <p class="ld">Reproduce Willison's prompt-injection-via-MCP-tool-description trick in a sealed VM. The audience needs to <em>see</em> the trifecta, not read it.</p>
+        <code># sandbox VM only
+# no network egress
+# pre-recorded fallback cued</code>
+        <div class="tools">Reference · <a href="https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/">simonwillison.net</a></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- BRIEFING DOSSIERS -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tab">§7</span>
+    <h2>Briefing dossiers · supporting research</h2>
+    <span class="ts">PREP READING · BACKSTAGE</span>
+  </div>
+
+  <div class="docs">
+    <a class="dochip" href="../mcp-deep-dive/">
+      <span class="nr">DOC · 01</span>
+      <h4>MCP deep-dive</h4>
+      <p class="sum">Talk-prep brief for a 1–2 hour deep-dive on the Model Context Protocol — architecture, 2026 spec, ecosystem, security trifecta, live-demo recipes.</p>
+      <div class="meta"><span class="depth survey">survey</span>30 citations · 10 min</div>
+    </a>
+    <a class="dochip" href="../claude-code-skills/">
+      <span class="nr">DOC · 02</span>
+      <h4>Claude Code Skills</h4>
+      <p class="sum">A Skill is a Markdown file + optional bundled scripts that Claude loads on demand. Cheaper than CLAUDE.md, more discoverable than a slash command, lighter than a subagent — now an open cross-vendor standard.</p>
+      <div class="meta"><span class="depth survey">survey</span>13 citations · 5 min</div>
+    </a>
+    <a class="dochip" href="../plugins-the-marketplace/">
+      <span class="nr">DOC · 03</span>
+      <h4>Plugins &amp; the Marketplace</h4>
+      <p class="sum">What plugins actually are, how the official + community marketplaces work, the few that earn their keep, and the trust footgun to flag in any 1–2 hour deep-dive.</p>
+      <div class="meta"><span class="depth survey">survey</span>21 citations · 10 min</div>
+    </a>
+    <a class="dochip" href="../subagents-hooks-and-the-rest-of-the-harness/">
+      <span class="nr">DOC · 04</span>
+      <h4>Subagents, hooks, and the rest of the harness</h4>
+      <p class="sum">One-page mental model: subagents (isolation), hooks (determinism), and the config substrate (skills, permissions, settings).</p>
+      <div class="meta"><span class="depth recon">recon</span>6 citations · 2 min</div>
+    </a>
+    <a class="dochip" href="../comparison-decision-framework/">
+      <span class="nr">DOC · 05</span>
+      <h4>Comparison &amp; decision framework</h4>
+      <p class="sum">Score candidate topics on four axes — audience fit, series continuity, speaker readiness, demo viability — with weights chosen before scoring. Skip RICE; it's product-feature shaped.</p>
+      <div class="meta"><span class="depth recon">recon</span>7 citations · 2 min</div>
+    </a>
+    <a class="dochip" href="../session-delivery-plan/">
+      <span class="nr">DOC · 06</span>
+      <h4>Session delivery plan</h4>
+      <p class="sum">A 90-minute run-of-show with 8–12 min active blocks, mid-session recap, and series-continuity callbacks tuned for the third session in a deep-dive series.</p>
+      <div class="meta"><span class="depth recon">recon</span>8 citations · 2 min</div>
+    </a>
+  </div>
+</section>
+
+<!-- OPEN QUESTION CLOSER -->
+<section class="closer">
+  <div class="lbl">§8 · Hand to the audience</div>
+  <h2>The harness boundary moved from "what Claude Code knows" to "what the marketplace ships."</h2>
+  <p>Registry-as-trust-root is the only realistic answer to supply-chain attacks <sup><a href="https://authzed.com/blog/timeline-mcp-breaches">[10]</a></sup> — and it isn't solved yet. So the honest question to leave on stage: should <b>session 4</b> be <a href="https://www.merge.dev/blog/mcp-vs-a2a">agent-to-agent (A2A) coordination</a>, or a hard look at whether any of this is auditable enough to put on the critical path?</p>
+</section>
+
+<!-- FOOTER STRIP / SOURCE INDEX -->
+<div class="footer-strip">
+  <span>SCOUT EXPEDITION · 2026-05-23</span>
+  <span>CANONICAL: <a href="../">expedition page</a></span>
+  <span>85 CITATIONS · $11.19 · 2,080 s</span>
+</div>
+
+<section class="sec" style="margin-top:30px;">
+  <div class="sec-head">
+    <span class="sec-tab">REF</span>
+    <h2>Source index</h2>
+    <span class="ts">85 CITATIONS · TOP 23</span>
+  </div>
+
+  <div class="srcindex">
+    <div class="srcrow"><span class="sn">[01]</span><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=128" alt=""><a href="https://claude.com/blog/claude-code-plugins">Anthropic — Claude Code plugins announcement</a></div>
+    <div class="srcrow"><span class="sn">[02]</span><img src="https://www.google.com/s2/favicons?domain=agensi.io&sz=128" alt=""><a href="https://www.agensi.io/learn/claude-code-plugin-marketplace-guide">Agensi — plugin marketplace guide</a></div>
+    <div class="srcrow"><span class="sn">[03]</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/skills">Claude Code docs — Skills</a></div>
+    <div class="srcrow"><span class="sn">[04]</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/hooks">Claude Code docs — Hooks</a></div>
+    <div class="srcrow"><span class="sn">[05]</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/sub-agents">Claude Code docs — Subagents</a></div>
+    <div class="srcrow"><span class="sn">[06]</span><img src="https://www.google.com/s2/favicons?domain=simonwillison.net&sz=128" alt=""><a href="https://simonwillison.net/2025/Oct/16/claude-skills/">Willison — Claude Skills, Cambrian explosion</a></div>
+    <div class="srcrow"><span class="sn">[07]</span><img src="https://www.google.com/s2/favicons?domain=agentskills.io&sz=128" alt=""><a href="https://agentskills.io">agentskills.io — cross-vendor SKILL.md</a></div>
+    <div class="srcrow"><span class="sn">[08]</span><img src="https://www.google.com/s2/favicons?domain=aaif.io&sz=128" alt=""><a href="https://aaif.io/blog/mcp-is-now-enterprise-infrastructure-everything-that-happened-at-mcp-dev-summit-north-america-2026/">AAIF — MCP at Dev Summit NA 2026</a></div>
+    <div class="srcrow"><span class="sn">[09]</span><img src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=128" alt=""><a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">Anthropic — MCP → Linux Foundation</a></div>
+    <div class="srcrow"><span class="sn">[10]</span><img src="https://www.google.com/s2/favicons?domain=authzed.com&sz=128" alt=""><a href="https://authzed.com/blog/timeline-mcp-breaches">Authzed — Timeline of MCP breaches</a></div>
+    <div class="srcrow"><span class="sn">[11]</span><img src="https://www.google.com/s2/favicons?domain=practical-devsecops.com&sz=128" alt=""><a href="https://www.practical-devsecops.com/mcp-security-vulnerabilities/">DevSecOps — MCP security vulnerabilities</a></div>
+    <div class="srcrow"><span class="sn">[12]</span><img src="https://www.google.com/s2/favicons?domain=snyk.io&sz=128" alt=""><a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">Snyk — ToxicSkills audit</a></div>
+    <div class="srcrow"><span class="sn">[13]</span><img src="https://www.google.com/s2/favicons?domain=checkpoint.com&sz=128" alt=""><a href="https://blog.checkpoint.com/research/check-point-researchers-expose-critical-claude-code-flaws/">Check Point — CVE-2025-59536</a></div>
+    <div class="srcrow"><span class="sn">[14]</span><img src="https://www.google.com/s2/favicons?domain=darkreading.com&sz=128" alt=""><a href="https://www.darkreading.com/application-security/trustfall-exposes-claude-code-execution-risk">Dark Reading — TrustFall</a></div>
+    <div class="srcrow"><span class="sn">[15]</span><img src="https://www.google.com/s2/favicons?domain=sentinelone.com&sz=128" alt=""><a href="https://www.sentinelone.com/blog/marketplace-skills-and-dependency-hijack-in-claude-code/">SentinelOne — Marketplace dependency-hijack</a></div>
+    <div class="srcrow"><span class="sn">[16]</span><img src="https://www.google.com/s2/favicons?domain=simonwillison.net&sz=128" alt=""><a href="https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/">Willison — MCP prompt injection / lethal trifecta</a></div>
+    <div class="srcrow"><span class="sn">[17]</span><img src="https://www.google.com/s2/favicons?domain=getcontrast.io&sz=128" alt=""><a href="https://www.getcontrast.io/learn/webinar-benchmarks">Contrast — Webinar benchmarks 2026</a></div>
+    <div class="srcrow"><span class="sn">[18]</span><img src="https://www.google.com/s2/favicons?domain=webinarjam.com&sz=128" alt=""><a href="https://webinarjam.com/blog/the-best-webinar-length-2026/">WebinarJam — best length 2026</a></div>
+    <div class="srcrow"><span class="sn">[19]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/PrefectHQ/fastmcp">FastMCP ⭐ 14k</a></div>
+    <div class="srcrow"><span class="sn">[20]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/modelcontextprotocol/inspector">MCP Inspector ⭐ 5.4k</a></div>
+    <div class="srcrow"><span class="sn">[21]</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/plugins">Claude Code docs — Plugins</a></div>
+    <div class="srcrow"><span class="sn">[22]</span><img src="https://www.google.com/s2/favicons?domain=airfocus.com&sz=128" alt=""><a href="https://airfocus.com/blog/weighted-decision-matrix-prioritization/">airfocus — weighted decision matrix</a></div>
+    <div class="srcrow"><span class="sn">[23]</span><img src="https://www.google.com/s2/favicons?domain=merge.dev&sz=128" alt=""><a href="https://www.merge.dev/blog/mcp-vs-a2a">Merge — MCP vs A2A</a></div>
+  </div>
+</section>
+
+</div>
+</div>

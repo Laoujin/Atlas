@@ -1,0 +1,1097 @@
+---
+layout: view
+view_name: "Scorecard"
+view_of: ../
+title: "Pick the third deep-dive: a 30-minute decision framework — Scorecard"
+---
+
+<style>
+  .scorecard-root {
+    --ink: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1a1f29;
+    --rule: #2a313c;
+    --cream: #f5efe0;
+    --cream-dim: #c9c0ad;
+    --muted: #7a7563;
+    --rust: #d97706;
+    --rust-deep: #c2410c;
+    --amber: #fbbf24;
+    --green: #22c55e;
+    --green-deep: #16a34a;
+    --red: #dc2626;
+    --orange: #f97316;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Fraunces", "Iowan Old Style", "Palatino", Georgia, serif;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .scorecard-root * { box-sizing: border-box; }
+
+  /* ───────────────────────── TOP CONTROL STRIP ───────────────────────── */
+  .control-strip {
+    background: linear-gradient(180deg, #0a0e14 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .control-strip .dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .control-strip .dataset {
+    color: var(--cream);
+    font-weight: 600;
+  }
+  .control-strip .sep { color: var(--rule); }
+  .control-strip .pill {
+    border: 1px solid var(--rust);
+    color: var(--amber);
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .control-strip .locked-stamp {
+    margin-left: auto;
+    color: var(--rust);
+    border: 2px solid var(--rust);
+    padding: 4px 12px;
+    transform: rotate(-2deg);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+  }
+  .control-strip .meta { color: var(--cream-dim); }
+
+  /* ───────────────────────── HERO VERDICT ───────────────────────── */
+  .hero {
+    padding: 56px 32px 40px;
+    border-bottom: 1px solid var(--rule);
+    background:
+      radial-gradient(ellipse at top right, rgba(217, 119, 6, 0.12), transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(251, 191, 36, 0.06), transparent 50%);
+  }
+  .hero .crumb {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .hero .crumb a {
+    color: var(--cream-dim);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--muted);
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(40px, 6vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0 0 22px;
+    color: var(--cream);
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--amber);
+  }
+  .hero .verdict {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 28px;
+    align-items: start;
+    margin-top: 32px;
+    padding: 24px 28px;
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.18), rgba(194, 65, 12, 0.08));
+    border-left: 4px solid var(--rust);
+  }
+  .hero .verdict-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    align-self: stretch;
+    border-right: 1px solid rgba(251, 191, 36, 0.3);
+    padding-right: 10px;
+  }
+  .hero .verdict-body p {
+    font-size: 18px;
+    line-height: 1.55;
+    margin: 0 0 12px;
+    color: var(--cream);
+  }
+  .hero .verdict-body p:last-child { margin-bottom: 0; }
+  .hero .verdict-body strong {
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  /* ───────────────────────── MATRIX ───────────────────────── */
+  .matrix-section {
+    padding: 56px 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .section-header .num {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--rust);
+    letter-spacing: 0.15em;
+  }
+  .section-header h2 {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--cream);
+    letter-spacing: -0.01em;
+  }
+  .section-header .legend {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .section-header .legend .swatch {
+    display: inline-block;
+    width: 14px; height: 14px;
+    margin-right: 4px;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .matrix {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+  .matrix table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+    min-width: 760px;
+  }
+  .matrix th, .matrix td {
+    padding: 14px 14px;
+    text-align: center;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+  .matrix th:last-child, .matrix td:last-child { border-right: none; }
+  .matrix tr:last-child td { border-bottom: none; }
+
+  .matrix thead th {
+    background: var(--panel-2);
+    color: var(--cream-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10px;
+    padding: 16px 14px;
+    position: relative;
+  }
+  .matrix thead th .cand-name {
+    display: block;
+    color: var(--cream);
+    font-size: 14px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .matrix thead th .cand-name a {
+    color: var(--cream);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--muted);
+  }
+  .matrix thead th .cand-name a:hover { color: var(--amber); border-bottom-color: var(--amber); }
+  .matrix thead th .cand-kind {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .matrix .axis-cell {
+    text-align: left;
+    background: var(--panel-2);
+    padding: 18px 18px;
+    min-width: 220px;
+  }
+  .matrix .axis-cell .axis-name {
+    color: var(--cream);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-bottom: 4px;
+    font-family: -apple-system, system-ui, sans-serif;
+  }
+  .matrix .axis-cell .axis-why {
+    color: var(--cream-dim);
+    font-size: 11px;
+    line-height: 1.45;
+    font-family: -apple-system, system-ui, sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 400;
+  }
+  .matrix .weight-cell {
+    background: var(--panel-2);
+    min-width: 100px;
+    padding: 12px 10px;
+  }
+  .matrix .weight-pill {
+    display: inline-block;
+    background: var(--ink);
+    border: 1px solid var(--rust);
+    color: var(--amber);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .score-cell {
+    position: relative;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    min-width: 84px;
+  }
+  .score-cell .contrib {
+    display: block;
+    font-size: 9px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.55);
+    letter-spacing: 0.1em;
+    margin-top: 1px;
+  }
+  .s1 { background: #5b1a1a; color: #fca5a5; }
+  .s1 .contrib { color: rgba(252,165,165,0.7); }
+  .s2 { background: #8a3a14; color: #fdba74; }
+  .s2 .contrib { color: rgba(253,186,116,0.7); }
+  .s3 { background: #b45309; color: #fef3c7; }
+  .s3 .contrib { color: rgba(254,243,199,0.7); }
+  .s4 { background: #65a30d; color: #f0fdf4; }
+  .s4 .contrib { color: rgba(240,253,244,0.7); }
+  .s5 { background: #15803d; color: #f0fdf4; }
+  .s5 .contrib { color: rgba(240,253,244,0.7); }
+
+  /* totals row */
+  .matrix tfoot td {
+    background: #0a0e14;
+    padding: 18px 14px;
+    border-top: 2px solid var(--rust);
+  }
+  .matrix tfoot td.totals-label {
+    text-align: left;
+    padding-left: 18px;
+    color: var(--amber);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .matrix tfoot td.total {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--cream);
+    font-family: var(--mono);
+    line-height: 1.1;
+  }
+  .matrix tfoot td.total.winner {
+    color: var(--amber);
+    background: linear-gradient(180deg, #1c1410, #0a0e14);
+    border-top: 2px solid var(--amber);
+    box-shadow: inset 0 -3px 0 var(--amber);
+  }
+  .matrix tfoot td.total .pct {
+    display: block;
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  .matrix tfoot td.total.winner .pct { color: var(--amber); }
+
+  /* ───────────────────────── BARS ───────────────────────── */
+  .bars-panel {
+    padding: 40px 32px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--rule);
+  }
+  .bars-panel .section-header { margin-bottom: 20px; }
+  .bars-grid {
+    display: grid;
+    gap: 18px;
+  }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 80px;
+    gap: 18px;
+    align-items: center;
+  }
+  .bar-row .label {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--cream);
+    font-weight: 600;
+  }
+  .bar-row .label .badge {
+    display: inline-block;
+    background: var(--panel-2);
+    color: var(--cream-dim);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-right: 6px;
+    text-transform: uppercase;
+  }
+  .bar-row .label .badge.recon { background: rgba(217,119,6,0.18); color: var(--amber); }
+  .bar-row .label .badge.survey { background: rgba(34,197,94,0.12); color: #86efac; }
+  .bar-row .label a {
+    color: var(--cream);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--muted);
+  }
+  .bar-row .bar-track {
+    height: 28px;
+    background: var(--ink);
+    position: relative;
+    border: 1px solid var(--rule);
+  }
+  .bar-row .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rust-deep), var(--rust), var(--amber));
+    position: relative;
+  }
+  .bar-row .bar-fill.gold {
+    background: linear-gradient(90deg, var(--rust), var(--amber), #fde047);
+    box-shadow: 0 0 18px rgba(251,191,36,0.4);
+  }
+  .bar-row .bar-fill .tick {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .bar-row .score-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--cream);
+    text-align: right;
+  }
+  .bar-row .score-num.win { color: var(--amber); }
+
+  /* ───────────────────────── SIDE-BY-SIDE ───────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .two-col > div {
+    padding: 48px 32px;
+  }
+  .two-col > div:first-child {
+    border-right: 1px solid var(--rule);
+    background:
+      linear-gradient(180deg, rgba(220,38,38,0.04), transparent 60%),
+      var(--ink);
+  }
+  .two-col > div:last-child {
+    background:
+      linear-gradient(180deg, rgba(251,191,36,0.04), transparent 60%),
+      var(--ink);
+  }
+  .two-col h3 {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--cream);
+  }
+  .two-col .kicker {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .two-col p {
+    color: var(--cream-dim);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 14px 0;
+  }
+  .two-col code {
+    font-family: var(--mono);
+    background: var(--panel);
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: var(--amber);
+    font-size: 12px;
+    border: 1px solid var(--rule);
+  }
+
+  .rice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .rice-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    color: var(--cream-dim);
+  }
+  .rice-table td:first-child {
+    color: var(--cream);
+    font-weight: 600;
+    width: 28%;
+  }
+  .rice-table td .x {
+    color: var(--red);
+    font-weight: 700;
+  }
+  .rice-table td .ok {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .ladder {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+    counter-reset: rung;
+  }
+  .ladder li {
+    counter-increment: rung;
+    padding: 16px 18px 16px 60px;
+    border: 1px solid var(--rule);
+    margin-bottom: 10px;
+    position: relative;
+    background: var(--panel);
+    color: var(--cream);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .ladder li::before {
+    content: counter(rung);
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--amber);
+    line-height: 1;
+  }
+  .ladder li strong { color: var(--amber); font-weight: 600; }
+  .ladder li .vs {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    margin: 0 8px;
+  }
+
+  /* ───────────────────────── PROCESS STRIP ───────────────────────── */
+  .process {
+    padding: 56px 32px;
+    border-bottom: 1px solid var(--rule);
+    background:
+      radial-gradient(ellipse at center, rgba(217,119,6,0.04), transparent 60%),
+      var(--ink);
+  }
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 24px;
+    border: 1px solid var(--rule);
+  }
+  .process-step {
+    padding: 24px 22px;
+    border-right: 1px solid var(--rule);
+    position: relative;
+    background: var(--panel);
+  }
+  .process-step:last-child { border-right: none; }
+  .process-step .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--rust);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+  .process-step .step-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .process-step h4 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    color: var(--cream);
+    line-height: 1.25;
+  }
+  .process-step p {
+    color: var(--cream-dim);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0;
+  }
+  .process-step .step-arrow {
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--rust);
+    font-size: 18px;
+    background: var(--ink);
+    padding: 0 4px;
+    z-index: 2;
+  }
+
+  /* ───────────────────────── DISCIPLINE RULES ───────────────────────── */
+  .discipline {
+    padding: 48px 32px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--panel);
+  }
+  .rule-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 22px;
+  }
+  .rule-card {
+    border: 1px solid var(--rule);
+    padding: 22px 20px;
+    background: var(--ink);
+  }
+  .rule-card .glyph {
+    font-size: 32px;
+    color: var(--rust);
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .rule-card h5 {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cream);
+    margin: 0 0 8px;
+    letter-spacing: 0.02em;
+  }
+  .rule-card p {
+    color: var(--cream-dim);
+    font-size: 12px;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* ───────────────────────── SOURCES ───────────────────────── */
+  .sources {
+    padding: 56px 32px 72px;
+    background: var(--ink);
+  }
+  .source-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .source {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--cream);
+    font-size: 13px;
+    line-height: 1.45;
+    transition: border-color 0.15s;
+  }
+  .source:hover { border-color: var(--rust); }
+  .source .favicon {
+    width: 24px;
+    height: 24px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+  .source .meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .source .meta .n {
+    color: var(--amber);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .source .title {
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* ───────────────────────── FOOTER NAV ───────────────────────── */
+  .nav-rail {
+    border-top: 1px solid var(--rule);
+    background: #0a0e14;
+    padding: 32px;
+  }
+  .nav-rail h6 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 0 0 16px;
+  }
+  .sibling-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .sibling-tile {
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--cream);
+    font-size: 13px;
+    transition: border-color 0.15s;
+  }
+  .sibling-tile:hover { border-color: var(--rust); }
+  .sibling-tile .tile-kind {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .sibling-tile .tile-title {
+    color: var(--cream);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  /* Responsive collapse */
+  @media (max-width: 880px) {
+    .two-col { grid-template-columns: 1fr; }
+    .two-col > div:first-child { border-right: none; border-bottom: 1px solid var(--rule); }
+    .process-grid { grid-template-columns: 1fr 1fr; }
+    .process-step { border-bottom: 1px solid var(--rule); }
+    .rule-cards { grid-template-columns: 1fr; }
+    .hero .verdict { grid-template-columns: 1fr; }
+    .hero .verdict-label { writing-mode: horizontal-tb; transform: none; border-right: none; border-bottom: 1px solid rgba(251,191,36,0.3); padding-right: 0; padding-bottom: 8px; }
+    .bar-row { grid-template-columns: 140px 1fr 50px; gap: 10px; }
+  }
+</style>
+
+<div class="scorecard-root">
+
+  <!-- TOP CONTROL STRIP -->
+  <div class="control-strip">
+    <span><span class="dot"></span><span class="dataset">DECISION.SCORECARD</span></span>
+    <span class="sep">│</span>
+    <span class="meta">candidates: 4</span>
+    <span class="sep">│</span>
+    <span class="meta">axes: 4</span>
+    <span class="sep">│</span>
+    <span class="meta">scale: 1-5</span>
+    <span class="sep">│</span>
+    <span class="pill">WEIGHTS Σ = 100%</span>
+    <span class="locked-stamp">◆ WEIGHTS LOCKED</span>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="crumb">
+      <a href="/">Atlas</a> &nbsp;/&nbsp; <a href="../../">Extending Claude Code (session-3 blueprint)</a> &nbsp;/&nbsp; Comparison &amp; decision framework
+    </div>
+    <h1>Four axes. Four candidates.<br>One <em>locked-before-scoring</em> verdict.</h1>
+
+    <div class="verdict">
+      <div class="verdict-label">Verdict</div>
+      <div class="verdict-body">
+        <p><strong>Skills wins by 10 pts (460 vs 450).</strong> Inside the 2% tie-band — tie-breaker hierarchy kicks in. Both finalists ship runnable live demos, so rung 1 doesn't break it. <strong>Plugins as packaging layer nests Skills + MCP servers + hooks</strong>, so the honest read of the matrix is: ship the combined session (this expedition's actual call), with Skills as the headline primitive and MCP as the depth chapter.</p>
+        <p style="font-size: 14px; color: var(--cream-dim); margin-top: 16px;">Harness scored last (300) because session 2 already covered it — series-continuity penalty was the dominant signal. The framework worked: a clear quantitative justification for "don't re-teach last month."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATRIX -->
+  <section class="matrix-section">
+    <div class="section-header">
+      <span class="num">§01</span>
+      <h2>The matrix</h2>
+      <div class="legend">
+        <span><span class="swatch" style="background:#5b1a1a;"></span>1</span>
+        <span><span class="swatch" style="background:#8a3a14;"></span>2</span>
+        <span><span class="swatch" style="background:#b45309;"></span>3</span>
+        <span><span class="swatch" style="background:#65a30d;"></span>4</span>
+        <span><span class="swatch" style="background:#15803d;"></span>5</span>
+      </div>
+    </div>
+
+    <div class="matrix">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align: left; padding-left: 18px;">Axis</th>
+            <th style="min-width: 100px;">Weight</th>
+            <th>
+              <span class="cand-name"><a href="../../mcp-deep-dive/">MCP</a></span>
+              <span class="cand-kind">protocol</span>
+            </th>
+            <th>
+              <span class="cand-name"><a href="../../claude-code-skills/">Skills</a></span>
+              <span class="cand-kind">markdown unit</span>
+            </th>
+            <th>
+              <span class="cand-name"><a href="../../plugins-the-marketplace/">Plugins</a></span>
+              <span class="cand-kind">packaging</span>
+            </th>
+            <th>
+              <span class="cand-name"><a href="../../subagents-hooks-and-the-rest-of-the-harness/">Harness</a></span>
+              <span class="cand-kind">subagents+hooks</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="axis-cell">
+              <div class="axis-name">Audience fit</div>
+              <div class="axis-why">Topics land when matched to the group's current pain point, not the presenter's interest <sup><a href="https://theforumlauncher.com/2025/10/how-to-run-a-topic-expert-deep-dive-internal-or-external/" style="color: var(--amber); text-decoration:none;">[2]</a></sup></div>
+            </td>
+            <td class="weight-cell"><span class="weight-pill">×&nbsp;35%</span></td>
+            <td class="score-cell s5">5<span class="contrib">+175</span></td>
+            <td class="score-cell s5">5<span class="contrib">+175</span></td>
+            <td class="score-cell s4">4<span class="contrib">+140</span></td>
+            <td class="score-cell s3">3<span class="contrib">+105</span></td>
+          </tr>
+          <tr>
+            <td class="axis-cell">
+              <div class="axis-name">Series continuity</div>
+              <div class="axis-why">Third-in-a-series sessions earn attendance from arc, not novelty — bridge cleanly from AI/security <sup><a href="https://www.tempo.io/blog/weighted-scoring-model" style="color: var(--amber); text-decoration:none;">[3]</a></sup></div>
+            </td>
+            <td class="weight-cell"><span class="weight-pill">×&nbsp;25%</span></td>
+            <td class="score-cell s4">4<span class="contrib">+100</span></td>
+            <td class="score-cell s5">5<span class="contrib">+125</span></td>
+            <td class="score-cell s4">4<span class="contrib">+100</span></td>
+            <td class="score-cell s2">2<span class="contrib">+50</span></td>
+          </tr>
+          <tr>
+            <td class="axis-cell">
+              <div class="axis-name">Speaker readiness</div>
+              <div class="axis-why">Authentic, lived material beats researched material; pick what the presenter has actually shipped <sup><a href="https://www.certlibrary.com/blog/how-to-choose-the-perfect-topic-for-your-technical-presentation/" style="color: var(--amber); text-decoration:none;">[4]</a></sup></div>
+            </td>
+            <td class="weight-cell"><span class="weight-pill">×&nbsp;25%</span></td>
+            <td class="score-cell s4">4<span class="contrib">+100</span></td>
+            <td class="score-cell s4">4<span class="contrib">+100</span></td>
+            <td class="score-cell s3">3<span class="contrib">+75</span></td>
+            <td class="score-cell s4">4<span class="contrib">+100</span></td>
+          </tr>
+          <tr>
+            <td class="axis-cell">
+              <div class="axis-name">Demo viability</div>
+              <div class="axis-why">A working demo is the highest-retention element of a 60–90 min virtual session. Tie-breaker rung 1.</div>
+            </td>
+            <td class="weight-cell"><span class="weight-pill">×&nbsp;15%</span></td>
+            <td class="score-cell s5">5<span class="contrib">+75</span></td>
+            <td class="score-cell s4">4<span class="contrib">+60</span></td>
+            <td class="score-cell s3">3<span class="contrib">+45</span></td>
+            <td class="score-cell s3">3<span class="contrib">+45</span></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td class="totals-label" colspan="2">Weighted total</td>
+            <td class="total">450<span class="pct">90%</span></td>
+            <td class="total winner">460<span class="pct">★ TOP — 92%</span></td>
+            <td class="total">360<span class="pct">72%</span></td>
+            <td class="total">300<span class="pct">60%</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- BARS -->
+  <section class="bars-panel">
+    <div class="section-header">
+      <span class="num">§02</span>
+      <h2>Weighted totals at a glance</h2>
+      <div class="legend"><span>0</span><span style="color:var(--muted);">────────────</span><span>500 max</span></div>
+    </div>
+    <div class="bars-grid">
+      <div class="bar-row">
+        <div class="label">
+          <span class="badge survey">survey</span><a href="../../claude-code-skills/">Skills</a>
+        </div>
+        <div class="bar-track"><div class="bar-fill gold" style="width: 92%;"><span class="tick">460 ★</span></div></div>
+        <div class="score-num win">460</div>
+      </div>
+      <div class="bar-row">
+        <div class="label">
+          <span class="badge survey">survey</span><a href="../../mcp-deep-dive/">MCP</a>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width: 90%;"><span class="tick">450</span></div></div>
+        <div class="score-num">450</div>
+      </div>
+      <div class="bar-row">
+        <div class="label">
+          <span class="badge survey">survey</span><a href="../../plugins-the-marketplace/">Plugins</a>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width: 72%;"><span class="tick">360</span></div></div>
+        <div class="score-num">360</div>
+      </div>
+      <div class="bar-row">
+        <div class="label">
+          <span class="badge recon">recon</span><a href="../../subagents-hooks-and-the-rest-of-the-harness/">Harness</a>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width: 60%;"><span class="tick">300</span></div></div>
+        <div class="score-num">300</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY NOT RICE + TIE-BREAKER -->
+  <div class="two-col">
+    <div>
+      <div class="kicker">§03 · Rejected framework</div>
+      <h3>Why not RICE?</h3>
+      <p><a href="https://www.intercom.com/blog/rice-simple-prioritization-for-product-managers/" style="color: var(--amber); text-decoration: none; border-bottom: 1px dotted var(--amber);">RICE</a> = <code>(Reach × Impact × Confidence) / Effort</code>. Built by <a href="https://www.intercom.com" style="color: var(--cream); text-decoration: none; border-bottom: 1px dotted var(--muted);">Intercom</a> to compare product-feature ideas where reach is measured in "customers per quarter" and effort in "person-months". Both axes degenerate for a fixed-audience, fixed-duration session.</p>
+      <table class="rice-table">
+        <tr><td>Reach</td><td><span class="x">DEGEN</span> &nbsp;same N attendees regardless of topic</td></tr>
+        <tr><td>Impact</td><td>partial — but already captured by audience-fit axis</td></tr>
+        <tr><td>Confidence</td><td>partial — captured by speaker-readiness axis</td></tr>
+        <tr><td>Effort</td><td><span class="x">DEGEN</span> &nbsp;bounded to the 90-min slot</td></tr>
+      </table>
+      <p style="margin-top: 18px;">Score still computes; <strong style="color: var(--red);">stops discriminating</strong>. Weighted scoring is the more flexible choice when criteria are domain-specific <sup><a href="https://fourweekmba.com/frameworks-for-decision-making/" style="color: var(--amber); text-decoration:none;">[7]</a></sup> <sup><a href="https://whatfix.com/blog/rice-scoring-model/" style="color: var(--amber); text-decoration:none;">[6]</a></sup>.</p>
+    </div>
+    <div>
+      <div class="kicker">§04 · When totals are close</div>
+      <h3>Tie-breaker hierarchy</h3>
+      <p>Apply rungs in order. First rung that yields a clear winner ends the tie.</p>
+      <ol class="ladder">
+        <li><strong>Runnable live demo</strong> <span class="vs">&gt;</span> slides-only. The 8-12 min active block is the session's retention spike.</li>
+        <li><strong>Internal speaker with lived experience</strong> <span class="vs">&gt;</span> external expert presenting researched material <sup><a href="https://theforumlauncher.com/2025/10/how-to-run-a-topic-expert-deep-dive-internal-or-external/" style="color: var(--amber); text-decoration:none;">[2]</a></sup>.</li>
+        <li><strong>Topic the group has asked about</strong> <span class="vs">&gt;</span> topic the organizer thinks they <em>should</em> care about.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PROCESS -->
+  <section class="process">
+    <div class="section-header">
+      <span class="num">§05</span>
+      <h2>The 30-minute process</h2>
+      <div class="legend">total budget: ≤30 min</div>
+    </div>
+    <div class="process-grid">
+      <div class="process-step">
+        <div class="step-num">STEP 01</div>
+        <div class="step-time">≈ 5 MIN</div>
+        <h4>List 3–5 candidates</h4>
+        <p>Stop at five. The matrix breaks down at high candidate counts — every additional column doubles the discussion overhead.</p>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">STEP 02</div>
+        <div class="step-time">≈ 8 MIN</div>
+        <h4>Lock weights <em style="color: var(--amber); font-style: normal; font-family: var(--mono); font-size: 12px;">BEFORE</em> seeing candidates</h4>
+        <p>Agree with co-owners before the candidate list is visible. Prevents gaming scores toward a predetermined pick <sup><a href="https://www.tempo.io/blog/weighted-scoring-model" style="color: var(--amber); text-decoration:none;">[3]</a></sup>.</p>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">STEP 03</div>
+        <div class="step-time">≈ 12 MIN</div>
+        <h4>Score 1–5, compute, tie-break</h4>
+        <p>Multiply, sum, rank. Apply the tie-breaker hierarchy if results land within ~5% of each other.</p>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">STEP 04</div>
+        <div class="step-time">≈ 5 MIN</div>
+        <h4>Sanity-check continuity</h4>
+        <p>Does the winner connect to the prior session in one sentence? If not, re-score continuity — it was probably under-weighted.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISCIPLINE -->
+  <section class="discipline">
+    <div class="section-header">
+      <span class="num">§06</span>
+      <h2>Discipline rules</h2>
+      <div class="legend">break one → score is theatre</div>
+    </div>
+    <div class="rule-cards">
+      <div class="rule-card">
+        <div class="glyph">Σ</div>
+        <h5>Weights must sum to 100%</h5>
+        <p>Mechanical check before scoring. If they don't, fix before reading candidates — never adjust after.</p>
+      </div>
+      <div class="rule-card">
+        <div class="glyph">≤ 4</div>
+        <h5>Pick ≤4 axes</h5>
+        <p>Eight+ collapses into multi-hour scoring sessions and dilutes weight signal below noise floor.</p>
+      </div>
+      <div class="rule-card">
+        <div class="glyph">⊠</div>
+        <h5>Never change criteria mid-evaluation</h5>
+        <p>If a new axis seems vital after scoring two candidates, you've found a flaw in step 1 — restart, don't patch <sup><a href="https://www.tempo.io/blog/weighted-scoring-model" style="color: var(--amber); text-decoration:none;">[3]</a></sup>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section class="sources">
+    <div class="section-header">
+      <span class="num">§07</span>
+      <h2>Citations</h2>
+      <div class="legend">7 sources · weighted-scoring lineage + session-design</div>
+    </div>
+    <div class="source-list">
+      <a class="source" href="https://airfocus.com/blog/weighted-decision-matrix-prioritization/">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=airfocus.com&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[1]</span> airfocus.com · blog</div>
+          <div class="title">Weighted decision matrix for prioritization</div>
+        </div>
+      </a>
+      <a class="source" href="https://theforumlauncher.com/2025/10/how-to-run-a-topic-expert-deep-dive-internal-or-external/">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=theforumlauncher.com&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[2]</span> theforumlauncher.com · blog</div>
+          <div class="title">How to run a topic-expert deep-dive (internal or external)</div>
+        </div>
+      </a>
+      <a class="source" href="https://www.tempo.io/blog/weighted-scoring-model">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=tempo.io&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[3]</span> tempo.io · blog</div>
+          <div class="title">The weighted scoring model</div>
+        </div>
+      </a>
+      <a class="source" href="https://www.certlibrary.com/blog/how-to-choose-the-perfect-topic-for-your-technical-presentation/">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=certlibrary.com&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[4]</span> certlibrary.com · blog</div>
+          <div class="title">Choosing the perfect topic for your technical presentation</div>
+        </div>
+      </a>
+      <a class="source" href="https://www.intercom.com/blog/rice-simple-prioritization-for-product-managers/">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=intercom.com&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[5]</span> intercom.com · official</div>
+          <div class="title">RICE: simple prioritization for product managers</div>
+        </div>
+      </a>
+      <a class="source" href="https://whatfix.com/blog/rice-scoring-model/">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=whatfix.com&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[6]</span> whatfix.com · blog</div>
+          <div class="title">RICE scoring model</div>
+        </div>
+      </a>
+      <a class="source" href="https://fourweekmba.com/frameworks-for-decision-making/">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=fourweekmba.com&sz=128" alt="">
+        <div>
+          <div class="meta"><span class="n">[7]</span> fourweekmba.com · blog</div>
+          <div class="title">Frameworks for decision-making</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- SIBLING NAV -->
+  <nav class="nav-rail">
+    <h6>◆ Sibling chapters · session-3 blueprint</h6>
+    <div class="sibling-tiles">
+      <a class="sibling-tile" href="../../mcp-deep-dive/">
+        <div class="tile-kind">survey · ★450</div>
+        <div class="tile-title">MCP deep-dive</div>
+      </a>
+      <a class="sibling-tile" href="../../claude-code-skills/">
+        <div class="tile-kind">survey · ★460 winner</div>
+        <div class="tile-title">Claude Code Skills</div>
+      </a>
+      <a class="sibling-tile" href="../../plugins-the-marketplace/">
+        <div class="tile-kind">survey · ★360</div>
+        <div class="tile-title">Plugins &amp; the Marketplace</div>
+      </a>
+      <a class="sibling-tile" href="../../subagents-hooks-and-the-rest-of-the-harness/">
+        <div class="tile-kind">recon · ★300</div>
+        <div class="tile-title">Subagents, hooks, and the rest of the harness</div>
+      </a>
+      <a class="sibling-tile" href="../../session-delivery-plan/">
+        <div class="tile-kind">recon · companion</div>
+        <div class="tile-title">Session delivery plan (90-min run-of-show)</div>
+      </a>
+    </div>
+  </nav>
+
+</div>
