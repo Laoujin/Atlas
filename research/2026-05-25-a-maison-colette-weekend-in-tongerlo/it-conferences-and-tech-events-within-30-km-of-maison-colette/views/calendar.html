@@ -1,0 +1,1138 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events within 30 km of Maison Colette — Calendar"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  .cal-root {
+    --paper: #f6f1e5;
+    --paper-2: #efe8d6;
+    --paper-edge: #d6cdb6;
+    --ink: #14110d;
+    --ink-soft: #4a443a;
+    --ink-mute: #8a8273;
+    --rule: #1a1812;
+    --ring-in: #2d6b40;
+    --ring-in-bg: #e2ecd8;
+    --ring-out: #b04518;
+    --ring-out-bg: #f6dccb;
+    --pin: #c41e3a;
+    --pin-soft: #f4d4d8;
+    --weekend: #b7301d;
+
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(0,0,0,0.02) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(0,0,0,0.025) 0%, transparent 50%);
+  }
+  .cal-root * { box-sizing: border-box; }
+
+  /* ===== Masthead ===== */
+  .masthead {
+    padding: 4.5rem 3rem 3rem;
+    border-bottom: 2px solid var(--rule);
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 3rem;
+    align-items: end;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    top: 1.2rem; left: 50%;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #888, #2a2a2a);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    transform: translateX(-50%);
+  }
+  .mast-left .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 1rem;
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+  }
+  .mast-left .kicker span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .mast-left h1.year {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(140px, 18vw, 240px);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    margin: 0;
+    color: var(--ink);
+  }
+  .mast-left .y-sub {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.2;
+    margin-top: 1.5rem;
+    color: var(--ink-soft);
+    max-width: 38ch;
+  }
+  .mast-right {
+    border-left: 1px solid var(--paper-edge);
+    padding-left: 2rem;
+    align-self: stretch;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    gap: 1.2rem;
+  }
+  .anchor-card {
+    background: var(--paper-2);
+    border: 1px solid var(--paper-edge);
+    padding: 1rem 1.1rem;
+    position: relative;
+  }
+  .anchor-card .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.4rem;
+  }
+  .anchor-card .ttl {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+  }
+  .anchor-card .meta {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  .anchor-card .meta a { color: var(--ink); text-decoration: underline; text-decoration-color: rgba(0,0,0,0.25); }
+  .anchor-photo {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border: 1px solid var(--paper-edge);
+    filter: saturate(0.9);
+  }
+
+  /* ===== Legend bar ===== */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 1.4rem 3rem;
+    border-bottom: 2px solid var(--rule);
+    background: var(--paper-2);
+    align-items: center;
+    font-size: 13px;
+  }
+  .legend .swatch { display: inline-flex; align-items: center; gap: 0.55rem; }
+  .legend .dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  .legend .dot.ring-in { background: var(--ring-in); }
+  .legend .dot.ring-out { background: var(--ring-out); }
+  .legend .dot.recur { background: #6b5b3e; }
+  .legend .pin-mark {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--pin);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: white; font-family: 'Fraunces', serif; font-size: 10px; font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  }
+  .legend strong { font-weight: 600; }
+  .legend .sep { color: var(--ink-mute); }
+  .legend .note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-left: auto;
+  }
+
+  /* ===== Month page ===== */
+  .month {
+    padding: 2.8rem 3rem 2.5rem;
+    border-bottom: 2px solid var(--rule);
+    position: relative;
+  }
+  .month.has-images { background: linear-gradient(180deg, var(--paper-2) 0 240px, var(--paper) 240px 100%); }
+
+  .month-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 2rem;
+    margin-bottom: 1.6rem;
+  }
+  .month-head .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(72px, 9vw, 120px);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .month-head .name em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+  .month-head .stats {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    line-height: 1.7;
+  }
+  .month-head .stats strong { color: var(--ink); font-weight: 600; font-size: 13px; }
+
+  /* The weekday header row */
+  .dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1.5px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0;
+  }
+  .dow > div {
+    padding: 0.55rem 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border-right: 1px solid var(--paper-edge);
+  }
+  .dow > div:last-child { border-right: none; }
+  .dow > div.sun, .dow > div.sat { color: var(--weekend); }
+
+  /* Weeks */
+  .week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: min-content;
+    border-bottom: 1px solid var(--paper-edge);
+  }
+  .week:last-child { border-bottom: none; }
+
+  /* Day cell — row 1 */
+  .day {
+    grid-row: 1;
+    min-height: 78px;
+    padding: 0.5rem 0.65rem 0.4rem;
+    border-right: 1px solid var(--paper-edge);
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .day:last-child { border-right: none; }
+  .day.empty { background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(0,0,0,0.025) 8px 9px); }
+  .day .num {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .day.sat .num, .day.sun .num { color: var(--weekend); }
+  .day.trip { background: var(--pin-soft); }
+  .day.trip .num { color: var(--pin); font-weight: 700; }
+  .day .pin {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--pin);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 6px rgba(196,30,58,0.4), inset 0 -2px 3px rgba(0,0,0,0.2);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .day .pin::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    filter: blur(1px);
+  }
+  .day .pin-cap {
+    font-size: 10px;
+    color: var(--pin);
+    font-weight: 600;
+    margin-top: 0.3rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* Event tiles — rows 2+ */
+  .ev {
+    margin: 2px 4px 1px;
+    padding: 5px 8px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1.2;
+    position: relative;
+    overflow: hidden;
+  }
+  .ev .ev-name {
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ev .ev-name a { color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; }
+  .ev .ev-name a:hover { background: rgba(255,255,255,0.3); }
+  .ev .ev-meta {
+    display: block;
+    font-size: 10px;
+    opacity: 0.85;
+    margin-top: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+  .ev.ring-in {
+    background: var(--ring-in);
+    color: white;
+  }
+  .ev.ring-out {
+    background: var(--ring-out);
+    color: white;
+  }
+  .ev.recur {
+    background: transparent;
+    color: var(--ink);
+    border: 1px dashed var(--ink-mute);
+  }
+  .ev.past {
+    background: #cfc7b3;
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-color: rgba(0,0,0,0.4);
+  }
+
+  /* Event row positions */
+  .ev-row-2 { grid-row: 2; }
+  .ev-row-3 { grid-row: 3; }
+  .ev-row-4 { grid-row: 4; }
+
+  /* Helper grid-column placements */
+  .c-1-2 { grid-column: 1 / 2; } .c-2-3 { grid-column: 2 / 3; } .c-3-4 { grid-column: 3 / 4; }
+  .c-4-5 { grid-column: 4 / 5; } .c-5-6 { grid-column: 5 / 6; } .c-6-7 { grid-column: 6 / 7; } .c-7-8 { grid-column: 7 / 8; }
+  .c-1-3 { grid-column: 1 / 3; } .c-1-4 { grid-column: 1 / 4; } .c-1-5 { grid-column: 1 / 5; } .c-1-6 { grid-column: 1 / 6; }
+  .c-2-4 { grid-column: 2 / 4; } .c-3-5 { grid-column: 3 / 5; } .c-3-6 { grid-column: 3 / 6; }
+  .c-4-6 { grid-column: 4 / 6; } .c-4-7 { grid-column: 4 / 7; }
+
+  /* Month side-note */
+  .m-note {
+    margin-top: 1.4rem;
+    padding: 1rem 1.2rem;
+    background: rgba(0,0,0,0.03);
+    border-left: 3px solid var(--ink);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+  .m-note strong { color: var(--ink); font-style: normal; font-weight: 600; font-family: 'Inter', sans-serif; }
+  .m-note a { color: var(--ink); text-decoration: underline; text-decoration-color: rgba(0,0,0,0.3); }
+
+  /* Month decorative top strip */
+  .m-strip {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.6rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--paper-edge);
+  }
+  .m-strip .m-photo {
+    height: 110px;
+    width: 180px;
+    object-fit: cover;
+    border: 1px solid var(--paper-edge);
+    filter: saturate(0.85);
+  }
+  .m-strip .m-cap {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+  .m-strip .m-cap strong { font-style: normal; font-weight: 600; color: var(--ink); display: block; margin-bottom: 0.2rem; }
+  .m-strip .m-frame {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    padding-right: 0.5rem;
+  }
+
+  /* ===== Recurring meetups strip ===== */
+  .recur-band {
+    padding: 2.8rem 3rem;
+    background: var(--paper);
+    border-bottom: 2px solid var(--rule);
+  }
+  .recur-band h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 38px;
+    line-height: 1;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+  }
+  .recur-band h2 em { font-style: italic; color: var(--ink-soft); }
+  .recur-band .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 1.8rem;
+  }
+  .recur-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+    margin-bottom: 1.4rem;
+  }
+  .recur-card {
+    background: var(--paper-2);
+    border: 1px solid var(--paper-edge);
+    border-top: 4px solid var(--ring-in);
+    padding: 1.2rem 1.3rem 1.3rem;
+    position: relative;
+  }
+  .recur-card .cadence {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ring-in);
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+  .recur-card h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+  }
+  .recur-card h3 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.2); }
+  .recur-card .where {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+    margin-bottom: 0.7rem;
+  }
+  .recur-card .dist {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ring-in);
+    background: var(--ring-in-bg);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  /* ===== Travel ribbon ===== */
+  .travel {
+    padding: 2.4rem 3rem;
+    background: var(--paper-2);
+    border-bottom: 2px solid var(--rule);
+  }
+  .travel-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 0;
+    border-top: 1.5px solid var(--rule);
+    border-bottom: 1.5px solid var(--rule);
+  }
+  .travel-cell {
+    padding: 1.2rem 1.4rem;
+    border-right: 1px solid var(--paper-edge);
+  }
+  .travel-cell:last-child { border-right: none; }
+  .travel-cell .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.5rem;
+  }
+  .travel-cell .big {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+  }
+  .travel-cell .big em { font-style: italic; color: var(--ink-soft); font-size: 22px; }
+  .travel-cell p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .travel-cell p a { color: var(--ink); text-decoration: underline; text-decoration-color: rgba(0,0,0,0.3); }
+  .travel-head {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.4rem;
+  }
+  .travel-head em { font-style: italic; color: var(--ink-soft); }
+  .travel-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 1.6rem;
+  }
+
+  /* ===== Sources colophon ===== */
+  .colophon {
+    padding: 3rem 3rem 4rem;
+    background: var(--paper);
+  }
+  .colophon h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 28px;
+    margin: 0 0 1.4rem;
+    letter-spacing: -0.01em;
+  }
+  .src-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 1.6rem;
+  }
+  .src {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dotted var(--paper-edge);
+    font-size: 12px;
+    line-height: 1.4;
+    align-items: start;
+  }
+  .src img { width: 20px; height: 20px; margin-top: 2px; }
+  .src .n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-mute);
+    margin-right: 0.4rem;
+  }
+  .src a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.2); }
+  .src .ttl { font-weight: 600; color: var(--ink); }
+
+  /* ===== Cross-folio (parent + siblings) ===== */
+  .crossfolio {
+    padding: 2.4rem 3rem 3.2rem;
+    background: var(--paper-2);
+    border-top: 2px solid var(--rule);
+  }
+  .crossfolio h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0 0 1rem;
+    font-weight: 600;
+  }
+  .cf-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  .cf-card {
+    background: var(--paper);
+    border: 1px solid var(--paper-edge);
+    padding: 1rem 1.1rem 1.1rem;
+  }
+  .cf-card .depth {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.4rem;
+  }
+  .cf-card h4 {
+    margin: 0 0 0.4rem;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.25;
+  }
+  .cf-card h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.25); }
+  .cf-card p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .masthead { grid-template-columns: 1fr; gap: 1.8rem; }
+    .mast-right { border-left: none; padding-left: 0; border-top: 1px solid var(--paper-edge); padding-top: 1.8rem; }
+    .month, .recur-band, .travel, .colophon, .crossfolio { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .masthead { padding: 3rem 1.5rem 2rem; }
+    .legend { padding: 1.1rem 1.5rem; gap: 1.2rem; }
+    .recur-grid { grid-template-columns: 1fr; }
+    .travel-grid { grid-template-columns: 1fr; }
+    .travel-cell { border-right: none; border-bottom: 1px solid var(--paper-edge); }
+    .cf-row { grid-template-columns: 1fr; }
+    .src-grid { grid-template-columns: 1fr; }
+    .day .num { font-size: 22px; }
+    .day { min-height: 60px; }
+    .ev .ev-name { font-size: 11px; }
+    .ev .ev-meta { display: none; }
+    .m-strip { grid-template-columns: 1fr; }
+    .m-strip .m-frame { display: none; }
+    .m-strip .m-photo { width: 100%; height: 140px; }
+  }
+</style>
+
+<div class="cal-root">
+
+  <!-- ============= MASTHEAD ============= -->
+  <header class="masthead">
+    <div class="mast-left">
+      <div class="kicker">
+        <span>· Tongerlo · Westerlo · Antwerp Province ·</span>
+        <span>Belgium</span>
+      </div>
+      <h1 class="year">2026</h1>
+      <div class="y-sub">A conference calendar centred on a Saturday-evening table at <a href="https://maison-colette.be/en/contact-us">Maison Colette</a>, 2&nbsp;★, Tongerlo &mdash; with everything reachable inside a 47&nbsp;km bubble plotted month by month.</div>
+    </div>
+    <div class="mast-right">
+      <img class="anchor-photo" src="calendar/images/maison-colette.jpg" alt="Maison Colette spring exterior">
+      <div class="anchor-card">
+        <div class="lbl">★ The anchor</div>
+        <div class="ttl"><a href="https://guide.michelin.com/en/antwerpen/tongerlo_1063046/restaurant/maison-colette">Maison Colette</a></div>
+        <div class="meta">
+          De Trannoyplein 17, 2260 Westerlo (Tongerlo)<sup><a href="https://maison-colette.be/en/contact-us">[1]</a></sup><br>
+          Two MICHELIN stars<sup><a href="https://guide.michelin.com/en/antwerpen/tongerlo_1063046/restaurant/maison-colette">[18]</a></sup> &middot; Trip Saturdays: May 23 / May 30
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============= LEGEND ============= -->
+  <div class="legend">
+    <span class="swatch"><span class="dot ring-in"></span> <strong>Inside the 30&nbsp;km ring</strong> <span class="sep">— Leuven, Mechelen</span></span>
+    <span class="swatch"><span class="dot ring-out"></span> <strong>Antwerp 35–47&nbsp;km</strong> <span class="sep">— ≤50&nbsp;min by car</span></span>
+    <span class="swatch"><span class="dot recur"></span> <strong>Recurring meetup</strong></span>
+    <span class="swatch"><span class="pin-mark">M.C</span> <strong>Trip anchor</strong></span>
+    <span class="note">19 sources &middot; ~4&nbsp;min read &middot; survey</span>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- ============= MAY 2026                            ============= -->
+  <!-- ============================================================== -->
+  <section class="month has-images">
+
+    <div class="m-strip">
+      <span class="m-frame">Month One · Trip Window</span>
+      <div class="m-cap">
+        <strong>May — the trip month.</strong>
+        Two big-name conferences ladder up to the Saturday dinner. <a href="https://techorama.be/">Techorama</a> on May 11–13 is the tack-on candidate for .NET / Azure folks; the Leuven academic conferences fall inside the 30&nbsp;km bubble.
+      </div>
+      <img class="m-photo" src="calendar/images/maison-colette.jpg" alt="Maison Colette, Tongerlo">
+    </div>
+
+    <div class="month-head">
+      <div class="name">May <em>'26</em></div>
+      <div class="stats">
+        <strong>5</strong> events · 2 inside 30&nbsp;km · 2 Antwerp · 1 past<br>
+        Trip Saturdays · <strong>May 23 · May 30</strong>
+      </div>
+    </div>
+
+    <div class="dow">
+      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="sat">Sat</div><div class="sun">Sun</div>
+    </div>
+
+    <!-- Week 1: May 1 Fri – May 3 Sun -->
+    <div class="week">
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day"><span class="num">1</span></div>
+      <div class="day sat"><span class="num">2</span></div>
+      <div class="day sun"><span class="num">3</span></div>
+    </div>
+
+    <!-- Week 2: May 4 – May 10 -->
+    <div class="week">
+      <div class="day"><span class="num">4</span></div>
+      <div class="day"><span class="num">5</span></div>
+      <div class="day"><span class="num">6</span></div>
+      <div class="day">
+        <span class="num">7</span>
+      </div>
+      <div class="day"><span class="num">8</span></div>
+      <div class="day sat"><span class="num">9</span></div>
+      <div class="day sun"><span class="num">10</span></div>
+
+      <div class="ev past ev-row-2 c-4-5">
+        <span class="ev-name"><a href="https://www.connect-it26.be/en">Connect IT / Shopt IT</a></span>
+        <span class="ev-meta">May 7 · Antwerp Expo · past</span>
+      </div>
+    </div>
+
+    <!-- Week 3: May 11 – May 17, Techorama Mon–Wed (cols 1-3) -->
+    <div class="week">
+      <div class="day"><span class="num">11</span></div>
+      <div class="day"><span class="num">12</span></div>
+      <div class="day"><span class="num">13</span></div>
+      <div class="day"><span class="num">14</span></div>
+      <div class="day"><span class="num">15</span></div>
+      <div class="day sat"><span class="num">16</span></div>
+      <div class="day sun"><span class="num">17</span></div>
+
+      <div class="ev ring-out ev-row-2 c-1-4">
+        <span class="ev-name"><a href="https://techorama.be/">Techorama 2026</a> — .NET · Azure · Data · "Medieval" theme</span>
+        <span class="ev-meta">Mon 11 → Wed 13 · Kinepolis Antwerp · ~38&nbsp;km / 45&nbsp;min · 150+ sessions, ~103 speakers <sup><a href="https://sessionize.com/techorama-2026-belgium/">[4]</a></sup></span>
+      </div>
+    </div>
+
+    <!-- Week 4: May 18 – May 24, IP&AI Mon–Tue, Data Science Leuven Wed, Sat 23 = trip -->
+    <div class="week">
+      <div class="day"><span class="num">18</span></div>
+      <div class="day"><span class="num">19</span></div>
+      <div class="day"><span class="num">20</span></div>
+      <div class="day"><span class="num">21</span></div>
+      <div class="day"><span class="num">22</span></div>
+      <div class="day sat trip">
+        <span class="num">23</span>
+        <span class="pin">M.C</span>
+        <span class="pin-cap">Dinner — 2&nbsp;★</span>
+      </div>
+      <div class="day sun"><span class="num">24</span></div>
+
+      <div class="ev ring-in ev-row-2 c-1-3">
+        <span class="ev-name"><a href="https://www.law.kuleuven.be/citip/en/citip-conferences/ip-and-ai/leuven-ip-and-ai-conference-2026">Leuven IP &amp; AI Conference</a></span>
+        <span class="ev-meta">Mon 18 → Tue 19 · KU Leuven Law · ~28&nbsp;km / 30&nbsp;min</span>
+      </div>
+      <div class="ev ring-in ev-row-3 c-3-4">
+        <span class="ev-name"><a href="https://www.meetup.com/data-science-leuven/">Data Science Leuven</a></span>
+        <span class="ev-meta">Wed evening · STUK Leuven</span>
+      </div>
+    </div>
+
+    <!-- Week 5: May 25 – May 31, Sat 30 = trip -->
+    <div class="week">
+      <div class="day"><span class="num">25</span></div>
+      <div class="day"><span class="num">26</span></div>
+      <div class="day"><span class="num">27</span></div>
+      <div class="day"><span class="num">28</span></div>
+      <div class="day"><span class="num">29</span></div>
+      <div class="day sat trip">
+        <span class="num">30</span>
+        <span class="pin">M.C</span>
+        <span class="pin-cap">Dinner — 2&nbsp;★</span>
+      </div>
+      <div class="day sun"><span class="num">31</span></div>
+    </div>
+
+    <div class="m-note">
+      <strong>Reading.</strong> Neither Saturday May&nbsp;23 nor May&nbsp;30 collides with a conference — the Belgian rhythm is Tue–Fri. The closest tack-on is <a href="https://techorama.be/">Techorama</a> the week before, or the Wednesday-evening <a href="https://www.meetup.com/data-science-leuven/">Data Science Leuven</a> meetup if arriving early. Aggregate cross-checked against the <a href="https://dev.events/EU/BE/Antwerp/it">dev.events Antwerp calendar</a><sup><a href="https://dev.events/EU/BE/Antwerp/it">[17]</a></sup>.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- ============= JUNE 2026                           ============= -->
+  <!-- ============================================================== -->
+  <section class="month">
+
+    <div class="month-head">
+      <div class="name">June <em>'26</em></div>
+      <div class="stats">
+        <strong>4</strong> events · 1 inside 30&nbsp;km · 3 Antwerp<br>
+        Heaviest week of 2026 · <strong>Jun 8–12</strong>
+      </div>
+    </div>
+
+    <div class="dow">
+      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="sat">Sat</div><div class="sun">Sun</div>
+    </div>
+
+    <!-- Week 1: Jun 1 Mon – Jun 7 Sun -->
+    <div class="week">
+      <div class="day"><span class="num">1</span></div>
+      <div class="day"><span class="num">2</span></div>
+      <div class="day"><span class="num">3</span></div>
+      <div class="day"><span class="num">4</span></div>
+      <div class="day"><span class="num">5</span></div>
+      <div class="day sat"><span class="num">6</span></div>
+      <div class="day sun"><span class="num">7</span></div>
+    </div>
+
+    <!-- Week 2: Jun 8 – Jun 14 — DDD Europe Mon–Fri, Data Mesh Live Wed–Fri, BC TechDays Thu–Fri -->
+    <div class="week">
+      <div class="day"><span class="num">8</span></div>
+      <div class="day"><span class="num">9</span></div>
+      <div class="day"><span class="num">10</span></div>
+      <div class="day"><span class="num">11</span></div>
+      <div class="day"><span class="num">12</span></div>
+      <div class="day sat"><span class="num">13</span></div>
+      <div class="day sun"><span class="num">14</span></div>
+
+      <div class="ev ring-out ev-row-2 c-1-6">
+        <span class="ev-name"><a href="https://2026.dddeurope.com/">DDD Europe 2026</a> — Domain-Driven Design · workshops + conf</span>
+        <span class="ev-meta">Mon 8 → Fri 12 · Queen Elisabeth Hall · ~37&nbsp;km / 45&nbsp;min (train recommended)</span>
+      </div>
+      <div class="ev ring-out ev-row-3 c-3-6">
+        <span class="ev-name"><a href="https://2026.datameshlive.com/">Data Mesh Live</a> — co-located with DDD</span>
+        <span class="ev-meta">Wed 10 → Fri 12 · Queen Elisabeth Hall · ~37&nbsp;km</span>
+      </div>
+      <div class="ev ring-out ev-row-4 c-4-6">
+        <span class="ev-name"><a href="https://www.bctechdays.com/event">BC TechDays</a> — MS Dynamics Business Central</span>
+        <span class="ev-meta">Thu 11 → Fri 12 · Kinepolis Antwerp · ~38&nbsp;km / 45&nbsp;min</span>
+      </div>
+    </div>
+
+    <!-- Week 3: Jun 15 – Jun 21 -->
+    <div class="week">
+      <div class="day"><span class="num">15</span></div>
+      <div class="day"><span class="num">16</span></div>
+      <div class="day"><span class="num">17</span></div>
+      <div class="day"><span class="num">18</span></div>
+      <div class="day"><span class="num">19</span></div>
+      <div class="day sat"><span class="num">20</span></div>
+      <div class="day sun"><span class="num">21</span></div>
+    </div>
+
+    <!-- Week 4: Jun 22 – Jun 28 — Large-Scale AI Risks Tue–Wed -->
+    <div class="week">
+      <div class="day"><span class="num">22</span></div>
+      <div class="day"><span class="num">23</span></div>
+      <div class="day"><span class="num">24</span></div>
+      <div class="day"><span class="num">25</span></div>
+      <div class="day"><span class="num">26</span></div>
+      <div class="day sat"><span class="num">27</span></div>
+      <div class="day sun"><span class="num">28</span></div>
+
+      <div class="ev ring-in ev-row-2 c-2-4">
+        <span class="ev-name"><a href="https://www.kuleuven.be/ethics-kuleuven/chair-ai/conference-ai-risks">Large-Scale AI Risks</a></span>
+        <span class="ev-meta">Tue 23 → Wed 24 · KU Leuven · ~28&nbsp;km / 30&nbsp;min · cross-disciplinary</span>
+      </div>
+    </div>
+
+    <!-- Week 5: Jun 29, Jun 30 -->
+    <div class="week">
+      <div class="day"><span class="num">29</span></div>
+      <div class="day"><span class="num">30</span></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+    </div>
+
+    <div class="m-note">
+      <strong>If the trip stretches.</strong> The Jun&nbsp;8–12 week stacks <a href="https://2026.dddeurope.com/">DDD Europe</a>, <a href="https://2026.datameshlive.com/">Data Mesh Live</a> and <a href="https://www.bctechdays.com/event">BC TechDays</a> inside the same 45-minute drive — three world-class conferences in one Antwerp week.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- ============= OCTOBER 2026                        ============= -->
+  <!-- ============================================================== -->
+  <section class="month has-images">
+
+    <div class="m-strip">
+      <span class="m-frame">Autumn Stretch · Conference Season</span>
+      <div class="m-cap">
+        <strong>October — Devoxx fortnight.</strong>
+        Two back-to-back Antwerp weeks: <a href="https://devoxx.be/">Devoxx Belgium</a> takes the first, <a href="https://smashingconf.com/antwerp-2026/">SmashingConf</a> takes the second. Both sell out — book early.
+      </div>
+      <img class="m-photo" src="calendar/images/smashing.png" alt="SmashingConf Antwerp 2026 promotional image">
+    </div>
+
+    <div class="month-head">
+      <div class="name">October <em>'26</em></div>
+      <div class="stats">
+        <strong>2</strong> events · both Antwerp<br>
+        Two consecutive weeks · <strong>Oct 5–9 &amp; Oct 12–15</strong>
+      </div>
+    </div>
+
+    <div class="dow">
+      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="sat">Sat</div><div class="sun">Sun</div>
+    </div>
+
+    <!-- Week 1: Oct 1 Thu – Oct 4 Sun -->
+    <div class="week">
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day"><span class="num">1</span></div>
+      <div class="day"><span class="num">2</span></div>
+      <div class="day sat"><span class="num">3</span></div>
+      <div class="day sun"><span class="num">4</span></div>
+    </div>
+
+    <!-- Week 2: Oct 5 – Oct 11 — Devoxx Mon–Fri -->
+    <div class="week">
+      <div class="day"><span class="num">5</span></div>
+      <div class="day"><span class="num">6</span></div>
+      <div class="day"><span class="num">7</span></div>
+      <div class="day"><span class="num">8</span></div>
+      <div class="day"><span class="num">9</span></div>
+      <div class="day sat"><span class="num">10</span></div>
+      <div class="day sun"><span class="num">11</span></div>
+
+      <div class="ev ring-out ev-row-2 c-1-6">
+        <span class="ev-name"><a href="https://devoxx.be/">Devoxx Belgium 2026</a> — "From Developer to Builder" · Agentic Engineering · JVM</span>
+        <span class="ev-meta">Mon 5 → Fri 9 · Kinepolis Antwerp · ~38&nbsp;km / 45&nbsp;min · ⚠ sells out fast</span>
+      </div>
+    </div>
+
+    <!-- Week 3: Oct 12 – Oct 18 — SmashingConf Mon–Thu -->
+    <div class="week">
+      <div class="day"><span class="num">12</span></div>
+      <div class="day"><span class="num">13</span></div>
+      <div class="day"><span class="num">14</span></div>
+      <div class="day"><span class="num">15</span></div>
+      <div class="day"><span class="num">16</span></div>
+      <div class="day sat"><span class="num">17</span></div>
+      <div class="day sun"><span class="num">18</span></div>
+
+      <div class="ev ring-out ev-row-2 c-1-5">
+        <span class="ev-name"><a href="https://smashingconf.com/antwerp-2026/">SmashingConf Antwerp</a> — UX · web design · 2 workshop + 2 conf days</span>
+        <span class="ev-meta">Mon 12 → Thu 15 · The Bourla, Antwerp centre · ~37&nbsp;km</span>
+      </div>
+    </div>
+
+    <!-- Week 4: Oct 19 – Oct 25 -->
+    <div class="week">
+      <div class="day"><span class="num">19</span></div>
+      <div class="day"><span class="num">20</span></div>
+      <div class="day"><span class="num">21</span></div>
+      <div class="day"><span class="num">22</span></div>
+      <div class="day"><span class="num">23</span></div>
+      <div class="day sat"><span class="num">24</span></div>
+      <div class="day sun"><span class="num">25</span></div>
+    </div>
+
+    <!-- Week 5: Oct 26 – Oct 31 -->
+    <div class="week">
+      <div class="day"><span class="num">26</span></div>
+      <div class="day"><span class="num">27</span></div>
+      <div class="day"><span class="num">28</span></div>
+      <div class="day"><span class="num">29</span></div>
+      <div class="day"><span class="num">30</span></div>
+      <div class="day sat"><span class="num">31</span></div>
+      <div class="day empty"></div>
+    </div>
+
+    <div class="m-note">
+      <strong>Travel tip.</strong> Both Kinepolis (Devoxx) and The Bourla (SmashingConf) ask different commute choices: Kinepolis-North is a car venue on the ring road; The Bourla sits in central Antwerp — train to Antwerpen-Centraal is the better call <sup><a href="https://www.rome2rio.com/s/Westerlo/Antwerp">[19]</a></sup>.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- ============= NOVEMBER 2026                       ============= -->
+  <!-- ============================================================== -->
+  <section class="month">
+
+    <div class="month-head">
+      <div class="name">November <em>'26</em></div>
+      <div class="stats">
+        <strong>1</strong> event · Antwerp<br>
+        Year's closing event · <strong>Nov 4–5</strong>
+      </div>
+    </div>
+
+    <div class="dow">
+      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="sat">Sat</div><div class="sun">Sun</div>
+    </div>
+
+    <!-- Week 1: Nov 1 Sun -->
+    <div class="week">
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day empty"></div>
+      <div class="day sun"><span class="num">1</span></div>
+    </div>
+
+    <!-- Week 2: Nov 2 – Nov 8 — AutomationSTAR Wed–Thu -->
+    <div class="week">
+      <div class="day"><span class="num">2</span></div>
+      <div class="day"><span class="num">3</span></div>
+      <div class="day"><span class="num">4</span></div>
+      <div class="day"><span class="num">5</span></div>
+      <div class="day"><span class="num">6</span></div>
+      <div class="day sat"><span class="num">7</span></div>
+      <div class="day sun"><span class="num">8</span></div>
+
+      <div class="ev ring-out ev-row-2 c-3-5">
+        <span class="ev-name"><a href="https://automation.eurostarsoftwaretesting.com/">AutomationSTAR</a> — test automation · AI-powered testing</span>
+        <span class="ev-meta">Wed 4 → Thu 5 · A Room with a ZOO, Antwerp Central · ~37&nbsp;km · ~500+ attendees</span>
+      </div>
+    </div>
+
+    <!-- Week 3: Nov 9 – Nov 15 -->
+    <div class="week">
+      <div class="day"><span class="num">9</span></div>
+      <div class="day"><span class="num">10</span></div>
+      <div class="day"><span class="num">11</span></div>
+      <div class="day"><span class="num">12</span></div>
+      <div class="day"><span class="num">13</span></div>
+      <div class="day sat"><span class="num">14</span></div>
+      <div class="day sun"><span class="num">15</span></div>
+    </div>
+
+    <div class="m-note">
+      <strong>Last call.</strong> AutomationSTAR is the only Antwerp tech event after October — after Nov&nbsp;5 the Belgian conference circuit is effectively done until the following spring.
+    </div>
+  </section>
+
+  <!-- ============= RECURRING MEETUPS BAND ============= -->
+  <section class="recur-band">
+    <h2>Recurring meetups — <em>every month, no plotting needed</em></h2>
+    <div class="sub">— · Inside the 30 km ring · evening events · low commitment ·</div>
+
+    <div class="recur-grid">
+      <div class="recur-card">
+        <div class="cadence">Monthly · ~3 speakers</div>
+        <h3><a href="https://www.meetup.com/data-science-leuven/">Data Science Leuven</a></h3>
+        <div class="where">Arenberginstituut STUK · Naamsestraat 96, Leuven · Volunteer-run, no sponsors <sup><a href="https://www.meetup.com/data-science-leuven/">[14]</a></sup></div>
+        <span class="dist">⏱ ~28 km / 30 min</span>
+      </div>
+      <div class="recur-card">
+        <div class="cadence">Quarterly-ish</div>
+        <h3><a href="https://www.meetup.com/data-mesh-belgium/events/313427080/">Data Mesh Belgium</a></h3>
+        <div class="where">AE office, Leuven · rotates within Belgium · meetup #7 was Apr 21, 2026 <sup><a href="https://www.meetup.com/data-mesh-belgium/events/313427080/">[15]</a></sup></div>
+        <span class="dist">⏱ ~28 km / 30 min</span>
+      </div>
+      <div class="recur-card">
+        <div class="cadence">Monthly · free</div>
+        <h3><a href="https://www.meetup.com/ixor-tech-talks-mechelen/">Ixor Tech Talks Mechelen</a></h3>
+        <div class="where">Ixor · Schuttersvest 75, 2800 Mechelen · software-development topics <sup><a href="https://www.meetup.com/ixor-tech-talks-mechelen/">[16]</a></sup></div>
+        <span class="dist">⏱ ~30 km / 35 min</span>
+      </div>
+    </div>
+
+    <div class="m-note">
+      The closer towns inside the strict 30&nbsp;km radius — Geel (~10&nbsp;km), Herentals (~15&nbsp;km), Aarschot (~15&nbsp;km), Lier (~25&nbsp;km), Turnhout (~27&nbsp;km) — don't host recurring developer meetups of note as of May&nbsp;2026. Kempen tech professionals travel to Mechelen, Leuven or Antwerp.
+    </div>
+  </section>
+
+  <!-- ============= TRAVEL RIBBON ============= -->
+  <section class="travel">
+    <h2 class="travel-head">Westerlo → Antwerp · <em>the commute</em></h2>
+    <div class="travel-sub">— · For everything beyond the 30 km ring · ·</div>
+    <div class="travel-grid">
+      <div class="travel-cell">
+        <div class="lbl">Straight-line</div>
+        <div class="big">38<em>&nbsp;km</em></div>
+        <p>Westerlo to Antwerp as the crow flies <sup><a href="https://www.travelmath.com/distance/from/Westerlo,+Belgium/to/Antwerp,+Belgium">[2]</a></sup>.</p>
+      </div>
+      <div class="travel-cell">
+        <div class="lbl">By car</div>
+        <div class="big">~45<em>&nbsp;min</em></div>
+        <p>~47 km via E313 / R1 — fastest for Kinepolis Antwerp-North (Techorama, Devoxx, BC TechDays) <sup><a href="https://www.travelmath.com/distance/from/Westerlo,+Belgium/to/Antwerp,+Belgium">[2]</a></sup>.</p>
+      </div>
+      <div class="travel-cell">
+        <div class="lbl">By bus + train</div>
+        <div class="big">~1<em>h</em>15</div>
+        <p>Bus to Heist-op-den-Berg, then train — best for Antwerp-Central venues (DDD Europe, SmashingConf, AutomationSTAR) <sup><a href="https://www.rome2rio.com/s/Westerlo/Antwerp">[19]</a></sup>.</p>
+      </div>
+      <div class="travel-cell">
+        <div class="lbl">To Leuven</div>
+        <div class="big">~30<em>&nbsp;min</em></div>
+        <p>~28 km · still inside the 30 km bubble. KU Leuven conferences and the Leuven meetups feel local.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= CROSS-FOLIO ============= -->
+  <section class="crossfolio">
+    <h3>· From the same expedition · <a href="../../">A Maison Colette weekend in Tongerlo</a> ·</h3>
+    <div class="cf-row">
+      <div class="cf-card">
+        <div class="depth">Survey</div>
+        <h4><a href="../../walking-distance-lodging-at-or-near-maison-colette/">Walking-distance lodging</a></h4>
+        <p>The restaurant's own 5-room guesthouse is the obvious answer; otherwise three B&amp;Bs and one 4-star hotel sit 14–26 min on foot from De Trannoyplein 17.</p>
+      </div>
+      <div class="cf-card">
+        <div class="depth">Survey</div>
+        <h4><a href="../../special-character-lodging-within-taxi-range-of-maison-colette/">Special-character lodging within taxi range</a></h4>
+        <p>A 17th-century watermill, a former Carmelite convent, a forester's house in the woods — within a 20-minute taxi.</p>
+      </div>
+      <div class="cf-card">
+        <div class="depth">Expedition</div>
+        <h4><a href="../../day-trips-and-activities-within-30-km-of-maison-colette/">Day-trips &amp; activities within 30 km</a></h4>
+        <p>From the Tongerlo Last Supper to UNESCO beguinages, Averbode heath, Bobbejaanland and the Café Trappisten.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= COLOPHON / SOURCES ============= -->
+  <section class="colophon">
+    <h2>Sources</h2>
+    <div class="src-grid">
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=maison-colette.be&sz=128"><div><span class="n">[1]</span><a href="https://maison-colette.be/en/contact-us"><span class="ttl">Maison Colette</span></a> · De Trannoyplein 17 address</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=travelmath.com&sz=128"><div><span class="n">[2]</span><a href="https://www.travelmath.com/distance/from/Westerlo,+Belgium/to/Antwerp,+Belgium"><span class="ttl">Travelmath</span></a> · Westerlo–Antwerp distance</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=techorama.be&sz=128"><div><span class="n">[3]</span><a href="https://techorama.be/"><span class="ttl">Techorama 2026</span></a> · May 11–13 at Kinepolis</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=sessionize.com&sz=128"><div><span class="n">[4]</span><a href="https://sessionize.com/techorama-2026-belgium/"><span class="ttl">Techorama Sessionize</span></a> · 150+ sessions</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=devoxx.be&sz=128"><div><span class="n">[5]</span><a href="https://devoxx.be/"><span class="ttl">Devoxx Belgium 2026</span></a> · Oct 5–9</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=bctechdays.com&sz=128"><div><span class="n">[6]</span><a href="https://www.bctechdays.com/event"><span class="ttl">BC TechDays 2026</span></a> · Jun 11–12</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=connect-it26.be&sz=128"><div><span class="n">[7]</span><a href="https://www.connect-it26.be/en"><span class="ttl">Connect IT 2026</span></a> · May 7, Antwerp Expo</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=dddeurope.com&sz=128"><div><span class="n">[8]</span><a href="https://2026.dddeurope.com/"><span class="ttl">DDD Europe 2026</span></a> · Jun 8–12</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=datameshlive.com&sz=128"><div><span class="n">[9]</span><a href="https://2026.datameshlive.com/"><span class="ttl">Data Mesh Live 2026</span></a> · Jun 11–12</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=smashingconf.com&sz=128"><div><span class="n">[10]</span><a href="https://smashingconf.com/antwerp-2026/"><span class="ttl">SmashingConf Antwerp</span></a> · Oct 12–15</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=eurostarsoftwaretesting.com&sz=128"><div><span class="n">[11]</span><a href="https://automation.eurostarsoftwaretesting.com/"><span class="ttl">AutomationSTAR</span></a> · Nov 4–5</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=law.kuleuven.be&sz=128"><div><span class="n">[12]</span><a href="https://www.law.kuleuven.be/citip/en/citip-conferences/ip-and-ai/leuven-ip-and-ai-conference-2026"><span class="ttl">Leuven IP &amp; AI</span></a> · May 18–19</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=kuleuven.be&sz=128"><div><span class="n">[13]</span><a href="https://www.kuleuven.be/ethics-kuleuven/chair-ai/conference-ai-risks"><span class="ttl">Large-Scale AI Risks</span></a> · Jun 23–24</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128"><div><span class="n">[14]</span><a href="https://www.meetup.com/data-science-leuven/"><span class="ttl">Data Science Leuven</span></a> · monthly meetup</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128"><div><span class="n">[15]</span><a href="https://www.meetup.com/data-mesh-belgium/events/313427080/"><span class="ttl">Data Mesh Belgium</span></a> · meetup #7 Apr 21</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128"><div><span class="n">[16]</span><a href="https://www.meetup.com/ixor-tech-talks-mechelen/"><span class="ttl">Ixor Tech Talks</span></a> · Mechelen monthly</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=dev.events&sz=128"><div><span class="n">[17]</span><a href="https://dev.events/EU/BE/Antwerp/it"><span class="ttl">dev.events Antwerp</span></a> · aggregate IT calendar</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=guide.michelin.com&sz=128"><div><span class="n">[18]</span><a href="https://guide.michelin.com/en/antwerpen/tongerlo_1063046/restaurant/maison-colette"><span class="ttl">MICHELIN Guide</span></a> · Maison Colette 2★</div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=rome2rio.com&sz=128"><div><span class="n">[19]</span><a href="https://www.rome2rio.com/s/Westerlo/Antwerp"><span class="ttl">Rome2Rio</span></a> · Westerlo–Antwerp routes</div></div>
+    </div>
+  </section>
+
+</div>
