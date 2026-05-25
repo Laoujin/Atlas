@@ -1,0 +1,1175 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events within 30 km of Cuchara — Calendar"
+---
+
+<style>
+  .cal-wrap {
+    --paper: #f3efe7;
+    --paper-rule: #e6dfd1;
+    --ink: #1a2238;
+    --ink-soft: #4a5470;
+    --muted: #8a8676;
+    --brainport: #1f8a4d;
+    --brainport-soft: #e1f0e6;
+    --limburg: #c97419;
+    --limburg-soft: #f7e9d2;
+    --distant: #5b6478;
+    --distant-soft: #e4e6ed;
+    --cuchara: #6b1f3b;
+    --cuchara-soft: #efd9e1;
+    --past: #b9b3a4;
+    --past-soft: #ece8df;
+    --hairline: #d8d2c2;
+
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+    background-image:
+      linear-gradient(to right, rgba(180,170,140,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(180,170,140,0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .cal-wrap .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  /* COVER ------------------------------------------------------------ */
+  .cal-cover {
+    position: relative;
+    height: 420px;
+    overflow: hidden;
+    background: var(--ink);
+    color: #fff;
+  }
+  .cal-cover img.cover-bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+    filter: saturate(0.85);
+  }
+  .cal-cover::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(26,34,56,0.55) 0%, rgba(26,34,56,0.85) 100%);
+  }
+  .cal-cover-inner {
+    position: relative;
+    z-index: 2;
+    padding: 56px 48px 32px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .cal-kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .cal-title {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 16px 0 8px;
+    max-width: 900px;
+  }
+  .cal-sub {
+    font-size: 17px;
+    opacity: 0.85;
+    max-width: 720px;
+  }
+  .cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+  .cal-legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  /* MAIN ------------------------------------------------------------ */
+  .cal-main { max-width: 1280px; margin: 0 auto; padding: 40px 32px 64px; }
+
+  /* VERDICT ---------------------------------------------------------- */
+  .verdict {
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    padding: 32px 32px 28px;
+    margin-bottom: 40px;
+    box-shadow: 6px 6px 0 var(--cuchara);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .verdict-stamp {
+    border: 2px dashed var(--cuchara);
+    color: var(--cuchara);
+    padding: 12px 18px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    text-align: center;
+    transform: rotate(-3deg);
+    min-width: 160px;
+  }
+  .verdict-stamp .when { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .verdict-stamp .day { font-size: 32px; font-weight: 800; line-height: 1; margin: 6px 0; }
+  .verdict-stamp .empty { font-size: 13px; font-weight: 700; }
+  .verdict-body h2 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .verdict-body p { margin: 0; color: var(--ink-soft); font-size: 16px; }
+  .verdict-body strong { color: var(--ink); }
+
+  /* RADIUS BAR ------------------------------------------------------- */
+  .radius {
+    margin-bottom: 48px;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 8px;
+  }
+  .section-head h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .section-head .sub {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .radius-bar {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    padding: 24px 28px;
+    border-radius: 4px;
+    position: relative;
+  }
+  .radius-track {
+    position: relative;
+    height: 56px;
+    margin: 12px 0 20px;
+  }
+  .radius-line {
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--ink);
+  }
+  .radius-30 {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: calc(30 / 80 * 100%);
+    width: 2px;
+    background: var(--cuchara);
+  }
+  .radius-30::after {
+    content: "30 km radius";
+    position: absolute;
+    top: -2px;
+    left: 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--cuchara);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .radius-town {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 64px;
+  }
+  .radius-town .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--brainport);
+    margin: 0 auto 6px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--brainport);
+  }
+  .radius-town.out .dot { background: var(--limburg); box-shadow: 0 0 0 1px var(--limburg); }
+  .radius-town.distant .dot { background: var(--distant); box-shadow: 0 0 0 1px var(--distant); }
+  .radius-town .name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .radius-town .km {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .radius-anchor .dot {
+    background: var(--cuchara) !important;
+    box-shadow: 0 0 0 1px var(--cuchara) !important;
+    width: 16px !important; height: 16px !important;
+  }
+  .radius-anchor .name { color: var(--cuchara); }
+  .radius-key {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .radius-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .radius-key i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* CALENDAR --------------------------------------------------------- */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 900px) { .cal-grid { grid-template-columns: 1fr; } }
+
+  .month {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 20px 22px 22px;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.04);
+  }
+  .month-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .month-name {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .month-name .yr {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    margin-left: 6px;
+  }
+  .month-tag {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .day {
+    aspect-ratio: 1 / 0.9;
+    background: var(--paper);
+    border-radius: 3px;
+    padding: 4px 5px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .day.empty { background: transparent; }
+  .day.weekend { background: #ebe5d4; }
+  .day .n { font-weight: 700; line-height: 1; }
+  .day .ev {
+    margin-top: auto;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.15;
+    color: #fff;
+    overflow: hidden;
+  }
+  .day .ev.b { background: var(--brainport); }
+  .day .ev.l { background: var(--limburg); }
+  .day .ev.d { background: var(--distant); }
+  .day .ev + .ev { margin-top: 2px; }
+  .day.anchor {
+    background: var(--cuchara);
+    color: #fff;
+    border: 2px solid var(--cuchara);
+  }
+  .day.anchor .n { color: #fff; }
+  .day.anchor .label {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+    opacity: 0.95;
+  }
+  .day.anchor-soft {
+    background: var(--cuchara-soft);
+    border: 1px dashed var(--cuchara);
+    color: var(--cuchara);
+  }
+  .day.anchor-soft .n { color: var(--cuchara); }
+  .day.span {
+    background: var(--limburg-soft);
+    border-left: 3px solid var(--limburg);
+  }
+  .day.span-b {
+    background: var(--brainport-soft);
+    border-left: 3px solid var(--brainport);
+  }
+  .day.past { opacity: 0.45; }
+
+  /* MONTH EVENT LIST ------------------------------------------------- */
+  .month-events {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--hairline);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .me {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 10px;
+    font-size: 12px;
+    align-items: start;
+  }
+  .me .date {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 11px;
+  }
+  .me .date .dow { display: block; font-size: 9px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+  .me .name { line-height: 1.3; }
+  .me .name a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.15); font-weight: 600; }
+  .me .name a:hover { border-bottom-color: var(--ink); }
+  .me .name .venue { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .me .km {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--brainport-soft);
+    color: var(--brainport);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    height: fit-content;
+  }
+  .me .km.l { background: var(--limburg-soft); color: var(--limburg); }
+  .me .km.d { background: var(--distant-soft); color: var(--distant); }
+  .me .km.anchor { background: var(--cuchara-soft); color: var(--cuchara); }
+  .me.cuchara { background: var(--cuchara-soft); padding: 6px 8px; margin: 0 -8px; border-radius: 3px; }
+
+  /* SATURDAY MATCH --------------------------------------------------- */
+  .sat-match {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 28px;
+    background: #fff;
+    border: 1px solid var(--hairline);
+    margin-bottom: 48px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  @media (max-width: 800px) { .sat-match { grid-template-columns: 1fr; } }
+  .sat-match img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    min-height: 280px;
+  }
+  .sat-match-body {
+    padding: 32px 32px 28px;
+  }
+  .sat-match-kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brainport);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .sat-match-title {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0 0 8px;
+  }
+  .sat-match-title a { color: inherit; text-decoration: none; border-bottom: 2px solid var(--brainport); }
+  .sat-match-when {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .sat-match-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+  }
+  .pill {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+  .pill.green { background: var(--brainport-soft); color: var(--brainport); font-weight: 700; }
+  .sat-match-body p {
+    color: var(--ink-soft);
+    margin: 12px 0 0;
+  }
+
+  /* RECURRING ------------------------------------------------------- */
+  .recurring {
+    margin-bottom: 48px;
+  }
+  .meetup-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 800px) { .meetup-grid { grid-template-columns: 1fr; } }
+  .meetup {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .meetup-head { display: flex; align-items: center; gap: 10px; }
+  .meetup-favicon { width: 24px; height: 24px; border-radius: 4px; }
+  .meetup-name { font-weight: 700; color: var(--ink); text-decoration: none; line-height: 1.2; }
+  .meetup-name:hover { text-decoration: underline; }
+  .meetup-cadence {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brainport);
+    font-weight: 700;
+  }
+  .meetup-desc { font-size: 13px; color: var(--ink-soft); margin: 0; line-height: 1.45; }
+  .meetup-foot {
+    margin-top: auto;
+    padding-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* OUTSIDE THE RADIUS --------------------------------------------- */
+  .outside {
+    background: var(--limburg-soft);
+    border: 1px solid var(--limburg);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+  }
+  .outside-head h2 {
+    color: var(--limburg);
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .outside-head p { margin: 0 0 18px; color: var(--ink-soft); font-size: 14px; }
+  .outside-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 800px) { .outside-grid { grid-template-columns: 1fr; } }
+  .out-card {
+    background: #fff;
+    border: 1px solid var(--limburg);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .out-card img { width: 100%; height: 130px; object-fit: cover; background: var(--paper); }
+  .out-card .body { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .out-card .when {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--limburg);
+    font-weight: 700;
+  }
+  .out-card .name {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.25;
+  }
+  .out-card .name a { color: inherit; text-decoration: none; }
+  .out-card .name a:hover { color: var(--limburg); }
+  .out-card .venue { font-size: 12px; color: var(--muted); }
+  .out-card .footrow {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--limburg);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .out-card.gray { border-color: var(--distant); }
+  .out-card.gray .when, .out-card.gray .footrow { color: var(--distant); }
+
+  /* SOURCES -------------------------------------------------------- */
+  .sources {
+    margin-top: 32px;
+    padding: 24px 28px;
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+  }
+  .sources h2 {
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .src-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 24px;
+  }
+  @media (max-width: 800px) { .src-grid { grid-template-columns: 1fr; } }
+  .src {
+    display: grid;
+    grid-template-columns: 22px 18px 1fr;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--hairline);
+  }
+  .src .n {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    font-weight: 700;
+  }
+  .src img { width: 16px; height: 16px; border-radius: 3px; }
+  .src a { color: var(--ink-soft); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .src a:hover { color: var(--ink); }
+
+  /* SIBLINGS ------------------------------------------------------- */
+  .siblings {
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 2px solid var(--ink);
+  }
+  .siblings-lead {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .siblings-lead a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--ink); }
+  .sib-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 800px) { .sib-grid { grid-template-columns: 1fr; } }
+  .sib {
+    display: block;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .sib:hover { border-color: var(--ink); }
+  .sib .depth {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .sib .t { font-weight: 700; line-height: 1.25; margin: 4px 0 6px; font-size: 14px; }
+  .sib .s { font-size: 12px; color: var(--ink-soft); line-height: 1.45; }
+</style>
+
+<div class="cal-wrap">
+
+  <!-- COVER -->
+  <header class="cal-cover">
+    <img class="cover-bg" src="calendar/images/htc-hero.jpg" alt="High Tech Campus Eindhoven — AI Innovation Center audience">
+    <div class="cal-cover-inner">
+      <div>
+        <div class="cal-kicker">Calendar — May → November 2026 · 30 km around <a href="https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara" style="color:inherit">Cuchara</a></div>
+        <h1 class="cal-title">The IT calendar near Lommel — by date.</h1>
+        <p class="cal-sub">Every IT/tech event inside the 30 km circle around <a href="https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara" style="color:#fff;border-bottom:1px solid rgba(255,255,255,0.4);text-decoration:none">Cuchara</a> runs on Eindhoven's Brainport corridor — Hasselt and Genk fall just outside the line.</p>
+      </div>
+      <div class="cal-legend">
+        <span><span class="cal-legend-dot" style="background:#3fc46e"></span>Inside radius — Brainport</span>
+        <span><span class="cal-legend-dot" style="background:#e89b3e"></span>Outside — Hasselt / Genk</span>
+        <span><span class="cal-legend-dot" style="background:#9ca5b8"></span>Distant — Antwerp</span>
+        <span><span class="cal-legend-dot" style="background:#c75576"></span>Cuchara dinner</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="cal-main">
+
+    <!-- VERDICT -->
+    <div class="verdict">
+      <div class="verdict-stamp">
+        <div class="when">Sat 30 May 2026</div>
+        <div class="day">30</div>
+        <div class="empty">No tech in radius</div>
+      </div>
+      <div class="verdict-body">
+        <h2>Closest weekend match: <a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day" style="color:var(--brainport)">HTC Open Day — Sat 13 Jun 2026</a>.</h2>
+        <p>The Cuchara dinner weekend itself is quiet for IT events <sup><a href="https://hightechcampus.com/events">[6]</a></sup>. If you can extend two weekends out, the free public <a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day"><strong>HTC Open Day</strong></a> on <strong>Sat 13 Jun, 11:00–16:00</strong>, is the only Saturday match — campus-wide, no registration <sup><a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day">[8]</a></sup>. Weekday extensions stack from <strong>Thu 28 May</strong> (<a href="https://hightechcampus.com/events/signature-event-2026/">Signature Event</a>) onward <sup><a href="https://hightechcampus.com/events/signature-event-2026/">[7]</a></sup>.</p>
+      </div>
+    </div>
+
+    <!-- RADIUS BAR -->
+    <section class="radius">
+      <div class="section-head">
+        <h2>The 30 km Line</h2>
+        <span class="sub">Straight-line distance from Lepelstraat 3, Lommel</span>
+      </div>
+      <div class="radius-bar">
+        <div class="radius-track">
+          <div class="radius-line"></div>
+          <div class="radius-30"></div>
+          <div class="radius-town radius-anchor" style="left: 0%">
+            <div class="dot"></div>
+            <div class="name">CUCHARA</div>
+            <div class="km mono">0 km</div>
+          </div>
+          <div class="radius-town" style="left: 18%">
+            <div class="dot"></div>
+            <div class="name">Pelt</div>
+            <div class="km mono">~12 km</div>
+          </div>
+          <div class="radius-town" style="left: 28%">
+            <div class="dot"></div>
+            <div class="name">Mol</div>
+            <div class="km mono">~15 km</div>
+          </div>
+          <div class="radius-town" style="left: 50%">
+            <div class="dot"></div>
+            <div class="name">Geel</div>
+            <div class="km mono">~25 km</div>
+          </div>
+          <div class="radius-town" style="left: 70%">
+            <div class="dot"></div>
+            <div class="name">Eindhoven</div>
+            <div class="km mono">~26 km</div>
+          </div>
+          <div class="radius-town out" style="left: 82%">
+            <div class="dot"></div>
+            <div class="name">Genk</div>
+            <div class="km mono">~32 km</div>
+          </div>
+          <div class="radius-town out" style="left: 92%">
+            <div class="dot"></div>
+            <div class="name">Hasselt</div>
+            <div class="km mono">~33 km</div>
+          </div>
+        </div>
+        <div class="radius-key">
+          <span><i style="background: var(--brainport)"></i> Inside the 30 km circle</span>
+          <span><i style="background: var(--limburg)"></i> Outside (Belgian Limburg tech hubs)</span>
+          <span><i style="background: var(--cuchara)"></i> Cuchara, anchor point</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section>
+      <div class="section-head">
+        <h2>The Year — Event Tiles</h2>
+        <span class="sub">Mon–Sun grid · weekend cells tinted · the Cuchara dinner is the wine block</span>
+      </div>
+
+      <div class="cal-grid">
+
+        <!-- MAY 2026 -->
+        <div class="month">
+          <div class="month-head">
+            <div class="month-name">May<span class="yr">2026</span></div>
+            <div class="month-tag">1 event in radius · the dinner</div>
+          </div>
+          <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="days">
+            <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+            <div class="day"><span class="n">1</span></div>
+            <div class="day weekend"><span class="n">2</span></div>
+            <div class="day weekend"><span class="n">3</span></div>
+
+            <div class="day"><span class="n">4</span></div><div class="day"><span class="n">5</span></div><div class="day"><span class="n">6</span></div><div class="day"><span class="n">7</span>
+              <div class="ev b">XL Day</div>
+            </div><div class="day"><span class="n">8</span><div class="ev b">XL Day</div></div>
+            <div class="day weekend"><span class="n">9</span></div><div class="day weekend"><span class="n">10</span></div>
+
+            <div class="day"><span class="n">11</span></div><div class="day"><span class="n">12</span></div><div class="day"><span class="n">13</span></div><div class="day"><span class="n">14</span></div><div class="day"><span class="n">15</span></div>
+            <div class="day weekend"><span class="n">16</span></div><div class="day weekend"><span class="n">17</span></div>
+
+            <div class="day"><span class="n">18</span></div><div class="day"><span class="n">19</span></div><div class="day"><span class="n">20</span></div><div class="day"><span class="n">21</span></div><div class="day"><span class="n">22</span></div>
+            <div class="day weekend"><span class="n">23</span></div><div class="day weekend"><span class="n">24</span></div>
+
+            <div class="day"><span class="n">25</span></div><div class="day"><span class="n">26</span></div><div class="day"><span class="n">27</span></div>
+            <div class="day"><span class="n">28</span><div class="ev b">Signature Evt</div></div>
+            <div class="day anchor-soft"><span class="n">29</span></div>
+            <div class="day anchor"><span class="n">30</span><div class="label">Cuchara</div></div>
+            <div class="day anchor-soft"><span class="n">31</span></div>
+          </div>
+
+          <div class="month-events">
+            <div class="me past">
+              <div class="date">Fri 8<span class="dow">May</span></div>
+              <div class="name"><a href="https://hightechcampus.com/events/xl-day-2026/">XL Day 2026</a> <span class="venue">HTC Conference Center · HighTechXL Demo Day (past) <sup><a href="https://hightechcampus.com/events/xl-day-2026/">[17]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Thu 28<span class="dow">May</span></div>
+              <div class="name"><a href="https://hightechcampus.com/events/signature-event-2026/">Signature Event 2026 — Big Chemistry</a> <span class="venue">HTC Conference Center · AI-driven autonomous robot labs <sup><a href="https://hightechcampus.com/events/signature-event-2026/">[7]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me cuchara">
+              <div class="date">Sat 30<span class="dow">May</span></div>
+              <div class="name"><a href="https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara">Cuchara — dinner anchor</a> <span class="venue">Lepelstraat 3, Lommel · two-Michelin-star, ~22:30–23:30 finish <sup><a href="https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara">[1]</a></sup></span></div>
+              <div class="km anchor">0 km</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JUNE 2026 -->
+        <div class="month">
+          <div class="month-head">
+            <div class="month-name">June<span class="yr">2026</span></div>
+            <div class="month-tag">5 events · the densest month</div>
+          </div>
+          <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="days">
+            <div class="day"><span class="n">1</span></div><div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span></div><div class="day"><span class="n">5</span></div>
+            <div class="day weekend"><span class="n">6</span></div><div class="day weekend"><span class="n">7</span></div>
+
+            <div class="day"><span class="n">8</span></div><div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span></div>
+            <div class="day"><span class="n">11</span><div class="ev b">AI Impact</div></div>
+            <div class="day"><span class="n">12</span></div>
+            <div class="day weekend" style="background:var(--brainport-soft);border:2px solid var(--brainport)"><span class="n" style="color:var(--brainport)">13</span><div class="ev b">HTC Open Day</div></div>
+            <div class="day weekend"><span class="n">14</span></div>
+
+            <div class="day"><span class="n">15</span></div><div class="day"><span class="n">16</span></div><div class="day"><span class="n">17</span></div><div class="day"><span class="n">18</span></div><div class="day"><span class="n">19</span></div>
+            <div class="day weekend"><span class="n">20</span></div><div class="day weekend"><span class="n">21</span></div>
+
+            <div class="day"><span class="n">22</span></div>
+            <div class="day"><span class="n">23</span><div class="ev b">MBSE</div><div class="ev b">Physical AI</div></div>
+            <div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day"><span class="n">26</span></div>
+            <div class="day weekend"><span class="n">27</span></div><div class="day weekend"><span class="n">28</span></div>
+
+            <div class="day"><span class="n">29</span></div>
+            <div class="day"><span class="n">30</span><div class="ev b">Claude Code</div></div>
+            <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+          </div>
+
+          <div class="month-events">
+            <div class="me">
+              <div class="date">Thu 11<span class="dow">Jun</span></div>
+              <div class="name"><a href="https://aiinnovationcenter.nl/events/">AI Impact Summit Live</a> <span class="venue">AI Innovation Center, HTC · AI impact and applications <sup><a href="https://aiinnovationcenter.nl/events/">[12]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me" style="background:var(--brainport-soft);padding:6px 8px;margin:0 -8px;border-radius:3px">
+              <div class="date" style="color:var(--brainport)">Sat 13<span class="dow">Jun</span></div>
+              <div class="name"><a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day"><strong>High Tech Campus Open Day</strong></a> <span class="venue">HTC Eindhoven, campus-wide · 11:00–16:00, free, no registration <sup><a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day">[8]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Tue 23<span class="dow">Jun</span></div>
+              <div class="name"><a href="https://aiinnovationcenter.nl/events/">MBSE in Action: Beyond Documents</a> <span class="venue">AI Innovation Center, HTC · Model-based systems engineering <sup><a href="https://aiinnovationcenter.nl/events/">[12]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Tue 23<span class="dow">Jun</span></div>
+              <div class="name"><a href="https://aiinnovationcenter.nl/events/">Physical AI — Robotic Manipulation in the Open World</a> <span class="venue">3EALITY, HTC 37 <sup><a href="https://aiinnovationcenter.nl/events/">[12]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Tue 30<span class="dow">Jun</span></div>
+              <div class="name"><a href="https://aiinnovationcenter.nl/events/">Claude Code on Amazon Bedrock</a> <span class="venue">AI Innovation Center, HTC · Hands-on AI coding workshop with AWS <sup><a href="https://aiinnovationcenter.nl/events/">[12]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEPTEMBER 2026 -->
+        <div class="month">
+          <div class="month-head">
+            <div class="month-name">September<span class="yr">2026</span></div>
+            <div class="month-tag">1 event · Dutch startup flagship</div>
+          </div>
+          <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="days">
+            <div class="day empty"></div>
+            <div class="day"><span class="n">1</span></div><div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span></div>
+            <div class="day weekend"><span class="n">5</span></div><div class="day weekend"><span class="n">6</span></div>
+
+            <div class="day"><span class="n">7</span></div><div class="day"><span class="n">8</span></div><div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span></div><div class="day"><span class="n">11</span></div>
+            <div class="day weekend"><span class="n">12</span></div><div class="day weekend"><span class="n">13</span></div>
+
+            <div class="day"><span class="n">14</span></div><div class="day"><span class="n">15</span></div><div class="day"><span class="n">16</span></div><div class="day"><span class="n">17</span></div><div class="day"><span class="n">18</span></div>
+            <div class="day weekend"><span class="n">19</span></div><div class="day weekend"><span class="n">20</span></div>
+
+            <div class="day"><span class="n">21</span></div><div class="day"><span class="n">22</span></div><div class="day"><span class="n">23</span></div><div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div>
+            <div class="day weekend"><span class="n">26</span></div><div class="day weekend"><span class="n">27</span></div>
+
+            <div class="day"><span class="n">28</span><div class="ev b">LEVEL UP</div></div>
+            <div class="day"><span class="n">29</span></div><div class="day"><span class="n">30</span></div>
+            <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+          </div>
+
+          <div class="month-events">
+            <div class="me">
+              <div class="date">Mon 28<span class="dow">Sep</span></div>
+              <div class="name"><a href="https://levelup-event.nl/">LEVEL UP 2026</a> <span class="venue">Evoluon, Eindhoven · NL's flagship tech-startup acceleration event <sup><a href="https://levelup-event.nl/">[10]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OCTOBER 2026 -->
+        <div class="month">
+          <div class="month-head">
+            <div class="month-name">October<span class="yr">2026</span></div>
+            <div class="month-tag">DDW + FTI · the busy month</div>
+          </div>
+          <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="days">
+            <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+            <div class="day"><span class="n">1</span></div>
+            <div class="day"><span class="n">2</span></div>
+            <div class="day weekend"><span class="n">3</span></div><div class="day weekend"><span class="n">4</span></div>
+
+            <div class="day"><span class="n">5</span><div class="ev d">Devoxx</div></div>
+            <div class="day"><span class="n">6</span><div class="ev d">Devoxx</div></div>
+            <div class="day"><span class="n">7</span><div class="ev d">Devoxx</div></div>
+            <div class="day"><span class="n">8</span><div class="ev d">Devoxx</div></div>
+            <div class="day"><span class="n">9</span><div class="ev d">Devoxx</div></div>
+            <div class="day weekend"><span class="n">10</span></div><div class="day weekend"><span class="n">11</span></div>
+
+            <div class="day"><span class="n">12</span></div><div class="day"><span class="n">13</span></div><div class="day"><span class="n">14</span></div><div class="day"><span class="n">15</span></div>
+            <div class="day span"><span class="n">16</span><div class="ev l">FTI starts</div></div>
+            <div class="day weekend span-b"><span class="n">17</span><div class="ev b">DDW</div></div>
+            <div class="day weekend span-b"><span class="n">18</span><div class="ev b">DDW</div></div>
+
+            <div class="day span-b"><span class="n">19</span><div class="ev b">DDW</div></div>
+            <div class="day span-b"><span class="n">20</span><div class="ev b">DDW</div></div>
+            <div class="day span-b"><span class="n">21</span><div class="ev b">DDW</div></div>
+            <div class="day span-b"><span class="n">22</span><div class="ev b">DDW</div></div>
+            <div class="day span-b"><span class="n">23</span><div class="ev b">DDW</div></div>
+            <div class="day weekend span-b"><span class="n">24</span><div class="ev b">DDW</div></div>
+            <div class="day weekend span-b"><span class="n">25</span><div class="ev b">DDW</div></div>
+
+            <div class="day span"><span class="n">26</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">27</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">28</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">29</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">30</span><div class="ev l">FTI</div></div>
+            <div class="day weekend span"><span class="n">31</span><div class="ev l">FTI</div></div>
+            <div class="day empty"></div>
+          </div>
+
+          <div class="month-events">
+            <div class="me">
+              <div class="date">Mon–Fri<br>5–9<span class="dow">Oct</span></div>
+              <div class="name"><a href="https://devoxx.be/">Devoxx Belgium 2026</a> <span class="venue">Antwerp · Region's flagship dev conference (well outside the radius) <sup><a href="https://devoxx.be/">[23]</a></sup></span></div>
+              <div class="km d">~75 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Fri–Sun<br>16 Oct→<span class="dow">15 Nov</span></div>
+              <div class="name"><a href="https://www.ftifestival.be/programma/genk-hasselt">FTI Festival 2026 — Limburg leg</a> <span class="venue">Corda Campus (Hasselt) + Thor Park (Genk) · Flanders' largest tech festival <sup><a href="https://www.ftifestival.be/programma/genk-hasselt">[20]</a></sup></span></div>
+              <div class="km l">~33 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Sat–Sun<br>17–25<span class="dow">Oct</span></div>
+              <div class="name"><a href="https://ddw.nl/">Dutch Design Week 2026</a> <span class="venue">100+ Eindhoven venues · Northern Europe's largest design event, strong design-tech crossover <sup><a href="https://ddw.nl/">[11]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOVEMBER 2026 -->
+        <div class="month" style="grid-column: span 2;">
+          <div class="month-head">
+            <div class="month-name">November<span class="yr">2026</span></div>
+            <div class="month-tag">AI Summit Brainport · FTI closing</div>
+          </div>
+          <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="days" style="grid-template-columns: repeat(7, 1fr); max-width: 580px;">
+            <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+            <div class="day weekend span"><span class="n">1</span><div class="ev l">FTI</div></div>
+
+            <div class="day span"><span class="n">2</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">3</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">4</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">5</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">6</span><div class="ev l">FTI</div></div>
+            <div class="day weekend span"><span class="n">7</span><div class="ev l">FTI</div></div>
+            <div class="day weekend span"><span class="n">8</span><div class="ev l">FTI</div></div>
+
+            <div class="day span"><span class="n">9</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">10</span><div class="ev l">FTI</div></div>
+            <div class="day span"><span class="n">11</span><div class="ev l">FTI</div></div>
+            <div class="day"><span class="n">12</span><div class="ev b">AI Summit BP</div></div>
+            <div class="day span"><span class="n">13</span><div class="ev l">Corda Arena</div></div>
+            <div class="day weekend span"><span class="n">14</span><div class="ev l">FTI</div></div>
+            <div class="day weekend span"><span class="n">15</span><div class="ev l">FTI ends</div></div>
+
+            <div class="day"><span class="n">16</span></div><div class="day"><span class="n">17</span></div><div class="day"><span class="n">18</span></div><div class="day"><span class="n">19</span></div><div class="day"><span class="n">20</span></div>
+            <div class="day weekend"><span class="n">21</span></div><div class="day weekend"><span class="n">22</span></div>
+
+            <div class="day"><span class="n">23</span></div><div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day"><span class="n">26</span></div><div class="day"><span class="n">27</span></div>
+            <div class="day weekend"><span class="n">28</span></div><div class="day weekend"><span class="n">29</span></div>
+
+            <div class="day"><span class="n">30</span></div>
+          </div>
+
+          <div class="month-events">
+            <div class="me">
+              <div class="date">Thu 12<span class="dow">Nov</span></div>
+              <div class="name"><a href="https://aisummitbrainport.nl/">AI Summit Brainport 2026</a> <span class="venue">Evoluon, Eindhoven · Industrial-AI summit; AI Hub × Province NB × EAISI; ASML, Philips, TU/e in orbit <sup><a href="https://aisummitbrainport.nl/">[9]</a></sup></span></div>
+              <div class="km">~26 km</div>
+            </div>
+            <div class="me">
+              <div class="date">Fri 13<span class="dow">Nov</span></div>
+              <div class="name"><a href="https://www.cordacampus.com/events/">Corda Arena opening — FTI Tech Talks</a> <span class="venue">Corda Campus, Hasselt · Astronaut Frank De Winne featured <sup><a href="https://www.vrt.be/vrtnws/en/2026/03/11/date-set-for-2026-flanders-technology-and-innovation-festival/">[21]</a></sup></span></div>
+              <div class="km l">~33 km</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SATURDAY MATCH -->
+    <section class="sat-match">
+      <img src="calendar/images/htc-open-day.jpg" alt="High Tech Campus Eindhoven — The Strip walking area">
+      <div class="sat-match-body">
+        <div class="sat-match-kicker">★ The Saturday Match</div>
+        <h2 class="sat-match-title"><a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day">High Tech Campus Open Day</a></h2>
+        <div class="sat-match-when">Sat 13 Jun 2026 · 11:00 – 16:00 · <a href="https://hightechcampus.com/events" style="color:inherit">HTC Eindhoven</a>, campus-wide</div>
+        <div class="sat-match-pills">
+          <span class="pill green">~26 km from Cuchara</span>
+          <span class="pill">Free entry</span>
+          <span class="pill">No registration</span>
+          <span class="pill">Family-friendly</span>
+        </div>
+        <p>The only Saturday tech event inside the 30 km circle worth planning around. Same weekday slot as the Cuchara dinner, campus-wide demos and labs open to the public, the only public-day on the HTC calendar <sup><a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day">[8]</a></sup>. Two weeks after the dinner — close enough to bundle, far enough to need its own travel.</p>
+      </div>
+    </section>
+
+    <!-- RECURRING -->
+    <section class="recurring">
+      <div class="section-head">
+        <h2>Recurring · No Fixed Date</h2>
+        <span class="sub">Worth knowing if the trip stretches mid-week</span>
+      </div>
+      <div class="meetup-grid">
+        <div class="meetup">
+          <div class="meetup-head">
+            <img class="meetup-favicon" src="https://www.google.com/s2/favicons?domain=ehvinnovationcafe.org&sz=128" alt="">
+            <a class="meetup-name" href="https://ehvinnovationcafe.org/program/">Eindhoven Innovation Café — Tech & Design</a>
+          </div>
+          <div class="meetup-cadence">Monthly · Last Thu</div>
+          <p class="meetup-desc">Design × tech, English-spoken, free entry at Kazerne Downtown Eindhoven <sup><a href="https://ehvinnovationcafe.org/program/">[13]</a></sup>.</p>
+          <div class="meetup-foot"><span>Eindhoven</span><span>~26 km</span></div>
+        </div>
+        <div class="meetup">
+          <div class="meetup-head">
+            <img class="meetup-favicon" src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128" alt="">
+            <a class="meetup-name" href="https://www.meetup.com/Eindhoven-Developers-Meetup/">Ehv.dev — Eindhoven Developers Meetup</a>
+          </div>
+          <div class="meetup-cadence">Irregular · 1.6k members</div>
+          <p class="meetup-desc">Software dev community spanning the Eindhoven metro <sup><a href="https://www.meetup.com/Eindhoven-Developers-Meetup/">[14]</a></sup>.</p>
+          <div class="meetup-foot"><span>Eindhoven</span><span>~26 km</span></div>
+        </div>
+        <div class="meetup">
+          <div class="meetup-head">
+            <img class="meetup-favicon" src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128" alt="">
+            <a class="meetup-name" href="https://www.meetup.com/040coders-nl/">040coders.nl</a>
+          </div>
+          <div class="meetup-cadence">Irregular · Systems / low-level</div>
+          <p class="meetup-desc">Eindhoven systems-programming community, explicitly recruiter-free <sup><a href="https://www.meetup.com/040coders-nl/">[15]</a></sup>.</p>
+          <div class="meetup-foot"><span>Eindhoven</span><span>~26 km</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUTSIDE -->
+    <section class="outside">
+      <div class="outside-head">
+        <h2>Just Outside the Line</h2>
+        <p>Hasselt (~33 km) and Genk (~32 km) miss the radius by a hair — but that's where Belgian Limburg's actual IT scene lives. Antwerp (~75 km) is well past, listed for context.</p>
+      </div>
+      <div class="outside-grid">
+        <div class="out-card">
+          <img src="calendar/images/bsides.png" alt="BSides Limburg 2026 cover">
+          <div class="body">
+            <div class="when">Past · 12–13 Mar 2026</div>
+            <div class="name"><a href="https://www.bsides-limburg.be/">BSides Limburg 2026</a></div>
+            <div class="venue">Corda Campus / PXL-NeXT, Hasselt · Community cybersecurity con <sup><a href="https://www.bsides-limburg.be/">[19]</a></sup></div>
+            <div class="footrow"><span>HASSELT</span><span>~33 km</span></div>
+          </div>
+        </div>
+        <div class="out-card">
+          <img src="calendar/images/fti.png" alt="FTI Festival 2026 cover">
+          <div class="body">
+            <div class="when">16 Oct → 15 Nov 2026</div>
+            <div class="name"><a href="https://www.ftifestival.be/programma/genk-hasselt">FTI Festival 2026 — Limburg</a></div>
+            <div class="venue">Corda Campus (Hasselt) + Thor Park (Genk) · Flanders' largest tech festival, Corda Arena opens 13 Nov <sup><a href="https://www.vrt.be/vrtnws/en/2026/03/11/date-set-for-2026-flanders-technology-and-innovation-festival/">[21]</a></sup></div>
+            <div class="footrow"><span>HASSELT / GENK</span><span>~33 km</span></div>
+          </div>
+        </div>
+        <div class="out-card gray">
+          <img src="calendar/images/devoxx.jpg" alt="Devoxx Belgium 2026 cover">
+          <div class="body">
+            <div class="when">5–9 Oct 2026</div>
+            <div class="name"><a href="https://devoxx.be/">Devoxx Belgium 2026</a></div>
+            <div class="venue">Antwerp · The region's flagship developer conference, well outside the radius but listed for completeness <sup><a href="https://devoxx.be/">[23]</a></sup></div>
+            <div class="footrow"><span>ANTWERP</span><span>~75 km</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOURCES -->
+    <section class="sources">
+      <h2>Sources · 23 inline citations</h2>
+      <div class="src-grid">
+        <div class="src"><span class="n">[1]</span><img src="https://www.google.com/s2/favicons?domain=guide.michelin.com&sz=64" alt=""><a href="https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara">guide.michelin.com · Cuchara</a></div>
+        <div class="src"><span class="n">[2]</span><img src="https://www.google.com/s2/favicons?domain=travelmath.com&sz=64" alt=""><a href="https://www.travelmath.com/distance/from/Lommel,+Belgium/to/Eindhoven,+Netherlands">travelmath.com · Lommel → Eindhoven</a></div>
+        <div class="src"><span class="n">[3]</span><img src="https://www.google.com/s2/favicons?domain=distancecalculator.net&sz=64" alt=""><a href="https://www.distancecalculator.net/from-lommel-to-mol">distancecalculator.net · Lommel → Mol</a></div>
+        <div class="src"><span class="n">[4]</span><img src="https://www.google.com/s2/favicons?domain=distancefromto.net&sz=64" alt=""><a href="https://www.distancefromto.net/distance-from-lommel-be-to-hasselt-be">distancefromto.net · Lommel → Hasselt</a></div>
+        <div class="src"><span class="n">[5]</span><img src="https://www.google.com/s2/favicons?domain=needcalc.com&sz=64" alt=""><a href="https://en.needcalc.com/distance/2891-1638">needcalc.com · Lommel → Genk</a></div>
+        <div class="src"><span class="n">[6]</span><img src="https://www.google.com/s2/favicons?domain=hightechcampus.com&sz=64" alt=""><a href="https://hightechcampus.com/events">hightechcampus.com · Events calendar</a></div>
+        <div class="src"><span class="n">[7]</span><img src="https://www.google.com/s2/favicons?domain=hightechcampus.com&sz=64" alt=""><a href="https://hightechcampus.com/events/signature-event-2026/">hightechcampus.com · Signature Event 2026</a></div>
+        <div class="src"><span class="n">[8]</span><img src="https://www.google.com/s2/favicons?domain=hightechcampus.com&sz=64" alt=""><a href="https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day">hightechcampus.com · Open Day</a></div>
+        <div class="src"><span class="n">[9]</span><img src="https://www.google.com/s2/favicons?domain=aisummitbrainport.nl&sz=64" alt=""><a href="https://aisummitbrainport.nl/">aisummitbrainport.nl · 2026</a></div>
+        <div class="src"><span class="n">[10]</span><img src="https://www.google.com/s2/favicons?domain=levelup-event.nl&sz=64" alt=""><a href="https://levelup-event.nl/">levelup-event.nl · LEVEL UP 2026</a></div>
+        <div class="src"><span class="n">[11]</span><img src="https://www.google.com/s2/favicons?domain=ddw.nl&sz=64" alt=""><a href="https://ddw.nl/">ddw.nl · Dutch Design Week 2026</a></div>
+        <div class="src"><span class="n">[12]</span><img src="https://www.google.com/s2/favicons?domain=aiinnovationcenter.nl&sz=64" alt=""><a href="https://aiinnovationcenter.nl/events/">aiinnovationcenter.nl · Events</a></div>
+        <div class="src"><span class="n">[13]</span><img src="https://www.google.com/s2/favicons?domain=ehvinnovationcafe.org&sz=64" alt=""><a href="https://ehvinnovationcafe.org/program/">ehvinnovationcafe.org · Programme</a></div>
+        <div class="src"><span class="n">[14]</span><img src="https://www.google.com/s2/favicons?domain=meetup.com&sz=64" alt=""><a href="https://www.meetup.com/Eindhoven-Developers-Meetup/">meetup.com · Ehv.dev</a></div>
+        <div class="src"><span class="n">[15]</span><img src="https://www.google.com/s2/favicons?domain=meetup.com&sz=64" alt=""><a href="https://www.meetup.com/040coders-nl/">meetup.com · 040coders.nl</a></div>
+        <div class="src"><span class="n">[16]</span><img src="https://www.google.com/s2/favicons?domain=brainporteindhoven.com&sz=64" alt=""><a href="https://brainporteindhoven.com/en/events">brainporteindhoven.com · Events</a></div>
+        <div class="src"><span class="n">[17]</span><img src="https://www.google.com/s2/favicons?domain=hightechcampus.com&sz=64" alt=""><a href="https://hightechcampus.com/events/xl-day-2026/">hightechcampus.com · XL Day 2026</a></div>
+        <div class="src"><span class="n">[18]</span><img src="https://www.google.com/s2/favicons?domain=brainportindustriescampus.com&sz=64" alt=""><a href="https://www.brainportindustriescampus.com/en/events/">brainportindustriescampus.com · Events</a></div>
+        <div class="src"><span class="n">[19]</span><img src="https://www.google.com/s2/favicons?domain=bsides-limburg.be&sz=64" alt=""><a href="https://www.bsides-limburg.be/">bsides-limburg.be · 2026</a></div>
+        <div class="src"><span class="n">[20]</span><img src="https://www.google.com/s2/favicons?domain=ftifestival.be&sz=64" alt=""><a href="https://www.ftifestival.be/programma/genk-hasselt">ftifestival.be · Genk-Hasselt</a></div>
+        <div class="src"><span class="n">[21]</span><img src="https://www.google.com/s2/favicons?domain=vrt.be&sz=64" alt=""><a href="https://www.vrt.be/vrtnws/en/2026/03/11/date-set-for-2026-flanders-technology-and-innovation-festival/">vrt.be · FTI 2026 dates</a></div>
+        <div class="src"><span class="n">[22]</span><img src="https://www.google.com/s2/favicons?domain=cordacampus.com&sz=64" alt=""><a href="https://www.cordacampus.com/events/">cordacampus.com · Events</a></div>
+        <div class="src"><span class="n">[23]</span><img src="https://www.google.com/s2/favicons?domain=devoxx.be&sz=64" alt=""><a href="https://devoxx.be/">devoxx.be · Devoxx Belgium 2026</a></div>
+      </div>
+    </section>
+
+    <!-- SIBLINGS -->
+    <section class="siblings">
+      <div class="siblings-lead">Part of expedition: <a href="../../">A Cuchara-anchored weekend in Lommel</a></div>
+      <div class="sib-grid">
+        <a class="sib" href="../../day-trips-and-activities-within-30-km-of-cuchara/">
+          <div class="depth">Expedition · Sibling</div>
+          <div class="t">Day-trips and activities within 30 km of Cuchara</div>
+          <div class="s">Bosland-anchored cycling, the Achel abbey, plus an honest map of what's actually inside the 30 km circle.</div>
+        </a>
+        <a class="sib" href="../../walking-distance-lodging-at-or-near-cuchara/">
+          <div class="depth">Survey · Sibling</div>
+          <div class="t">Walking-distance lodging at or near Cuchara</div>
+          <div class="s">Hotel Corbie at ~150 m and Mi Casa Naranja at ~4 min walk are the only true walk-back-from-dinner options.</div>
+        </a>
+        <a class="sib" href="../../special-character-lodging-within-taxi-range-of-cuchara/">
+          <div class="depth">Survey · Sibling</div>
+          <div class="t">Special-character lodging within taxi range of Cuchara</div>
+          <div class="s">Five characterful stays inside a one-taxi hop of Cuchara: a 1904 engineer's villa, a Sahara-edge B&B, more.</div>
+        </a>
+      </div>
+    </section>
+
+  </main>
+</div>
