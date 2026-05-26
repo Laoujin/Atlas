@@ -1,0 +1,920 @@
+---
+layout: view
+view_name: "Village Map"
+view_of: ../
+title: "Walking-distance lodging at or near L'Enclume, Cartmel — Village Map"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap');
+
+  .vmap {
+    --paper: #f0e1c2;
+    --paper-dark: #e3d09f;
+    --paper-deep: #d6be84;
+    --ink: #2e2418;
+    --ink-soft: #5b4a30;
+    --rust: #a23b1d;
+    --rust-dim: #7c2c14;
+    --sage: #8a9968;
+    --water: #6f8a9e;
+    --sun: #c98b35;
+
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,0.35), transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(120,80,40,0.16), transparent 55%),
+      radial-gradient(circle at 45% 60%, rgba(166,120,60,0.12), transparent 70%);
+    color: var(--ink);
+    font-family: 'Special Elite', 'Courier Prime', Courier, monospace;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Subtle paper grain — repeating linear-gradients masquerading as fibers */
+  .vmap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(31deg, transparent 0 8px, rgba(80,50,20,0.025) 8px 9px),
+      repeating-linear-gradient(-67deg, transparent 0 13px, rgba(60,40,15,0.02) 13px 14px);
+    z-index: 0;
+  }
+  .vmap > * { position: relative; z-index: 1; }
+
+  /* Coffee-stain blots */
+  .vmap::after {
+    content: "";
+    position: absolute;
+    top: 18%; right: 5%;
+    width: 180px; height: 140px;
+    background: radial-gradient(ellipse at center, rgba(120,75,30,0.18), rgba(120,75,30,0.05) 60%, transparent 75%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    transform: rotate(-12deg);
+  }
+
+  /* ---------- Cartouche header ---------- */
+  .cartouche {
+    text-align: center;
+    padding: 3.5rem 2rem 1.5rem;
+    border-bottom: 2px solid var(--ink);
+    border-bottom-style: double;
+    margin: 0 2rem;
+  }
+  .cartouche .top-rule {
+    font-family: 'Caveat', cursive;
+    color: var(--ink-soft);
+    letter-spacing: 0.4em;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  .cartouche h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .cartouche h1 .amp {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--rust);
+    font-size: 1.2em;
+    vertical-align: -0.05em;
+  }
+  .cartouche .sub {
+    font-family: 'Caveat', cursive;
+    color: var(--ink-soft);
+    font-size: 1.5rem;
+    margin-top: 0.6rem;
+  }
+  .cartouche .meta {
+    margin-top: 1.2rem;
+    font-family: 'Special Elite', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .cartouche .meta span { margin: 0 0.8rem; }
+  .cartouche .meta strong { color: var(--rust); font-weight: 400; }
+
+  /* ---------- The map ---------- */
+  .map-frame {
+    margin: 2rem auto 0;
+    padding: 1.2rem;
+    max-width: 1100px;
+    border: 1.5px solid var(--ink);
+    box-shadow:
+      inset 0 0 0 6px var(--paper),
+      inset 0 0 0 7px var(--ink-soft),
+      0 12px 30px rgba(60,40,15,0.18);
+    background:
+      radial-gradient(ellipse at 60% 40%, rgba(255,250,235,0.6), transparent 60%),
+      var(--paper-dark);
+    position: relative;
+  }
+  .map-frame::before {
+    content: "MAP OF CARTMEL VILLAGE · drawn for the visitor on foot · scale approximate";
+    position: absolute;
+    top: -0.7rem;
+    left: 2rem;
+    background: var(--paper);
+    padding: 0 0.8rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--ink-soft);
+  }
+  .map-frame svg { width: 100%; height: auto; display: block; }
+
+  /* ---------- Verdict callout ---------- */
+  .verdict {
+    margin: 2.5rem auto 0;
+    max-width: 920px;
+    padding: 1.6rem 2rem 1.4rem;
+    border: 2px dashed var(--rust-dim);
+    background: rgba(255,247,228,0.55);
+    position: relative;
+    transform: rotate(-0.4deg);
+  }
+  .verdict::before {
+    content: "★";
+    position: absolute;
+    top: -1.1rem;
+    left: 2rem;
+    background: var(--paper);
+    color: var(--rust);
+    font-size: 1.5rem;
+    padding: 0 0.6rem;
+  }
+  .verdict .label {
+    font-family: 'Caveat', cursive;
+    font-size: 1.6rem;
+    color: var(--rust-dim);
+    margin: 0 0 0.4rem 0;
+    line-height: 1;
+  }
+  .verdict p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    line-height: 1.55;
+    margin: 0;
+    color: var(--ink);
+  }
+  .verdict a { color: var(--rust-dim); text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; }
+  .verdict a:hover { color: var(--rust); }
+  .verdict sup { font-family: 'Special Elite', monospace; font-size: 0.65em; }
+  .verdict sup a { text-decoration: none; color: var(--ink-soft); }
+
+  /* ---------- Numbered key (the lodging tiles) ---------- */
+  .key-header {
+    text-align: center;
+    margin: 3rem 0 1rem;
+  }
+  .key-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 2.2rem;
+    color: var(--ink);
+    margin: 0;
+  }
+  .key-header .squiggle {
+    color: var(--rust); font-family: 'Caveat', cursive; font-size: 1.2rem;
+    margin-top: 0.2rem;
+  }
+
+  .pin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem 1rem;
+  }
+  .pin-card {
+    background: rgba(255,250,235,0.85);
+    border: 1.5px solid var(--ink);
+    padding: 1rem 1.1rem 1.1rem;
+    position: relative;
+    box-shadow: 3px 3px 0 rgba(46,36,24,0.08), 6px 6px 12px rgba(60,40,15,0.12);
+  }
+  .pin-card:nth-child(odd) { transform: rotate(-0.6deg); }
+  .pin-card:nth-child(even) { transform: rotate(0.5deg); }
+  .pin-card .pin-num {
+    position: absolute;
+    top: -1.1rem;
+    left: -0.9rem;
+    width: 2.6rem;
+    height: 2.6rem;
+    background: var(--rust);
+    color: var(--paper);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 1.6rem;
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 rgba(46,36,24,0.25);
+    transform: rotate(-8deg);
+  }
+  .pin-card .photo {
+    height: 130px;
+    margin: 0.3rem -0.3rem 0.7rem;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--ink-soft);
+    background: linear-gradient(135deg, var(--paper-deep), var(--paper-dark));
+  }
+  .pin-card .photo img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: sepia(0.18) contrast(0.95) saturate(0.9);
+  }
+  .pin-card .photo.placeholder {
+    background: repeating-linear-gradient(45deg, var(--paper-dark) 0 12px, var(--paper-deep) 12px 13px);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft);
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+    text-align: center;
+    padding: 0 1rem;
+    line-height: 1.15;
+  }
+  .pin-card .photo .scribble {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(46,36,24,0.18), transparent 25%),
+      radial-gradient(circle at 70% 60%, rgba(46,36,24,0.12), transparent 30%);
+  }
+  .pin-card .walk {
+    position: absolute;
+    top: 0.4rem; right: 0.4rem;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    padding: 0.15rem 0.55rem;
+    font-family: 'Caveat', cursive;
+    font-size: 1.25rem;
+    color: var(--ink);
+    transform: rotate(3deg);
+    z-index: 2;
+    box-shadow: 1px 1px 0 var(--ink-soft);
+  }
+  .pin-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    margin: 0.2rem 0 0.1rem;
+    line-height: 1.15;
+  }
+  .pin-card h3 a { color: var(--ink); text-decoration: none; border-bottom: 1.5px solid var(--rust); }
+  .pin-card h3 a:hover { color: var(--rust-dim); }
+  .pin-card .kind {
+    font-family: 'Special Elite', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .pin-card .blurb {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0 0 0.7rem;
+  }
+  .pin-card .blurb sup { font-family: 'Special Elite', monospace; font-size: 0.65em; }
+  .pin-card .blurb sup a { color: var(--ink-soft); text-decoration: none; }
+  .pin-card .blurb sup a:hover { color: var(--rust); }
+  .pin-card .blurb a { color: var(--rust-dim); }
+  .pin-card .annot {
+    font-family: 'Caveat', cursive;
+    color: var(--rust-dim);
+    font-size: 1.15rem;
+    line-height: 1.2;
+    border-top: 1px dashed var(--ink-soft);
+    padding-top: 0.5rem;
+    margin-top: 0.3rem;
+  }
+  .pin-card.headline { background: rgba(255,245,210,0.95); }
+  .pin-card.headline::after {
+    content: "★ THE ONE TO BOOK FIRST";
+    position: absolute;
+    bottom: -0.7rem;
+    right: 0.8rem;
+    background: var(--rust);
+    color: var(--paper);
+    font-family: 'Special Elite', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    padding: 0.2rem 0.7rem;
+    transform: rotate(-2deg);
+  }
+
+  /* ---------- Practical notes (margin sidebar at bottom) ---------- */
+  .notes {
+    margin: 4rem auto 0;
+    max-width: 1100px;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+  }
+  @media (max-width: 720px) { .notes { grid-template-columns: 1fr; } }
+  .notes-block {
+    border-top: 2px solid var(--ink);
+    padding-top: 1rem;
+  }
+  .notes-block h3 {
+    font-family: 'Caveat', cursive;
+    font-size: 1.8rem;
+    color: var(--rust-dim);
+    margin: 0 0 0.6rem;
+  }
+  .notes-block ul {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .notes-block li {
+    padding: 0.35rem 0 0.35rem 1.5rem;
+    position: relative;
+  }
+  .notes-block li::before {
+    content: "✎";
+    position: absolute;
+    left: 0;
+    color: var(--rust);
+    font-size: 1rem;
+  }
+  .notes-block a { color: var(--rust-dim); text-decoration: underline; }
+  .notes-block sup { font-family: 'Special Elite', monospace; font-size: 0.65em; }
+  .notes-block sup a { color: var(--ink-soft); text-decoration: none; }
+  .notes-block.aside ul li::before { content: "↯"; }
+
+  /* ---------- Beyond walking distance (small footnote) ---------- */
+  .beyond {
+    margin: 2.5rem auto 0;
+    max-width: 1100px;
+    padding: 1.4rem 2rem;
+    background: rgba(110,80,40,0.07);
+    border-top: 1px dashed var(--ink-soft);
+    border-bottom: 1px dashed var(--ink-soft);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.02rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .beyond strong {
+    font-family: 'Caveat', cursive;
+    font-style: normal;
+    font-size: 1.4rem;
+    color: var(--rust-dim);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .beyond a { color: var(--rust-dim); }
+  .beyond sup { font-family: 'Special Elite', monospace; font-size: 0.65em; }
+  .beyond sup a { color: var(--ink-soft); text-decoration: none; }
+
+  /* ---------- Footer ribbon (siblings + sources roll) ---------- */
+  .reel {
+    margin: 4rem auto 0;
+    max-width: 1100px;
+    padding: 2rem 2rem 1rem;
+    border-top: 2px solid var(--ink);
+    border-top-style: double;
+  }
+  .reel h3 {
+    font-family: 'Caveat', cursive;
+    color: var(--ink-soft);
+    font-size: 1.6rem;
+    margin: 0 0 0.8rem;
+    text-align: center;
+  }
+  .reel .siblings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .reel .sibling {
+    border: 1px solid var(--ink-soft);
+    padding: 0.8rem 1rem;
+    background: rgba(255,250,235,0.5);
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.15s ease;
+  }
+  .reel .sibling:hover { transform: translateY(-2px); background: rgba(255,245,210,0.85); }
+  .reel .sibling .depth {
+    font-family: 'Special Elite', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust-dim);
+  }
+  .reel .sibling .stitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0.2rem 0 0.3rem;
+    line-height: 1.2;
+  }
+  .reel .sibling .ssum {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
+  .reel .sources-strip {
+    columns: 2;
+    column-gap: 2rem;
+    font-family: 'Special Elite', monospace;
+    font-size: 0.72rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  @media (max-width: 600px) { .reel .sources-strip { columns: 1; } }
+  .reel .sources-strip a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--ink-soft); }
+  .reel .sources-strip a:hover { color: var(--rust-dim); border-bottom-color: var(--rust); }
+  .reel .colophon {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px dotted var(--ink-soft);
+    text-align: center;
+    font-family: 'Special Elite', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .reel .colophon a { color: var(--rust-dim); text-decoration: none; border-bottom: 1px solid var(--rust); }
+</style>
+
+<div class="vmap">
+
+  <!-- ============= CARTOUCHE HEADER ============= -->
+  <header class="cartouche">
+    <div class="top-rule">· · ·  C V M B R I A  · · ·</div>
+    <h1>A Walker's Map <span class="amp">&amp;</span><br>Compendium of Beds</h1>
+    <div class="sub">— all within fifteen minutes of L'Enclume's door —</div>
+    <div class="meta">
+      <span><strong>7</strong> lodgings</span>
+      <span>2&ndash;15 min walks</span>
+      <span>1 Michelin three-star</span>
+      <span><a href="../" style="color:inherit;text-decoration:underline">read the canonical &rsaquo;</a></span>
+    </div>
+  </header>
+
+  <!-- ============= THE HAND-DRAWN MAP ============= -->
+  <div class="map-frame">
+    <svg viewBox="0 0 1000 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hand-drawn map of Cartmel village showing seven lodgings around L'Enclume restaurant">
+      <defs>
+        <!-- Sketchy line filter -->
+        <filter id="rough">
+          <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="3"/>
+          <feDisplacementMap in="SourceGraphic" scale="2.2"/>
+        </filter>
+        <filter id="rough-heavy">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7"/>
+          <feDisplacementMap in="SourceGraphic" scale="3.5"/>
+        </filter>
+        <pattern id="meadow" patternUnits="userSpaceOnUse" width="22" height="22">
+          <path d="M3 18 Q5 12 7 18 M11 18 Q13 11 15 18 M19 18 Q21 13 23 18" stroke="#8a9968" stroke-width="0.7" fill="none"/>
+        </pattern>
+        <pattern id="racecourse-grass" patternUnits="userSpaceOnUse" width="14" height="14">
+          <circle cx="7" cy="7" r="0.7" fill="#8a9968"/>
+        </pattern>
+      </defs>
+
+      <!-- ===== Background terrain ===== -->
+      <!-- Meadow NW (Aynsome walk) -->
+      <path d="M 40 60 Q 220 30 360 90 L 320 230 Q 200 250 80 220 Z" fill="url(#meadow)" opacity="0.55" filter="url(#rough)"/>
+      <text x="170" y="125" font-family="'Caveat',cursive" font-size="22" fill="#5b7a3d" font-style="italic" transform="rotate(-8 170 125)">open meadow</text>
+      <text x="160" y="148" font-family="'Caveat',cursive" font-size="18" fill="#5b7a3d" font-style="italic" transform="rotate(-8 160 148)">~¾ mile walk</text>
+
+      <!-- River Eea (south) -->
+      <path d="M 20 540 Q 200 510 380 540 T 760 530 T 980 545" stroke="#6f8a9e" stroke-width="6" fill="none" opacity="0.7" filter="url(#rough)"/>
+      <path d="M 20 540 Q 200 510 380 540 T 760 530 T 980 545" stroke="#9fb6c5" stroke-width="2" fill="none" opacity="0.9"/>
+      <text x="640" y="525" font-family="'Caveat',cursive" font-size="18" fill="#4d6573" font-style="italic">River Eea ~</text>
+
+      <!-- Racecourse SE (loop) -->
+      <ellipse cx="780" cy="430" rx="140" ry="65" fill="url(#racecourse-grass)" opacity="0.65" stroke="#7c8d5c" stroke-width="1.5" stroke-dasharray="4 3" filter="url(#rough)"/>
+      <text x="720" y="435" font-family="'Caveat',cursive" font-size="20" fill="#5b7a3d" font-style="italic">Racecourse</text>
+
+      <!-- Westward fields / Uplands country -->
+      <path d="M 20 320 Q 80 290 150 310 Q 170 360 130 430 Q 60 440 30 410 Z" fill="url(#meadow)" opacity="0.4" filter="url(#rough)"/>
+      <text x="40" y="380" font-family="'Caveat',cursive" font-size="17" fill="#5b7a3d" font-style="italic" transform="rotate(-3 40 380)">to Grange-over-Sands ↘</text>
+
+      <!-- ===== Roads ===== -->
+      <!-- Cavendish Street (E-W through center) -->
+      <path d="M 100 340 Q 250 330 400 345 Q 520 355 660 348 Q 800 342 950 360" stroke="#2e2418" stroke-width="14" fill="none" opacity="0.18" filter="url(#rough)"/>
+      <path d="M 100 340 Q 250 330 400 345 Q 520 355 660 348 Q 800 342 950 360" stroke="#5b4a30" stroke-width="2.5" fill="none" opacity="0.85" stroke-dasharray="0"/>
+      <text x="200" y="365" font-family="'Caveat',cursive" font-size="20" fill="#3a2c1a" font-style="italic">Cavendish Street</text>
+
+      <!-- The Square (a rough rectangle, NE of L'Enclume) -->
+      <path d="M 470 200 L 600 195 L 605 280 L 475 285 Z" stroke="#3a2c1a" stroke-width="2" fill="rgba(255,250,235,0.55)" stroke-linejoin="round" filter="url(#rough)"/>
+      <text x="510" y="245" font-family="'Caveat',cursive" font-size="22" fill="#3a2c1a" font-style="italic">The Square</text>
+
+      <!-- Lane up to Square from Cavendish -->
+      <path d="M 470 200 L 460 345" stroke="#5b4a30" stroke-width="2" fill="none"/>
+      <path d="M 605 280 L 615 345" stroke="#5b4a30" stroke-width="2" fill="none"/>
+
+      <!-- Aynsome Lane (NW from Square) -->
+      <path d="M 470 200 Q 380 150 250 130" stroke="#5b4a30" stroke-width="2" fill="none" stroke-dasharray="3 4"/>
+      <!-- Old Grammar lane (south from Cavendish to racecourse) -->
+      <path d="M 660 348 Q 720 390 770 415" stroke="#5b4a30" stroke-width="2" fill="none"/>
+      <!-- Uplands lane (west out) -->
+      <path d="M 100 340 Q 60 360 50 400" stroke="#5b4a30" stroke-width="2" fill="none" stroke-dasharray="3 4"/>
+
+      <!-- ===== The Priory (landmark NE) ===== -->
+      <g transform="translate(620, 130)">
+        <rect x="-25" y="-15" width="50" height="40" fill="rgba(255,250,235,0.7)" stroke="#3a2c1a" stroke-width="2" filter="url(#rough)"/>
+        <polygon points="-25,-15 0,-38 25,-15" fill="rgba(255,250,235,0.7)" stroke="#3a2c1a" stroke-width="2" filter="url(#rough)"/>
+        <path d="M -8 -2 Q 0 -10 8 -2 L 8 25 L -8 25 Z" fill="#3a2c1a" opacity="0.7"/>
+        <line x1="0" y1="-38" x2="0" y2="-50" stroke="#3a2c1a" stroke-width="2"/>
+        <text x="0" y="-58" font-family="'Caveat',cursive" font-size="18" fill="#3a2c1a" text-anchor="middle" font-style="italic">Cartmel Priory</text>
+      </g>
+
+      <!-- ===== L'ENCLUME ★ THE ANCHOR ===== -->
+      <g transform="translate(400, 345)">
+        <!-- Compass-rose burst around L'Enclume -->
+        <g opacity="0.4" stroke="#a23b1d" stroke-width="1" fill="none">
+          <line x1="-58" y1="0" x2="58" y2="0"/>
+          <line x1="0" y1="-58" x2="0" y2="58"/>
+          <line x1="-42" y1="-42" x2="42" y2="42"/>
+          <line x1="-42" y1="42" x2="42" y2="-42"/>
+        </g>
+        <circle r="42" fill="#fff5d6" stroke="#a23b1d" stroke-width="2.5" filter="url(#rough)"/>
+        <circle r="34" fill="none" stroke="#a23b1d" stroke-width="1" stroke-dasharray="2 2"/>
+        <text y="-2" font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600" fill="#7c2c14" text-anchor="middle" font-style="italic">L'ENCLUME</text>
+        <text y="14" font-family="'Caveat',cursive" font-size="16" fill="#a23b1d" text-anchor="middle">★★★</text>
+        <text y="58" font-family="'Caveat',cursive" font-size="16" fill="#3a2c1a" text-anchor="middle" font-style="italic">— you start here —</text>
+      </g>
+
+      <!-- ===== Footpaths from L'Enclume to each lodging (dashed) ===== -->
+      <!-- 1: L'Enclume rooms (scattered cottages, very close) — short stubs -->
+      <path d="M 400 345 L 360 320" stroke="#7c2c14" stroke-width="1.5" fill="none" stroke-dasharray="3 3"/>
+      <path d="M 400 345 L 440 312" stroke="#7c2c14" stroke-width="1.5" fill="none" stroke-dasharray="3 3"/>
+      <path d="M 400 345 L 370 385" stroke="#7c2c14" stroke-width="1.5" fill="none" stroke-dasharray="3 3"/>
+      <!-- 2: Cavendish Arms (on same street, just E) -->
+      <path d="M 400 345 Q 450 348 510 345" stroke="#7c2c14" stroke-width="1.8" fill="none" stroke-dasharray="4 3"/>
+      <text x="445" y="335" font-family="'Caveat',cursive" font-size="15" fill="#7c2c14" font-style="italic">1 min</text>
+      <!-- 3 & 4: Square pubs (NE) -->
+      <path d="M 400 345 Q 470 295 510 245" stroke="#7c2c14" stroke-width="1.8" fill="none" stroke-dasharray="4 3"/>
+      <text x="455" y="295" font-family="'Caveat',cursive" font-size="15" fill="#7c2c14" font-style="italic" transform="rotate(-30 455 295)">2 min</text>
+      <!-- 5: Old Grammar (SE) -->
+      <path d="M 400 345 Q 560 360 720 415" stroke="#7c2c14" stroke-width="1.8" fill="none" stroke-dasharray="4 3"/>
+      <text x="590" y="395" font-family="'Caveat',cursive" font-size="16" fill="#7c2c14" font-style="italic">6 min · ⅓ mi</text>
+      <!-- 6: Aynsome (NW through meadow) -->
+      <path d="M 400 345 Q 320 250 200 165" stroke="#7c2c14" stroke-width="1.8" fill="none" stroke-dasharray="4 3"/>
+      <text x="240" y="240" font-family="'Caveat',cursive" font-size="16" fill="#7c2c14" font-style="italic" transform="rotate(-35 240 240)">15 min · ¾ mi</text>
+      <!-- 7: Uplands (W) -->
+      <path d="M 400 345 Q 250 380 90 460" stroke="#7c2c14" stroke-width="1.8" fill="none" stroke-dasharray="4 3"/>
+      <text x="180" y="430" font-family="'Caveat',cursive" font-size="16" fill="#7c2c14" font-style="italic" transform="rotate(15 180 430)">15-30 min · 0.9 mi</text>
+
+      <!-- ===== Numbered pins (drop-pin style) ===== -->
+      <!-- pin macro: red teardrop + circle with number -->
+      <g id="pins">
+        <!-- 1 — L'Enclume's own rooms (sprinkled around L'Enclume) -->
+        <g transform="translate(360, 320)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">1</text>
+        </g>
+        <g transform="translate(440, 312)" opacity="0.65">
+          <path d="M 0 0 L -7 -16 Q 0 -26 7 -16 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.2"/>
+          <circle cx="0" cy="-18" r="7" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.2"/>
+          <text y="-15" font-family="'Caveat',cursive" font-size="11" font-weight="700" fill="#7c2c14" text-anchor="middle">1</text>
+        </g>
+        <g transform="translate(370, 385)" opacity="0.65">
+          <path d="M 0 0 L -7 -16 Q 0 -26 7 -16 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.2"/>
+          <circle cx="0" cy="-18" r="7" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.2"/>
+          <text y="-15" font-family="'Caveat',cursive" font-size="11" font-weight="700" fill="#7c2c14" text-anchor="middle">1</text>
+        </g>
+        <text x="350" y="290" font-family="'Caveat',cursive" font-size="14" fill="#3a2c1a" font-style="italic">16 rooms,</text>
+        <text x="350" y="305" font-family="'Caveat',cursive" font-size="14" fill="#3a2c1a" font-style="italic">scattered</text>
+
+        <!-- 2 — Cavendish Arms -->
+        <g transform="translate(510, 345)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">2</text>
+        </g>
+
+        <!-- 3 — Kings Arms (on Square) -->
+        <g transform="translate(510, 245)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">3</text>
+        </g>
+
+        <!-- 4 — Royal Oak (also on Square) -->
+        <g transform="translate(575, 270)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">4</text>
+        </g>
+
+        <!-- 5 — Cartmel Old Grammar (SE) -->
+        <g transform="translate(720, 415)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">5</text>
+        </g>
+
+        <!-- 6 — Aynsome Manor (NW) -->
+        <g transform="translate(200, 165)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">6</text>
+        </g>
+
+        <!-- 7 — Uplands Inn (W) -->
+        <g transform="translate(90, 460)">
+          <path d="M 0 0 L -10 -22 Q 0 -36 10 -22 Z" fill="#a23b1d" stroke="#3a2c1a" stroke-width="1.5"/>
+          <circle cx="0" cy="-24" r="11" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="1.5"/>
+          <text y="-19" font-family="'Caveat',cursive" font-size="17" font-weight="700" fill="#7c2c14" text-anchor="middle">7</text>
+        </g>
+      </g>
+
+      <!-- ===== Compass rose (top-right) ===== -->
+      <g transform="translate(910, 95)">
+        <circle r="42" fill="rgba(255,250,235,0.7)" stroke="#3a2c1a" stroke-width="1.5"/>
+        <circle r="32" fill="none" stroke="#3a2c1a" stroke-width="0.7" stroke-dasharray="2 2"/>
+        <!-- four cardinal points -->
+        <polygon points="0,-38 -6,0 0,-8 6,0" fill="#a23b1d" stroke="#3a2c1a" stroke-width="0.8"/>
+        <polygon points="0,38 -6,0 0,8 6,0" fill="#3a2c1a" opacity="0.6"/>
+        <polygon points="-38,0 0,-6 -8,0 0,6" fill="#3a2c1a" opacity="0.6"/>
+        <polygon points="38,0 0,-6 8,0 0,6" fill="#3a2c1a" opacity="0.6"/>
+        <text x="0" y="-48" font-family="'Cormorant Garamond',serif" font-size="14" font-weight="600" fill="#7c2c14" text-anchor="middle">N</text>
+        <text x="0" y="56" font-family="'Cormorant Garamond',serif" font-size="11" fill="#5b4a30" text-anchor="middle">S</text>
+        <text x="-50" y="4" font-family="'Cormorant Garamond',serif" font-size="11" fill="#5b4a30" text-anchor="middle">W</text>
+        <text x="50" y="4" font-family="'Cormorant Garamond',serif" font-size="11" fill="#5b4a30" text-anchor="middle">E</text>
+      </g>
+
+      <!-- ===== Scale bar (bottom-left) ===== -->
+      <g transform="translate(60, 615)">
+        <text x="0" y="-8" font-family="'Caveat',cursive" font-size="14" fill="#3a2c1a" font-style="italic">scale (approx. walking)</text>
+        <rect x="0" y="0" width="40" height="8" fill="#3a2c1a"/>
+        <rect x="40" y="0" width="40" height="8" fill="#f0e1c2" stroke="#3a2c1a" stroke-width="0.8"/>
+        <rect x="80" y="0" width="40" height="8" fill="#3a2c1a"/>
+        <text x="0" y="22" font-family="'Special Elite',monospace" font-size="9" fill="#3a2c1a">0</text>
+        <text x="35" y="22" font-family="'Special Elite',monospace" font-size="9" fill="#3a2c1a">2 min</text>
+        <text x="75" y="22" font-family="'Special Elite',monospace" font-size="9" fill="#3a2c1a">5 min</text>
+        <text x="115" y="22" font-family="'Special Elite',monospace" font-size="9" fill="#3a2c1a">10 min</text>
+      </g>
+
+      <!-- ===== Disclaimer corner ===== -->
+      <g transform="translate(870, 605)">
+        <text font-family="'Caveat',cursive" font-size="13" fill="#5b4a30" font-style="italic" text-anchor="middle">— not to scale —</text>
+        <text y="16" font-family="'Caveat',cursive" font-size="11" fill="#5b4a30" font-style="italic" text-anchor="middle">verify on Ordnance Survey</text>
+      </g>
+
+      <!-- ===== Off-map arrow to Heft ===== -->
+      <g transform="translate(950, 230)">
+        <path d="M -20 0 L 8 0 M 0 -6 L 10 0 L 0 6" stroke="#7c2c14" stroke-width="1.8" fill="none"/>
+        <text x="-15" y="-8" font-family="'Caveat',cursive" font-size="14" fill="#7c2c14" font-style="italic">to Heft (5 mi)</text>
+        <text x="-15" y="18" font-family="'Caveat',cursive" font-size="12" fill="#5b4a30" font-style="italic">— see footnote —</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ============= VERDICT CALLOUT ============= -->
+  <div class="verdict">
+    <p class="label">The decision</p>
+    <p>
+      Book a <a href="https://www.lenclume.co.uk/our-rooms">room with L'Enclume</a> first — the rate
+      guarantees your Saturday table and breakfast at Rogan &amp; Co
+      <sup><a href="https://www.lenclume.co.uk/our-rooms">[2]</a></sup>, and every room is a ≤5-minute village walk
+      <sup><a href="https://www.visitlakedistrict.com/accommodation/our-rooms-by-lenclume-p1839711">[3]</a></sup>.
+      If they're sold out, the <a href="https://thecavendisharms.co.uk/">Cavendish Arms</a> is on the same street
+      <sup><a href="https://www.coolplaces.co.uk/hotels/uk/england/north-west-england/cumbria/cartmel/10681-the-cavendish-arms">[8]</a></sup>,
+      or <a href="https://kingsarmscartmel.pub/">Kings Arms</a> is 60 paces across the square
+      <sup><a href="https://kingsarmscartmel.pub/">[10]</a></sup>. For more comfort at a 15-min walk:
+      <a href="https://aynsomemanor.com/">Aynsome Manor</a> (5-star Georgian, complimentary chauffeur)
+      <sup><a href="https://aynsomemanor.com/">[14]</a></sup>.
+    </p>
+  </div>
+
+  <!-- ============= NUMBERED KEY ============= -->
+  <section class="key-header">
+    <h2>The Numbered Key</h2>
+    <div class="squiggle">~ in order of distance from the front door ~</div>
+  </section>
+
+  <div class="pin-grid">
+
+    <!-- 1 -->
+    <article class="pin-card headline">
+      <div class="pin-num">1</div>
+      <div class="walk">2 min</div>
+      <div class="photo"><img src="village-map/images/lenclume.jpg" alt="L'Enclume restaurant exterior, Cartmel"><div class="scribble"></div></div>
+      <h3><a href="https://www.lenclume.co.uk/our-rooms">L'Enclume — Our Rooms</a></h3>
+      <div class="kind">Boutique B&amp;B · 16 rooms · 4 categories</div>
+      <p class="blurb">
+        Sixteen individually designed bedrooms in cottages and a townhouse overlooking the square
+        <sup><a href="https://www.thehotelguru.com/hotel/lenclume-cumbria">[6]</a></sup>.
+        Rates from $174; Nespresso + Bose in every room
+        <sup><a href="https://finest.co.uk/finest-directory/stay-at-lenclume/">[5]</a></sup>.
+      </p>
+      <p class="annot">★ A Saturday table is locked in with the room. Breakfast next morning at Rogan &amp; Co (also Michelin-starred). DB&amp;B package Tue–Fri only — not Saturdays.</p>
+    </article>
+
+    <!-- 2 -->
+    <article class="pin-card">
+      <div class="pin-num">2</div>
+      <div class="walk">1 min</div>
+      <div class="photo"><img src="village-map/images/cavendish.jpg" alt="The Cavendish Arms, Cartmel"><div class="scribble"></div></div>
+      <h3><a href="https://thecavendisharms.co.uk/">The Cavendish Arms</a></h3>
+      <div class="kind">500-yr coaching inn · 10 rooms · same street</div>
+      <p class="blurb">
+        Grade II listed coaching inn next to the Priory archways, a stone's throw from L'Enclume's door
+        <sup><a href="https://stayinapub.co.uk/the-cavendish-arms-cartmel-grange-over-sands-cumbria/">[9]</a></sup>.
+        £75–£125/night with breakfast
+        <sup><a href="https://www.coolplaces.co.uk/hotels/uk/england/north-west-england/cumbria/cartmel/10681-the-cavendish-arms">[8]</a></sup>.
+      </p>
+      <p class="annot">→ the obvious fallback. Closest non-L'Enclume bed, still two-figure most nights.</p>
+    </article>
+
+    <!-- 3 -->
+    <article class="pin-card">
+      <div class="pin-num">3</div>
+      <div class="walk">2 min</div>
+      <div class="photo"><img src="village-map/images/kings-arms.jpg" alt="The Kings Arms, Cartmel Square"><div class="scribble"></div></div>
+      <h3><a href="https://kingsarmscartmel.pub/">The Kings Arms</a></h3>
+      <div class="kind">18th-c gastro pub · 6 rooms · on the Square</div>
+      <p class="blurb">
+        Six rooms named after Romantic poets (Coleridge, Blake, Shelley, Byron, Keats, Wordsworth) in a 300-year-old building overlooking the medieval square
+        <sup><a href="https://kingsarmscartmel.pub/">[10]</a></sup>.
+      </p>
+      <p class="annot">→ pick over Cavendish if you want the square view. Louder on a Saturday — live music downstairs.</p>
+    </article>
+
+    <!-- 4 -->
+    <article class="pin-card">
+      <div class="pin-num">4</div>
+      <div class="walk">2 min</div>
+      <div class="photo"><img src="village-map/images/royal-oak.jpg" alt="The Royal Oak Inn, Cartmel"><div class="scribble"></div></div>
+      <h3><a href="https://royaloakcartmel.co.uk/">The Royal Oak</a></h3>
+      <div class="kind">Traditional inn · few rooms · just round the corner</div>
+      <p class="blurb">
+        A small number of rooms above a flagstone-and-beam pub on the Square; cooked breakfast included
+        <sup><a href="https://www.thelakedistrict.org/food-drink/pubs/the-royal-oak-inn-cartmel/">[11]</a></sup>.
+        Pizza and pub-classics downstairs — useful as Friday-night warm-up.
+      </p>
+      <p class="annot">⚠ tall guests duck for beams; Wi-Fi patchy.</p>
+    </article>
+
+    <!-- 5 -->
+    <article class="pin-card">
+      <div class="pin-num">5</div>
+      <div class="walk">6 min</div>
+      <div class="photo"><img src="village-map/images/old-grammar.jpg" alt="Cartmel Old Grammar boutique hotel"><div class="scribble"></div></div>
+      <h3><a href="https://cartmeloldgrammar.co.uk/">Cartmel Old Grammar</a></h3>
+      <div class="kind">Georgian boutique country house · 12 rooms</div>
+      <p class="blurb">
+        Twelve rooms in a Georgian boutique house pressed up against the Cartmel Racecourse
+        <sup><a href="https://cartmeloldgrammar.co.uk/">[12]</a></sup>.
+        Cooked-to-order breakfast, two log-fire lounges, on-site Refectory Restaurant
+        <sup><a href="https://www.expedia.co.uk/Grange-Over-Sands-Hotels-Cartmel-Old-Grammar.h113627672.Hotel-Information">[13]</a></sup>.
+      </p>
+      <p class="annot">→ quieter and more polished than the village inns, still a trivial walk to dinner.</p>
+    </article>
+
+    <!-- 6 -->
+    <article class="pin-card">
+      <div class="pin-num">6</div>
+      <div class="walk">15 min</div>
+      <div class="photo placeholder">~ Georgian manor ~<br>through open meadowland<div class="scribble"></div></div>
+      <h3><a href="https://aynsomemanor.com/">Aynsome Manor</a></h3>
+      <div class="kind">5-star Georgian manor B&amp;B · ¾ mi north</div>
+      <p class="blurb">
+        Five-star Georgian B&amp;B in open meadowland three-quarters of a mile from the village
+        <sup><a href="https://aynsomemanor.com/">[14]</a></sup>.
+        Locally-sourced "Cartmel breakfast," evening turndown, and — the kicker —
+        <strong style="color:var(--rust-dim)">a complimentary chauffeur service</strong> for the local area.
+      </p>
+      <p class="annot">★ the strongest pick if you don't want to walk Cartmel Lane after wine pairings. Aynsome drives you to L'Enclume's door.</p>
+    </article>
+
+    <!-- 7 -->
+    <article class="pin-card">
+      <div class="pin-num">7</div>
+      <div class="walk">15–30 min</div>
+      <div class="photo placeholder">~ family-run country inn ~<br>two acres of garden<div class="scribble"></div></div>
+      <h3><a href="https://www.uplandscartmel.co.uk/">Uplands Inn</a></h3>
+      <div class="kind">Independent country inn · 8 rooms · between Cartmel &amp; Grange</div>
+      <p class="blurb">
+        Eight bedrooms in a family-run independent inn in two acres of gardens, with on-site restaurant and Cask-Marque-accredited real ale
+        <sup><a href="https://www.uplandscartmel.co.uk/">[16]</a></sup>.
+        Walk is 15–30 min depending on pace
+        <sup><a href="https://www.booking.com/hotel/gb/uplands-cumbria.en-gb.html">[17]</a></sup>.
+      </p>
+      <p class="annot">→ fine in daylight, less appealing post-tasting in the rain. Take a taxi back.</p>
+    </article>
+
+  </div>
+
+  <!-- ============= BEYOND WALKING DISTANCE ============= -->
+  <div class="beyond">
+    <strong>~ off the edge of the map ~</strong>
+    <a href="https://guide.michelin.com/gb/en/cumbria/newton-in-cartmel/restaurant/heft">Heft, Inn + Restaurant</a> in High Newton is a Michelin-starred 17th-century inn with five rooms, run by Kevin Tickle — eight years a sous chef under Rogan at L'Enclume before opening Heft
+    <sup><a href="https://guide.michelin.com/gb/en/cumbria/newton-in-cartmel/restaurant/heft">[19]</a></sup>
+    <sup><a href="https://kentsbankholiday.co.uk/heft-inn-a-michelin-starred-gem/">[20]</a></sup>.
+    A ~5-mile drive — not walkable, but relevant if "Michelin star with your bed" is the actual brief and L'Enclume's own rooms are gone.
+  </div>
+
+  <!-- ============= PRACTICAL NOTES ============= -->
+  <div class="notes">
+    <div class="notes-block">
+      <h3>For a Saturday-evening table</h3>
+      <ul>
+        <li>Book the room <em>and</em> the dinner together via L'Enclume whenever possible — the only way to guarantee the Saturday table without separately fighting for restaurant-only seats <sup><a href="https://www.lenclume.co.uk/stay">[1]</a></sup>.</li>
+        <li>The DB&amp;B Package (sparkling wine + 15-course tasting + bed + breakfast) is Tue–Fri only. Saturdays bill room and dinner separately <sup><a href="https://www.straysleepeat.com/blog/lenclume-cartmel">[4]</a></sup>.</li>
+        <li>Every option above includes breakfast — but only L'Enclume's room rate sends you to a <em>separate</em> Michelin-starred restaurant (Rogan &amp; Co) for it <sup><a href="https://www.lenclume.co.uk/stay">[1]</a></sup>.</li>
+      </ul>
+    </div>
+    <div class="notes-block aside">
+      <h3>Arriving</h3>
+      <ul>
+        <li>No rail station in Cartmel. Nearest are <strong>Cark-in-Cartmel</strong> (2 mi) and <strong>Grange-over-Sands</strong> (3 mi) <sup><a href="https://www.visitlakedistrict.com/food-and-drink/lenclume-p1211551">[18]</a></sup>.</li>
+        <li>Most lodgings will arrange a taxi. Aynsome Manor includes a chauffeur outright <sup><a href="https://aynsomemanor.com/">[14]</a></sup>.</li>
+        <li>L'Enclume sits at Cavendish Street, LA11 6QA — the village core, three streets and a square.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============= REEL: SIBLINGS + SOURCES ============= -->
+  <div class="reel">
+    <h3>~ neighbouring chapters of this expedition ~</h3>
+    <div class="siblings">
+      <a class="sibling" href="../../">
+        <div class="depth">↑ parent · expedition</div>
+        <div class="stitle">A Cartmel weekend around dinner at L'Enclume</div>
+        <div class="ssum">The whole trip plan: walking beds, taxi-range characterful alternatives, and 30 km of Lake District.</div>
+      </a>
+      <a class="sibling" href="../../special-character-lodging-within-taxi-range-of-l-enclume/">
+        <div class="depth">→ sibling · survey</div>
+        <div class="stitle">Special-character lodging within taxi range</div>
+        <div class="ssum">Eleven characterful places — including a Rogan-run country house above Windermere — ranked by taxi minutes back to Cartmel.</div>
+      </a>
+      <a class="sibling" href="../../day-trips-and-activities-within-30-km-of-l-enclume/">
+        <div class="depth">→ sibling · expedition</div>
+        <div class="stitle">Day-trips and activities within 30 km</div>
+        <div class="ssum">What to do around Cartmel — village walks, Windermere &amp; Coniston, Ruskin, Beatrix Potter, fells, Morecambe Bay.</div>
+      </a>
+      <a class="sibling" href="../../it-conferences-and-tech-events-within-30-km-of-l-enclume/">
+        <div class="depth">→ sibling · survey</div>
+        <div class="stitle">IT conferences and tech events within 30 km</div>
+        <div class="ssum">Lancaster is the only real cluster — pair a Saturday at L'Enclume with BMVC, SecureComm, or the Dec 3 IET talk.</div>
+      </a>
+    </div>
+
+    <h3>~ the sources, in full ~</h3>
+    <div class="sources-strip">
+      [1] <a href="https://www.lenclume.co.uk/stay">L'Enclume — Stay</a><br>
+      [2] <a href="https://www.lenclume.co.uk/our-rooms">L'Enclume — Our Rooms</a><br>
+      [3] <a href="https://www.visitlakedistrict.com/accommodation/our-rooms-by-lenclume-p1839711">Visit Lake District — Our Rooms by L'Enclume</a><br>
+      [4] <a href="https://www.straysleepeat.com/blog/lenclume-cartmel">Stray Sleep Eat — L'Enclume</a><br>
+      [5] <a href="https://finest.co.uk/finest-directory/stay-at-lenclume/">Finest — Stay at L'Enclume</a><br>
+      [6] <a href="https://www.thehotelguru.com/hotel/lenclume-cumbria">The Hotel Guru — L'Enclume</a><br>
+      [7] <a href="https://www.tripadvisor.co.uk/HotelsNear-g499539-d270004-L_Enclume-Cartmel_Grange_over_Sands_Lake_District_Cumbria_England.html">Tripadvisor — Hotels near L'Enclume</a><br>
+      [8] <a href="https://www.coolplaces.co.uk/hotels/uk/england/north-west-england/cumbria/cartmel/10681-the-cavendish-arms">Cool Places — Cavendish Arms</a><br>
+      [9] <a href="https://stayinapub.co.uk/the-cavendish-arms-cartmel-grange-over-sands-cumbria/">Stay in a Pub — Cavendish Arms</a><br>
+      [10] <a href="https://kingsarmscartmel.pub/">Kings Arms (official)</a><br>
+      [11] <a href="https://www.thelakedistrict.org/food-drink/pubs/the-royal-oak-inn-cartmel/">The Lake District — Royal Oak</a><br>
+      [12] <a href="https://cartmeloldgrammar.co.uk/">Cartmel Old Grammar (official)</a><br>
+      [13] <a href="https://www.expedia.co.uk/Grange-Over-Sands-Hotels-Cartmel-Old-Grammar.h113627672.Hotel-Information">Expedia — Cartmel Old Grammar</a><br>
+      [14] <a href="https://aynsomemanor.com/">Aynsome Manor (official)</a><br>
+      [15] <a href="https://aynsome-manor.hotels-lake-district.com/en/">Aynsome — Hotels Lake District</a><br>
+      [16] <a href="https://www.uplandscartmel.co.uk/">Uplands Inn (official)</a><br>
+      [17] <a href="https://www.booking.com/hotel/gb/uplands-cumbria.en-gb.html">Booking.com — Uplands Inn</a><br>
+      [18] <a href="https://www.visitlakedistrict.com/food-and-drink/lenclume-p1211551">Visit Lake District — L'Enclume</a><br>
+      [19] <a href="https://guide.michelin.com/gb/en/cumbria/newton-in-cartmel/restaurant/heft">Michelin Guide — Heft</a><br>
+      [20] <a href="https://kentsbankholiday.co.uk/heft-inn-a-michelin-starred-gem/">Kents Bank Holiday — Heft Inn</a><br>
+    </div>
+
+    <div class="colophon">
+      <a href="../">Drawn from the canonical research</a>  ·  <a href="/">Atlas</a>  ·  est. 2026
+    </div>
+  </div>
+
+</div>
