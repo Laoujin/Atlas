@@ -1,0 +1,6 @@
+Wellness and thermal spa experiences within 30 km of Bad Ragaz (Tamina Therme, Old Bath Pfäfers, Tamina Gorge)
+Hiking and mountain activities for a weekend trip in late spring (Pizol 5-Lake Hike, Heidi-Weg, Flumserberg)
+Liechtenstein day trip from Bad Ragaz (Vaduz Castle, Kunstmuseum, Hofkellerei wine, hiking)
+Heidi-themed and family attractions (Heididorf Maienfeld, Heidiland, Heidi train)
+Wine and gastronomy in the Bündner Herrschaft (Maienfeld, Jenins, Malans Pinot Noir wineries)
+Historic towns and cultural sites (Chur, Werdenberg, Sargans Castle)
