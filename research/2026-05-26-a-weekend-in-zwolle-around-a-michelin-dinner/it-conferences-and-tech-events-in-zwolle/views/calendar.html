@@ -1,0 +1,828 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events in Zwolle — Calendar"
+---
+
+<style>
+  .cal-wall {
+    --paper: #f6efdc;
+    --paper-shade: #ece2c4;
+    --ink: #221b14;
+    --ink-soft: #5b4e3e;
+    --rule: #d6c79b;
+    --weekend: #ebe2c2;
+    --tape: rgba(220, 200, 120, .78);
+    --spz: #c0392b;
+    --proto: #d35400;
+    --windesheim: #2f7a3a;
+    --devpulse: #1c4d8a;
+    --devsessions: #117a72;
+    --past: #8a8273;
+    --wall-bg: #2d2620;
+    background: var(--wall-bg);
+    color: var(--ink);
+    font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 2.5rem 1.25rem 4rem;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      radial-gradient(rgba(0,0,0,.18) 1px, transparent 1px);
+    background-size: 4px 4px, 9px 9px;
+    background-position: 0 0, 2px 2px;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Caveat:wght@500;700&family=Permanent+Marker&family=DM+Mono:wght@400;500&family=Source+Sans+3:wght@400;600;700&display=swap');
+
+  .cal-wall * { box-sizing: border-box; }
+
+  .cal-sheet {
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(120,90,40,.025) 0, rgba(120,90,40,.025) 1px, transparent 1px, transparent 4px),
+      radial-gradient(ellipse at top right, rgba(120,90,40,.08), transparent 60%);
+    color: var(--ink);
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 3.5rem 2.5rem 3rem;
+    position: relative;
+    box-shadow: 0 18px 50px rgba(0,0,0,.45), 0 4px 12px rgba(0,0,0,.25);
+    transform: rotate(-.25deg);
+    border-radius: 2px;
+  }
+
+  /* Masking tape pinning the calendar to the wall */
+  .tape {
+    position: absolute;
+    width: 130px;
+    height: 28px;
+    background: var(--tape);
+    box-shadow: 0 1px 2px rgba(0,0,0,.25);
+    z-index: 3;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 6px, transparent 6px 12px);
+  }
+  .tape.tl { top: -14px; left: 80px; transform: rotate(-6deg); }
+  .tape.tr { top: -14px; right: 80px; transform: rotate(5deg); }
+
+  .cal-masthead {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2rem;
+    align-items: end;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .cal-masthead .kicker {
+    font-family: "DM Mono", monospace;
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 .35rem;
+  }
+  .cal-masthead h1 {
+    font-family: "Fraunces", "Times New Roman", serif;
+    font-weight: 900;
+    font-size: clamp(3rem, 7vw, 5.6rem);
+    line-height: .9;
+    letter-spacing: -.02em;
+    margin: 0;
+    color: var(--ink);
+  }
+  .cal-masthead h1 .year {
+    font-weight: 500;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-left: .35em;
+  }
+  .cal-masthead .lede {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 38ch;
+  }
+
+  .cal-masthead .meta-row {
+    font-family: "DM Mono", monospace;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    border-top: 1px dashed var(--rule);
+    padding-top: .75rem;
+    margin-top: 1rem;
+  }
+  .cal-masthead .meta-row b { color: var(--ink); }
+
+  /* Sticky note */
+  .sticky {
+    position: absolute;
+    background: linear-gradient(170deg, #fff2a8, #ffe97b);
+    color: #3b2e0e;
+    padding: 1.1rem 1.15rem 1.25rem;
+    width: 270px;
+    box-shadow: 2px 5px 14px rgba(0,0,0,.32);
+    transform: rotate(2.5deg);
+    z-index: 4;
+    font-family: "Caveat", cursive;
+    line-height: 1.18;
+    top: 1.5rem;
+    right: 1.5rem;
+  }
+  .sticky::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle at 35% 35%, #f25d3a, #a3261a 70%);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 3px rgba(0,0,0,.4);
+  }
+  .sticky h3 {
+    font-family: "Permanent Marker", cursive;
+    font-weight: 400;
+    font-size: 1.1rem;
+    margin: 0 0 .35rem;
+    letter-spacing: .03em;
+    color: #6e1f12;
+    text-transform: uppercase;
+  }
+  .sticky p { margin: 0; font-size: 1.32rem; }
+  .sticky .underline {
+    background: linear-gradient(transparent 70%, rgba(192,57,43,.35) 70%);
+    padding: 0 2px;
+  }
+  .sticky a { color: #6e1f12; text-decoration: underline; }
+
+  /* Hero strip with venue photo */
+  .hero-strip {
+    height: 110px;
+    margin: -.5rem 0 1.75rem;
+    background-size: cover;
+    background-position: center 60%;
+    border: 1px solid rgba(0,0,0,.15);
+    box-shadow: inset 0 0 0 4px var(--paper), 0 2px 8px rgba(0,0,0,.18);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-strip .caption {
+    position: absolute;
+    bottom: 8px;
+    left: 14px;
+    background: rgba(34,27,20,.78);
+    color: #f6efdc;
+    font-family: "DM Mono", monospace;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+  }
+
+  /* The grid */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    gap: 1px;
+  }
+  .dow {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: "DM Mono", monospace;
+    font-size: .78rem;
+    letter-spacing: .2em;
+    padding: .55rem .6rem;
+    text-transform: uppercase;
+  }
+  .dow.we { color: #f3b6a8; }
+
+  .day {
+    background: var(--paper);
+    min-height: 130px;
+    padding: .45rem .5rem .5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .day.weekend { background: var(--weekend); }
+  .day.outside { background: repeating-linear-gradient(45deg, #e6dcbc, #e6dcbc 6px, #ddd1ad 6px, #ddd1ad 12px); }
+  .day.outside .num { color: var(--ink-soft); opacity: .45; }
+  .num {
+    font-family: "Fraunces", serif;
+    font-weight: 700;
+    font-size: 1.55rem;
+    line-height: 1;
+    color: var(--ink);
+    align-self: flex-end;
+    letter-spacing: -.02em;
+  }
+  .day.event .num { color: var(--ink); }
+
+  .chip {
+    display: block;
+    margin-top: .25rem;
+    font-family: "DM Mono", monospace;
+    font-size: .65rem;
+    letter-spacing: .04em;
+    line-height: 1.18;
+    padding: .25rem .35rem .3rem;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 1px 0 rgba(0,0,0,.25);
+    border-radius: 1px;
+    font-weight: 500;
+  }
+  .chip:hover { filter: brightness(1.06); }
+  .chip b { font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .58rem; display: block; }
+  .chip.spz { background: var(--spz); }
+  .chip.proto { background: var(--proto); }
+  .chip.win { background: var(--windesheim); }
+  .chip.devpulse { background: var(--devpulse); }
+  .chip.devsess { background: var(--devsessions); }
+
+  /* Marker scribble on hot day */
+  .day.hotspot::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 2px solid var(--spz);
+    border-radius: 60% 40% 50% 50% / 50% 60% 40% 50%;
+    pointer-events: none;
+    opacity: .55;
+  }
+  .day.hotspot::after {
+    content: "★";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 28px;
+    height: 28px;
+    background: var(--spz);
+    color: #fff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,.3);
+    transform: rotate(-8deg);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem 1.6rem;
+    align-items: center;
+    margin-top: 1.25rem;
+    font-family: "DM Mono", monospace;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--rule);
+    padding-top: 1rem;
+  }
+  .legend .item { display: flex; align-items: center; gap: .55rem; }
+  .legend .sw { width: 14px; height: 14px; border-radius: 2px; box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+  .legend .sw.spz { background: var(--spz); }
+  .legend .sw.proto { background: var(--proto); }
+  .legend .sw.win { background: var(--windesheim); }
+  .legend .sw.devpulse { background: var(--devpulse); }
+  .legend .sw.devsess { background: var(--devsessions); }
+  .legend .sw.weekend { background: var(--weekend); border: 1px solid var(--ink); }
+  .legend .sw.outside { background: repeating-linear-gradient(45deg, #e6dcbc, #e6dcbc 4px, #ddd1ad 4px, #ddd1ad 8px); }
+
+  /* Section header */
+  .section-h {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin: 3rem 0 1.25rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: .5rem;
+  }
+  .section-h h2 {
+    font-family: "Fraunces", serif;
+    font-weight: 900;
+    font-size: 1.85rem;
+    margin: 0;
+    letter-spacing: -.01em;
+  }
+  .section-h .marker {
+    font-family: "Caveat", cursive;
+    font-size: 1.4rem;
+    color: var(--spz);
+    transform: rotate(-3deg);
+  }
+
+  /* Mini-month strips */
+  .mini-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .mini {
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    padding: 1rem 1rem 1.1rem;
+    position: relative;
+    transform: rotate(.4deg);
+  }
+  .mini:nth-child(2) { transform: rotate(-.5deg); }
+  .mini .mhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: .4rem;
+    margin-bottom: .5rem;
+  }
+  .mini .mhead h3 {
+    font-family: "Fraunces", serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin: 0;
+    letter-spacing: -.01em;
+  }
+  .mini .mhead .sub {
+    font-family: "Caveat", cursive;
+    font-size: 1.05rem;
+    color: var(--devpulse);
+  }
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .mini-grid .mdow {
+    font-family: "DM Mono", monospace;
+    font-size: .58rem;
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 2px 0;
+    letter-spacing: .08em;
+  }
+  .mini-grid .mday {
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+    font-family: "DM Mono", monospace;
+    font-size: .78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border-radius: 2px;
+  }
+  .mini-grid .mday.we { background: var(--weekend); }
+  .mini-grid .mday.out { color: transparent; }
+  .mini-grid .mday.star {
+    background: var(--devpulse);
+    color: #fff;
+    font-weight: 700;
+    position: relative;
+    box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--devpulse);
+  }
+  .mini-grid .mday.star::after {
+    content: "★";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: .7rem;
+    color: var(--devpulse);
+  }
+  .mini .note {
+    margin-top: .8rem;
+    font-family: "Caveat", cursive;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .mini .note a { color: var(--devpulse); text-decoration: underline; }
+
+  /* Recurring meetups row — flipbook cards */
+  .recurring-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+  .meetup-card {
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    padding: 1.1rem 1.15rem 1.25rem;
+    position: relative;
+  }
+  .meetup-card .corner-tape {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    width: 70px;
+    height: 22px;
+    background: var(--tape);
+    transform: rotate(-3deg);
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 6px, transparent 6px 12px);
+    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  }
+  .meetup-card h4 {
+    font-family: "Fraunces", serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: .25rem 0 .4rem;
+    letter-spacing: -.01em;
+  }
+  .meetup-card h4 a { color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--rule); }
+  .meetup-card h4 a:hover { border-bottom-color: var(--ink); }
+  .meetup-card .spec {
+    font-family: "DM Mono", monospace;
+    font-size: .68rem;
+    letter-spacing: .04em;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 .6rem;
+  }
+  .meetup-card .spec b { color: var(--ink); }
+  .meetup-card .blurb {
+    font-size: .85rem;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .meetup-card .badge {
+    display: inline-block;
+    font-family: "DM Mono", monospace;
+    font-size: .6rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    color: #fff;
+    margin-right: .35rem;
+  }
+  .meetup-card .badge.devpulse { background: var(--devpulse); }
+  .meetup-card .badge.devsess { background: var(--devsessions); }
+  .meetup-card .badge.itcafe { background: #6c4a2a; }
+
+  /* Venue cards */
+  .venue-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+  .venue {
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    overflow: hidden;
+    position: relative;
+  }
+  .venue .photo {
+    height: 130px;
+    background-size: cover;
+    background-position: center;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .venue .body { padding: .9rem 1rem 1rem; }
+  .venue h4 {
+    font-family: "Fraunces", serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin: 0 0 .25rem;
+    letter-spacing: -.01em;
+  }
+  .venue h4 a { color: var(--ink); text-decoration: none; border-bottom: 1.5px solid var(--rule); }
+  .venue .addr {
+    font-family: "DM Mono", monospace;
+    font-size: .66rem;
+    letter-spacing: .04em;
+    color: var(--ink-soft);
+    margin: 0 0 .55rem;
+  }
+  .venue p { font-size: .85rem; line-height: 1.45; color: var(--ink); margin: 0; }
+  .venue .stamp {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: "Permanent Marker", cursive;
+    color: var(--spz);
+    background: rgba(246, 239, 220, .85);
+    border: 2px solid var(--spz);
+    padding: 2px 8px;
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transform: rotate(-6deg);
+  }
+
+  /* Reality check footer band */
+  .reality {
+    background: var(--ink);
+    color: var(--paper);
+    margin: 3rem -2.5rem -3rem;
+    padding: 2rem 2.5rem 2.25rem;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+  .reality h2 {
+    font-family: "Fraunces", serif;
+    font-weight: 900;
+    font-size: 1.6rem;
+    margin: 0 0 .5rem;
+    color: var(--paper);
+    letter-spacing: -.01em;
+  }
+  .reality p { margin: 0; font-size: .95rem; line-height: 1.55; color: rgba(246,239,220,.88); }
+  .reality .train {
+    font-family: "Permanent Marker", cursive;
+    font-size: 1.3rem;
+    color: #f3b6a8;
+    border: 2px dashed #f3b6a8;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    transform: rotate(-1deg);
+  }
+  .reality .train .km { font-size: 2.4rem; font-family: "Fraunces", serif; font-weight: 900; display: block; line-height: 1; }
+  .reality .train .lbl { font-family: "DM Mono", monospace; font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; color: var(--paper); display: block; margin-top: .3rem; }
+  .reality a { color: #f3b6a8; }
+
+  .citation { font-size: .75em; }
+  .citation a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+
+  @media (max-width: 800px) {
+    .cal-masthead { grid-template-columns: 1fr; }
+    .sticky { position: relative; top: auto; right: auto; margin: 0 auto 1.5rem; transform: rotate(-1.5deg); }
+    .cal-sheet { padding: 2.5rem 1rem 2rem; }
+    .day { min-height: 95px; }
+    .num { font-size: 1.1rem; }
+    .chip { font-size: .56rem; }
+    .mini-row, .recurring-row, .venue-row { grid-template-columns: 1fr; }
+    .reality { grid-template-columns: 1fr; margin: 2rem -1rem -2rem; padding: 1.75rem 1.25rem; }
+    .tape { display: none; }
+  }
+</style>
+
+<div class="cal-wall">
+  <div class="cal-sheet">
+    <span class="tape tl"></span>
+    <span class="tape tr"></span>
+
+    <div class="sticky">
+      <h3>TL;DR</h3>
+      <p>No flagship IT conference in Zwolle. <span class="underline">Aim for <b>Thu Jun 11</b></span> — two events at Hanzelaan 95B in one afternoon. Otherwise, <a href="https://www.meetup.com/dev-pulse/">DevPulse</a> Thursdays Sep 3 / Dec 3 or the train to <a href="https://devworldconference.com/">Amsterdam</a>.</p>
+    </div>
+
+    <header class="cal-masthead">
+      <div>
+        <p class="kicker">Zwolle Tech Calendar · Spoorzone Thursdays</p>
+        <h1>JUNE<span class="year">'26</span></h1>
+        <div class="meta-row">
+          <span><b>4</b> knowledge events</span>
+          <span><b>1</b> student showcase</span>
+          <span>cluster: <b>Hanzelaan 95B</b></span>
+          <span>cost: <b>€0 – €100</b></span>
+        </div>
+      </div>
+      <p class="lede">Zwolle has no big-tent IT conference — but Spoorzone runs a cluster of four knowledge events between Jun 2 and Jun 17, and Windesheim drops its HBO-ICT student showcase right in the middle. Pin the dates; rotate a weekend in Zwolle around them.</p>
+    </header>
+
+    <div class="hero-strip" style="background-image: linear-gradient(rgba(34,27,20,.25), rgba(34,27,20,.05)), url('calendar/images/perron038.jpg');">
+      <span class="caption">Perron038 · Hanzelaan 95B · the cluster's home</span>
+    </div>
+
+    <div class="cal-grid" aria-label="June 2026">
+      <div class="dow">Mon</div>
+      <div class="dow">Tue</div>
+      <div class="dow">Wed</div>
+      <div class="dow">Thu</div>
+      <div class="dow">Fri</div>
+      <div class="dow we">Sat</div>
+      <div class="dow we">Sun</div>
+
+      <!-- Week 1: Jun 1-7 -->
+      <div class="day"><span class="num">1</span></div>
+      <div class="day event">
+        <span class="num">2</span>
+        <a class="chip spz" href="https://www.spoorzonezwolle.nl/evenementen">
+          <b>Demodag</b>Perron038<br>13:00 · free
+        </a>
+      </div>
+      <div class="day"><span class="num">3</span></div>
+      <div class="day"><span class="num">4</span></div>
+      <div class="day event">
+        <span class="num">5</span>
+        <a class="chip spz" href="https://www.spoorzonezwolle.nl/evenementen">
+          <b>IAMM</b>3D-metaalprintdag<br>09:30 · paid
+        </a>
+      </div>
+      <div class="day weekend"><span class="num">6</span></div>
+      <div class="day weekend"><span class="num">7</span></div>
+
+      <!-- Week 2: Jun 8-14 -->
+      <div class="day"><span class="num">8</span></div>
+      <div class="day"><span class="num">9</span></div>
+      <div class="day"><span class="num">10</span></div>
+      <div class="day event hotspot">
+        <span class="num">11</span>
+        <a class="chip win" href="https://hboict.samenwerkenmetwindesheim.nl/events/winnovation/">
+          <b>Winnovation</b>HBO-ICT showcase<br>Windesheim · free
+        </a>
+        <a class="chip proto" href="https://innovationday.protozwolle.nl/spoorzone-zwolle/">
+          <b>Innovation Day</b>PROTO · €100<br>13:00 · Hanzelaan 95B
+        </a>
+      </div>
+      <div class="day"><span class="num">12</span></div>
+      <div class="day weekend"><span class="num">13</span></div>
+      <div class="day weekend"><span class="num">14</span></div>
+
+      <!-- Week 3: Jun 15-21 -->
+      <div class="day"><span class="num">15</span></div>
+      <div class="day"><span class="num">16</span></div>
+      <div class="day event">
+        <span class="num">17</span>
+        <a class="chip spz" href="https://www.spoorzonezwolle.nl/evenementen">
+          <b>Boost Summit</b>Industry in Motion<br>13:00 · paid
+        </a>
+      </div>
+      <div class="day"><span class="num">18</span></div>
+      <div class="day"><span class="num">19</span></div>
+      <div class="day weekend"><span class="num">20</span></div>
+      <div class="day weekend"><span class="num">21</span></div>
+
+      <!-- Week 4: Jun 22-28 -->
+      <div class="day"><span class="num">22</span></div>
+      <div class="day"><span class="num">23</span></div>
+      <div class="day"><span class="num">24</span></div>
+      <div class="day"><span class="num">25</span></div>
+      <div class="day"><span class="num">26</span></div>
+      <div class="day weekend"><span class="num">27</span></div>
+      <div class="day weekend"><span class="num">28</span></div>
+
+      <!-- Week 5: Jun 29-30 + spillover Jul 1-5 -->
+      <div class="day"><span class="num">29</span></div>
+      <div class="day"><span class="num">30</span></div>
+      <div class="day outside"><span class="num">1</span></div>
+      <div class="day outside"><span class="num">2</span></div>
+      <div class="day outside"><span class="num">3</span></div>
+      <div class="day outside weekend"><span class="num">4</span></div>
+      <div class="day outside weekend"><span class="num">5</span></div>
+    </div>
+
+    <div class="legend">
+      <span class="item"><span class="sw spz"></span><a href="https://www.spoorzonezwolle.nl/evenementen" style="color: inherit; text-decoration: none;">Spoorzone knowledge events</a></span>
+      <span class="item"><span class="sw proto"></span><a href="https://innovationday.protozwolle.nl/spoorzone-zwolle/" style="color: inherit; text-decoration: none;">PROTO Innovation Day</a></span>
+      <span class="item"><span class="sw win"></span><a href="https://www.windesheim.nl/agenda/2026/januari/winnovation" style="color: inherit; text-decoration: none;">Winnovation (Windesheim)</a></span>
+      <span class="item"><span class="sw devpulse"></span><a href="https://www.meetup.com/dev-pulse/" style="color: inherit; text-decoration: none;">DevPulse Zwolle</a></span>
+      <span class="item"><span class="sw devsess"></span><a href="https://www.meetup.com/nl-nl/webdevzwolle/" style="color: inherit; text-decoration: none;">DevSessions Zwolle</a></span>
+      <span class="item"><span class="sw weekend"></span>weekend</span>
+      <span class="item"><span class="sw outside"></span>next month spillover</span>
+    </div>
+
+    <!-- Other dates worth marking -->
+    <div class="section-h">
+      <h2>Other Thursdays worth marking</h2>
+      <span class="marker">↳ flip to Sep & Dec</span>
+    </div>
+
+    <div class="mini-row">
+      <div class="mini">
+        <div class="mhead">
+          <h3>September 2026</h3>
+          <span class="sub">DevPulse #6 · Sep 3</span>
+        </div>
+        <div class="mini-grid">
+          <span class="mdow">M</span><span class="mdow">T</span><span class="mdow">W</span><span class="mdow">T</span><span class="mdow">F</span><span class="mdow">S</span><span class="mdow">S</span>
+          <!-- Sep 2026 starts Tue Sep 1 -->
+          <span class="mday out">0</span>
+          <span class="mday">1</span>
+          <span class="mday">2</span>
+          <span class="mday star">3</span>
+          <span class="mday">4</span>
+          <span class="mday we">5</span>
+          <span class="mday we">6</span>
+          <span class="mday">7</span><span class="mday">8</span><span class="mday">9</span><span class="mday">10</span><span class="mday">11</span><span class="mday we">12</span><span class="mday we">13</span>
+          <span class="mday">14</span><span class="mday">15</span><span class="mday">16</span><span class="mday">17</span><span class="mday">18</span><span class="mday we">19</span><span class="mday we">20</span>
+          <span class="mday">21</span><span class="mday">22</span><span class="mday">23</span><span class="mday">24</span><span class="mday">25</span><span class="mday we">26</span><span class="mday we">27</span>
+          <span class="mday">28</span><span class="mday">29</span><span class="mday">30</span><span class="mday out">0</span><span class="mday out">0</span><span class="mday out we">0</span><span class="mday out we">0</span>
+        </div>
+        <p class="note"><a href="https://www.meetup.com/dev-pulse/">DevPulse #6</a> — Frontier Experience, 18:00, free w/ dinner, <a href="https://zwinc.nl/">De Makersfabriek</a>.</p>
+      </div>
+
+      <div class="mini">
+        <div class="mhead">
+          <h3>December 2026</h3>
+          <span class="sub">DevPulse #7 · Dec 3</span>
+        </div>
+        <div class="mini-grid">
+          <span class="mdow">M</span><span class="mdow">T</span><span class="mdow">W</span><span class="mdow">T</span><span class="mdow">F</span><span class="mdow">S</span><span class="mdow">S</span>
+          <!-- Dec 2026 starts Tue Dec 1 -->
+          <span class="mday out">0</span>
+          <span class="mday">1</span>
+          <span class="mday">2</span>
+          <span class="mday star">3</span>
+          <span class="mday">4</span>
+          <span class="mday we">5</span>
+          <span class="mday we">6</span>
+          <span class="mday">7</span><span class="mday">8</span><span class="mday">9</span><span class="mday">10</span><span class="mday">11</span><span class="mday we">12</span><span class="mday we">13</span>
+          <span class="mday">14</span><span class="mday">15</span><span class="mday">16</span><span class="mday">17</span><span class="mday">18</span><span class="mday we">19</span><span class="mday we">20</span>
+          <span class="mday">21</span><span class="mday">22</span><span class="mday">23</span><span class="mday">24</span><span class="mday">25</span><span class="mday we">26</span><span class="mday we">27</span>
+          <span class="mday">28</span><span class="mday">29</span><span class="mday">30</span><span class="mday">31</span><span class="mday out">0</span><span class="mday out we">0</span><span class="mday out we">0</span>
+        </div>
+        <p class="note"><a href="https://www.meetup.com/dev-pulse/">DevPulse #7</a> — winter edition, 18:00, free w/ dinner, <a href="https://zwinc.nl/">De Makersfabriek</a>.</p>
+      </div>
+    </div>
+
+    <!-- Recurring meetups -->
+    <div class="section-h">
+      <h2>The recurring ones (no fixed date)</h2>
+      <span class="marker">free, after-work</span>
+    </div>
+
+    <div class="recurring-row">
+      <div class="meetup-card">
+        <span class="corner-tape"></span>
+        <span class="badge devpulse">Quarterly</span>
+        <h4><a href="https://www.meetup.com/dev-pulse/">DevPulse Zwolle</a></h4>
+        <p class="spec"><b>652</b> members · <b>Thu</b> 18:00 · <b>free</b> w/ dinner<br>De Makersfabriek, Ceintuurbaan 15</p>
+        <p class="blurb">Developer-heavy. Recent #5 covered serverless event-driven ticketing on AWS and European cloud sovereignty on Kubernetes. Hosted by <a href="https://zwinc.nl/events/devpulse-5">CloudProud</a>, backed by <a href="https://zwinc.nl/">ZWINC</a> and <a href="https://www.digitaldistrictzwolle.nl/">Digital District Zwolle</a>. <span class="citation"><sup><a href="https://www.meetup.com/dev-pulse/">[2]</a><a href="https://zwinc.nl/events/devpulse-5">[3]</a></sup></span></p>
+      </div>
+
+      <div class="meetup-card">
+        <span class="corner-tape"></span>
+        <span class="badge devsess">Monthly-ish</span>
+        <h4><a href="https://www.meetup.com/nl-nl/webdevzwolle/">DevSessions Zwolle</a></h4>
+        <p class="spec"><b>967</b> members · rolling dates<br>Mac3Park Stadion (PEC Zwolle); also <a href="https://arcady.nl/over-ons">Arcady</a></p>
+        <p class="blurb">Formerly WebDev Zwolle, rebranded 2026. Wider net: Tech / UX / Agile / AI. Powered by <a href="https://arcady.nl/over-ons">Arcady</a>, the local software consultancy at Burgemeester Roelenweg 13K. <span class="citation"><sup><a href="https://www.meetup.com/nl-nl/webdevzwolle/">[1]</a><a href="https://arcady.nl/over-ons">[9]</a></sup></span></p>
+      </div>
+
+      <div class="meetup-card">
+        <span class="corner-tape"></span>
+        <span class="badge itcafe">Monthly</span>
+        <h4><a href="https://www.regiozwolleitplatform.nl/home">IT Café</a></h4>
+        <p class="spec">via <a href="https://www.regiozwolleitplatform.nl/home">Regio Zwolle IT Platform</a><br>Rotates among regional IT companies</p>
+        <p class="blurb">Networking + IT-developments talks. The regional platform aggregates jobs, events and orgs across Overijssel; live since Jan 2019. Companion to the <a href="https://www.digitaldistrictzwolle.nl/">Digital District Zwolle</a> umbrella (100+ orgs). <span class="citation"><sup><a href="https://www.regiozwolleitplatform.nl/home">[11]</a><a href="https://www.digitaldistrictzwolle.nl/">[10]</a></sup></span></p>
+      </div>
+    </div>
+
+    <!-- Venues -->
+    <div class="section-h">
+      <h2>The three places it happens</h2>
+      <span class="marker">pin these on the map</span>
+    </div>
+
+    <div class="venue-row">
+      <div class="venue">
+        <div class="photo" style="background-image: url('calendar/images/perron038.jpg');"></div>
+        <span class="stamp">cluster</span>
+        <div class="body">
+          <h4><a href="https://www.perron038.nl/">Perron038</a></h4>
+          <p class="addr">Hanzelaan 95B · Spoorzone</p>
+          <p>Open innovation centre — five themed labs: 3D metal printing, AI, vision/optics, robotics, data-driven manufacturing. Houses the four June knowledge events. <span class="citation"><sup><a href="https://www.perron038.nl/">[4]</a></sup></span></p>
+        </div>
+      </div>
+
+      <div class="venue">
+        <div class="photo" style="background-image: url('calendar/images/zwinc.jpg');"></div>
+        <span class="stamp" style="color: var(--devpulse); border-color: var(--devpulse);">devpulse</span>
+        <div class="body">
+          <h4><a href="https://zwinc.nl/">De Makersfabriek</a></h4>
+          <p class="addr">Ceintuurbaan 15 · ex-Philips factory</p>
+          <p>Home of <a href="https://zwinc.nl/">ZWINC</a> (Zwolle Incubator) — flex workspace €195/mo, €2,750 innovation budget, partnered with <a href="https://www.windesheim.nl/bedrijven-en-organisaties/samenwerkingen/zwinc">Windesheim</a>. DevPulse meets in the Ketelhuis hall. <span class="citation"><sup><a href="https://zwinc.nl/">[8]</a></sup></span></p>
+        </div>
+      </div>
+
+      <div class="venue">
+        <div class="photo" style="background-image: url('calendar/images/windesheim.jpg');"></div>
+        <span class="stamp" style="color: var(--windesheim); border-color: var(--windesheim);">winnovation</span>
+        <div class="body">
+          <h4><a href="https://www.windesheim.nl/agenda/2026/januari/winnovation">Windesheim · Campus 2</a></h4>
+          <p class="addr">Building X · HBO-ICT showcase</p>
+          <p><a href="https://www.windesheim.nl/agenda/2026/januari/winnovation">Winnovation</a> twice yearly — Jan 15 (past) and Jun 11. 3rd/4th-year students present Business / Dev / Games / Security / Smart projects. Free; small HBO-ICT contact-day calendar alongside. <span class="citation"><sup><a href="https://www.windesheim.nl/agenda/2026/januari/winnovation">[7]</a></sup></span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reality check footer -->
+    <div class="reality">
+      <div>
+        <h2>No DEVWorld in Zwolle.</h2>
+        <p>The conference-scale stuff — <a href="https://devworldconference.com/">DEVWorld</a>, GOTO, DevOpsDays — lives in Amsterdam, Utrecht, Rotterdam. Zwolle's strength is community-scale: the recurring meetup and the Spoorzone knowledge-event cluster. <span class="citation"><sup><a href="https://devworldconference.com/">[12]</a></sup></span> If you want a big-tent IT conference in your weekend, ride the train; if you want a free evening of talks with dinner included, time the trip to a DevPulse Thursday.</p>
+      </div>
+      <div class="train">
+        <span class="km">75'</span>
+        <span class="lbl">train to Amsterdam</span>
+      </div>
+    </div>
+  </div>
+</div>
