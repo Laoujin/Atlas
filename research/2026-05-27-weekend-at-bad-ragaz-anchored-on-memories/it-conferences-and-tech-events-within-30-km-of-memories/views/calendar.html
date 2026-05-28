@@ -1,0 +1,1230 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT and tech events within 30 km of Memories (Bad Ragaz) — Calendar"
+---
+
+<style>
+  .cal-wrap {
+    --paper: #faf6ee;
+    --paper-edge: #ede4d0;
+    --ink: #1a1815;
+    --ink-mute: #6b665d;
+    --ink-faint: #aaa49a;
+    --rule: #d8cfbb;
+    --li: #c2410c;      /* Liechtenstein — terracotta */
+    --li-soft: #fde2c8;
+    --sgr: #166534;     /* St. Galler Rheintal — forest */
+    --sgr-soft: #d0eedd;
+    --gr: #1e3a8a;      /* Graubünden — alpine blue */
+    --gr-soft: #d6dcf2;
+    --today: #b91c1c;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+  }
+  .cal-wrap a { color: inherit; }
+  .cal-wrap .mono { font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace; }
+
+  /* --- Masthead --- */
+  .cal-mast {
+    border-bottom: 1px solid var(--rule);
+    padding: 2.2rem clamp(1rem, 4vw, 3rem) 1.8rem;
+    background:
+      repeating-linear-gradient(0deg, transparent 0, transparent 31px, var(--paper-edge) 31px, var(--paper-edge) 32px),
+      var(--paper);
+  }
+  .cal-mast .kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: flex;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+  }
+  .cal-mast .kicker span::before {
+    content: "·";
+    margin-right: 1.4rem;
+    color: var(--ink-faint);
+  }
+  .cal-mast .kicker span:first-child::before { content: none; margin: 0; }
+  .cal-mast h1 {
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+    margin: 0 0 0.6rem;
+  }
+  .cal-mast h1 .year {
+    color: var(--ink-faint);
+    font-weight: 800;
+  }
+  .cal-mast .sub {
+    font-size: 1.05rem;
+    color: var(--ink-mute);
+    max-width: 60ch;
+    margin: 0 0 1.2rem;
+  }
+  .cal-mast .stats {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    margin-top: 1.4rem;
+  }
+  .cal-mast .stat {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    border-right: 1px solid var(--rule);
+  }
+  .cal-mast .stat:last-child { border-right: none; }
+  .cal-mast .stat .n {
+    font-family: "Inter", sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .cal-mast .stat .l {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 0.35rem;
+  }
+
+  /* --- Verdict --- */
+  .verdict {
+    padding: 1.8rem clamp(1rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 1.6rem;
+    align-items: start;
+  }
+  .verdict .stamp {
+    border: 2px solid var(--today);
+    color: var(--today);
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    padding: 0.4rem 0.65rem;
+    transform: rotate(-2deg);
+    text-transform: uppercase;
+    white-space: nowrap;
+    align-self: start;
+    margin-top: 0.4rem;
+  }
+  .verdict h2 {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+  }
+  .verdict h2 em {
+    font-style: normal;
+    background: linear-gradient(180deg, transparent 60%, #fde68a 60%);
+    padding: 0 4px;
+  }
+  .verdict p {
+    margin: 0;
+    color: var(--ink-mute);
+    font-size: 0.98rem;
+    max-width: 70ch;
+  }
+  .verdict sup a {
+    color: var(--ink-mute);
+    text-decoration: none;
+  }
+  .verdict sup a:hover { color: var(--today); }
+
+  /* --- Year strip --- */
+  .year-strip {
+    padding: 1.6rem clamp(1rem, 4vw, 3rem) 0;
+  }
+  .section-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .strip-track {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 4px;
+    margin-bottom: 0.4rem;
+  }
+  .strip-month {
+    position: relative;
+    height: 56px;
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .strip-month.empty { background: repeating-linear-gradient(135deg, white 0 4px, #f5efe1 4px 5px); }
+  .strip-month .mlabel {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 4px 5px 0;
+    line-height: 1;
+  }
+  .strip-month .mdots {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 2px 5px 5px;
+    flex-wrap: wrap;
+  }
+  .strip-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+  }
+  .strip-dot.li { background: var(--li); }
+  .strip-dot.sgr { background: var(--sgr); }
+  .strip-dot.gr { background: var(--gr); }
+  .strip-dot.past { opacity: 0.34; }
+  .strip-month.is-now {
+    border-color: var(--today);
+    box-shadow: 0 0 0 1px var(--today) inset;
+  }
+  .strip-month.is-now::after {
+    content: "NOW";
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    color: var(--today);
+    font-weight: 700;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    padding: 1rem 0 1.6rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+    border-bottom: 1px solid var(--rule);
+  }
+  .legend .li-key { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .legend .swatch {
+    width: 12px; height: 12px; border-radius: 2px; display: inline-block;
+  }
+  .legend .swatch.li { background: var(--li); }
+  .legend .swatch.sgr { background: var(--sgr); }
+  .legend .swatch.gr { background: var(--gr); }
+  .legend .swatch.past { background: #ccc; }
+  .legend .swatch.empty { background: repeating-linear-gradient(135deg, white 0 3px, #ddd 3px 4px); border: 1px solid var(--rule); }
+
+  /* --- 12-month grid --- */
+  .month-grid {
+    padding: 2rem clamp(1rem, 4vw, 3rem);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.4rem;
+    background: var(--paper);
+  }
+  @media (max-width: 1100px) { .month-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 800px) { .month-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .month-grid { grid-template-columns: 1fr; } }
+
+  .mc {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 1rem 1rem 0.9rem;
+    border-radius: 2px;
+    position: relative;
+    box-shadow: 0 1px 0 var(--paper-edge);
+  }
+  .mc.is-now { border-color: var(--today); }
+  .mc.empty { background: repeating-linear-gradient(135deg, white 0 6px, #f7f1e2 6px 7px); }
+  .mc-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+  }
+  .mc-name {
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+  }
+  .mc-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+  }
+  .day-strip {
+    display: grid;
+    grid-template-columns: repeat(31, 1fr);
+    gap: 1px;
+    height: 14px;
+    margin-bottom: 0.85rem;
+  }
+  .d {
+    background: #f0eadb;
+    border-radius: 1px;
+    position: relative;
+  }
+  .d.li { background: var(--li); }
+  .d.sgr { background: var(--sgr); }
+  .d.gr { background: var(--gr); }
+  .d.past { opacity: 0.4; }
+  .d.now {
+    background: var(--today);
+    box-shadow: 0 0 0 2px var(--today);
+  }
+  .d.now::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 1px dashed var(--today);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .mc-events { display: flex; flex-direction: column; gap: 0.55rem; }
+  .ev {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 0.6rem;
+    align-items: start;
+    font-size: 0.84rem;
+    line-height: 1.3;
+  }
+  .ev-date {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--ink);
+    text-align: right;
+    padding-top: 1px;
+  }
+  .ev.past .ev-date,
+  .ev.past .ev-name,
+  .ev.past .ev-meta {
+    color: var(--ink-faint);
+    text-decoration-color: var(--ink-faint);
+  }
+  .ev.past .ev-name { text-decoration: line-through; text-decoration-thickness: 1px; }
+  .ev-body {
+    border-left: 3px solid var(--rule);
+    padding-left: 0.55rem;
+  }
+  .ev.li .ev-body { border-left-color: var(--li); }
+  .ev.sgr .ev-body { border-left-color: var(--sgr); }
+  .ev.gr .ev-body { border-left-color: var(--gr); }
+  .ev.past .ev-body { border-left-color: var(--ink-faint); }
+  .ev-name {
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: var(--ink);
+  }
+  .ev-name a { text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: var(--rule); text-underline-offset: 2px; }
+  .ev-name a:hover { text-decoration-color: var(--ink); }
+  .ev.flagship .ev-name::before {
+    content: "★ ";
+    color: var(--today);
+  }
+  .ev-meta {
+    color: var(--ink-mute);
+    font-size: 0.77rem;
+    margin-top: 1px;
+  }
+  .chip {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 1px 5px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    vertical-align: 1px;
+    margin-right: 0.3rem;
+  }
+  .chip.li { background: var(--li-soft); color: var(--li); }
+  .chip.sgr { background: var(--sgr-soft); color: var(--sgr); }
+  .chip.gr { background: var(--gr-soft); color: var(--gr); }
+  .chip.past { background: #ece8df; color: var(--ink-mute); }
+  .chip.up { background: #1a1815; color: var(--paper); }
+  .mc-empty {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    padding: 0.6rem 0;
+  }
+
+  /* --- Anchors --- */
+  .anchors {
+    padding: 2.4rem clamp(1rem, 4vw, 3rem);
+    border-top: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .anchor-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+  }
+  @media (max-width: 1000px) { .anchor-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .anchor-grid { grid-template-columns: 1fr; } }
+  .anchor {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .anchor-photo {
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    background: #ddd;
+    position: relative;
+  }
+  .anchor-photo img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .anchor-photo.grad-li {
+    background: linear-gradient(135deg, var(--li) 0%, #7c2d12 100%);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    padding: 1rem;
+  }
+  .anchor-photo.grad-sgr {
+    background: linear-gradient(135deg, var(--sgr) 0%, #052e16 100%);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    padding: 1rem;
+  }
+  .anchor-photo.grad-gr {
+    background: linear-gradient(135deg, var(--gr) 0%, #172554 100%);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    padding: 1rem;
+  }
+  .anchor-photo::after {
+    content: attr(data-tag);
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: white;
+    color: var(--ink);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 3px 6px;
+    border-radius: 1px;
+    text-transform: uppercase;
+  }
+  .anchor-photo.grad-li::after, .anchor-photo.grad-sgr::after, .anchor-photo.grad-gr::after {
+    background: rgba(255,255,255,0.92);
+  }
+  .anchor-body { padding: 0.9rem 1rem 1rem; flex: 1; display: flex; flex-direction: column; }
+  .anchor-when {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .anchor-name {
+    font-weight: 800;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    margin-bottom: 0.5rem;
+  }
+  .anchor-name a { text-decoration: none; border-bottom: 2px solid currentColor; padding-bottom: 1px; }
+  .anchor-desc {
+    color: var(--ink-mute);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    flex: 1;
+    margin-bottom: 0.7rem;
+  }
+  .anchor-meta {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    border-top: 1px dashed var(--rule);
+    padding-top: 0.6rem;
+  }
+
+  /* --- Clusters --- */
+  .clusters {
+    padding: 2.4rem clamp(1rem, 4vw, 3rem);
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  @media (max-width: 900px) { .clusters { grid-template-columns: 1fr; } }
+  .cluster {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .cluster.li { border-top: 4px solid var(--li); }
+  .cluster.sgr { border-top: 4px solid var(--sgr); }
+  .cluster.gr { border-top: 4px solid var(--gr); }
+  .cluster-photo {
+    aspect-ratio: 16/7;
+    overflow: hidden;
+    background: #ddd;
+    position: relative;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cluster-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cluster-photo .ph-cap {
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    background: rgba(255,255,255,0.94);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+  .cluster-photo.grad-sgr {
+    background: linear-gradient(135deg, var(--sgr) 0%, #052e16 100%);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-align: center;
+    padding: 0.6rem;
+  }
+  .cluster-inner { padding: 1.1rem 1.2rem 1rem; flex: 1; }
+  .cluster-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.3rem;
+  }
+  .cluster h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .cluster .km {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+  }
+  .cluster .cities {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.85rem;
+  }
+  .cluster ul { list-style: none; padding: 0; margin: 0; }
+  .cluster li {
+    font-size: 0.86rem;
+    line-height: 1.5;
+    padding: 0.4rem 0;
+    border-top: 1px dashed var(--rule);
+  }
+  .cluster li:first-child { border-top: none; padding-top: 0.1rem; }
+  .cluster li strong { font-weight: 700; }
+  .cluster li a { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 2px; }
+
+  /* --- Gaps --- */
+  .gaps {
+    padding: 2rem clamp(1rem, 4vw, 3rem);
+    border-top: 1px solid var(--rule);
+    background: #f3ede0;
+  }
+  .gaps-head {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .gaps-head h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0;
+  }
+  .gaps-head .stamp-no {
+    border: 1.5px solid var(--ink);
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    padding: 0.25rem 0.5rem;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .gaps-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 800px) { .gaps-list { grid-template-columns: 1fr; } }
+  .gap-item {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .gap-item .gap-title {
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .gap-item .gap-title::before {
+    content: "✕";
+    color: var(--li);
+    font-weight: 700;
+  }
+  .gap-item.future .gap-title::before {
+    content: "+";
+    color: var(--sgr);
+  }
+  .gap-item .gap-body { color: var(--ink-mute); }
+
+  /* --- Pairing --- */
+  .pair {
+    padding: 2.4rem clamp(1rem, 4vw, 3rem);
+    border-top: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .pair h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .pair .pair-sub {
+    color: var(--ink-mute);
+    font-size: 0.95rem;
+    margin-bottom: 1.4rem;
+    max-width: 65ch;
+  }
+  .pair-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+  @media (max-width: 900px) { .pair-options { grid-template-columns: 1fr; } }
+  .pair-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 1.2rem;
+    position: relative;
+  }
+  .pair-card.best { border: 2px solid var(--today); padding-top: 1.6rem; }
+  .pair-card.best::before {
+    content: "BEST";
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    background: var(--today);
+    color: white;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    padding: 3px 8px;
+    font-weight: 700;
+  }
+  .pair-card .pc-when {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.3rem;
+  }
+  .pair-card h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 0.7rem;
+    line-height: 1.2;
+  }
+  .pair-card .pc-flow {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4rem 0.8rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .pair-card .pc-flow .day {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    padding-top: 2px;
+  }
+  .pair-card .pc-flow .what { color: var(--ink); }
+
+  /* --- Sources --- */
+  .sources {
+    padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+    border-top: 1px solid var(--rule);
+    background: var(--paper-edge);
+  }
+  .sources h3 {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 1rem;
+  }
+  .sources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.55rem 1rem;
+    font-size: 0.78rem;
+  }
+  .src-row {
+    display: flex;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+  .src-row img {
+    width: 14px; height: 14px; border-radius: 2px;
+    margin-top: 2px; flex-shrink: 0;
+  }
+  .src-row .src-n {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding-top: 2px;
+  }
+  .src-row a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--ink-faint);
+    text-underline-offset: 2px;
+  }
+</style>
+
+<div class="cal-wrap">
+
+  <header class="cal-mast">
+    <div class="kicker">
+      <span>2026 Tech Calendar</span>
+      <span>Bad Ragaz ↔ Vaduz ↔ Chur ↔ Buchs</span>
+      <span>30 km radius</span>
+      <span>survey · 14 cit.</span>
+    </div>
+    <h1>The corridor's tech year, <span class="year">at a glance.</span></h1>
+    <p class="sub">Twelve dated entries inside thirty kilometres of Memories. Three clusters: Liechtenstein, the St. Galler Rheintal, Graubünden's capital. The flagship is one Tuesday afternoon in March.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">12</div><div class="l">Dated Events</div></div>
+      <div class="stat"><div class="n">6</div><div class="l">Still Ahead</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Clusters</div></div>
+      <div class="stat"><div class="n">30<span style="font-size:0.55em;color:var(--ink-mute);font-weight:600">km</span></div><div class="l">Radius</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">Flagship</div></div>
+    </div>
+  </header>
+
+  <section class="verdict">
+    <div class="stamp">Verdict · 27 May 2026</div>
+    <div>
+      <h2>Pair a Memories weekend with an IT event by targeting <em>late March</em> or <em>November</em>.</h2>
+      <p>March belongs to <a href="https://digitalsummit.li/">Digital Summit</a> — the region's flagship, 450+ decision-makers, NVIDIA + ETH + Palantir on stage <sup><a href="https://www.vaduz.li/veranstaltungen/digital-summit-2026-globale-technologie-trifft-europaische-souveranitat">[2]</a></sup>. November is the densest week: <a href="https://www.rhysearch.ch/en/news/events.html">PreXcon</a> in Buchs on the 3rd, <a href="https://www.digitaltag.li/">Digitaltag Vaduz</a> on the 20th <sup><a href="https://www.rhysearch.ch/en/news/events.html">[8]</a></sup><sup><a href="https://www.digitaltag.li/">[6]</a></sup>. June carries the recurring AI/dev scene; July–September are empty.</p>
+    </div>
+  </section>
+
+  <section class="year-strip">
+    <div class="section-label">Year-at-a-glance · 12 months · dot = one event</div>
+    <div class="strip-track">
+      <div class="strip-month empty"><div class="mlabel">Jan</div><div class="mdots"></div></div>
+      <div class="strip-month"><div class="mlabel">Feb</div><div class="mdots"><span class="strip-dot gr past"></span></div></div>
+      <div class="strip-month"><div class="mlabel">Mar</div><div class="mdots"><span class="strip-dot li past"></span><span class="strip-dot li past"></span><span class="strip-dot sgr past"></span></div></div>
+      <div class="strip-month empty"><div class="mlabel">Apr</div><div class="mdots"></div></div>
+      <div class="strip-month is-now"><div class="mlabel">May</div><div class="mdots"><span class="strip-dot gr past"></span><span class="strip-dot gr past"></span></div></div>
+      <div class="strip-month"><div class="mlabel">Jun</div><div class="mdots"><span class="strip-dot sgr"></span><span class="strip-dot li"></span></div></div>
+      <div class="strip-month empty"><div class="mlabel">Jul</div><div class="mdots"></div></div>
+      <div class="strip-month empty"><div class="mlabel">Aug</div><div class="mdots"></div></div>
+      <div class="strip-month empty"><div class="mlabel">Sep</div><div class="mdots"></div></div>
+      <div class="strip-month"><div class="mlabel">Oct</div><div class="mdots"><span class="strip-dot gr"></span><span class="strip-dot gr"></span><span class="strip-dot gr"></span></div></div>
+      <div class="strip-month"><div class="mlabel">Nov</div><div class="mdots"><span class="strip-dot sgr"></span><span class="strip-dot li"></span></div></div>
+      <div class="strip-month empty"><div class="mlabel">Dec</div><div class="mdots"></div></div>
+    </div>
+    <div class="legend">
+      <span class="li-key"><span class="swatch li"></span>Liechtenstein · Vaduz, Schaan, Triesen</span>
+      <span class="li-key"><span class="swatch sgr"></span>St. Galler Rheintal · Buchs, Sargans</span>
+      <span class="li-key"><span class="swatch gr"></span>Graubünden · Chur, Maienfeld</span>
+      <span class="li-key"><span class="swatch past"></span>past</span>
+      <span class="li-key"><span class="swatch empty"></span>no events</span>
+    </div>
+  </section>
+
+  <section class="month-grid">
+
+    <div class="mc empty">
+      <div class="mc-head"><div class="mc-name">January</div><div class="mc-num">01</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-empty">— no events on file —</div>
+    </div>
+
+    <div class="mc">
+      <div class="mc-head"><div class="mc-name">February</div><div class="mc-num">02</div></div>
+      <div class="day-strip">
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d gr past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+      </div>
+      <div class="mc-events">
+        <div class="ev gr past">
+          <div class="ev-date">18</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://www.chur.graubuenden.ch/en/overview-events/ki-meetup-graubunden-nr-6">KI-Meetup Graubünden Nr. 6</a></div>
+            <div class="ev-meta"><span class="chip gr">Chur</span><span class="chip past">past</span>ibW · ~21 km · applied AI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc">
+      <div class="mc-head"><div class="mc-name">March</div><div class="mc-num">03</div></div>
+      <div class="day-strip">
+        <div class="d past"></div><div class="d past"></div><div class="d li past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d li past"></div><div class="d past"></div><div class="d sgr past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+      </div>
+      <div class="mc-events">
+        <div class="ev li past">
+          <div class="ev-date">03</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://digital-liechtenstein.li/cyber-security-workshop-praxisnahe-strategien-fuer-kmu-und-enterprises/">Cyber Security Workshop</a></div>
+            <div class="ev-meta"><span class="chip li">Vaduz</span><span class="chip past">past</span><a href="https://www.technopark-liechtenstein.li/">Technopark</a> · ~14 km · KMU/enterprise</div>
+          </div>
+        </div>
+        <div class="ev li past flagship">
+          <div class="ev-date">24</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://digitalsummit.li/">Digital Summit 2026</a></div>
+            <div class="ev-meta"><span class="chip li">Vaduz</span><span class="chip past">past</span>Vaduzer-Saal · ~14 km · flagship, 450+ <sup><a href="https://www.vaduz.li/veranstaltungen/digital-summit-2026-globale-technologie-trifft-europaische-souveranitat">[2]</a></sup></div>
+          </div>
+        </div>
+        <div class="ev sgr past">
+          <div class="ev-date">26</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://www.rhysearch.ch/en/news/events/events-detail/ocla-2026.html">OCLA 2026</a></div>
+            <div class="ev-meta"><span class="chip sgr">Buchs</span><span class="chip past">past</span><a href="https://www.rhysearch.ch/en/news/events.html">RhySearch</a> · ~17 km · optics/laser</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc empty">
+      <div class="mc-head"><div class="mc-name">April</div><div class="mc-num">04</div></div>
+      <div class="day-strip">
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d"></div>
+      </div>
+      <div class="mc-empty">— no events on file —</div>
+    </div>
+
+    <div class="mc is-now">
+      <div class="mc-head"><div class="mc-name">May</div><div class="mc-num">05 · NOW</div></div>
+      <div class="day-strip">
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d gr past"></div><div class="d past"></div><div class="d gr past"></div>
+        <div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d past"></div><div class="d now"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-events">
+        <div class="ev gr past">
+          <div class="ev-date">18</div>
+          <div class="ev-body">
+            <div class="ev-name">19. Forum Wirtschaftspolitik</div>
+            <div class="ev-meta"><span class="chip gr">Chur</span><span class="chip past">past</span><a href="https://www.fhgr.ch/event/">FHGR</a> · ~21 km · energy policy (adjacent)</div>
+          </div>
+        </div>
+        <div class="ev gr past">
+          <div class="ev-date">20</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://eventfrog.ch/en/p/science-and-technology/ki-meetup-graubuenden-nr-7-7447191608016009720.html">KI-Meetup Graubünden Nr. 7</a></div>
+            <div class="ev-meta"><span class="chip gr">Chur</span><span class="chip past">past</span><a href="https://www.fhgr.ch/event/">FHGR SIL</a> · ~21 km · "AI beyond the hype"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc">
+      <div class="mc-head"><div class="mc-name">June</div><div class="mc-num">06</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d sgr"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d li"></div><div class="d"></div>
+      </div>
+      <div class="mc-events">
+        <div class="ev sgr flagship">
+          <div class="ev-date">09</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://www.rhysearch.ch/en/news/events.html">RhySearch Technologietag</a></div>
+            <div class="ev-meta"><span class="chip sgr">Buchs</span><span class="chip up">upcoming</span>~17 km · "Cooperation as innovation driver"</div>
+          </div>
+        </div>
+        <div class="ev li">
+          <div class="ev-date">30</div>
+          <div class="ev-body">
+            <div class="ev-name">Unternehmertag Liechtenstein</div>
+            <div class="ev-meta"><span class="chip li">Liechtenstein</span><span class="chip up">upcoming</span>~10–14 km · <a href="https://www.rhysearch.ch/en/news/events.html">RhySearch</a> co-host</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc empty">
+      <div class="mc-head"><div class="mc-name">July</div><div class="mc-num">07</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-empty">— summer lull —</div>
+    </div>
+
+    <div class="mc empty">
+      <div class="mc-head"><div class="mc-name">August</div><div class="mc-num">08</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-empty">— KI-Meetup #8 likely (TBA) —</div>
+    </div>
+
+    <div class="mc empty">
+      <div class="mc-head"><div class="mc-name">September</div><div class="mc-num">09</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-empty">— AREON opens this month —</div>
+    </div>
+
+    <div class="mc">
+      <div class="mc-head"><div class="mc-name">October</div><div class="mc-num">10</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d gr"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d gr"></div><div class="d"></div><div class="d gr"></div>
+      </div>
+      <div class="mc-events">
+        <div class="ev gr">
+          <div class="ev-date">09</div>
+          <div class="ev-body">
+            <div class="ev-name">Wirtschaftsforum Südostschweiz</div>
+            <div class="ev-meta"><span class="chip gr">Chur</span><span class="chip up">upcoming</span>AREON Eventhalle · ~21 km · WEF CEO speaker <sup><a href="https://www.moneycab.com/graubuenden/hochkaraetige-gaeste-am-wirtschaftsforum-suedostschweiz-2026/">[14]</a></sup></div>
+          </div>
+        </div>
+        <div class="ev gr">
+          <div class="ev-date">29/31</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://www.fhgr.ch/event/">FHGR Infotag</a></div>
+            <div class="ev-meta"><span class="chip gr">Chur</span><span class="chip up">upcoming</span>~21 km · AI/SE, Mobile Robotics, Data Sci.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc">
+      <div class="mc-head"><div class="mc-name">November</div><div class="mc-num">11</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d sgr"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d li"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-events">
+        <div class="ev sgr flagship">
+          <div class="ev-date">03</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://www.rhysearch.ch/en/news/events.html">PreXcon</a></div>
+            <div class="ev-meta"><span class="chip sgr">Buchs</span><span class="chip up">upcoming</span>~17 km · Precision Technology Convention</div>
+          </div>
+        </div>
+        <div class="ev li flagship">
+          <div class="ev-date">20</div>
+          <div class="ev-body">
+            <div class="ev-name"><a href="https://www.digitaltag.li/">Digitaltag Vaduz</a></div>
+            <div class="ev-meta"><span class="chip li">Vaduz</span><span class="chip up">upcoming</span>Kunstmuseum · ~14 km · AI for all</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc empty">
+      <div class="mc-head"><div class="mc-name">December</div><div class="mc-num">12</div></div>
+      <div class="day-strip">
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+        <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+      </div>
+      <div class="mc-empty">— quiet through year-end —</div>
+    </div>
+
+  </section>
+
+  <section class="anchors">
+    <div class="section-label">Anchor events · the four to plan around</div>
+    <div class="anchor-grid">
+
+      <article class="anchor">
+        <div class="anchor-photo" data-tag="24 Mar · flagship"><img src="calendar/images/digitalsummit.jpg" alt="Digital Summit 2026 hall"></div>
+        <div class="anchor-body">
+          <div class="anchor-when">VADUZER-SAAL · VADUZ · 14 KM</div>
+          <div class="anchor-name"><a href="https://digitalsummit.li/">Digital Summit 2026</a></div>
+          <div class="anchor-desc">Ninth edition. 450+ decision-makers, NVIDIA + ETH Zurich + Palantir on stage, half-day format ending in apéro. Theme: <em>Global Technology Meets European Sovereignty</em>. If you attend one event here all year, this is it.</div>
+          <div class="anchor-meta">
+            <span class="chip li">Liechtenstein</span>
+            <span class="chip past">PAST · 24 Mar</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="anchor">
+        <div class="anchor-photo" data-tag="09 Jun · upcoming"><img src="calendar/images/ocla.jpg" alt="RhySearch event in Buchs"></div>
+        <div class="anchor-body">
+          <div class="anchor-when">RHYSEARCH · BUCHS SG · 17 KM</div>
+          <div class="anchor-name"><a href="https://www.rhysearch.ch/en/news/events.html">RhySearch Technologietag</a></div>
+          <div class="anchor-desc">Industrial-tech anchor of the Rheintal. Theme: <em>Cooperation as a Driver of Innovation</em>. Co-located with Hightech Campus Buchs and OST.</div>
+          <div class="anchor-meta">
+            <span class="chip sgr">Rheintal</span>
+            <span class="chip up">UPCOMING · 09 Jun</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="anchor">
+        <div class="anchor-photo grad-sgr" data-tag="03 Nov · upcoming">PRECISION TECHNOLOGY CONVENTION</div>
+        <div class="anchor-body">
+          <div class="anchor-when">RHYSEARCH · BUCHS SG · 17 KM</div>
+          <div class="anchor-name"><a href="https://www.rhysearch.ch/en/news/events.html">PreXcon</a></div>
+          <div class="anchor-desc">The Precision Technology Convention. Same Buchs venue cluster as Technologietag and OCLA — RhySearch's third major beat of the year, deeper into manufacturing.</div>
+          <div class="anchor-meta">
+            <span class="chip sgr">Rheintal</span>
+            <span class="chip up">UPCOMING · 03 Nov</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="anchor">
+        <div class="anchor-photo grad-li" data-tag="20 Nov · upcoming">KUNSTMUSEUM VADUZ · AI FOR ALL</div>
+        <div class="anchor-body">
+          <div class="anchor-when">KUNSTMUSEUM · VADUZ · 14 KM</div>
+          <div class="anchor-name"><a href="https://www.digitaltag.li/">Digitaltag Vaduz</a></div>
+          <div class="anchor-desc">Friday evening, 17:00–22:00. Theme is the influence of digitalisation and AI on daily life — broader-audience companion to March's Digital Summit. Pairs naturally with a Memories Saturday.</div>
+          <div class="anchor-meta">
+            <span class="chip li">Liechtenstein</span>
+            <span class="chip up">UPCOMING · 20 Nov</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="clusters">
+
+    <article class="cluster li">
+      <div class="cluster-photo">
+        <img src="calendar/images/technopark.webp" alt="Technopark Liechtenstein">
+        <div class="ph-cap">Technopark · Vaduz</div>
+      </div>
+      <div class="cluster-inner">
+        <div class="cluster-head">
+          <h3>Liechtenstein</h3>
+          <div class="km">10–14 km</div>
+        </div>
+        <div class="cities">Vaduz · Schaan · Triesen</div>
+        <ul>
+          <li><strong><a href="https://www.technopark-liechtenstein.li/">Technopark Liechtenstein</a></strong> — Schaanerstrasse 27, Vaduz. Year-round programme of startup lectures, workshops, pitches; topics span pitching, growth hacking, agile dev, exit strategy. Also hosts the annual Cyber Security Workshop.</li>
+          <li><strong><a href="https://digital-liechtenstein.li/cyber-security-workshop-praxisnahe-strategien-fuer-kmu-und-enterprises/">digital-liechtenstein.li</a></strong> — the standortinitiative behind Digital Summit, the Cyber Workshop, and a recurring <a href="https://digital-liechtenstein.li/cybersecurity-konferenz-2025-digitale-resilienz-im-fokus/">Cybersecurity Roundtable</a> series.</li>
+          <li><strong>Vaduzer-Saal</strong> — flagship conference hall, host of Digital Summit.</li>
+          <li><strong>Kunstmuseum Vaduz</strong> — Digitaltag venue, museum-format AI evening.</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="cluster sgr">
+      <div class="cluster-photo grad-sgr">RHEINTAL · APPLIED-TECH CORRIDOR · OST + UNIVERSITY OF LIECHTENSTEIN</div>
+      <div class="cluster-inner">
+        <div class="cluster-head">
+          <h3>St. Galler Rheintal</h3>
+          <div class="km">5–17 km</div>
+        </div>
+        <div class="cities">Sargans · Buchs · Werdenberg</div>
+        <ul>
+          <li><strong><a href="https://www.rhysearch.ch/en/news/events.html">RhySearch</a></strong> — applied-tech research centre. Owns the 2026 triple of OCLA (Mar), Technologietag (Jun), PreXcon (Nov) — optical coatings, laser tech, precision manufacturing.</li>
+          <li><strong>Hightech Campus Buchs</strong> — co-located with OST and the University of Liechtenstein.</li>
+          <li><strong>Industrial / applied-tech, not software.</strong> If you're looking for dev-conference content, this cluster won't carry it — but for hardware, optics, manufacturing, it punches well above its size.</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="cluster gr">
+      <div class="cluster-photo">
+        <img src="calendar/images/areon.jpg" alt="AREON Eventhalle Chur">
+        <div class="ph-cap">AREON Eventhalle · Chur</div>
+      </div>
+      <div class="cluster-inner">
+        <div class="cluster-head">
+          <h3>Graubünden</h3>
+          <div class="km">3–21 km</div>
+        </div>
+        <div class="cities">Chur · Maienfeld</div>
+        <ul>
+          <li><strong><a href="https://www.fhgr.ch/event/">FHGR</a></strong> — Fachhochschule Graubünden. Hosts the Service Innovation Lab (SIL), Infotag (Oct), and serves as the recurring venue for KI-Meetup. AI/SE, Mobile Robotics, Computational & Data Science programmes.</li>
+          <li><strong><a href="https://eventfrog.ch/en/p/science-and-technology/ki-meetup-graubuenden-nr-7-7447191608016009720.html">KI-Meetup Graubünden</a></strong> — applied-AI quarterly, free, alternates between ibW Chur and FHGR SIL. Cadence suggests Nr. 8 lands August/September.</li>
+          <li><strong><a href="https://www.meetup.com/ux-meetup-chur/">UX Meetup Chur</a></strong> — 166 members, bi-monthly-ish, interdisciplinary UX/usability. Past venues: FHGR Standort B, Werkstatt LABOR, KostBar Sennhof. No 2026 dates listed; watch the page.</li>
+          <li><strong>AREON Eventhalle</strong> — new (Sep 2026), capacity 6,500. Wirtschaftsforum 9 Oct is one of its first headline events; expect more in 2027+.</li>
+        </ul>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="gaps">
+    <div class="gaps-head">
+      <h2>What this corridor doesn't have</h2>
+      <span class="stamp-no">GAPS</span>
+    </div>
+    <div class="gaps-list">
+      <div class="gap-item">
+        <div class="gap-title">No regular dev conference</div>
+        <div class="gap-body">Closest is START Hack in St. Gallen (~70 km, outside radius). For mainline software conferences, you're driving to Zürich (~110 km).</div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-title">No cybersecurity conference at scale</div>
+        <div class="gap-body">The <a href="https://digital-liechtenstein.li/cyber-security-workshop-praxisnahe-strategien-fuer-kmu-und-enterprises/">Cyber Workshop</a> and Roundtable are practitioner-level, not full conferences. Swiss Cyber Security Days sit in Bern.</div>
+      </div>
+      <div class="gap-item future">
+        <div class="gap-title">AREON opens Sep 2026</div>
+        <div class="gap-body">New AREON Eventhalle in Chur (capacity 6,500). Wirtschaftsforum 9 Oct is among the first headline events. Tech-conference inventory may grow from 2027.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pair">
+    <h2>Pairing with a Memories Saturday</h2>
+    <p class="pair-sub">Memories serves Saturday evenings; tech events here mostly land Wed–Fri daytime. Three clean pairings.</p>
+    <div class="pair-options">
+
+      <div class="pair-card best">
+        <div class="pc-when">March 2026 · already past</div>
+        <h3>Digital Summit → Memories</h3>
+        <div class="pc-flow">
+          <div class="day">TUE 24</div><div class="what"><a href="https://digitalsummit.li/">Digital Summit</a>, Vaduzer-Saal · 20-min drive to Bad Ragaz</div>
+          <div class="day">WED–FRI</div><div class="what">Resort midweek · Tamina Therme · valley walks</div>
+          <div class="day">SAT 28</div><div class="what"><strong>Memories</strong> · single seating from 19:00</div>
+        </div>
+      </div>
+
+      <div class="pair-card">
+        <div class="pc-when">June 2026 · upcoming</div>
+        <h3>RhySearch → Memories</h3>
+        <div class="pc-flow">
+          <div class="day">TUE 09</div><div class="what"><a href="https://www.rhysearch.ch/en/news/events.html">RhySearch Technologietag</a>, Buchs · 17 km</div>
+          <div class="day">WED–FRI</div><div class="what">Wine villages · Swiss Fine Wine Trail · low-altitude hikes</div>
+          <div class="day">SAT 13</div><div class="what"><strong>Memories</strong></div>
+        </div>
+      </div>
+
+      <div class="pair-card">
+        <div class="pc-when">November 2026 · densest week</div>
+        <h3>PreXcon <em>or</em> Digitaltag → Memories</h3>
+        <div class="pc-flow">
+          <div class="day">TUE 03</div><div class="what"><a href="https://www.rhysearch.ch/en/news/events.html">PreXcon</a>, Buchs — <em>or skip to →</em></div>
+          <div class="day">FRI 20</div><div class="what"><a href="https://www.digitaltag.li/">Digitaltag Vaduz</a>, 17:00–22:00 at Kunstmuseum</div>
+          <div class="day">SAT 21</div><div class="what"><strong>Memories</strong> · pairs natively with the Friday-night event</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="sources">
+    <h3>Sources · 14 cited</h3>
+    <div class="sources-grid">
+      <div class="src-row"><span class="src-n">[1]</span><img src="https://www.google.com/s2/favicons?domain=digitalsummit.li&sz=128" alt=""><a href="https://digitalsummit.li/">digitalsummit.li</a></div>
+      <div class="src-row"><span class="src-n">[2]</span><img src="https://www.google.com/s2/favicons?domain=vaduz.li&sz=128" alt=""><a href="https://www.vaduz.li/veranstaltungen/digital-summit-2026-globale-technologie-trifft-europaische-souveranitat">vaduz.li · Digital Summit</a></div>
+      <div class="src-row"><span class="src-n">[3]</span><img src="https://www.google.com/s2/favicons?domain=digital-liechtenstein.li&sz=128" alt=""><a href="https://digital-liechtenstein.li/cyber-security-workshop-praxisnahe-strategien-fuer-kmu-und-enterprises/">digital-liechtenstein · Cyber Workshop</a></div>
+      <div class="src-row"><span class="src-n">[4]</span><img src="https://www.google.com/s2/favicons?domain=chur.graubuenden.ch&sz=128" alt=""><a href="https://www.chur.graubuenden.ch/en/overview-events/ki-meetup-graubunden-nr-6">chur.graubuenden.ch · KI-Meetup #6</a></div>
+      <div class="src-row"><span class="src-n">[5]</span><img src="https://www.google.com/s2/favicons?domain=eventfrog.ch&sz=128" alt=""><a href="https://eventfrog.ch/en/p/science-and-technology/ki-meetup-graubuenden-nr-7-7447191608016009720.html">eventfrog.ch · KI-Meetup #7</a></div>
+      <div class="src-row"><span class="src-n">[6]</span><img src="https://www.google.com/s2/favicons?domain=digitaltag.li&sz=128" alt=""><a href="https://www.digitaltag.li/">digitaltag.li</a></div>
+      <div class="src-row"><span class="src-n">[7]</span><img src="https://www.google.com/s2/favicons?domain=rhysearch.ch&sz=128" alt=""><a href="https://www.rhysearch.ch/en/news/events/events-detail/ocla-2026.html">rhysearch.ch · OCLA 2026</a></div>
+      <div class="src-row"><span class="src-n">[8]</span><img src="https://www.google.com/s2/favicons?domain=rhysearch.ch&sz=128" alt=""><a href="https://www.rhysearch.ch/en/news/events.html">rhysearch.ch · events</a></div>
+      <div class="src-row"><span class="src-n">[9]</span><img src="https://www.google.com/s2/favicons?domain=fhgr.ch&sz=128" alt=""><a href="https://www.fhgr.ch/event/">fhgr.ch · events</a></div>
+      <div class="src-row"><span class="src-n">[10]</span><img src="https://www.google.com/s2/favicons?domain=technopark-liechtenstein.li&sz=128" alt=""><a href="https://www.technopark-liechtenstein.li/">technopark-liechtenstein.li</a></div>
+      <div class="src-row"><span class="src-n">[11]</span><img src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128" alt=""><a href="https://www.meetup.com/ux-meetup-chur/">meetup.com · UX Meetup Chur</a></div>
+      <div class="src-row"><span class="src-n">[12]</span><img src="https://www.google.com/s2/favicons?domain=digital-liechtenstein.li&sz=128" alt=""><a href="https://digital-liechtenstein.li/cybersecurity-konferenz-2025-digitale-resilienz-im-fokus/">digital-liechtenstein · Cybersec Konf.</a></div>
+      <div class="src-row"><span class="src-n">[13]</span><img src="https://www.google.com/s2/favicons?domain=rome2rio.com&sz=128" alt=""><a href="https://www.rome2rio.com/s/Vaduz/Chur">rome2rio · Vaduz–Chur</a></div>
+      <div class="src-row"><span class="src-n">[14]</span><img src="https://www.google.com/s2/favicons?domain=moneycab.com&sz=128" alt=""><a href="https://www.moneycab.com/graubuenden/hochkaraetige-gaeste-am-wirtschaftsforum-suedostschweiz-2026/">moneycab · Wirtschaftsforum</a></div>
+    </div>
+  </section>
+
+</div>
