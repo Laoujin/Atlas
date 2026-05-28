@@ -1,0 +1,6 @@
+What are the essential first-timer landmarks in central Copenhagen (Tivoli, Nyhavn, Little Mermaid, Christiansborg, Round Tower, Rosenborg) — what to actually do at each, opening hours, ticket prices, and tourist-trap warnings?
+Which Copenhagen neighborhoods (Vesterbro, Nørrebro, Christianshavn, Refshaleøen, Frederiksberg) reward a half-day wander, and what's the signature reason to go to each?
+Which museums and cultural institutions in Copenhagen are worth the time on a weekend (National Museum, SMK, Glyptotek, Designmuseum Danmark, ARKEN), and what's the standout exhibit or collection at each?
+Beyond the Michelin anchor dinner, what casual/iconic Copenhagen food experiences should fit into a weekend (smørrebrød lunch, Reffen street food, Torvehallerne, hot-dog pølsevogn, third-wave coffee, bakeries like Hart and Juno)?
+What outdoor and active things should a weekend visitor do (harbour swimming at Islands Brygge/CopenHill, bike rental and routes, canal boat tours, Frederiksberg Have, CopenHill rooftop ski)?
+What day-trips from Copenhagen are realistic on a weekend (Louisiana Museum of Modern Art Humlebæk, Kronborg Helsingør, Frederiksborg Hillerød, Roskilde, Malmö Sweden), what do they cost in time, and what's the trade-off?
