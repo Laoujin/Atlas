@@ -1,0 +1,6 @@
+What hiking trails, nature walks, gorges and viewpoints are within 30 km of Schloss Schauenstein (Fürstenau, Domleschg, Graubünden) — including signature routes like Viamala, Rheinschlucht/Ruinaulta, Crap Carschenna, and Heidi/Domleschg paths?
+What castles, churches, historic sites and museums lie within 30 km — covering the Domleschg "Burgenland" (Hohen Rätien, Ehrenfels, Rietberg, Tagstein, Ortenstein, Riom), Thusis, Chur and Sils-area sites?
+What thermal baths, spas, wellness, and water-based experiences are within 30 km — Therme Vals (Zumthor), Mineralbad Andeer, Bogn Sedrun, and similar?
+What mountain railways, cable cars, panoramic train rides, and alpine viewpoint experiences are within 30 km — Heinzenberg/Tschappina, Brambrüesch (Chur), Rhaetian Railway Albula/Bernina segments, Lenzerheide-Rothorn?
+What food, wine, cheese, and culinary day-experiences (other than dinner at Schauenstein) sit within 30 km — Caminada's IGNIV/Casa Caminada/OZ in Fürstenau, Domleschg/Rheintal vineyards, cheese dairies, distilleries?
+What family-friendly, adventure, and wet-weather/indoor activities are within 30 km — Conn skywalk Il Spir, Rheinschlucht raft trips, Heidi-themed sites, Chur old town, Bündner Kunstmuseum/Rätisches Museum and similar?
