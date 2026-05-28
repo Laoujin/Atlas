@@ -1,0 +1,1344 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events within 30 km of Le Coquillage — Calendar"
+---
+
+<style>
+  :root {
+    --paper:       #f3e8d0;
+    --paper-deep:  #ecdebe;
+    --ink:         #1a0e0e;
+    --ink-soft:    #4a2f1f;
+    --rule:        #c9b896;
+    --rule-soft:   #d9caa8;
+    --past:        #9b8a72;
+    --past-rule:   #b5a487;
+    --upcoming:    #c2410c;
+    --upcoming-2:  #d97706;
+    --today:       #9b1c1c;
+    --year-round:  #5a6b3a;
+    --umbrella:    #5c2a1a;
+  }
+
+  .almanac {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', 'Crimson Pro', Georgia, 'Times New Roman', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at top left,  rgba(0,0,0,0.04), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(120,53,15,0.06), transparent 55%);
+  }
+  .almanac a { color: inherit; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .almanac a:hover { text-decoration-color: var(--today); }
+  .mono { font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+  .sc { font-variant: small-caps; letter-spacing: 0.08em; }
+
+  /* ============================== COVER ============================== */
+  .cover {
+    padding: 4rem 3.5rem 2.5rem;
+    border-bottom: 1px solid var(--ink);
+    position: relative;
+  }
+  .cover-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+    align-items: end;
+  }
+  .cover-kicker {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--ink-soft);
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cover-kicker span { border-left: 1px solid var(--rule); padding-left: 1rem; }
+  .cover-kicker span:first-child { border-left: none; padding-left: 0; }
+  .cover h1 {
+    font-family: 'Cormorant Garamond', 'Crimson Pro', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(3rem, 7vw, 6.2rem);
+    line-height: 0.95;
+    margin: 0;
+    letter-spacing: -0.015em;
+  }
+  .cover h1 em { font-style: italic; color: var(--upcoming); }
+  .cover .roman {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(7rem, 18vw, 14rem);
+    line-height: 0.85;
+    color: var(--ink);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    opacity: 0.92;
+    white-space: nowrap;
+  }
+  .cover h1 + p {
+    font-size: 1.2rem;
+    font-style: italic;
+    margin: 1.2rem 0 0;
+    max-width: 50ch;
+    color: var(--ink-soft);
+  }
+  .cover-now {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--today);
+    margin-top: 2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .cover-now::before {
+    content: '';
+    width: 10px; height: 10px;
+    background: var(--today);
+    border-radius: 50%;
+  }
+
+  /* ============================== TALLY ============================== */
+  .tally {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-bottom: 1px solid var(--ink);
+  }
+  .tally > div {
+    padding: 1.8rem 2rem;
+    border-left: 1px solid var(--rule);
+  }
+  .tally > div:first-child { border-left: none; }
+  .tally .n {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.6rem;
+    line-height: 1;
+    font-weight: 400;
+  }
+  .tally .label {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    margin-top: 0.5rem;
+  }
+  .tally .past .n     { color: var(--past); }
+  .tally .next .n     { color: var(--upcoming); }
+  .tally .annual .n   { color: var(--year-round); }
+  .tally .venues .n   { color: var(--ink); }
+
+  /* ============================== HEADLINE BAND ============================== */
+  .headline {
+    padding: 2.8rem 3.5rem;
+    border-bottom: 1px solid var(--ink);
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  .headline p {
+    font-size: 1.45rem;
+    line-height: 1.45;
+    margin: 0;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .headline p strong { font-weight: 600; color: var(--upcoming); font-style: italic; }
+  .headline aside {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--rule);
+    background: var(--paper-deep);
+  }
+  .headline aside b { color: var(--ink); text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.7rem; display: block; margin-bottom: 0.4rem; }
+
+  /* ============================== CHRONOGRAM ============================== */
+  .chrono-wrap {
+    padding: 3rem 3.5rem 2rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .chrono-title {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .chrono-legend { display: flex; gap: 1.4rem; }
+  .chrono-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .chrono-legend i {
+    display: inline-block; width: 16px; height: 6px;
+    border-radius: 1px;
+  }
+  .chrono-legend .l-past { background: var(--past); }
+  .chrono-legend .l-up   { background: var(--upcoming); }
+  .chrono-legend .l-year { background: var(--year-round); }
+  .chrono-legend .l-today { background: var(--today); width: 2px; height: 14px; }
+
+  .chrono-scroll { overflow-x: auto; }
+  .chrono {
+    min-width: 1000px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  .chrono-axis {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    border-bottom: 1px solid var(--ink);
+  }
+  .axis-corner {
+    padding: 0.6rem 1rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-right: 1px solid var(--rule);
+  }
+  .axis-months {
+    position: relative;
+    height: 36px;
+  }
+  .axis-months .m {
+    position: absolute;
+    top: 0; bottom: 0;
+    border-left: 1px solid var(--rule);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    padding: 0.6rem 0 0 0.55rem;
+  }
+  .axis-months .m:first-child { border-left: none; }
+  /* Mar–Dec axis: 10 months across 100%, each month = 10% */
+  .axis-months .m1  { left: 0%;   width: 10%; }
+  .axis-months .m2  { left: 10%;  width: 10%; }
+  .axis-months .m3  { left: 20%;  width: 10%; }
+  .axis-months .m4  { left: 30%;  width: 10%; }
+  .axis-months .m5  { left: 40%;  width: 10%; }
+  .axis-months .m6  { left: 50%;  width: 10%; }
+  .axis-months .m7  { left: 60%;  width: 10%; }
+  .axis-months .m8  { left: 70%;  width: 10%; }
+  .axis-months .m9  { left: 80%;  width: 10%; }
+  .axis-months .m10 { left: 90%;  width: 10%; }
+
+  .lane {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    border-top: 1px solid var(--rule);
+    min-height: 44px;
+  }
+  .lane:first-of-type { border-top: none; }
+  .lane-label {
+    padding: 0.55rem 1rem;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .lane-label .name { font-size: 0.98rem; line-height: 1.2; }
+  .lane-label .name a { text-decoration-color: var(--past-rule); }
+  .lane-label .meta {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 0.15rem;
+  }
+  .lane-label.sub { padding-left: 2rem; position: relative; }
+  .lane-label.sub::before {
+    content: '↳';
+    position: absolute;
+    left: 1.1rem; top: 0.7rem;
+    color: var(--past);
+    font-size: 0.85rem;
+  }
+  .lane-track {
+    position: relative;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 calc(10% - 1px),
+        var(--rule-soft) calc(10% - 1px) 10%
+      );
+  }
+
+  /* Event bars on the timeline.
+     Date math: Mar 1 = 0%, Dec 31 = 100% (305-day window).
+     left% = (day-of-year - 60) / 305 * 100 */
+  .bar {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 22px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: #fff;
+    white-space: nowrap;
+    min-width: 14px;
+    box-sizing: border-box;
+  }
+  .bar.past     { background: var(--past); }
+  .bar.upcoming { background: var(--upcoming); box-shadow: 0 0 0 1px var(--upcoming-2) inset; }
+  .bar.year     { background: var(--year-round); }
+  .bar.umbrella { background: var(--umbrella); height: 28px; }
+  .bar .lbl     { overflow: hidden; text-overflow: ellipsis; }
+
+  /* Specific event positions (left = (day-of-year - 60) * 100 / 305%) */
+  .b-forum     { left: 6.56%;  width: 1.0%;   min-width: 18px; }  /* 21 Mar */
+  .b-trois     { left: 12.79%; width: 0.66%;  min-width: 22px; }  /* 9–10 Apr */
+  .b-pqc       { left: 14.43%; width: 0.98%;  min-width: 26px; }  /* 14–16 Apr */
+  .b-cps       { left: 23.28%; width: 1.31%;  min-width: 34px; }  /* 11–14 May */
+  .b-hscc      { left: 23.28%; width: 1.31%;  min-width: 34px; }
+  .b-sensys    { left: 23.28%; width: 1.31%;  min-width: 34px; }
+  .b-rtas      { left: 23.61%; width: 0.98%;  min-width: 28px; }  /* 12–14 May */
+  .b-bench     { left: 69.18%; width: 0.66%;  min-width: 24px; }  /* 28–29 Sep */
+  .b-flagmalo  { left: 95.41%; width: 1.0%;   min-width: 22px; }  /* ~mid-Dec TBC */
+  .b-poool     { left: 0%;     width: 100%;   min-width: 0; }
+  .b-fmn       { left: 6.56%;  width: 0.33%;  min-width: 14px; }  /* recurs annually */
+
+  /* "TODAY" vertical line on the track.
+     May 28 = day 148. (148-60)/305 = 28.85% */
+  .today-line {
+    position: absolute;
+    top: -4px; bottom: -4px;
+    left: 28.85%;
+    width: 2px;
+    background: var(--today);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .today-line::before {
+    content: 'TODAY · 28 MAY';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--today);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+  .today-stub { /* in axis row */
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 28.85%;
+    width: 2px;
+    background: var(--today);
+    z-index: 5;
+  }
+
+  /* gentle past-fade: a wash over everything left of today */
+  .past-wash {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 28.85%;
+    background: linear-gradient(90deg, rgba(243,232,208,0.45), rgba(243,232,208,0.15));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ============================== CLUSTER CALLOUT ============================== */
+  .cluster {
+    padding: 3rem 3.5rem;
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--ink);
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  .cluster h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    line-height: 1.05;
+    margin: 0 0 1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .cluster h2 em { font-style: italic; color: var(--upcoming); }
+  .cluster .lede {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .cluster-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  .ev-card {
+    background: var(--paper);
+    padding: 1.2rem 1.3rem;
+    border: 1px solid var(--rule);
+    position: relative;
+  }
+  .ev-card .when {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--past);
+    margin-bottom: 0.4rem;
+  }
+  .ev-card .when.past::before {
+    content: '✕ ';
+    color: var(--past);
+  }
+  .ev-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.005em;
+  }
+  .ev-card h3 a { text-decoration-color: var(--rule); }
+  .ev-card .where {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.6rem;
+  }
+  .ev-card p {
+    font-size: 0.95rem;
+    margin: 0;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .ev-card.umbrella {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, var(--paper) 0%, var(--paper-deep) 100%);
+    border: 1px solid var(--umbrella);
+  }
+  .ev-card.umbrella .subs {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--rule);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+  }
+  .ev-card.umbrella .subs .sub-ev {
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+  .ev-card.umbrella .subs .sub-ev .tag {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--past);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  /* ============================== UPCOMING SPOTLIGHT ============================== */
+  .upcoming {
+    padding: 3.5rem 3.5rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .upcoming .h-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2rem;
+  }
+  .upcoming h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    margin: 0;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .upcoming h2 em { font-style: italic; color: var(--upcoming); }
+  .upcoming .h-bar .count {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .up-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  .up-card {
+    border: 2px solid var(--upcoming);
+    padding: 2rem 2.2rem;
+    background: var(--paper);
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  .up-card .date-stamp {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--upcoming);
+    text-align: center;
+    border-right: 1px solid var(--rule);
+    padding-right: 2rem;
+    min-width: 7rem;
+  }
+  .up-card .date-stamp .day {
+    font-size: 3.6rem;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .up-card .date-stamp .month {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+  }
+  .up-card .date-stamp .days-out {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    color: var(--upcoming);
+    margin-top: 0.8rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--rule);
+  }
+  .up-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 1.7rem;
+    line-height: 1.1;
+    margin: 0 0 0.6rem;
+  }
+  .up-card .theme {
+    font-style: italic;
+    font-size: 1rem;
+    margin: 0 0 0.8rem;
+    color: var(--ink-soft);
+  }
+  .up-card p {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .up-card .pill-row {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .up-card .pill {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper-deep);
+    color: var(--ink-soft);
+  }
+  .up-card.tbc { border-style: dashed; }
+  .up-card.tbc .date-stamp { color: var(--ink-soft); }
+
+  /* ============================== YEAR-ROUND ============================== */
+  .yearly {
+    padding: 3rem 3.5rem;
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--ink);
+  }
+  .yearly h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    margin: 0 0 0.6rem;
+    font-weight: 500;
+  }
+  .yearly h2 em { font-style: italic; color: var(--year-round); }
+  .yearly .lede {
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    margin: 0 0 1.8rem;
+    max-width: 70ch;
+  }
+  .yr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .yr-card {
+    background: var(--paper);
+    border-left: 4px solid var(--year-round);
+    padding: 1.3rem 1.5rem;
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  .yr-card img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    padding: 6px;
+  }
+  .yr-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 1.25rem;
+    line-height: 1.1;
+    margin: 0 0 0.3rem;
+  }
+  .yr-card .cadence {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--year-round);
+    margin-bottom: 0.5rem;
+  }
+  .yr-card p {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ============================== PAST CATALOG ============================== */
+  .past-cat {
+    padding: 3rem 3.5rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .past-cat h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    margin: 0 0 0.4rem;
+    font-weight: 500;
+    color: var(--past);
+  }
+  .past-cat .lede {
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0 0 1.8rem;
+  }
+  .past-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+  }
+  .past-table th {
+    text-align: left;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.62rem;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--ink);
+    padding: 0.6rem 1rem 0.6rem 0;
+  }
+  .past-table td {
+    padding: 0.7rem 1rem 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--past);
+    vertical-align: top;
+  }
+  .past-table td.name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    text-decoration: line-through;
+    text-decoration-color: var(--past-rule);
+  }
+  .past-table td.name a { color: var(--ink-soft); }
+  .past-table td.name.indent { padding-left: 1.4rem; font-size: 0.92rem; color: var(--ink-soft); }
+  .past-table td.name.indent::before { content: '↳ '; color: var(--past); text-decoration: none; }
+
+  /* ============================== NOTES ============================== */
+  .notes {
+    padding: 3rem 3.5rem;
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--ink);
+  }
+  .notes h2 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 1.4rem;
+    font-weight: 400;
+  }
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .note {
+    border-top: 2px solid var(--ink);
+    padding-top: 1rem;
+  }
+  .note .num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--upcoming);
+    font-style: italic;
+    margin-bottom: 0.6rem;
+  }
+  .note p {
+    font-size: 1rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ============================== NAV: parent + siblings ============================== */
+  .neighbours {
+    padding: 3rem 3.5rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .neighbours h2 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.5rem;
+    font-weight: 400;
+  }
+  .neighbours .parent-link {
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-bottom: 1.6rem;
+  }
+  .sib-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+  .sib {
+    border: 1px solid var(--rule);
+    padding: 1.2rem 1.3rem;
+    background: var(--paper);
+    text-decoration: none !important;
+    display: block;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+  .sib:hover { border-color: var(--ink); }
+  .sib .kind {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.5rem;
+  }
+  .sib h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 0.5rem;
+  }
+  .sib p {
+    font-size: 0.9rem;
+    margin: 0;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  /* ============================== SOURCES ============================== */
+  .sources {
+    padding: 3rem 3.5rem;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .sources h2 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin: 0 0 1.5rem;
+    color: var(--paper-deep);
+    font-weight: 400;
+  }
+  .sources a { color: var(--paper); }
+  .src-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .src {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 0.7rem;
+    align-items: start;
+    padding: 0.6rem 0.4rem;
+    border-bottom: 1px solid rgba(243,232,208,0.18);
+    text-decoration: none !important;
+  }
+  .src img {
+    width: 18px; height: 18px;
+    background: var(--paper);
+    padding: 2px;
+    border-radius: 2px;
+  }
+  .src .src-n {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--upcoming-2);
+    text-transform: uppercase;
+  }
+  .src .src-title {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    line-height: 1.3;
+    color: var(--paper);
+    margin-top: 2px;
+    word-break: break-word;
+  }
+
+  /* ============================== RESPONSIVE ============================== */
+  @media (max-width: 900px) {
+    .cover                 { padding: 2.5rem 1.5rem 1.8rem; }
+    .cover-grid            { grid-template-columns: 1fr; gap: 1rem; }
+    .cover .roman          { font-size: 6rem; }
+    .tally                 { grid-template-columns: repeat(2, 1fr); }
+    .tally > div           { padding: 1.2rem 1rem; }
+    .tally > div:nth-child(3) { border-left: none; border-top: 1px solid var(--rule); }
+    .tally > div:nth-child(4) { border-top: 1px solid var(--rule); }
+    .headline,
+    .cluster,
+    .upcoming,
+    .yearly,
+    .past-cat,
+    .notes,
+    .neighbours,
+    .sources,
+    .chrono-wrap           { padding: 2rem 1.5rem; }
+    .headline,
+    .cluster,
+    .up-grid,
+    .yr-grid,
+    .notes-grid,
+    .sib-grid              { grid-template-columns: 1fr; gap: 1.5rem; }
+    .cluster-grid          { grid-template-columns: 1fr; }
+    .ev-card.umbrella .subs { grid-template-columns: 1fr; }
+    .up-card               { grid-template-columns: 1fr; gap: 1rem; }
+    .up-card .date-stamp   { border-right: none; padding-right: 0; border-bottom: 1px solid var(--rule); padding-bottom: 1rem; text-align: left; min-width: 0; display: flex; gap: 1rem; align-items: baseline; }
+  }
+</style>
+
+<div class="almanac">
+
+  <!-- ============================== COVER ============================== -->
+  <section class="cover">
+    <div class="cover-kicker">
+      <span>Calendrier</span>
+      <span>Saint-Malo · 8.7 km from Le Coquillage</span>
+      <span>Survey · 17 citations</span>
+    </div>
+    <div class="cover-grid">
+      <div>
+        <h1>Saint-Malo<br><em>Tech Calendar</em></h1>
+        <p>Nine IT events across 2026, charted on the year-axis. The April–May academic cluster has already passed; only <a href="https://digital-benchmark-2026.ebg.net/">Digital Benchmark</a> and the annual <a href="https://www.flagmalo.fr/">Flag'Malo CTF</a> remain.</p>
+        <div class="cover-now">Today · Thursday 28 May 2026</div>
+      </div>
+      <div class="roman">MMXXVI</div>
+    </div>
+  </section>
+
+  <!-- ============================== TALLY ============================== -->
+  <section class="tally">
+    <div class="past">
+      <div class="n">7</div>
+      <div class="label">Past · Mar–May</div>
+    </div>
+    <div class="next">
+      <div class="n">2</div>
+      <div class="label">Upcoming · Sep–Dec</div>
+    </div>
+    <div class="annual">
+      <div class="n">2</div>
+      <div class="label">Year-round anchors</div>
+    </div>
+    <div class="venues">
+      <div class="n">3</div>
+      <div class="label">Venues in Saint-Malo</div>
+    </div>
+  </section>
+
+  <!-- ============================== HEADLINE ============================== -->
+  <section class="headline">
+    <p>In the four weeks from <strong>21 March to 14 May</strong> the Palais des Congrès hosted six conferences back-to-back — a forum, a defence summit, a quantum-crypto convention and the bundled CPS-IoT Week. <strong>Then four months of silence</strong> before <a href="https://digital-benchmark-2026.ebg.net/">Digital Benchmark</a> in late September.</p>
+    <aside>
+      <b>Venues</b>
+      Palais des Congrès<br>
+      &nbsp;&nbsp;1 Quai Duguay-Trouin<br>
+      <a href="https://iut-stmalo.univ-rennes.fr/forum-des-metiers-du-numerique">IUT de Saint-Malo</a><br>
+      &nbsp;&nbsp;40 rue de la Croix Désilles<br>
+      <a href="https://www.stmalo-agglomeration.fr/vie-economique/soutiens-a-linnovation-et-a-la-recherche/le-poool/">Le Poool</a> coworking<br>
+      &nbsp;&nbsp;Quai Saint-Malo / Grande Passerelle
+    </aside>
+  </section>
+
+  <!-- ============================== CHRONOGRAM ============================== -->
+  <section class="chrono-wrap">
+    <div class="chrono-title">
+      <span>Chronogram · Mar – Dec 2026</span>
+      <div class="chrono-legend">
+        <span><i class="l-past"></i> past</span>
+        <span><i class="l-up"></i> upcoming</span>
+        <span><i class="l-year"></i> year-round</span>
+        <span><i class="l-today"></i> today</span>
+      </div>
+    </div>
+
+    <div class="chrono-scroll">
+      <div class="chrono">
+
+        <!-- Axis row: month labels -->
+        <div class="chrono-axis">
+          <div class="axis-corner">Event / Date</div>
+          <div class="axis-months">
+            <div class="m m1">Mar</div>
+            <div class="m m2">Apr</div>
+            <div class="m m3">May</div>
+            <div class="m m4">Jun</div>
+            <div class="m m5">Jul</div>
+            <div class="m m6">Aug</div>
+            <div class="m m7">Sep</div>
+            <div class="m m8">Oct</div>
+            <div class="m m9">Nov</div>
+            <div class="m m10">Dec</div>
+            <div class="today-stub"></div>
+          </div>
+        </div>
+
+        <!-- Lane: Forum des Métiers (past, 21 Mar) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://iut-stmalo.univ-rennes.fr/forum-des-metiers-du-numerique">Forum des Métiers du Numérique</a></div>
+            <div class="meta">Sat 21 Mar · IUT</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar past b-forum"><span class="lbl">21·III</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: Trois Océans (past, 9-10 Apr) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://www.7jours.fr/actualites/defense-souverainete-et-numerique-au-coeur-dun-evenement-a-saint-malo/">Rencontres Stratégiques des Trois Océans</a></div>
+            <div class="meta">9–10 Apr · invitation</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar past b-trois"><span class="lbl">9–10·IV</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: PQCrypto (past, 14-16 Apr) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://pqcrypto2026.irisa.fr/">PQCrypto 2026</a></div>
+            <div class="meta">14–16 Apr · Palais</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar past b-pqc"><span class="lbl">14–16·IV</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: CPS-IoT Week umbrella (past, 11-14 May) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://cps-iot-week2026.inria.fr/">CPS-IoT Week 2026</a></div>
+            <div class="meta">11–14 May · Palais · 19th ed.</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar umbrella b-cps"><span class="lbl">CPS-IoT WEEK · 11–14·V</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: HSCC/ICCPS sub -->
+        <div class="lane">
+          <div class="lane-label sub">
+            <div class="name"><a href="https://hscc.acm.org/2026/">HSCC / ICCPS</a></div>
+            <div class="meta">11–14 May</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar past b-hscc"><span class="lbl">HSCC</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: SenSys sub -->
+        <div class="lane">
+          <div class="lane-label sub">
+            <div class="name"><a href="https://sensys.acm.org/2026/">SenSys</a></div>
+            <div class="meta">11–14 May</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar past b-sensys"><span class="lbl">SenSys</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: RTAS sub -->
+        <div class="lane">
+          <div class="lane-label sub">
+            <div class="name"><a href="https://2026.rtas.org/">RTAS</a></div>
+            <div class="meta">12–14 May · 32nd ed.</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar past b-rtas"><span class="lbl">RTAS</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: Digital Benchmark (upcoming, 28-29 Sep) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://digital-benchmark-2026.ebg.net/">Digital Benchmark</a></div>
+            <div class="meta">28–29 Sep · invitation</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar upcoming b-bench"><span class="lbl">28–29·IX</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: Flag'Malo CTF (upcoming, ~Dec TBC) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://www.flagmalo.fr/">Flag'Malo CTF</a></div>
+            <div class="meta">~Dec · IUT · TBC</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar upcoming b-flagmalo"><span class="lbl">XII?</span></div>
+          </div>
+        </div>
+
+        <!-- Lane: Le Poool (year-round) -->
+        <div class="lane">
+          <div class="lane-label">
+            <div class="name"><a href="https://lepoool.tech/">Le Poool · French Tech</a></div>
+            <div class="meta">Recurring · Quai Saint-Malo</div>
+          </div>
+          <div class="lane-track">
+            <div class="past-wash"></div>
+            <div class="today-line"></div>
+            <div class="bar year b-poool"><span class="lbl">Matinales · Market Pitch · Digital Tech Conf · Startup on the Beach</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== CLUSTER CALLOUT ============================== -->
+  <section class="cluster">
+    <div>
+      <h2>The April–May<br>academic <em>cluster</em></h2>
+      <p class="lede">Three back-to-back events, two of them deeply technical, one bundled umbrella with three flagship conferences and seven workshops sharing a single venue.</p>
+    </div>
+    <div class="cluster-grid">
+
+      <div class="ev-card">
+        <div class="when past">Past · 9–10 Apr</div>
+        <h3><a href="https://www.7jours.fr/actualites/defense-souverainete-et-numerique-au-coeur-dun-evenement-a-saint-malo/">Rencontres Stratégiques<br>des Trois Océans</a></h3>
+        <div class="where">Saint-Malo · invitation-only</div>
+        <p>Inaugural edition. ~100 defence and tech decision-makers on European digital sovereignty (organiser: Vates).</p>
+      </div>
+
+      <div class="ev-card">
+        <div class="when past">Past · 14–16 Apr</div>
+        <h3><a href="https://pqcrypto2026.irisa.fr/">PQCrypto 2026</a></h3>
+        <div class="where">Saint-Malo · 17th ed.</div>
+        <p>Code-, hash-, isogeny-, lattice- and MPC-in-the-head constructions plus quantum cryptanalysis. 27 papers from 66 submissions — published as Springer <a href="https://link.springer.com/book/10.1007/978-3-032-22695-2">LNCS 16491/16492</a>.</p>
+      </div>
+
+      <div class="ev-card umbrella">
+        <div class="when past">Past · 11–14 May</div>
+        <h3><a href="https://cps-iot-week2026.inria.fr/">CPS-IoT Week 2026 · 19th edition</a></h3>
+        <div class="where">Palais des Congrès · 1 Quai Duguay-Trouin</div>
+        <p>The premier annual gathering on cyber-physical systems and IoT: three flagship conferences and seven workshops sharing one venue.</p>
+
+        <div class="subs">
+          <div class="sub-ev">
+            <span class="tag">11–14 May</span>
+            <a href="https://hscc.acm.org/2026/"><strong>HSCC / ICCPS</strong></a> — hybrid systems and cyber-physical systems, with a new <em>AI-enabled Autonomy</em> track in 2026.
+          </div>
+          <div class="sub-ev">
+            <span class="tag">11–14 May</span>
+            <a href="https://sensys.acm.org/2026/"><strong>SenSys</strong></a> — first edition as the unified <em>Embedded AI and Sensing Systems</em> conference, folding in IPSN + IoTDI.
+          </div>
+          <div class="sub-ev">
+            <span class="tag">12–14 May</span>
+            <a href="https://2026.rtas.org/"><strong>RTAS · 32nd ed.</strong></a> — real-time and embedded systems, two tracks: Systems &amp; Applications, Applied Methodologies.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================== UPCOMING SPOTLIGHT ============================== -->
+  <section class="upcoming">
+    <div class="h-bar">
+      <h2>What's <em>left</em> in 2026</h2>
+      <div class="count">2 events · Sep / Dec</div>
+    </div>
+    <div class="up-grid">
+
+      <div class="up-card">
+        <div class="date-stamp">
+          <div class="day">28<span style="font-size:1.6rem;">·</span>29</div>
+          <div class="month">Septembre</div>
+          <div class="days-out">+123 days</div>
+        </div>
+        <div>
+          <h3><a href="https://digital-benchmark-2026.ebg.net/">Digital Benchmark Saint-Malo</a></h3>
+          <p class="theme">"L'entreprise 2030 : Agentique, Souveraine, Décarbonée."</p>
+          <p>~300 CMOs and CDOs from non-competing brands. 25 keynotes, 30 workshops, 50+ vendor meetings. All-inclusive — transport, lodging and meals on the same bill.</p>
+          <div class="pill-row">
+            <span class="pill">EBG · Elenbi</span>
+            <span class="pill">Invitation</span>
+            <span class="pill">Executive</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="up-card tbc">
+        <div class="date-stamp">
+          <div class="day">~XII</div>
+          <div class="month">Décembre TBC</div>
+          <div class="days-out">+200 days</div>
+        </div>
+        <div>
+          <h3><a href="https://www.flagmalo.fr/">Flag'Malo CTF</a></h3>
+          <p class="theme">"Le plus grand CTF de Bretagne."</p>
+          <p>Annual capture-the-flag organised by IUT Saint-Malo's Réseaux &amp; Télécoms students. Main edition typically December at the IUT campus; exact 2026 date not yet announced.</p>
+          <div class="pill-row">
+            <span class="pill">IUT Saint-Malo</span>
+            <span class="pill">Students / cyber</span>
+            <span class="pill">Annual</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================== YEAR-ROUND ============================== -->
+  <section class="yearly">
+    <h2>Year-round <em>anchors</em></h2>
+    <p class="lede">If a single weekend at Le Coquillage doesn't line up with the dated calendar, these two organisations run the steady drumbeat of meet-ups and recurring formats that keep the Saint-Malo tech scene alive between conferences.</p>
+
+    <div class="yr-grid">
+
+      <div class="yr-card">
+        <img src="calendar/images/lepoool.png" alt="Le Poool">
+        <div>
+          <h3><a href="https://lepoool.tech/">Le Poool · La French Tech Rennes-St-Malo</a></h3>
+          <div class="cadence">Recurring · open agenda</div>
+          <p>Innovation hub across Rennes and Saint-Malo. Runs Digital Tech Conference, <em>Matinales</em>, <em>Market Pitch</em>, <em>Startup on the Beach</em> and seven incubation cohorts. Easiest year-round option for evening tech meet-ups; check their public agenda for specific dates.</p>
+        </div>
+      </div>
+
+      <div class="yr-card">
+        <img src="https://www.google.com/s2/favicons?domain=iut-stmalo.univ-rennes.fr&sz=128" alt="IUT Saint-Malo">
+        <div>
+          <h3><a href="https://iut-stmalo.univ-rennes.fr/forum-des-metiers-du-numerique">Forum des Métiers du Numérique</a></h3>
+          <div class="cadence">Annual · Saturday in March</div>
+          <p>Free, public career fair at IUT Saint-Malo. Sessions on cybersecurity, cloud roles, network project management. 2026 employers: Orange, NXO, LACROIX, COMCYBER, Stelogy, Blue. The only Saturday-shaped tech event on the local calendar.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================== PAST CATALOG ============================== -->
+  <section class="past-cat">
+    <h2>Past · 2026</h2>
+    <p class="lede">For completeness — the seven events already concluded by 28 May.</p>
+
+    <table class="past-table">
+      <thead>
+        <tr>
+          <th style="width: 12%;">Dates</th>
+          <th style="width: 38%;">Event</th>
+          <th style="width: 25%;">Venue</th>
+          <th style="width: 25%;">Audience</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>21 Mar</td>
+          <td class="name"><a href="https://iut-stmalo.univ-rennes.fr/forum-des-metiers-du-numerique">Forum des Métiers du Numérique</a></td>
+          <td>IUT de Saint-Malo</td>
+          <td>Students / public</td>
+        </tr>
+        <tr>
+          <td>9–10 Apr</td>
+          <td class="name"><a href="https://www.7jours.fr/actualites/defense-souverainete-et-numerique-au-coeur-dun-evenement-a-saint-malo/">Rencontres Stratégiques des Trois Océans</a></td>
+          <td>Saint-Malo</td>
+          <td>Defence / industry</td>
+        </tr>
+        <tr>
+          <td>14–16 Apr</td>
+          <td class="name"><a href="https://pqcrypto2026.irisa.fr/">PQCrypto 2026 (17th)</a></td>
+          <td>Saint-Malo</td>
+          <td>Academic crypto</td>
+        </tr>
+        <tr>
+          <td>11–14 May</td>
+          <td class="name"><a href="https://cps-iot-week2026.inria.fr/">CPS-IoT Week 2026 (19th)</a></td>
+          <td>Palais des Congrès</td>
+          <td>Academic systems</td>
+        </tr>
+        <tr>
+          <td>11–14 May</td>
+          <td class="name indent"><a href="https://hscc.acm.org/2026/">HSCC / ICCPS 2026</a></td>
+          <td>Palais des Congrès</td>
+          <td>Hybrid + CPS</td>
+        </tr>
+        <tr>
+          <td>11–14 May</td>
+          <td class="name indent"><a href="https://sensys.acm.org/2026/">SenSys 2026</a></td>
+          <td>Palais des Congrès</td>
+          <td>Embedded AI sensing</td>
+        </tr>
+        <tr>
+          <td>12–14 May</td>
+          <td class="name indent"><a href="https://2026.rtas.org/">RTAS 2026 (32nd)</a></td>
+          <td>Palais des Congrès</td>
+          <td>Real-time embedded</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================== TRIP-PLANNING NOTES ============================== -->
+  <section class="notes">
+    <h2>Trip-planning notes</h2>
+    <div class="notes-grid">
+      <div class="note">
+        <div class="num">i.</div>
+        <p>A Saturday-evening dinner means the IT calendar is mostly already a miss — every major 2026 conference here is mid-week. Forum des Métiers and Flag'Malo are the only Saturday-shaped events.</p>
+      </div>
+      <div class="note">
+        <div class="num">ii.</div>
+        <p>April–May is the dense window. If a future trip is open-dated, anchoring the Saturday dinner around mid-May lines it up with CPS-IoT Week — ambient activity at the Palais des Congrès and surrounding hotels peaks then.</p>
+      </div>
+      <div class="note">
+        <div class="num">iii.</div>
+        <p>The September Digital Benchmark window is more closed-format / executive — less drop-in friendly. Dinan sits exactly on the 30 km boundary (30.8 km by road) but surfaces nothing tech for 2026.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== NEIGHBOURS ============================== -->
+  <section class="neighbours">
+    <h2>Part of the weekend brief</h2>
+    <a class="parent-link" href="../../">↑ A weekend at Le Coquillage: where to sleep, what to do, what's bookable</a>
+    <div class="sib-grid">
+      <a class="sib" href="../../walking-distance-lodging-at-or-near-le-coquillage/">
+        <div class="kind">Sibling · Survey</div>
+        <h3>Walking-distance lodging at or near Le Coquillage</h3>
+        <p>Six options inside a 1 km radius of Château Richeux, ranked by price and proximity.</p>
+      </a>
+      <a class="sib" href="../../special-character-lodging-within-taxi-range-of-le-coquillage/">
+        <div class="kind">Sibling · Survey</div>
+        <h3>Special-character lodging within taxi range</h3>
+        <p>Eleven hotels and chambres d'hôtes between on-site and a 30-minute taxi ride away.</p>
+      </a>
+      <a class="sib" href="../../day-trips-and-activities-within-30-km-of-le-coquillage/">
+        <div class="kind">Sibling · Expedition</div>
+        <h3>Day-trips and activities within 30 km</h3>
+        <p>Saint-Malo's ramparts, Cancale's oyster market, Dinard's Belle Époque, Mont-Saint-Michel.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================== SOURCES ============================== -->
+  <section class="sources">
+    <h2>Sources · 17 citations</h2>
+    <div class="src-grid">
+      <a class="src" href="https://guide.michelin.com/us/en/bretagne/saint-mloir-des-ondes/restaurant/le-coquillage"><img src="https://www.google.com/s2/favicons?domain=guide.michelin.com&sz=128" alt=""><span><span class="src-n">[1] · Michelin</span><span class="src-title">Le Coquillage — MICHELIN Guide</span></span></a>
+      <a class="src" href="https://www.viamichelin.com/routes/results/saint_malo-35400-ille_et_vilaine-brittany-france-to-saint_meloir_des_ondes-35350-ille_et_vilaine-brittany-france"><img src="https://www.google.com/s2/favicons?domain=viamichelin.com&sz=128" alt=""><span><span class="src-n">[2] · ViaMichelin</span><span class="src-title">Saint-Malo → Saint-Méloir-des-Ondes · 8.7 km</span></span></a>
+      <a class="src" href="https://www.viamichelin.com/routes/results/saint_meloir_des_ondes-35350-ille_et_vilaine-brittany-france-to-dinan-22100-cotes_d_armor-brittany-france"><img src="https://www.google.com/s2/favicons?domain=viamichelin.com&sz=128" alt=""><span><span class="src-n">[3] · ViaMichelin</span><span class="src-title">Saint-Méloir-des-Ondes → Dinan · 30.8 km</span></span></a>
+      <a class="src" href="https://cps-iot-week2026.inria.fr/"><img src="https://www.google.com/s2/favicons?domain=cps-iot-week2026.inria.fr&sz=128" alt=""><span><span class="src-n">[4] · INRIA</span><span class="src-title">CPS-IoT Week 2026</span></span></a>
+      <a class="src" href="https://cps-iot-week2026.inria.fr/venue.php"><img src="https://www.google.com/s2/favicons?domain=cps-iot-week2026.inria.fr&sz=128" alt=""><span><span class="src-n">[5] · INRIA</span><span class="src-title">CPS-IoT Week 2026 — venue</span></span></a>
+      <a class="src" href="https://cps-iot-week2026.inria.fr/events.php"><img src="https://www.google.com/s2/favicons?domain=cps-iot-week2026.inria.fr&sz=128" alt=""><span><span class="src-n">[6] · INRIA</span><span class="src-title">CPS-IoT Week 2026 — events</span></span></a>
+      <a class="src" href="https://2026.rtas.org/"><img src="https://www.google.com/s2/favicons?domain=2026.rtas.org&sz=128" alt=""><span><span class="src-n">[7] · IEEE</span><span class="src-title">RTAS 2026 · 32nd ed.</span></span></a>
+      <a class="src" href="https://hscc.acm.org/2026/"><img src="https://www.google.com/s2/favicons?domain=hscc.acm.org&sz=128" alt=""><span><span class="src-n">[8] · ACM</span><span class="src-title">HSCC / ICCPS 2026</span></span></a>
+      <a class="src" href="https://sensys.acm.org/2026/"><img src="https://www.google.com/s2/favicons?domain=sensys.acm.org&sz=128" alt=""><span><span class="src-n">[9] · ACM/IEEE</span><span class="src-title">SenSys 2026</span></span></a>
+      <a class="src" href="https://pqcrypto2026.irisa.fr/"><img src="https://www.google.com/s2/favicons?domain=pqcrypto2026.irisa.fr&sz=128" alt=""><span><span class="src-n">[10] · IRISA</span><span class="src-title">PQCrypto 2026</span></span></a>
+      <a class="src" href="https://link.springer.com/book/10.1007/978-3-032-22695-2"><img src="https://www.google.com/s2/favicons?domain=link.springer.com&sz=128" alt=""><span><span class="src-n">[11] · Springer</span><span class="src-title">PQCrypto 2026 proceedings · LNCS 16491/16492</span></span></a>
+      <a class="src" href="https://www.7jours.fr/actualites/defense-souverainete-et-numerique-au-coeur-dun-evenement-a-saint-malo/"><img src="https://www.google.com/s2/favicons?domain=7jours.fr&sz=128" alt=""><span><span class="src-n">[12] · 7jours.fr</span><span class="src-title">Rencontres Stratégiques des Trois Océans</span></span></a>
+      <a class="src" href="https://digital-benchmark-2026.ebg.net/"><img src="https://www.google.com/s2/favicons?domain=digital-benchmark-2026.ebg.net&sz=128" alt=""><span><span class="src-n">[13] · EBG</span><span class="src-title">Digital Benchmark Saint-Malo 2026</span></span></a>
+      <a class="src" href="https://iut-stmalo.univ-rennes.fr/forum-des-metiers-du-numerique"><img src="https://www.google.com/s2/favicons?domain=iut-stmalo.univ-rennes.fr&sz=128" alt=""><span><span class="src-n">[14] · IUT</span><span class="src-title">Forum des Métiers du Numérique</span></span></a>
+      <a class="src" href="https://www.flagmalo.fr/"><img src="https://www.google.com/s2/favicons?domain=flagmalo.fr&sz=128" alt=""><span><span class="src-n">[15] · Flag'Malo</span><span class="src-title">Flag'Malo CTF · le plus grand CTF de Bretagne</span></span></a>
+      <a class="src" href="https://lepoool.tech/"><img src="https://www.google.com/s2/favicons?domain=lepoool.tech&sz=128" alt=""><span><span class="src-n">[16] · Le Poool</span><span class="src-title">Le Poool · La French Tech Rennes-St-Malo</span></span></a>
+      <a class="src" href="https://www.stmalo-agglomeration.fr/vie-economique/soutiens-a-linnovation-et-a-la-recherche/le-poool/"><img src="https://www.google.com/s2/favicons?domain=stmalo-agglomeration.fr&sz=128" alt=""><span><span class="src-n">[17] · Saint-Malo Agglo</span><span class="src-title">Le Poool · Saint-Malo coworking</span></span></a>
+    </div>
+  </section>
+
+</div>
