@@ -1,0 +1,7 @@
+Top must-see attractions in central Oslo for a first-time weekend visitor (Opera roof, Munch, National Museum, Vigeland, Akershus, Royal Palace) — which are worth the time and which are skippable
+Bygdøy peninsula museums (Viking Ship / Museum of the Viking Age, Fram, Kon-Tiki, Norsk Folkemuseum) — current status in 2026 (Viking museum closure), how to reach, half-day or full-day
+Fjord and outdoor experiences: Oslofjord island hopping by public ferry, Holmenkollen ski jump and Frognerseteren forest, Ekebergparken sculpture park — what a fjord/nature half-day looks like
+Oslo neighborhoods worth wandering for a weekend: Grünerløkka, Vulkan/Mathallen, Aker Brygge, Tjuvholmen, Sørenga and the new harbour promenade — the vibe and what to do in each
+Distinctly Norwegian Oslo experiences beyond the tourist circuit: floating saunas and harbour swimming, coffee culture, contemporary Nordic food markets, design and craft shops — the "you can only do this here" layer
+What is happening in Oslo on a weekend in late May / early June 2026 — Constitution Day aftermath, festivals, white-nights daylight, weather, opening hours, and any concrete dated events that fall in this window
+Practical logistics for a Michelin-anchored weekend: Oslo Pass vs single tickets, public transport from Gardermoen and Torp airports, walking distances between dinner-worthy neighborhoods and the main sights, recommended base area for the hotel
