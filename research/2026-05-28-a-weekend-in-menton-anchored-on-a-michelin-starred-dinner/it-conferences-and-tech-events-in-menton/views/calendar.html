@@ -1,0 +1,1375 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events in (and near) Menton — Calendar"
+---
+
+<style>
+  /* ---- Calendar view: SNCF-tablo / chronogram ---- */
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;700&display=swap');
+
+  :root {
+    --paper: #fbf6ec;
+    --paper-2: #f3ead8;
+    --ink: #0e1b3a;
+    --ink-soft: #364366;
+    --rail: #0e1b3a;
+    --rust: #c44a1c;
+    --rust-soft: #e9b89c;
+    --olive: #6b6a3e;
+    --gold: #b48a2f;
+    --muted: #8a8170;
+    --rule: #d8cbb1;
+    --cell-empty: #ede2c8;
+    --shadow: 0 2px 14px rgba(14, 27, 58, 0.07);
+  }
+
+  .cal-wrap {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+  }
+  .cal-wrap *,
+  .cal-wrap *::before,
+  .cal-wrap *::after { box-sizing: border-box; }
+  .cal-wrap a { color: inherit; text-decoration: none; }
+  .cal-wrap a:hover { text-decoration: underline; text-decoration-color: var(--rust); text-underline-offset: 3px; }
+  .cal-wrap sup { font-size: 0.6em; font-weight: 600; vertical-align: super; }
+  .cal-wrap sup a { color: var(--rust); }
+
+  /* ---- Cover ---- */
+  .cover {
+    padding: 56px 56px 32px;
+    border-bottom: 1px solid var(--rule);
+    background:
+      radial-gradient(ellipse 800px 200px at 80% 0%, rgba(196, 74, 28, 0.07), transparent 60%),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+  }
+  .cover-kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .cover-kicker .dot { color: var(--rust); }
+  .cover-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: clamp(40px, 5.5vw, 76px);
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+    margin: 0 0 18px;
+    max-width: 22ch;
+  }
+  .cover-title em {
+    font-style: normal;
+    color: var(--rust);
+    font-weight: 700;
+  }
+  .cover-sub {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .cover-stats {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .cover-stats .stat {
+    padding: 18px 22px;
+    border-right: 1px solid var(--rule);
+  }
+  .cover-stats .stat:last-child { border-right: none; }
+  .cover-stats .num {
+    font-family: 'Fraunces', serif;
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .cover-stats .num em {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    font-style: normal;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+  .cover-stats .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ---- Section heading ---- */
+  .sec {
+    padding: 48px 56px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 12px;
+  }
+  .sec-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--rust);
+    letter-spacing: 0.18em;
+  }
+  .sec-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .sec-note {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .sec-prose {
+    max-width: 64ch;
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+  }
+
+  /* ---- Rail schematic ---- */
+  .rail-board {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 32px 36px 28px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .rail-board::before {
+    content: "LIGNE TER · NICE — VINTIMILLE / SOPHIA";
+    position: absolute;
+    top: 14px;
+    left: 36px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--rust-soft);
+    opacity: 0.75;
+  }
+  .rail-board::after {
+    content: "2026";
+    position: absolute;
+    top: 14px;
+    right: 36px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--rust-soft);
+    opacity: 0.75;
+  }
+  .rail-svg-wrap {
+    margin-top: 22px;
+    overflow-x: auto;
+  }
+  .rail-svg { width: 100%; min-width: 820px; height: 280px; display: block; }
+  .rail-svg text { font-family: 'IBM Plex Mono', monospace; fill: var(--paper); }
+  .rail-svg .st-name { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+  .rail-svg .st-time { font-size: 10px; fill: var(--rust-soft); letter-spacing: 0.1em; }
+  .rail-svg .ev-name { font-size: 9.5px; letter-spacing: 0.04em; fill: var(--paper); font-weight: 500; }
+  .rail-svg .ev-date { font-size: 9px; letter-spacing: 0.06em; fill: #c4b896; }
+  .rail-svg .home-flag { font-size: 9px; letter-spacing: 0.2em; fill: #f3ead8; font-weight: 700; }
+
+  /* ---- Chronogram grid ---- */
+  .chrono-frame { overflow-x: auto; }
+  .chrono {
+    display: grid;
+    grid-template-columns: 220px repeat(9, 1fr);
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    min-width: 980px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+  .chrono .col-head,
+  .chrono .row-head {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 10px;
+    border-right: 1px solid #1d2c52;
+  }
+  .chrono .col-head { text-align: center; border-bottom: 1px solid #1d2c52; }
+  .chrono .col-head .yr { display: block; opacity: 0.5; font-size: 8px; margin-top: 2px; letter-spacing: 0.25em; }
+  .chrono .row-head {
+    text-align: left;
+    background: var(--ink);
+    color: var(--paper);
+    border-bottom: 1px solid #1d2c52;
+    line-height: 1.2;
+  }
+  .chrono .row-head .station-meta {
+    display: block;
+    font-size: 8.5px;
+    color: var(--rust-soft);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+  }
+  .chrono .row-head.home {
+    background: var(--rust);
+    color: var(--paper);
+  }
+  .chrono .row-head.home .station-meta { color: #ffe6d6; }
+  .chrono .cell {
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    padding: 10px 8px;
+    min-height: 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+  }
+  .chrono .cell.empty {
+    background:
+      repeating-linear-gradient(
+        135deg,
+        var(--paper) 0px,
+        var(--paper) 8px,
+        var(--cell-empty) 8px,
+        var(--cell-empty) 9px
+      );
+  }
+  .chrono .cell.empty::after {
+    content: "—";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 16px;
+    opacity: 0.4;
+  }
+  .chrono .chip {
+    border-left: 3px solid var(--rust);
+    background: #fff;
+    padding: 5px 7px 6px;
+    border-radius: 1px;
+    box-shadow: 0 1px 2px rgba(14, 27, 58, 0.06);
+  }
+  .chrono .chip.it { border-left-color: var(--rust); }
+  .chrono .chip.ai { border-left-color: var(--gold); }
+  .chrono .chip.dev { border-left-color: var(--olive); }
+  .chrono .chip.med { border-left-color: var(--muted); opacity: 0.7; }
+  .chrono .chip .ev {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+  }
+  .chrono .chip .dt {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+  .chrono-legend {
+    margin-top: 14px;
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .chrono-legend .swatch {
+    display: inline-block;
+    width: 24px;
+    height: 8px;
+    border-left: 3px solid var(--rust);
+    background: #fff;
+    margin-right: 6px;
+    vertical-align: middle;
+    box-shadow: 0 1px 2px rgba(14, 27, 58, 0.06);
+  }
+  .chrono-legend .swatch.ai { border-left-color: var(--gold); }
+  .chrono-legend .swatch.dev { border-left-color: var(--olive); }
+  .chrono-legend .swatch.med { border-left-color: var(--muted); }
+
+  /* ---- Event cards ---- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+  .card-img {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--paper-2);
+    position: relative;
+  }
+  .card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .card-img.gradient {
+    display: grid;
+    place-items: center;
+  }
+  .card-img.gradient .glyph {
+    font-family: 'Fraunces', serif;
+    font-size: 64px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 500;
+  }
+  .card-img.gradient.monaco { background: linear-gradient(135deg, #2e3a6e 0%, #6c4a7e 100%); }
+  .card-img.gradient.cannes { background: linear-gradient(135deg, #b95a2c 0%, #d68a4a 100%); }
+  .card-img.gradient.sophia { background: linear-gradient(135deg, #5b6a3e 0%, #8c9460 100%); }
+  .card-img.gradient.nice { background: linear-gradient(135deg, #1f4d6e 0%, #3a7ea3 100%); }
+  .card-img.gradient.menton { background: linear-gradient(135deg, #c4501a 0%, #e6a44a 100%); }
+  .card-meta-row {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    z-index: 2;
+  }
+  .pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    background: rgba(14, 27, 58, 0.86);
+    color: var(--paper);
+    border-radius: 1px;
+    backdrop-filter: blur(4px);
+  }
+  .pill.dates { background: var(--rust); color: #fff; }
+  .card-body { padding: 18px 18px 20px; flex: 1; display: flex; flex-direction: column; }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    font-weight: 500;
+    margin: 0 0 4px;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .card-tagline {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+  .card-blurb {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+    flex: 1;
+  }
+  .card-foot {
+    border-top: 1px dotted var(--rule);
+    padding-top: 12px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+  }
+  .card-foot dt {
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 9px;
+    align-self: center;
+  }
+  .card-foot dd {
+    margin: 0;
+    color: var(--ink);
+  }
+  .card-foot dd.train::before {
+    content: "▶ ";
+    color: var(--rust);
+  }
+
+  /* ---- Trip window ---- */
+  .windows {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .window {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--rust);
+    border-radius: 2px;
+  }
+  .window.empty { border-left-color: var(--muted); background: var(--paper-2); }
+  .window-mon {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .window-mon .month-num {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-style: normal;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    margin-top: 2px;
+  }
+  .window-events {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .window-events .ev-row { display: block; }
+  .window-events .d { color: var(--rust); margin-right: 8px; font-weight: 600; }
+  .window-recs {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 24ch;
+    text-align: right;
+    font-style: italic;
+  }
+
+  /* ---- Caveat ---- */
+  .caveat {
+    background: var(--rust);
+    color: #fff;
+    padding: 32px 40px;
+    border-radius: 2px;
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 28px;
+    align-items: start;
+    box-shadow: var(--shadow);
+  }
+  .caveat-clock {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    border: 2px solid #fff;
+    padding: 12px 6px 10px;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+  .caveat-clock .sub {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 0.25em;
+    margin-top: 4px;
+    opacity: 0.85;
+  }
+  .caveat-body h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    color: #fff;
+  }
+  .caveat-body p { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: #ffe6d6; }
+  .caveat-body p:last-child { margin-bottom: 0; }
+  .caveat-body sup a { color: #fff; }
+
+  /* ---- Year-round strip ---- */
+  .yearround {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+  }
+  .yr-card {
+    background: var(--paper-2);
+    padding: 18px 20px;
+    border-radius: 2px;
+    border-top: 3px solid var(--olive);
+  }
+  .yr-card h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .yr-card p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.45;
+  }
+  .yr-card .yr-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--olive);
+    margin-bottom: 8px;
+  }
+
+  /* ---- Sibling & atlas footer ---- */
+  .siblings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .sib {
+    border: 1px solid var(--rule);
+    padding: 18px 20px;
+    background: #fff;
+    border-radius: 2px;
+    display: block;
+  }
+  .sib .sib-kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .sib h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .sib p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+  .sib:hover { background: var(--paper-2); }
+
+  .atlas-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+  }
+  .atlas-strip a { color: var(--ink); }
+  .atlas-strip a:hover { color: var(--rust); }
+
+  /* ---- Sources rail ---- */
+  .sources {
+    background: var(--paper-2);
+  }
+  .src-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .src {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    font-size: 12px;
+    align-items: flex-start;
+    text-decoration: none;
+  }
+  .src .src-fav { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 2px; border-radius: 2px; }
+  .src .src-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--rust);
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    background: var(--paper-2);
+    padding: 1px 5px;
+    margin-right: 4px;
+    border-radius: 2px;
+  }
+  .src .src-text {
+    flex: 1;
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
+  .src .src-text .src-host {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+  .src:hover { background: var(--paper-2); }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    .cover { padding: 36px 24px 24px; }
+    .sec { padding: 36px 24px; }
+    .cover-stats { grid-template-columns: repeat(2, 1fr); }
+    .cover-stats .stat:nth-child(2) { border-right: none; }
+    .window { grid-template-columns: 1fr; }
+    .window-recs { text-align: left; max-width: none; }
+    .caveat { grid-template-columns: 1fr; }
+    .siblings { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="cal-wrap">
+
+  <!-- =================== COVER =================== -->
+  <section class="cover">
+    <div class="cover-kicker">
+      <span>VIEW · CALENDAR <span class="dot">●</span></span>
+      <span>SURVEY · 25 CITATIONS</span>
+      <span>BASE: <strong>MENTON</strong></span>
+      <span>YEAR · 2026</span>
+    </div>
+    <h1 class="cover-title">Menton hosts <em>none</em>.<br>Eleven sit on the line.</h1>
+    <p class="cover-sub">
+      The Palais de l'Europe books medical congresses<sup><a href="https://www.menton-congres.com/">[1]</a></sup>, not IT.
+      But Menton is the eastern terminus of a fast coastal rail line — and on that line, 2026 has eleven tech events worth catching.
+      A chronogram of the dates, the stations, and what fits which trip.
+    </p>
+    <div class="cover-stats">
+      <div class="stat">
+        <div class="num">11<em></em></div>
+        <div class="label">Events tracked</div>
+      </div>
+      <div class="stat">
+        <div class="num">4<em>+ 1</em></div>
+        <div class="label">Stations · base</div>
+      </div>
+      <div class="stat">
+        <div class="num">5<em>/12</em></div>
+        <div class="label">Months that hit</div>
+      </div>
+      <div class="stat">
+        <div class="num">11<em>min</em></div>
+        <div class="label">Menton ⟷ Monaco</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== RAIL BOARD =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 01</span>
+      <h2 class="sec-title">The corridor, from base camp west</h2>
+      <span class="sec-note">Schematic · not to scale</span>
+    </div>
+    <p class="sec-prose">
+      Direct TER services run Menton ⟷ Monaco ⟷ Nice ⟷ Cannes along the coast.
+      Sophia Antipolis hangs off the line — train to Antibes or Nice, then bus<sup><a href="https://moovitapp.com/index/en/public_transit-Sophia_Antipolis-Nice-site_197815420-3260">[21]</a></sup>.
+      Travel times below are minutes from Menton platform.
+    </p>
+
+    <div class="rail-board">
+      <div class="rail-svg-wrap">
+        <svg class="rail-svg" viewBox="0 0 1000 280" preserveAspectRatio="xMidYMid meet" aria-label="Coastal rail schematic">
+          <!-- Rail line -->
+          <line x1="40" y1="180" x2="960" y2="180" stroke="#c44a1c" stroke-width="3"/>
+          <!-- Tie marks -->
+          <g stroke="#3a4671" stroke-width="1" opacity="0.6">
+            <line x1="80"  y1="174" x2="80"  y2="186"/>
+            <line x1="160" y1="174" x2="160" y2="186"/>
+            <line x1="240" y1="174" x2="240" y2="186"/>
+            <line x1="320" y1="174" x2="320" y2="186"/>
+            <line x1="400" y1="174" x2="400" y2="186"/>
+            <line x1="480" y1="174" x2="480" y2="186"/>
+            <line x1="560" y1="174" x2="560" y2="186"/>
+            <line x1="640" y1="174" x2="640" y2="186"/>
+            <line x1="720" y1="174" x2="720" y2="186"/>
+            <line x1="800" y1="174" x2="800" y2="186"/>
+            <line x1="880" y1="174" x2="880" y2="186"/>
+          </g>
+
+          <!-- Sophia inland branch (from Nice) -->
+          <line x1="540" y1="180" x2="540" y2="232" stroke="#c44a1c" stroke-width="2" stroke-dasharray="4 3"/>
+
+          <!-- Station: CANNES (x=120) -->
+          <circle cx="120" cy="180" r="7" fill="#fbf6ec" stroke="#c44a1c" stroke-width="3"/>
+          <text class="st-name" x="120" y="158" text-anchor="middle">CANNES</text>
+          <text class="st-time" x="120" y="206" text-anchor="middle">1H09 W</text>
+          <!-- Cannes events above -->
+          <text class="ev-name" x="120" y="124" text-anchor="middle">WAICF · WAiFF · IASP</text>
+          <text class="ev-date" x="120" y="138" text-anchor="middle">FEB 12–13 · APR 21–22 · OCT 27–30</text>
+
+          <!-- Station: NICE (x=380) -->
+          <circle cx="380" cy="180" r="7" fill="#fbf6ec" stroke="#c44a1c" stroke-width="3"/>
+          <text class="st-name" x="380" y="158" text-anchor="middle">NICE</text>
+          <text class="st-time" x="380" y="206" text-anchor="middle">35 MIN W</text>
+          <text class="ev-name" x="380" y="124" text-anchor="middle">CUG 2026</text>
+          <text class="ev-date" x="380" y="138" text-anchor="middle">APR 26–30 · LE MÉRIDIEN</text>
+
+          <!-- Sophia node (branch end) -->
+          <circle cx="540" cy="232" r="7" fill="#fbf6ec" stroke="#c44a1c" stroke-width="3"/>
+          <text class="st-name" x="540" y="252" text-anchor="middle">SOPHIA ANTIPOLIS</text>
+          <text class="st-time" x="540" y="266" text-anchor="middle">+ BUS VIA NICE / ANTIBES</text>
+
+          <!-- Station: SOPHIA junction marker (where branch leaves) -->
+          <circle cx="540" cy="180" r="4" fill="#c44a1c"/>
+          <text class="ev-name" x="540" y="124" text-anchor="middle">ETSI ×3 · RIVIERA DEV · AZUR TECH SUMMER</text>
+          <text class="ev-date" x="540" y="138" text-anchor="middle">5 DATES · FEB / APR / JUL / OCT</text>
+
+          <!-- Station: MONACO (x=760) -->
+          <circle cx="760" cy="180" r="7" fill="#fbf6ec" stroke="#c44a1c" stroke-width="3"/>
+          <text class="st-name" x="760" y="158" text-anchor="middle">MONACO</text>
+          <text class="st-time" x="760" y="206" text-anchor="middle">11 MIN W</text>
+          <text class="ev-name" x="760" y="124" text-anchor="middle">READY FOR IT · WAIB SUMMIT</text>
+          <text class="ev-date" x="760" y="138" text-anchor="middle">JUN 2–4 · JUN 9–10</text>
+
+          <!-- Station: MENTON (x=920) — HOME -->
+          <rect x="906" y="166" width="28" height="28" fill="#c44a1c"/>
+          <text class="home-flag" x="920" y="184" text-anchor="middle">●</text>
+          <text class="st-name" x="920" y="158" text-anchor="middle" fill="#f3ead8">MENTON</text>
+          <text class="st-time" x="920" y="220" text-anchor="middle" fill="#f3ead8">BASE · 0 MIN</text>
+          <text class="ev-name" x="920" y="124" text-anchor="middle" fill="#f3ead8">JAS (NOT IT)</text>
+          <text class="ev-date" x="920" y="138" text-anchor="middle">OCT 12–14 · PALAIS DE L'EUROPE</text>
+
+          <!-- direction arrows -->
+          <text class="st-time" x="40"  y="170" text-anchor="start">◀ TO MARSEILLE</text>
+          <text class="st-time" x="960" y="170" text-anchor="end">VINTIMILLE ▶</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== CHRONOGRAM =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 02</span>
+      <h2 class="sec-title">The chronogram — stations × months</h2>
+      <span class="sec-note">9 cols · 5 rows · 11 events</span>
+    </div>
+    <p class="sec-prose">
+      Striped cells are dead months. The corridor lights up in five clusters: <strong>Feb</strong>, <strong>Apr</strong>, <strong>Jun</strong>, <strong>Jul</strong>, <strong>Oct</strong> — outside those, the conference-bolted version of a Menton weekend doesn't exist.
+    </p>
+
+    <div class="chrono-frame">
+      <div class="chrono" role="table" aria-label="Conference chronogram">
+        <div class="row-head">STATION ╱ MONTH</div>
+        <div class="col-head">FEB<span class="yr">2026</span></div>
+        <div class="col-head">MAR<span class="yr">2026</span></div>
+        <div class="col-head">APR<span class="yr">2026</span></div>
+        <div class="col-head">MAY<span class="yr">2026</span></div>
+        <div class="col-head">JUN<span class="yr">2026</span></div>
+        <div class="col-head">JUL<span class="yr">2026</span></div>
+        <div class="col-head">AUG<span class="yr">2026</span></div>
+        <div class="col-head">SEP<span class="yr">2026</span></div>
+        <div class="col-head">OCT<span class="yr">2026</span></div>
+
+        <!-- CANNES -->
+        <div class="row-head">CANNES<span class="station-meta">▲ 1H09 · COASTAL</span></div>
+        <div class="cell">
+          <div class="chip ai"><div class="ev"><a href="https://www.worldaicannes.com/">WAICF</a></div><div class="dt">12–13</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip ai"><div class="ev"><a href="https://en.palaisdesfestivals.com/offers/world-artificial-intelligence-film-festival-waiff-cannes-en-3686586/">WAiFF</a></div><div class="dt">21–22</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip it"><div class="ev"><a href="https://www.iasp.ws/activities/news/iasp-s-world%E2%80%AFconference%E2%80%AF2026%E2%80%AFwill-be-in-sophia-antipolis-in-france-">IASP World</a></div><div class="dt">27–30</div></div>
+        </div>
+
+        <!-- SOPHIA ANTIPOLIS -->
+        <div class="row-head">SOPHIA ANTIPOLIS<span class="station-meta">▲ NICE + BUS · INLAND</span></div>
+        <div class="cell">
+          <div class="chip ai"><div class="ev"><a href="https://www.etsi.org/events/2591-etsi-ai-data-conference-2026/">ETSI AI &amp; Data</a></div><div class="dt">9–11</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip dev"><div class="ev"><a href="https://www.etsi.org/events/2540-2026-04-12th-ucaat-user-conference-on-advanced-automated-testing/">ETSI UCAAT</a></div><div class="dt">14–16</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip it"><div class="ev"><a href="https://www.telecom-valley.fr/azurtechsummer/">Azur Tech Summer</a></div><div class="dt">2</div></div>
+          <div class="chip dev"><div class="ev"><a href="https://www.rivieradev.fr/">Riviera DEV</a></div><div class="dt">6–8</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip it"><div class="ev"><a href="https://www.etsi.org/events/2645-etsi-security-conference-oct2026/">ETSI Security</a></div><div class="dt">19–22</div></div>
+        </div>
+
+        <!-- NICE -->
+        <div class="row-head">NICE<span class="station-meta">▲ 35 MIN · COASTAL</span></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip ai"><div class="ev"><a href="https://cug.org/cug-2026/">CUG 2026</a></div><div class="dt">26–30</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+
+        <!-- MONACO -->
+        <div class="row-head">MONACO<span class="station-meta">▲ 11 MIN · COASTAL</span></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip it"><div class="ev"><a href="https://www.grimaldiforum.com/en/events-schedule-monaco/ready-for-it-7">Ready For IT</a></div><div class="dt">2–4</div></div>
+          <div class="chip ai"><div class="ev"><a href="https://www.waibsummit.com/">WAIB Summit</a></div><div class="dt">9–10</div></div>
+        </div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+
+        <!-- MENTON · HOME -->
+        <div class="row-head home">MENTON · BASE<span class="station-meta">◆ 0 MIN · ANCHOR</span></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell">
+          <div class="chip med"><div class="ev"><a href="https://www.ja-sante.fr/">JAS</a> <span style="font-size:8px; letter-spacing:0.1em;">/ NOT IT</span></div><div class="dt">12–14</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrono-legend">
+      <span><span class="swatch"></span>IT / Enterprise</span>
+      <span><span class="swatch ai"></span>AI / Data</span>
+      <span><span class="swatch dev"></span>Developer / Open Source</span>
+      <span><span class="swatch med"></span>Off-topic (healthcare, science)</span>
+    </div>
+  </section>
+
+  <!-- =================== EVENT CARDS =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 03</span>
+      <h2 class="sec-title">The eleven, with venue stamps</h2>
+      <span class="sec-note">Each = one round-trip from Menton</span>
+    </div>
+
+    <div class="cards">
+
+      <!-- WAICF — Feb · Cannes -->
+      <article class="card">
+        <div class="card-img">
+          <div class="card-meta-row">
+            <span class="pill">CANNES</span>
+            <span class="pill dates">FEB 12–13</span>
+          </div>
+          <img src="calendar/images/waicf.jpg" alt="World AI Cannes Festival imagery">
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.worldaicannes.com/">WAICF</a></h3>
+          <p class="card-tagline">World AI Cannes Festival</p>
+          <p class="card-blurb">AI mega-show. 10,000+ professional visitors, 320 international speakers, 220 exhibitors at the Palais des Festivals<sup><a href="https://www.worldaicannes.com/">[9]</a></sup>.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">1h09 from Menton<sup><a href="https://www.thetrainline.com/en-us/train-times/cannes-to-menton">[20]</a></sup></dd>
+            <dt>Crowd</dt><dd>Generalist AI / business</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- ETSI AI & Data — Feb · Sophia -->
+      <article class="card">
+        <div class="card-img">
+          <div class="card-meta-row">
+            <span class="pill">SOPHIA</span>
+            <span class="pill dates">FEB 9–11</span>
+          </div>
+          <img src="calendar/images/etsi-ai.png" alt="ETSI AI and Data Conference banner">
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.etsi.org/events/2591-etsi-ai-data-conference-2026/">ETSI AI &amp; Data Conference</a></h3>
+          <p class="card-tagline">Standards-track · AI · Data Management</p>
+          <p class="card-blurb">At ETSI HQ in Sophia Antipolis<sup><a href="https://www.etsi.org/events/2591-etsi-ai-data-conference-2026/">[15]</a></sup>. Same week as WAICF — pick by audience: standards/telco/infra here, generalist there.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">35 min Nice + bus<sup><a href="https://moovitapp.com/index/en/public_transit-Sophia_Antipolis-Nice-site_197815420-3260">[21]</a></sup></dd>
+            <dt>Crowd</dt><dd>Standards / telco / infra</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- ETSI UCAAT — Apr · Sophia -->
+      <article class="card">
+        <div class="card-img">
+          <div class="card-meta-row">
+            <span class="pill">SOPHIA</span>
+            <span class="pill dates">APR 14–16</span>
+          </div>
+          <img src="calendar/images/etsi-ucaat.png" alt="ETSI UCAAT 2026 banner">
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.etsi.org/events/2540-2026-04-12th-ucaat-user-conference-on-advanced-automated-testing/">ETSI UCAAT</a></h3>
+          <p class="card-tagline">User Conference · Advanced Automated Testing</p>
+          <p class="card-blurb">12th edition of the automated-testing conference at ETSI HQ<sup><a href="https://www.etsi.org/events/2540-2026-04-12th-ucaat-user-conference-on-advanced-automated-testing/">[16]</a></sup>. Tightly technical, narrow-bore.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">35 min Nice + bus</dd>
+            <dt>Crowd</dt><dd>QA / SDETs / test infra</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- WAiFF — Apr · Cannes -->
+      <article class="card">
+        <div class="card-img gradient cannes">
+          <div class="card-meta-row">
+            <span class="pill">CANNES</span>
+            <span class="pill dates">APR 21–22</span>
+          </div>
+          <div class="glyph">▦</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://en.palaisdesfestivals.com/offers/world-artificial-intelligence-film-festival-waiff-cannes-en-3686586/">WAiFF</a></h3>
+          <p class="card-tagline">World AI Film Festival</p>
+          <p class="card-blurb">AI × filmmaking at the Palais des Festivals<sup><a href="https://en.palaisdesfestivals.com/offers/world-artificial-intelligence-film-festival-waiff-cannes-en-3686586/">[10]</a></sup>. Creative-industry slant, not engineering.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">1h09 from Menton</dd>
+            <dt>Crowd</dt><dd>Filmmakers / generative video</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- CUG — Apr · Nice -->
+      <article class="card">
+        <div class="card-img gradient nice">
+          <div class="card-meta-row">
+            <span class="pill">NICE</span>
+            <span class="pill dates">APR 26–30</span>
+          </div>
+          <div class="glyph">∞</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://cug.org/cug-2026/">CUG 2026</a></h3>
+          <p class="card-tagline">Cray User Group · HPC + AI</p>
+          <p class="card-blurb">Five days at Le Méridien Nice, themed "Science for Society"<sup><a href="https://cug.org/cug-2026/">[11]</a></sup>. The only coastal-line event for HPC people.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">35 min direct<sup><a href="https://www.thetrainline.com/en-us/train-times/nice-to-menton">[19]</a></sup></dd>
+            <dt>Crowd</dt><dd>HPC / supercomputing / AI</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- Ready For IT — Jun · Monaco -->
+      <article class="card">
+        <div class="card-img gradient monaco">
+          <div class="card-meta-row">
+            <span class="pill">MONACO</span>
+            <span class="pill dates">JUN 2–4</span>
+          </div>
+          <div class="glyph">⚐</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.grimaldiforum.com/en/events-schedule-monaco/ready-for-it-7">Ready For IT</a></h3>
+          <p class="card-tagline">Grimaldi Forum · CIO / CISO / CTO</p>
+          <p class="card-blurb">200+ IT decision-makers, pre-arranged one-to-ones on digital transition and cybersecurity<sup><a href="https://numerique360.banquedesterritoires.fr/evenements/nationaux/ready-for-it-2026-le-rendez-vous-incontournable-de-la-transition-et-securite-numeriques/">[6]</a></sup>.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">11 min, 46×/day<sup><a href="https://www.thetrainline.com/en-us/train-times/monaco-monte-carlo-to-menton">[18]</a></sup></dd>
+            <dt>Crowd</dt><dd>Enterprise IT leadership</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- WAIB Summit — Jun · Monaco -->
+      <article class="card">
+        <div class="card-img gradient monaco">
+          <div class="card-meta-row">
+            <span class="pill">MONACO</span>
+            <span class="pill dates">JUN 9–10</span>
+          </div>
+          <div class="glyph">◈</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.waibsummit.com/">WAIB Summit</a></h3>
+          <p class="card-tagline">One Monte-Carlo · Web3 + AI + digital assets</p>
+          <p class="card-blurb">2,000+ attendees. Confirmed speakers: <a href="https://monacolife.net/waib-summit-returns-to-monte-carlo-for-web3-and-ai-conference/">BNP Paribas, Franklin Templeton, EU Commission &amp; Parliament</a><sup><a href="https://monacolife.net/waib-summit-returns-to-monte-carlo-for-web3-and-ai-conference/">[8]</a></sup>.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">11 min from Menton</dd>
+            <dt>Crowd</dt><dd>Finance × Web3 × institutions</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- Azur Tech Summer — Jul · Sophia -->
+      <article class="card">
+        <div class="card-img">
+          <div class="card-meta-row">
+            <span class="pill">SOPHIA</span>
+            <span class="pill dates">JUL 2</span>
+          </div>
+          <img src="calendar/images/azur-tech-summer.png" alt="Azur Tech Summer 2026 banner">
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.telecom-valley.fr/azurtechsummer/">Azur Tech Summer</a></h3>
+          <p class="card-tagline">SKEMA · Telecom Valley regional day</p>
+          <p class="card-blurb">One-day regional digital-industry gathering hosted by Telecom Valley<sup><a href="https://www.telecom-valley.fr/azurtechsummer/">[13]</a></sup>. Pairs naturally with Riviera DEV four days later — same campus.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">35 min + bus</dd>
+            <dt>Crowd</dt><dd>Local SMEs, startups, students</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- Riviera DEV — Jul · Sophia -->
+      <article class="card">
+        <div class="card-img gradient sophia">
+          <div class="card-meta-row">
+            <span class="pill">SOPHIA</span>
+            <span class="pill dates">JUL 6–8</span>
+          </div>
+          <div class="glyph">⟨/⟩</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.rivieradev.fr/">Riviera DEV</a></h3>
+          <p class="card-tagline">SKEMA · Java/JVM heritage, broadened</p>
+          <p class="card-blurb">Three days of developer talks, workshops, hands-on sessions in Sophia Antipolis<sup><a href="https://www.rivieradev.fr/">[12]</a></sup>. The conference most worth a Sophia mini-trip with a hotel in Antibes.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">35 min + bus</dd>
+            <dt>Crowd</dt><dd>JVM, polyglot devs, cloud</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- ETSI Security — Oct · Sophia -->
+      <article class="card">
+        <div class="card-img">
+          <div class="card-meta-row">
+            <span class="pill">SOPHIA</span>
+            <span class="pill dates">OCT 19–22</span>
+          </div>
+          <img src="calendar/images/etsi-security.png" alt="ETSI Security Conference 2026 banner">
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.etsi.org/events/2645-etsi-security-conference-oct2026/">ETSI Security Conference</a></h3>
+          <p class="card-tagline">20th edition · agentic AI · PQC · Zero Trust</p>
+          <p class="card-blurb">Headline themes for 2026: agentic AI, post-quantum cryptography, Zero Trust<sup><a href="https://www.etsi.org/events/2645-etsi-security-conference-oct2026/">[14]</a></sup>. Heavy on standards-track security work.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">35 min + bus</dd>
+            <dt>Crowd</dt><dd>Security architects, telco, CSPs</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- IASP — Oct · Cannes -->
+      <article class="card">
+        <div class="card-img gradient cannes">
+          <div class="card-meta-row">
+            <span class="pill">CANNES</span>
+            <span class="pill dates">OCT 27–30</span>
+          </div>
+          <div class="glyph">⌂</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.iasp.ws/activities/news/iasp-s-world%E2%80%AFconference%E2%80%AF2026%E2%80%AFwill-be-in-sophia-antipolis-in-france-">IASP World Conference</a></h3>
+          <p class="card-tagline">Palais des Festivals · Science/tech-park policy</p>
+          <p class="card-blurb">Innovation-park leadership + technical tours of Sophia Antipolis itself<sup><a href="https://www.iasp.ws/activities/news/iasp-s-world%E2%80%AFconference%E2%80%AF2026%E2%80%AFwill-be-in-sophia-antipolis-in-france-">[17]</a></sup>. Policy crowd, not engineering.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">1h09 from Menton</dd>
+            <dt>Crowd</dt><dd>Innovation-park policy / govt</dd>
+          </dl>
+        </div>
+      </article>
+
+      <!-- Menton anchor card -->
+      <article class="card" style="border-left: 4px solid var(--rust);">
+        <div class="card-img gradient menton">
+          <div class="card-meta-row">
+            <span class="pill">MENTON · BASE</span>
+            <span class="pill" style="background:rgba(14,27,58,0.86);">NOT IT</span>
+          </div>
+          <div class="glyph">⚓</div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title"><a href="https://www.menton-congres.com/">Palais de l'Europe</a></h3>
+          <p class="card-tagline">Menton · medical &amp; scientific congresses</p>
+          <p class="card-blurb">Menton's own 3,000 m² convention venue books <a href="https://www.ja-sante.fr/">JAS</a> (12–14 Oct, hospital architecture)<sup><a href="https://www.ja-sante.fr/">[2]</a></sup>, PILM, ICQC — no IT or developer-focused events<sup><a href="https://www.menton-congres.com/">[1]</a></sup>. <a href="https://www.sciencespo.fr/college/en/campus-life/campus/menton/">Sciences Po Menton</a> runs Mediterranean-politics conferences<sup><a href="https://www.sciencespo.fr/college/en/campus-life/campus/menton/">[4]</a></sup>.</p>
+          <dl class="card-foot">
+            <dt>Train</dt><dd class="train">0 min · base camp</dd>
+            <dt>For IT?</dt><dd>No. Take the train west.</dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- =================== TRIP WINDOW =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 04</span>
+      <h2 class="sec-title">Pick by visit window</h2>
+      <span class="sec-note">5 live · 4 dead</span>
+    </div>
+    <p class="sec-prose">
+      Five windows where the corridor has something. Four months where it doesn't. The recommendation column tells you which event to lead the trip on.
+    </p>
+
+    <div class="windows">
+
+      <div class="window">
+        <div class="window-mon">February<span class="month-num">M02 · WK 06–07</span></div>
+        <div class="window-events">
+          <span class="ev-row"><span class="d">09–11</span><a href="https://www.etsi.org/events/2591-etsi-ai-data-conference-2026/">ETSI AI &amp; Data</a> · Sophia</span>
+          <span class="ev-row"><span class="d">12–13</span><a href="https://www.worldaicannes.com/">WAICF</a> · Cannes</span>
+        </div>
+        <div class="window-recs">Standards crowd → ETSI. Generalist → WAICF.</div>
+      </div>
+
+      <div class="window empty">
+        <div class="window-mon">March<span class="month-num">M03 · DEAD</span></div>
+        <div class="window-events"><span class="ev-row" style="color:var(--muted);">— No major tech event on corridor —</span></div>
+        <div class="window-recs">Gardens + Mirazur only.</div>
+      </div>
+
+      <div class="window">
+        <div class="window-mon">April<span class="month-num">M04 · 3 EVENTS</span></div>
+        <div class="window-events">
+          <span class="ev-row"><span class="d">14–16</span><a href="https://www.etsi.org/events/2540-2026-04-12th-ucaat-user-conference-on-advanced-automated-testing/">ETSI UCAAT</a> · Sophia</span>
+          <span class="ev-row"><span class="d">21–22</span><a href="https://en.palaisdesfestivals.com/offers/world-artificial-intelligence-film-festival-waiff-cannes-en-3686586/">WAiFF</a> · Cannes</span>
+          <span class="ev-row"><span class="d">26–30</span><a href="https://cug.org/cug-2026/">CUG 2026</a> · Nice</span>
+        </div>
+        <div class="window-recs">Pick by topic — interests are too distinct to bundle.</div>
+      </div>
+
+      <div class="window empty">
+        <div class="window-mon">May<span class="month-num">M05 · DEAD</span></div>
+        <div class="window-events"><span class="ev-row" style="color:var(--muted);">— No major tech event on corridor —</span></div>
+        <div class="window-recs">Best month for the gardens.</div>
+      </div>
+
+      <div class="window">
+        <div class="window-mon">June<span class="month-num">M06 · MONACO WK</span></div>
+        <div class="window-events">
+          <span class="ev-row"><span class="d">02–04</span><a href="https://www.grimaldiforum.com/en/events-schedule-monaco/ready-for-it-7">Ready For IT</a> · Monaco</span>
+          <span class="ev-row"><span class="d">09–10</span><a href="https://www.waibsummit.com/">WAIB Summit</a> · Monaco</span>
+        </div>
+        <div class="window-recs">Both same-day round-trips · 11-min train.</div>
+      </div>
+
+      <div class="window">
+        <div class="window-mon">July<span class="month-num">M07 · SOPHIA WK</span></div>
+        <div class="window-events">
+          <span class="ev-row"><span class="d">02</span><a href="https://www.telecom-valley.fr/azurtechsummer/">Azur Tech Summer</a> · Sophia</span>
+          <span class="ev-row"><span class="d">06–08</span><a href="https://www.rivieradev.fr/">Riviera DEV</a> · Sophia</span>
+        </div>
+        <div class="window-recs">Bundle both; sleep in Antibes — bus eats the day twice.</div>
+      </div>
+
+      <div class="window empty">
+        <div class="window-mon">Aug / Sep<span class="month-num">M08 · M09 · DEAD</span></div>
+        <div class="window-events"><span class="ev-row" style="color:var(--muted);">— Summer trough · holidays —</span></div>
+        <div class="window-recs">Heat + crowds. Not a conference trip.</div>
+      </div>
+
+      <div class="window">
+        <div class="window-mon">October<span class="month-num">M10 · BRACKETED</span></div>
+        <div class="window-events">
+          <span class="ev-row"><span class="d">12–14</span><a href="https://www.ja-sante.fr/">JAS</a> · Menton <span style="color:var(--muted);">(healthcare)</span></span>
+          <span class="ev-row"><span class="d">19–22</span><a href="https://www.etsi.org/events/2645-etsi-security-conference-oct2026/">ETSI Security</a> · Sophia</span>
+          <span class="ev-row"><span class="d">27–30</span><a href="https://www.iasp.ws/activities/news/iasp-s-world%E2%80%AFconference%E2%80%AF2026%E2%80%AFwill-be-in-sophia-antipolis-in-france-">IASP World</a> · Cannes</span>
+        </div>
+        <div class="window-recs">Lemon-festival edges late; reserve early.</div>
+      </div>
+
+      <div class="window empty">
+        <div class="window-mon">Nov / Dec / Jan<span class="month-num">M11–M01 · OUT OF SCHEDULE</span></div>
+        <div class="window-events"><span class="ev-row" style="color:var(--muted);">— Nothing major published for 2026 —</span></div>
+        <div class="window-recs">Fall back to year-round options below.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =================== CAVEAT =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 05</span>
+      <h2 class="sec-title">One caveat on "based in Menton"</h2>
+      <span class="sec-note">Single-line constraint</span>
+    </div>
+
+    <div class="caveat">
+      <div class="caveat-clock">
+        22:30<br>23:30
+        <span class="sub">LAST TRAIN EAST</span>
+      </div>
+      <div class="caveat-body">
+        <h3>The rail is fast, but it's one line.</h3>
+        <p>Last trains east of Nice tighten around <strong>22:30–23:30</strong> — that's the cut-off for evening receptions, Riviera DEV after-parties, WAIB yacht-club dinners.</p>
+        <p>Two outs: taxi back (~€80 from Monaco<sup><a href="https://www.thetrainline.com/en-us/train-times/monaco-monte-carlo-to-menton">[18]</a></sup>, €150+ from Cannes<sup><a href="https://www.thetrainline.com/en-us/train-times/cannes-to-menton">[20]</a></sup>), or sleep one night at the venue city. WAIB's Yacht Club de Monaco evenings are invite-only family-office dinners<sup><a href="https://monacolife.net/waib-summit-returns-to-monte-carlo-for-web3-and-ai-conference/">[8]</a></sup>; if you're not on the list, the 11-min train home is the right call.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== YEAR-ROUND =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 06</span>
+      <h2 class="sec-title">Off-calendar &amp; lower-commitment</h2>
+      <span class="sec-note">Rolling · check before any trip</span>
+    </div>
+
+    <div class="yearround">
+      <div class="yr-card">
+        <span class="yr-tag">▷ Rolling calendar</span>
+        <h4><a href="https://www.frenchtechcotedazur.fr/evenement/">French Tech Côte d'Azur</a></h4>
+        <p>Year-round pitches, meetups and community evenings across Nice and Sophia — best single page to check before any visit<sup><a href="https://www.frenchtechcotedazur.fr/evenement/">[23]</a></sup>.</p>
+      </div>
+      <div class="yr-card">
+        <span class="yr-tag">▷ Open source</span>
+        <h4><a href="https://www.telecom-valley.fr/contenu-sophiaconf/">SophiaConf · Telecom Valley</a></h4>
+        <p>Annual open-source community conference with ~1,000 attendees at SophiaTech, plus year-round Tech Events workshops<sup><a href="https://www.telecom-valley.fr/contenu-sophiaconf/">[24]</a></sup>.</p>
+      </div>
+      <div class="yr-card">
+        <span class="yr-tag">▷ Meetup · evenings</span>
+        <h4><a href="https://www.meetup.com/fr-FR/Riviera-SCC/">Riviera Software Craftsmanship</a></h4>
+        <p>Evening sessions on TDD, DDD, clean code — small and technical, in Nice and Sophia<sup><a href="https://www.meetup.com/fr-FR/Riviera-SCC/">[22]</a></sup>.</p>
+      </div>
+      <div class="yr-card">
+        <span class="yr-tag">▷ AI watchlist</span>
+        <h4><a href="https://www.investincotedazur.com/en/team-nice-cote-dazur-showcases-ai-ecosystem-at-ai-business-tour-and-waicf-2026/">Invest in Côte d'Azur</a></h4>
+        <p>Monaco's standalone AI conferences are announced 2–3 months ahead; the regional ecosystem page is the early-warning feed<sup><a href="https://www.investincotedazur.com/en/team-nice-cote-dazur-showcases-ai-ecosystem-at-ai-business-tour-and-waicf-2026/">[25]</a></sup>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SIBLINGS + ATLAS =================== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">§ 07</span>
+      <h2 class="sec-title">Same weekend, different angles</h2>
+      <span class="sec-note">Siblings</span>
+    </div>
+
+    <div class="siblings">
+      <a href="../../things-to-do-in-menton/" class="sib">
+        <div class="sib-kicker"><span>EXPEDITION · MENTON</span><span>→</span></div>
+        <h4>Things to do in Menton</h4>
+        <p>Weekend playbook: Old Town loop, jardins remarquables, Cocteau status, beaches, lemon trail and easy half-day trips.</p>
+      </a>
+      <a href="../../michelin-2-and-3-star-restaurants-in-menton/" class="sib">
+        <div class="sib-kicker"><span>SURVEY · DINING</span><span>→</span></div>
+        <h4>Michelin 2 and 3-star restaurants in Menton</h4>
+        <p>One Michelin 3★ in town (Mirazur). No 2★. The nearest sit a ~15-min drive away.</p>
+      </a>
+    </div>
+
+    <div class="atlas-strip">
+      <a href="../../">↑ A weekend in Menton (parent)</a>
+      <a href="/">Atlas ◆</a>
+    </div>
+  </section>
+
+  <!-- =================== SOURCES =================== -->
+  <section class="sec sources">
+    <div class="sec-head">
+      <span class="sec-num">§ 08</span>
+      <h2 class="sec-title">Sources</h2>
+      <span class="sec-note">25 citations</span>
+    </div>
+
+    <div class="src-grid">
+      <a class="src" href="https://www.menton-congres.com/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=menton-congres.com&sz=128" alt=""><div class="src-text"><span class="src-n">[1]</span>Palais de l'Europe — Menton Congrès<span class="src-host">menton-congres.com</span></div></a>
+      <a class="src" href="https://www.ja-sante.fr/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=ja-sante.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[2]</span>Journées de l'Architecture en Santé<span class="src-host">ja-sante.fr</span></div></a>
+      <a class="src" href="https://www.architecture-hospitaliere.fr/blog/2025/10/03/les-journees-de-larchitecture-en-sante%E2%80%89-cap-sur-menton-pour-une-7e-edition-tres-attendue/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=architecture-hospitaliere.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[3]</span>JAS 7e édition — Architecture Hospitalière<span class="src-host">architecture-hospitaliere.fr</span></div></a>
+      <a class="src" href="https://www.sciencespo.fr/college/en/campus-life/campus/menton/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=sciencespo.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[4]</span>Sciences Po Menton campus<span class="src-host">sciencespo.fr</span></div></a>
+      <a class="src" href="https://www.grimaldiforum.com/en/events-schedule-monaco/ready-for-it-7"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=grimaldiforum.com&sz=128" alt=""><div class="src-text"><span class="src-n">[5]</span>Ready For IT 2026 — Grimaldi Forum<span class="src-host">grimaldiforum.com</span></div></a>
+      <a class="src" href="https://numerique360.banquedesterritoires.fr/evenements/nationaux/ready-for-it-2026-le-rendez-vous-incontournable-de-la-transition-et-securite-numeriques/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=banquedesterritoires.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[6]</span>Ready For IT 2026 — Banque des Territoires<span class="src-host">banquedesterritoires.fr</span></div></a>
+      <a class="src" href="https://www.waibsummit.com/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=waibsummit.com&sz=128" alt=""><div class="src-text"><span class="src-n">[7]</span>WAIB Summit Monaco<span class="src-host">waibsummit.com</span></div></a>
+      <a class="src" href="https://monacolife.net/waib-summit-returns-to-monte-carlo-for-web3-and-ai-conference/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=monacolife.net&sz=128" alt=""><div class="src-text"><span class="src-n">[8]</span>WAIB Summit returns — Monaco Life<span class="src-host">monacolife.net</span></div></a>
+      <a class="src" href="https://www.worldaicannes.com/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=worldaicannes.com&sz=128" alt=""><div class="src-text"><span class="src-n">[9]</span>World AI Cannes Festival<span class="src-host">worldaicannes.com</span></div></a>
+      <a class="src" href="https://en.palaisdesfestivals.com/offers/world-artificial-intelligence-film-festival-waiff-cannes-en-3686586/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=palaisdesfestivals.com&sz=128" alt=""><div class="src-text"><span class="src-n">[10]</span>WAiFF — Palais des Festivals<span class="src-host">palaisdesfestivals.com</span></div></a>
+      <a class="src" href="https://cug.org/cug-2026/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=cug.org&sz=128" alt=""><div class="src-text"><span class="src-n">[11]</span>Cray User Group 2026<span class="src-host">cug.org</span></div></a>
+      <a class="src" href="https://www.rivieradev.fr/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=rivieradev.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[12]</span>Riviera DEV 2026<span class="src-host">rivieradev.fr</span></div></a>
+      <a class="src" href="https://www.telecom-valley.fr/azurtechsummer/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=telecom-valley.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[13]</span>Azur Tech Summer 2026<span class="src-host">telecom-valley.fr</span></div></a>
+      <a class="src" href="https://www.etsi.org/events/2645-etsi-security-conference-oct2026/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=etsi.org&sz=128" alt=""><div class="src-text"><span class="src-n">[14]</span>ETSI Security Conference 2026<span class="src-host">etsi.org</span></div></a>
+      <a class="src" href="https://www.etsi.org/events/2591-etsi-ai-data-conference-2026/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=etsi.org&sz=128" alt=""><div class="src-text"><span class="src-n">[15]</span>ETSI AI &amp; Data Conference 2026<span class="src-host">etsi.org</span></div></a>
+      <a class="src" href="https://www.etsi.org/events/2540-2026-04-12th-ucaat-user-conference-on-advanced-automated-testing/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=etsi.org&sz=128" alt=""><div class="src-text"><span class="src-n">[16]</span>ETSI UCAAT 2026<span class="src-host">etsi.org</span></div></a>
+      <a class="src" href="https://www.iasp.ws/activities/news/iasp-s-world%E2%80%AFconference%E2%80%AF2026%E2%80%AFwill-be-in-sophia-antipolis-in-france-"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=iasp.ws&sz=128" alt=""><div class="src-text"><span class="src-n">[17]</span>IASP World Conference 2026<span class="src-host">iasp.ws</span></div></a>
+      <a class="src" href="https://www.thetrainline.com/en-us/train-times/monaco-monte-carlo-to-menton"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=thetrainline.com&sz=128" alt=""><div class="src-text"><span class="src-n">[18]</span>Monaco — Menton train times<span class="src-host">thetrainline.com</span></div></a>
+      <a class="src" href="https://www.thetrainline.com/en-us/train-times/nice-to-menton"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=thetrainline.com&sz=128" alt=""><div class="src-text"><span class="src-n">[19]</span>Nice — Menton train times<span class="src-host">thetrainline.com</span></div></a>
+      <a class="src" href="https://www.thetrainline.com/en-us/train-times/cannes-to-menton"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=thetrainline.com&sz=128" alt=""><div class="src-text"><span class="src-n">[20]</span>Cannes — Menton train times<span class="src-host">thetrainline.com</span></div></a>
+      <a class="src" href="https://moovitapp.com/index/en/public_transit-Sophia_Antipolis-Nice-site_197815420-3260"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=moovitapp.com&sz=128" alt=""><div class="src-text"><span class="src-n">[21]</span>Sophia Antipolis — Nice (Moovit)<span class="src-host">moovitapp.com</span></div></a>
+      <a class="src" href="https://www.meetup.com/fr-FR/Riviera-SCC/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128" alt=""><div class="src-text"><span class="src-n">[22]</span>Riviera Software Craftsmanship<span class="src-host">meetup.com</span></div></a>
+      <a class="src" href="https://www.frenchtechcotedazur.fr/evenement/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=frenchtechcotedazur.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[23]</span>French Tech Côte d'Azur events<span class="src-host">frenchtechcotedazur.fr</span></div></a>
+      <a class="src" href="https://www.telecom-valley.fr/contenu-sophiaconf/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=telecom-valley.fr&sz=128" alt=""><div class="src-text"><span class="src-n">[24]</span>SophiaConf — Telecom Valley<span class="src-host">telecom-valley.fr</span></div></a>
+      <a class="src" href="https://www.investincotedazur.com/en/team-nice-cote-dazur-showcases-ai-ecosystem-at-ai-business-tour-and-waicf-2026/"><img class="src-fav" src="https://www.google.com/s2/favicons?domain=investincotedazur.com&sz=128" alt=""><div class="src-text"><span class="src-n">[25]</span>Team Nice Côte d'Azur — AI Business Tour<span class="src-host">investincotedazur.com</span></div></a>
+    </div>
+  </section>
+
+</div>
