@@ -1,0 +1,6 @@
+What are the must-see iconic landmarks and historical sights in Berlin for a weekend visitor (Brandenburg Gate, Reichstag, Berlin Wall remnants, Holocaust Memorial, Checkpoint Charlie, TV Tower) and how should they be sequenced?
+What are the top museums and art venues in Berlin in 2026 (Museum Island, Jewish Museum, Hamburger Bahnhof, Berlinische Galerie, DDR Museum) — opening hours, ticket strategy, current exhibitions, and which are worth a weekend visitor's time?
+Which neighborhoods should a weekend visitor explore (Mitte, Kreuzberg, Friedrichshain, Prenzlauer Berg, Neukölln) and what's distinctive to do/eat/see in each?
+What is the current state of Berlin's nightlife and live music scene in 2026 (techno clubs including Berghain, Tresor, KitKat; jazz; live music venues; beer gardens) and how do visitors actually get in?
+What are the best outdoor and daytime experiences in late May / early June (Tiergarten, Tempelhofer Feld, Spree boat tours, weekend markets like Mauerpark and Markthalle Neun, walking/cycling tours)?
+What practical logistics matter for a Berlin weekend in late May/June 2026 (weather, BVG transit/WelcomeCard, where to stay, current strikes or construction, special events around late May/early June)?
