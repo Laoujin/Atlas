@@ -1,0 +1,1125 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events in Lausanne — Calendar"
+---
+
+<style>
+  .cal-wrap {
+    background: #f4ece0;
+    color: #181410;
+    font-family: "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  .cal-wrap * { box-sizing: border-box; }
+  .cal-wrap a { color: inherit; text-decoration: none; }
+  .cal-wrap a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .mono { font-family: "IBM Plex Mono", "JetBrains Mono", "SF Mono", Menlo, monospace; }
+
+  /* ───── Masthead ───── */
+  .masthead {
+    border-top: 8px solid #c8261c;
+    background: #faf7f1;
+    padding: 22px 36px 18px;
+    border-bottom: 2px solid #181410;
+    position: relative;
+  }
+  .masthead-meta {
+    display: flex;
+    justify-content: space-between;
+    font: 600 10px/1.4 "IBM Plex Mono", monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #6b6356;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.18);
+    margin-bottom: 14px;
+  }
+  .masthead-meta .right { color: #c8261c; }
+  .masthead h1 {
+    margin: 0;
+    font: 800 38px/1.0 "Helvetica Neue", Inter, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .masthead h1 .red { color: #c8261c; }
+  .masthead .sub {
+    margin: 10px 0 0;
+    font: 400 14px/1.5 Georgia, "Times New Roman", serif;
+    color: #3b332b;
+    max-width: 760px;
+    font-style: italic;
+  }
+  .station-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,0.2);
+  }
+  .station {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.1em;
+    padding: 5px 8px;
+    border: 1px solid #181410;
+    background: #181410;
+    color: #f4ece0;
+  }
+  .station.alt { background: transparent; color: #181410; }
+
+  /* ───── TL;DR strip ───── */
+  .verdict {
+    background: #181410;
+    color: #f4ece0;
+    padding: 22px 36px;
+    border-bottom: 2px solid #c8261c;
+  }
+  .verdict .label {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.22em;
+    color: #c8261c;
+    margin-bottom: 8px;
+  }
+  .verdict .text {
+    font: 500 18px/1.4 Georgia, serif;
+    max-width: 1100px;
+  }
+  .verdict .text strong { color: #f4ece0; }
+  .verdict .text em { color: #f6c050; font-style: normal; font-weight: 600; }
+
+  /* ───── Section frame ───── */
+  .section {
+    padding: 32px 36px;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .section-num {
+    font: 700 11px/1 "IBM Plex Mono", monospace;
+    color: #c8261c;
+    letter-spacing: 0.2em;
+  }
+  .section h2 {
+    margin: 0;
+    font: 800 22px/1.0 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.01em;
+  }
+  .section-note {
+    margin: 0 0 0 auto;
+    font: 400 12px/1.4 Georgia, serif;
+    color: #6b6356;
+    font-style: italic;
+  }
+
+  /* ───── Legend ───── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+    margin: 4px 0 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed rgba(0,0,0,0.18);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: 600 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+  }
+  .sw-ai      { background: #1e40af; }
+  .sw-sec     { background: #b91c1c; }
+  .sw-climate { background: #047857; }
+  .sw-hack    { background: #7c3aed; }
+  .sw-recruit { background: #ea580c; }
+  .sw-acad    { background: #475569; }
+  .sw-lan     { background: #c026d3; }
+  .sw-pitch   { background: #0891b2; }
+
+  /* ───── Chronogram (the hero) ───── */
+  .chart {
+    background: #faf7f1;
+    border: 1px solid #181410;
+    border-radius: 0;
+  }
+  .chart-head {
+    display: grid;
+    grid-template-columns: 240px 1fr 96px;
+    background: #181410;
+    color: #f4ece0;
+  }
+  .chart-head .cell {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.18em;
+    padding: 10px 12px;
+    border-right: 1px solid rgba(244,236,224,0.18);
+  }
+  .chart-head .cell:last-child { border-right: 0; }
+  .months {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    background: #181410;
+    color: #f4ece0;
+    border-bottom: 2px solid #c8261c;
+  }
+  .month {
+    text-align: center;
+    padding: 10px 0;
+    font: 700 11px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.18em;
+    border-right: 1px solid rgba(244,236,224,0.12);
+  }
+  .month:last-child { border-right: 0; }
+  .month.q1 { background: rgba(200,38,28,0.12); }
+  .month.q2 { background: rgba(200,38,28,0.08); }
+
+  .chart-body {
+    display: grid;
+    grid-template-columns: 240px 1fr 96px;
+  }
+  .row-labels, .row-tracks, .row-cite {
+    display: flex;
+    flex-direction: column;
+  }
+  .label, .track, .cite {
+    height: 38px;
+    border-bottom: 1px solid rgba(24,20,16,0.08);
+    display: flex;
+    align-items: center;
+  }
+  .label {
+    padding: 0 12px;
+    gap: 8px;
+    background: #faf7f1;
+  }
+  .label .num {
+    font: 700 11px/1 "IBM Plex Mono", monospace;
+    color: #6b6356;
+    width: 18px;
+  }
+  .label .name {
+    font: 600 12px/1.2 "Helvetica Neue", sans-serif;
+    color: #181410;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .label.dead .name { color: #c8261c; }
+
+  .row-tracks { position: relative; }
+  .track {
+    position: relative;
+    background:
+      linear-gradient(to right,
+        transparent calc(8.49% - 1px), rgba(0,0,0,0.08) 8.49%, transparent calc(8.49% + 1px),
+        transparent calc(16.16% - 1px), rgba(0,0,0,0.08) 16.16%, transparent calc(16.16% + 1px),
+        transparent calc(24.66% - 1px), rgba(0,0,0,0.08) 24.66%, transparent calc(24.66% + 1px),
+        transparent calc(32.88% - 1px), rgba(0,0,0,0.08) 32.88%, transparent calc(32.88% + 1px),
+        transparent calc(41.37% - 1px), rgba(0,0,0,0.08) 41.37%, transparent calc(41.37% + 1px),
+        transparent calc(49.59% - 1px), rgba(0,0,0,0.08) 49.59%, transparent calc(49.59% + 1px),
+        transparent calc(58.08% - 1px), rgba(0,0,0,0.08) 58.08%, transparent calc(58.08% + 1px),
+        transparent calc(66.58% - 1px), rgba(0,0,0,0.08) 66.58%, transparent calc(66.58% + 1px),
+        transparent calc(74.79% - 1px), rgba(0,0,0,0.08) 74.79%, transparent calc(74.79% + 1px),
+        transparent calc(83.29% - 1px), rgba(0,0,0,0.08) 83.29%, transparent calc(83.29% + 1px),
+        transparent calc(91.51% - 1px), rgba(0,0,0,0.08) 91.51%, transparent calc(91.51% + 1px),
+        transparent 100%);
+  }
+  .bar {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 22px;
+    min-width: 12px;
+    border-radius: 2px;
+    padding: 0 7px;
+    color: #fff;
+    font: 700 10px/22px "IBM Plex Mono", monospace;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .bar.tick {
+    width: 4px !important;
+    min-width: 4px;
+    padding: 0;
+    height: 28px;
+    border-radius: 0;
+  }
+  .bar.dead-tick { background: #475569; }
+  .bar-ai      { background: #1e40af; }
+  .bar-sec     { background: #b91c1c; }
+  .bar-climate { background: #047857; }
+  .bar-hack    { background: #7c3aed; }
+  .bar-recruit { background: #ea580c; }
+  .bar-acad    { background: #475569; }
+  .bar-lan     { background: #c026d3; }
+  .bar-pitch   { background: #0891b2; }
+
+  /* Dead-weekend vertical band that crosses every row */
+  .dead-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 40.55%;
+    width: 0.82%;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(200,38,28,0.22),
+      rgba(200,38,28,0.22) 6px,
+      rgba(200,38,28,0.10) 6px,
+      rgba(200,38,28,0.10) 12px
+    );
+    border-left: 2px solid #c8261c;
+    border-right: 2px solid #c8261c;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .dead-label {
+    position: absolute;
+    top: -38px;
+    left: 36%;
+    background: #c8261c;
+    color: #fff;
+    padding: 6px 10px;
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+    z-index: 3;
+  }
+  .dead-label::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    right: 16px;
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #c8261c;
+  }
+
+  .cite {
+    justify-content: center;
+    background: #faf7f1;
+    font: 600 11px/1 "IBM Plex Mono", monospace;
+    color: #6b6356;
+    border-left: 1px solid rgba(0,0,0,0.12);
+  }
+  .cite a {
+    padding: 4px 8px;
+    border: 1px solid rgba(0,0,0,0.18);
+    color: #181410;
+  }
+  .cite a:hover { background: #181410; color: #f4ece0; text-decoration: none; }
+
+  .chart-foot {
+    display: grid;
+    grid-template-columns: 240px 1fr 96px;
+    background: #181410;
+    color: #f4ece0;
+  }
+  .chart-foot .cell {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.18em;
+    padding: 10px 12px;
+    border-right: 1px solid rgba(244,236,224,0.18);
+  }
+  .chart-foot .cell:last-child { border-right: 0; }
+
+  /* ───── Quarter density strip ───── */
+  .density {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 22px;
+    background: #181410;
+    padding: 2px;
+  }
+  .q {
+    background: #faf7f1;
+    padding: 18px 16px;
+    position: relative;
+  }
+  .q.hot { background: #fce4dc; }
+  .q.cold { background: #ebe4d6; }
+  .q-label {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.22em;
+    color: #6b6356;
+  }
+  .q-count {
+    font: 800 56px/1 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.04em;
+    margin: 6px 0 2px;
+  }
+  .q.hot .q-count { color: #c8261c; }
+  .q-sub {
+    font: 500 11px/1.3 Georgia, serif;
+    color: #3b332b;
+    font-style: italic;
+  }
+  .q-bars {
+    display: flex;
+    gap: 2px;
+    margin-top: 10px;
+  }
+  .q-bars span {
+    height: 6px;
+    flex: 1;
+    background: #181410;
+    opacity: 0.15;
+  }
+  .q-bars span.on { opacity: 1; background: #c8261c; }
+  .q.cold .q-bars span.on { background: #475569; }
+
+  /* ───── Dead-weekend callout ───── */
+  .dead-block {
+    background: #181410;
+    color: #f4ece0;
+    border-left: 6px solid #c8261c;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 0;
+  }
+  .dead-left { padding: 28px 32px; border-right: 1px dashed rgba(244,236,224,0.3); }
+  .dead-right { padding: 28px 32px; background: #1f1a14; }
+  .dead-tag {
+    display: inline-block;
+    background: #c8261c;
+    color: #fff;
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.22em;
+    padding: 6px 10px;
+    margin-bottom: 16px;
+  }
+  .dead-h {
+    margin: 0 0 8px;
+    font: 800 32px/1.05 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .dead-h .stamp {
+    color: #c8261c;
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .dead-body {
+    font: 400 14px/1.55 Georgia, serif;
+    color: #d8d0c2;
+    margin: 0 0 18px;
+  }
+  .dead-body strong { color: #f4ece0; }
+  .dead-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .dead-list li {
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(244,236,224,0.15);
+    font: 400 13px/1.4 "Helvetica Neue", sans-serif;
+    color: #d8d0c2;
+  }
+  .dead-list li:last-child { border-bottom: 0; }
+  .dead-list .date {
+    display: block;
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.16em;
+    color: #c8261c;
+    margin-bottom: 4px;
+  }
+  .dead-list strong { color: #f4ece0; }
+  .dead-list sup a { color: #f6c050; }
+
+  /* ───── Flagship cards ───── */
+  .flagships {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .flag {
+    background: #faf7f1;
+    border: 1px solid #181410;
+    display: flex;
+    flex-direction: column;
+  }
+  .flag-img {
+    height: 180px;
+    background: #181410;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid #181410;
+  }
+  .flag-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .flag-img.gradient {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #312e81 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font: 800 44px/1 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.04em;
+  }
+  .flag-meta {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+  }
+  .flag-meta .chip {
+    background: #fff;
+    color: #181410;
+    font: 700 9px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.16em;
+    padding: 5px 7px;
+  }
+  .flag-meta .chip.hot { background: #c8261c; color: #fff; }
+  .flag-body {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .flag-date {
+    font: 700 11px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.18em;
+    color: #c8261c;
+  }
+  .flag h3 {
+    margin: 2px 0 0;
+    font: 800 22px/1.1 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.01em;
+  }
+  .flag .sub {
+    font: 400 13px/1.4 Georgia, serif;
+    color: #3b332b;
+    margin: 4px 0 0;
+    font-style: italic;
+  }
+  .flag .specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .flag .specs span {
+    font: 600 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.1em;
+    padding: 5px 7px;
+    background: #ebe4d6;
+    color: #181410;
+  }
+  .flag-foot {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,0.18);
+    font: 600 11px/1 "IBM Plex Mono", monospace;
+    color: #6b6356;
+  }
+  .flag-foot a { color: #c8261c; }
+
+  /* ───── Re-roll table ───── */
+  .reroll-wrap {
+    background: #faf7f1;
+    border: 1px solid #181410;
+  }
+  .reroll-head {
+    background: #181410;
+    color: #f4ece0;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid #c8261c;
+  }
+  .reroll-head h3 {
+    margin: 0;
+    font: 800 16px/1 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.01em;
+  }
+  .reroll-head .meta {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.18em;
+    color: #f6c050;
+  }
+  .reroll-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 100px;
+    padding: 16px 20px;
+    border-bottom: 1px dashed rgba(0,0,0,0.18);
+    gap: 16px;
+    align-items: center;
+  }
+  .reroll-row:last-child { border-bottom: 0; }
+  .reroll-when {
+    font: 700 14px/1.1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.05em;
+    color: #181410;
+  }
+  .reroll-when small {
+    display: block;
+    font: 500 10px/1.2 "IBM Plex Mono", monospace;
+    color: #6b6356;
+    letter-spacing: 0.16em;
+    margin-top: 4px;
+  }
+  .reroll-why {
+    font: 400 13px/1.45 Georgia, serif;
+    color: #3b332b;
+  }
+  .reroll-why strong { color: #181410; }
+  .reroll-cite {
+    text-align: right;
+    font: 700 11px/1 "IBM Plex Mono", monospace;
+  }
+  .reroll-cite a {
+    padding: 4px 8px;
+    border: 1px solid rgba(0,0,0,0.25);
+  }
+  .reroll-cite a:hover { background: #181410; color: #f4ece0; text-decoration: none; }
+
+  /* ───── Venues row ───── */
+  .venues {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .venue {
+    background: #faf7f1;
+    border: 1px solid #181410;
+    padding: 16px 18px;
+  }
+  .venue .code {
+    font: 700 11px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.22em;
+    color: #c8261c;
+  }
+  .venue h4 {
+    margin: 6px 0 6px;
+    font: 800 15px/1.15 "Helvetica Neue", sans-serif;
+    letter-spacing: -0.01em;
+  }
+  .venue p {
+    margin: 0;
+    font: 400 12px/1.4 Georgia, serif;
+    color: #3b332b;
+  }
+  .venue .link {
+    display: inline-block;
+    margin-top: 8px;
+    font: 600 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.14em;
+    color: #6b6356;
+    border-bottom: 1px solid #6b6356;
+  }
+
+  /* ───── Siblings strip ───── */
+  .siblings {
+    background: #ebe4d6;
+    padding: 22px 36px;
+    border-top: 2px solid #181410;
+  }
+  .siblings-label {
+    font: 700 10px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.22em;
+    color: #6b6356;
+    margin-bottom: 14px;
+  }
+  .sib-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .sib {
+    background: #faf7f1;
+    padding: 14px 18px;
+    border-left: 4px solid #181410;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sib .depth {
+    font: 700 9px/1 "IBM Plex Mono", monospace;
+    letter-spacing: 0.2em;
+    color: #c8261c;
+  }
+  .sib .title {
+    font: 700 14px/1.2 "Helvetica Neue", sans-serif;
+    color: #181410;
+  }
+  .sib .sum {
+    font: 400 12px/1.4 Georgia, serif;
+    color: #3b332b;
+  }
+
+  /* ───── Colophon ───── */
+  .colophon {
+    background: #181410;
+    color: #6b6356;
+    padding: 24px 36px;
+    font: 500 10px/1.6 "IBM Plex Mono", monospace;
+    letter-spacing: 0.14em;
+  }
+  .colophon a { color: #c8261c; }
+  .colophon .row {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid rgba(244,236,224,0.12);
+  }
+
+  @media (max-width: 1100px) {
+    .flagships { grid-template-columns: 1fr; }
+    .venues { grid-template-columns: 1fr 1fr; }
+    .dead-block { grid-template-columns: 1fr; }
+    .dead-left { border-right: 0; border-bottom: 1px dashed rgba(244,236,224,0.3); }
+    .density { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 800px) {
+    .chart-head, .chart-body, .chart-foot { grid-template-columns: 110px 1fr; }
+    .row-cite, .chart-head .cell:last-child, .chart-foot .cell:last-child { display: none; }
+    .label .name { font-size: 10px; }
+    .bar { font-size: 8px; padding: 0 4px; }
+    .month { font-size: 9px; letter-spacing: 0.08em; }
+    .reroll-row { grid-template-columns: 1fr; gap: 6px; }
+    .sib-row, .venues { grid-template-columns: 1fr; }
+    .masthead h1 { font-size: 26px; }
+  }
+</style>
+
+<div class="cal-wrap">
+
+  <!-- ───── 1. Masthead ───── -->
+  <header class="masthead">
+    <div class="masthead-meta">
+      <span>EPFL · LAUSANNE · VAUD · CH</span>
+      <span class="right">2026 EDITION · LAST UPDATED 29 MAY 2026</span>
+    </div>
+    <h1>Lausanne <span class="red">tech-event</span> chronogram <span class="mono" style="font-size:24px; letter-spacing:0.06em;">/ 2026</span></h1>
+    <p class="sub">A year-at-a-glance schedule of every IT/tech event in or near Lausanne — sized to show how the calendar front-loads into Feb-April and goes quiet through summer. The May 29-31 weekend is marked.</p>
+    <div class="station-strip">
+      <a href="https://www.stcc.ch/" class="station">STCC · SWISSTECH CONVENTION CENTER</a>
+      <a href="https://www.epfl-innovationpark.ch/" class="station alt">EPFL INNOVATION PARK</a>
+      <span class="station alt">BEAULIEU CONGRESS CENTER</span>
+      <span class="station alt">ROLEX LEARNING CENTER</span>
+      <span class="station alt">CENTRE BERNOULLI</span>
+    </div>
+  </header>
+
+  <!-- ───── 2. Verdict strip ───── -->
+  <div class="verdict">
+    <div class="label">▶ TL;DR · MAY 29-31 WEEKEND</div>
+    <div class="text">
+      <strong>Don't plan around an IT conference</strong> — the only EPFL-hosted thing on those exact dates is a niche academic Artificial Life workshop at Centre Bernoulli. Lausanne's headline tech events all sit <em>Feb-April</em>: AMLD, Insomni'hack, HackSummit. For a tech-event weekend re-roll, aim <em>February</em> (AMLD) or <em>April</em> (HackSummit).
+    </div>
+  </div>
+
+  <!-- ───── 3. The chronogram (hero) ───── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">§ 01</span>
+      <h2>The year on one strip</h2>
+      <span class="section-note">16 events · sorted by start date · bars proportional to duration</span>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="swatch sw-ai"></span> AI / ML</span>
+      <span class="legend-item"><span class="swatch sw-sec"></span> Security / CTF</span>
+      <span class="legend-item"><span class="swatch sw-climate"></span> Climate hardtech</span>
+      <span class="legend-item"><span class="swatch sw-hack"></span> Hackathon</span>
+      <span class="legend-item"><span class="swatch sw-recruit"></span> Recruitment / public</span>
+      <span class="legend-item"><span class="swatch sw-acad"></span> Academic / workshop</span>
+      <span class="legend-item"><span class="swatch sw-lan"></span> LAN / gaming</span>
+      <span class="legend-item"><span class="swatch sw-pitch"></span> Pitch / investment</span>
+    </div>
+
+    <div class="chart">
+      <div class="chart-head">
+        <div class="cell">№ &nbsp;EVENT</div>
+        <div class="cell">JANUARY ────────────────────────────────────────── DECEMBER</div>
+        <div class="cell">SOURCE</div>
+      </div>
+      <div class="months">
+        <div class="month q1">JAN</div>
+        <div class="month q1">FEB</div>
+        <div class="month q1">MAR</div>
+        <div class="month q2">APR</div>
+        <div class="month q2">MAY</div>
+        <div class="month q2">JUN</div>
+        <div class="month">JUL</div>
+        <div class="month">AUG</div>
+        <div class="month">SEP</div>
+        <div class="month">OCT</div>
+        <div class="month">NOV</div>
+        <div class="month">DEC</div>
+      </div>
+      <div class="chart-body">
+
+        <!-- Row labels -->
+        <div class="row-labels">
+          <div class="label"><span class="num">01</span><span class="name">AMLD Intelligence Summit</span></div>
+          <div class="label"><span class="num">02</span><span class="name">Sustainability Days</span></div>
+          <div class="label"><span class="num">03</span><span class="name">Insomni'hack</span></div>
+          <div class="label"><span class="num">04</span><span class="name">MT180 EPFL Final</span></div>
+          <div class="label"><span class="num">05</span><span class="name">Lemanic Life Sci Hackathon</span></div>
+          <div class="label"><span class="num">06</span><span class="name">HackSummit</span></div>
+          <div class="label"><span class="num">07</span><span class="name">LakeCTF Finals</span></div>
+          <div class="label"><span class="num">08</span><span class="name">Startup Champions Seed Night</span></div>
+          <div class="label"><span class="num">09</span><span class="name">RoboHack</span></div>
+          <div class="label"><span class="num">10</span><span class="name">PolyLAN 43 (Spring)</span></div>
+          <div class="label dead"><span class="num">11</span><span class="name">Workshop: Artificial Life</span></div>
+          <div class="label"><span class="num">12</span><span class="name">Open Science Days</span></div>
+          <div class="label"><span class="num">13</span><span class="name">Forum EPFL · recruitment</span></div>
+          <div class="label"><span class="num">14</span><span class="name">PolyLAN 44 (Fall, est.)</span></div>
+          <div class="label"><span class="num">15</span><span class="name">EPFL Information Days</span></div>
+          <div class="label"><span class="num">16</span><span class="name">EPFL Investor Day · LauzHack</span></div>
+        </div>
+
+        <!-- Tracks -->
+        <div class="row-tracks">
+          <div class="dead-band"><span class="dead-label">⊠ MAY 29-31 · DEAD ZONE</span></div>
+
+          <!-- 01 AMLD Feb 10-12 -->
+          <div class="track"><div class="bar bar-ai" style="left:10.96%; width:0.82%;">AMLD</div></div>
+          <!-- 02 Sust Days Mar 5-7 -->
+          <div class="track"><div class="bar bar-recruit" style="left:17.26%; width:0.82%;">SUST</div></div>
+          <!-- 03 Insomnihack Mar 16-20 -->
+          <div class="track"><div class="bar bar-sec" style="left:20.27%; width:1.37%;">INSOMNI'HACK</div></div>
+          <!-- 04 MT180 Mar 19 -->
+          <div class="track"><div class="bar bar-recruit tick" style="left:21.10%;"></div></div>
+          <!-- 05 Lemanic Hack Apr 16-18 -->
+          <div class="track"><div class="bar bar-hack" style="left:28.77%; width:0.82%;">LSCI</div></div>
+          <!-- 06 HackSummit Apr 22-23 -->
+          <div class="track"><div class="bar bar-climate" style="left:30.41%; width:0.55%;">HS</div></div>
+          <!-- 07 LakeCTF Finals Apr 30 - May 1 -->
+          <div class="track"><div class="bar bar-sec" style="left:32.60%; width:0.55%;">CTF</div></div>
+          <!-- 08 Startup Champions May 7 -->
+          <div class="track"><div class="bar bar-pitch tick" style="left:34.52%;"></div></div>
+          <!-- 09 RoboHack May 8-10 -->
+          <div class="track"><div class="bar bar-hack" style="left:34.79%; width:0.82%;">ROBO</div></div>
+          <!-- 10 PolyLAN 43 (Spring) ~early May -->
+          <div class="track"><div class="bar bar-lan" style="left:33.42%; width:0.82%;">LAN</div></div>
+          <!-- 11 Artificial Life Workshop May 27-29 -->
+          <div class="track"><div class="bar bar-acad" style="left:40.00%; width:0.82%;">ALIFE</div></div>
+          <!-- 12 Open Science Days Sep 7-8 -->
+          <div class="track"><div class="bar bar-recruit" style="left:68.22%; width:0.55%;">OSD</div></div>
+          <!-- 13 Forum EPFL Oct 5-9 -->
+          <div class="track"><div class="bar bar-recruit" style="left:75.89%; width:1.37%;">FORUM EPFL</div></div>
+          <!-- 14 PolyLAN 44 (Fall, est) ~mid-Nov -->
+          <div class="track"><div class="bar bar-lan" style="left:86.30%; width:0.82%;">LAN</div></div>
+          <!-- 15 EPFL Info Days Nov 18-20 -->
+          <div class="track"><div class="bar bar-recruit" style="left:87.95%; width:0.82%;">INFO</div></div>
+          <!-- 16 Investor Day Nov 25 + LauzHack late-Nov -->
+          <div class="track">
+            <div class="bar bar-pitch tick" style="left:89.86%;"></div>
+            <div class="bar bar-hack" style="left:90.41%; width:0.82%;">LAUZ</div>
+          </div>
+        </div>
+
+        <!-- Citation column -->
+        <div class="row-cite">
+          <div class="cite"><a href="https://2026.appliedmldays.org/">[1]</a></div>
+          <div class="cite"><a href="https://www.epfl.ch/campus/events/events/public-events/">[19]</a></div>
+          <div class="cite"><a href="https://insomnihack.ch/">[5]</a></div>
+          <div class="cite"><a href="https://www.epfl.ch/campus/events/events/public-events/">[19]</a></div>
+          <div class="cite"><a href="https://www.epfl.ch/schools/sv/lemanic-life-sciences-hackathon-2026/">[14]</a></div>
+          <div class="cite"><a href="https://www.hacksummit.co/">[7]</a></div>
+          <div class="cite"><a href="https://lakectf.epfl.ch/">[13]</a></div>
+          <div class="cite"><a href="https://www.venturelab.swiss/Startup-Champions-Seed-Night-celebrates-15th-edition-at-EPFL">[10]</a></div>
+          <div class="cite"><a href="https://memento.epfl.ch/event/robohack2026-by-ai-team/">[9]</a></div>
+          <div class="cite"><a href="https://polylan.ch/">[16]</a></div>
+          <div class="cite"><a href="https://www.epfl.ch/campus/events/">[20]</a></div>
+          <div class="cite"><a href="https://opensciencedays.ch/en/">[24]</a></div>
+          <div class="cite"><a href="https://forum-epfl.ch/2026/en/">[12]</a></div>
+          <div class="cite"><a href="https://memento.epfl.ch/event/polylan-25-the-biggest-lan-party-in-switzerland-is/">[15]</a></div>
+          <div class="cite"><a href="https://www.epfl.ch/education/bachelor/information-days/">[25]</a></div>
+          <div class="cite"><a href="https://lauzhack.com/">[17]</a></div>
+        </div>
+      </div>
+      <div class="chart-foot">
+        <div class="cell">16 EVENTS · 12 MONTHS</div>
+        <div class="cell">FRONT-LOADED Q1-Q2 · 1 NICHE EVENT MAY 27-29 · SUMMER DEAD JUN-AUG</div>
+        <div class="cell">26 CITATIONS</div>
+      </div>
+    </div>
+
+    <!-- ───── 3a. Quarter density ───── -->
+    <div class="density">
+      <div class="q hot">
+        <div class="q-label">Q1 · JAN-MAR</div>
+        <div class="q-count">4</div>
+        <div class="q-sub">AMLD, Insomni'hack, Sustainability Days, MT180 — the season's peak</div>
+        <div class="q-bars"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+      </div>
+      <div class="q hot">
+        <div class="q-label">Q2 · APR-JUN</div>
+        <div class="q-count">7</div>
+        <div class="q-sub">HackSummit, hackathons, CTF, the Artificial Life workshop — then silence</div>
+        <div class="q-bars"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div>
+      </div>
+      <div class="q cold">
+        <div class="q-label">Q3 · JUL-SEP</div>
+        <div class="q-count">1</div>
+        <div class="q-sub">Open Science Days. Otherwise summer-quiet across EPFL.</div>
+        <div class="q-bars"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="q">
+        <div class="q-label">Q4 · OCT-DEC</div>
+        <div class="q-count">4</div>
+        <div class="q-sub">Forum EPFL recruitment fair + Information Days + Investor Day + LauzHack</div>
+        <div class="q-bars"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 4. The dead weekend, in detail ───── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">§ 02</span>
+      <h2>What's actually on, May 29-31</h2>
+      <span class="section-note">slim pickings · academic only · no STCC / Beaulieu headline</span>
+    </div>
+
+    <div class="dead-block">
+      <div class="dead-left">
+        <span class="dead-tag">⊠ DEAD ZONE</span>
+        <h2 class="dead-h"><span class="stamp">FRI 29 — SUN 31 MAY 2026</span>The IT calendar goes quiet.</h2>
+        <p class="dead-body">
+          No flagship conference is scheduled at <a href="https://www.stcc.ch/">SwissTech Convention Center</a> or the Beaulieu Congress Center on these dates per the calendars consulted <sup><a href="https://www.epfl.ch/campus/events/events/public-events/">[19]</a></sup> <sup><a href="https://www.startupticker.ch/en/events">[21]</a></sup>. <a href="https://polylan.ch/">PolyLAN 43</a> wrapped earlier in May <sup><a href="https://polylan.ch/">[16]</a></sup> — the next edition is six months out.
+        </p>
+        <p class="dead-body">
+          <strong>Recommendation:</strong> treat the trip as restaurant-and-lake-anchored. If pairing a future trip to a conference matters, the right windows are the three weekends listed in <strong>§ 04</strong> below.
+        </p>
+      </div>
+      <div class="dead-right">
+        <span class="dead-tag" style="background:#475569;">▾ WHAT IS ON</span>
+        <ul class="dead-list">
+          <li>
+            <span class="date">MAY 27-29 · 09:15-18:00</span>
+            <strong>Workshop on Detection &amp; Emergence of Complexity: Artificial Life Perspectives</strong> — Centre Bernoulli, EPFL. Academic, narrow, but free; a chance to sit in on a niche EPFL research seminar. <sup><a href="https://www.epfl.ch/campus/events/">[20]</a></sup>
+          </li>
+          <li>
+            <span class="date">JUN 3-4 · ADJACENT-DATES</span>
+            <strong>Business Creation Engineering</strong> — Unlimitrust, Prilly. Small-format startup workshop. <sup><a href="https://www.startupticker.ch/en/events">[21]</a></sup>
+          </li>
+          <li>
+            <span class="date">JUN 11 · ADJACENT-DATES</span>
+            <strong>Pitch Training</strong> — <a href="https://www.epfl-innovationpark.ch/">EPFL Innovation Park</a>. Single evening, small-format. <sup><a href="https://www.startupticker.ch/en/events">[21]</a></sup>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 5. Flagship picks ───── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">§ 03</span>
+      <h2>The three trips worth booking</h2>
+      <span class="section-note">events big enough to anchor a Lausanne weekend on their own</span>
+    </div>
+
+    <div class="flagships">
+
+      <article class="flag">
+        <div class="flag-img gradient">
+          AMLD
+          <div class="flag-meta">
+            <span class="chip hot">FEB</span>
+            <span class="chip">AI / ML</span>
+          </div>
+        </div>
+        <div class="flag-body">
+          <span class="flag-date">FEB 10-12 · STCC · EPFL</span>
+          <h3><a href="https://2026.appliedmldays.org/">AMLD Intelligence Summit</a></h3>
+          <p class="sub">10th-anniversary edition. Conference + exhibition Feb 10-11, hands-on workshop day Feb 12 <sup><a href="https://10times.com/appliedmldays">[2]</a></sup>. "Thousands of experts from 40+ countries" across industry, academia and government <sup><a href="https://memento.epfl.ch/event/epfl-amld-intelligence-summit-2026-2/">[3]</a></sup>.</p>
+          <div class="specs">
+            <span>★ FLAGSHIP</span>
+            <span>3 DAYS</span>
+            <span>1000s ATTENDEES</span>
+            <span>PUBLIC</span>
+          </div>
+          <div class="flag-foot">↗ <a href="https://2026.appliedmldays.org/">2026.appliedmldays.org</a></div>
+        </div>
+      </article>
+
+      <article class="flag">
+        <div class="flag-img">
+          <img src="calendar/images/insomnihack.png" alt="Insomni'hack mark">
+          <div class="flag-meta">
+            <span class="chip hot">MAR</span>
+            <span class="chip">SECURITY · CTF</span>
+          </div>
+        </div>
+        <div class="flag-body">
+          <span class="flag-date">MAR 16-20 · STCC · EPFL</span>
+          <h3><a href="https://insomnihack.ch/">Insomni'hack</a></h3>
+          <p class="sub">Mon-Wed workshops, Thu-Fri talks + on-site CTF <sup><a href="https://insomnihack.ch/">[5]</a></sup> <sup><a href="https://clusis.com/agenda/evenement-externe-insomnihack-lausanne-16-20-mars-2026/">[6]</a></sup>. Organised by Orange Cyberdefense Switzerland since 2008; 500+ delegates <sup><a href="https://infosec-conferences.com/event/20260319-insomnihack-2026/">[4]</a></sup>. Next edition: <strong>Feb 1-5, 2027</strong>.</p>
+          <div class="specs">
+            <span>★ ON-SITE CTF</span>
+            <span>5 DAYS</span>
+            <span>500+ DELEGATES</span>
+            <span>PAID</span>
+          </div>
+          <div class="flag-foot">↗ <a href="https://insomnihack.ch/">insomnihack.ch</a></div>
+        </div>
+      </article>
+
+      <article class="flag">
+        <div class="flag-img">
+          <img src="calendar/images/hacksummit.png" alt="HackSummit Lausanne opengraph">
+          <div class="flag-meta">
+            <span class="chip hot">APR</span>
+            <span class="chip">CLIMATE HARDTECH</span>
+          </div>
+        </div>
+        <div class="flag-body">
+          <span class="flag-date">APR 22-23 · BEAULIEU · LAUSANNE</span>
+          <h3><a href="https://www.hacksummit.co/">HackSummit</a></h3>
+          <p class="sub">5th Lausanne edition <sup><a href="https://www.swiss.tech/events/hacksummit-lausanne">[8]</a></sup>. Two-track: Day 1 Industrial Renaissance (manufacturing, energy, materials, DAC); Day 2 Food Sovereignty <sup><a href="https://www.hacksummit.co/">[7]</a></sup>. Tickets CHF 490 (startup) → CHF 1,520 (corporate) <sup><a href="https://www.hacksummit.co/">[7]</a></sup>.</p>
+          <div class="specs">
+            <span>★ EUROPE-LEADING</span>
+            <span>2 DAYS</span>
+            <span>800 ATTENDEES</span>
+            <span>PAID</span>
+          </div>
+          <div class="flag-foot">↗ <a href="https://www.hacksummit.co/">hacksummit.co</a></div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ───── 6. Re-roll suggestions ───── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">§ 04</span>
+      <h2>Re-roll: the three best 2027 windows</h2>
+      <span class="section-note">if pairing the Michelin trip with a marquee conference is the goal</span>
+    </div>
+
+    <div class="reroll-wrap">
+      <div class="reroll-head">
+        <h3>Future-weekend lookup</h3>
+        <span class="meta">PATTERN-BASED · 2027 DATES TBC</span>
+      </div>
+      <div class="reroll-row">
+        <div class="reroll-when">
+          FEB 13-15, 2027
+          <small>WK 06 · LIKELY AMLD 11TH ED</small>
+        </div>
+        <div class="reroll-why">
+          <strong>The headline pick.</strong> <a href="https://2026.appliedmldays.org/">AMLD</a> is the biggest tech-tourism magnet on Lausanne's calendar. 10th edition was Feb 10-12, 2026 <sup><a href="https://2026.appliedmldays.org/">[1]</a></sup>; the 11th edition is the natural anchor for a return trip — combine with a Michelin Saturday dinner once dates publish.
+        </div>
+        <div class="reroll-cite"><a href="https://2026.appliedmldays.org/">[1]</a></div>
+      </div>
+      <div class="reroll-row">
+        <div class="reroll-when">
+          FEB 4-5, 2027
+          <small>WK 05 · INSOMNI'HACK TALKS</small>
+        </div>
+        <div class="reroll-why">
+          <strong>The confirmed pick.</strong> 2027 dates already published: <strong>Feb 1-5</strong>, same STCC venue <sup><a href="https://insomnihack.ch/">[5]</a></sup>. Workshops Mon-Wed (Feb 1-3), main talks + CTF Thu-Fri (Feb 4-5). Best fit if cybersecurity is the angle.
+        </div>
+        <div class="reroll-cite"><a href="https://insomnihack.ch/">[5]</a></div>
+      </div>
+      <div class="reroll-row">
+        <div class="reroll-when">
+          LATE APR 2027
+          <small>≈ APR 21-22 · HACKSUMMIT PATTERN</small>
+        </div>
+        <div class="reroll-why">
+          <strong>The hardtech pick.</strong> Five consecutive Lausanne editions <sup><a href="https://www.swiss.tech/events/hacksummit-lausanne">[8]</a></sup>; recurring late-April slot. <a href="https://www.hacksummit.co/">HackSummit</a> at the Beaulieu Congress Center is a different audience (climate / founder / investor) than the EPFL crowd — pair it with the city-centre Michelin tables rather than Crissier.
+        </div>
+        <div class="reroll-cite"><a href="https://www.hacksummit.co/">[7]</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 7. Venues ───── -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">§ 05</span>
+      <h2>The four venues you'll see repeatedly</h2>
+      <span class="section-note">most events resolve to one of these four buildings</span>
+    </div>
+
+    <div class="venues">
+      <div class="venue">
+        <div class="code">STCC</div>
+        <h4><a href="https://www.stcc.ch/">SwissTech Convention Center</a></h4>
+        <p>On the EPFL campus. Default venue for AMLD, Insomni'hack, Forum EPFL, Investor Day, big PolyLANs. <sup><a href="https://www.stcc.ch/">[23]</a></sup></p>
+        <a class="link" href="https://www.stcc.ch/">stcc.ch ↗</a>
+      </div>
+      <div class="venue">
+        <div class="code">BLU</div>
+        <h4>Beaulieu Congress Center</h4>
+        <p>North of the city centre. HackSummit and a recurring PolyLAN location. <sup><a href="https://www.hacksummit.co/">[7]</a></sup></p>
+      </div>
+      <div class="venue">
+        <div class="code">IPK</div>
+        <h4><a href="https://www.epfl-innovationpark.ch/">EPFL Innovation Park</a></h4>
+        <p>100+ startups in residence. Hosts most of the smaller pitch and training events. <sup><a href="https://www.epfl-innovationpark.ch/">[26]</a></sup></p>
+        <a class="link" href="https://www.epfl-innovationpark.ch/">epfl-innovationpark.ch ↗</a>
+      </div>
+      <div class="venue">
+        <div class="code">RLC</div>
+        <h4>Rolex Learning Center</h4>
+        <p>Forum Rolex hosts <a href="https://www.venturelab.swiss/Startup-Champions-Seed-Night-celebrates-15th-edition-at-EPFL">Startup Champions Seed Night</a> and several research showcases. <sup><a href="https://www.venturelab.swiss/Startup-Champions-Seed-Night-celebrates-15th-edition-at-EPFL">[10]</a></sup></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 8. Siblings ───── -->
+  <aside class="siblings">
+    <div class="siblings-label">▼ ELSEWHERE IN THIS EXPEDITION</div>
+    <div class="sib-row">
+      <a href="../../things-to-do-in-lausanne/" class="sib">
+        <span class="depth">EXPEDITION</span>
+        <span class="title">Things to do in Lausanne</span>
+        <span class="sum">Two-day itinerary: Olympic Museum, Plateforme 10, a Lavaux vineyard walk, a CGN paddle steamer, and where to eat between Michelin courses.</span>
+      </a>
+      <a href="../../michelin-2-and-3-star-restaurants-in-lausanne/" class="sib">
+        <span class="depth">SURVEY</span>
+        <span class="title">Michelin 2 and 3-star restaurants in Lausanne</span>
+        <span class="sum">Three top-tier tables anchor the weekend: Crissier's 3-star Hôtel de Ville, Pic at Beau-Rivage Palace, and La Table at Lausanne Palace.</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ───── 9. Colophon ───── -->
+  <footer class="colophon">
+    SOURCE: CANONICAL ARTIFACT · <a href="../">IT CONFERENCES AND TECH EVENTS IN LAUSANNE</a> · SURVEY DEPTH · 26 CITATIONS · 2026-05-29
+    <div class="row">
+      <span>↤ <a href="../../">A WEEKEND IN LAUSANNE, ANCHORED ON A MICHELIN DINNER</a></span>
+      <span>SET IN HELVETICA NEUE + IBM PLEX MONO · CHRONOGRAM VIEW</span>
+    </div>
+  </footer>
+
+</div>

@@ -1,0 +1,982 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "Munich tech events 2026 — conferences, trade fairs and meetups — Calendar"
+---
+
+<style>
+  .cal-view {
+    --paper: #f6f1e6;
+    --paper-2: #efe8d7;
+    --ink: #1a1c20;
+    --ink-soft: #4a4c52;
+    --rule: #c9bfa6;
+    --rule-soft: #e2d9c4;
+    --bavaria: #0e3a8a;
+    --bavaria-soft: #c9d6ec;
+    --marquee: #b3331e;
+    --dev: #0e3a8a;
+    --messe: #c46415;
+    --hack: #2f6b3c;
+    --once: #6a6a6a;
+    --meetup: #4a4a4a;
+
+    margin: 0;
+    padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2.5rem) 3rem;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 38px, rgba(14,58,138,0.025) 38px 39px),
+      var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    line-height: 1.4;
+  }
+
+  .cal-view a { color: var(--bavaria); text-decoration: none; border-bottom: 1px solid rgba(14,58,138,0.3); }
+  .cal-view a:hover { border-bottom-color: var(--bavaria); }
+  .cal-view sup a { border: none; }
+
+  /* MASTHEAD */
+  .cal-masthead {
+    border-top: 6px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding: 1rem 0 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: end;
+  }
+  .cal-meta {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .cal-meta .pipe { color: var(--rule); margin: 0 0.5rem; }
+  .cal-title {
+    font-family: 'Archivo Black', 'Helvetica Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    margin: 0.5rem 0 0;
+    font-weight: 900;
+  }
+  .cal-title .year {
+    display: inline-block;
+    color: var(--bavaria);
+    font-style: italic;
+    margin-right: 0.25em;
+  }
+  .cal-title .city {
+    display: block;
+    font-size: 0.55em;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .cal-lede {
+    grid-column: 1 / -1;
+    max-width: 60ch;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0.25rem 0 0;
+  }
+  .cal-flag {
+    width: 56px;
+    height: 90px;
+    background:
+      linear-gradient(180deg,
+        var(--paper) 0 50%,
+        var(--bavaria) 50% 100%);
+    border: 1px solid var(--ink);
+    align-self: end;
+  }
+
+  /* VERDICT */
+  .verdict {
+    margin: 1.75rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--ink);
+    color: var(--paper);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .verdict-label {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: #d5b67a;
+    text-transform: uppercase;
+    border-right: 1px solid #444;
+    padding-right: 1.5rem;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+  .verdict-body {
+    font-size: 1.02rem;
+    line-height: 1.55;
+  }
+  .verdict-body a { color: #f0d9a7; border-bottom-color: rgba(240,217,167,0.4); }
+  .verdict-body strong { color: #f0d9a7; font-weight: 600; }
+  .verdict-body .warn { color: #ffae6b; font-weight: 600; }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem 1.5rem;
+    margin: 0 0 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-family: ui-monospace, monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .dot {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--once);
+    flex-shrink: 0;
+  }
+  .dot.marquee { background: var(--marquee); }
+  .dot.dev     { background: var(--dev); }
+  .dot.messe   { background: var(--messe); }
+  .dot.hack    { background: var(--hack); }
+  .dot.once    { background: var(--once); }
+
+  /* CALENDAR GRID */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 2px solid var(--ink);
+    border-left: 2px solid var(--ink);
+  }
+  @media (max-width: 980px) {
+    .cal-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .cal-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .cal-grid { grid-template-columns: 1fr; }
+  }
+
+  .month {
+    border-right: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding: 0.85rem 0.9rem 1rem;
+    background: var(--paper);
+    position: relative;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+  }
+  .month.featured { background: var(--paper-2); }
+  .month.empty { background: repeating-linear-gradient(135deg, var(--paper) 0 6px, var(--paper-2) 6px 7px); }
+
+  .month-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .month-abbr {
+    font-family: 'Archivo Black', 'Helvetica Neue', sans-serif;
+    font-size: 1.9rem;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-weight: 900;
+  }
+  .month-name {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .month-name .num {
+    color: var(--ink);
+    font-weight: 600;
+    margin-right: 0.4em;
+  }
+
+  .day-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    color: var(--ink-soft);
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+  .day-strip span {
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+  .day-strip .wk { color: var(--marquee); }
+
+  .events {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    flex: 1;
+  }
+  .event {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 0.4rem 0.45rem;
+    align-items: baseline;
+    font-size: 0.83rem;
+    line-height: 1.3;
+  }
+  .event .date {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink);
+    background: rgba(14,58,138,0.07);
+    padding: 1px 5px;
+    border-radius: 2px;
+    border-left: 2px solid var(--bavaria);
+    white-space: nowrap;
+    align-self: start;
+  }
+  .event .dot { align-self: center; }
+  .event .name {
+    display: inline;
+  }
+  .event .name a {
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid rgba(26,28,32,0.15);
+  }
+  .event .name a:hover { border-bottom-color: var(--ink); }
+  .event .venue {
+    grid-column: 3;
+    display: block;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-top: 1px;
+  }
+  .event .badge {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-left: 0.3rem;
+    vertical-align: 2px;
+  }
+  .badge.weekend { background: var(--hack); color: var(--paper); }
+  .badge.bi      { background: var(--messe); color: var(--paper); }
+  .badge.past    { background: var(--rule); color: var(--ink-soft); }
+
+  .no-fixtures {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.85rem;
+    opacity: 0.55;
+  }
+  .no-fixtures::before {
+    content: "—";
+    margin-right: 0.5rem;
+    font-size: 1.6rem;
+    color: var(--rule);
+  }
+
+  .month-note {
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    color: var(--ink-soft);
+    margin-top: 0.65rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--rule);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .month-note.warn { color: var(--marquee); }
+
+  /* POSTER STRIP */
+  .posters {
+    margin: 2.5rem 0;
+  }
+  .posters-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .posters-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.4rem;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .posters-kicker {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .poster-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 820px) {
+    .poster-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+  .poster {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--ink);
+    overflow: hidden;
+    border: 1px solid var(--ink);
+  }
+  .poster img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: contrast(1.02) saturate(0.95);
+  }
+  .poster-tape {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-1.5deg);
+    width: 80px;
+    height: 22px;
+    background: rgba(255, 235, 130, 0.78);
+    border: 1px dashed rgba(0,0,0,0.15);
+  }
+  .poster-cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.85));
+    color: var(--paper);
+    padding: 1.5rem 0.75rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .poster-cap .when {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: #f0d9a7;
+    letter-spacing: 0.1em;
+  }
+  .poster-cap .who {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+  .poster-cap .who a { color: var(--paper); border: none; }
+
+  /* MARGIN / CADENCE */
+  .cadence {
+    margin: 2.5rem 0;
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 2rem;
+  }
+  @media (max-width: 820px) { .cadence { grid-template-columns: 1fr; } }
+  .cadence-aside {
+    padding: 1.25rem 1.25rem 1.25rem 0;
+    border-right: 2px solid var(--ink);
+  }
+  @media (max-width: 820px) {
+    .cadence-aside { border-right: none; border-bottom: 2px solid var(--ink); padding: 0 0 1.25rem; }
+  }
+  .cadence-aside h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.2rem;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .cadence-aside p {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+  }
+  .cadence-body {
+    padding: 0 0 0 0.5rem;
+  }
+  .cadence-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .cadence-item {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--rule);
+    align-items: baseline;
+  }
+  .cadence-item:last-child { border-bottom: none; }
+  .cadence-when {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    border-left: 3px solid var(--meetup);
+    padding-left: 0.5rem;
+  }
+  .cadence-name {
+    font-weight: 600;
+    margin: 0 0 0.2rem;
+  }
+  .cadence-name a {
+    color: var(--ink);
+    border-bottom: 1px solid rgba(26,28,32,0.2);
+  }
+  .cadence-desc {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .cadence-name .badge {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1px 5px;
+    margin-left: 0.4rem;
+    background: var(--bavaria);
+    color: var(--paper);
+    border-radius: 2px;
+    vertical-align: 2px;
+  }
+
+  /* PICKS */
+  .picks {
+    margin: 2.5rem 0;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding: 1.25rem 0;
+  }
+  .picks-head {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.3rem;
+    margin: 0 0 1rem;
+  }
+  .picks-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem 1.5rem;
+  }
+  @media (max-width: 720px) { .picks-grid { grid-template-columns: 1fr; } }
+  .pick {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 0.85rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .pick-when {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+  .pick-body { font-size: 0.92rem; line-height: 1.45; }
+  .pick-body strong { color: var(--ink); }
+  .pick.avoid .pick-when { color: var(--marquee); }
+
+  /* PARENT NAV */
+  .nav-out {
+    margin: 2.25rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  @media (max-width: 720px) { .nav-out { grid-template-columns: 1fr; } }
+  .nav-out a {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--rule);
+    background: rgba(14,58,138,0.03);
+    color: var(--ink);
+    text-decoration: none;
+    border-left: 3px solid var(--bavaria);
+  }
+  .nav-out a:hover { background: rgba(14,58,138,0.06); border-left-color: var(--ink); }
+  .nav-out .nav-label {
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    margin-bottom: 0.2rem;
+  }
+  .nav-out .nav-title { font-weight: 600; font-size: 0.95rem; }
+  .nav-out .nav-summary { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.25rem; line-height: 1.35; }
+
+  .colophon {
+    margin: 2rem 0 0;
+    font-family: ui-monospace, monospace;
+    font-size: 0.66rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+    border-top: 1px dashed var(--rule);
+    padding-top: 1rem;
+  }
+  .colophon a { color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+</style>
+
+<div class="cal-view">
+
+  <header class="cal-masthead">
+    <div>
+      <div class="cal-meta">
+        Wall Calendar <span class="pipe">·</span>
+        Edition 2026 <span class="pipe">·</span>
+        21 Citations <span class="pipe">·</span>
+        Survey
+      </div>
+      <h1 class="cal-title">
+        <span class="year">2026</span><span class="city">München · IT Kalender</span>
+      </h1>
+    </div>
+    <div class="cal-flag" aria-hidden="true"></div>
+    <p class="cal-lede">
+      Marquee conferences and Messe trade fairs pinned to their months. The always-on meetup circuit runs in the margin.
+    </p>
+  </header>
+
+  <aside class="verdict">
+    <div class="verdict-label">Verdict</div>
+    <div class="verdict-body">
+      For a weekend-anchored visit, <a href="https://hack.tum.de/">hackaTUM</a> (Fri–Sun, Nov 27–29) and the <a href="https://luma.com/edth-anniversary-munich">European Defense Tech Hackathon</a> (Fri–Sun, Jun 26–28) fit cleanly across two nights<sup><a href="https://hack.tum.de/">[14]</a></sup><sup><a href="https://luma.com/edth-anniversary-munich">[15]</a></sup>.
+      For marquee scale and a Bavarian capstone, <strong><a href="https://www.bitsandpretzels.com/">Bits & Pretzels</a></strong> (Mon–Wed, Sep 28–30) ends mid-Oktoberfest — wrap the weekend after<sup><a href="https://www.bitsandpretzels.com/">[4]</a></sup>.
+      For zero commitment, monthly <a href="https://munich.aitinkerers.org/">AI Tinkerers Munich</a> and <a href="https://www.meetup.com/munich-datageeks/">Munich Datageeks</a> cost a free RSVP<sup><a href="https://munich.aitinkerers.org/">[16]</a></sup><sup><a href="https://www.meetup.com/munich-datageeks/">[18]</a></sup>.
+      <span class="warn">Note:</span> <a href="https://www.iaa-mobility.com/en">IAA Mobility</a> is not in Munich in 2026 — next edition is Sep 7–12, 2027<sup><a href="https://www.iaa-mobility.com/en">[6]</a></sup>.
+    </div>
+  </aside>
+
+  <div class="legend">
+    <span class="legend-item"><span class="dot marquee"></span> Marquee</span>
+    <span class="legend-item"><span class="dot dev"></span> Developer · practitioner</span>
+    <span class="legend-item"><span class="dot messe"></span> Messe trade fair</span>
+    <span class="legend-item"><span class="dot hack"></span> Hackathon · weekend</span>
+    <span class="legend-item"><span class="dot once"></span> Annual / one-off</span>
+  </div>
+
+  <section class="cal-grid">
+
+    <!-- JAN -->
+    <article class="month featured">
+      <div class="month-head">
+        <div class="month-abbr">JAN</div>
+        <div class="month-name"><span class="num">01</span>January</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">15–17</span>
+          <span class="dot marquee"></span>
+          <span class="name"><a href="https://dldnews.com/dld-munich-2026/">DLD Munich 26</a><span class="badge past">past</span><span class="venue">House of Communication · 2 stages · 120+ sessions</span></span>
+        </li>
+      </ul>
+      <div class="month-note">AI · quantum · biotech · energy <sup><a href="https://dldnews.com/dld-munich-2026/">[3]</a></sup></div>
+    </article>
+
+    <!-- FEB -->
+    <article class="month featured">
+      <div class="month-head">
+        <div class="month-abbr">FEB</div>
+        <div class="month-name"><span class="num">02</span>February</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">10–13</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://www.oop-konferenz.de/de">OOP Konferenz</a><span class="badge past">past</span><span class="venue">MOC München · 35 yrs · 7 parallel tracks</span></span>
+        </li>
+        <li class="event">
+          <span class="date">12–15</span>
+          <span class="dot hack"></span>
+          <span class="name"><a href="https://dev.events/hackathons/EU/DE/Munich/tech">EDTH Munich</a> <span class="badge weekend">w/end</span><span class="venue">MSC-edition hackathon</span></span>
+        </li>
+        <li class="event">
+          <span class="date">13–15</span>
+          <span class="dot marquee"></span>
+          <span class="name"><a href="https://securityconference.org/en/msc-2026/">MSC 2026</a><span class="badge past">past</span><span class="venue">Hotel Bayerischer Hof · 62nd edition</span></span>
+        </li>
+      </ul>
+      <div class="month-note warn">⚠ Heads-of-state security elite · expect city lockdowns</div>
+    </article>
+
+    <!-- MAR -->
+    <article class="month empty">
+      <div class="month-head">
+        <div class="month-abbr">MAR</div>
+        <div class="month-name"><span class="num">03</span>March</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <div class="no-fixtures">no marquee fixtures</div>
+      <div class="month-note">meetups only · see margin</div>
+    </article>
+
+    <!-- APR -->
+    <article class="month empty">
+      <div class="month-head">
+        <div class="month-abbr">APR</div>
+        <div class="month-name"><span class="num">04</span>April</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <div class="no-fixtures">no marquee fixtures</div>
+      <div class="month-note">meetups only · see margin</div>
+    </article>
+
+    <!-- MAY -->
+    <article class="month">
+      <div class="month-head">
+        <div class="month-abbr">MAY</div>
+        <div class="month-name"><span class="num">05</span>May</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">21</span>
+          <span class="dot once"></span>
+          <span class="name"><a href="https://forum.unternehmertum.de/">Forum UnternehmerTUM</a><span class="venue">Munich Urban Colab · invite-only · ~600</span></span>
+        </li>
+      </ul>
+      <div class="month-note">Europe's leading startup hub · annual flagship</div>
+    </article>
+
+    <!-- JUN -->
+    <article class="month featured">
+      <div class="month-head">
+        <div class="month-abbr">JUN</div>
+        <div class="month-name"><span class="num">06</span>June</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">12–13</span>
+          <span class="dot hack"></span>
+          <span class="name"><a href="https://dev.events/EU/DE/Munich/it">JSCraftCamp</a><span class="badge weekend">w/end</span><span class="venue">weekend BarCamp</span></span>
+        </li>
+        <li class="event">
+          <span class="date">22–25</span>
+          <span class="dot messe"></span>
+          <span class="name"><a href="https://automatica-munich.com/en/">automatica</a><span class="badge bi">biennial</span><span class="venue">Messe München · smart automation · robotics</span></span>
+        </li>
+        <li class="event">
+          <span class="date">23–25</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://www.tdwi-konferenz.de/de">TDWI München</a><span class="venue">MOC München · 130+ talks · BI / AI</span></span>
+        </li>
+        <li class="event">
+          <span class="date">26–28</span>
+          <span class="dot hack"></span>
+          <span class="name"><a href="https://luma.com/edth-anniversary-munich">EDTH Munich</a> <span class="badge weekend">w/end</span><span class="venue">anniversary edition · 200+ hackers</span></span>
+        </li>
+        <li class="event">
+          <span class="date">29–30</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://www.cnsmunich.com/">Cloud Native Summit Munich</a><span class="venue">smartvillage Bogenhausen · 70+ speakers</span></span>
+        </li>
+      </ul>
+      <div class="month-note warn">⚠ hotel-spike week (automatica)</div>
+    </article>
+
+    <!-- JUL -->
+    <article class="month">
+      <div class="month-head">
+        <div class="month-abbr">JUL</div>
+        <div class="month-name"><span class="num">07</span>July</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">8–9</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://www.apidays.global/events/munich">apidays Munich</a><span class="venue">city centre · 1,000+ · "Industrial Nervous System"</span></span>
+        </li>
+        <li class="event">
+          <span class="date">15–16</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://dev.events/EU/DE/Munich/it">TechDays Munich</a><span class="venue">venue TBA</span></span>
+        </li>
+      </ul>
+      <div class="month-note">one-day-pass-able · APIs · agentic orchestration</div>
+    </article>
+
+    <!-- AUG -->
+    <article class="month empty">
+      <div class="month-head">
+        <div class="month-abbr">AUG</div>
+        <div class="month-name"><span class="num">08</span>August</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <div class="no-fixtures">no marquee fixtures</div>
+      <div class="month-note">Sommerpause · most kitchens closed too</div>
+    </article>
+
+    <!-- SEP -->
+    <article class="month featured">
+      <div class="month-head">
+        <div class="month-abbr">SEP</div>
+        <div class="month-name"><span class="num">09</span>September</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">28–30</span>
+          <span class="dot marquee"></span>
+          <span class="name"><a href="https://www.bitsandpretzels.com/">Bits & Pretzels</a><span class="venue">ICM → Oktoberfest day 3 · 7,500 · founders + VC</span></span>
+        </li>
+      </ul>
+      <div class="month-note warn">⚠ verified-application tickets · apply early <sup><a href="https://www.bitsandpretzels.com/">[4]</a></sup></div>
+    </article>
+
+    <!-- OCT -->
+    <article class="month empty">
+      <div class="month-head">
+        <div class="month-abbr">OKT</div>
+        <div class="month-name"><span class="num">10</span>October</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <div class="no-fixtures">Wiesn until Oct 4</div>
+      <div class="month-note">Oktoberfest tail · tech calendar gives way</div>
+    </article>
+
+    <!-- NOV -->
+    <article class="month featured">
+      <div class="month-head">
+        <div class="month-abbr">NOV</div>
+        <div class="month-name"><span class="num">11</span>November</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">2–6</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://jax.de/munich/">W-JAX München</a><span class="venue">Westin Grand · ~5,000 · ~330 speakers</span></span>
+        </li>
+        <li class="event">
+          <span class="date">10–13</span>
+          <span class="dot messe"></span>
+          <span class="name"><a href="https://electronica.de/en/trade-fair/">electronica</a><span class="badge bi">biennial</span><span class="venue">Messe München · ~80k visitors · 113 countries</span></span>
+        </li>
+        <li class="event">
+          <span class="date">24–25</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://www.heise.de/news/IT-Summit-2026-heise-Konferenz-zu-Digitaler-Souveraenitaet-11280290.html">heise IT Summit</a><span class="venue">digital sovereignty · IT mgmt</span></span>
+        </li>
+        <li class="event">
+          <span class="date">27–29</span>
+          <span class="dot hack"></span>
+          <span class="name"><a href="https://hack.tum.de/">hackaTUM</a> <span class="badge weekend">w/end</span><span class="venue">TUM CS hackathon</span></span>
+        </li>
+        <li class="event">
+          <span class="date">30→</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://devopscon.io/munich/">DevOpsCon</a> opens<span class="venue">Hilton Munich Park (runs into Dec)</span></span>
+        </li>
+      </ul>
+      <div class="month-note warn">⚠ triple hotel-spike (electronica + W-JAX + DevOpsCon overlap)</div>
+    </article>
+
+    <!-- DEC -->
+    <article class="month">
+      <div class="month-head">
+        <div class="month-abbr">DEZ</div>
+        <div class="month-name"><span class="num">12</span>December</div>
+      </div>
+      <div class="day-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span class="wk">S</span><span class="wk">S</span></div>
+      <ul class="events">
+        <li class="event">
+          <span class="date">1–4</span>
+          <span class="dot dev"></span>
+          <span class="name"><a href="https://devopscon.io/munich/">DevOpsCon Munich</a><span class="venue">Hilton Munich Park · ~63 speakers · expo Dec 1–2</span></span>
+        </li>
+      </ul>
+      <div class="month-note">Christkindlmarkt season starts late Nov</div>
+    </article>
+
+  </section>
+
+  <section class="posters">
+    <div class="posters-head">
+      <h2 class="posters-title">Posters from the calendar</h2>
+      <div class="posters-kicker">Official org art · Nov · Feb · Jan · Feb</div>
+    </div>
+    <div class="poster-strip">
+      <div class="poster">
+        <div class="poster-tape"></div>
+        <img src="calendar/images/wjax.jpg" alt="W-JAX München 2026 official poster">
+        <div class="poster-cap">
+          <div class="when">NOV 2 – 6 · DEV</div>
+          <div class="who"><a href="https://jax.de/munich/">W-JAX München</a></div>
+        </div>
+      </div>
+      <div class="poster">
+        <div class="poster-tape"></div>
+        <img src="calendar/images/msc.jpg" alt="Munich Security Conference 2026 official photo">
+        <div class="poster-cap">
+          <div class="when">FEB 13 – 15 · MARQUEE</div>
+          <div class="who"><a href="https://securityconference.org/en/msc-2026/">MSC 2026</a></div>
+        </div>
+      </div>
+      <div class="poster">
+        <div class="poster-tape"></div>
+        <img src="calendar/images/dld.jpg" alt="DLD Munich 2026 illustration">
+        <div class="poster-cap">
+          <div class="when">JAN 15 – 17 · MARQUEE</div>
+          <div class="who"><a href="https://dldnews.com/dld-munich-2026/">DLD Munich 26</a></div>
+        </div>
+      </div>
+      <div class="poster">
+        <div class="poster-tape"></div>
+        <img src="calendar/images/oop.jpg" alt="OOP Konferenz 2026 poster">
+        <div class="poster-cap">
+          <div class="when">FEB 10 – 13 · DEV</div>
+          <div class="who"><a href="https://www.oop-konferenz.de/de">OOP Konferenz</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cadence">
+    <div class="cadence-aside">
+      <h2>In the margin<br>Monthly fixtures</h2>
+      <p>For a weekend trip that lands on a Mon/Tue/Wed evening, the meetup circuit is the path of least resistance — free, drop-in, no badge.</p>
+      <p style="font-family: ui-monospace, monospace; font-size: 0.7rem; color: var(--ink-soft); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1.5rem;">↓ what runs every month ↓</p>
+    </div>
+    <div class="cadence-body">
+      <ul class="cadence-list">
+        <li class="cadence-item">
+          <div class="cadence-when">monthly</div>
+          <div>
+            <div class="cadence-name"><a href="https://munich.aitinkerers.org/">AI Tinkerers Munich</a><span class="badge">code-only</span></div>
+            <p class="cadence-desc">5-min lightning demos · running code only · no slides allowed · ~3hr · hosted at CDTM. Filters for builders rather than the keynote circuit <sup><a href="https://munich.aitinkerers.org/">[16]</a></sup>.</p>
+          </div>
+        </li>
+        <li class="cadence-item">
+          <div class="cadence-when">~monthly</div>
+          <div>
+            <div class="cadence-name"><a href="https://www.meetup.com/munich-datageeks/">Munich Datageeks</a></div>
+            <p class="cadence-desc">Talks + networking at Giesinger Bräu Werk2. Slides, YouTube content, free RSVP <sup><a href="https://www.meetup.com/munich-datageeks/">[18]</a></sup>.</p>
+          </div>
+        </li>
+        <li class="cadence-item">
+          <div class="cadence-when">irregular</div>
+          <div>
+            <div class="cadence-name"><a href="https://www.meetup.com/munchen-kubernetes-meetup/">Munich Kubernetes / Cloud Native / Platform Eng</a></div>
+            <p class="cadence-desc">Talks · rotating sponsors. The local arm of the dev-conference scene between W-JAX, DevOpsCon and Cloud Native Summit cycles <sup><a href="https://www.meetup.com/munchen-kubernetes-meetup/">[19]</a></sup>.</p>
+          </div>
+        </li>
+        <li class="cadence-item">
+          <div class="cadence-when">annual</div>
+          <div>
+            <div class="cadence-name"><a href="https://forum.unternehmertum.de/">Forum UnternehmerTUM</a><span class="badge">invite-only</span></div>
+            <p class="cadence-desc">May 21 at Munich Urban Colab · ~600 hand-picked changemakers and international visionaries · Europe's Leading Startup Hub flagship <sup><a href="https://forum.unternehmertum.de/">[17]</a></sup>.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="picks">
+    <h2 class="picks-head">Picking by trip shape</h2>
+    <div class="picks-grid">
+      <div class="pick">
+        <div class="pick-when">1 Michelin + 1 day</div>
+        <div class="pick-body">
+          <strong><a href="https://www.cnsmunich.com/">Cloud Native Summit</a></strong> (Mon Jun 29) or <strong><a href="https://www.apidays.global/events/munich">apidays</a></strong> (Wed Jul 8) — both one-day-pass-able <sup><a href="https://www.cnsmunich.com/">[8]</a></sup><sup><a href="https://www.apidays.global/events/munich">[7]</a></sup>.
+        </div>
+      </div>
+      <div class="pick">
+        <div class="pick-when">weekend only</div>
+        <div class="pick-body">
+          <strong><a href="https://hack.tum.de/">hackaTUM</a></strong> (Nov 27–29) or <strong><a href="https://luma.com/edth-anniversary-munich">EDTH</a></strong> (Jun 26–28) — no vacation days burnt <sup><a href="https://hack.tum.de/">[14]</a></sup><sup><a href="https://luma.com/edth-anniversary-munich">[15]</a></sup>.
+        </div>
+      </div>
+      <div class="pick">
+        <div class="pick-when">w/ Oktoberfest</div>
+        <div class="pick-body">
+          <strong><a href="https://www.bitsandpretzels.com/">Bits & Pretzels</a></strong> Sep 28–30 ends on Wiesn day 3 — extend through the weekend <sup><a href="https://www.bitsandpretzels.com/">[4]</a></sup>.
+        </div>
+      </div>
+      <div class="pick">
+        <div class="pick-when">pure networking</div>
+        <div class="pick-body">
+          Any <strong><a href="https://munich.aitinkerers.org/">AI Tinkerers</a></strong> month. Zero lock-in, free RSVP, builders only <sup><a href="https://munich.aitinkerers.org/">[16]</a></sup>.
+        </div>
+      </div>
+      <div class="pick avoid">
+        <div class="pick-when">⚠ avoid</div>
+        <div class="pick-body">
+          <strong><a href="https://automatica-munich.com/en/">automatica</a></strong> (Jun 22–25) and <strong><a href="https://electronica.de/en/trade-fair/">electronica</a></strong> (Nov 10–13) unless that <em>is</em> the trip — hotels spike across the city <sup><a href="https://automatica-munich.com/en/">[12]</a></sup><sup><a href="https://electronica.de/en/trade-fair/">[13]</a></sup>.
+        </div>
+      </div>
+      <div class="pick avoid">
+        <div class="pick-when">⚠ not in 2026</div>
+        <div class="pick-body">
+          <strong><a href="https://www.iaa-mobility.com/en">IAA Mobility</a></strong> skipped Munich 2026 — next edition is Sep 7–12, 2027 <sup><a href="https://www.iaa-mobility.com/en">[6]</a></sup>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="nav-out" aria-label="Siblings">
+    <a href="../../things-to-do-in-m-nchen/">
+      <div class="nav-label">Sibling · Expedition</div>
+      <div class="nav-title">Things to do in München</div>
+      <div class="nav-summary">Two-night Munich plan: where to sleep, which sights earn the time, biergartens locals actually use, and day-trip math.</div>
+    </a>
+    <a href="../../michelin-2-and-3-star-restaurants-in-m-nchen/">
+      <div class="nav-label">Sibling · Survey</div>
+      <div class="nav-title">Michelin 2 and 3-star restaurants in München</div>
+      <div class="nav-summary">Six restaurants anchor Munich's top tier: JAN and Tohru (3★); Tantris, KOMU, Alois and Atelier (2★).</div>
+    </a>
+  </nav>
+
+  <div class="colophon">
+    A Munich weekend, planned around a <a href="../../">Michelin anchor</a> · sourced from the canonical <a href="https://dev.events/EU/DE/Munich/it">dev.events</a> calendar plus 20 official sites
+  </div>
+
+</div>
