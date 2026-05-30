@@ -1,0 +1,1955 @@
+---
+layout: view
+view_name: "Graph"
+view_of: ../
+title: "Linking & note structure in Obsidian: backlinks, MOCs vs folders — Graph"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
+
+  .gv {
+    --bg-deep: #1a1b26;
+    --bg-panel: #1f2235;
+    --bg-elevated: #262a42;
+    --bg-card: #20233a;
+    --line: #353a5a;
+    --line-soft: #2a2e48;
+    --text-bright: #c0caf5;
+    --text-body: #a9b1d6;
+    --text-dim: #7e8aa8;
+    --text-mute: #565a73;
+    --node: #bb9af7;
+    --node-glow: rgba(187, 154, 247, 0.45);
+    --hub: #7dcfff;
+    --hub-glow: rgba(125, 207, 255, 0.55);
+    --folder: #ff9e64;
+    --tag: #f7768e;
+    --orphan: #565a73;
+    --warning: #f7768e;
+    --good: #9ece6a;
+    --accent: #e0af68;
+
+    background: var(--bg-deep);
+    color: var(--text-body);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  .gv * { box-sizing: border-box; }
+
+  .gv ::selection { background: var(--node); color: var(--bg-deep); }
+
+  /* ============ HERO ============ */
+  .gv-hero {
+    position: relative;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(187, 154, 247, 0.08), transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(125, 207, 255, 0.08), transparent 50%),
+      var(--bg-deep);
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .gv-hero svg.hero-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 78vh;
+  }
+  .gv-hero-overlay {
+    position: absolute;
+    top: 2rem;
+    left: 2.4rem;
+    z-index: 5;
+    max-width: 540px;
+    pointer-events: none;
+  }
+  .gv-kicker {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hub);
+    background: rgba(125, 207, 255, 0.08);
+    border: 1px solid rgba(125, 207, 255, 0.25);
+    padding: 0.4rem 0.7rem;
+    border-radius: 4px;
+    margin-bottom: 1.4rem;
+  }
+  .gv-hero h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5vw, 4.2rem);
+    line-height: 1.02;
+    color: var(--text-bright);
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+  }
+  .gv-hero h1 em {
+    font-style: italic;
+    color: var(--hub);
+    font-weight: 500;
+  }
+  .gv-hero-sub {
+    font-size: 1.05rem;
+    color: var(--text-body);
+    margin: 0 0 1.6rem;
+    max-width: 460px;
+  }
+  .gv-hero-meta {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .gv-hero-meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .gv-hero-meta .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hub); }
+
+  /* Bottom corner legend, like Obsidian's */
+  .gv-hero-legend {
+    position: absolute;
+    bottom: 1.4rem;
+    right: 1.6rem;
+    background: rgba(26, 27, 38, 0.78);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    color: var(--text-dim);
+    backdrop-filter: blur(4px);
+  }
+  .gv-hero-legend .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* ============ SECTIONS ============ */
+  .gv-section {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 4.5rem 2rem;
+  }
+  .gv-section + .gv-section { padding-top: 1rem; }
+  .gv-section.wide { max-width: 1340px; }
+
+  .gv-h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hub);
+    margin: 0 0 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .gv-h2::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--hub);
+  }
+  .gv-h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    line-height: 1.15;
+    color: var(--text-bright);
+    margin: 0 0 1.4rem;
+    letter-spacing: -0.01em;
+  }
+  .gv-lede {
+    font-size: 1.08rem;
+    color: var(--text-body);
+    max-width: 740px;
+    margin-bottom: 2.8rem;
+  }
+  .gv-lede sup a {
+    color: var(--hub);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65em;
+    padding: 0 0.15em;
+  }
+  .gv a { color: var(--node); text-decoration: none; border-bottom: 1px dotted rgba(187, 154, 247, 0.4); }
+  .gv a:hover { color: var(--hub); border-color: var(--hub); }
+  .gv sup a { border: none; }
+
+  /* ============ TLDR PANEL ============ */
+  .gv-tldr {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 3rem;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .gv-tldr-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .gv-tldr-bar .tab { background: var(--bg-elevated); padding: 0.25rem 0.6rem; border-radius: 3px; color: var(--text-body); }
+  .gv-tldr-bar .crumb { color: var(--text-mute); }
+  .gv-tldr p {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--text-body);
+    line-height: 1.65;
+  }
+  .gv-tldr strong { color: var(--text-bright); font-weight: 600; }
+  .gv-tldr code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--bg-elevated);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    color: var(--hub);
+  }
+  .gv-tldr sup a {
+    color: var(--hub);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65em;
+    padding: 0 0.15em;
+  }
+
+  /* ============ PRIMITIVES GRID ============ */
+  .gv-prim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.4rem;
+  }
+  .gv-prim-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .gv-prim-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--accent-color, var(--node));
+  }
+  .gv-prim-card.folder { --accent-color: var(--folder); }
+  .gv-prim-card.wiki { --accent-color: var(--node); }
+  .gv-prim-card.back { --accent-color: var(--hub); }
+  .gv-prim-card.unlinked { --accent-color: var(--text-dim); }
+  .gv-prim-card.moc { --accent-color: var(--hub); }
+  .gv-prim-card.tag { --accent-color: var(--tag); }
+
+  .gv-prim-vis {
+    height: 96px;
+    margin: -0.4rem -0.4rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.18);
+    border-radius: 6px;
+  }
+  .gv-prim-vis svg { display: block; }
+  .gv-prim-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-color, var(--node));
+    margin-bottom: 0.4rem;
+  }
+  .gv-prim-q {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    color: var(--text-bright);
+    font-size: 1.1rem;
+    margin: 0 0 0.9rem;
+    line-height: 1.3;
+  }
+  .gv-prim-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .gv-prim-row dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    padding-top: 0.15rem;
+  }
+  .gv-prim-row dd { margin: 0; color: var(--text-body); }
+  .gv-prim-row dd.up { color: var(--good); }
+  .gv-prim-row dd.down { color: var(--warning); }
+
+  /* ============ MOC VS FOLDER ============ */
+  .gv-vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin-bottom: 2.5rem;
+  }
+  .gv-vs-side {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.6rem;
+  }
+  .gv-vs-side h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 0.4rem;
+  }
+  .gv-vs-side .label {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.5rem;
+    color: var(--text-bright);
+    margin: 0 0 0.4rem;
+    font-weight: 500;
+  }
+  .gv-vs-side .sub {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    margin: 0 0 1.2rem;
+  }
+  .gv-vs-vis {
+    background: var(--bg-deep);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  .gv-vs-vis svg { display: block; width: 100%; height: auto; }
+  .gv-vs-trait {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.92rem;
+    color: var(--text-body);
+  }
+  .gv-vs-trait .x { color: var(--warning); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+  .gv-vs-trait .check { color: var(--good); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
+  .gv-vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    color: var(--text-mute);
+  }
+
+  .gv-pullquote {
+    border-left: 3px solid var(--hub);
+    padding: 0.4rem 0 0.4rem 1.4rem;
+    margin: 2rem 0 0;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    line-height: 1.45;
+    color: var(--text-bright);
+  }
+  .gv-pullquote .by {
+    display: block;
+    margin-top: 0.7rem;
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ============ PHASES ============ */
+  .gv-phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .gv-phase {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.1rem;
+    position: relative;
+  }
+  .gv-phase-vis {
+    height: 130px;
+    background: var(--bg-deep);
+    border-radius: 6px;
+    margin: -0.3rem -0.3rem 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .gv-phase-vis svg { display: block; max-height: 100%; max-width: 100%; }
+  .gv-phase-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--hub);
+    margin-bottom: 0.2rem;
+  }
+  .gv-phase-name {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.15rem;
+    color: var(--text-bright);
+    margin: 0 0 0.4rem;
+    font-weight: 500;
+  }
+  .gv-phase-range {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-mute);
+    margin-bottom: 0.7rem;
+  }
+  .gv-phase-rule {
+    font-size: 0.88rem;
+    color: var(--text-body);
+  }
+  .gv-phase-rule strong { color: var(--text-bright); }
+  .gv-phase-rule code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-elevated);
+    color: var(--node);
+    padding: 0.05em 0.35em;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+  .gv-phase sup a { color: var(--hub); font-family: 'JetBrains Mono', monospace; font-size: 0.65em; }
+
+  /* ============ SCAFFOLDS ============ */
+  .gv-scaffolds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+  .gv-scaffold {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.4rem;
+  }
+  .gv-scaffold-letters {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--hub);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+  }
+  .gv-scaffold-name {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.15rem;
+    color: var(--text-bright);
+    margin: 0 0 0.2rem;
+    font-weight: 500;
+  }
+  .gv-scaffold-by {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+  }
+  .gv-scaffold-folders {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.8rem;
+  }
+  .gv-scaffold-folders span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--bg-deep);
+    color: var(--folder);
+    border: 1px solid var(--line);
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+  }
+  .gv-scaffold-best {
+    font-size: 0.88rem;
+    color: var(--text-body);
+    margin: 0 0 0.6rem;
+  }
+  .gv-scaffold-warn {
+    font-size: 0.82rem;
+    color: var(--warning);
+    margin: 0;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line-soft);
+  }
+  .gv-scaffold-warn::before { content: '⚠ '; }
+  .gv-scaffold sup a { color: var(--hub); font-family: 'JetBrains Mono', monospace; font-size: 0.65em; }
+
+  /* ============ BACKLINK PANE ============ */
+  .gv-back {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.8rem;
+  }
+  .gv-back-side h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 0.3rem;
+  }
+  .gv-back-side .label {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.3rem;
+    color: var(--text-bright);
+    margin: 0 0 0.9rem;
+    font-weight: 500;
+  }
+  .gv-back-vis {
+    background: var(--bg-deep);
+    border-radius: 6px;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+  }
+  .gv-back-vis svg { display: block; }
+  .gv-back p { margin: 0 0 0.6rem; font-size: 0.92rem; color: var(--text-body); }
+  .gv-back .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-mute);
+  }
+  .gv-back sup a { color: var(--hub); font-family: 'JetBrains Mono', monospace; font-size: 0.7em; }
+  .gv-back code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-elevated);
+    color: var(--node);
+    padding: 0.05em 0.35em;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+
+  /* ============ MOC VS TAG ============ */
+  .gv-mt {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+  .gv-mt-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.6rem;
+  }
+  .gv-mt-card.moc { border-left: 3px solid var(--hub); }
+  .gv-mt-card.tag { border-left: 3px solid var(--tag); }
+  .gv-mt-card .symbol {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .gv-mt-card.tag .symbol { color: var(--tag); }
+  .gv-mt-card.moc .symbol { color: var(--hub); }
+  .gv-mt-card h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.4rem;
+    color: var(--text-bright);
+    margin: 0 0 0.7rem;
+    font-weight: 500;
+  }
+  .gv-mt-card p { margin: 0 0 0.7rem; font-size: 0.96rem; }
+  .gv-mt-card .quote {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    color: var(--text-dim);
+    border-left: 2px solid var(--line);
+    padding-left: 0.9rem;
+    margin-top: 1rem;
+    font-size: 0.92rem;
+  }
+  .gv-mt-card sup a { color: var(--hub); font-family: 'JetBrains Mono', monospace; font-size: 0.7em; }
+
+  /* ============ TRAPS ============ */
+  .gv-traps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  .gv-trap {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    position: relative;
+  }
+  .gv-trap-node {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--warning) 0%, rgba(247, 118, 142, 0.2) 60%, transparent 70%);
+    border: 2px solid var(--warning);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .gv-trap-node::after {
+    content: '✕';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--bg-deep);
+  }
+  .gv-trap-body { min-width: 0; }
+  .gv-trap-title {
+    font-family: 'Fraunces', Georgia, serif;
+    color: var(--text-bright);
+    font-size: 1.04rem;
+    line-height: 1.3;
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+  .gv-trap-fix {
+    font-size: 0.88rem;
+    color: var(--text-body);
+    margin: 0;
+  }
+  .gv-trap-fix::before {
+    content: '→ ';
+    color: var(--good);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .gv-trap sup a { color: var(--hub); font-family: 'JetBrains Mono', monospace; font-size: 0.7em; }
+
+  /* ============ NEXT MOVES PATH ============ */
+  .gv-path {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: step;
+    position: relative;
+  }
+  .gv-path-step {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--line-soft);
+    position: relative;
+  }
+  .gv-path-step:last-child { border-bottom: none; }
+  .gv-path-marker {
+    position: relative;
+    height: 100%;
+    min-height: 60px;
+  }
+  .gv-path-marker .node {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--hub) 0%, rgba(125, 207, 255, 0.25) 60%, transparent 70%);
+    border: 2px solid var(--hub);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--bg-deep);
+    position: relative;
+    z-index: 2;
+  }
+  .gv-path-marker .node::before {
+    content: counter(step);
+  }
+  .gv-path-step:not(:last-child) .gv-path-marker::after {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 50px;
+    bottom: -1.2rem;
+    width: 1px;
+    background: var(--line);
+    z-index: 1;
+  }
+  .gv-path-when {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+  .gv-path-when.never { color: var(--warning); }
+  .gv-path-body p {
+    margin: 0;
+    color: var(--text-body);
+    font-size: 1rem;
+  }
+  .gv-path-body strong { color: var(--text-bright); }
+  .gv-path-body code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-elevated);
+    color: var(--node);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+
+  /* ============ SOURCES PERIMETER ============ */
+  .gv-sources {
+    background: linear-gradient(180deg, transparent, rgba(125, 207, 255, 0.04));
+    border-top: 1px solid var(--line);
+    padding-top: 5rem;
+    margin-top: 3rem;
+  }
+  .gv-src-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.7rem;
+  }
+  .gv-src {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 0.7rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid var(--line);
+    transition: border-color 0.15s;
+  }
+  .gv-src:hover { border-color: var(--hub); }
+  .gv-src-n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--hub);
+    padding-top: 0.1rem;
+  }
+  .gv-src-body { min-width: 0; }
+  .gv-src-fav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+  }
+  .gv-src-fav img {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .gv-src-fav .domain {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .gv-src-claim {
+    font-size: 0.82rem;
+    color: var(--text-body);
+    line-height: 1.4;
+    margin: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+  .gv-src-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-top: 0.4rem;
+  }
+  .gv-src-type.official { color: var(--good); }
+  .gv-src-type.forum { color: var(--tag); }
+  .gv-src-type.news { color: var(--accent); }
+
+  /* ============ SIBLINGS ============ */
+  .gv-sib-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .gv-sib {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.2rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid var(--line);
+  }
+  .gv-sib:hover { border-color: var(--hub); }
+  .gv-sib .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hub);
+    background: rgba(125, 207, 255, 0.08);
+    border: 1px solid rgba(125, 207, 255, 0.25);
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 0.7rem;
+  }
+  .gv-sib .chip.expedition { color: var(--accent); background: rgba(224, 175, 104, 0.08); border-color: rgba(224, 175, 104, 0.3); }
+  .gv-sib h5 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.1rem;
+    color: var(--text-bright);
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  .gv-sib p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  /* ============ FOOTER ============ */
+  .gv-foot {
+    text-align: center;
+    padding: 3rem 2rem 4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .gv-foot .glyph { font-size: 1.6rem; color: var(--node); margin-bottom: 0.6rem; }
+
+  /* Subtle pulse for hubs */
+  @keyframes hubPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px var(--hub-glow)); }
+    50% { filter: drop-shadow(0 0 18px var(--hub-glow)); }
+  }
+  .pulse { animation: hubPulse 4s ease-in-out infinite; }
+
+  @media (max-width: 800px) {
+    .gv-vs { grid-template-columns: 1fr; }
+    .gv-vs-divider { display: none; }
+    .gv-back { grid-template-columns: 1fr; }
+    .gv-mt { grid-template-columns: 1fr; }
+    .gv-hero-overlay { left: 1.2rem; right: 1.2rem; max-width: none; }
+    .gv-hero-legend { display: none; }
+    .gv-section { padding: 3rem 1.2rem; }
+  }
+</style>
+
+<div class="gv">
+
+  <!-- =========================================================
+       HERO — full graph view
+       ========================================================= -->
+  <section class="gv-hero">
+    <svg class="hero-canvas" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="hubGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#7dcfff" stop-opacity="0.95"/>
+          <stop offset="0.5" stop-color="#7dcfff" stop-opacity="0.45"/>
+          <stop offset="1" stop-color="#7dcfff" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="noteGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#bb9af7" stop-opacity="0.9"/>
+          <stop offset="0.6" stop-color="#bb9af7" stop-opacity="0.3"/>
+          <stop offset="1" stop-color="#bb9af7" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="tagGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#f7768e" stop-opacity="0.85"/>
+          <stop offset="1" stop-color="#f7768e" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="orphGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#565a73" stop-opacity="0.8"/>
+          <stop offset="1" stop-color="#565a73" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="folderGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#ff9e64" stop-opacity="0.8"/>
+          <stop offset="1" stop-color="#ff9e64" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Edges (drawn first so they sit behind nodes) -->
+      <g stroke="#3b3f5e" stroke-width="1.1" fill="none" opacity="0.85">
+        <!-- MOC-PKM hub (480, 360) spokes -->
+        <path d="M 480 360 Q 360 280 270 260"/>
+        <path d="M 480 360 Q 380 360 320 380"/>
+        <path d="M 480 360 Q 380 440 320 480"/>
+        <path d="M 480 360 Q 460 250 430 180"/>
+        <path d="M 480 360 Q 550 240 580 180"/>
+        <path d="M 480 360 Q 590 320 670 290"/>
+        <path d="M 480 360 Q 600 410 690 430"/>
+        <path d="M 480 360 Q 510 460 530 540"/>
+        <path d="M 480 360 Q 440 470 420 560"/>
+
+        <!-- MOC-Workflow hub (1140, 380) spokes -->
+        <path d="M 1140 380 Q 1240 280 1320 240"/>
+        <path d="M 1140 380 Q 1280 350 1370 340"/>
+        <path d="M 1140 380 Q 1270 410 1360 430"/>
+        <path d="M 1140 380 Q 1230 470 1290 530"/>
+        <path d="M 1140 380 Q 1140 280 1120 200"/>
+        <path d="M 1140 380 Q 1060 280 1010 220"/>
+        <path d="M 1140 380 Q 1050 360 970 350"/>
+        <path d="M 1140 380 Q 1090 470 1060 540"/>
+
+        <!-- MOC-Sources hub (820, 640) spokes -->
+        <path d="M 820 640 Q 720 720 650 780"/>
+        <path d="M 820 640 Q 800 760 800 830"/>
+        <path d="M 820 640 Q 920 720 1000 770"/>
+        <path d="M 820 640 Q 730 620 660 600"/>
+        <path d="M 820 640 Q 900 620 980 600"/>
+        <path d="M 820 640 Q 780 550 760 470"/>
+        <path d="M 820 640 Q 870 540 900 470"/>
+
+        <!-- Inter-MOC connections (the network bridges) -->
+        <path d="M 480 360 Q 800 200 1140 380" stroke="#7dcfff" stroke-opacity="0.5" stroke-width="1.6"/>
+        <path d="M 480 360 Q 650 500 820 640" stroke="#7dcfff" stroke-opacity="0.5" stroke-width="1.6"/>
+        <path d="M 1140 380 Q 980 510 820 640" stroke="#7dcfff" stroke-opacity="0.5" stroke-width="1.6"/>
+
+        <!-- Cross links between satellite notes -->
+        <path d="M 270 260 Q 320 220 430 180"/>
+        <path d="M 670 290 Q 700 240 580 180"/>
+        <path d="M 670 290 Q 800 280 1010 220"/>
+        <path d="M 690 430 Q 800 460 970 350"/>
+        <path d="M 530 540 Q 670 580 760 470"/>
+        <path d="M 1060 540 Q 940 600 900 470"/>
+
+        <!-- Dashed = unlinked mentions (ghost edges) -->
+        <path d="M 270 260 Q 240 180 320 100" stroke-dasharray="3 4" opacity="0.55"/>
+        <path d="M 1370 340 Q 1450 290 1500 220" stroke-dasharray="3 4" opacity="0.55"/>
+        <path d="M 800 830 Q 900 880 1020 870" stroke-dasharray="3 4" opacity="0.55"/>
+
+        <!-- Orphans (floating, mostly disconnected) -->
+        <path d="M 220 700 Q 260 670 300 660" stroke-dasharray="2 5" opacity="0.4"/>
+      </g>
+
+      <!-- Folder rectangles (subtle, corner-shelved) -->
+      <g opacity="0.7">
+        <rect x="60" y="80" width="120" height="16" rx="3" fill="#ff9e64" fill-opacity="0.12" stroke="#ff9e64" stroke-opacity="0.4"/>
+        <text x="120" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ff9e64" letter-spacing="1">DAILY/</text>
+        <rect x="60" y="106" width="120" height="16" rx="3" fill="#ff9e64" fill-opacity="0.12" stroke="#ff9e64" stroke-opacity="0.4"/>
+        <text x="120" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ff9e64" letter-spacing="1">TEMPLATES/</text>
+        <rect x="60" y="132" width="120" height="16" rx="3" fill="#ff9e64" fill-opacity="0.12" stroke="#ff9e64" stroke-opacity="0.4"/>
+        <text x="120" y="144" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ff9e64" letter-spacing="1">ATTACHMENTS/</text>
+      </g>
+
+      <!-- Tag markers floating near edges -->
+      <g font-family="JetBrains Mono, monospace" font-size="11" fill="#f7768e" opacity="0.85">
+        <text x="1420" y="80">#draft</text>
+        <text x="1500" y="120">#book</text>
+        <text x="1450" y="780">#person</text>
+        <text x="120" y="740">#needs-link</text>
+      </g>
+
+      <!-- Satellite notes (small purple dots) -->
+      <g>
+        <!-- Around MOC-PKM -->
+        <circle cx="270" cy="260" r="6" fill="#bb9af7"/>
+        <circle cx="320" cy="380" r="6" fill="#bb9af7"/>
+        <circle cx="320" cy="480" r="6" fill="#bb9af7"/>
+        <circle cx="430" cy="180" r="6" fill="#bb9af7"/>
+        <circle cx="580" cy="180" r="6" fill="#bb9af7"/>
+        <circle cx="670" cy="290" r="6" fill="#bb9af7"/>
+        <circle cx="690" cy="430" r="6" fill="#bb9af7"/>
+        <circle cx="530" cy="540" r="6" fill="#bb9af7"/>
+        <circle cx="420" cy="560" r="6" fill="#bb9af7"/>
+        <!-- Around MOC-Workflow -->
+        <circle cx="1320" cy="240" r="6" fill="#bb9af7"/>
+        <circle cx="1370" cy="340" r="6" fill="#bb9af7"/>
+        <circle cx="1360" cy="430" r="6" fill="#bb9af7"/>
+        <circle cx="1290" cy="530" r="6" fill="#bb9af7"/>
+        <circle cx="1120" cy="200" r="6" fill="#bb9af7"/>
+        <circle cx="1010" cy="220" r="6" fill="#bb9af7"/>
+        <circle cx="970" cy="350" r="6" fill="#bb9af7"/>
+        <circle cx="1060" cy="540" r="6" fill="#bb9af7"/>
+        <!-- Around MOC-Sources -->
+        <circle cx="650" cy="780" r="6" fill="#bb9af7"/>
+        <circle cx="800" cy="830" r="6" fill="#bb9af7"/>
+        <circle cx="1000" cy="770" r="6" fill="#bb9af7"/>
+        <circle cx="660" cy="600" r="6" fill="#bb9af7"/>
+        <circle cx="980" cy="600" r="6" fill="#bb9af7"/>
+        <circle cx="760" cy="470" r="6" fill="#bb9af7"/>
+        <circle cx="900" cy="470" r="6" fill="#bb9af7"/>
+
+        <!-- Orphans (gray, faint glow) -->
+        <circle cx="220" cy="700" r="5" fill="url(#orphGlow)"/>
+        <circle cx="220" cy="700" r="3.5" fill="#565a73"/>
+        <circle cx="180" cy="600" r="3.5" fill="#565a73"/>
+        <circle cx="140" cy="650" r="3.5" fill="#565a73"/>
+        <circle cx="1500" cy="700" r="3.5" fill="#565a73"/>
+        <circle cx="1540" cy="660" r="3.5" fill="#565a73"/>
+        <circle cx="1450" cy="630" r="3.5" fill="#565a73"/>
+
+        <!-- Unlinked mention targets (lighter, with dashed ghost edges to them) -->
+        <circle cx="320" cy="100" r="5" fill="url(#noteGlow)"/>
+        <circle cx="320" cy="100" r="3" fill="#bb9af7" fill-opacity="0.6"/>
+        <circle cx="1500" cy="220" r="5" fill="url(#noteGlow)"/>
+        <circle cx="1500" cy="220" r="3" fill="#bb9af7" fill-opacity="0.6"/>
+        <circle cx="1020" cy="870" r="5" fill="url(#noteGlow)"/>
+        <circle cx="1020" cy="870" r="3" fill="#bb9af7" fill-opacity="0.6"/>
+      </g>
+
+      <!-- MOC hubs (large, glowing) -->
+      <g class="pulse">
+        <circle cx="480" cy="360" r="48" fill="url(#hubGlow)"/>
+        <circle cx="480" cy="360" r="18" fill="#7dcfff"/>
+        <circle cx="480" cy="360" r="10" fill="#1a1b26"/>
+      </g>
+      <g class="pulse" style="animation-delay: -1.3s">
+        <circle cx="1140" cy="380" r="48" fill="url(#hubGlow)"/>
+        <circle cx="1140" cy="380" r="18" fill="#7dcfff"/>
+        <circle cx="1140" cy="380" r="10" fill="#1a1b26"/>
+      </g>
+      <g class="pulse" style="animation-delay: -2.6s">
+        <circle cx="820" cy="640" r="48" fill="url(#hubGlow)"/>
+        <circle cx="820" cy="640" r="18" fill="#7dcfff"/>
+        <circle cx="820" cy="640" r="10" fill="#1a1b26"/>
+      </g>
+
+      <!-- MOC labels -->
+      <g font-family="JetBrains Mono, monospace" font-size="13" fill="#c0caf5" font-weight="500">
+        <text x="480" y="425" text-anchor="middle">MOC · PKM</text>
+        <text x="1140" y="445" text-anchor="middle">MOC · Workflow</text>
+        <text x="820" y="705" text-anchor="middle">MOC · Sources</text>
+      </g>
+    </svg>
+
+    <div class="gv-hero-overlay">
+      <span class="gv-kicker">linking · note structure · backlinks · MOCs vs folders</span>
+      <h1>The vault as <em>a graph</em>, not a tree.</h1>
+      <p class="gv-hero-sub">Folders answer "where does this live?" Links answer "what does this relate to?" This chapter is the second question — the adoption-ordered path from folder-thinking to link-thinking, one wikilink at a time.</p>
+      <div class="gv-hero-meta">
+        <span><span class="dot"></span>survey · 6 min read</span>
+        <span>17 citations</span>
+        <span>5 primitives</span>
+        <span>5 phases</span>
+      </div>
+    </div>
+
+    <div class="gv-hero-legend">
+      <div><span class="swatch" style="background: #7dcfff"></span> MOC hub</div>
+      <div><span class="swatch" style="background: #bb9af7"></span> note</div>
+      <div><span class="swatch" style="background: #ff9e64"></span> folder (container)</div>
+      <div><span class="swatch" style="background: #f7768e"></span> tag (signal)</div>
+      <div><span class="swatch" style="background: #565a73"></span> orphan</div>
+      <div style="margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px solid var(--line)">
+        <span style="display:inline-block; width:24px; height:1px; background:#3b3f5e; vertical-align: middle; margin-right: 8px"></span>linked
+      </div>
+      <div>
+        <span style="display:inline-block; width:24px; border-top:1px dashed #3b3f5e; vertical-align: middle; margin-right: 8px"></span>unlinked
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       TL;DR
+       ========================================================= -->
+  <section class="gv-section">
+    <div class="gv-tldr">
+      <div class="gv-tldr-bar">
+        <span class="tab">tldr.md</span>
+        <span class="crumb">· selected node · decision</span>
+      </div>
+      <p>
+        Use <strong>shallow folders</strong> for true containers (<code>Daily/</code>, <code>Templates/</code>, <code>Attachments/</code>), <strong>wikilinks on every new note</strong> as the default organising act, and <strong>3–5 MOCs</strong> as your navigation layer once you cross ~50–100 notes. Treat folders as <em>"where it lives"</em>, links as <em>"what it relates to"</em>, tags as <em>"what state it's in."</em> If you're forcing a perfect folder tree, you're spending energy that should be going into links.
+        <sup><a href="https://obsidian.rocks/how-i-use-folders-in-obsidian/">[1]</a></sup>
+        <sup><a href="https://stephango.com/vault">[2]</a></sup>
+        <sup><a href="https://blog.shuvangkardas.com/obsidian-note-organization/">[3]</a></sup>
+      </p>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       THE FIVE PRIMITIVES
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">01 · the five primitives</h2>
+    <h3 class="gv-h3">Six mechanisms. Each one answers a different question.</h3>
+    <p class="gv-lede">Mixing them up is the #1 source of vault paralysis. Read each as a graph fragment — what it links to, what it costs.</p>
+
+    <div class="gv-prim-grid">
+
+      <!-- FOLDER -->
+      <div class="gv-prim-card folder">
+        <div class="gv-prim-vis">
+          <svg width="140" height="80" viewBox="0 0 140 80">
+            <rect x="20" y="20" width="100" height="50" rx="4" fill="none" stroke="#ff9e64" stroke-width="2"/>
+            <path d="M 20 30 L 50 30 L 56 20 L 120 20" fill="none" stroke="#ff9e64" stroke-width="2"/>
+            <circle cx="55" cy="50" r="5" fill="#bb9af7"/>
+            <circle cx="85" cy="50" r="5" fill="#bb9af7"/>
+            <text x="70" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ff9e64" letter-spacing="1">HEALTH/</text>
+          </svg>
+        </div>
+        <div class="gv-prim-name">Folder</div>
+        <p class="gv-prim-q">"Where does this live?"</p>
+        <dl class="gv-prim-row">
+          <dt>up</dt><dd class="up">True container, file-system clarity</dd>
+          <dt>down</dt><dd class="down">A note can only be in one — forces a choice</dd>
+        </dl>
+      </div>
+
+      <!-- WIKILINK -->
+      <div class="gv-prim-card wiki">
+        <div class="gv-prim-vis">
+          <svg width="140" height="80" viewBox="0 0 140 80">
+            <line x1="30" y1="40" x2="110" y2="40" stroke="#bb9af7" stroke-width="1.5"/>
+            <circle cx="30" cy="40" r="11" fill="#bb9af7"/>
+            <circle cx="110" cy="40" r="11" fill="#bb9af7"/>
+            <text x="70" y="28" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#bb9af7">[[ link ]]</text>
+          </svg>
+        </div>
+        <div class="gv-prim-name">Wikilink <code style="background:none;color:inherit;font-family:JetBrains Mono,monospace">[[ ]]</code></div>
+        <p class="gv-prim-q">"What does this relate to?"</p>
+        <dl class="gv-prim-row">
+          <dt>up</dt><dd class="up">No exclusive ownership, builds graph</dd>
+          <dt>down</dt><dd class="down">Discipline required to add at write-time</dd>
+        </dl>
+      </div>
+
+      <!-- BACKLINK -->
+      <div class="gv-prim-card back">
+        <div class="gv-prim-vis">
+          <svg width="140" height="80" viewBox="0 0 140 80">
+            <defs>
+              <marker id="arrL" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M 0 0 L 8 4 L 0 8 Z" fill="#7dcfff"/>
+              </marker>
+            </defs>
+            <path d="M 110 40 Q 70 18 30 40" fill="none" stroke="#7dcfff" stroke-width="1.5" marker-end="url(#arrL)"/>
+            <circle cx="30" cy="40" r="11" fill="#7dcfff"/>
+            <circle cx="110" cy="40" r="11" fill="#bb9af7"/>
+            <text x="70" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7dcfff">auto-discovered</text>
+          </svg>
+        </div>
+        <div class="gv-prim-name">Backlink</div>
+        <p class="gv-prim-q">"Who pointed at me?"</p>
+        <dl class="gv-prim-row">
+          <dt>up</dt><dd class="up">Free — Obsidian generates from outgoing links</dd>
+          <dt>down</dt><dd class="down">Only as good as your wikilink habit</dd>
+        </dl>
+      </div>
+
+      <!-- UNLINKED MENTION -->
+      <div class="gv-prim-card unlinked">
+        <div class="gv-prim-vis">
+          <svg width="140" height="80" viewBox="0 0 140 80">
+            <path d="M 30 40 L 110 40" fill="none" stroke="#7e8aa8" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <circle cx="30" cy="40" r="11" fill="#bb9af7"/>
+            <circle cx="110" cy="40" r="11" fill="#bb9af7" fill-opacity="0.5" stroke="#7e8aa8" stroke-dasharray="2 2"/>
+            <text x="70" y="26" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7e8aa8">"Acme" (plain text)</text>
+          </svg>
+        </div>
+        <div class="gv-prim-name">Unlinked mention</div>
+        <p class="gv-prim-q">"Who said my name without linking?"</p>
+        <dl class="gv-prim-row">
+          <dt>up</dt><dd class="up">Surfaces hidden connections retroactively</dd>
+          <dt>down</dt><dd class="down">Noisy if titles are too generic</dd>
+        </dl>
+      </div>
+
+      <!-- MOC -->
+      <div class="gv-prim-card moc">
+        <div class="gv-prim-vis">
+          <svg width="140" height="80" viewBox="0 0 140 80">
+            <line x1="70" y1="40" x2="20" y2="20" stroke="#7dcfff" stroke-width="1.3"/>
+            <line x1="70" y1="40" x2="120" y2="20" stroke="#7dcfff" stroke-width="1.3"/>
+            <line x1="70" y1="40" x2="20" y2="60" stroke="#7dcfff" stroke-width="1.3"/>
+            <line x1="70" y1="40" x2="120" y2="60" stroke="#7dcfff" stroke-width="1.3"/>
+            <line x1="70" y1="40" x2="40" y2="70" stroke="#7dcfff" stroke-width="1.3"/>
+            <line x1="70" y1="40" x2="100" y2="70" stroke="#7dcfff" stroke-width="1.3"/>
+            <circle cx="20" cy="20" r="5" fill="#bb9af7"/>
+            <circle cx="120" cy="20" r="5" fill="#bb9af7"/>
+            <circle cx="20" cy="60" r="5" fill="#bb9af7"/>
+            <circle cx="120" cy="60" r="5" fill="#bb9af7"/>
+            <circle cx="40" cy="70" r="5" fill="#bb9af7"/>
+            <circle cx="100" cy="70" r="5" fill="#bb9af7"/>
+            <circle cx="70" cy="40" r="14" fill="#7dcfff"/>
+            <circle cx="70" cy="40" r="6" fill="#1a1b26"/>
+          </svg>
+        </div>
+        <div class="gv-prim-name">MOC · Map of Content</div>
+        <p class="gv-prim-q">"What's the index for this topic?"</p>
+        <dl class="gv-prim-row">
+          <dt>up</dt><dd class="up">Note can live in many MOCs; supports context</dd>
+          <dt>down</dt><dd class="down">Manual to maintain</dd>
+        </dl>
+      </div>
+
+      <!-- TAG -->
+      <div class="gv-prim-card tag">
+        <div class="gv-prim-vis">
+          <svg width="140" height="80" viewBox="0 0 140 80">
+            <circle cx="70" cy="42" r="14" fill="#bb9af7"/>
+            <rect x="30" y="12" width="38" height="16" rx="3" fill="#f7768e" fill-opacity="0.15" stroke="#f7768e"/>
+            <text x="49" y="23" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#f7768e">#draft</text>
+            <rect x="80" y="12" width="40" height="16" rx="3" fill="#f7768e" fill-opacity="0.15" stroke="#f7768e"/>
+            <text x="100" y="23" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#f7768e">#person</text>
+            <line x1="49" y1="28" x2="65" y2="36" stroke="#f7768e" stroke-width="1" stroke-dasharray="2 2"/>
+            <line x1="100" y1="28" x2="78" y2="36" stroke="#f7768e" stroke-width="1" stroke-dasharray="2 2"/>
+          </svg>
+        </div>
+        <div class="gv-prim-name">Tag <code style="background:none;color:inherit;font-family:JetBrains Mono,monospace">#status</code></div>
+        <p class="gv-prim-q">"What state is this in?"</p>
+        <dl class="gv-prim-row">
+          <dt>up</dt><dd class="up">Live queries via search / Bases / Dataview</dd>
+          <dt>down</dt><dd class="down">Bad at "aboutness" — degrades to clutter</dd>
+        </dl>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================
+       MOC VS FOLDER
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">02 · why "MOC vs folder" is the wrong fight</h2>
+    <h3 class="gv-h3">It's really about <em style="color: var(--hub); font-style: italic">exclusivity</em>.</h3>
+    <p class="gv-lede">A note about "AI in healthcare" belongs in <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--node); padding: 0.1em 0.4em; border-radius: 3px">Health/</code>, <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--node); padding: 0.1em 0.4em; border-radius: 3px">AI/</code>, and <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--node); padding: 0.1em 0.4em; border-radius: 3px">Work/</code> simultaneously — but the file system only lets you pick one.</p>
+
+    <div class="gv-vs">
+      <div class="gv-vs-side">
+        <h4>Strict file tree</h4>
+        <div class="label">Folders are exclusive.</div>
+        <p class="sub">The note has one parent. To reorganise, you move the file.</p>
+        <div class="gv-vs-vis">
+          <svg viewBox="0 0 360 220" width="100%">
+            <g font-family="JetBrains Mono, monospace" font-size="11" fill="#ff9e64">
+              <rect x="20" y="20" width="80" height="22" rx="3" fill="none" stroke="#ff9e64"/>
+              <text x="60" y="35" text-anchor="middle">Health/</text>
+              <rect x="140" y="20" width="80" height="22" rx="3" fill="none" stroke="#ff9e64"/>
+              <text x="180" y="35" text-anchor="middle">AI/</text>
+              <rect x="260" y="20" width="80" height="22" rx="3" fill="none" stroke="#ff9e64"/>
+              <text x="300" y="35" text-anchor="middle">Work/</text>
+            </g>
+            <!-- One forced parent → only one solid line -->
+            <line x1="60" y1="42" x2="60" y2="110" stroke="#ff9e64" stroke-width="2"/>
+            <!-- Other folders have dashed (forbidden) -->
+            <line x1="180" y1="42" x2="180" y2="100" stroke="#565a73" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="180" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#f7768e">✕ can't</text>
+            <line x1="300" y1="42" x2="300" y2="100" stroke="#565a73" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="300" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#f7768e">✕ can't</text>
+            <!-- The note -->
+            <circle cx="60" cy="135" r="14" fill="#bb9af7"/>
+            <text x="60" y="170" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#c0caf5">AI in healthcare</text>
+            <text x="60" y="187" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7e8aa8">→ one home only</text>
+          </svg>
+        </div>
+        <div class="gv-vs-trait"><span class="x">✕</span> note belongs to several areas in reality</div>
+        <div class="gv-vs-trait"><span class="x">✕</span> reorg = moving files, breaking paths</div>
+        <div class="gv-vs-trait"><span class="x">✕</span> deep nesting punishes future you</div>
+      </div>
+
+      <div class="gv-vs-divider">vs</div>
+
+      <div class="gv-vs-side">
+        <h4>MOC web</h4>
+        <div class="label">MOCs overlap freely.</div>
+        <p class="sub">The note has one location, and any number of indexers.</p>
+        <div class="gv-vs-vis">
+          <svg viewBox="0 0 360 220" width="100%">
+            <!-- Three MOCs as cyan hubs -->
+            <g>
+              <circle cx="60" cy="40" r="22" fill="#7dcfff" fill-opacity="0.15" stroke="#7dcfff"/>
+              <circle cx="60" cy="40" r="10" fill="#7dcfff"/>
+              <text x="60" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7dcfff">MOC-Health</text>
+            </g>
+            <g>
+              <circle cx="180" cy="40" r="22" fill="#7dcfff" fill-opacity="0.15" stroke="#7dcfff"/>
+              <circle cx="180" cy="40" r="10" fill="#7dcfff"/>
+              <text x="180" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7dcfff">MOC-AI</text>
+            </g>
+            <g>
+              <circle cx="300" cy="40" r="22" fill="#7dcfff" fill-opacity="0.15" stroke="#7dcfff"/>
+              <circle cx="300" cy="40" r="10" fill="#7dcfff"/>
+              <text x="300" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7dcfff">MOC-Acme</text>
+            </g>
+            <!-- All three link to the same note -->
+            <path d="M 60 62 Q 90 100 175 130" fill="none" stroke="#7dcfff" stroke-width="1.5"/>
+            <path d="M 180 62 Q 180 100 180 130" fill="none" stroke="#7dcfff" stroke-width="1.5"/>
+            <path d="M 300 62 Q 270 100 185 130" fill="none" stroke="#7dcfff" stroke-width="1.5"/>
+            <!-- The single note -->
+            <circle cx="180" cy="142" r="14" fill="#bb9af7"/>
+            <text x="180" y="172" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#c0caf5">AI in healthcare</text>
+            <text x="180" y="189" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9ece6a">→ indexed by all three</text>
+          </svg>
+        </div>
+        <div class="gv-vs-trait"><span class="check">✓</span> same note referenced from many maps</div>
+        <div class="gv-vs-trait"><span class="check">✓</span> reorg = edit a list, no files move</div>
+        <div class="gv-vs-trait"><span class="check">✓</span> MOC can carry order + commentary</div>
+      </div>
+    </div>
+
+    <p style="color: var(--text-body); font-size: 1rem;">
+      Tim Miller (<a href="https://obsidian.rocks/how-i-use-folders-in-obsidian/">Obsidian Rocks</a>) puts the limit bluntly. But "no folders ever" is also wrong — even Nick Milo, whose <a href="https://www.linkingyourthinking.com/">Linking Your Thinking (LYT)</a> framework popularised MOCs, now ships the <strong>ACE</strong> scaffold: three top-level folders covering knowledge, time, and projects <sup><a href="https://forum.obsidian.md/t/the-ultimate-folder-system-a-quixotic-journey-to-ace/63483">[8]</a></sup>. And <a href="https://stephango.com/vault">Steph Ango</a> — Obsidian's CEO — runs ~4 folders and navigates via Quick Switcher and backlinks, not the file tree.
+    </p>
+
+    <blockquote class="gv-pullquote">
+      "A file either is in a folder, or it isn't. You can't have a file that exists in two folders at the same time… As your project grows and changes, folders have a hard time keeping up."
+      <span class="by">— Tim Miller · <a href="https://obsidian.rocks/how-i-use-folders-in-obsidian/">Obsidian Rocks</a> <sup><a href="https://obsidian.rocks/how-i-use-folders-in-obsidian/">[1]</a></sup></span>
+    </blockquote>
+  </section>
+
+  <!-- =========================================================
+       PHASES — the graph evolving
+       ========================================================= -->
+  <section class="gv-section wide">
+    <h2 class="gv-h2">03 · adoption-ordered roadmap</h2>
+    <h3 class="gv-h3">Capture → link → emerge. Not design → capture.</h3>
+    <p class="gv-lede">The single biggest mistake is trying to design the perfect structure before you have notes in it. Each card below is the same vault at a different scale — watch the graph thicken.</p>
+
+    <div class="gv-phases">
+
+      <!-- PHASE 1 -->
+      <div class="gv-phase">
+        <div class="gv-phase-vis">
+          <svg viewBox="0 0 260 130" width="100%" height="100%">
+            <!-- Sparse, mostly disconnected -->
+            <line x1="50" y1="40" x2="100" y2="65" stroke="#3b3f5e" stroke-width="1"/>
+            <line x1="150" y1="40" x2="180" y2="80" stroke="#3b3f5e" stroke-width="1"/>
+            <line x1="100" y1="65" x2="120" y2="100" stroke="#3b3f5e" stroke-width="1"/>
+            <circle cx="50" cy="40" r="5" fill="#bb9af7"/>
+            <circle cx="100" cy="65" r="5" fill="#bb9af7"/>
+            <circle cx="150" cy="40" r="5" fill="#bb9af7"/>
+            <circle cx="180" cy="80" r="5" fill="#bb9af7"/>
+            <circle cx="120" cy="100" r="5" fill="#bb9af7"/>
+            <circle cx="210" cy="30" r="4" fill="#565a73"/>
+            <circle cx="30" cy="100" r="4" fill="#565a73"/>
+            <circle cx="220" cy="115" r="4" fill="#565a73"/>
+          </svg>
+        </div>
+        <div class="gv-phase-num">PHASE 1 · CAPTURE</div>
+        <h4 class="gv-phase-name">One link rule.</h4>
+        <div class="gv-phase-range">0 — 30 notes</div>
+        <p class="gv-phase-rule">Add at least one <code>[[wikilink]]</code> to every note before you close it. Don't build folders. Don't build MOCs. Don't perfect tags. <sup><a href="https://www.makeuseof.com/orphan-notes-in-obsidian-linking-system/">[10]</a></sup></p>
+      </div>
+
+      <!-- PHASE 2 -->
+      <div class="gv-phase">
+        <div class="gv-phase-vis">
+          <svg viewBox="0 0 260 130" width="100%" height="100%">
+            <!-- Clusters forming, orphans visible -->
+            <g stroke="#3b3f5e" stroke-width="1" fill="none">
+              <line x1="40" y1="40" x2="80" y2="55"/>
+              <line x1="80" y1="55" x2="60" y2="90"/>
+              <line x1="80" y1="55" x2="120" y2="40"/>
+              <line x1="120" y1="40" x2="160" y2="60"/>
+              <line x1="160" y1="60" x2="200" y2="50"/>
+              <line x1="160" y1="60" x2="180" y2="100"/>
+              <line x1="40" y1="40" x2="60" y2="90"/>
+              <line x1="120" y1="40" x2="110" y2="90"/>
+              <line x1="110" y1="90" x2="160" y2="60"/>
+            </g>
+            <g fill="#bb9af7">
+              <circle cx="40" cy="40" r="5"/><circle cx="80" cy="55" r="5"/>
+              <circle cx="60" cy="90" r="5"/><circle cx="120" cy="40" r="5"/>
+              <circle cx="160" cy="60" r="5"/><circle cx="200" cy="50" r="5"/>
+              <circle cx="180" cy="100" r="5"/><circle cx="110" cy="90" r="5"/>
+            </g>
+            <!-- Orphans loud now -->
+            <g fill="#565a73">
+              <circle cx="220" cy="20" r="4"/>
+              <circle cx="230" cy="110" r="4"/>
+              <circle cx="20" cy="115" r="4"/>
+              <circle cx="245" cy="65" r="4"/>
+            </g>
+          </svg>
+        </div>
+        <div class="gv-phase-num">PHASE 2 · NOTICE</div>
+        <h4 class="gv-phase-name">The squeeze point.</h4>
+        <div class="gv-phase-range">30 — 100 notes</div>
+        <p class="gv-phase-rule">Around 50–100 notes the orphans become impossible to ignore. <strong>That's the signal</strong> — not earlier. <a href="https://www.aidanhelfant.com/5-simple-levels-to-supercharging-your-learning-with-mocs-in-obsidian/">Aidan Helfant</a>'s rule: <em>"think and link first."</em> <sup><a href="https://www.aidanhelfant.com/5-simple-levels-to-supercharging-your-learning-with-mocs-in-obsidian/">[12]</a></sup></p>
+      </div>
+
+      <!-- PHASE 3 -->
+      <div class="gv-phase">
+        <div class="gv-phase-vis">
+          <svg viewBox="0 0 260 130" width="100%" height="100%">
+            <!-- Three hub clusters -->
+            <g stroke="#3b3f5e" stroke-width="1" fill="none">
+              <line x1="60" y1="40" x2="30" y2="20"/>
+              <line x1="60" y1="40" x2="90" y2="25"/>
+              <line x1="60" y1="40" x2="30" y2="65"/>
+              <line x1="60" y1="40" x2="85" y2="60"/>
+              <line x1="180" y1="40" x2="155" y2="20"/>
+              <line x1="180" y1="40" x2="215" y2="25"/>
+              <line x1="180" y1="40" x2="155" y2="65"/>
+              <line x1="180" y1="40" x2="215" y2="60"/>
+              <line x1="120" y1="100" x2="85" y2="115"/>
+              <line x1="120" y1="100" x2="155" y2="115"/>
+              <line x1="120" y1="100" x2="100" y2="80"/>
+              <line x1="120" y1="100" x2="140" y2="80"/>
+              <line x1="60" y1="40" x2="120" y2="100" stroke="#7dcfff" stroke-opacity="0.5"/>
+              <line x1="180" y1="40" x2="120" y2="100" stroke="#7dcfff" stroke-opacity="0.5"/>
+            </g>
+            <g fill="#bb9af7">
+              <circle cx="30" cy="20" r="4"/><circle cx="90" cy="25" r="4"/>
+              <circle cx="30" cy="65" r="4"/><circle cx="85" cy="60" r="4"/>
+              <circle cx="155" cy="20" r="4"/><circle cx="215" cy="25" r="4"/>
+              <circle cx="155" cy="65" r="4"/><circle cx="215" cy="60" r="4"/>
+              <circle cx="85" cy="115" r="4"/><circle cx="155" cy="115" r="4"/>
+              <circle cx="100" cy="80" r="4"/><circle cx="140" cy="80" r="4"/>
+            </g>
+            <!-- 3 hubs -->
+            <circle cx="60" cy="40" r="9" fill="#7dcfff"/>
+            <circle cx="180" cy="40" r="9" fill="#7dcfff"/>
+            <circle cx="120" cy="100" r="9" fill="#7dcfff"/>
+          </svg>
+        </div>
+        <div class="gv-phase-num">PHASE 3 · MOCs</div>
+        <h4 class="gv-phase-name">Exactly three.</h4>
+        <div class="gv-phase-range">100+ notes</div>
+        <p class="gv-phase-rule">Create three MOCs covering your broadest active topics — not perfect, just three. <strong>Dump → Lump → Jump</strong>: paste, group, leave it, come back. <sup><a href="https://www.aidanhelfant.com/5-simple-levels-to-supercharging-your-learning-with-mocs-in-obsidian/">[12]</a></sup></p>
+      </div>
+
+      <!-- PHASE 4 -->
+      <div class="gv-phase">
+        <div class="gv-phase-vis">
+          <svg viewBox="0 0 260 130" width="100%" height="100%">
+            <!-- Centered note with backlinks (arrows) coming in -->
+            <defs>
+              <marker id="phaseArr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 Z" fill="#7dcfff"/>
+              </marker>
+              <marker id="phaseArrG" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 Z" fill="#7e8aa8"/>
+              </marker>
+            </defs>
+            <!-- Solid (linked) -->
+            <path d="M 40 30 Q 90 50 125 65" fill="none" stroke="#7dcfff" stroke-width="1.3" marker-end="url(#phaseArr)"/>
+            <path d="M 230 25 Q 180 50 135 60" fill="none" stroke="#7dcfff" stroke-width="1.3" marker-end="url(#phaseArr)"/>
+            <path d="M 40 100 Q 90 80 125 70" fill="none" stroke="#7dcfff" stroke-width="1.3" marker-end="url(#phaseArr)"/>
+            <!-- Dashed (unlinked mentions) -->
+            <path d="M 230 105 Q 180 80 140 70" fill="none" stroke="#7e8aa8" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#phaseArrG)"/>
+            <path d="M 130 15 Q 130 40 130 60" fill="none" stroke="#7e8aa8" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#phaseArrG)"/>
+            <!-- Source notes -->
+            <circle cx="40" cy="30" r="4" fill="#bb9af7"/>
+            <circle cx="230" cy="25" r="4" fill="#bb9af7"/>
+            <circle cx="40" cy="100" r="4" fill="#bb9af7"/>
+            <circle cx="230" cy="105" r="4" fill="#bb9af7" fill-opacity="0.4"/>
+            <circle cx="130" cy="15" r="4" fill="#bb9af7" fill-opacity="0.4"/>
+            <!-- Central node -->
+            <circle cx="130" cy="65" r="11" fill="#7dcfff"/>
+            <text x="130" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#c0caf5">Backlinks pane</text>
+          </svg>
+        </div>
+        <div class="gv-phase-num">PHASE 4 · NAVIGATE</div>
+        <h4 class="gv-phase-name">Backlinks become the UI.</h4>
+        <div class="gv-phase-range">Pane open, file tree closed</div>
+        <p class="gv-phase-rule">Open the Backlinks pane (right sidebar). <strong>Linked Mentions</strong> = who pointed at me. <strong>Unlinked Mentions</strong> = who said my name in plain text. Navigation = Quick Switcher + backlinks + MOCs. <sup><a href="https://obsidian.md/help/plugins/backlinks">[4]</a></sup> <sup><a href="https://learningaloud.com/blog/2024/02/25/a-use-for-obsidian-unlinked-mentions/">[13]</a></sup></p>
+      </div>
+
+      <!-- PHASE 5 -->
+      <div class="gv-phase">
+        <div class="gv-phase-vis">
+          <svg viewBox="0 0 260 130" width="100%" height="100%">
+            <!-- Top scaffold folders -->
+            <g font-family="JetBrains Mono, monospace" font-size="9" fill="#ff9e64">
+              <rect x="25" y="15" width="60" height="18" rx="3" fill="#ff9e64" fill-opacity="0.1" stroke="#ff9e64"/>
+              <text x="55" y="27" text-anchor="middle">Atlas/</text>
+              <rect x="100" y="15" width="60" height="18" rx="3" fill="#ff9e64" fill-opacity="0.1" stroke="#ff9e64"/>
+              <text x="130" y="27" text-anchor="middle">Calendar/</text>
+              <rect x="175" y="15" width="60" height="18" rx="3" fill="#ff9e64" fill-opacity="0.1" stroke="#ff9e64"/>
+              <text x="205" y="27" text-anchor="middle">Efforts/</text>
+            </g>
+            <!-- Then graph -->
+            <g stroke="#3b3f5e" stroke-width="1" fill="none">
+              <line x1="55" y1="33" x2="80" y2="75"/>
+              <line x1="130" y1="33" x2="130" y2="75"/>
+              <line x1="205" y1="33" x2="180" y2="75"/>
+              <line x1="80" y1="75" x2="130" y2="75"/>
+              <line x1="130" y1="75" x2="180" y2="75"/>
+              <line x1="80" y1="75" x2="100" y2="105"/>
+              <line x1="180" y1="75" x2="160" y2="105"/>
+              <line x1="100" y1="105" x2="160" y2="105"/>
+            </g>
+            <g fill="#bb9af7">
+              <circle cx="100" cy="105" r="4"/>
+              <circle cx="160" cy="105" r="4"/>
+            </g>
+            <circle cx="80" cy="75" r="8" fill="#7dcfff"/>
+            <circle cx="130" cy="75" r="8" fill="#7dcfff"/>
+            <circle cx="180" cy="75" r="8" fill="#7dcfff"/>
+          </svg>
+        </div>
+        <div class="gv-phase-num">PHASE 5 · SCAFFOLD?</div>
+        <h4 class="gv-phase-name">Only if you need one.</h4>
+        <div class="gv-phase-range">≥ 5 MOCs in use</div>
+        <p class="gv-phase-rule">Once you have several MOCs, decide if you want a top-level container system. Three mainstream choices. Or stick with minimal. <sup><a href="https://forum.obsidian.md/t/the-ultimate-folder-system-a-quixotic-journey-to-ace/63483">[8]</a></sup></p>
+      </div>
+
+    </div>
+
+    <!-- Scaffolds detail -->
+    <div class="gv-scaffolds">
+      <div class="gv-scaffold">
+        <div class="gv-scaffold-letters">A · C · E</div>
+        <h5 class="gv-scaffold-name">Atlas, Calendar, Efforts</h5>
+        <div class="gv-scaffold-by">by Nick Milo · <a href="https://www.linkingyourthinking.com/">LYT</a></div>
+        <div class="gv-scaffold-folders"><span>Atlas/</span><span>Calendar/</span><span>Efforts/</span></div>
+        <p class="gv-scaffold-best"><strong>Best for:</strong> PKM-heavy users already thinking in MOCs. <sup><a href="https://forum.obsidian.md/t/the-ultimate-folder-system-a-quixotic-journey-to-ace/63483">[8]</a></sup></p>
+        <p class="gv-scaffold-warn">Requires you to internalise the STIR model.</p>
+      </div>
+
+      <div class="gv-scaffold">
+        <div class="gv-scaffold-letters">P · A · R · A</div>
+        <h5 class="gv-scaffold-name">Projects, Areas, Resources, Archives</h5>
+        <div class="gv-scaffold-by">by Tiago Forte</div>
+        <div class="gv-scaffold-folders"><span>Projects/</span><span>Areas/</span><span>Resources/</span><span>Archives/</span></div>
+        <p class="gv-scaffold-best"><strong>Best for:</strong> Cross-tool productivity (Drive, Notion too). <sup><a href="https://aimaker.substack.com/p/para-method-tiago-forte-claude-code-obsidian-ai-productivity-os">[14]</a></sup></p>
+        <p class="gv-scaffold-warn">Fights Obsidian's graph nature — note in one bucket only. <sup><a href="https://brandonkboswell.com/blog/Should-you-use-PARA-in-Obsidian">[15]</a></sup></p>
+      </div>
+
+      <div class="gv-scaffold">
+        <div class="gv-scaffold-letters">M I N</div>
+        <h5 class="gv-scaffold-name">Minimal · 3–4 admin folders</h5>
+        <div class="gv-scaffold-by">by <a href="https://stephango.com/vault">Steph Ango</a></div>
+        <div class="gv-scaffold-folders"><span>References/</span><span>Clippings/</span><span>Daily/</span><span>Templates/</span></div>
+        <p class="gv-scaffold-best"><strong>Best for:</strong> Default for most users; lets links do the work. <sup><a href="https://stephango.com/vault">[2]</a></sup></p>
+        <p class="gv-scaffold-warn">Requires link discipline.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       BACKLINKS VS UNLINKED
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">04 · backlinks vs unlinked mentions</h2>
+    <h3 class="gv-h3">Two arrows. One you wrote. One Obsidian found.</h3>
+    <p class="gv-lede">Linked mentions are the bracket pair you committed to. Unlinked mentions are free — every prose occurrence of the note's title, surfaced by the same pane.</p>
+
+    <div class="gv-back">
+      <div class="gv-back-side">
+        <h4>LINKED MENTION</h4>
+        <div class="label">Solid edge. You declared it.</div>
+        <div class="gv-back-vis">
+          <svg viewBox="0 0 260 110" width="260" height="110">
+            <defs>
+              <marker id="backArr1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M 0 0 L 8 4 L 0 8 Z" fill="#7dcfff"/>
+              </marker>
+            </defs>
+            <path d="M 50 55 L 195 55" stroke="#7dcfff" stroke-width="2" marker-end="url(#backArr1)"/>
+            <circle cx="50" cy="55" r="14" fill="#bb9af7"/>
+            <text x="50" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#c0caf5">Daily — May 30</text>
+            <circle cx="210" cy="55" r="14" fill="#7dcfff"/>
+            <text x="210" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#c0caf5">Acme Migration</text>
+            <text x="125" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7dcfff">[[Acme Migration]]</text>
+          </svg>
+        </div>
+        <p><strong style="color: var(--text-bright)">Trigger:</strong> you wrote <code>[[Acme Migration]]</code> in the source note.</p>
+        <p><strong style="color: var(--text-bright)">Cost:</strong> one bracket pair at write-time.</p>
+        <p><strong style="color: var(--text-bright)">Use for:</strong> explicit, claimed connections.</p>
+      </div>
+
+      <div class="gv-back-side">
+        <h4>UNLINKED MENTION</h4>
+        <div class="label">Ghost edge. Obsidian discovered it.</div>
+        <div class="gv-back-vis">
+          <svg viewBox="0 0 260 110" width="260" height="110">
+            <path d="M 50 55 L 195 55" stroke="#7e8aa8" stroke-width="2" stroke-dasharray="4 4"/>
+            <circle cx="50" cy="55" r="14" fill="#bb9af7"/>
+            <text x="50" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#c0caf5">Daily — May 30</text>
+            <circle cx="210" cy="55" r="14" fill="#7dcfff" fill-opacity="0.4" stroke="#7dcfff" stroke-dasharray="2 2"/>
+            <text x="210" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#c0caf5">Acme Migration</text>
+            <text x="125" y="40" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="11" fill="#7e8aa8">"…the Acme migration broke staging…"</text>
+          </svg>
+        </div>
+        <p><strong style="color: var(--text-bright)">Trigger:</strong> the literal title appears anywhere as text.</p>
+        <p><strong style="color: var(--text-bright)">Cost:</strong> zero — Obsidian indexes it. <sup><a href="https://obsidian.md/help/plugins/backlinks">[4]</a></sup></p>
+        <p><strong style="color: var(--text-bright)">Use for:</strong> catching connections you didn't notice; retroactive linking. <sup><a href="https://learningaloud.com/blog/2024/02/25/a-use-for-obsidian-unlinked-mentions/">[13]</a></sup></p>
+      </div>
+    </div>
+
+    <blockquote class="gv-pullquote" style="border-color: var(--node)">
+      Create a stub note titled with your project's recurring proper noun — say <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--node); padding: 0.1em 0.4em; border-radius: 3px">Acme Migration</code>. Every future daily note that mentions it in prose appears in the stub's Unlinked Mentions pane automatically. <strong style="color: var(--text-bright); font-style: normal">No link discipline required.</strong>
+      <span class="by">— pragmatic trick · <a href="https://learningaloud.com/blog/2024/02/25/a-use-for-obsidian-unlinked-mentions/">Learning Aloud</a> <sup><a href="https://learningaloud.com/blog/2024/02/25/a-use-for-obsidian-unlinked-mentions/">[13]</a></sup></span>
+    </blockquote>
+  </section>
+
+  <!-- =========================================================
+       MOC VS TAG
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">05 · MOCs vs tags</h2>
+    <h3 class="gv-h3">Complementary. Not competing.</h3>
+
+    <div class="gv-mt">
+      <div class="gv-mt-card moc">
+        <div class="symbol">◉</div>
+        <h4>MOC = curated index page</h4>
+        <p>A hand-curated, ordered, contextual index page you write commentary on. Frozen state until you update it. Supports description, ordering, formatting that tags can't.</p>
+        <p class="quote">
+          "MoC lets you describe the document you are linking to, and also order and format the documents in a manner appropriate to the work at hand." <sup><a href="https://forum.obsidian.md/t/whats-the-advantage-of-using-moc-vs-just-tagging/34721">[6]</a></sup>
+        </p>
+      </div>
+      <div class="gv-mt-card tag">
+        <div class="symbol">#</div>
+        <h4>Tag = signal for live query</h4>
+        <p>A signal consumed by search / Bases / Dataview for live queries. Best for status (<code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--tag); padding: 0.1em 0.4em; border-radius: 3px">#draft</code>, <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--tag); padding: 0.1em 0.4em; border-radius: 3px">#needs-link</code>), type (<code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--tag); padding: 0.1em 0.4em; border-radius: 3px">#person</code>, <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--tag); padding: 0.1em 0.4em; border-radius: 3px">#book</code>), or filter dimensions.</p>
+        <p class="quote">
+          "Tags are signals, not structure — use them for discovery, not primary organization." <sup><a href="https://blog.shuvangkardas.com/obsidian-note-organization/">[3]</a></sup>
+        </p>
+      </div>
+    </div>
+
+    <p style="margin-top: 2rem; color: var(--text-body);">
+      User Orand's pragmatic ladder: <em>"start with tags and only add a MOC once a particular tag area becomes large enough to warrant the extra effort."</em> <sup><a href="https://forum.obsidian.md/t/whats-the-advantage-of-using-moc-vs-just-tagging/34721">[6]</a></sup>
+    </p>
+  </section>
+
+  <!-- =========================================================
+       COMMON TRAPS
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">06 · common traps</h2>
+    <h3 class="gv-h3">Seven warning nodes. And the green edge out.</h3>
+
+    <div class="gv-traps">
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">Designing the folder tree before writing notes.</h5>
+          <p class="gv-trap-fix">Capture first. Folders, if any, emerge from real friction. <sup><a href="https://www.aidanhelfant.com/5-simple-levels-to-supercharging-your-learning-with-mocs-in-obsidian/">[12]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">Nesting folders 4+ levels deep.</h5>
+          <p class="gv-trap-fix">Cap at 2–3 levels; let MOCs handle the rest. <sup><a href="https://blog.shuvangkardas.com/obsidian-note-organization/">[3]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">200 unused topic tags from week 1.</h5>
+          <p class="gv-trap-fix">Delete them. Tags = status/type, not topic. <sup><a href="https://blog.shuvangkardas.com/obsidian-note-organization/">[3]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">Building MOCs before you have ≥10 notes on the topic.</h5>
+          <p class="gv-trap-fix">Premature — you're guessing the shape. Wait for the squeeze. <sup><a href="https://www.aidanhelfant.com/5-simple-levels-to-supercharging-your-learning-with-mocs-in-obsidian/">[12]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">Optimising for a pretty graph view.</h5>
+          <p class="gv-trap-fix">"Creating for the graph" leads to forced links between unrelated ideas. The graph is a side-effect, not the goal. <sup><a href="https://www.xda-developers.com/used-obsidian-wrong-for-year-folder-setup-that-finally-clicks/">[16]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">Circular backlinks created just to look connected.</h5>
+          <p class="gv-trap-fix">Avoid Note A ↔ Note B loops with no semantic relationship. <sup><a href="https://www.digestafrica.com/vintage-brief/mastering-backlinks-in-obsidian-a-comprehensive-guide-1767647451">[17]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="gv-trap">
+        <div class="gv-trap-node"></div>
+        <div class="gv-trap-body">
+          <h5 class="gv-trap-title">Hundreds of orphan notes from rapid capture.</h5>
+          <p class="gv-trap-fix">Use <code style="font-family:JetBrains Mono,monospace; background: var(--bg-elevated); color: var(--node); padding: 0.05em 0.3em; border-radius: 3px">#needs-link</code> weekly batch; prune via Graph View. <sup><a href="https://www.makeuseof.com/orphan-notes-in-obsidian-linking-system/">[10]</a></sup></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       NEXT MOVES PATH
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">07 · concrete next moves</h2>
+    <h3 class="gv-h3">A directed path. Five steps.</h3>
+
+    <ol class="gv-path">
+      <li class="gv-path-step">
+        <div class="gv-path-marker"><div class="node"></div></div>
+        <div class="gv-path-body">
+          <div class="gv-path-when">today</div>
+          <p>Enable the rule — <strong>every new note gets <code>[[at least one link]]</code></strong> before close. Add <code>#needs-link</code> for emergencies.</p>
+        </div>
+      </li>
+      <li class="gv-path-step">
+        <div class="gv-path-marker"><div class="node"></div></div>
+        <div class="gv-path-body">
+          <div class="gv-path-when">this week</div>
+          <p>Open the Backlinks pane and read its <strong>Unlinked Mentions</strong> section for your three most-active notes. Promote any worth keeping.</p>
+        </div>
+      </li>
+      <li class="gv-path-step">
+        <div class="gv-path-marker"><div class="node"></div></div>
+        <div class="gv-path-body">
+          <div class="gv-path-when">at ~100 notes</div>
+          <p>Create exactly three MOCs (<code>MOC-&lt;broad topic&gt;</code>) and <strong>Dump → Lump → Jump</strong> every orphan into one.</p>
+        </div>
+      </li>
+      <li class="gv-path-step">
+        <div class="gv-path-marker"><div class="node"></div></div>
+        <div class="gv-path-body">
+          <div class="gv-path-when">only when you have ≥5 MOCs</div>
+          <p>Decide on a scaffold (<strong>ACE</strong> / <strong>minimal</strong> / <strong>PARA</strong>). Until then, don't.</p>
+        </div>
+      </li>
+      <li class="gv-path-step">
+        <div class="gv-path-marker"><div class="node"></div></div>
+        <div class="gv-path-body">
+          <div class="gv-path-when never">never</div>
+          <p>Re-org folders to chase a perfect tree. <strong>Refactor links instead.</strong></p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- =========================================================
+       SOURCES — the perimeter
+       ========================================================= -->
+  <section class="gv-section gv-sources wide">
+    <h2 class="gv-h2">graph perimeter · 17 sources</h2>
+    <h3 class="gv-h3">External nodes. The edges of the vault.</h3>
+    <p class="gv-lede">Every claim above carries the citation marker next to it. Listed here in order — origin domain, what they said, what kind of source.</p>
+
+    <div class="gv-src-grid">
+      <a class="gv-src" href="https://obsidian.rocks/how-i-use-folders-in-obsidian/">
+        <div class="gv-src-n">[1]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=obsidian.rocks&sz=64" alt=""><span class="domain">obsidian.rocks</span></div>
+          <p class="gv-src-claim">Tim Miller uses only 5 workflow folders (FINVA); folders force exclusivity that hurts as projects grow.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://stephango.com/vault">
+        <div class="gv-src-n">[2]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=stephango.com&sz=64" alt=""><span class="domain">stephango.com</span></div>
+          <p class="gv-src-claim">Steph Ango (Obsidian CEO) uses ~4 folders and organises via links/properties; navigates with Quick Switcher and backlinks, not the file tree.</p>
+          <div class="gv-src-type official">official</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://blog.shuvangkardas.com/obsidian-note-organization/">
+        <div class="gv-src-n">[3]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=shuvangkardas.com&sz=64" alt=""><span class="domain">blog.shuvangkardas.com</span></div>
+          <p class="gv-src-claim">Recommends shallow folders + MOCs + tags as discovery signals; tags are signals not structure; cap nesting at ~2 levels.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://obsidian.md/help/plugins/backlinks">
+        <div class="gv-src-n">[4]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=64" alt=""><span class="domain">obsidian.md/help</span></div>
+          <p class="gv-src-claim">Official Obsidian docs define backlinks pane with Linked Mentions and Unlinked Mentions sections.</p>
+          <div class="gv-src-type official">official</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://medium.com/@o.anh/obsidian-between-mocs-and-tags-8fdf7086716c">
+        <div class="gv-src-n">[5]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=64" alt=""><span class="domain">medium.com</span></div>
+          <p class="gv-src-claim">MOCs and tags are complementary not opposing; MOCs are curated frozen state, tags qualify status.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://forum.obsidian.md/t/whats-the-advantage-of-using-moc-vs-just-tagging/34721">
+        <div class="gv-src-n">[6]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=64" alt=""><span class="domain">forum.obsidian.md</span></div>
+          <p class="gv-src-claim">Forum: MOCs allow description/ordering/formatting that tags can't; start with tags and add MOCs only when needed.</p>
+          <div class="gv-src-type forum">forum</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://www.dsebastien.net/2022-05-15-maps-of-content/">
+        <div class="gv-src-n">[7]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=dsebastien.net&sz=64" alt=""><span class="domain">dsebastien.net</span></div>
+          <p class="gv-src-claim">MOCs are "folders on steroids" — a note can appear in multiple MOCs unlike folders; types: basic, contextual, meta-MOCs.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://forum.obsidian.md/t/the-ultimate-folder-system-a-quixotic-journey-to-ace/63483">
+        <div class="gv-src-n">[8]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=64" alt=""><span class="domain">forum.obsidian.md</span></div>
+          <p class="gv-src-claim">Nick Milo's ACE = Atlas, Calendar, Efforts; based on STIR model; Relatedness via links not folders.</p>
+          <div class="gv-src-type forum">forum</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://www.linkingyourthinking.com/">
+        <div class="gv-src-n">[9]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=linkingyourthinking.com&sz=64" alt=""><span class="domain">linkingyourthinking.com</span></div>
+          <p class="gv-src-claim">LYT framework popularised MOCs; community testimony of going folderless then re-adding a few folders for balance.</p>
+          <div class="gv-src-type official">official</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://www.makeuseof.com/orphan-notes-in-obsidian-linking-system/">
+        <div class="gv-src-n">[10]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=makeuseof.com&sz=64" alt=""><span class="domain">makeuseof.com</span></div>
+          <p class="gv-src-claim">System for linking 500 orphan notes: one wikilink per new note, Graph View to spot orphans, 3 MOCs to absorb them.</p>
+          <div class="gv-src-type news">news</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://obsidian.md/help/link-notes">
+        <div class="gv-src-n">[11]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=64" alt=""><span class="domain">obsidian.md/help</span></div>
+          <p class="gv-src-claim">Official Obsidian: linking notes is the platform's core power; non-existent links appear muted, acting as future seeds.</p>
+          <div class="gv-src-type official">official</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://www.aidanhelfant.com/5-simple-levels-to-supercharging-your-learning-with-mocs-in-obsidian/">
+        <div class="gv-src-n">[12]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=aidanhelfant.com&sz=64" alt=""><span class="domain">aidanhelfant.com</span></div>
+          <p class="gv-src-claim">Five-level MOC adoption progression: isolated notes → linking → first MOC → MOC-of-MOCs → Home note. "Think and link first."</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://learningaloud.com/blog/2024/02/25/a-use-for-obsidian-unlinked-mentions/">
+        <div class="gv-src-n">[13]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=learningaloud.com&sz=64" alt=""><span class="domain">learningaloud.com</span></div>
+          <p class="gv-src-claim">Strategic title selection makes unlinked mentions surface free connections; low-maintenance retrieval layer.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://aimaker.substack.com/p/para-method-tiago-forte-claude-code-obsidian-ai-productivity-os">
+        <div class="gv-src-n">[14]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=substack.com&sz=64" alt=""><span class="domain">aimaker.substack.com</span></div>
+          <p class="gv-src-claim">PARA (Projects, Areas, Resources, Archives) — Tiago Forte's cross-tool method, frequently used as an Obsidian scaffold.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://brandonkboswell.com/blog/Should-you-use-PARA-in-Obsidian">
+        <div class="gv-src-n">[15]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=brandonkboswell.com&sz=64" alt=""><span class="domain">brandonkboswell.com</span></div>
+          <p class="gv-src-claim">Recommends against strict PARA in Obsidian; folder exclusivity fights graph structure; selective borrowing only.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://www.xda-developers.com/used-obsidian-wrong-for-year-folder-setup-that-finally-clicks/">
+        <div class="gv-src-n">[16]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=64" alt=""><span class="domain">xda-developers.com</span></div>
+          <p class="gv-src-claim">Cautions against "creating for the graph" — writing pointless notes or forcing links just to see new dots.</p>
+          <div class="gv-src-type news">news</div>
+        </div>
+      </a>
+      <a class="gv-src" href="https://www.digestafrica.com/vintage-brief/mastering-backlinks-in-obsidian-a-comprehensive-guide-1767647451">
+        <div class="gv-src-n">[17]</div>
+        <div class="gv-src-body">
+          <div class="gv-src-fav"><img src="https://www.google.com/s2/favicons?domain=digestafrica.com&sz=64" alt=""><span class="domain">digestafrica.com</span></div>
+          <p class="gv-src-claim">Avoid circular backlinks (A→B, B→A with no semantic value) as a backlink antipattern.</p>
+          <div class="gv-src-type">vendor-blog</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       SIBLINGS — adjacent in the expedition
+       ========================================================= -->
+  <section class="gv-section">
+    <h2 class="gv-h2">adjacent in the expedition</h2>
+    <h3 class="gv-h3">Four other chapters. Same vault, different layer.</h3>
+
+    <div class="gv-sib-grid">
+      <a class="gv-sib" href="../../properties-tagging-for-queryable-notes/">
+        <span class="chip">survey · chapter</span>
+        <h5>Properties & tagging for queryable notes</h5>
+        <p>How to add structured metadata so Bases and Dataview can query — when to reach for a property, when a tag, and the naming rules that keep both useful.</p>
+      </a>
+      <a class="gv-sib" href="../../bases-turn-existing-reference-notes-into-live-views/">
+        <span class="chip expedition">expedition · chapter</span>
+        <h5>Bases: turn existing reference notes into live views</h5>
+        <p>Convert a folder or tag of reference notes into a live, editable, filterable view using Obsidian Bases — the <code style="font-family:JetBrains Mono,monospace; font-size: 0.85em">.base</code> format, ready-to-steal recipes, formula language.</p>
+      </a>
+      <a class="gv-sib" href="../../low-friction-capture-daily-note-habits/">
+        <span class="chip">survey · chapter</span>
+        <h5>Low-friction capture & daily-note habits</h5>
+        <p>The smallest viable Obsidian capture loop — five-line daily template, one hotkey, one mobile pathway, one weekly pass — over four weeks.</p>
+      </a>
+      <a class="gv-sib" href="../../core-community-plugins-keyboard-driven-navigation/">
+        <span class="chip">survey · chapter</span>
+        <h5>Core + community plugins & keyboard-driven navigation</h5>
+        <p>Which core plugins to enable, the tight community-plugin starter pack, and the hotkey patterns that turn a beginner into a keyboard-first intermediate.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       FOOTER
+       ========================================================= -->
+  <div class="gv-foot">
+    <div class="glyph">◉ — — ◉</div>
+    <div>graph view · 17 sources · 5 phases · 6 primitives</div>
+    <div style="margin-top: 0.4rem; opacity: 0.7"><a href="../" style="color: var(--text-dim); border: none; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px;">↩ Read as default</a></div>
+  </div>
+
+</div>

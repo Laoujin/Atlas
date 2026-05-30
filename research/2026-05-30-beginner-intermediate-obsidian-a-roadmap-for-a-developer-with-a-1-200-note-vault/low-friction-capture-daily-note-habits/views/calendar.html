@@ -1,0 +1,1352 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "Low-friction capture & daily-note habits in Obsidian — Calendar"
+---
+
+<style>
+  :root {
+    --paper:       #faf6ec;
+    --paper-warm:  #f1ead5;
+    --card:        #ffffff;
+    --ink:         #1a1830;
+    --ink-muted:   #6b6580;
+    --grid:        #2a2742;
+    --grid-light:  #d3cbb3;
+    --obsidian:    #7c3aed;
+    --obsidian-deep: #4f1f9c;
+    --highlight:   #fbe168;
+    --red-x:       #d34a4a;
+    --sage:        #5a9b6e;
+    --tape:        #e9d68a;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@500;700&family=Permanent+Marker&display=swap');
+
+  .planner {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 31px, rgba(42,39,66,0.04) 31px 32px),
+      var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    padding: 0 0 4rem 0;
+    line-height: 1.5;
+  }
+
+  /* COVER MASTHEAD */
+  .cover {
+    border-bottom: 3px double var(--grid);
+    padding: 3rem clamp(1.25rem, 4vw, 3.5rem) 2rem;
+    position: relative;
+  }
+  .cover-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .planner-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--obsidian-deep);
+    border: 1.5px solid var(--obsidian-deep);
+    padding: 0.3rem 0.7rem;
+    border-radius: 2px;
+  }
+  .date-stamp {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 0.95rem;
+    color: var(--red-x);
+    transform: rotate(-2deg);
+    display: inline-block;
+  }
+  h1.cover-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 5.8vw, 4.6rem);
+    line-height: 0.95;
+    margin: 0 0 1.25rem;
+    color: var(--grid);
+    letter-spacing: -0.02em;
+  }
+  h1.cover-title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--obsidian);
+  }
+  .cover-kicker {
+    font-family: 'Caveat', cursive;
+    font-size: 1.6rem;
+    color: var(--ink-muted);
+    max-width: 60ch;
+    line-height: 1.2;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cover-meta strong {
+    color: var(--grid);
+    font-weight: 700;
+  }
+
+  /* TL;DR strip */
+  .tldr {
+    background: var(--grid);
+    color: var(--paper);
+    padding: 1.5rem clamp(1.25rem, 4vw, 3.5rem);
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem;
+    line-height: 1.45;
+    border-bottom: 1.5px solid var(--obsidian);
+  }
+  .tldr-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    color: var(--highlight);
+    margin-right: 0.6rem;
+  }
+  .tldr a {
+    color: var(--highlight);
+    text-decoration: none;
+    border-bottom: 1.5px dotted var(--highlight);
+  }
+
+  /* THE CALENDAR — centerpiece */
+  .grid-section {
+    padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem) 1.5rem;
+  }
+  .grid-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .grid-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0;
+    color: var(--grid);
+  }
+  .grid-rule {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    color: var(--obsidian-deep);
+  }
+
+  .calendar-shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 0;
+    background: var(--card);
+    border: 2.5px solid var(--grid);
+    box-shadow: 6px 6px 0 var(--grid-light);
+  }
+  .day-header-row {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--grid);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .day-header-row > div {
+    padding: 0.6rem 0.5rem;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+  .day-header-row > div:last-child { border-right: none; }
+  .day-header-row .sun { color: var(--highlight); }
+  .corner {
+    background: var(--grid);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .week {
+    display: contents;
+  }
+  .week-label {
+    background: var(--paper-warm);
+    border-top: 1.5px solid var(--grid);
+    border-right: 1.5px solid var(--grid);
+    padding: 0.9rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .week-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--obsidian-deep);
+  }
+  .week-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .week-goal {
+    font-family: 'Caveat', cursive;
+    font-size: 1.15rem;
+    color: var(--grid);
+    line-height: 1.15;
+    margin-top: 0.25rem;
+  }
+  .week-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1.5px solid var(--grid);
+  }
+  .day {
+    min-height: 110px;
+    padding: 0.55rem 0.6rem;
+    border-right: 1px solid var(--grid-light);
+    position: relative;
+    font-size: 0.78rem;
+    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
+  }
+  .day:last-child { border-right: none; }
+  .day-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.3rem;
+  }
+  .day.weekend {
+    background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(124,58,237,0.05) 6px 7px);
+  }
+  .day.install {
+    background: var(--highlight);
+  }
+  .day.install .day-num { color: var(--grid); font-weight: 700; }
+  .day .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--obsidian);
+    color: var(--paper);
+    padding: 0.15rem 0.35rem;
+    border-radius: 2px;
+    margin-bottom: 0.3rem;
+    align-self: flex-start;
+  }
+  .day .badge.red { background: var(--red-x); }
+  .day .badge.sage { background: var(--sage); }
+  .day .badge.dark { background: var(--grid); }
+  .day .note {
+    font-size: 0.72rem;
+    color: var(--ink);
+  }
+  .day .note .marker {
+    font-family: 'Permanent Marker', cursive;
+    color: var(--red-x);
+    font-size: 0.85rem;
+  }
+  .day .scribble {
+    font-family: 'Caveat', cursive;
+    font-size: 0.95rem;
+    color: var(--obsidian-deep);
+    line-height: 1.05;
+  }
+  .day .stamp {
+    position: absolute;
+    bottom: 0.4rem;
+    right: 0.5rem;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 0.7rem;
+    color: var(--red-x);
+    transform: rotate(-6deg);
+  }
+  .day.review {
+    background: rgba(251, 225, 104, 0.35);
+  }
+  .day.skip {
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  /* TEMPLATE + STACK ROW */
+  .template-stack {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 2rem;
+    padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem);
+  }
+  @media (max-width: 900px) {
+    .template-stack { grid-template-columns: 1fr; }
+    .calendar-shell { grid-template-columns: 1fr; }
+    .day-header-row { display: none; }
+    .week-label { border-right: none; border-bottom: 1px dashed var(--grid); }
+    .week-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .template-card {
+    background: var(--card);
+    border: 1.5px solid var(--grid);
+    box-shadow: 5px 5px 0 var(--obsidian);
+    padding: 0;
+    position: relative;
+    transform: rotate(-0.6deg);
+  }
+  .template-tape {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    background: var(--tape);
+    color: var(--grid);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.3rem 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .template-head {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px dashed var(--grid-light);
+  }
+  .template-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin: 0 0 0.3rem;
+    color: var(--grid);
+  }
+  .template-head p {
+    font-family: 'Caveat', cursive;
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    margin: 0;
+    line-height: 1.2;
+  }
+  .template-body {
+    padding: 1.25rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    background: linear-gradient(180deg, var(--card) 0%, #fcfaf2 100%);
+  }
+  .template-body .h1 { color: var(--obsidian-deep); font-weight: 700; font-size: 1.05rem; }
+  .template-body .h2 { color: var(--grid); font-weight: 700; margin-top: 0.5rem; }
+  .template-body .dash { color: var(--ink-muted); }
+  .template-rules {
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px dashed var(--grid-light);
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+  }
+  .template-rules strong { color: var(--red-x); font-family: 'Permanent Marker', cursive; font-weight: 400; }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .stack-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin: 0 0 0.25rem;
+    color: var(--grid);
+  }
+  .stack-sub {
+    font-family: 'Caveat', cursive;
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+  }
+  .layer {
+    background: var(--card);
+    border: 1.5px solid var(--grid);
+    padding: 0.9rem 1rem;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 0.85rem;
+    align-items: center;
+    position: relative;
+  }
+  .layer-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--obsidian);
+    line-height: 1;
+  }
+  .layer-body strong {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--grid);
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+  .layer-body span {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+  }
+  .layer-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--obsidian-deep);
+    text-align: right;
+    line-height: 1.1;
+  }
+  .layer .cite {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+  }
+  .layer .cite a {
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+  .layer .cite a:hover { color: var(--obsidian); }
+
+  /* PATHWAYS */
+  .pathways {
+    padding: 2rem clamp(1.25rem, 4vw, 3.5rem);
+    background: var(--paper-warm);
+    border-top: 1.5px solid var(--grid);
+    border-bottom: 1.5px solid var(--grid);
+  }
+  .pathways-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .pathways-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0;
+    color: var(--grid);
+  }
+  .pathways-warn {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    color: var(--red-x);
+  }
+  .path-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 720px) { .path-cols { grid-template-columns: 1fr; } }
+  .path-col {
+    background: var(--card);
+    border: 1.5px solid var(--grid);
+    padding: 1.25rem;
+  }
+  .path-col h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 0.75rem;
+    color: var(--obsidian-deep);
+    border-bottom: 1.5px solid var(--grid);
+    padding-bottom: 0.5rem;
+  }
+  .path-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--grid-light);
+    align-items: baseline;
+    font-size: 0.85rem;
+  }
+  .path-row:last-child { border-bottom: none; }
+  .path-row strong { color: var(--grid); font-weight: 600; }
+  .path-row .friction {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--sage);
+  }
+  .path-row .friction.bad { color: var(--red-x); }
+  .path-row .friction.warn { color: #c47a1c; }
+  .path-row .cite { font-size: 0.7rem; color: var(--ink-muted); font-family: 'JetBrains Mono', monospace; }
+  .path-row .cite a { color: var(--ink-muted); text-decoration: none; }
+
+  /* PLUGIN PACK */
+  .plugins {
+    padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem);
+  }
+  .plugins h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0 0 0.3rem;
+    color: var(--grid);
+  }
+  .plugins .sub {
+    font-family: 'Caveat', cursive;
+    font-size: 1.2rem;
+    color: var(--ink-muted);
+    margin-bottom: 1.5rem;
+  }
+  .plugin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+  .plugin {
+    background: var(--card);
+    border: 1.5px solid var(--grid);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .plugin-img {
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    background: var(--grid);
+    border-bottom: 1.5px solid var(--grid);
+  }
+  .plugin-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .plugin-body {
+    padding: 0.85rem 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .plugin-body h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    margin: 0;
+    color: var(--grid);
+  }
+  .plugin-body h3 a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1.5px solid var(--obsidian);
+  }
+  .plugin-body .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    display: flex;
+    gap: 0.6rem;
+  }
+  .plugin-body .stars { color: var(--obsidian-deep); font-weight: 700; }
+  .plugin-body .when {
+    font-family: 'Caveat', cursive;
+    font-size: 1rem;
+    color: var(--ink);
+    margin-top: 0.2rem;
+  }
+  .plugin-body .when strong { color: var(--obsidian-deep); font-weight: 700; }
+
+  /* ANTIPATTERNS */
+  .antis {
+    padding: 2rem clamp(1.25rem, 4vw, 3.5rem);
+    background: var(--grid);
+    color: var(--paper);
+  }
+  .antis h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0 0 1.25rem;
+    color: var(--paper);
+  }
+  .antis h2 em {
+    color: var(--red-x);
+    font-style: normal;
+    text-decoration: line-through;
+    text-decoration-color: var(--red-x);
+  }
+  .anti-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .anti {
+    border: 1.5px solid rgba(255,255,255,0.2);
+    padding: 1rem 1rem 1rem 3rem;
+    position: relative;
+    background: rgba(255,255,255,0.04);
+  }
+  .anti::before {
+    content: "✗";
+    position: absolute;
+    top: 0.55rem;
+    left: 0.85rem;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 1.8rem;
+    color: var(--red-x);
+  }
+  .anti strong {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--highlight);
+    margin-bottom: 0.3rem;
+  }
+  .anti span {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.4;
+  }
+  .anti .cite { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.45); }
+  .anti .cite a { color: rgba(255,255,255,0.45); text-decoration: none; }
+
+  /* SUNDAY REVIEW */
+  .sunday {
+    padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem);
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 2rem;
+  }
+  @media (max-width: 760px) { .sunday { grid-template-columns: 1fr; } }
+  .sunday-icon {
+    background: var(--highlight);
+    border: 2px solid var(--grid);
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 5px 5px 0 var(--grid);
+    align-self: start;
+  }
+  .sunday-icon .ico {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 5rem;
+    line-height: 1;
+    color: var(--grid);
+  }
+  .sunday-icon .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--grid);
+    margin-top: 0.75rem;
+  }
+  .sunday-icon .time {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 1.3rem;
+    color: var(--red-x);
+    margin-top: 0.5rem;
+    transform: rotate(-3deg);
+    display: inline-block;
+  }
+  .sunday-text h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0 0 0.5rem;
+    color: var(--grid);
+  }
+  .sunday-text > p {
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin: 0 0 1rem;
+  }
+  .ritual {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: step;
+  }
+  .ritual li {
+    counter-increment: step;
+    padding: 0.6rem 0 0.6rem 2.5rem;
+    border-bottom: 1px dashed var(--grid-light);
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .ritual li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.55rem;
+    width: 1.7rem;
+    height: 1.7rem;
+    background: var(--obsidian);
+    color: var(--paper);
+    border-radius: 50%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ritual li:last-child { border-bottom: none; }
+  .ritual code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--paper-warm);
+    padding: 0.05rem 0.3rem;
+    font-size: 0.85rem;
+    color: var(--obsidian-deep);
+  }
+  .interstitial {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--paper-warm);
+    border-left: 4px solid var(--obsidian);
+    font-size: 0.85rem;
+  }
+  .interstitial strong {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--obsidian-deep);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  .interstitial code {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--card);
+    padding: 0.5rem 0.7rem;
+    border: 1px dashed var(--grid-light);
+    color: var(--grid);
+    margin-top: 0.5rem;
+  }
+
+  /* SIBLINGS */
+  .siblings {
+    padding: 2rem clamp(1.25rem, 4vw, 3.5rem);
+    background: var(--paper-warm);
+    border-top: 1.5px solid var(--grid);
+  }
+  .siblings h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin: 0 0 1rem;
+    color: var(--grid);
+  }
+  .siblings h2 small {
+    font-family: 'Caveat', cursive;
+    font-weight: 400;
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+    margin-left: 0.5rem;
+  }
+  .sib-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+  .sib {
+    background: var(--card);
+    border: 1.5px solid var(--grid);
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: var(--ink);
+    display: block;
+  }
+  .sib:hover { box-shadow: 3px 3px 0 var(--obsidian); }
+  .sib .ch {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--obsidian-deep);
+    margin-bottom: 0.25rem;
+  }
+  .sib h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0 0 0.35rem;
+    line-height: 1.2;
+  }
+  .sib p { font-size: 0.78rem; color: var(--ink-muted); margin: 0; line-height: 1.35; }
+  .sib.current {
+    background: var(--highlight);
+    border-color: var(--grid);
+  }
+
+  /* SOURCES */
+  .sources {
+    padding: 2rem clamp(1.25rem, 4vw, 3.5rem);
+    border-top: 3px double var(--grid);
+  }
+  .sources h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 1rem;
+  }
+  .src-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.5rem 1.5rem;
+  }
+  .src {
+    display: grid;
+    grid-template-columns: auto 18px 1fr;
+    gap: 0.5rem;
+    align-items: baseline;
+    font-size: 0.78rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px dotted var(--grid-light);
+  }
+  .src .n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--obsidian-deep);
+    font-weight: 700;
+    min-width: 1.5rem;
+  }
+  .src img { width: 16px; height: 16px; display: block; }
+  .src a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .src a:hover { border-bottom-color: var(--obsidian); }
+  .src .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-left: 0.4rem;
+  }
+
+  /* COLOPHON */
+  .colophon {
+    padding: 1.5rem clamp(1.25rem, 4vw, 3.5rem);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    text-align: center;
+    border-top: 1.5px solid var(--grid-light);
+  }
+  .colophon a { color: var(--obsidian-deep); text-decoration: none; }
+
+  /* tiny utility */
+  sup a { color: var(--obsidian-deep); text-decoration: none; font-weight: 700; }
+</style>
+
+<div class="planner">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="cover-row">
+      <span class="planner-label">The Capture Planner · Issue 109</span>
+      <span class="date-stamp">May 30 → Jun 28, 2026</span>
+    </div>
+    <h1 class="cover-title">Four weeks to a <em>daily-note habit</em> that survives a bad week.</h1>
+    <p class="cover-kicker">Build the habit before the system. One template, one hotkey, one mobile pathway, one Sunday pass — added in this order, never together.</p>
+    <div class="cover-meta">
+      <span><strong>survey</strong> · 20 citations · ~9 min read</span>
+      <span><strong>Vault context:</strong> 1,200 notes, dormant templates</span>
+      <span><strong>Skip:</strong> Periodic Notes · Dataview · 14-section templates</span>
+    </div>
+  </header>
+
+  <!-- TL;DR strip -->
+  <div class="tldr">
+    <span class="tldr-label">RULE ZERO</span>
+    <em style="font-style: italic;">"The easier it is to create notes, the less likely you are to lose an important idea."</em> <sup><a href="https://obsidian.rocks/obsidian-quick-capture/">[1]</a></sup> Every plugin and template choice below is judged against that one sentence.
+  </div>
+
+  <!-- THE CALENDAR -->
+  <section class="grid-section">
+    <div class="grid-header">
+      <h2 class="grid-title">The adoption chronogram</h2>
+      <p class="grid-rule">don't move to the next week until the current habit has survived a bad day →</p>
+    </div>
+
+    <div class="calendar-shell">
+      <div class="corner">WK / DAY</div>
+      <div class="day-header-row">
+        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="sun">Sun</div>
+      </div>
+
+      <!-- WEEK 1 -->
+      <div class="week">
+        <div class="week-label">
+          <div class="week-num">01</div>
+          <div class="week-tag">Daily Notes</div>
+          <div class="week-goal">Open today's note every day. Even just one bullet.</div>
+        </div>
+        <div class="week-row">
+          <div class="day install">
+            <div class="day-num">Mon 01</div>
+            <span class="badge dark">INSTALL</span>
+            <div class="note">Core Daily Notes → on. Folder: <code>Daily/</code>. Format: <code>YYYY-MM-DD</code>.<sup><a href="https://obsidian.md/help/plugins/daily-notes">[2]</a></sup></div>
+          </div>
+          <div class="day">
+            <div class="day-num">Tue 02</div>
+            <span class="badge">TEMPLATE</span>
+            <div class="note">Paste the 5-line template (see right →). Nothing else.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Wed 03</div>
+            <div class="scribble">open, type 1 bullet, close.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Thu 04</div>
+            <div class="scribble">again.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Fri 05</div>
+            <div class="scribble">again.</div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sat 06</div>
+            <div class="note skip">skip ok — system is reflection aid, not obligation<sup><a href="https://bagerbach.com/blog/weekly-review-obsidian/">[16]</a></sup></div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sun 07</div>
+            <div class="note skip">no review yet. just notice if you opened it.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 2 -->
+      <div class="week">
+        <div class="week-label">
+          <div class="week-num">02</div>
+          <div class="week-tag">Desktop hotkey</div>
+          <div class="week-goal">One keystroke captures from any app, any window.</div>
+        </div>
+        <div class="week-row">
+          <div class="day install">
+            <div class="day-num">Mon 08</div>
+            <span class="badge dark">INSTALL</span>
+            <div class="note"><a href="https://github.com/chhoumann/quickadd">QuickAdd</a> ⭐ 2.2k + <a href="https://github.com/SilentVoid13/Templater">Templater</a> ⭐ 5.0k.<sup><a href="https://github.com/chhoumann/quickadd">[6]</a></sup><sup><a href="https://github.com/SilentVoid13/Templater">[8]</a></sup></div>
+          </div>
+          <div class="day">
+            <div class="day-num">Tue 09</div>
+            <span class="badge">CONFIGURE</span>
+            <div class="note">Capture choice → append to <code>## Captures</code> with timestamp.<sup><a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">[7]</a></sup></div>
+          </div>
+          <div class="day">
+            <div class="day-num">Wed 10</div>
+            <span class="badge sage">BIND</span>
+            <div class="note"><code>Ctrl+Shift+N</code> → that capture choice.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Thu 11</div>
+            <div class="scribble">capture from VS Code, from Slack, from the browser.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Fri 12</div>
+            <div class="scribble">notice what you didn't drop.</div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sat 13</div>
+            <div class="note skip">skip ok</div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sun 14</div>
+            <div class="note skip">still no formal review</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 3 -->
+      <div class="week">
+        <div class="week-label">
+          <div class="week-num">03</div>
+          <div class="week-tag">Mobile pathway</div>
+          <div class="week-goal">≤ 2 taps from lock screen to today's note.</div>
+        </div>
+        <div class="week-row">
+          <div class="day install">
+            <div class="day-num">Mon 15</div>
+            <span class="badge dark">PICK ONE</span>
+            <div class="note">iOS Shortcut + <a href="https://quickadd.obsidian.guide/docs/Advanced/ObsidianUri/">QuickAdd URI</a>. Same capture choice as desktop.<sup><a href="https://quickadd.obsidian.guide/docs/Advanced/ObsidianUri/">[12]</a></sup></div>
+          </div>
+          <div class="day">
+            <div class="day-num">Tue 16</div>
+            <span class="badge">BUILD</span>
+            <div class="note"><a href="https://ovyerus.com/posts/obsidian-ios-shortcut/">~30 lines</a>, lock-screen widget.<sup><a href="https://ovyerus.com/posts/obsidian-ios-shortcut/">[11]</a></sup></div>
+            <div class="stamp">⌥ + ↑</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Wed 17</div>
+            <div class="scribble">walking → capture. queue → capture.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Thu 18</div>
+            <div class="scribble">don't open the vault on mobile. just capture.<sup><a href="https://forum.obsidian.md/t/a-workflow-to-quickly-capture-ideas-on-mobile/55207">[10]</a></sup></div>
+          </div>
+          <div class="day">
+            <div class="day-num">Fri 19</div>
+            <div class="scribble">interstitial: timestamp + line, between meetings.<sup><a href="https://tinkeringprod.com/interstitial-journaling-what-it-is-and-how-to-do-it/">[14]</a></sup></div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sat 20</div>
+            <div class="note skip">skip ok</div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sun 21</div>
+            <div class="note skip">last unprocessed Sunday</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 4 -->
+      <div class="week">
+        <div class="week-label">
+          <div class="week-num">04</div>
+          <div class="week-tag">Sunday review</div>
+          <div class="week-goal">10 minutes. Promote 3–5 captures to evergreen.</div>
+        </div>
+        <div class="week-row">
+          <div class="day">
+            <div class="day-num">Mon 22</div>
+            <div class="scribble">captures pile up. that's the point.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Tue 23</div>
+            <div class="scribble">don't process mid-week.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Wed 24</div>
+            <div class="scribble">capture is dumb, fast, frequent.<sup><a href="https://medium.com/@herbert19lee/my-quick-capture-workflow-87f9c9d3d9dc">[17]</a></sup></div>
+          </div>
+          <div class="day">
+            <div class="day-num">Thu 25</div>
+            <div class="scribble">curation is deliberate, scheduled, weekly.</div>
+          </div>
+          <div class="day">
+            <div class="day-num">Fri 26</div>
+            <div class="scribble">last captures of the week.</div>
+          </div>
+          <div class="day weekend">
+            <div class="day-num">Sat 27</div>
+            <div class="note skip">tomorrow.</div>
+          </div>
+          <div class="day weekend review">
+            <div class="day-num">Sun 28</div>
+            <span class="badge red">REVIEW</span>
+            <div class="note">Open all 7 daily notes. Promote, refile, delete. <strong>10 min cap.</strong><sup><a href="https://bagerbach.com/blog/weekly-review-obsidian/">[16]</a></sup></div>
+            <div class="stamp">SUN ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-family: 'Caveat', cursive; font-size: 1.25rem; color: var(--obsidian-deep); margin: 1.25rem 0 0;">
+      ↑ if you forget two days in a row, restart the current week. That's the signal the friction is still too high.
+    </p>
+  </section>
+
+  <!-- TEMPLATE + STACK -->
+  <section class="template-stack">
+
+    <div class="template-card">
+      <div class="template-tape">Daily/2026-06-03.md</div>
+      <div class="template-head">
+        <h2>The five-line template</h2>
+        <p>three buckets. no mood. no weather. no quotes.</p>
+      </div>
+      <div class="template-body">
+<span class="h1"># {{date:dddd, MMMM Do YYYY}}</span><br><br>
+<span class="h2">## Captures</span><br>
+<span class="dash">-</span><br><br>
+<span class="h2">## Done</span><br>
+<span class="dash">-</span><br><br>
+<span class="h2">## Tomorrow</span><br>
+<span class="dash">-</span>
+      </div>
+      <div class="template-rules">
+        <strong>RULE:</strong> remove any section you skip seven days in a row. The template evolves with actual usage, not aspirational usage.<sup><a href="https://aiproductivity.ai/guides/obsidian-daily-notes-workflow/">[4]</a></sup>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div>
+        <h2 class="stack-title">The three-layer habit stack</h2>
+        <p class="stack-sub">in this order. skip the order at your own risk.</p>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">1</div>
+        <div class="layer-body">
+          <strong>Daily note</strong>
+          <span>One file per day that opens itself. <a href="https://obsidian.md/help/plugins/daily-notes">Core Daily Notes plugin</a>.</span>
+        </div>
+        <div class="layer-time">~2 min<br><span class="cite"><a href="https://obsidian.md/help/plugins/daily-notes">[2]</a></span></div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">2</div>
+        <div class="layer-body">
+          <strong>Capture</strong>
+          <span>One keystroke appends a line to today's note. <a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">QuickAdd capture choice</a> + global hotkey.</span>
+        </div>
+        <div class="layer-time">~10 min<br><span class="cite"><a href="https://obsidian.rocks/obsidian-quick-capture/">[1]</a></span></div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">3</div>
+        <div class="layer-body">
+          <strong>Processing</strong>
+          <span>10-min Sunday pass. Captures → evergreen, project file, or delete.</span>
+        </div>
+        <div class="layer-time">recurring<br><span class="cite"><a href="https://bagerbach.com/blog/weekly-review-obsidian/">[16]</a></span></div>
+      </div>
+
+      <div class="interstitial">
+        <strong>The under-rated middle gear · Interstitial journaling</strong>
+        A <code>## Notes</code> heading in the daily note plus one hotkey that inserts the current time.<sup><a href="https://tinkeringprod.com/interstitial-journaling-what-it-is-and-how-to-do-it/">[14]</a></sup> The practice that ties low-friction capture to <a href="https://lab.abilian.com/Business/Personal%20Knowledge%20Management/Linking%20Your%20Thinking/">Linking Your Thinking</a> — fleeting entries surfacing later as evergreen material.<sup><a href="https://lab.abilian.com/Business/Personal%20Knowledge%20Management/Linking%20Your%20Thinking/">[20]</a></sup>
+        <code>- 14:32 finished compiler refactor; lifetime issue was upstream in the parser</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- PATHWAYS -->
+  <section class="pathways">
+    <div class="pathways-head">
+      <h2>Pick one capture pathway per device</h2>
+      <span class="pathways-warn">⚠ a second mobile pathway doubles maintenance, halves your habit</span>
+    </div>
+    <div class="path-cols">
+      <div class="path-col">
+        <h3>Desktop · ranked by friction</h3>
+        <div class="path-row">
+          <div><strong><a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">QuickAdd</a> + global hotkey</strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">the default desktop pattern · 15 min</span></div>
+          <div class="friction">✓ ONE KEY<br><span class="cite"><a href="https://obsidian.rocks/obsidian-quick-capture/">[1]</a></span></div>
+        </div>
+        <div class="path-row">
+          <div><strong>QuickAdd capture choice only</strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">when Obsidian is already focused · 10 min</span></div>
+          <div class="friction warn">✗ MUST FOCUS<br><span class="cite"><a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">[7]</a></span></div>
+        </div>
+        <div class="path-row">
+          <div><strong>App-launcher integration</strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">Alfred / Raycast / ULauncher · 30 min</span></div>
+          <div class="friction">✓ SPOTLIGHT<br><span class="cite"><a href="https://obsidian.rocks/obsidian-quick-capture/">[1]</a></span></div>
+        </div>
+      </div>
+
+      <div class="path-col">
+        <h3>Mobile · capture only, never edit</h3>
+        <div class="path-row">
+          <div><strong>iOS · Shortcut + <a href="https://quickadd.obsidian.guide/docs/Advanced/ObsidianUri/">QuickAdd URI</a></strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">same capture choice as desktop. one routing.</span></div>
+          <div class="friction">★ PICK ME<br><span class="cite"><a href="https://quickadd.obsidian.guide/docs/Advanced/ObsidianUri/">[12]</a></span></div>
+        </div>
+        <div class="path-row">
+          <div><strong>iOS · <a href="https://ovyerus.com/posts/obsidian-ios-shortcut/">Shortcut + Advanced URI</a></strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;"><code>obsidian://actions-uri/note/create</code></span></div>
+          <div class="friction">✓ FAST<br><span class="cite"><a href="https://ovyerus.com/posts/obsidian-ios-shortcut/">[11]</a></span></div>
+        </div>
+        <div class="path-row">
+          <div><strong>iOS · <a href="https://apps.apple.com/us/app/quick-draft-for-obsidian/id6748142801">Quick Draft for Obsidian</a></strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">voice transcription, lock-screen widget</span></div>
+          <div class="friction">✓ VOICE<br><span class="cite"><a href="https://apps.apple.com/us/app/quick-draft-for-obsidian/id6748142801">[13]</a></span></div>
+        </div>
+        <div class="path-row">
+          <div><strong>Android · Fleeting Notes</strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">"starts up instantly, even on an old phone"</span></div>
+          <div class="friction">✓ DE FACTO<br><span class="cite"><a href="https://obsidian.rocks/obsidian-mobile-quick-capture/">[9]</a></span></div>
+        </div>
+        <div class="path-row">
+          <div><strong>Mobile · open Obsidian directly</strong><br><span style="color: var(--ink-muted); font-size: 0.78rem;">3–6 s cold start = the friction window where ideas disappear</span></div>
+          <div class="friction bad">✗ AVOID<br><span class="cite"><a href="https://forum.obsidian.md/t/a-workflow-to-quickly-capture-ideas-on-mobile/55207">[10]</a></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLUGIN PACK -->
+  <section class="plugins">
+    <h2>The plugin pack — when to add each</h2>
+    <p class="sub">add when you feel the lack, not pre-emptively</p>
+    <div class="plugin-grid">
+      <div class="plugin">
+        <div class="plugin-img"><img src="calendar/images/quickadd.png" alt="QuickAdd repository"></div>
+        <div class="plugin-body">
+          <h3><a href="https://github.com/chhoumann/quickadd">QuickAdd</a></h3>
+          <div class="meta"><span class="stars">⭐ 2.2k</span><span>chhoumann</span></div>
+          <div class="when"><strong>WEEK 2.</strong> The capture choice + global hotkey is the whole desktop loop.</div>
+        </div>
+      </div>
+      <div class="plugin">
+        <div class="plugin-img"><img src="calendar/images/templater.png" alt="Templater repository"></div>
+        <div class="plugin-body">
+          <h3><a href="https://github.com/SilentVoid13/Templater">Templater</a></h3>
+          <div class="meta"><span class="stars">⭐ 5.0k</span><span>SilentVoid13</span></div>
+          <div class="when"><strong>WEEK 2.</strong> Required for date math, nav-links between days, time-insert hotkeys.</div>
+        </div>
+      </div>
+      <div class="plugin">
+        <div class="plugin-img"><img src="calendar/images/interstitial.png" alt="Interstitial Journal repository"></div>
+        <div class="plugin-body">
+          <h3><a href="https://github.com/andrewbowley/interstitial-journal">Interstitial Journal</a></h3>
+          <div class="meta"><span class="stars">⭐ 5</span><span>andrewbowley</span></div>
+          <div class="when"><strong>OPTIONAL.</strong> Tiny. Templater's <code>tp.date.now("HH:mm")</code> avoids the dependency.</div>
+        </div>
+      </div>
+      <div class="plugin">
+        <div class="plugin-img"><img src="calendar/images/periodic-notes.png" alt="Periodic Notes repository"></div>
+        <div class="plugin-body">
+          <h3><a href="https://github.com/liamcain/obsidian-periodic-notes">Periodic Notes</a></h3>
+          <div class="meta"><span class="stars">⭐ 1.3k</span><span>liamcain</span></div>
+          <div class="when"><strong>WEEK 5+.</strong> Three templates to maintain. Don't install until weekly/monthly notes are a felt need.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANTIPATTERNS -->
+  <section class="antis">
+    <h2>Antipatterns — what kills the habit <em>before</em> it sticks</h2>
+    <div class="anti-grid">
+      <div class="anti">
+        <strong>Day-one plugin sprawl</strong>
+        <span>Templater + Periodic Notes + Calendar before the first habit forms. Three learning curves at once. <span class="cite"><a href="https://github.com/liamcain/obsidian-periodic-notes">[3]</a></span></span>
+      </div>
+      <div class="anti">
+        <strong>14-section YouTube template</strong>
+        <span>You inherit someone else's daily rhythm. Strip to three sections, add back what you actually use. <span class="cite"><a href="https://aiproductivity.ai/guides/obsidian-daily-notes-workflow/">[4]</a></span></span>
+      </div>
+      <div class="anti">
+        <strong>Two mobile pathways</strong>
+        <span>Doubles maintenance, splits habit, captures end up in two inboxes. Pick one. <span class="cite"><a href="https://forum.obsidian.md/t/a-workflow-to-quickly-capture-ideas-on-mobile/55207">[10]</a></span></span>
+      </div>
+      <div class="anti">
+        <strong>Editing on mobile</strong>
+        <span>Cold-start friction → drops → eroded trust in the system. Capture only; read/edit on desktop. <span class="cite"><a href="https://forum.obsidian.md/t/a-workflow-to-quickly-capture-ideas-on-mobile/55207">[10]</a></span></span>
+      </div>
+      <div class="anti">
+        <strong>Naming + foldering at capture</strong>
+        <span>The whole point of capture is dumb-fast. Classification is the curation step's job. <span class="cite"><a href="https://medium.com/@herbert19lee/my-quick-capture-workflow-87f9c9d3d9dc">[17]</a></span></span>
+      </div>
+      <div class="anti">
+        <strong>Skipping the Sunday pass</strong>
+        <span>Daily notes become a graveyard; nothing converts to evergreen; system feels useless in a month. <span class="cite"><a href="https://www.dsebastien.net/chaos-to-clarity-unleash-obsidian-daily-notes/">[19]</a></span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUNDAY RITUAL -->
+  <section class="sunday">
+    <div class="sunday-icon">
+      <div class="ico">28</div>
+      <div class="lbl">Sun · Week 4</div>
+      <div class="time">10 min cap</div>
+    </div>
+    <div class="sunday-text">
+      <h2>The Sunday review ritual</h2>
+      <p>Houmann (<a href="https://github.com/chhoumann/quickadd">QuickAdd</a>'s author) runs exactly this; his <a href="https://bagerbach.com/blog/weekly-review-obsidian/">version</a> aggregates project mentions across the week into a single review.<sup><a href="https://bagerbach.com/blog/weekly-review-obsidian/">[16]</a></sup> Stripped to four steps for week-4 first-timers:</p>
+      <ol class="ritual">
+        <li>Open each daily note for the past week. 15 minutes total — set a timer.</li>
+        <li>For each <code>## Captures</code> line: promote to its own evergreen note, move to a project file, or delete.</li>
+        <li>Skim <code>## Done</code> for anything worth a retrospective tag.</li>
+        <li>Carry unfinished <code>## Tomorrow</code> items into next week's first daily note.</li>
+      </ol>
+      <p style="margin-top: 1rem; font-family: 'Caveat', cursive; font-size: 1.2rem; color: var(--obsidian-deep);">Pick this if you capture &lt; 10 items/day. End-of-day inbox sweep<sup><a href="https://medium.com/@herbert19lee/my-quick-capture-workflow-87f9c9d3d9dc">[17]</a></sup> if you capture more.</p>
+    </div>
+  </section>
+
+  <!-- SIBLINGS -->
+  <section class="siblings">
+    <h2>Other chapters in the expedition <small>← back to <a href="../../" style="color: var(--obsidian-deep);">parent</a></small></h2>
+    <div class="sib-grid">
+      <a class="sib" href="../../linking-note-structure-backlinks-mocs-vs-folders/">
+        <div class="ch">Survey · Chapter 1</div>
+        <h3>Linking & note structure</h3>
+        <p>Backlinks, MOCs vs folders. One wikilink per note, then three MOCs.</p>
+      </a>
+      <a class="sib" href="../../properties-tagging-for-queryable-notes/">
+        <div class="ch">Survey · Chapter 2</div>
+        <h3>Properties & tagging</h3>
+        <p>YAML metadata so Bases and Dataview can query them.</p>
+      </a>
+      <a class="sib" href="../../bases-turn-existing-reference-notes-into-live-views/">
+        <div class="ch">Expedition · Chapter 3</div>
+        <h3>Bases: live views</h3>
+        <p>Convert reference folders into editable filterable views.</p>
+      </a>
+      <a class="sib current" href="../">
+        <div class="ch">Survey · Chapter 4 · you are here</div>
+        <h3>Low-friction capture & daily-note habits</h3>
+        <p>Five-line template, one hotkey, one mobile pathway, one weekly pass.</p>
+      </a>
+      <a class="sib" href="../../core-community-plugins-keyboard-driven-navigation/">
+        <div class="ch">Survey · Chapter 5</div>
+        <h3>Plugins & keyboard nav</h3>
+        <p>The starter plugin pack + hotkey patterns for keyboard-first intermediates.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section class="sources">
+    <h2>Sources · 20 citations</h2>
+    <div class="src-grid">
+      <div class="src"><span class="n">[1]</span><img src="https://www.google.com/s2/favicons?domain=obsidian.rocks&sz=128" alt=""><span><a href="https://obsidian.rocks/obsidian-quick-capture/">Quick capture in Obsidian</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[2]</span><img src="https://www.google.com/s2/favicons?domain=obsidian.md&sz=128" alt=""><span><a href="https://obsidian.md/help/plugins/daily-notes">Daily notes — official docs</a> <span class="tag">official</span></span></div>
+      <div class="src"><span class="n">[3]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/liamcain/obsidian-periodic-notes">Periodic Notes ⭐ 1.3k</a> <span class="tag">github</span></span></div>
+      <div class="src"><span class="n">[4]</span><img src="https://www.google.com/s2/favicons?domain=aiproductivity.ai&sz=128" alt=""><span><a href="https://aiproductivity.ai/guides/obsidian-daily-notes-workflow/">Daily-notes workflow</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[5]</span><img src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=128" alt=""><span><a href="https://forum.obsidian.md/t/daily-note-template-a-minimal-approach/69295">Minimal template thread</a> <span class="tag">forum</span></span></div>
+      <div class="src"><span class="n">[6]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/chhoumann/quickadd">QuickAdd ⭐ 2.2k</a> <span class="tag">github</span></span></div>
+      <div class="src"><span class="n">[7]</span><img src="https://www.google.com/s2/favicons?domain=quickadd.obsidian.guide&sz=128" alt=""><span><a href="https://quickadd.obsidian.guide/docs/Choices/CaptureChoice/">Capture choice docs</a> <span class="tag">official</span></span></div>
+      <div class="src"><span class="n">[8]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/SilentVoid13/Templater">Templater ⭐ 5.0k</a> <span class="tag">github</span></span></div>
+      <div class="src"><span class="n">[9]</span><img src="https://www.google.com/s2/favicons?domain=obsidian.rocks&sz=128" alt=""><span><a href="https://obsidian.rocks/obsidian-mobile-quick-capture/">Mobile quick capture</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[10]</span><img src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=128" alt=""><span><a href="https://forum.obsidian.md/t/a-workflow-to-quickly-capture-ideas-on-mobile/55207">Mobile-capture workflow thread</a> <span class="tag">forum</span></span></div>
+      <div class="src"><span class="n">[11]</span><img src="https://www.google.com/s2/favicons?domain=ovyerus.com&sz=128" alt=""><span><a href="https://ovyerus.com/posts/obsidian-ios-shortcut/">iOS Shortcut for Obsidian</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[12]</span><img src="https://www.google.com/s2/favicons?domain=quickadd.obsidian.guide&sz=128" alt=""><span><a href="https://quickadd.obsidian.guide/docs/Advanced/ObsidianUri/">QuickAdd URI docs</a> <span class="tag">official</span></span></div>
+      <div class="src"><span class="n">[13]</span><img src="https://www.google.com/s2/favicons?domain=apps.apple.com&sz=128" alt=""><span><a href="https://apps.apple.com/us/app/quick-draft-for-obsidian/id6748142801">Quick Draft for Obsidian</a> <span class="tag">official</span></span></div>
+      <div class="src"><span class="n">[14]</span><img src="https://www.google.com/s2/favicons?domain=tinkeringprod.com&sz=128" alt=""><span><a href="https://tinkeringprod.com/interstitial-journaling-what-it-is-and-how-to-do-it/">Interstitial journaling</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[15]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/andrewbowley/interstitial-journal">Interstitial Journal ⭐ 5</a> <span class="tag">github</span></span></div>
+      <div class="src"><span class="n">[16]</span><img src="https://www.google.com/s2/favicons?domain=bagerbach.com&sz=128" alt=""><span><a href="https://bagerbach.com/blog/weekly-review-obsidian/">Houmann · weekly review</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[17]</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><span><a href="https://medium.com/@herbert19lee/my-quick-capture-workflow-87f9c9d3d9dc">Inbox-pattern workflow</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[18]</span><img src="https://www.google.com/s2/favicons?domain=forum.obsidian.md&sz=128" alt=""><span><a href="https://forum.obsidian.md/t/quick-capture-mac-ios-and-inbox-processing/21808">Inbox processing thread</a> <span class="tag">forum</span></span></div>
+      <div class="src"><span class="n">[19]</span><img src="https://www.google.com/s2/favicons?domain=dsebastien.net&sz=128" alt=""><span><a href="https://www.dsebastien.net/chaos-to-clarity-unleash-obsidian-daily-notes/">Chaos to clarity</a> <span class="tag">vendor</span></span></div>
+      <div class="src"><span class="n">[20]</span><img src="https://www.google.com/s2/favicons?domain=lab.abilian.com&sz=128" alt=""><span><a href="https://lab.abilian.com/Business/Personal%20Knowledge%20Management/Linking%20Your%20Thinking/">Linking Your Thinking</a> <span class="tag">wiki</span></span></div>
+    </div>
+  </section>
+
+  <div class="colophon">
+    The Capture Planner · a calendar view of <a href="../">Low-friction capture & daily-note habits in Obsidian</a> · chapter of <a href="../../">Beginner → intermediate Obsidian roadmap</a> · <a href="/">Atlas</a>
+  </div>
+
+</div>
