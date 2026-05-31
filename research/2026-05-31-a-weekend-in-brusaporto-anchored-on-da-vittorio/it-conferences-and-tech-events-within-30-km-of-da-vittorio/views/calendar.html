@@ -1,0 +1,996 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "Tech events within 30 km of Da Vittorio (2026) — Calendar"
+---
+
+<style>
+  /* === Calendar view — wall calendar of 2026 with Bergamo-basin map margin === */
+  :root {
+    --paper:        #f5f1e8;
+    --paper-2:      #eee7d6;
+    --ink:          #1a1815;
+    --ink-soft:     #5a544a;
+    --ink-faint:    #a39c8c;
+    --rule:         #d6cdb7;
+    --past-wash:    rgba(186, 175, 152, 0.32);
+    --red:          #b91c1c;   /* Kilometro Rosso */
+    --navy:         #1e3a8a;   /* University of Bergamo */
+    --grey:         #6b7280;   /* Online webinar */
+    --orange:       #c2410c;   /* Hybrid / course */
+    --green:        #15803d;   /* Festival */
+    --purple:       #7c3aed;   /* Multi-venue */
+    --today:        #d97706;
+  }
+
+  .cal-wrap {
+    margin: 0;
+    padding: 2.2rem 1.6rem 3.2rem;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.018) 0 1px, transparent 1px 38px),
+      var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, "Helvetica Neue", sans-serif;
+    line-height: 1.45;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cal-wrap a { color: inherit; text-decoration: underline; text-decoration-color: rgba(0,0,0,0.25); text-underline-offset: 2px; }
+  .cal-wrap a:hover { text-decoration-color: currentColor; }
+
+  /* === Masthead === */
+  .mast {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 1rem 0 0.6rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 1.6rem;
+    margin-bottom: 0.4rem;
+  }
+  .mast .kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    line-height: 1.2;
+  }
+  .mast .kicker strong { color: var(--ink); }
+  .mast .year {
+    font-family: "Fraunces", "Bodoni Moda", "Playfair Display", Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(5.5rem, 14vw, 9.5rem);
+    letter-spacing: -0.06em;
+    line-height: 0.85;
+    color: var(--ink);
+    text-align: center;
+  }
+  .mast .stamp {
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 1.5px solid var(--ink);
+    padding: 0.45rem 0.7rem;
+    color: var(--ink);
+    transform: rotate(2.5deg);
+    background: var(--paper);
+    text-align: center;
+    line-height: 1.3;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+  }
+  .mast .stamp .big { display: block; font-size: 1.1rem; letter-spacing: 0.04em; font-weight: 700; }
+
+  .tagline {
+    font-family: "Fraunces", "Bodoni Moda", Georgia, serif;
+    font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+    font-style: italic;
+    line-height: 1.4;
+    margin: 0.8rem 0 1.4rem;
+    color: var(--ink-soft);
+    max-width: 70ch;
+  }
+
+  /* === Map band === */
+  .map-band {
+    display: grid;
+    grid-template-columns: minmax(380px, 1.4fr) minmax(280px, 1fr);
+    gap: 1.8rem;
+    align-items: stretch;
+    margin-bottom: 1.6rem;
+    border: 1px solid var(--rule);
+    background: var(--paper-2);
+    padding: 1rem 1.2rem;
+  }
+  .map-band .map-wrap { position: relative; }
+  .map-band svg { width: 100%; height: auto; display: block; }
+  .map-side h3 {
+    margin: 0 0 0.4rem;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .map-side p {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .map-side .anchor-note {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-top: 1px dashed var(--rule);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .map-side .anchor-note span { color: var(--red); font-weight: 700; }
+
+  /* === Legend === */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    margin-bottom: 1.4rem;
+    font-size: 0.78rem;
+    align-items: center;
+  }
+  .legend-head {
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-right: 1px solid var(--rule);
+    padding-right: 1rem;
+    margin-right: 0.4rem;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.15);
+  }
+
+  /* === Calendar grid === */
+  .months {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 1080px) {
+    .months { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .months { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .map-band { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .months { grid-template-columns: 1fr; }
+  }
+
+  .month {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 0.55rem 0.6rem 0.6rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .month.past { background: var(--paper-2); }
+  .month.past::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.025) 0 1px, transparent 1px 7px);
+    pointer-events: none;
+  }
+  .month.now { box-shadow: 0 0 0 2px var(--today) inset, 0 1px 2px rgba(0,0,0,0.08); }
+  .month .mhead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.4rem;
+  }
+  .month .mname {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+  .month .mtag {
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .month.now .mtag { color: var(--today); font-weight: 700; }
+
+  .dowrow, .daygrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+  }
+  .dowrow {
+    margin-bottom: 2px;
+  }
+  .dowrow span {
+    font-family: ui-monospace, monospace;
+    font-size: 0.55rem;
+    text-align: center;
+    color: var(--ink-faint);
+    padding: 1px 0;
+    letter-spacing: 0.06em;
+  }
+  .dowrow span.we { color: var(--red); opacity: 0.55; }
+
+  .daygrid {
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .day {
+    background: var(--paper);
+    aspect-ratio: 1 / 1;
+    position: relative;
+    font-family: ui-monospace, monospace;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    padding: 2px 3px;
+    overflow: hidden;
+  }
+  .month.past .day { background: var(--paper-2); }
+  .day.empty { background: transparent; }
+  .month.past .day.empty { background: transparent; }
+  .day .n {
+    display: block;
+    line-height: 1;
+  }
+  .day.we .n { color: var(--red); }
+  .day.passed .n { color: var(--ink-faint); }
+  .day.today {
+    background: #fff7e6 !important;
+    box-shadow: inset 0 0 0 1.5px var(--today);
+  }
+  .day.today .n { color: var(--today); font-weight: 700; }
+  .day .dots {
+    position: absolute;
+    bottom: 2px;
+    left: 3px;
+    right: 3px;
+    display: flex;
+    gap: 1.5px;
+    flex-wrap: wrap;
+  }
+  .day .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .day .span {
+    position: absolute;
+    bottom: 2px;
+    left: 1px;
+    right: 1px;
+    height: 4px;
+    border-radius: 1px;
+    opacity: 0.85;
+  }
+  .day .span.s-l { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+  .day .span.s-r { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+
+  /* venue colors */
+  .c-red    { background: var(--red); }
+  .c-navy   { background: var(--navy); }
+  .c-grey   { background: var(--grey); }
+  .c-orange { background: var(--orange); }
+  .c-green  { background: var(--green); }
+  .c-purple { background: var(--purple); }
+
+  /* event list under each month */
+  .mlist {
+    list-style: none;
+    margin: 0.55rem 0 0;
+    padding: 0;
+    font-size: 0.72rem;
+    line-height: 1.32;
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+  }
+  .mlist li {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 0.35rem;
+    align-items: start;
+  }
+  .mlist .when {
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    color: var(--ink-soft);
+    padding-top: 1px;
+  }
+  .mlist .what { color: var(--ink); }
+  .mlist .what::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.35rem;
+    vertical-align: 1px;
+  }
+  .mlist .what.kr::before    { background: var(--red); }
+  .mlist .what.ub::before    { background: var(--navy); }
+  .mlist .what.gr::before    { background: var(--grey); }
+  .mlist .what.or::before    { background: var(--orange); }
+  .mlist .what.gn::before    { background: var(--green); }
+  .mlist .what.pu::before    { background: var(--purple); }
+  .mlist .what strong { font-weight: 600; }
+  .mlist .what a { text-decoration-color: rgba(0,0,0,0.4); }
+  .mlist .src {
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    color: var(--ink-faint);
+  }
+  .mlist .closed {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    color: var(--paper);
+    background: var(--ink-soft);
+    padding: 0 4px;
+    border-radius: 2px;
+    margin-left: 0.2rem;
+    vertical-align: 2px;
+  }
+
+  .month .blank {
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    text-align: center;
+    padding: 0.8rem 0 0.4rem;
+  }
+
+  /* === Anchors / picks === */
+  .anchors {
+    margin: 2rem 0 1.6rem;
+  }
+  .anchors h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.6rem;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.3rem;
+  }
+  .anchors .lead {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    max-width: 70ch;
+    margin: 0 0 1rem;
+  }
+  .anchor-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .anchor-card {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    padding: 0.9rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .anchor-card .photo {
+    width: calc(100% + 2rem);
+    margin: -0.9rem -1rem 0;
+    aspect-ratio: 16/8.2;
+    object-fit: cover;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--rule);
+    display: block;
+  }
+  .anchor-card .photo.glyph {
+    display: grid;
+    place-items: center;
+    color: var(--paper);
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .anchor-card .photo.glyph.kr { background: linear-gradient(135deg, #b91c1c 0%, #6b0a0a 100%); }
+  .anchor-card .photo.glyph.ub { background: linear-gradient(135deg, #1e3a8a 0%, #0c1b4d 100%); }
+  .anchor-card .photo.glyph.gn { background: linear-gradient(135deg, #15803d 0%, #064521 100%); }
+  .anchor-card .when {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .anchor-card h3 {
+    margin: 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.18rem;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .anchor-card .venue {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+  .anchor-card .pair {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    border-top: 1px dashed var(--rule);
+    padding-top: 0.5rem;
+    margin-top: auto;
+  }
+  .anchor-card .pair b { color: var(--ink); }
+  .anchor-card .tag {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+  .anchor-card .tag.t-saturday { background: var(--today); }
+
+  /* === Out-of-frame footer === */
+  .oof {
+    margin: 2rem 0 1rem;
+    border-top: 2px solid var(--ink);
+    padding-top: 1rem;
+  }
+  .oof h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.3rem;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .oof p { font-size: 0.88rem; color: var(--ink-soft); max-width: 72ch; margin: 0 0 0.7rem; }
+  .oof-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem;
+    margin-top: 0.6rem;
+  }
+  .oof-card {
+    border: 1px solid var(--rule);
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    font-size: 0.82rem;
+  }
+  .oof-card .name {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.1rem;
+  }
+  .oof-card .where {
+    font-family: ui-monospace, monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .oof-card .ride {
+    color: var(--ink-soft);
+    margin-top: 0.15rem;
+  }
+
+  /* === Colophon === */
+  .colophon {
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+    margin-top: 2rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .colophon .row { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; }
+  .colophon strong { color: var(--ink); }
+  .colophon .sib {
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--rule);
+  }
+  .colophon .sib a { display: inline-block; margin-right: 1rem; }
+</style>
+
+<div class="cal-wrap">
+
+  <header class="mast">
+    <div class="kicker">
+      <strong>BERGAMO BASIN</strong><br>
+      30 km radius from<br>
+      <a href="../../">Brusaporto · Da Vittorio</a>
+    </div>
+    <div class="year">2026</div>
+    <div class="stamp">
+      <span class="big">SURVEY</span>
+      18 sources · 6 min<br>
+      pinned: 31 May
+    </div>
+  </header>
+
+  <p class="tagline">
+    "IT" inside this ring means <em>industrial</em> IT — robotics, mechatronics, Industry&nbsp;4.0 — clustered at
+    <a href="https://www.kilometrorosso.com/en/innovation-district-en/">Kilometro Rosso</a><sup><a href="https://www.kilometrorosso.com/en/innovation-district-en/">[5]</a></sup>
+    and the
+    <a href="https://en.unibg.it/events">University of Bergamo</a><sup><a href="https://en.unibg.it/events">[3]</a></sup>.
+    Milan is ~45 km from Bergamo and outside the ring<sup><a href="https://www.distance.to/Milan/Bergamo">[1]</a></sup>.
+  </p>
+
+  <!-- =========================  MAP BAND  ========================= -->
+  <section class="map-band">
+    <div class="map-wrap">
+      <svg viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Schematic map of the Bergamo basin, 30 km radius around Brusaporto">
+        <defs>
+          <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#d6cdb7" stroke-width="0.7"/>
+          </pattern>
+          <pattern id="grain" patternUnits="userSpaceOnUse" width="2" height="2">
+            <rect width="2" height="2" fill="#f5f1e8"/>
+            <circle cx="0.5" cy="0.5" r="0.3" fill="#e9dfc4"/>
+          </pattern>
+        </defs>
+
+        <!-- background paper -->
+        <rect width="520" height="320" fill="url(#grain)"/>
+
+        <!-- Prealp hills, north -->
+        <path d="M0 60 Q 60 25 120 50 T 240 45 T 380 55 T 520 50 L 520 0 L 0 0 Z"
+              fill="#e3d9bf" opacity="0.55"/>
+        <path d="M0 78 Q 70 50 140 70 T 280 65 T 420 78 T 520 70 L 520 60 L 0 60 Z"
+              fill="url(#hatch)" opacity="0.7"/>
+
+        <!-- Po-valley plain implied (rest is paper) -->
+
+        <!-- Rivers: Serio, Adda hints -->
+        <path d="M 260 90 Q 250 150 245 220 Q 240 280 230 320"
+              fill="none" stroke="#7da5b8" stroke-width="1.3" opacity="0.55"/>
+        <path d="M 90 110 Q 100 180 95 250 Q 90 295 85 320"
+              fill="none" stroke="#7da5b8" stroke-width="1.3" opacity="0.55"/>
+        <text x="265" y="200" font-size="6.5" fill="#7da5b8" font-family="ui-monospace, monospace" opacity="0.8">SERIO</text>
+        <text x="65" y="240" font-size="6.5" fill="#7da5b8" font-family="ui-monospace, monospace" opacity="0.8">ADDA</text>
+
+        <!-- A4 highway (east-west) -->
+        <line x1="0" y1="155" x2="520" y2="155" stroke="#9a8a5e" stroke-width="1.6" stroke-dasharray="6 3" opacity="0.55"/>
+        <text x="450" y="151" font-size="6.5" fill="#9a8a5e" font-family="ui-monospace, monospace">A4 →</text>
+
+        <!-- A35 Brebemi, lower -->
+        <line x1="0" y1="225" x2="520" y2="225" stroke="#9a8a5e" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.45"/>
+        <text x="450" y="221" font-size="6.0" fill="#9a8a5e" font-family="ui-monospace, monospace">A35 BREBEMI</text>
+
+        <!-- 30km circle around Brusaporto. Scale ~1.5km per 5px; radius = ~100 -->
+        <circle cx="305" cy="170" r="100" fill="none" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>
+        <text x="385" y="100" font-size="6.5" fill="#b91c1c" font-family="ui-monospace, monospace" letter-spacing="1">30 KM RADIUS</text>
+
+        <!-- Bergamo city blob -->
+        <ellipse cx="265" cy="158" rx="22" ry="13" fill="#1a1815" opacity="0.08"/>
+        <text x="245" y="148" font-size="8" fill="#1a1815" font-family="ui-sans-serif, system-ui" font-weight="700">BERGAMO</text>
+
+        <!-- Brusaporto / Da Vittorio (the anchor) -->
+        <g transform="translate(305 170)">
+          <circle r="11" fill="#1a1815" opacity="0.08"/>
+          <polygon points="0,-7 2,-2 7,-2 3,1 4.5,6 0,3 -4.5,6 -3,1 -7,-2 -2,-2"
+                   fill="#1a1815"/>
+          <text x="12" y="2.5" font-size="8" font-weight="700" font-family="ui-sans-serif, system-ui" fill="#1a1815">DA VITTORIO</text>
+          <text x="12" y="11" font-size="6.5" font-family="ui-monospace, monospace" fill="#5a544a">Brusaporto</text>
+        </g>
+
+        <!-- Kilometro Rosso (Stezzano) -->
+        <g transform="translate(232 200)">
+          <rect x="-4" y="-4" width="8" height="8" fill="#b91c1c"/>
+          <text x="-15" y="18" font-size="7" font-weight="700" font-family="ui-sans-serif, system-ui" fill="#b91c1c">KILOMETRO ROSSO</text>
+          <text x="-3" y="26" font-size="6" font-family="ui-monospace, monospace" fill="#5a544a">Stezzano · ~15 km</text>
+        </g>
+
+        <!-- Dalmine -->
+        <g transform="translate(214 170)">
+          <rect x="-3.5" y="-3.5" width="7" height="7" fill="#1e3a8a"/>
+          <text x="6" y="2.5" font-size="7" font-weight="700" font-family="ui-sans-serif, system-ui" fill="#1e3a8a">DALMINE</text>
+          <text x="6" y="11" font-size="6" font-family="ui-monospace, monospace" fill="#5a544a">UniBg eng · ~15 km</text>
+        </g>
+
+        <!-- UniBg Sant'Agostino (city center) -->
+        <g transform="translate(279 152)">
+          <rect x="-3.5" y="-3.5" width="7" height="7" fill="#1e3a8a"/>
+          <text x="6" y="2" font-size="6.5" font-weight="600" font-family="ui-sans-serif, system-ui" fill="#1e3a8a">SANT'AGOSTINO</text>
+        </g>
+
+        <!-- Treviglio (edge of radius) -->
+        <g transform="translate(229 256)">
+          <circle r="3.5" fill="#5a544a"/>
+          <text x="-22" y="14" font-size="6.5" font-family="ui-sans-serif, system-ui" fill="#5a544a">TREVIGLIO · ~25 km</text>
+        </g>
+
+        <!-- Milan, outside -->
+        <g transform="translate(70 175)">
+          <circle r="5" fill="#1a1815" opacity="0.18"/>
+          <text x="-13" y="-9" font-size="7.5" font-weight="700" font-family="ui-sans-serif, system-ui" fill="#1a1815" opacity="0.55">MILAN</text>
+          <text x="-15" y="14" font-size="6" font-family="ui-monospace, monospace" fill="#1a1815" opacity="0.55">out · ~50 km</text>
+          <line x1="-12" y1="-4" x2="-3" y2="4" stroke="#b91c1c" stroke-width="1.5"/>
+          <line x1="-3" y1="-4" x2="-12" y2="4" stroke="#b91c1c" stroke-width="1.5"/>
+        </g>
+
+        <!-- compass -->
+        <g transform="translate(490 30)" font-family="ui-monospace, monospace" font-size="6.5" fill="#5a544a">
+          <line x1="0" y1="0" x2="0" y2="-14" stroke="#5a544a" stroke-width="0.8"/>
+          <polygon points="0,-16 -2.5,-10 2.5,-10" fill="#5a544a"/>
+          <text x="-2" y="-18">N</text>
+        </g>
+
+        <!-- scale bar -->
+        <g transform="translate(20 295)" font-family="ui-monospace, monospace" font-size="5.5" fill="#5a544a">
+          <line x1="0" y1="0" x2="33.3" y2="0" stroke="#5a544a" stroke-width="1"/>
+          <line x1="0" y1="-3" x2="0" y2="3" stroke="#5a544a" stroke-width="1"/>
+          <line x1="33.3" y1="-3" x2="33.3" y2="3" stroke="#5a544a" stroke-width="1"/>
+          <text x="0" y="11">0</text>
+          <text x="28" y="11">10 KM</text>
+        </g>
+      </svg>
+    </div>
+
+    <aside class="map-side">
+      <h3>The cluster sits on the A4</h3>
+      <p>
+        Brusaporto is 8&nbsp;km east of Bergamo center<sup><a href="https://www.rome2rio.com/s/Brusaporto/Bergamo">[2]</a></sup>; the
+        <a href="https://www.kilometrorosso.com/en/innovation-district-en/">Kilometro Rosso</a> innovation district (80 resident partners, 2,500 staff) sits 15&nbsp;km west at the
+        Stezzano motorway exit<sup><a href="https://www.kilometrorosso.com/en/innovation-district-en/">[5]</a></sup>. The
+        <a href="https://en.unibg.it/services-facilities/facilities/campuses/dalmine">UniBg engineering campus in Dalmine</a><sup><a href="https://en.unibg.it/services-facilities/facilities/campuses/dalmine">[4]</a></sup>
+        anchors the southern flank; the
+        <a href="https://en.unibg.it/events">Sant'Agostino humanities campus</a><sup><a href="https://en.unibg.it/events">[3]</a></sup>
+        anchors the city center.
+      </p>
+      <p>
+        Milan's tech scene sits roughly 50&nbsp;km west — outside the ring, but ≤1&nbsp;h via A4 if you decouple from the Saturday-dinner anchor.
+      </p>
+      <div class="anchor-note">
+        Saturday <span>20:00+</span> seating at Da Vittorio = the calendar's gravitational center. Every event below is sorted by whether you can be at the tasting menu that evening.
+      </div>
+    </aside>
+  </section>
+
+  <!-- =========================  LEGEND  ========================= -->
+  <section class="legend">
+    <span class="legend-head">Venue colors</span>
+    <span class="legend-item"><span class="swatch c-red"></span> Kilometro Rosso</span>
+    <span class="legend-item"><span class="swatch c-navy"></span> University of Bergamo</span>
+    <span class="legend-item"><span class="swatch c-grey"></span> Online webinar (Bergamo Sviluppo)</span>
+    <span class="legend-item"><span class="swatch c-orange"></span> Hybrid course / workshop</span>
+    <span class="legend-item"><span class="swatch c-green"></span> Festival, city-wide</span>
+    <span class="legend-item"><span class="swatch c-purple"></span> Multi-venue, cross-cluster</span>
+  </section>
+
+  <!-- =========================  THE GRID  ========================= -->
+  <section class="months">
+
+    <!-- ===== JANUARY ===== -->
+    <article class="month past">
+      <div class="mhead"><span class="mname">January</span><span class="mtag">Past</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day passed"><span class="n">1</span></div><div class="day passed"><span class="n">2</span></div><div class="day we passed"><span class="n">3</span></div><div class="day we passed"><span class="n">4</span></div>
+        <div class="day passed"><span class="n">5</span></div><div class="day passed"><span class="n">6</span></div><div class="day passed"><span class="n">7</span></div><div class="day passed"><span class="n">8</span></div><div class="day passed"><span class="n">9</span></div><div class="day we passed"><span class="n">10</span></div><div class="day we passed"><span class="n">11</span></div>
+        <div class="day passed"><span class="n">12</span></div><div class="day passed"><span class="n">13</span></div><div class="day passed"><span class="n">14</span></div><div class="day passed"><span class="n">15</span></div><div class="day passed"><span class="n">16</span></div><div class="day we passed"><span class="n">17</span></div><div class="day we passed"><span class="n">18</span></div>
+        <div class="day passed"><span class="n">19</span></div><div class="day passed"><span class="n">20</span></div><div class="day passed"><span class="n">21</span></div><div class="day passed"><span class="n">22</span></div><div class="day passed"><span class="n">23</span><span class="dots"><span class="dot c-red"></span><span class="dot c-red"></span></span></div><div class="day we passed"><span class="n">24</span></div><div class="day we passed"><span class="n">25</span></div>
+        <div class="day passed"><span class="n">26</span></div><div class="day passed"><span class="n">27</span></div><div class="day passed"><span class="n">28</span></div><div class="day passed"><span class="n">29</span></div><div class="day passed"><span class="n">30</span></div><div class="day we passed"><span class="n">31</span></div><div class="day empty"></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">Jan 23</span><span class="what kr">Stati Generali della Meccatronica IV — <a href="https://www.kilometrorosso.com/en/innovation-district-en/">Kilometro Rosso</a> auditorium; "mechatronics in the era of AI" <sup><a href="https://www.bergamonews.it/2026/01/21/stati-generali-della-meccatronica-al-kilometro-rosso-tra-innovazione-e-competitivita-territoriale/862095/">[12]</a></sup></span></li>
+        <li><span class="when">Jan 23 PM</span><span class="what kr">JOiiNT LAB 2.0 inauguration — IIT × Intellimech, €5M / 11 yr <sup><a href="https://www.bergamonews.it/2026/01/23/listituto-italiano-di-tecnologia-e-intellimech-scommettono-ancora-sul-joiint-lab-altri-11-anni-insieme-investimento-da-5-milioni/862615/">[13]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== FEBRUARY ===== -->
+    <article class="month past">
+      <div class="mhead"><span class="mname">February</span><span class="mtag">Past</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day we passed"><span class="n">1</span></div>
+        <div class="day passed"><span class="n">2</span></div><div class="day passed"><span class="n">3</span></div><div class="day passed"><span class="n">4</span></div><div class="day passed"><span class="n">5</span></div><div class="day passed"><span class="n">6</span></div><div class="day we passed"><span class="n">7</span></div><div class="day we passed"><span class="n">8</span></div>
+        <div class="day passed"><span class="n">9</span></div><div class="day passed"><span class="n">10</span></div><div class="day passed"><span class="n">11</span></div><div class="day passed"><span class="n">12</span></div><div class="day passed"><span class="n">13</span></div><div class="day we passed"><span class="n">14</span></div><div class="day we passed"><span class="n">15</span></div>
+        <div class="day passed"><span class="n">16</span></div><div class="day passed"><span class="n">17</span></div><div class="day passed"><span class="n">18</span></div><div class="day passed"><span class="n">19</span></div><div class="day passed"><span class="n">20</span></div><div class="day we passed"><span class="n">21</span></div><div class="day we passed"><span class="n">22</span></div>
+        <div class="day passed"><span class="n">23</span></div><div class="day passed"><span class="n">24</span></div><div class="day passed"><span class="n">25</span><span class="dots"><span class="dot c-red"></span></span></div><div class="day passed"><span class="n">26</span></div><div class="day passed"><span class="n">27</span></div><div class="day we passed"><span class="n">28</span></div><div class="day empty"></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">Feb 25</span><span class="what kr">DGS Industry Digital Day — <a href="https://www.kilometrorosso.com/en/innovation-district-en/">Kilometro Rosso</a>; digital-evolution roundtable for industry managers <sup><a href="https://www.dgsspa.com/eventi/dgs-industry-digital-day-2026-a-bergamo-il-confronto-sullevoluzione-digitale-dellindustria-italiana/">[14]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== MARCH ===== -->
+    <article class="month past">
+      <div class="mhead"><span class="mname">March</span><span class="mtag">Past · quiet</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day we passed"><span class="n">1</span></div>
+        <div class="day passed"><span class="n">2</span></div><div class="day passed"><span class="n">3</span></div><div class="day passed"><span class="n">4</span></div><div class="day passed"><span class="n">5</span></div><div class="day passed"><span class="n">6</span></div><div class="day we passed"><span class="n">7</span></div><div class="day we passed"><span class="n">8</span></div>
+        <div class="day passed"><span class="n">9</span></div><div class="day passed"><span class="n">10</span></div><div class="day passed"><span class="n">11</span></div><div class="day passed"><span class="n">12</span></div><div class="day passed"><span class="n">13</span></div><div class="day we passed"><span class="n">14</span></div><div class="day we passed"><span class="n">15</span></div>
+        <div class="day passed"><span class="n">16</span></div><div class="day passed"><span class="n">17</span></div><div class="day passed"><span class="n">18</span></div><div class="day passed"><span class="n">19</span></div><div class="day passed"><span class="n">20</span></div><div class="day we passed"><span class="n">21</span></div><div class="day we passed"><span class="n">22</span></div>
+        <div class="day passed"><span class="n">23</span></div><div class="day passed"><span class="n">24</span></div><div class="day passed"><span class="n">25</span></div><div class="day passed"><span class="n">26</span></div><div class="day passed"><span class="n">27</span></div><div class="day we passed"><span class="n">28</span></div><div class="day we passed"><span class="n">29</span></div>
+        <div class="day passed"><span class="n">30</span></div><div class="day passed"><span class="n">31</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <div class="blank">no listed tech-cluster events</div>
+    </article>
+
+    <!-- ===== APRIL ===== -->
+    <article class="month past">
+      <div class="mhead"><span class="mname">April</span><span class="mtag">Past</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day passed"><span class="n">1</span></div><div class="day passed"><span class="n">2</span></div><div class="day passed"><span class="n">3</span></div><div class="day we passed"><span class="n">4</span></div><div class="day we passed"><span class="n">5</span></div>
+        <div class="day passed"><span class="n">6</span></div><div class="day passed"><span class="n">7</span></div><div class="day passed"><span class="n">8</span></div><div class="day passed"><span class="n">9</span></div><div class="day passed"><span class="n">10</span></div><div class="day we passed"><span class="n">11</span></div><div class="day we passed"><span class="n">12</span></div>
+        <div class="day passed"><span class="n">13</span></div><div class="day passed"><span class="n">14</span></div><div class="day passed"><span class="n">15</span><span class="span c-purple s-l"></span></div><div class="day passed"><span class="n">16</span><span class="span c-purple"></span></div><div class="day passed"><span class="n">17</span><span class="span c-purple s-r"></span></div><div class="day we passed"><span class="n">18</span></div><div class="day we passed"><span class="n">19</span></div>
+        <div class="day passed"><span class="n">20</span></div><div class="day passed"><span class="n">21</span></div><div class="day passed"><span class="n">22</span></div><div class="day passed"><span class="n">23</span></div><div class="day passed"><span class="n">24</span><span class="dots"><span class="dot c-navy"></span></span></div><div class="day we passed"><span class="n">25</span></div><div class="day we passed"><span class="n">26</span></div>
+        <div class="day passed"><span class="n">27</span></div><div class="day passed"><span class="n">28</span></div><div class="day passed"><span class="n">29</span></div><div class="day passed"><span class="n">30</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">Apr 15–17</span><span class="what pu">Bergamo Next Level — "Officine del Futuro"; cross-venue research × industry festival (UniBg + Confindustria + Kilometro Rosso) <sup><a href="https://www.openinnovation.regione.lombardia.it/it/news/news/9184/bergamo-next-level-2026-punta-su-innovazione-ricerca-e-territorio">[15]</a></sup></span></li>
+        <li><span class="when">Apr 24</span><span class="what ub"><a href="https://www.unibg.it/eventi/deeptech-connect-international-conference-2026">DeepTech Connect</a> International Conference — UniBg + 7 partner unis; free fair-style showcase <sup><a href="https://www.unibg.it/eventi/deeptech-connect-international-conference-2026">[16]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== MAY ===== -->
+    <article class="month past now">
+      <div class="mhead"><span class="mname">May</span><span class="mtag">Today · 31 May</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day passed"><span class="n">1</span></div><div class="day we passed"><span class="n">2</span></div><div class="day we passed"><span class="n">3</span></div>
+        <div class="day passed"><span class="n">4</span></div><div class="day passed"><span class="n">5</span></div><div class="day passed"><span class="n">6</span></div><div class="day passed"><span class="n">7</span></div><div class="day passed"><span class="n">8</span></div><div class="day we passed"><span class="n">9</span></div><div class="day we passed"><span class="n">10</span></div>
+        <div class="day passed"><span class="n">11</span></div><div class="day passed"><span class="n">12</span></div><div class="day passed"><span class="n">13</span></div><div class="day passed"><span class="n">14</span></div><div class="day passed"><span class="n">15</span><span class="dots"><span class="dot c-navy"></span></span></div><div class="day we passed"><span class="n">16</span></div><div class="day we passed"><span class="n">17</span></div>
+        <div class="day passed"><span class="n">18</span></div><div class="day passed"><span class="n">19</span></div><div class="day passed"><span class="n">20</span></div><div class="day passed"><span class="n">21</span></div><div class="day passed"><span class="n">22</span></div><div class="day we passed"><span class="n">23</span></div><div class="day we passed"><span class="n">24</span></div>
+        <div class="day passed"><span class="n">25</span></div><div class="day passed"><span class="n">26</span></div><div class="day passed"><span class="n">27</span></div><div class="day passed"><span class="n">28</span></div><div class="day passed"><span class="n">29</span></div><div class="day we passed"><span class="n">30</span></div><div class="day we today"><span class="n">31</span></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">May 15</span><span class="what ub">Global AI — "dall'hype all'impatto reale nelle PMI"; <a href="https://en.unibg.it/events">University of Bergamo</a> (CYFE) <sup><a href="https://www.bergamonews.it/2026/05/15/intelligenza-artificiale-e-imprese-alluniversita-di-bergamo-il-convegno-global-ai-dallhype-allimpatto-reale-nelle-pmi/893615/">[17]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== JUNE ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">June</span><span class="mtag">Heavy week · 17–19</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day"><span class="n">1</span></div><div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span><span class="dots"><span class="dot c-grey"></span></span></div><div class="day"><span class="n">5</span></div><div class="day we"><span class="n">6</span></div><div class="day we"><span class="n">7</span></div>
+        <div class="day"><span class="n">8</span></div><div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span><span class="span c-orange s-l"></span></div><div class="day"><span class="n">11</span><span class="dots"><span class="dot c-grey"></span></span><span class="span c-orange"></span></div><div class="day"><span class="n">12</span><span class="span c-orange"></span></div><div class="day we"><span class="n">13</span><span class="span c-orange"></span></div><div class="day we"><span class="n">14</span><span class="span c-orange"></span></div>
+        <div class="day"><span class="n">15</span><span class="span c-orange"></span></div><div class="day"><span class="n">16</span><span class="span c-orange"></span></div><div class="day"><span class="n">17</span><span class="dots"><span class="dot c-navy"></span></span><span class="span c-orange s-r"></span></div><div class="day"><span class="n">18</span><span class="dots"><span class="dot c-red"></span><span class="dot c-navy"></span><span class="dot c-grey"></span></span></div><div class="day"><span class="n">19</span><span class="dots"><span class="dot c-navy"></span></span></div><div class="day we"><span class="n">20</span></div><div class="day we"><span class="n">21</span></div>
+        <div class="day"><span class="n">22</span></div><div class="day"><span class="n">23</span><span class="dots"><span class="dot c-orange"></span></span></div><div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day"><span class="n">26</span></div><div class="day we"><span class="n">27</span></div><div class="day we"><span class="n">28</span></div>
+        <div class="day"><span class="n">29</span></div><div class="day"><span class="n">30</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">Jun 4</span><span class="what gr"><a href="https://bergamosviluppo.it/sito/lista-eventi.html">Bergamo Sviluppo</a> — GenAI intro for business (online) <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+        <li><span class="when">Jun 10–17</span><span class="what or">Robotica nel Manifatturiero — hybrid course (Bergamo) <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+        <li><span class="when">Jun 11</span><span class="what gr">AI for personal productivity (online) <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+        <li><span class="when">Jun 17–19</span><span class="what ub"><a href="https://creo.unibg.it/en/opportunita/creo-hackathon-2026-smart-spaces-smarter-decisions/">CREO Hackathon</a> — Smart Spaces, Smarter Decisions; 48-hr build, UniBg + Gewiss<span class="closed">UniBg only</span><sup><a href="https://creo.unibg.it/en/opportunita/creo-hackathon-2026-smart-spaces-smarter-decisions/">[9]</a></sup></span></li>
+        <li><span class="when">Jun 18</span><span class="what kr"><strong><a href="https://www.eventbrite.it/e/biglietti-forum-robotica-innovativa-1984777795816">Forum Robotica Innovativa</a></strong> — Kilometro Rosso GATE 4, 8:45–17:30; AMR / cobot / humanoid demos <sup><a href="https://www.eventbrite.it/e/biglietti-forum-robotica-innovativa-1984777795816">[7]</a></sup><sup><a href="https://www.techmec.it/forum-robotica-innovativa-2026-robotica-industriale-ai-meccanica/">[8]</a></sup></span></li>
+        <li><span class="when">Jun 18</span><span class="what gr">AI for data analysis (online) <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+        <li><span class="when">Jun 23</span><span class="what or">Business Game — Dalmine workshop <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== JULY ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">July</span><span class="mtag">Quiet</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day"><span class="n">1</span></div><div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day we"><span class="n">4</span></div><div class="day we"><span class="n">5</span></div>
+        <div class="day"><span class="n">6</span></div><div class="day"><span class="n">7</span></div><div class="day"><span class="n">8</span></div><div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span></div><div class="day we"><span class="n">11</span></div><div class="day we"><span class="n">12</span></div>
+        <div class="day"><span class="n">13</span></div><div class="day"><span class="n">14</span></div><div class="day"><span class="n">15</span></div><div class="day"><span class="n">16</span></div><div class="day"><span class="n">17</span></div><div class="day we"><span class="n">18</span></div><div class="day we"><span class="n">19</span></div>
+        <div class="day"><span class="n">20</span></div><div class="day"><span class="n">21</span></div><div class="day"><span class="n">22</span></div><div class="day"><span class="n">23</span></div><div class="day"><span class="n">24</span></div><div class="day we"><span class="n">25</span></div><div class="day we"><span class="n">26</span></div>
+        <div class="day"><span class="n">27</span></div><div class="day"><span class="n">28</span></div><div class="day"><span class="n">29</span></div><div class="day"><span class="n">30</span></div><div class="day"><span class="n">31</span></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <div class="blank">no listed tech-cluster events<br><span style="font-size:.7em">summer recess</span></div>
+    </article>
+
+    <!-- ===== AUGUST ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">August</span><span class="mtag">Ferragosto</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day we"><span class="n">1</span></div><div class="day we"><span class="n">2</span></div>
+        <div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span></div><div class="day"><span class="n">5</span></div><div class="day"><span class="n">6</span></div><div class="day"><span class="n">7</span></div><div class="day we"><span class="n">8</span></div><div class="day we"><span class="n">9</span></div>
+        <div class="day"><span class="n">10</span></div><div class="day"><span class="n">11</span></div><div class="day"><span class="n">12</span></div><div class="day"><span class="n">13</span></div><div class="day"><span class="n">14</span></div><div class="day we"><span class="n">15</span></div><div class="day we"><span class="n">16</span></div>
+        <div class="day"><span class="n">17</span></div><div class="day"><span class="n">18</span></div><div class="day"><span class="n">19</span></div><div class="day"><span class="n">20</span></div><div class="day"><span class="n">21</span></div><div class="day we"><span class="n">22</span></div><div class="day we"><span class="n">23</span></div>
+        <div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day"><span class="n">26</span></div><div class="day"><span class="n">27</span></div><div class="day"><span class="n">28</span></div><div class="day we"><span class="n">29</span></div><div class="day we"><span class="n">30</span></div>
+        <div class="day"><span class="n">31</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <div class="blank">Italy is closed<br><span style="font-size:.7em">no tech-cluster events</span></div>
+    </article>
+
+    <!-- ===== SEPTEMBER ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">September</span><span class="mtag">Conf week · 13–17</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day"><span class="n">1</span></div><div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span></div><div class="day we"><span class="n">5</span></div><div class="day we"><span class="n">6</span></div>
+        <div class="day"><span class="n">7</span></div><div class="day"><span class="n">8</span></div><div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span></div><div class="day"><span class="n">11</span></div><div class="day we"><span class="n">12</span></div><div class="day we"><span class="n">13</span><span class="span c-navy s-l"></span></div>
+        <div class="day"><span class="n">14</span><span class="span c-navy"></span></div><div class="day"><span class="n">15</span><span class="span c-navy"></span></div><div class="day"><span class="n">16</span><span class="span c-navy"></span></div><div class="day"><span class="n">17</span><span class="span c-navy s-r"></span></div><div class="day"><span class="n">18</span></div><div class="day we"><span class="n">19</span></div><div class="day we"><span class="n">20</span></div>
+        <div class="day"><span class="n">21</span></div><div class="day"><span class="n">22</span></div><div class="day"><span class="n">23</span></div><div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day we"><span class="n">26</span></div><div class="day we"><span class="n">27</span></div>
+        <div class="day"><span class="n">28</span></div><div class="day"><span class="n">29</span></div><div class="day"><span class="n">30</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">Sep 13–17</span><span class="what ub"><strong><a href="https://www.apms-conference.org/apms-2026/">APMS 2026 — IFIP WG 5.7</a></strong>; sustainable, data-driven, human-centric production systems · Springer AICT proceedings <sup><a href="https://www.apms-conference.org/apms-2026/">[10]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== OCTOBER ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">October</span><span class="mtag">Festival · 1–11</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day"><span class="n">1</span><span class="span c-green s-l"></span></div><div class="day"><span class="n">2</span><span class="dots"><span class="dot c-orange"></span></span><span class="span c-green"></span></div><div class="day we"><span class="n">3</span><span class="span c-green"></span></div><div class="day we"><span class="n">4</span><span class="span c-green"></span></div>
+        <div class="day"><span class="n">5</span><span class="span c-green"></span></div><div class="day"><span class="n">6</span><span class="dots"><span class="dot c-orange"></span></span><span class="span c-green"></span></div><div class="day"><span class="n">7</span><span class="span c-green"></span></div><div class="day"><span class="n">8</span><span class="span c-green"></span></div><div class="day"><span class="n">9</span><span class="span c-green"></span></div><div class="day we"><span class="n">10</span><span class="span c-green"></span></div><div class="day we"><span class="n">11</span><span class="span c-green s-r"></span></div>
+        <div class="day"><span class="n">12</span></div><div class="day"><span class="n">13</span></div><div class="day"><span class="n">14</span></div><div class="day"><span class="n">15</span></div><div class="day"><span class="n">16</span></div><div class="day we"><span class="n">17</span></div><div class="day we"><span class="n">18</span></div>
+        <div class="day"><span class="n">19</span></div><div class="day"><span class="n">20</span><span class="dots"><span class="dot c-orange"></span></span></div><div class="day"><span class="n">21</span></div><div class="day"><span class="n">22</span></div><div class="day"><span class="n">23</span></div><div class="day we"><span class="n">24</span></div><div class="day we"><span class="n">25</span></div>
+        <div class="day"><span class="n">26</span></div><div class="day"><span class="n">27</span></div><div class="day"><span class="n">28</span></div><div class="day"><span class="n">29</span></div><div class="day"><span class="n">30</span></div><div class="day we"><span class="n">31</span></div><div class="day empty"></div>
+      </div>
+      <ul class="mlist">
+        <li><span class="when">Oct 1–11</span><span class="what gn"><strong><a href="https://www.bergamoscienza.it/en/festival-corrente/24th-edition-bergamoscienza-2026">BergamoScienza XXIV — "Convergenze"</a></strong>; city-wide festival with big-data / AI threads · workshops, conferences, shows <sup><a href="https://www.bergamoscienza.it/en/festival-corrente/24th-edition-bergamoscienza-2026">[11]</a></sup></span></li>
+        <li><span class="when">Oct 2–6</span><span class="what or">Energy Specialist (ESG) — hybrid course, €366 <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+        <li><span class="when">Oct 20</span><span class="what or">Lean Office 4.0 — Dalmine workshop <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup></span></li>
+      </ul>
+    </article>
+
+    <!-- ===== NOVEMBER ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">November</span><span class="mtag">Watch the feeds</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day we"><span class="n">1</span></div>
+        <div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span></div><div class="day"><span class="n">5</span></div><div class="day"><span class="n">6</span></div><div class="day we"><span class="n">7</span></div><div class="day we"><span class="n">8</span></div>
+        <div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span></div><div class="day"><span class="n">11</span></div><div class="day"><span class="n">12</span></div><div class="day"><span class="n">13</span></div><div class="day we"><span class="n">14</span></div><div class="day we"><span class="n">15</span></div>
+        <div class="day"><span class="n">16</span></div><div class="day"><span class="n">17</span></div><div class="day"><span class="n">18</span></div><div class="day"><span class="n">19</span></div><div class="day"><span class="n">20</span></div><div class="day we"><span class="n">21</span></div><div class="day we"><span class="n">22</span></div>
+        <div class="day"><span class="n">23</span></div><div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day"><span class="n">26</span></div><div class="day"><span class="n">27</span></div><div class="day we"><span class="n">28</span></div><div class="day we"><span class="n">29</span></div>
+        <div class="day"><span class="n">30</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <div class="blank">ad-hoc lectures only<br><span style="font-size:.7em">check <a href="https://en.unibg.it/events">UniBg</a> + <a href="https://www.confindustriabergamo.it/aree-di-interesse/innovazione-tecnologica-e-organizzativa/eventi-e-webinar">Confindustria</a></span></div>
+    </article>
+
+    <!-- ===== DECEMBER ===== -->
+    <article class="month">
+      <div class="mhead"><span class="mname">December</span><span class="mtag">Holidays</span></div>
+      <div class="dowrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span class="we">S</span></div>
+      <div class="daygrid">
+        <div class="day empty"></div><div class="day"><span class="n">1</span></div><div class="day"><span class="n">2</span></div><div class="day"><span class="n">3</span></div><div class="day"><span class="n">4</span></div><div class="day we"><span class="n">5</span></div><div class="day we"><span class="n">6</span></div>
+        <div class="day"><span class="n">7</span></div><div class="day"><span class="n">8</span></div><div class="day"><span class="n">9</span></div><div class="day"><span class="n">10</span></div><div class="day"><span class="n">11</span></div><div class="day we"><span class="n">12</span></div><div class="day we"><span class="n">13</span></div>
+        <div class="day"><span class="n">14</span></div><div class="day"><span class="n">15</span></div><div class="day"><span class="n">16</span></div><div class="day"><span class="n">17</span></div><div class="day"><span class="n">18</span></div><div class="day we"><span class="n">19</span></div><div class="day we"><span class="n">20</span></div>
+        <div class="day"><span class="n">21</span></div><div class="day"><span class="n">22</span></div><div class="day"><span class="n">23</span></div><div class="day"><span class="n">24</span></div><div class="day"><span class="n">25</span></div><div class="day we"><span class="n">26</span></div><div class="day we"><span class="n">27</span></div>
+        <div class="day"><span class="n">28</span></div><div class="day"><span class="n">29</span></div><div class="day"><span class="n">30</span></div><div class="day"><span class="n">31</span></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div>
+      </div>
+      <div class="blank">no listed tech-cluster events<br><span style="font-size:.7em">save it for the panettone</span></div>
+    </article>
+
+  </section>
+
+  <!-- =========================  ANCHORS  ========================= -->
+  <section class="anchors">
+    <h2>The three still-bookable anchors</h2>
+    <p class="lead">
+      For a Da Vittorio Saturday-night booking made today (31 May 2026), these are the dates where the calendar lines up with a tasting-menu evening. Forum Robotica is the most precise fit — talk ends 17:30, Saturday seating starts 20:00, two days later.
+    </p>
+    <div class="anchor-cards">
+
+      <div class="anchor-card">
+        <img class="photo" src="calendar/images/forum-robotica.jpg" alt="Forum Robotica Innovativa 2026 — Kilometro Rosso event banner showing the robotics forum theme">
+        <span class="tag t-saturday">SAT JUN 20</span>
+        <div class="when">THU JUN 18 · 8:45–17:30</div>
+        <h3><a href="https://www.eventbrite.it/e/biglietti-forum-robotica-innovativa-1984777795816">Forum Robotica Innovativa</a></h3>
+        <div class="venue"><a href="https://www.kilometrorosso.com/en/innovation-district-en/">Kilometro Rosso</a> GATE 4 · Via Stezzano 87 · 15 km west</div>
+        <div class="pair">
+          <b>Pair with:</b> a Saturday Jun 20 seating. The Thursday talk closes by dinner-time; you have two full days to settle in at La Dimora before the tasting menu <sup><a href="https://www.eventbrite.it/e/biglietti-forum-robotica-innovativa-1984777795816">[7]</a></sup><sup><a href="https://www.techmec.it/forum-robotica-innovativa-2026-robotica-industriale-ai-meccanica/">[8]</a></sup>.
+        </div>
+      </div>
+
+      <div class="anchor-card">
+        <img class="photo" src="calendar/images/kilometrorosso.jpg" alt="Aerial view of the Kilometro Rosso Innovation District at Stezzano, west of Bergamo">
+        <span class="tag t-saturday">SAT SEP 19</span>
+        <div class="when">SEP 13–17 · WEEK-LONG</div>
+        <h3><a href="https://www.apms-conference.org/apms-2026/">APMS 2026 — IFIP WG 5.7</a></h3>
+        <div class="venue"><a href="https://en.unibg.it/events">University of Bergamo</a> · city center · 10 km west</div>
+        <div class="pair">
+          <b>Pair with:</b> closing-day Saturday booking — Sep 19 follows the conference dinner-Friday. Springer AICT proceedings; paper submissions closed Apr 10 but attendee registration remains open <sup><a href="https://www.apms-conference.org/apms-2026/">[10]</a></sup>.
+        </div>
+      </div>
+
+      <div class="anchor-card">
+        <img class="photo" src="calendar/images/bergamoscienza.png" alt="BergamoScienza 2026 festival 'Convergenze' visual identity">
+        <span class="tag t-saturday">SAT OCT 3 · 10</span>
+        <div class="when">OCT 1–11 · 11 DAYS</div>
+        <h3><a href="https://www.bergamoscienza.it/en/festival-corrente/24th-edition-bergamoscienza-2026">BergamoScienza — Convergenze</a></h3>
+        <div class="venue">Bergamo città + province · multi-site, walkable from Città Alta</div>
+        <div class="pair">
+          <b>Pair with:</b> either Saturday Oct 3 or Oct 10. Weekend programming leans workshop-heavy; big-data + AI threads are explicitly in the 2026 program <sup><a href="https://www.bergamoscienza.it/en/festival-corrente/24th-edition-bergamoscienza-2026">[11]</a></sup>.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================  OUT OF FRAME  ========================= -->
+  <section class="oof">
+    <h2>Not in this ring</h2>
+    <p>
+      The Bergamo basin's "IT" is industrial IT — sponsored by the manufacturing cluster on the A4 between Stezzano and Dalmine <sup><a href="https://www.kilometrorosso.com/en/innovation-district-en/">[5]</a></sup>.
+      Mainstream developer conferences route through other cities entirely.
+    </p>
+    <div class="oof-list">
+      <div class="oof-card">
+        <div class="name">Codemotion 2026</div>
+        <div class="where">Rome · Madrid</div>
+        <div class="ride">Not in Lombardy.</div>
+      </div>
+      <div class="oof-card">
+        <div class="name">PyCon Italia</div>
+        <div class="where">Bologna</div>
+        <div class="ride">~270 km east.</div>
+      </div>
+      <div class="oof-card">
+        <div class="name">Italian Tech Week</div>
+        <div class="where">Turin</div>
+        <div class="ride">~200 km west.</div>
+      </div>
+      <div class="oof-card">
+        <div class="name">Milan AI / Digital Design Days</div>
+        <div class="where">Milan · ~50 km</div>
+        <div class="ride">≤1 h via A4 / A35 but breaks the anchor frame <sup><a href="https://www.distance.to/Milan/Bergamo">[1]</a></sup>.</div>
+      </div>
+      <div class="oof-card">
+        <div class="name">Grassroots dev meetups</div>
+        <div class="where">— sparse —</div>
+        <div class="ride">The Bergamo scene runs through institutional venues (<a href="https://www.confindustriabergamo.it/aree-di-interesse/innovazione-tecnologica-e-organizzativa/eventi-e-webinar">Confindustria</a>, <a href="https://en.unibg.it/events">UniBg</a>, <a href="https://www.kilometrorosso.com/en/innovation-district-en/">Kilometro Rosso</a>) rather than community organisers <sup><a href="https://bergamosviluppo.it/sito/lista-eventi.html">[6]</a></sup>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================  COLOPHON  ========================= -->
+  <footer class="colophon">
+    <div class="row">
+      <span><strong>Survey · 18 sources · 6 min read</strong></span>
+      <span>Authored 31 May 2026</span>
+      <span>Pinned to: Da Vittorio · Brusaporto</span>
+    </div>
+    <div class="row" style="margin-top:.5rem;">
+      Calendars to watch: <a href="https://bergamosviluppo.it/sito/lista-eventi.html">Bergamo Sviluppo</a> · <a href="https://en.unibg.it/events">UniBg events</a> · <a href="https://www.confindustriabergamo.it/aree-di-interesse/innovazione-tecnologica-e-organizzativa/eventi-e-webinar">Confindustria Bergamo Innovation</a>
+    </div>
+    <div class="sib">
+      <strong>From the same expedition:</strong>
+      <a href="../../walking-distance-lodging-at-or-near-da-vittorio/">→ Walking-distance lodging</a>
+      <a href="../../special-character-lodging-within-taxi-range-of-da-vittorio/">→ Boutique lodging within taxi range</a>
+      <a href="../../day-trips-and-activities-within-30-km-of-da-vittorio/">→ Day-trips &amp; activities (expedition)</a>
+    </div>
+  </footer>
+
+</div>
