@@ -1,0 +1,933 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT conferences and tech events within 30 km of Cenador de Amós — Calendar"
+---
+
+<style>
+  .chrono {
+    --paper: #f1e9d8;
+    --paper-shadow: #d9cdb1;
+    --ink: #1a2230;
+    --ink-faint: #5a4f3e;
+    --stamp-red: #b03a2e;
+    --stamp-blue: #1f4a7a;
+    --past: #8a8270;
+    --anchor: #b8852a;
+    --recur: #4a6b48;
+    --rule: #cabb98;
+    font-family: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    color: var(--ink);
+    background: var(--paper);
+    margin: 0;
+    padding: 0;
+    line-height: 1.45;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(176, 58, 46, 0.04) 0, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(31, 74, 122, 0.04) 0, transparent 40%);
+  }
+  .chrono * { box-sizing: border-box; }
+  .chrono a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(26, 34, 48, 0.3); }
+  .chrono a:hover { border-bottom-color: var(--stamp-red); color: var(--stamp-red); }
+  .chrono sup a { border: none; color: var(--stamp-red); font-weight: 600; }
+  .chrono .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+
+  /* ───── Cover masthead ───── */
+  .cover {
+    border-top: 3px double var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 2.5rem 3rem 2rem;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 12px, rgba(26, 34, 48, 0.02) 12px 13px),
+      var(--paper);
+  }
+  .cover-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 1.5rem;
+  }
+  .cover-meta span { display: inline-block; }
+  .cover h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    line-height: 1.05;
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+  .cover h1 em { font-style: normal; color: var(--stamp-red); font-weight: 600; }
+  .cover .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--stamp-blue);
+    margin-bottom: 0.6rem;
+  }
+  .cover .deck {
+    max-width: 56ch;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin-top: 1rem;
+  }
+  .cover .deck strong { background: rgba(184, 133, 42, 0.18); padding: 0 0.2em; }
+
+  /* ───── Legend strip ───── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem 2rem;
+    padding: 1rem 3rem;
+    background: rgba(26, 34, 48, 0.04);
+    border-bottom: 1px solid var(--rule);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .swatch {
+    width: 14px; height: 14px;
+    border: 1px solid currentColor;
+    display: inline-block;
+  }
+  .swatch.anchor { background: var(--anchor); color: var(--anchor); }
+  .swatch.recur { background: var(--recur); color: var(--recur); }
+  .swatch.summit { background: var(--stamp-blue); color: var(--stamp-blue); }
+  .swatch.training { background: var(--stamp-red); color: var(--stamp-red); }
+  .swatch.sporadic { background: transparent; border-style: dashed; color: var(--ink); }
+  .swatch.past { background: var(--past); color: var(--past); opacity: 0.5; }
+
+  /* ───── Year spine ───── */
+  .spine-wrap {
+    padding: 2.5rem 3rem 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .spine-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .month-row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px dotted var(--rule);
+    align-items: start;
+    min-height: 60px;
+  }
+  .month-row:last-child { border-bottom: none; }
+  .month-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.15em;
+    color: var(--ink);
+    padding-top: 0.5rem;
+    border-right: 1px solid var(--rule);
+    padding-right: 1rem;
+  }
+  .month-label .year {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+    font-weight: 400;
+    margin-top: 0.2rem;
+  }
+  .month-events {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+  .quiet {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-faint);
+    opacity: 0.6;
+    padding-top: 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  /* ───── Stamp card (the date-stamp event) ───── */
+  .stamp {
+    display: inline-flex;
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid var(--ink);
+    box-shadow: 2px 2px 0 rgba(26, 34, 48, 0.15);
+    text-decoration: none;
+    color: var(--ink);
+    transform: rotate(-0.4deg);
+    transition: transform 0.15s, box-shadow 0.15s;
+    max-width: 100%;
+  }
+  .stamp:nth-child(even) { transform: rotate(0.6deg); }
+  .stamp:nth-child(3n) { transform: rotate(-0.8deg); }
+  .stamp:hover {
+    transform: rotate(0) translateY(-2px);
+    box-shadow: 3px 4px 0 rgba(26, 34, 48, 0.2);
+    border-bottom-color: var(--ink);
+  }
+  .stamp-date {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.5rem 0.7rem;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    border-right: 1px dashed rgba(241, 233, 216, 0.4);
+    min-width: 60px;
+  }
+  .stamp-date .dd {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .stamp-date .mm {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    margin-top: 0.2rem;
+    opacity: 0.85;
+  }
+  .stamp-body {
+    padding: 0.45rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 130px;
+  }
+  .stamp-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.15;
+  }
+  .stamp-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 0.25rem;
+  }
+
+  .stamp.anchor { border: 2px solid var(--anchor); }
+  .stamp.anchor .stamp-date { background: var(--anchor); }
+  .stamp.anchor .stamp-tag { color: var(--anchor); font-weight: 600; }
+  .stamp.summit { border-color: var(--stamp-blue); }
+  .stamp.summit .stamp-date { background: var(--stamp-blue); }
+  .stamp.summit .stamp-tag { color: var(--stamp-blue); }
+  .stamp.training .stamp-date { background: var(--stamp-red); }
+  .stamp.training .stamp-tag { color: var(--stamp-red); }
+  .stamp.sporadic { border-style: dashed; }
+  .stamp.sporadic .stamp-date { background: transparent; color: var(--ink); border-right: 1px dashed var(--ink); }
+  .stamp.past {
+    opacity: 0.55;
+    background: #efe6d2;
+    border-color: var(--past);
+  }
+  .stamp.past .stamp-date { background: var(--past); }
+  .stamp.past .stamp-name { text-decoration: line-through; text-decoration-color: var(--past); text-decoration-thickness: 1px; }
+  .stamp.past .stamp-tag { color: var(--past); }
+
+  /* "You are here" line */
+  .today-marker {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 1.5rem;
+    padding: 0.6rem 0;
+    align-items: center;
+  }
+  .today-marker .month-label {
+    border: none;
+    color: var(--stamp-red);
+    font-weight: 700;
+    padding: 0;
+    text-align: right;
+  }
+  .today-line {
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--stamp-red) 0 8px, transparent 8px 14px);
+    position: relative;
+  }
+  .today-line::after {
+    content: '◆ TODAY · 30 MAY 2026';
+    position: absolute;
+    right: 0;
+    top: -0.65rem;
+    background: var(--paper);
+    padding: 0 0.6rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--stamp-red);
+    font-weight: 700;
+  }
+
+  /* ───── Recurring ribbons ───── */
+  .ribbons {
+    padding: 2.5rem 3rem;
+    background: #ebe2cc;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-h {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.4rem;
+  }
+  .section-h2 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2rem;
+    margin: 0 0 1.5rem;
+    letter-spacing: -0.01em;
+  }
+  .ribbon-grid { display: grid; gap: 1rem; }
+  .ribbon {
+    background: #fff;
+    border: 1px solid var(--ink);
+    padding: 0.8rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+  .ribbon-meta { display: flex; flex-direction: column; gap: 0.3rem; }
+  .ribbon-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+  .ribbon-desc {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .ribbon-bar {
+    height: 28px;
+    border: 1px solid var(--rule);
+    background: #f7f0dd;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--ink-faint);
+  }
+  .ribbon-bar > span {
+    border-right: 1px dotted var(--rule);
+    text-align: center;
+    padding-top: 9px;
+    letter-spacing: 0.05em;
+  }
+  .ribbon-bar > span:last-child { border-right: none; }
+  .ribbon-fill {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    background: var(--recur);
+    border: 1px solid #2f4a2e;
+    opacity: 0.85;
+  }
+  .ribbon-fill.training { background: var(--stamp-red); border-color: #7a2419; }
+  .ribbon-fill.programme { background: var(--stamp-blue); border-color: #14365a; }
+
+  /* ───── Anchor event detail cards ───── */
+  .anchors {
+    padding: 3rem 3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .anchor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--ink);
+    box-shadow: 4px 4px 0 rgba(26, 34, 48, 0.15);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .card-img {
+    aspect-ratio: 16/9;
+    width: 100%;
+    object-fit: cover;
+    background: #ebe2cc;
+    border-bottom: 1px solid var(--rule);
+  }
+  .card-img-placeholder {
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, var(--anchor), #d9a849);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+  }
+  .card-stamp {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    background: var(--anchor);
+    color: #fff;
+    padding: 0.35rem 0.6rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+    transform: rotate(-3deg);
+  }
+  .card-stamp.summit { background: var(--stamp-blue); }
+  .card-stamp.training { background: var(--stamp-red); }
+  .card-stamp.sporadic { background: var(--ink); }
+  .card-body { padding: 1.2rem 1.4rem 1.4rem; flex: 1; display: flex; flex-direction: column; gap: 0.6rem; }
+  .card-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px dotted var(--rule);
+    padding-bottom: 0.5rem;
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin: 0;
+  }
+  .card-venue { font-size: 0.85rem; color: var(--ink-faint); font-style: italic; }
+  .card-what { font-size: 0.93rem; color: var(--ink); }
+  .card-meta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.8rem;
+    border-top: 1px dotted var(--rule);
+  }
+  .pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+    padding: 0.2rem 0.5rem;
+    color: var(--ink-faint);
+  }
+  .pill.dot::before { content: '●'; margin-right: 0.3em; color: var(--anchor); }
+  .pill.training-pill { color: var(--stamp-red); }
+  .pill.summit-pill { color: var(--stamp-blue); }
+
+  /* ───── Pairing strip — Saturday-dinner overlay ───── */
+  .pairing {
+    padding: 2.5rem 3rem;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .pairing .section-h { color: rgba(241, 233, 216, 0.6); }
+  .pairing .section-h2 { color: var(--paper); }
+  .pairing .deck { max-width: 60ch; font-size: 1.02rem; color: rgba(241, 233, 216, 0.85); }
+  .pairing .deck em { color: var(--anchor); font-style: normal; font-weight: 600; }
+  .pairing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .pair-card {
+    border: 1px solid rgba(241, 233, 216, 0.3);
+    padding: 1rem 1.2rem;
+    background: rgba(241, 233, 216, 0.04);
+  }
+  .pair-cal {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    color: var(--anchor);
+    margin-bottom: 0.3rem;
+  }
+  .pair-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    margin: 0 0 0.4rem;
+    color: var(--paper);
+  }
+  .pair-body { font-size: 0.88rem; color: rgba(241, 233, 216, 0.75); }
+
+  /* ───── Out of radius / colophon ───── */
+  .footer {
+    padding: 2.5rem 3rem 3rem;
+    font-size: 0.9rem;
+  }
+  .footer h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 0.6rem;
+  }
+  .footer p { margin: 0 0 1rem; max-width: 60ch; color: var(--ink); }
+  .ecosystem {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--rule);
+    background: #ebe2cc;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.2rem;
+  }
+  .eco-node {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+  }
+  .eco-node img {
+    width: 36px; height: 36px; object-fit: contain;
+    background: var(--ink);
+    padding: 4px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .eco-node .eco-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .eco-node .eco-role {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+  .colophon {
+    border-top: 3px double var(--ink);
+    margin-top: 2.5rem;
+    padding-top: 1.2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 720px) {
+    .cover, .spine-wrap, .ribbons, .anchors, .pairing, .footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+    .month-row { grid-template-columns: 70px 1fr; gap: 0.8rem; }
+    .ribbon { grid-template-columns: 1fr; }
+    .legend { padding: 0.8rem 1.2rem; gap: 0.6rem 1.2rem; }
+  }
+</style>
+
+<div class="chrono">
+
+  <!-- ───── COVER ───── -->
+  <section class="cover">
+    <div class="cover-meta">
+      <span>Cantabria · Spain · 30-km radius</span>
+      <span>Ed. May 2026 · 15 sources</span>
+    </div>
+    <div class="kicker">A chronogram · 12 months · 10 fixtures</div>
+    <h1>The tech year inside a <em>30&nbsp;km</em> circle drawn around a Michelin&nbsp;table.</h1>
+    <p class="deck">A 30-km radius from Cenador de Amós is essentially Santander's metro area <sup><a href="https://www.viamichelin.com/routes/results/villaverde_de_pontones-39793-cantabria-cantabria-spain-to-santander-39001-cantabria-cantabria-spain">[1]</a></sup>. The IT-conference calendar in that circle is <strong>thin but not empty</strong> — two academic anchors carry 2026, a quiet summer follows, the autumn summit waits on a date. Read this as a stamp-book: each event, its day, its weight.</p>
+  </section>
+
+  <!-- ───── LEGEND ───── -->
+  <section class="legend" aria-label="Legend">
+    <span class="legend-item"><span class="swatch anchor"></span>Anchor academic</span>
+    <span class="legend-item"><span class="swatch summit"></span>Summit / showcase</span>
+    <span class="legend-item"><span class="swatch training"></span>Training · CTF</span>
+    <span class="legend-item"><span class="swatch recur"></span>Recurring series</span>
+    <span class="legend-item"><span class="swatch sporadic"></span>Ad-hoc meetup</span>
+    <span class="legend-item"><span class="swatch past"></span>Already past</span>
+  </section>
+
+  <!-- ───── YEAR SPINE ───── -->
+  <section class="spine-wrap">
+    <div class="spine-title">
+      <span>The Year · 2026</span>
+      <span>Plotted by date · cancelled-stamp style</span>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">JAN<span class="year">2026</span></div>
+      <div class="quiet">— quiet —</div>
+    </div>
+    <div class="month-row">
+      <div class="month-label">FEB<span class="year">2026</span></div>
+      <div class="quiet">— quiet —</div>
+    </div>
+    <div class="month-row">
+      <div class="month-label">MAR<span class="year">2026</span></div>
+      <div class="quiet">— quiet —</div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">APR<span class="year">2026</span></div>
+      <div class="month-events">
+        <a class="stamp past" href="https://indico.cern.ch/event/1667605/">
+          <div class="stamp-date"><span class="dd">14</span><span class="mm">APR</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">CERN Quantum Master Class</div>
+            <div class="stamp-tag">Facultad de Ciencias · UC</div>
+          </div>
+        </a>
+        <a class="stamp recur" style="border-color: var(--recur)" href="https://ceoecantabria.es/ceoe-cepyme-cantabria-y-el-cluster-tera-lanzan-una-nueva-edicion-de-la-cana-digital-2/">
+          <div class="stamp-date" style="background: var(--recur)"><span class="dd">23</span><span class="mm">APR</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">Caña Digital opens season</div>
+            <div class="stamp-tag" style="color: var(--recur)">Series · 8 sessions → Dec</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">MAY<span class="year">2026</span></div>
+      <div class="month-events">
+        <a class="stamp past" href="https://educantabria.es/web/cited/cantabrobots">
+          <div class="stamp-date"><span class="dd">14</span><span class="mm">MAY</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">CantabRobots + Math</div>
+            <div class="stamp-tag">Palacio de Exposiciones · 1,500 kids</div>
+          </div>
+        </a>
+        <a class="stamp past" href="https://centrocibercantabria.es/eventos/categoria/ctf/2026-05/">
+          <div class="stamp-date"><span class="dd">28</span><span class="mm">MAY</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">C3 Capture-The-Flag</div>
+            <div class="stamp-tag">Torre Xtela · PCTCAN</div>
+          </div>
+        </a>
+        <a class="stamp past sporadic" href="https://gdg.community.dev/gdg-santander/">
+          <div class="stamp-date"><span class="dd">29</span><span class="mm">MAY</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">GDG · Generative SDUI in Flutter</div>
+            <div class="stamp-tag">Google Developer Group</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="today-marker">
+      <div class="month-label">↓ here</div>
+      <div class="today-line"></div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">JUN<span class="year">2026</span></div>
+      <div class="month-events">
+        <a class="stamp anchor" href="https://www.congresoacede.org/en/">
+          <div class="stamp-date"><span class="dd">14–16</span><span class="mm">JUN</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">XXXV <a href="https://www.congresoacede.org/en/">ACEDE</a> Congress</div>
+            <div class="stamp-tag">★ Anchor · AI &amp; business · UC</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">JUL<span class="year">2026</span></div>
+      <div class="month-events">
+        <a class="stamp anchor" href="https://www.upv.es/entidades/dieo/2025/10/14/xvii-congreso-internacional-taee-2026/">
+          <div class="stamp-date"><span class="dd">01–03</span><span class="mm">JUL</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">XVII <a href="https://www.upv.es/entidades/dieo/2025/10/14/xvii-congreso-internacional-taee-2026/">TAEE</a> Congress</div>
+            <div class="stamp-tag">★ Anchor · Electronics · ETSIIT-UC</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">AUG<span class="year">2026</span></div>
+      <div class="quiet">— summer pause —</div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">SEP<span class="year">2026</span></div>
+      <div class="quiet">— quiet — (watch <a href="https://pinncan.cantabria.es/agenda">PINN agenda</a> for additions)</div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">OCT<span class="year">2026</span></div>
+      <div class="month-events">
+        <a class="stamp summit" href="https://c-meet.es/">
+          <div class="stamp-date"><span class="dd">TBA</span><span class="mm">OCT</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name"><a href="https://c-meet.es/">C-Meet</a> · 5th edition</div>
+            <div class="stamp-tag">Escenario Santander · 500+ firms expected</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">NOV<span class="year">2026</span></div>
+      <div class="quiet">— quiet —</div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">DEC<span class="year">2026</span></div>
+      <div class="month-events">
+        <a class="stamp recur" style="border-color: var(--recur)" href="https://ceoecantabria.es/ceoe-cepyme-cantabria-y-el-cluster-tera-lanzan-una-nueva-edicion-de-la-cana-digital-2/">
+          <div class="stamp-date" style="background: var(--recur)"><span class="dd">17</span><span class="mm">DEC</span></div>
+          <div class="stamp-body">
+            <div class="stamp-name">Caña Digital closes season</div>
+            <div class="stamp-tag" style="color: var(--recur)">Cervezas Smach · final session</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── RECURRING RIBBONS ───── -->
+  <section class="ribbons">
+    <div class="section-h">Across the year · ribbons</div>
+    <h2 class="section-h2">The things that run regardless.</h2>
+
+    <div class="ribbon-grid">
+      <div class="ribbon">
+        <div class="ribbon-meta">
+          <div class="ribbon-name"><a href="https://ceoecantabria.es/ceoe-cepyme-cantabria-y-el-cluster-tera-lanzan-una-nueva-edicion-de-la-cana-digital-2/">Caña Digital</a> · monthly tech-talks</div>
+          <div class="ribbon-desc">Free 18:30–20:00 talk + networking, organised by CEOE-CEPYME and <a href="https://clustertera.es/en/">Clúster TERA</a> at Cervezas Smach (Raos) and CIE Santander <sup><a href="https://ceoecantabria.es/ceoe-cepyme-cantabria-y-el-cluster-tera-lanzan-una-nueva-edicion-de-la-cana-digital-2/">[5]</a></sup>.</div>
+        </div>
+        <div class="ribbon-bar" aria-label="April through December">
+          <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span>
+          <div class="ribbon-fill" style="left: 27%; right: 0;"></div>
+        </div>
+      </div>
+
+      <div class="ribbon">
+        <div class="ribbon-meta">
+          <div class="ribbon-name"><a href="https://centrocibercantabria.es/eventos/categoria/ctf/2026-05/">C3 cybersecurity</a> · training + monthly CTF</div>
+          <div class="ribbon-desc">Free SODERCAN-funded NIS2/CRA, monitoring &amp; awareness sessions plus a monthly Capture-The-Flag, year-round at Torre Xtela / <a href="https://www.pctcan.es/en/">PCTCAN</a> <sup><a href="https://centrocibercantabria.es/eventos/categoria/ctf/2026-05/">[7]</a></sup><sup><a href="https://www.cantabria.es/web/comunicados/w/sodercan-refuerza-el-programa-formativo-del-centro-de-ciberseguridad-para-pymes-y-aut%C3%B3nomos">[8]</a></sup>.</div>
+        </div>
+        <div class="ribbon-bar">
+          <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span>
+          <div class="ribbon-fill training" style="left: 0; right: 0;"></div>
+        </div>
+      </div>
+
+      <div class="ribbon">
+        <div class="ribbon-meta">
+          <div class="ribbon-name"><a href="https://www.cise.es/programas-para-emprendedores/startinnova/">CISE</a> · entrepreneurship programmes</div>
+          <div class="ribbon-desc">STARTinnova and e2, ongoing year-round — programmes not single-day events, backed by Banco Santander &amp; the University of Cantabria <sup><a href="https://www.cise.es/programas-para-emprendedores/startinnova/">[15]</a></sup>.</div>
+        </div>
+        <div class="ribbon-bar">
+          <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span>
+          <div class="ribbon-fill programme" style="left: 0; right: 0;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── ANCHOR CARDS — detail spread ───── -->
+  <section class="anchors">
+    <div class="section-h">Date-stamp dossiers</div>
+    <h2 class="section-h2">The five fixtures that justify a Saturday dinner.</h2>
+
+    <div class="anchor-grid">
+
+      <article class="card">
+        <div class="card-img-placeholder" style="background: linear-gradient(135deg, #b8852a, #d9a849);">ACEDE</div>
+        <span class="card-stamp">★ Anchor</span>
+        <div class="card-body">
+          <div class="card-date">Sun 14 → Tue 16 · June 2026</div>
+          <h3 class="card-title">XXXV <a href="https://www.congresoacede.org/en/">ACEDE</a> International Congress</h3>
+          <div class="card-venue">University of Cantabria, Santander</div>
+          <div class="card-what">Academic business-management conference, this year on <em>Responsible Governance &amp; Business Transformation in the AI age</em><sup><a href="https://www.congresoacede.org/en/">[3]</a></sup>. ⚠ Business academy — not a dev conference. Pairs cleanly with a <strong>Sat 13 Jun dinner</strong>, then Sun-Tue at the congress.</div>
+          <div class="card-meta">
+            <span class="pill dot">UC Santander</span>
+            <span class="pill">Academic</span>
+            <span class="pill">AI / mgmt</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="card-img" src="calendar/images/taee.png" alt="XVII TAEE 2026 conference logo">
+        <span class="card-stamp">★ Anchor</span>
+        <div class="card-body">
+          <div class="card-date">Wed 01 → Fri 03 · July 2026</div>
+          <h3 class="card-title">XVII <a href="https://www.upv.es/entidades/dieo/2025/10/14/xvii-congreso-internacional-taee-2026/">TAEE</a> Congress</h3>
+          <div class="card-venue">ETSIIT — University of Cantabria, Santander</div>
+          <div class="card-what">Iberian electronics-engineering teaching &amp; tech conference — papers, demos, posters <sup><a href="https://www.upv.es/entidades/dieo/2025/10/14/xvii-congreso-internacional-taee-2026/">[4]</a></sup>. Closes Friday afternoon and lines up exactly with a <strong>Sat 4 Jul dinner</strong> at Cenador.</div>
+          <div class="card-meta">
+            <span class="pill dot">ETSIIT-UC</span>
+            <span class="pill">Academic</span>
+            <span class="pill">Electronics</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="card-img" src="calendar/images/cmeet.png" alt="C-Meet 2025 banner">
+        <span class="card-stamp summit">Summit · TBA</span>
+        <div class="card-body">
+          <div class="card-date">Two days · expected October</div>
+          <h3 class="card-title"><a href="https://c-meet.es/">C-Meet</a> · 5th edition</h3>
+          <div class="card-venue">Escenario Santander</div>
+          <div class="card-what">Cantabria's flagship digital-innovation event. 2025 ran 2–3 Oct with 500+ firms and keynotes from Google, Microsoft and Spotify <sup><a href="https://c-meet.es/">[6]</a></sup>. 2026 dates not yet posted — historically lands early October.</div>
+          <div class="card-meta">
+            <span class="pill summit-pill">Escenario Santander</span>
+            <span class="pill">500+ firms</span>
+            <span class="pill">Free</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="card-img" src="calendar/images/cana-digital.png" alt="Caña Digital 2026 series">
+        <span class="card-stamp" style="background: var(--recur);">Series · Apr → Dec</span>
+        <div class="card-body">
+          <div class="card-date">Thursdays · ≈ monthly · 18:30–20:00</div>
+          <h3 class="card-title"><a href="https://ceoecantabria.es/ceoe-cepyme-cantabria-y-el-cluster-tera-lanzan-una-nueva-edicion-de-la-cana-digital-2/">Caña Digital</a> 2026</h3>
+          <div class="card-venue">Cervezas Smach (Raos) &amp; CIE Santander</div>
+          <div class="card-what">8-session free talk + networking series, 15–20 min talk plus ~1 h networking. Co-organised by CEOE-CEPYME Cantabria and <a href="https://clustertera.es/en/">Clúster TERA</a> <sup><a href="https://ceoecantabria.es/ceoe-cepyme-cantabria-y-el-cluster-tera-lanzan-una-nueva-edicion-de-la-cana-digital-2/">[5]</a></sup>. Pair a Thursday session with a Saturday dinner.</div>
+          <div class="card-meta">
+            <span class="pill" style="color: var(--recur);">Free</span>
+            <span class="pill">15-min talk</span>
+            <span class="pill">Networking</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="card-img" src="calendar/images/c3.png" alt="Centro de Ciberseguridad de Cantabria logo" style="background: #1a2230; padding: 1.5rem; object-fit: contain;">
+        <span class="card-stamp training">Training · CTF</span>
+        <div class="card-body">
+          <div class="card-date">Year-round · CTF most months</div>
+          <h3 class="card-title"><a href="https://centrocibercantabria.es/eventos/categoria/ctf/2026-05/">C3</a> · cybersecurity centre</h3>
+          <div class="card-venue">Torre Xtela, <a href="https://www.pctcan.es/en/">PCTCAN</a>, Santander</div>
+          <div class="card-what">SODERCAN-funded NIS2/CRA, monitoring, awareness sessions plus a recurring Capture-The-Flag competition (most recently 28–29 May) <sup><a href="https://centrocibercantabria.es/eventos/categoria/ctf/2026-05/">[7]</a></sup><sup><a href="https://www.cantabria.es/web/comunicados/w/sodercan-refuerza-el-programa-formativo-del-centro-de-ciberseguridad-para-pymes-y-aut%C3%B3nomos">[8]</a></sup>. ✓ Open to SMEs &amp; self-employed.</div>
+          <div class="card-meta">
+            <span class="pill training-pill">SODERCAN</span>
+            <span class="pill">Free</span>
+            <span class="pill">CTF · NIS2</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="card-img" src="calendar/images/gdg.png" alt="GDG Santander developer community">
+        <span class="card-stamp sporadic">Ad-hoc</span>
+        <div class="card-body">
+          <div class="card-date">Sporadic · check ahead</div>
+          <h3 class="card-title"><a href="https://gdg.community.dev/gdg-santander/">GDG Santander</a></h3>
+          <div class="card-venue">Varies, usually Santander</div>
+          <div class="card-what">Google Developer Group — Flutter, Android, web meetups. Calendar is sparse; latest listed was 29 May (Generative SDUI in Flutter) <sup><a href="https://gdg.community.dev/gdg-santander/">[9]</a></sup>. Useful if it lines up; not bookable in advance.</div>
+          <div class="card-meta">
+            <span class="pill">Community</span>
+            <span class="pill">Flutter / Web</span>
+            <span class="pill">Free</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ───── PAIRING — Saturday-dinner overlay ───── -->
+  <section class="pairing">
+    <div class="section-h">The dinner-anchor overlay</div>
+    <h2 class="section-h2">Saturdays that already line up.</h2>
+    <p class="deck">The geometry of the trip is set by one constraint: <em>do not drive after dinner.</em> So the calendar gets read backwards — find an event that brackets a Saturday, book the dinner that night, sleep in Santander, drive 20&nbsp;min for the tasting menu. Three weekends already qualify in 2026.</p>
+
+    <div class="pairing-grid">
+      <div class="pair-card">
+        <div class="pair-cal">▣ SAT 13 JUN</div>
+        <h4 class="pair-title">Dinner → Sun open of ACEDE</h4>
+        <div class="pair-body">ACEDE opens Sunday 14 Jun at UC <sup><a href="https://www.congresoacede.org/en/">[3]</a></sup>. Dinner Saturday, hotel in Santander, walk into the congress Sunday morning.</div>
+      </div>
+      <div class="pair-card">
+        <div class="pair-cal">▣ SAT 04 JUL</div>
+        <h4 class="pair-title">TAEE close → dinner</h4>
+        <div class="pair-body">TAEE wraps Friday 3 Jul at ETSIIT <sup><a href="https://www.upv.es/entidades/dieo/2025/10/14/xvii-congreso-internacional-taee-2026/">[4]</a></sup>. Stay one extra night, Saturday at Cenador, drive home Sunday.</div>
+      </div>
+      <div class="pair-card">
+        <div class="pair-cal">▣ SAT ≈ 3 OCT</div>
+        <h4 class="pair-title">C-Meet weekend (if confirmed)</h4>
+        <div class="pair-body">C-Meet historically lands early October at <a href="https://c-meet.es/">Escenario Santander</a> <sup><a href="https://c-meet.es/">[6]</a></sup>. If the 5th-edition dates land Thu–Fri, the Saturday after pairs cleanly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── FOOTER ───── -->
+  <section class="footer">
+    <h3>Not on the calendar — outside the 30-km circle</h3>
+    <p>The big Spanish IT crowd-pullers — Spring I/O, South Summit, DES — sit in Barcelona, Madrid and Málaga respectively. No FOSDEM/KubeCon/PyData-scale event lands inside the radius in 2026. Torrelavega, Reinosa and Bilbao all fall outside the circle <sup><a href="https://www.viamichelin.com/routes/results/villaverde_de_pontones-39793-cantabria-cantabria-spain-to-santander-39001-cantabria-cantabria-spain">[1]</a></sup>.</p>
+    <p><em>Borderline.</em> IC2 (construction innovation, 1 June at Palacio de la Magdalena) is on the <a href="https://pinncan.cantabria.es/agenda">PINN agenda</a> but skews AEC industry, not software <sup><a href="https://pinncan.cantabria.es/agenda">[12]</a></sup>.</p>
+
+    <div class="ecosystem">
+      <div class="eco-node">
+        <img src="calendar/images/pctcan.jpg" alt="PCTCAN banner">
+        <div>
+          <div class="eco-name"><a href="https://www.pctcan.es/en/">PCTCAN</a></div>
+          <div class="eco-role">Science-tech park · 82 firms, 4,800 employees · hosts C3 <sup><a href="https://www.pctcan.es/en/">[13]</a></sup></div>
+        </div>
+      </div>
+      <div class="eco-node">
+        <img src="calendar/images/tera.png" alt="Clúster TERA logo">
+        <div>
+          <div class="eco-name"><a href="https://clustertera.es/en/">Clúster TERA</a></div>
+          <div class="eco-role">ICT industry association · co-organiser of Caña Digital <sup><a href="https://clustertera.es/en/">[14]</a></sup></div>
+        </div>
+      </div>
+      <div class="eco-node">
+        <img src="calendar/images/cantabrobots.png" alt="Educantabria logo">
+        <div>
+          <div class="eco-name"><a href="https://www.cise.es/programas-para-emprendedores/startinnova/">CISE</a></div>
+          <div class="eco-role">Entrepreneurship hub · Banco Santander + UC + Gov. of Cantabria <sup><a href="https://www.cise.es/programas-para-emprendedores/startinnova/">[15]</a></sup></div>
+        </div>
+      </div>
+      <div class="eco-node">
+        <img src="calendar/images/cern-quantum.png" alt="UC Indico event logo">
+        <div>
+          <div class="eco-name"><a href="https://pinncan.cantabria.es/agenda">PINN agenda</a></div>
+          <div class="eco-role">Cantabria innovation calendar · check for late additions <sup><a href="https://pinncan.cantabria.es/agenda">[12]</a></sup></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="colophon">
+      <span>Chronogram view · drawn from 15 cited sources</span>
+      <span>Dated 30 May 2026 · Villaverde de Pontones, ES</span>
+    </div>
+  </section>
+
+</div>
