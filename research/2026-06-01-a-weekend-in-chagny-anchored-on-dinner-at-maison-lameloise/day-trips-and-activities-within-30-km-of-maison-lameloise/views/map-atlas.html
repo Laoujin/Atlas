@@ -1,0 +1,1471 @@
+---
+layout: view
+view_name: "Atlas"
+view_of: ../
+title: "Day-trips within 30 km of Maison Lameloise — Atlas"
+---
+
+<style>
+  .atlas {
+    --paper: #f3ead3;
+    --paper-deep: #e9dfbc;
+    --paper-shadow: #d8cca5;
+    --ink: #2a241a;
+    --ink-soft: #5a4f3a;
+    --rule: #8c7e5c;
+    --rule-soft: #c4b88f;
+    --michelin: #d72e1f;
+    --michelin-deep: #a51b0e;
+    --wine: #6b1a2a;
+    --castle: #5b4534;
+    --city: #1f4e79;
+    --outdoor: #2f6b34;
+    --beyond: #8b8475;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Lora", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  .atlas a { color: var(--michelin-deep); text-decoration: underline; text-decoration-color: rgba(165,27,14,.4); text-underline-offset: 2px; }
+  .atlas a:hover { color: var(--michelin); text-decoration-color: var(--michelin); }
+  .atlas sup a { font-size: 10px; color: var(--ink-soft); text-decoration: none; }
+  .atlas sup a:hover { color: var(--michelin); text-decoration: underline; }
+  .atlas .grot { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+  .atlas .mono { font-family: "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace; }
+
+  .atlas .paper {
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(110,82,40,.05) 0, transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(110,82,40,.05) 0, transparent 60%),
+      repeating-linear-gradient(45deg, transparent 0 5px, rgba(110,82,40,.012) 5px 10px);
+    padding: 0;
+  }
+
+  /* PLATE — every section is a numbered atlas plate */
+  .atlas .plate {
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    margin: 36px clamp(16px, 4vw, 48px);
+    padding: 28px clamp(16px, 4vw, 48px);
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+    box-shadow: inset 0 0 0 1px rgba(110,82,40,.18), 0 1px 0 var(--paper-shadow);
+    position: relative;
+  }
+  .atlas .plate::before {
+    content: "";
+    position: absolute; inset: 6px;
+    border: 1px solid var(--rule-soft);
+    pointer-events: none;
+  }
+  .atlas .plate-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 12px; margin-bottom: 22px;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .atlas .plate-no { font-family: "Lora", serif; font-style: italic; font-size: 13px; letter-spacing: .12em; color: var(--ink-soft); text-transform: uppercase; }
+  .atlas .plate-title { font-family: "Lora", serif; font-weight: 700; font-size: clamp(22px, 3vw, 32px); letter-spacing: .01em; margin: 0; color: var(--ink); }
+  .atlas .plate-stats { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-soft); letter-spacing: .08em; }
+
+  /* COVER */
+  .atlas .cover {
+    margin: 0;
+    padding: clamp(40px, 6vw, 80px) clamp(20px, 5vw, 64px) clamp(28px, 4vw, 48px);
+    border-top: 8px solid var(--michelin);
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+  }
+  .atlas .cover::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -10px; height: 4px;
+    background: var(--michelin);
+    box-shadow: 0 1px 0 var(--paper-shadow);
+  }
+  .atlas .cover-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: end;
+  }
+  .atlas .cover-eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; letter-spacing: .35em; text-transform: uppercase;
+    color: var(--michelin-deep); font-weight: 700;
+    border-top: 1px solid var(--michelin); border-bottom: 1px solid var(--michelin);
+    display: inline-block; padding: 6px 0; margin-bottom: 22px;
+  }
+  .atlas .cover-title {
+    font-family: "Lora", "Playfair Display", serif;
+    font-weight: 700;
+    font-size: clamp(36px, 6vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -.015em;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+  .atlas .cover-title em { font-style: italic; color: var(--michelin-deep); font-weight: 500; }
+  .atlas .cover-sub {
+    font-family: "Lora", serif; font-style: italic;
+    font-size: clamp(15px, 1.5vw, 19px);
+    color: var(--ink-soft); max-width: 60ch;
+    margin: 0;
+  }
+  .atlas .cover-meta {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    margin-top: 24px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: .08em;
+  }
+  .atlas .cover-meta span { padding: 4px 10px; border: 1px solid var(--rule); }
+  .atlas .cover-compass {
+    width: clamp(110px, 14vw, 160px); height: clamp(110px, 14vw, 160px);
+    flex-shrink: 0;
+  }
+
+  /* SCALE BAR */
+  .atlas .scale-bar { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ink-soft); letter-spacing: .08em; }
+  .atlas .scale-bar .bar { display: flex; height: 8px; border: 1px solid var(--ink); }
+  .atlas .scale-bar .bar > div { width: 22px; height: 100%; border-right: 1px solid var(--ink); }
+  .atlas .scale-bar .bar > div:nth-child(odd) { background: var(--ink); }
+  .atlas .scale-bar .bar > div:last-child { border-right: none; }
+
+  /* VERDICT */
+  .atlas .verdict {
+    margin: 24px clamp(16px, 4vw, 48px);
+    padding: 22px 28px;
+    background: var(--paper-deep);
+    border-left: 6px solid var(--michelin);
+    border-right: 1px solid var(--rule-soft);
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+    box-shadow: 2px 2px 0 var(--paper-shadow);
+  }
+  .atlas .verdict-label {
+    font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--michelin-deep); font-weight: 700;
+  }
+  .atlas .verdict-body {
+    font-family: "Lora", serif; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.55; margin-top: 8px; color: var(--ink);
+  }
+  .atlas .verdict-body strong { color: var(--michelin-deep); font-weight: 700; }
+
+  /* MASTER MAP */
+  .atlas .map-wrap {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 18px;
+    margin-top: 6px;
+    position: relative;
+  }
+  .atlas .map-svg { width: 100%; height: auto; display: block; }
+  .atlas .map-caption {
+    margin-top: 14px;
+    font-family: "Lora", serif; font-style: italic;
+    font-size: 13px; color: var(--ink-soft);
+    text-align: center;
+  }
+
+  /* LEGEND */
+  .atlas .legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px 22px;
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: rgba(217, 200, 154, .25);
+    border: 1px solid var(--rule-soft);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink);
+  }
+  .atlas .legend-item { display: flex; align-items: center; gap: 8px; letter-spacing: .04em; }
+  .atlas .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,.3); }
+  .atlas .legend-dot.wine { background: var(--wine); }
+  .atlas .legend-dot.castle { background: var(--castle); }
+  .atlas .legend-dot.city { background: var(--city); }
+  .atlas .legend-dot.outdoor { background: var(--outdoor); }
+  .atlas .legend-dot.hub { background: var(--michelin); border-color: var(--michelin-deep); }
+  .atlas .legend-dot.beyond { background: var(--paper); border: 1px dashed var(--beyond); }
+
+  /* GAZETTEER GRID — cards */
+  .atlas .gazetteer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+  .atlas .gz-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 0;
+    display: flex; flex-direction: column;
+    box-shadow: 2px 2px 0 var(--paper-shadow);
+  }
+  .atlas .gz-card .gz-photo {
+    height: 130px; overflow: hidden; position: relative;
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(135deg, #c4b88f, #8c7e5c);
+  }
+  .atlas .gz-card .gz-photo img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: sepia(.15) saturate(.85) contrast(1.02);
+  }
+  .atlas .gz-card .gz-photo.no-photo {
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Lora", serif; font-style: italic; font-size: 15px; color: rgba(42,36,26,.55);
+    letter-spacing: .05em;
+  }
+  .atlas .gz-card .gz-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .atlas .gz-card .gz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .atlas .gz-card .gz-name { font-family: "Lora", serif; font-weight: 700; font-size: 18px; line-height: 1.2; margin: 0; color: var(--ink); }
+  .atlas .gz-card .gz-cat {
+    font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 0; color: #fff; flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+  }
+  .atlas .gz-card .gz-cat.wine { background: var(--wine); }
+  .atlas .gz-card .gz-cat.castle { background: var(--castle); }
+  .atlas .gz-card .gz-cat.city { background: var(--city); }
+  .atlas .gz-card .gz-cat.outdoor { background: var(--outdoor); }
+  .atlas .gz-card .gz-distance {
+    display: flex; gap: 12px;
+    font-family: "JetBrains Mono", monospace; font-size: 12px;
+    color: var(--michelin-deep); font-weight: 700;
+    border-top: 1px dashed var(--rule-soft);
+    border-bottom: 1px dashed var(--rule-soft);
+    padding: 6px 0; margin: 2px 0 4px;
+    letter-spacing: .04em;
+  }
+  .atlas .gz-card .gz-distance .lbl { color: var(--ink-soft); font-weight: 500; }
+  .atlas .gz-card .gz-desc { font-size: 14px; line-height: 1.5; color: var(--ink); }
+  .atlas .gz-card .gz-footer {
+    margin-top: auto;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding-top: 8px; border-top: 1px solid var(--rule-soft);
+    font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-soft);
+  }
+  .atlas .gz-card .gz-flags { display: flex; gap: 6px; }
+  .atlas .gz-card .flag {
+    font-family: "JetBrains Mono", monospace; font-size: 9px;
+    padding: 2px 5px; border: 1px solid var(--rule); letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .atlas .gz-card .flag.sun { color: var(--outdoor); border-color: var(--outdoor); }
+  .atlas .gz-card .flag.closed { color: var(--michelin-deep); border-color: var(--michelin-deep); }
+  .atlas .gz-card .flag.walk-in { color: var(--ink); border-color: var(--ink); }
+
+  /* SECTIONS w/ table-like comparisons */
+  .atlas .data-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--paper);
+    font-size: 13.5px;
+    margin-top: 12px;
+  }
+  .atlas .data-table th, .atlas .data-table td {
+    text-align: left; padding: 9px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+  .atlas .data-table thead th {
+    background: var(--paper-deep);
+    border-bottom: 2px solid var(--ink);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--ink); font-weight: 700;
+    padding: 8px 12px;
+  }
+  .atlas .data-table tbody tr:nth-child(even) td { background: rgba(217, 200, 154, .18); }
+  .atlas .data-table .num { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--michelin-deep); }
+  .atlas .data-table .check { color: var(--outdoor); font-weight: 700; }
+  .atlas .data-table .x { color: var(--michelin-deep); }
+  .atlas .data-table caption {
+    font-family: "Lora", serif; font-style: italic; color: var(--ink-soft);
+    text-align: left; padding: 0 0 6px; font-size: 13px;
+  }
+
+  /* SECTION INTRO */
+  .atlas .lede {
+    font-family: "Lora", serif; font-size: 16px; line-height: 1.6;
+    color: var(--ink);
+    max-width: 80ch;
+  }
+  .atlas .lede .dropcap {
+    float: left;
+    font-family: "Lora", serif;
+    font-weight: 700;
+    font-size: 56px; line-height: .85;
+    color: var(--michelin-deep);
+    padding: 6px 8px 0 0;
+  }
+
+  /* CITY PANEL — Chalon */
+  .atlas .city-panel {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 22px;
+    margin-top: 22px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 18px;
+  }
+  .atlas .city-panel .city-text h4 {
+    font-family: "Lora", serif; font-weight: 700; margin: 0 0 10px;
+    font-size: 20px;
+  }
+  .atlas .city-panel .city-text p { margin: 8px 0; font-size: 14px; line-height: 1.55; }
+  .atlas .city-panel .city-photo { background: linear-gradient(135deg, #c4b88f, #8c7e5c); min-height: 200px; border: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .atlas .city-panel .city-photo img { width: 100%; height: 100%; object-fit: cover; filter: sepia(.15) saturate(.85); }
+  @media (max-width: 720px) { .atlas .city-panel { grid-template-columns: 1fr; } }
+
+  /* SATURDAY PROFILE — horizontal route-elevation */
+  .atlas .profile {
+    margin-top: 22px;
+    padding: 22px 18px 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+  .atlas .profile-track {
+    position: relative; min-width: 760px;
+    height: 240px;
+    padding: 0 0 56px;
+    background:
+      linear-gradient(180deg, transparent 0%, transparent calc(100% - 56px), var(--rule-soft) calc(100% - 56px), var(--rule-soft) calc(100% - 55px), transparent calc(100% - 55px));
+  }
+  .atlas .profile-mountain {
+    position: absolute; left: 0; right: 0; bottom: 56px; height: 140px;
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(108,29,42,.05) 40%, rgba(108,29,42,.18) 100%);
+    clip-path: polygon(0 100%, 5% 80%, 12% 65%, 18% 70%, 24% 45%, 32% 35%, 40% 30%, 48% 28%, 56% 35%, 62% 32%, 68% 38%, 75% 30%, 82% 18%, 88% 10%, 95% 14%, 100% 35%, 100% 100%);
+    border-bottom: 2px solid var(--michelin-deep);
+  }
+  .atlas .profile-stations { position: relative; height: 100%; }
+  .atlas .profile-station {
+    position: absolute; bottom: 56px;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 130px;
+  }
+  .atlas .profile-station .pin {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--michelin); border: 2px solid var(--ink);
+    margin: 0 auto 6px;
+    position: relative;
+  }
+  .atlas .profile-station .pin::after {
+    content: ""; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+    width: 1px; height: 56px; background: var(--ink);
+  }
+  .atlas .profile-station .time {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    color: var(--michelin-deep);
+    margin-bottom: 4px;
+  }
+  .atlas .profile-station .place {
+    font-family: "Lora", serif; font-size: 12px; line-height: 1.25; color: var(--ink);
+  }
+  .atlas .profile-axis {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-between;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ink-soft); letter-spacing: .08em;
+  }
+  .atlas .profile-finale {
+    margin-top: 14px; padding: 14px 18px;
+    background: var(--michelin-deep); color: var(--paper);
+    font-family: "Lora", serif; font-style: italic; font-size: 15px;
+    border-left: 4px solid var(--michelin);
+  }
+  .atlas .profile-finale strong { font-style: normal; font-weight: 700; }
+
+  /* TWO PATTERNS */
+  .atlas .patterns { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 22px; margin-top: 18px; }
+  .atlas .pattern {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 18px;
+    box-shadow: 2px 2px 0 var(--paper-shadow);
+  }
+  .atlas .pattern h4 { font-family: "Lora", serif; font-weight: 700; margin: 0 0 4px; font-size: 20px; color: var(--michelin-deep); }
+  .atlas .pattern .pattern-sub { font-family: "Lora", serif; font-style: italic; color: var(--ink-soft); font-size: 13px; margin-bottom: 12px; }
+  .atlas .pattern ol { padding-left: 0; list-style: none; counter-reset: step; margin: 0; }
+  .atlas .pattern li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule-soft);
+    font-size: 13.5px; line-height: 1.45;
+  }
+  .atlas .pattern li:last-child { border-bottom: none; }
+  .atlas .pattern li .when { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--michelin-deep); font-weight: 700; letter-spacing: .04em; }
+
+  /* SUNDAY survival */
+  .atlas .sunday {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-top: 12px;
+  }
+  .atlas .sunday-col {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 14px 16px;
+  }
+  .atlas .sunday-col h4 {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+    margin: 0 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .atlas .sunday-col.open h4 { color: var(--outdoor); border-bottom-color: var(--outdoor); }
+  .atlas .sunday-col.closed h4 { color: var(--michelin-deep); border-bottom-color: var(--michelin-deep); }
+  .atlas .sunday-col ul { list-style: none; padding: 0; margin: 0; font-size: 13.5px; }
+  .atlas .sunday-col li { padding: 5px 0; border-bottom: 1px dotted var(--rule-soft); }
+  .atlas .sunday-col li:last-child { border-bottom: none; }
+  @media (max-width: 700px) { .atlas .sunday { grid-template-columns: 1fr; } }
+
+  /* BEYOND-30km caveat panel */
+  .atlas .caveats {
+    margin-top: 22px;
+    padding: 18px 22px;
+    background: rgba(139, 132, 117, .14);
+    border: 1px dashed var(--beyond);
+    font-size: 13.5px;
+  }
+  .atlas .caveats h4 { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; margin: 0 0 8px; color: var(--beyond); }
+  .atlas .caveats p { margin: 6px 0; color: var(--ink-soft); }
+
+  /* COLOPHON / footer */
+  .atlas .colophon {
+    margin: 36px clamp(16px, 4vw, 48px) 60px;
+    padding: 24px clamp(16px, 4vw, 48px);
+    border-top: 2px solid var(--michelin);
+    background: var(--paper-deep);
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: .04em;
+  }
+  .atlas .colophon h4 { font-family: "Lora", serif; font-style: italic; font-size: 14px; color: var(--ink); letter-spacing: 0; margin: 0 0 8px; }
+  .atlas .colophon-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  .atlas .colophon a { color: var(--michelin-deep); }
+  .atlas .colophon ul { list-style: none; padding: 0; margin: 0; }
+  .atlas .colophon li { padding: 3px 0; }
+  @media (max-width: 720px) { .atlas .colophon-grid { grid-template-columns: 1fr; } }
+
+  /* TWO COLS for the lede */
+  .atlas .two-col { columns: 2; column-gap: 26px; }
+  @media (max-width: 720px) { .atlas .two-col { columns: 1; } }
+
+  /* CHATEAU FEATURE */
+  .atlas .chateau-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 18px;
+    align-items: stretch;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    margin-top: 16px;
+    box-shadow: 2px 2px 0 var(--paper-shadow);
+  }
+  .atlas .chateau-row .ch-photo { background: linear-gradient(135deg, #c4b88f, #8c7e5c); min-height: 180px; overflow: hidden; }
+  .atlas .chateau-row .ch-photo img { width: 100%; height: 100%; object-fit: cover; filter: sepia(.18) saturate(.85); }
+  .atlas .chateau-row .ch-body { padding: 16px 20px 18px 4px; }
+  .atlas .chateau-row .ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--rule-soft); padding-bottom: 8px; margin-bottom: 10px; }
+  .atlas .chateau-row .ch-name { font-family: "Lora", serif; font-weight: 700; font-size: 22px; margin: 0; }
+  .atlas .chateau-row .ch-dist { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--michelin-deep); white-space: nowrap; }
+  .atlas .chateau-row .ch-desc { font-size: 14.5px; line-height: 1.55; margin: 0; }
+  .atlas .chateau-row .ch-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .atlas .chateau-row .ch-pills span { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .12em; padding: 3px 7px; border: 1px solid var(--rule); text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 700px) { .atlas .chateau-row { grid-template-columns: 1fr; } .atlas .chateau-row .ch-body { padding: 0 16px 16px; } }
+
+  /* INDEX strip — table of plates */
+  .atlas .index-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    margin: 0 clamp(16px, 4vw, 48px);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper-deep);
+  }
+  .atlas .index-strip a {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 12px 14px;
+    border-right: 1px solid var(--rule-soft);
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .atlas .index-strip a:last-child { border-right: none; }
+  .atlas .index-strip a:hover { background: rgba(215, 46, 31, .08); }
+  .atlas .index-strip .idx-no { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .15em; color: var(--michelin-deep); }
+  .atlas .index-strip .idx-title { font-family: "Lora", serif; font-weight: 700; font-size: 13.5px; line-height: 1.2; }
+
+  /* INLINE markers */
+  .atlas .km {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    padding: 1px 6px;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    color: var(--michelin-deep);
+    letter-spacing: .03em;
+    white-space: nowrap;
+  }
+
+  /* SECTION numbering tab */
+  .atlas .ribbon-tab {
+    position: absolute;
+    top: -2px; right: 30px;
+    background: var(--michelin);
+    color: var(--paper);
+    padding: 6px 14px;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .3em;
+    font-weight: 700;
+  }
+</style>
+
+<div class="atlas">
+<div class="paper">
+
+<!-- =================== COVER =================== -->
+<section class="cover">
+  <div class="cover-grid">
+    <div>
+      <div class="cover-eyebrow">Atlas Routier &mdash; Bourgogne &mdash; Édition 2026</div>
+      <h1 class="cover-title">Trente kilomètres<br><em>autour de Chagny</em></h1>
+      <p class="cover-sub">A vintage road-atlas plate of every day-trip target inside a 30 km circle of 36 Place d'Armes — distances, drive times, Sunday hours, and how to bend the day around a five-hour tasting menu.</p>
+      <div class="cover-meta">
+        <span>PLANCHE I &mdash; XII</span>
+        <span>R: 30 km</span>
+        <span>81 sources</span>
+        <span>Pivot 46.908° N, 4.752° E</span>
+      </div>
+      <div class="scale-bar">
+        <span>0</span>
+        <div class="bar"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        <span>30 km</span>
+        <span>&nbsp;&nbsp;échelle ≈ 1 : 220 000</span>
+      </div>
+    </div>
+    <svg class="cover-compass" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="comp-bg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f3ead3"/>
+          <stop offset="100%" stop-color="#e9dfbc"/>
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="96" fill="url(#comp-bg)" stroke="#2a241a" stroke-width="2"/>
+      <circle cx="100" cy="100" r="78" fill="none" stroke="#8c7e5c" stroke-width="1"/>
+      <g stroke="#2a241a" stroke-width="1">
+        <line x1="100" y1="14" x2="100" y2="22"/>
+        <line x1="100" y1="186" x2="100" y2="178"/>
+        <line x1="14" y1="100" x2="22" y2="100"/>
+        <line x1="186" y1="100" x2="178" y2="100"/>
+      </g>
+      <polygon points="100,28 110,100 100,90 90,100" fill="#d72e1f" stroke="#2a241a" stroke-width="1.5"/>
+      <polygon points="100,172 110,100 100,110 90,100" fill="#f3ead3" stroke="#2a241a" stroke-width="1.5"/>
+      <text x="100" y="48" text-anchor="middle" font-family="Lora, serif" font-weight="700" font-size="18" fill="#2a241a">N</text>
+      <text x="100" y="160" text-anchor="middle" font-family="Lora, serif" font-weight="700" font-size="13" fill="#5a4f3a">S</text>
+      <text x="40" y="105" text-anchor="middle" font-family="Lora, serif" font-weight="700" font-size="13" fill="#5a4f3a">O</text>
+      <text x="160" y="105" text-anchor="middle" font-family="Lora, serif" font-weight="700" font-size="13" fill="#5a4f3a">E</text>
+      <circle cx="100" cy="100" r="4" fill="#d72e1f"/>
+    </svg>
+  </div>
+</section>
+
+<!-- =================== INDEX STRIP =================== -->
+<nav class="index-strip" aria-label="Plates">
+  <a href="#plate-map"><span class="idx-no">PL. II</span><span class="idx-title">Master map</span></a>
+  <a href="#plate-beaune"><span class="idx-no">PL. III</span><span class="idx-title">Beaune, the anchor</span></a>
+  <a href="#plate-cotedebeaune"><span class="idx-no">PL. IV</span><span class="idx-title">Côte de Beaune villages</span></a>
+  <a href="#plate-chalonnaise"><span class="idx-no">PL. V</span><span class="idx-title">Côte Chalonnaise &amp; Chalon</span></a>
+  <a href="#plate-chateaux"><span class="idx-no">PL. VI</span><span class="idx-title">Châteaux &amp; monuments</span></a>
+  <a href="#plate-outdoor"><span class="idx-no">PL. VII</span><span class="idx-title">Outdoor</span></a>
+  <a href="#plate-sunday"><span class="idx-no">PL. VIII</span><span class="idx-title">Sunday survival</span></a>
+  <a href="#plate-saturday"><span class="idx-no">PL. IX</span><span class="idx-title">Saturday profile</span></a>
+  <a href="#plate-patterns"><span class="idx-no">PL. X</span><span class="idx-title">Two weekend patterns</span></a>
+</nav>
+
+<!-- =================== VERDICT =================== -->
+<div class="verdict">
+  <div class="verdict-label">Verdict &mdash; before you plan anything</div>
+  <p class="verdict-body">Chagny is the geographic pivot of Burgundy. <strong>One full day → <a href="https://www.viamichelin.com/web/Routes/Route-Chagny-71150-Saone_et_Loire-France-to-Beaune-21200-Cote_d_Or-France">Beaune</a> (16 km / 32 min)</strong><sup><a href="https://www.viamichelin.com/web/Routes/Route-Chagny-71150-Saone_et_Loire-France-to-Beaune-21200-Cote_d_Or-France">[77]</a></sup>: Hospices, négociant cellar, Saturday market. <strong>Half-day → the Voie des Vignes</strong> from Santenay through Pommard and Meursault, 23 km of vineyard road and bike path<sup><a href="https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay">[37]</a></sup>. <strong>Sunday → the Chagny market</strong><sup><a href="https://www.valleedelagastronomie.com/en/be-inspired-gourmet-experience/chagny-sunday-market">[76]</a></sup>, then any Beaune cellar still pouring (<a href="https://www.patriarche.com/en/visit">Patriarche</a>, Bouchard Aîné, <a href="https://marcheauxvins.com/en/tours-and-tastings/">Marché aux Vins</a>, Jaffelin)<sup><a href="https://community.ricksteves.com/travel-forum/france/burgundy-on-a-sunday">[75]</a></sup>. And before any of it — be back, showered, hungry by 19:45. A Lameloise tasting menu runs ~5 hours; one diner clocked 20:00 → 01:00<sup><a href="https://www.thienlan.me/2014/12/04/la-lameloise-3-star-restaurant-chagny-burgundy-france/">[73]</a></sup>.</p>
+</div>
+
+<!-- =================== MASTER MAP =================== -->
+<section class="plate" id="plate-map">
+  <span class="ribbon-tab">PLANCHE II</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche II &mdash; carte d'ensemble</span>
+    <h2 class="plate-title">Everything inside the circle</h2>
+    <span class="plate-stats">RADIUS 30 KM &nbsp;•&nbsp; 22 TARGETS &nbsp;•&nbsp; 1 PIVOT</span>
+  </div>
+
+  <div class="map-wrap">
+    <svg class="map-svg" viewBox="0 0 800 800" role="img" aria-label="Map of day-trip targets within 30 km of Chagny">
+      <defs>
+        <radialGradient id="map-bg" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#f9f1d8"/>
+          <stop offset="100%" stop-color="#e9dfbc"/>
+        </radialGradient>
+        <pattern id="map-grain" patternUnits="userSpaceOnUse" width="6" height="6">
+          <rect width="6" height="6" fill="transparent"/>
+          <circle cx="3" cy="3" r="0.3" fill="#8c7e5c" opacity="0.15"/>
+        </pattern>
+      </defs>
+
+      <!-- background paper -->
+      <rect x="0" y="0" width="800" height="800" fill="url(#map-bg)"/>
+      <rect x="0" y="0" width="800" height="800" fill="url(#map-grain)"/>
+
+      <!-- distance rings: 5, 15, 25, 30 km — scale 12.67 px/km -->
+      <g fill="none" stroke="#8c7e5c" stroke-opacity="0.4">
+        <circle cx="400" cy="400" r="63" stroke-dasharray="2 3"/>
+        <circle cx="400" cy="400" r="190" stroke-dasharray="2 3"/>
+        <circle cx="400" cy="400" r="317" stroke-dasharray="2 3"/>
+      </g>
+      <!-- 30 km boundary -->
+      <circle cx="400" cy="400" r="380" fill="none" stroke="#d72e1f" stroke-width="2" stroke-dasharray="8 6"/>
+
+      <!-- ring labels -->
+      <g font-family="JetBrains Mono, monospace" font-size="10" fill="#5a4f3a" opacity="0.7">
+        <text x="408" y="335" font-style="italic">5 km</text>
+        <text x="408" y="207" font-style="italic">15 km</text>
+        <text x="408" y="80" font-style="italic">25 km</text>
+        <text x="406" y="22" font-style="italic" fill="#a51b0e">30 km LIMITE</text>
+      </g>
+
+      <!-- compass rose mini at SE -->
+      <g transform="translate(720, 720)">
+        <circle r="34" fill="#f3ead3" stroke="#2a241a"/>
+        <polygon points="0,-28 6,0 0,-6 -6,0" fill="#d72e1f" stroke="#2a241a" stroke-width="0.6"/>
+        <polygon points="0,28 6,0 0,6 -6,0" fill="#f3ead3" stroke="#2a241a" stroke-width="0.6"/>
+        <text y="-20" text-anchor="middle" font-family="Lora" font-weight="700" font-size="11" fill="#2a241a">N</text>
+      </g>
+
+      <!-- scale bar SW -->
+      <g transform="translate(60, 740)" font-family="JetBrains Mono, monospace" font-size="9" fill="#2a241a">
+        <text x="0" y="-4">0</text>
+        <text x="63" y="-4">5</text>
+        <text x="190" y="-4">15 km</text>
+        <rect x="0" y="0" width="63" height="6" fill="#2a241a"/>
+        <rect x="63" y="0" width="63" height="6" fill="#f3ead3" stroke="#2a241a"/>
+        <rect x="126" y="0" width="63" height="6" fill="#2a241a"/>
+        <rect x="189" y="0" width="63" height="6" fill="#f3ead3" stroke="#2a241a"/>
+      </g>
+
+      <!-- River Saône hint (east) -->
+      <path d="M 640 100 Q 660 250 615 400 Q 590 550 580 700" fill="none" stroke="#1f4e79" stroke-opacity="0.35" stroke-width="3"/>
+      <text x="610" y="200" font-family="Lora, serif" font-style="italic" font-size="11" fill="#1f4e79" opacity="0.7">la Saône</text>
+
+      <!-- Canal du Centre hint (SW–NE through Chagny) -->
+      <path d="M 200 540 Q 320 470 400 400 Q 480 330 600 280" fill="none" stroke="#2f6b34" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="225" y="535" font-family="Lora, serif" font-style="italic" font-size="10" fill="#2f6b34" opacity="0.7">Canal du Centre</text>
+
+      <!-- HUB: Chagny -->
+      <g>
+        <circle cx="400" cy="400" r="14" fill="#d72e1f" stroke="#2a241a" stroke-width="2"/>
+        <circle cx="400" cy="400" r="5" fill="#f3ead3"/>
+        <text x="400" y="438" text-anchor="middle" font-family="Lora, serif" font-weight="700" font-size="16" fill="#2a241a">CHAGNY</text>
+        <text x="400" y="453" text-anchor="middle" font-family="Lora, serif" font-style="italic" font-size="11" fill="#a51b0e">★ Maison Lameloise</text>
+      </g>
+
+      <!-- Destination dots & labels: cat-coded -->
+      <g font-family="Lora, serif" font-size="11" fill="#2a241a">
+        <!-- CITIES -->
+        <g>
+          <circle cx="418" cy="198" r="6" fill="#1f4e79" stroke="#2a241a" stroke-width="1"/>
+          <text x="430" y="195" font-weight="700">Beaune</text>
+          <text x="430" y="208" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">16 km · 32 min</text>
+          <circle cx="507" cy="629" r="6" fill="#1f4e79" stroke="#2a241a" stroke-width="1"/>
+          <text x="519" y="626" font-weight="700">Chalon-sur-Saône</text>
+          <text x="519" y="639" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">20 km · 25 min</text>
+        </g>
+        <!-- WINE villages -->
+        <g fill="#2a241a">
+          <circle cx="360" cy="175" r="5" fill="#6b1a2a"/>
+          <text x="305" y="172">Pommard</text>
+          <text x="305" y="183" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">18 km</text>
+
+          <circle cx="347" cy="153" r="4" fill="#6b1a2a"/>
+          <text x="291" y="156" font-size="10">Volnay</text>
+
+          <circle cx="322" cy="186" r="5" fill="#6b1a2a"/>
+          <text x="248" y="182">Meursault</text>
+          <text x="265" y="193" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">18 km</text>
+
+          <circle cx="324" cy="268" r="4" fill="#6b1a2a"/>
+          <text x="195" y="265" font-size="10">Puligny-Montrachet</text>
+
+          <circle cx="327" cy="296" r="4" fill="#6b1a2a"/>
+          <text x="184" y="299" font-size="10">Chassagne-Montrachet</text>
+
+          <circle cx="274" cy="294" r="4" fill="#6b1a2a"/>
+          <text x="215" y="285" font-size="10">St-Aubin</text>
+
+          <circle cx="346" cy="346" r="5" fill="#6b1a2a"/>
+          <text x="280" y="349">Santenay</text>
+          <text x="288" y="360" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">6 km</text>
+
+          <circle cx="448" cy="125" r="5" fill="#6b1a2a"/>
+          <text x="460" y="122">Aloxe-Corton</text>
+          <text x="460" y="135" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">22 km</text>
+
+          <circle cx="400" cy="172" r="4" fill="#6b1a2a"/>
+          <text x="408" y="170" font-size="10">Savigny-lès-B.</text>
+
+          <circle cx="406" cy="463" r="5" fill="#6b1a2a"/>
+          <text x="418" y="466" font-weight="700">Rully</text>
+          <text x="418" y="478" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">5 km</text>
+
+          <circle cx="403" cy="489" r="4" fill="#6b1a2a"/>
+          <text x="345" y="492" font-size="10">Bouzeron</text>
+
+          <circle cx="389" cy="527" r="5" fill="#6b1a2a"/>
+          <text x="400" y="530">Mercurey</text>
+          <text x="400" y="542" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">10 km</text>
+
+          <circle cx="344" cy="608" r="5" fill="#6b1a2a"/>
+          <text x="356" y="611">Givry</text>
+          <text x="356" y="623" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">17 km</text>
+
+          <circle cx="292" cy="698" r="5" fill="#6b1a2a"/>
+          <text x="305" y="701">Buxy</text>
+          <text x="305" y="713" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">25 km</text>
+        </g>
+        <!-- CASTLES -->
+        <g>
+          <rect x="187" y="428" width="10" height="10" fill="#5b4534" stroke="#2a241a"/>
+          <text x="148" y="440" font-size="10" fill="#5b4534">Couches ▣</text>
+          <text x="148" y="452" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">15 km</text>
+
+          <rect x="97" y="503" width="10" height="10" fill="#5b4534" stroke="#2a241a"/>
+          <text x="35" y="515" font-size="10" fill="#5b4534">Ch. de Sully ▣</text>
+          <text x="35" y="527" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">25 km</text>
+
+          <rect x="187" y="339" width="10" height="10" fill="none" stroke="#999" stroke-dasharray="2 2"/>
+          <text x="120" y="335" font-size="10" fill="#8b8475">La Rochepot ✕ closed</text>
+          <text x="135" y="348" font-family="JetBrains Mono" font-size="8" fill="#a51b0e">2026 confiscation</text>
+        </g>
+        <!-- OUTDOOR -->
+        <g>
+          <polygon points="300,376 308,392 292,392" fill="#2f6b34" stroke="#2a241a"/>
+          <text x="220" y="383" font-size="10" fill="#2f6b34">Remigny ▲ balloon</text>
+
+          <polygon points="210,394 218,408 202,408" fill="#2f6b34" stroke="#2a241a"/>
+          <text x="105" y="402" font-size="10" fill="#2f6b34">St-Léger-sur-Dheune</text>
+          <text x="120" y="414" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">canal · 15 km</text>
+
+          <polygon points="508,693 516,707 500,707" fill="#2f6b34" stroke="#2a241a"/>
+          <text x="525" y="698" font-size="10" fill="#2f6b34">St-Loup-de-Varennes</text>
+          <text x="525" y="710" font-family="JetBrains Mono" font-size="9" fill="#a51b0e">Niépce birthplace</text>
+
+          <text x="325" y="352" font-family="Lora" font-style="italic" font-size="10" fill="#2f6b34">Mont de Sène ▲</text>
+        </g>
+      </g>
+
+      <!-- Spoke lines from Chagny to key targets -->
+      <g stroke="#a51b0e" stroke-opacity="0.18" stroke-width="1" stroke-dasharray="3 3">
+        <line x1="400" y1="400" x2="418" y2="198"/>
+        <line x1="400" y1="400" x2="346" y2="346"/>
+        <line x1="400" y1="400" x2="406" y2="463"/>
+        <line x1="400" y1="400" x2="507" y2="629"/>
+        <line x1="400" y1="400" x2="192" y2="433"/>
+      </g>
+    </svg>
+    <p class="map-caption">Concentric rings at 5, 15, 25 km. Dashed red boundary at 30 km. Wine villages in burgundy red, towns in indigo, châteaux as brown squares, outdoor sites as green triangles. La Rochepot rendered hollow — closed in 2026.</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot hub"></span>Pivot · Chagny</div>
+    <div class="legend-item"><span class="legend-dot wine"></span>Wine village</div>
+    <div class="legend-item"><span class="legend-dot city"></span>Town · city</div>
+    <div class="legend-item"><span class="legend-dot castle"></span>Château</div>
+    <div class="legend-item"><span class="legend-dot outdoor"></span>Outdoor &amp; water</div>
+    <div class="legend-item"><span class="legend-dot beyond"></span>Closed / beyond 30 km</div>
+  </div>
+</section>
+
+<!-- =================== BEAUNE PLATE =================== -->
+<section class="plate" id="plate-beaune">
+  <span class="ribbon-tab">PLANCHE III</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche III &mdash; l'ancrage du nord</span>
+    <h2 class="plate-title">Beaune <span class="km">16 km · 32 min</span></h2>
+    <span class="plate-stats">6 CELLARS &nbsp;•&nbsp; 1 HOSPITAL &nbsp;•&nbsp; 180 MARKET STALLS</span>
+  </div>
+
+  <p class="lede"><span class="dropcap">B</span>eaune is the obvious anchor: half an hour by D974, every famous Burgundy thing per square kilometre, and — uniquely for the region — open on Sundays. The Hospices courtyard runs <strong>9:00–19:30 continuously April through mid-November</strong>, every day of the year<sup><a href="https://booking-hoteldieu.hospices-de-beaune.com/ticketing-individuals.html">[11]</a></sup><sup><a href="https://booking-hoteldieu.hospices-de-beaune.com/faq.html">[74]</a></sup>. Pair it with one négociant cellar and you have a full day.</p>
+
+  <div class="gazetteer">
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/hospices.jpg" alt="Hospices de Beaune polychrome roof"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://booking-hoteldieu.hospices-de-beaune.com/ticketing-individuals.html">Hospices de Beaune</a></h3>
+          <span class="gz-cat city">Museum</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">Hôtel-Dieu, the Van der Weyden <em>Last Judgement</em>, the glazed polychrome roof. Self-guided audio €9.50 adult / €6.25 reduced / free under 6<sup><a href="https://sg.trip.com/travel-guide/attraction/beaune/htel-dieu-museum-hospices-de-beaune-89743/">[12]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">9:00–19:30 daily</span>
+          <span class="gz-flags"><span class="flag sun">SUN ✓</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/patriarche.jpg" alt="Caves Patriarche 13th-century galleries"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://www.patriarche.com/en/visit">Patriarche Père &amp; Fils</a></h3>
+          <span class="gz-cat wine">Cellar</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">Burgundy's largest cellar — 5 km of 13th-c. galleries beneath a former Visitandines convent<sup><a href="https://www.patriarche.com/en/visit">[17]</a></sup>. Self-guided audio + sommelier-poured tasting of 6 wines (3 white, 3 red incl. Meursault, Nuits-St-Georges 1er Cru), 9:45–16:45 in 10-cap slots<sup><a href="https://booking.beaune-tourism.com/caves-patriarche-pere-fils-self-guided-tour-and-tasting.html">[6]</a></sup><sup><a href="https://booking.beaune-tourism.com/caves-patriarche-pere-fils-liberte-tasting-tour.html">[16]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">walk-in tier</span>
+          <span class="gz-flags"><span class="flag sun">SUN ✓</span><span class="flag walk-in">WALK-IN</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">Cordeliers church · 3 chapels intact</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://marcheauxvins.com/en/tours-and-tastings/">Marché aux Vins</a></h3>
+          <span class="gz-cat wine">Cellar</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">Self-guided tour through three intact chapels of the former Cordeliers convent. Découverte (5 wines) €25/€29; Prestige (7) €49/€59; Exclusive €65; Tailor-made from €99<sup><a href="https://marcheauxvins.com/en/tours-and-tastings/">[13]</a></sup>. Online cheaper than on-site.</p>
+        <div class="gz-footer">
+          <span class="mono">€25–€99</span>
+          <span class="gz-flags"><span class="flag sun">SUN ✓</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/drouhin.jpg" alt="Maison Joseph Drouhin cellars"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://www.drouhin.com/en_US/visits-tastings/selection">Maison Joseph Drouhin</a></h3>
+          <span class="gz-cat wine">Cellar</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">Roughly 1 ha of cellars between the Hospice and Notre-Dame with Dukes-of-Burgundy stonework<sup><a href="https://thegoodlifefrance.com/maison-joseph-drouhin-in-beaune-burgundy/">[19]</a></sup>. Appointment only, Mon–Sat 10:00 / 14:00 / 16:00, tastings €38, €70 or €120<sup><a href="https://www.drouhin.com/en_US/visits-tastings/selection">[18]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">Mon–Sat by appt</span>
+          <span class="gz-flags"><span class="flag closed">SUN ✕</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">Château de Beaune · 1731 founding</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Bouchard Père &amp; Fils</h3>
+          <span class="gz-cat wine">Cellar</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">130 ha including 12 ha grands crus and 74 ha 1er crus, founded 1731<sup><a href="https://tastingbook.com/p/bouchard_pere_fils">[21]</a></sup>. Guided Château de Beaune tours Tue–Sat 14:30 with 6- or 8-wine flights.</p>
+        <div class="gz-footer">
+          <span class="mono">Tue–Sat 14:30</span>
+          <span class="gz-flags"><span class="flag closed">SUN ✕</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">18th-c. cellars · 5 Senses</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Bouchard Aîné &amp; Fils</h3>
+          <span class="gz-cat wine">Cellar</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">"Parcours des 5 Sens" guided through 18th-c. cellars — 5 wines (2 white, 3 red, Village + 1er Cru), max 20 per group, departures 10:30–17:00<sup><a href="https://www.beaune-tourism.com/organize-your-stay/what-to-see-what-to-do/leisure-activities/maison-bouchard-aine-fils-le-parcours-des-5-sens-beaune-en-5512085/">[20]</a></sup>. Sunday-open exception in Beaune.</p>
+        <div class="gz-footer">
+          <span class="mono">10:30–17:00</span>
+          <span class="gz-flags"><span class="flag sun">SUN ✓</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">24-m vine tendrils · UNESCO Climats</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://www.citeclimatsvins-bourgogne.com/en/cite-in-beaune/">Cité des Climats et Vins</a></h3>
+          <span class="gz-cat wine">Museum + tasting</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">A landmark building with 24-metre vine-like tendrils at 21 av. Charles de Gaulle, devoted to the UNESCO Climats<sup><a href="https://www.citeclimatsvins-bourgogne.com/en/cite-in-beaune/">[14]</a></sup>. €14.50; daily 10:00–19:00 high season; closed 5–18 Jan 2026; reservation mandatory<sup><a href="https://reservation.citeclimatsvins-bourgogne.com/">[15]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">10–19h</span>
+          <span class="gz-flags"><span class="flag sun">SUN ✓</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/fallot.jpg" alt="Moutarderie Fallot"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Moutarderie Edmond Fallot</h3>
+          <span class="gz-cat city">Workshop</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">Parcours Découvertes guided trail through Burgundy's last family mustard maker. Daily 10:00 / 11:30 / 15:00 / 16:30; €12 adult / €9 child<sup><a href="https://www.beaune-tourism.com/to-see-and-do/cultural-heritage/la-moutarderie-fallot-parcours-decouvertes-beaune-en-3860767/">[22]</a></sup>. 5-min walk south of the ramparts.</p>
+        <div class="gz-footer">
+          <span class="mono">€12 adult</span>
+          <span class="gz-flags"><span class="flag walk-in">WALK-IN</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/marche.jpg" alt="Beaune Saturday market"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Beaune Saturday market</h3>
+          <span class="gz-cat city">Market</span>
+        </div>
+        <div class="gz-distance"><span><span class="lbl">d.</span> 16 km</span><span><span class="lbl">t.</span> 32 min</span></div>
+        <p class="gz-desc">Saturday 7:00–13:00 sprawling across Place de la Halle, Place Fleury and avenue de la République — about 180 stalls of produce, cheese, charcuterie, organic, plus a March–November flea market on Place Carnot<sup><a href="https://www.beaune-tourism.com/organize-your-stay/events/marche-de-beaune-beaune-en-3860373/">[23]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">Sat 07–13h</span>
+          <span class="gz-flags"><span class="flag walk-in">WALK-IN</span></span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- =================== CÔTE DE BEAUNE VILLAGES PLATE =================== -->
+<section class="plate" id="plate-cotedebeaune">
+  <span class="ribbon-tab">PLANCHE IV</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche IV &mdash; l'épine viticole</span>
+    <h2 class="plate-title">Côte de Beaune wine villages</h2>
+    <span class="plate-stats">VOIE DES VIGNES &nbsp;•&nbsp; 23 KM SPINE &nbsp;•&nbsp; 149 m D+</span>
+  </div>
+
+  <p class="lede"><span class="dropcap">T</span>he Voie des Vignes runs <a href="https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay">Beaune → Pommard → Volnay → Meursault → Chassagne-Montrachet → Santenay</a>, 23 km of easy cycling or leisurely driving<sup><a href="https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay">[37]</a></sup>. Below, picked south-to-north (closest to Chagny first). Walk-in availability is rare here: most small Côte de Beaune domaines need an emailed appointment, and the lunch shutdown noon–14:00 is real<sup><a href="https://lizthachmw.com/winetravelstories/how-to-go-winetasting-in-burgundy-6-tips-for-wine-tourists/">[8]</a></sup>.</p>
+
+  <div class="gazetteer">
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/santenay.jpg" alt="Santenay vineyards"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Santenay <span class="km">6 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc">Voie des Vignes trailhead. Château Philippe le Hardi from €11/adult; Château de la Crée from €22/adult — both bookable online with instant confirmation<sup><a href="https://www.ruedesvignerons.com/en/appellations/santenay">[2]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">from €11</span>
+          <span class="gz-flags"><span class="flag">BOOK 1d</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">family est. 1919</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Chassagne-Montrachet <span class="km">10 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc">Domaine Bader-Mimeur — family estate since 1919, the rare walk-in stop, daily 9:30–18:00 (appointment preferred)<sup><a href="https://www.tripadvisor.com/Attraction_Review-g2464600-d10730410-Reviews-Domaine_Bader_Mimeur-Chassagne_Montrachet_Cote_d_Or_Bourgogne_Franche_Comte.html">[10]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">9:30–18h daily</span>
+          <span class="gz-flags"><span class="flag walk-in">WALK-IN</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">Maison Prosper Maufoux</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Saint-Aubin <span class="km">13 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc"><a href="https://www.burgundy-tourism.com/wine-tours/chateau-de-saint-aubin-maison-prosper-maufoux-experience-prestige">Château de Saint-Aubin / Maison Prosper Maufoux</a> — Expérience Prosper €37 pp (5 wines, 1 h), Expérience Prestige €62 pp (6 wines + 4 1er crus + Burgundy snacks, 1 h 30); reservation only<sup><a href="https://www.burgundy-tourism.com/wine-tours/chateau-de-saint-aubin-maison-prosper-maufoux-experience-prestige">[4]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">€37 / €62</span>
+          <span class="gz-flags"><span class="flag">RESERVE</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">Maison Chanzy · wine bar</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Puligny-Montrachet <span class="km">12 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc">Maison Chanzy tasting cellar/wine bar visit from €28/adult; bookable up to 30 min before<sup><a href="https://www.ruedesvignerons.com/en/appellations/puligny-montrachet">[3]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">from €28</span>
+          <span class="gz-flags"><span class="flag">BOOK</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/meursault.jpg" alt="Château de Meursault"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Meursault <span class="km">18 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc"><a href="https://www.chateau-meursault.com/en/tours-tastings/">Château de Meursault</a> — Grands Terroirs (7 wines) €59, Prestige (8) €105, Exclusive €175; walk-in tastings from €35 subject to availability<sup><a href="https://www.chateau-meursault.com/en/tours-tastings/">[1]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">walk-in €35+</span>
+          <span class="gz-flags"><span class="flag sun">SUN ✓</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">Clos Marey-Monge</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Pommard <span class="km">18 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc"><a href="https://www.chateaudepommard.com/experiences">Château de Pommard</a> — Discover Burgundy €30, Clos Marey-Monge €41, Custom €94 (range €30–€260)<sup><a href="https://www.chateaudepommard.com/experiences">[5]</a></sup>. Booking free up to 4 h before, cancel free 2 h before. WSET-trained advisors<sup><a href="https://www.ruedesvignerons.com/en/domaine/518/chateau-de-pommard">[29]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">€30–€260</span>
+          <span class="gz-flags"><span class="flag">BOOK 4h</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">est. 1857 · Grands Crus</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Aloxe-Corton <span class="km">22 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc">Domaine Comte Senard (since 1857, Grands Crus producer) — most-booked tasting in the appellation, instant confirmation, free cancellation<sup><a href="https://www.ruedesvignerons.com/en/appellations/aloxe-corton">[9]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">varies</span>
+          <span class="gz-flags"><span class="flag">BOOK</span></span>
+        </div>
+      </div>
+    </article>
+
+    <article class="gz-card">
+      <div class="gz-photo no-photo">Henri de Villamont</div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name">Savigny-lès-Beaune <span class="km">18 km</span></h3>
+          <span class="gz-cat wine">Wine village</span>
+        </div>
+        <p class="gz-desc">Henri de Villamont — on Beaune Tourism's curated "10 must-see wineries" list<sup><a href="https://www.beaune-tourism.com/explore/surprising-burgundy-wines/10-must-see-wineries/">[7]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">varies</span>
+          <span class="gz-flags"><span class="flag">BOOK</span></span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <p class="lede" style="margin-top:18px"><strong>Lunch-window warning.</strong> Most small Côte de Beaune domaines shut <strong>noon–14:00 and all day Sunday</strong>. <a href="https://www.patriarche.com/en/visit">Patriarche</a> and Bouchard Aîné in Beaune are the standard Sunday exceptions. Small Pommard or Meursault domaines almost always need an emailed appointment<sup><a href="https://lizthachmw.com/winetravelstories/how-to-go-winetasting-in-burgundy-6-tips-for-wine-tourists/">[8]</a></sup>.</p>
+</section>
+
+<!-- =================== CÔTE CHALONNAISE + CHALON =================== -->
+<section class="plate" id="plate-chalonnaise">
+  <span class="ribbon-tab">PLANCHE V</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche V &mdash; la moitié sud</span>
+    <h2 class="plate-title">Côte Chalonnaise &amp; Chalon-sur-Saône</h2>
+    <span class="plate-stats">5 AOCs &nbsp;•&nbsp; 1 CITY &nbsp;•&nbsp; UNDER-PRICED</span>
+  </div>
+
+  <p class="lede"><span class="dropcap">T</span>he southern half of the radius — under-priced and under-trafficked. All five Côte Chalonnaise village AOCs sit inside 30 km of Chagny: Bouzeron (only AOC for Aligoté, won 1998 through Aubert de Villaine's lobbying)<sup><a href="https://en.wikipedia.org/wiki/C%C3%B4te_Chalonnaise">[60]</a></sup><sup><a href="https://thevineroute.com/burgundy/aligote-dore/">[66]</a></sup>, Rully (Crémant heart, 23 1ers), Mercurey (largest AOC, 30 1ers, mostly red), Givry (17 1ers), Montagny (whites only, 49 1ers)<sup><a href="https://en.wikipedia.org/wiki/C%C3%B4te_Chalonnaise">[60]</a></sup>.</p>
+
+  <table class="data-table">
+    <caption>Cellars worth the diversion, south of Chagny.</caption>
+    <thead>
+      <tr><th>Stop</th><th>What</th><th class="num">Price</th><th>Hours / Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.de-villaine.com/en/">Dom. A. et P. de Villaine</a> <span class="km">Bouzeron</span></td>
+        <td>Aubert de Villaine's (co-director DRC) estate; organic 1986, biodynamic 2000</td>
+        <td class="num">by appt</td>
+        <td>Now run by nephew Pierre de Benoist <sup><a href="https://www.de-villaine.com/en/">[65]</a></sup></td>
+      </tr>
+      <tr>
+        <td><a href="https://www.chateauderully.com/prices.html">Château de Rully</a> <span class="km">5 km</span></td>
+        <td>Private medieval château + 3-wine tasting with gougères</td>
+        <td class="num">€10 / cash</td>
+        <td>Daily 10:45–18:00; Jul–Aug by appt; free under 12 <sup><a href="https://www.chateauderully.com/prices.html">[27]</a></sup><sup><a href="https://www.burgundy-tourism.com/sit/chateau-de-rully">[28]</a></sup></td>
+      </tr>
+      <tr>
+        <td><a href="https://www.andre-delorme.com/caveau-visite-degustation-rully/">Maison André Delorme</a> <span class="km">Rully</span></td>
+        <td>Crémant cellars carved into rock — 5 tasting formulas</td>
+        <td class="num">varies</td>
+        <td>Artisanal Crémant process, vaulted cellar <sup><a href="https://www.andre-delorme.com/caveau-visite-degustation-rully/">[63]</a></sup></td>
+      </tr>
+      <tr>
+        <td>Vitteaut-Alberti <span class="km">Rully</span></td>
+        <td>Crémant since 1951 · "Immersion" tour 1 h 45</td>
+        <td class="num">€25 / 6 tast.</td>
+        <td>EN/FR, booking essential <sup><a href="https://www.petitfute.co.uk/v7724-rully-71150/c650-produits-gourmands-vins/c1117-vins-alcools-boissons-sans-alcool/c718-domaine/270649-vitteaut-alberti.html">[64]</a></sup></td>
+      </tr>
+      <tr>
+        <td>Château de Chamirey <span class="km">Mercurey</span></td>
+        <td>18th-c., 37 ha incl. 15 ha 1ers crus</td>
+        <td class="num">€0 – €55</td>
+        <td>Avg Mercurey tour ~€40 <sup><a href="https://www.winalist.com/hosts/166/chateau-de-chamirey">[62]</a></sup></td>
+      </tr>
+      <tr>
+        <td>Caveau Givry Vins <span class="km">Givry</span></td>
+        <td>Enomatic card · 30+ wines from local domaines</td>
+        <td class="num">€11 – €38.50</td>
+        <td>Wed–Sun 10–13 / 15–18:30, Apr–Oct <sup><a href="https://www.burgundy-tourism.com/sit/givry-vins">[61]</a></sup></td>
+      </tr>
+      <tr>
+        <td><a href="https://www.vigneronsdebuxy.fr/">Vignerons de Buxy</a> <span class="km">25 km</span></td>
+        <td>200-grower cooperative · all 4 AOCs + Crémant</td>
+        <td class="num">free</td>
+        <td>New "Maison Millebuis" visitor centre <sup><a href="https://www.vigneronsdebuxy.fr/">[67]</a></sup><sup><a href="https://www.destination-saone-et-loire.fr/fr/vin/vignerons-de-buxy.html">[68]</a></sup></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="lede" style="margin-top:14px">Givry's flagship event is the early-April <strong>Marché aux Vins</strong> — a one-weekend pour-around with the village's producers (30th edition ran 5–7 April)<sup><a href="https://www.givry-bourgogne.fr/30eme-edition-du-marche-aux-vins-5-6-7-avril/">[70]</a></sup>.</p>
+
+  <!-- CHALON city panel -->
+  <div class="city-panel">
+    <div class="city-text">
+      <h4>Chalon-sur-Saône <span class="km">20 km · 25 min</span></h4>
+      <p>A real city, not a wine-tourist set piece — the only place inside the radius for a proper old town and a flagship museum.</p>
+      <p><strong>Cathédrale Saint-Vincent</strong> on its eponymous square dates 1090–1520, with 15th-c. half-timbered houses around it and a 19th-c. neo-gothic west façade<sup><a href="https://fr.wikipedia.org/wiki/Cath%C3%A9drale_Saint-Vincent_de_Chalon-sur-Sa%C3%B4ne">[58]</a></sup>.</p>
+      <p>The <strong><a href="https://www.museeniepce.com/">Musée Nicéphore Niépce</a></strong> on Quai des Messageries is <em>entrée libre</em> — 3 million images and 10,000+ cameras, including Niépce's original <em>Chambre de la Découverte</em>, the first photographic camera<sup><a href="https://www.museeniepce.com/">[52]</a></sup><sup><a href="https://www.bourgogne-tourisme.com/musees/musee-nicephore-niepce-3">[53]</a></sup>. Niépce made the world's first surviving photograph (<em>View from the Window at Le Gras</em>, ~1826) 5 km away at Saint-Loup-de-Varennes<sup><a href="https://en.wikipedia.org/wiki/View_from_the_Window_at_Le_Gras">[54]</a></sup>; France is staging a year-long 2026 bicentenary anchored there<sup><a href="https://www.digitalcameraworld.com/photography/france-set-to-stage-a-year-long-celebration-to-mark-200-years-of-photography-in-2026">[55]</a></sup>. Hours: Sep–Jun 9:30–11:45 / 14:00–17:45, Jul–Aug 10:00–13:00 / 14:00–18:00, closed Tue.</p>
+      <p><strong>Sunday morning market</strong> sprawls Place Saint-Vincent → Place de Beaune — Bresse poultry, Charolais beef, snails, cheeses, charcuterie — crowds so thick it's hard to move<sup><a href="https://www.achalon.com/en/homepage-tourism/discover-grand-chalon/burgundian-gastronomy/immerse-yourself-in-the-hustle-and-bustle-of-the-markets/">[56]</a></sup><sup><a href="https://eggandbacon.co.uk/chalon-sur-saone/">[57]</a></sup>. Also Friday food, Wednesday organic. Outside town, <strong>Parc Saint-Nicolas</strong> has 115 ha with a 3 km rose-history trail and 600+ varieties<sup><a href="https://www.destination-saone-et-loire.fr/fr/patrimoine-culturel/parc-de-loisirs-saint-nicolas.html">[59]</a></sup>.</p>
+    </div>
+    <div class="city-photo"><img src="map-atlas/images/buxy.jpg" alt="Côte Chalonnaise vineyards near Buxy"></div>
+  </div>
+</section>
+
+<!-- =================== CHÂTEAUX PLATE =================== -->
+<section class="plate" id="plate-chateaux">
+  <span class="ribbon-tab">PLANCHE VI</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche VI &mdash; les murs anciens</span>
+    <h2 class="plate-title">Châteaux &amp; historic monuments</h2>
+    <span class="plate-stats">4 OPEN &nbsp;•&nbsp; 1 CONFISCATED &nbsp;•&nbsp; 1 BUILT INTO LAMELOISE</span>
+  </div>
+
+  <p class="lede"><span class="dropcap">T</span>he honest count of working, visit-worthy castles inside the radius is shorter than the brochures suggest. La Rochepot was the famous one — it's closed.</p>
+
+  <article class="chateau-row">
+    <div class="ch-photo"><img src="map-atlas/images/chamirey.jpg" alt="Château de Rully — vineyards and turrets"></div>
+    <div class="ch-body">
+      <div class="ch-head"><h3 class="ch-name"><a href="https://www.chateauderully.com/prices.html">Château de Rully</a></h3><span class="ch-dist">5 km · 8 min</span></div>
+      <p class="ch-desc">Privately owned medieval château. The family runs guided interior tours of the ground and first floors paired with a tasting of three Rully wines and gougères in either the medieval kitchen or a 15th-c. cellar — €10 adult, free under 12, <strong>cash only</strong><sup><a href="https://www.chateauderully.com/prices.html">[27]</a></sup><sup><a href="https://www.burgundy-tourism.com/sit/chateau-de-rully">[28]</a></sup>. The closest castle worth your time.</p>
+      <div class="ch-pills"><span>Medieval</span><span>Gougères</span><span>Cash only</span><span>10:45–18:00</span></div>
+    </div>
+  </article>
+
+  <article class="chateau-row">
+    <div class="ch-photo"><img src="map-atlas/images/couches.png" alt="Château de Couches"></div>
+    <div class="ch-body">
+      <div class="ch-head"><h3 class="ch-name"><a href="https://www.chateaudecouches.com/fr_FR/">Château de Couches</a></h3><span class="ch-dist">15 km · 20 min · W</span></div>
+      <p class="ch-desc">An 11th-c. fortress with the <em>Marguerite de Bourgogne</em> legend. Audio-guided or self-guided visits at a flat €8, plus a tasting cellar and gourmet restaurant on site<sup><a href="https://www.chateaudecouches.com/informations/tarifs-et-horaires/">[26]</a></sup><sup><a href="https://www.chateaudecouches.com/fr_FR/">[69]</a></sup>. 2026 themed dates: Journées du Patrimoine 19–20 Sep, Halloween 21 Oct–1 Nov, Noël au Château 19–30 Dec.</p>
+      <div class="ch-pills"><span>11th c.</span><span>€8 flat</span><span>Audio</span><span>Restaurant on site</span></div>
+    </div>
+  </article>
+
+  <article class="chateau-row">
+    <div class="ch-photo no-photo" style="background: linear-gradient(135deg, #c4b88f, #8c7e5c); display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-style:italic; color:#3d2c1e; padding: 14px; text-align:center;">Fontainebleau of Burgundy<br>· birthplace MacMahon ·</div>
+    <div class="ch-body">
+      <div class="ch-head"><h3 class="ch-name"><a href="https://www.chateauxenbourgognedusud.com/en/sully-en/">Château de Sully</a></h3><span class="ch-dist">25 km · 35 min · SW</span></div>
+      <p class="ch-desc">"Fontainebleau of Burgundy" — birthplace of <em>Maréchal de MacMahon</em> (not Vauban, despite frequent online confusion). Open daily 4 Apr–1 Nov 2026, 09:30–17:00; guided château + park €10.20 adult / €4.50 child / €29 family<sup><a href="https://www.chateauxenbourgognedusud.com/en/sully-en/">[33]</a></sup>.</p>
+      <div class="ch-pills"><span>Apr–Nov</span><span>€10.20</span><span>Park</span><span>MacMahon</span></div>
+    </div>
+  </article>
+
+  <article class="chateau-row">
+    <div class="ch-photo no-photo" style="background: repeating-linear-gradient(45deg, rgba(0,0,0,.04) 0 8px, transparent 8px 16px), linear-gradient(135deg, #aaa3a0, #6b6863); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; color:#fff; padding: 14px; text-align:center; font-size:13px; letter-spacing:.1em;">CLOSED 2026<br>CONFISCATION CONFIRMED<br>·  ·  ·  ·  ·  ·</div>
+    <div class="ch-body">
+      <div class="ch-head"><h3 class="ch-name" style="color:#8b8475">Château de La Rochepot <span style="color:var(--michelin-deep); font-weight:400; font-style:italic; font-size:14px;">— closed</span></h3><span class="ch-dist">17 km · 25 min · W</span></div>
+      <p class="ch-desc">The polychrome-roof shot you've seen on every postcard. The Cour d'appel de Metz formally confiscated the property from former owner Dmitri Malinovsky on <strong>12 March 2026</strong> and AGRASC is running emergency restoration ahead of resale<sup><a href="https://www.francebleu.fr/bourgogne-franche-comte/cote-d-or-21/la-rochepot/chateau-de-la-rochepot-en-cote-d-or-la-confiscation-officiellement-prononcee-par-la-cour-d-appel-de-metz-7914100">[24]</a></sup>. The local Nolay tourist office confirms it can only be photographed from outside<sup><a href="https://www.nolay.com/en/activites/la-rochepot-castle/">[25]</a></sup>. Don't drive out specifically for it. The exterior shot from the road below is still free<sup><a href="https://www.rome2rio.com/s/Beaune/La-Rochepot">[78]</a></sup>.</p>
+      <div class="ch-pills" style="opacity:.6"><span>2026 ✕</span><span>Exterior only</span><span>AGRASC restoration</span></div>
+    </div>
+  </article>
+
+  <article class="chateau-row">
+    <div class="ch-photo"><img src="map-atlas/images/lameloise.jpg" alt="Maison Lameloise — Tour Bajole"></div>
+    <div class="ch-body">
+      <div class="ch-head"><h3 class="ch-name">Tour Bajole, Chagny</h3><span class="ch-dist">0 km · 0 min</span></div>
+      <p class="ch-desc">In Chagny itself the 12th-c. <strong>Tour Bajole</strong> — a building once dependent on the priory of Saint-Georges — <em>is the Maison Lameloise building</em>, visible only from outside<sup><a href="https://www.burgundy-tourism.com/sit/la-tour-bajole">[34]</a></sup>. A guided "Discovering Chagny" tour by the tourist office runs Tuesdays 15:00 June–September, covering the 12th–13th-c. Saint-Martin church and Romanesque bell tower plus the 1715 apothecary<sup><a href="https://www.beaune-tourisme.fr/sejourner/agenda/a-la-decouverte-de-chagny-chagny-fr-4118175/">[35]</a></sup>.</p>
+      <div class="ch-pills"><span>12th c.</span><span>Inside Lameloise</span><span>Tue 15:00 walk</span></div>
+    </div>
+  </article>
+</section>
+
+<!-- =================== OUTDOOR PLATE =================== -->
+<section class="plate" id="plate-outdoor">
+  <span class="ribbon-tab">PLANCHE VII</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche VII &mdash; le grand air</span>
+    <h2 class="plate-title">Outdoor — cycle, balloon, walk, water</h2>
+    <span class="plate-stats">2 BIKE CORRIDORS &nbsp;•&nbsp; 2 BALLOON FIELDS &nbsp;•&nbsp; 1 CASINO</span>
+  </div>
+
+  <div style="margin-top:8px; border: 1px solid var(--rule); overflow: hidden; height: 200px; box-shadow: 2px 2px 0 var(--paper-shadow);">
+    <img src="map-atlas/images/voievignes.webp" alt="Voie des Vignes vineyard cycling route" style="width: 100%; height: 100%; object-fit: cover; object-position: center 60%; filter: sepia(.18) saturate(.85);">
+  </div>
+  <h3 style="font-family:'Lora',serif; font-weight:700; font-size:20px; margin:18px 0 6px;">Cycling: a rare two-corridor town</h3>
+  <p class="lede">Chagny sits at the junction of two flagship routes. The <a href="https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay">Voie des Vignes</a> runs 23 km Beaune → Pommard → Meursault → Chassagne → Santenay, easy, 149 m total ascent<sup><a href="https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay">[37]</a></sup>. At Santenay it merges into the Canal du Centre towpath of <strong>EuroVelo 6</strong>, a flat 24 km to Chalon-sur-Saône, with Chagny's canal port roughly halfway<sup><a href="https://en.francevelotourisme.com/cycle-route/entre-rhin-et-loire-a-velo-eurovelo-6/chalon-sur-saone-santenay">[38]</a></sup>.</p>
+
+  <table class="data-table" style="margin-top:14px">
+    <caption>E-bike rentals — closest to Chagny first.</caption>
+    <thead><tr><th>Rental</th><th>Half-day</th><th>Full day</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://www.lescabottes.com/en/bike-hire-beaune/">Les Cabottes</a> <span class="km">Change</span></td><td class="num">€25</td><td class="num">€45</td><td>Directly on the Voie des Vignes; child seats/trailers <sup><a href="https://www.lescabottes.com/en/bike-hire-beaune/">[39]</a></sup></td></tr>
+      <tr><td>Santenay Tourist Office <span class="km">Santenay</span></td><td class="num">€25</td><td class="num">€35</td><td>Trailhead, classic + electric <sup><a href="https://www.beaune-tourism.com/organize-your-stay/what-to-see-what-to-do/leisure-activities/agence-de-tourisme-de-santenay-location-de-velos-santenay-en-3860571/">[40]</a></sup></td></tr>
+      <tr><td>Bourgogne Randonnées <span class="km">Beaune</span></td><td class="num">varies</td><td class="num">varies</td><td>Classic / road / electric — central Beaune <sup><a href="https://www.bourgogne-randonnees.fr/en">[41]</a></sup></td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'Lora',serif; font-weight:700; font-size:20px; margin:24px 0 6px;">Ballooning over the Côte d'Or</h3>
+  <table class="data-table">
+    <thead><tr><th>Operator</th><th>Take-off</th><th>Flight</th><th class="num">Price 2026</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://www.air-escargot.com/en/home/">Air Escargot</a></td>
+        <td>Remigny <span class="km">8 km</span></td>
+        <td>~1.5 h over Nuits-St-Georges, Beaune, Chalon</td>
+        <td class="num">€240 / €220 / €200 pp <span style="color:var(--ink-soft)">(by group size)</span></td>
+        <td>Aperitif + minibus return; ½ price under 12 <sup><a href="https://www.air-escargot.com/en/home/">[44]</a></sup><sup><a href="https://www.tripadvisor.com/Attraction_Review-g2403528-d8410749-Reviews-Air_Escargot-Remigny_Saone_et_Loire_Bourgogne_Franche_Comte.html">[45]</a></sup></td>
+      </tr>
+      <tr>
+        <td>France Montgolfières</td>
+        <td>Marigny-lès-Reullée <span class="km">near Beaune</span></td>
+        <td>Discovery flight, 1 Apr – 31 Oct</td>
+        <td class="num">€199 – €249 pp</td>
+        <td>Sunrise or 2 h before sunset <sup><a href="https://www.burgundy-tourism.com/sit/france-montgolfieres-beaune">[46]</a></sup></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'Lora',serif; font-weight:700; font-size:20px; margin:24px 0 6px;">Canal du Centre — boating</h3>
+  <p class="lede">From <strong>Saint-Léger-sur-Dheune</strong> (~15 km west), CrisBoat offers no-licence self-drive cruisers including a 3-night round-trip to Chagny (26 km of canal)<sup><a href="https://www.crisboat.co.uk/our-destinations-in-france/burgundy/the-canal-du-centre/saint-leger/">[42]</a></sup>. Locaboat runs a parallel pénichette fleet from the same port after a 1-hour training session<sup><a href="https://www.locaboat.com/en/boating-holidays/france/burgundy-saone/saint-leger/">[43]</a></sup>. For a few hours rather than a week, the Voie Verte towpath is the easier hit.</p>
+
+  <h3 style="font-family:'Lora',serif; font-weight:700; font-size:20px; margin:24px 0 6px;">Walking the Climats</h3>
+  <p class="lede">The <strong>Chemin des Grands Crus</strong> (GR de Pays) runs 87 km Dijon → Beaune → Santenay through the 1,247 parcels of the UNESCO Climats, yellow-and-red signed; it splits cleanly into 3–5 day-stage sections served by trains and Transco buses<sup><a href="https://www.burgundy-tourism.com/on-foot-by-bike-on-horseback-or-by-boat/hiking-some-of-the-great-trails/the-grands-crus-hiking-trail/">[47]</a></sup><sup><a href="https://www.gr-infos.com/en/grp-grands-crus.htm">[49]</a></sup>. Beaune Tourism markets the southern segment through Pommard, Meursault, Chassagne-Montrachet and Santenay as the headline vineyard walk — all inside the 30 km radius<sup><a href="https://www.beaune-tourism.com/explore/nature-hiking/the-chemin-des-grands-crus/">[48]</a></sup>.</p>
+
+  <p class="lede" style="margin-top:8px">The single best short walk in the radius is <strong>Mont de Sène / Montagne des Trois Croix</strong> above Santenay: 10.7 km loop, 358 m of ascent, departing place du Jet d'Eau (223 m) in the village centre and climbing through vineyards and a falaise section above the Bois de la Fée to a 521 m summit with three 18th-c. stone crosses and two orientation tables looking over the Côte de Beaune, the Saône valley toward the Jura, the Clunisois and the Morvan<sup><a href="https://www.altituderando.com/Mont-de-Sene-ou-Montagne-des-Trois-Croix-521m-par-Santenay">[80]</a></sup>. Moderate half-day, not a one-hour stroll; pairs naturally with a Santenay tasting.</p>
+
+  <h3 style="font-family:'Lora',serif; font-weight:700; font-size:20px; margin:24px 0 6px;">Spa &amp; casino in Santenay <span class="km">5 km</span></h3>
+  <div class="gazetteer" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/santenayspa.jpg" alt="Santenay spa"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://www.valvital.fr/Spa-Sejours/Santenay-Station-thermale-de-Santenay">Valvital Spa Thermal</a></h3>
+          <span class="gz-cat outdoor">Spa</span>
+        </div>
+        <p class="gz-desc">Open 11 Feb – 27 Dec 2026 (cures 16 Mar – 21 Nov). Aqua-détente space: hot pool, hammam, sauna, caldarium<sup><a href="https://www.valvital.fr/Spa-Sejours/Santenay-Station-thermale-de-Santenay">[50]</a></sup>.</p>
+        <div class="gz-footer">
+          <span class="mono">Feb–Dec</span>
+          <span class="gz-flags"><span class="flag">WALK-IN</span></span>
+        </div>
+      </div>
+    </article>
+    <article class="gz-card">
+      <div class="gz-photo"><img src="map-atlas/images/joa.jpg" alt="Casino JOA Santenay"></div>
+      <div class="gz-body">
+        <div class="gz-head">
+          <h3 class="gz-name"><a href="https://www.joa.fr/casinos/santenay">Casino JOA</a></h3>
+          <span class="gz-cat outdoor">Casino</span>
+        </div>
+        <p class="gz-desc">150 slot machines, English roulette, blackjack, Ultimate Poker. Till 2 am weekdays / 4 am Fri–Sat<sup><a href="https://www.joa.fr/casinos/santenay">[51]</a></sup>. Comptoir JOA bistro.</p>
+        <div class="gz-footer">
+          <span class="mono">till 04:00 Fri–Sat</span>
+          <span class="gz-flags"><span class="flag">WALK-IN</span></span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- =================== SUNDAY SURVIVAL =================== -->
+<section class="plate" id="plate-sunday">
+  <span class="ribbon-tab">PLANCHE VIII</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche VIII &mdash; le dimanche</span>
+    <h2 class="plate-title">Sunday survival guide</h2>
+    <span class="plate-stats">RURAL BURGUNDY · MOSTLY SHUT</span>
+  </div>
+
+  <p class="lede">Sunday is genuinely quiet in rural Burgundy — most shops are closed<sup><a href="https://community.ricksteves.com/travel-forum/france/burgundy-on-a-sunday">[75]</a></sup>. Two columns: who's pouring, who's not.</p>
+
+  <div class="sunday">
+    <div class="sunday-col open">
+      <h4>Open Sunday ✓</h4>
+      <ul>
+        <li><strong>Hospices de Beaune</strong> &mdash; every day of the year<sup><a href="https://booking-hoteldieu.hospices-de-beaune.com/faq.html">[74]</a></sup></li>
+        <li><strong>Patriarche, Bouchard Aîné, Marché aux Vins, Jaffelin</strong><sup><a href="https://community.ricksteves.com/travel-forum/france/burgundy-on-a-sunday">[75]</a></sup></li>
+        <li><strong>Cité des Climats et Vins de Bourgogne</strong><sup><a href="https://reservation.citeclimatsvins-bourgogne.com/">[15]</a></sup></li>
+        <li><strong>Château de Meursault</strong> &mdash; daily<sup><a href="https://www.chateau-meursault.com/en/tours-tastings/">[1]</a></sup></li>
+        <li><strong>Chagny Sunday market</strong> &mdash; year-round, even in winter<sup><a href="https://www.valleedelagastronomie.com/en/be-inspired-gourmet-experience/chagny-sunday-market">[76]</a></sup></li>
+        <li><strong>Chalon Sunday market</strong> &mdash; 8–13:00<sup><a href="https://www.achalon.com/en/homepage-tourism/discover-grand-chalon/burgundian-gastronomy/immerse-yourself-in-the-hustle-and-bustle-of-the-markets/">[56]</a></sup></li>
+        <li><strong>Domaine Bader-Mimeur</strong> &mdash; daily 9:30–18:00<sup><a href="https://www.tripadvisor.com/Attraction_Review-g2464600-d10730410-Reviews-Domaine_Bader_Mimeur-Chassagne_Montrachet_Cote_d_Or_Bourgogne_Franche_Comte.html">[10]</a></sup></li>
+      </ul>
+    </div>
+    <div class="sunday-col closed">
+      <h4>Closed Sunday ✕</h4>
+      <ul>
+        <li><strong>Joseph Drouhin</strong> &mdash; Mon–Sat appt only<sup><a href="https://www.drouhin.com/en_US/visits-tastings/selection">[18]</a></sup></li>
+        <li><strong>Bouchard Père &amp; Fils</strong> &mdash; Tue–Sat 14:30<sup><a href="https://tastingbook.com/p/bouchard_pere_fils">[21]</a></sup></li>
+        <li><strong>Most small Côte de Beaune domaines</strong><sup><a href="https://lizthachmw.com/winetravelstories/how-to-go-winetasting-in-burgundy-6-tips-for-wine-tourists/">[8]</a></sup></li>
+        <li><strong>Caveau Givry Vins</strong> &mdash; Wed–Sun (open Sun in season), Apr–Oct only<sup><a href="https://www.burgundy-tourism.com/sit/givry-vins">[61]</a></sup></li>
+        <li><strong>Most rural Saône-et-Loire shops</strong><sup><a href="https://community.ricksteves.com/travel-forum/france/burgundy-on-a-sunday">[75]</a></sup></li>
+        <li><strong>Lameloise itself</strong>: open Sun lunch &amp; dinner, closed Tue/Wed<sup><a href="https://www.beaune-tourism.com/organize-your-stay/enjoy-and-savour/restaurants/maison-lameloise-chagny-en-3860889/">[71]</a></sup></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SATURDAY PROFILE =================== -->
+<section class="plate" id="plate-saturday">
+  <span class="ribbon-tab">PLANCHE IX</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche IX &mdash; le profil du samedi</span>
+    <h2 class="plate-title">Saturday timing for an 8 pm dinner</h2>
+    <span class="plate-stats">5 h tasting menu · plan backwards</span>
+  </div>
+
+  <p class="lede"><a href="https://www.beaune-tourism.com/organize-your-stay/enjoy-and-savour/restaurants/maison-lameloise-chagny-en-3860889/">Lameloise</a> serves lunch 12:00–13:00 and dinner 19:30–21:00, Thursday through Monday; closed Tuesday and Wednesday<sup><a href="https://www.beaune-tourism.com/organize-your-stay/enjoy-and-savour/restaurants/maison-lameloise-chagny-en-3860889/">[71]</a></sup><sup><a href="https://restaurantguru.com/Maison-Lameloise-Chagny">[72]</a></sup>. A tasting menu runs roughly five hours — one diner reported 20:00 → 01:00<sup><a href="https://www.thienlan.me/2014/12/04/la-lameloise-3-star-restaurant-chagny-burgundy-france/">[73]</a></sup>. Plan backwards from a marathon, not from a meal.</p>
+
+  <div class="profile">
+    <div class="profile-track">
+      <div class="profile-mountain"></div>
+      <div class="profile-stations">
+        <div class="profile-station" style="left: 8%;">
+          <div class="time">09:00</div>
+          <div class="pin"></div>
+          <div class="place">Active sightseeing — Beaune, vineyard walk, or balloon flight</div>
+        </div>
+        <div class="profile-station" style="left: 32%;">
+          <div class="time">14:00</div>
+          <div class="pin"></div>
+          <div class="place">Light lunch — <em>not</em> a sit-down<sup><a href="https://www.traverse-blog.com/beginner-guide-michelin-star-restaurants/">[79]</a></sup></div>
+        </div>
+        <div class="profile-station" style="left: 50%;">
+          <div class="time">16:30</div>
+          <div class="pin"></div>
+          <div class="place">Back in Chagny — rest</div>
+        </div>
+        <div class="profile-station" style="left: 68%;">
+          <div class="time">17:00–19:00</div>
+          <div class="pin"></div>
+          <div class="place">Shower · nap · dress</div>
+        </div>
+        <div class="profile-station" style="left: 88%;">
+          <div class="time">19:45</div>
+          <div class="pin"></div>
+          <div class="place">Walk to 36 Place d'Armes &mdash; the Tour Bajole <em>is</em> the building<sup><a href="https://www.burgundy-tourism.com/sit/la-tour-bajole">[34]</a></sup></div>
+        </div>
+      </div>
+      <div class="profile-axis">
+        <span>MORNING</span><span>NOON</span><span>AFTERNOON</span><span>EVENING</span><span>20:00 &mdash; SEATED</span>
+      </div>
+    </div>
+  </div>
+  <div class="profile-finale">From <strong>20:00 to ~01:00</strong> — five hours, a marathon. Eat lightly all day; coffee &amp; a small snack is the standard advice<sup><a href="https://www.traverse-blog.com/beginner-guide-michelin-star-restaurants/">[79]</a></sup>.</div>
+</section>
+
+<!-- =================== TWO WEEKEND PATTERNS =================== -->
+<section class="plate" id="plate-patterns">
+  <span class="ribbon-tab">PLANCHE X</span>
+  <div class="plate-head">
+    <span class="plate-no">Planche X &mdash; deux itinéraires</span>
+    <h2 class="plate-title">Two weekend patterns</h2>
+    <span class="plate-stats">A — WINE &amp; WALLS &nbsp;|&nbsp; B — SLOW BURGUNDY</span>
+  </div>
+
+  <div class="patterns">
+    <div class="pattern">
+      <h4>Pattern A — Wine &amp; walls</h4>
+      <p class="pattern-sub">Beaune-heavy. Best for first-timers.</p>
+      <ol>
+        <li><span class="when">Sat 09:00</span><span>Drive Beaune; Saturday food market <sup><a href="https://www.beaune-tourism.com/organize-your-stay/events/marche-de-beaune-beaune-en-3860373/">[23]</a></sup> then Hospices de Beaune <sup><a href="https://booking-hoteldieu.hospices-de-beaune.com/ticketing-individuals.html">[11]</a></sup></span></li>
+        <li><span class="when">Sat 13:30</span><span>Light lunch in Beaune; brisk loop of Notre-Dame and the ramparts <sup><a href="https://www.beaune-tourism.com/to-see-and-do/cultural-heritage/collegiale-notre-dame-beaune-en-3860937/">[36]</a></sup></span></li>
+        <li><span class="when">Sat 16:30</span><span>Back in Chagny — rest</span></li>
+        <li><span class="when">Sat 19:45</span><span>Walk to Lameloise &mdash; tasting menu &mdash; late</span></li>
+        <li><span class="when">Sun 09:30</span><span>Chagny Sunday market on foot <sup><a href="https://www.valleedelagastronomie.com/en/be-inspired-gourmet-experience/chagny-sunday-market">[76]</a></sup></span></li>
+        <li><span class="when">Sun 11:00</span><span>5 km drive — <a href="https://www.chateauderully.com/prices.html">Château de Rully</a> tour + 3-wine tasting with gougères <sup><a href="https://www.chateauderully.com/prices.html">[27]</a></sup></span></li>
+        <li><span class="when">Sun 13:00</span><span>Picnic from market or <em>cave</em> lunch in Mercurey</span></li>
+        <li><span class="when">Sun 14:30</span><span>Mercurey or Givry tasting (Caveau Givry Vins / Château de Chamirey) <sup><a href="https://www.burgundy-tourism.com/sit/givry-vins">[61]</a></sup><sup><a href="https://www.winalist.com/hosts/166/chateau-de-chamirey">[62]</a></sup></span></li>
+      </ol>
+    </div>
+
+    <div class="pattern">
+      <h4>Pattern B — Slow Burgundy</h4>
+      <p class="pattern-sub">Air + bike + city. For returning visitors.</p>
+      <ol>
+        <li><span class="when">Sat 06:30</span><span>Hot-air balloon with <a href="https://www.air-escargot.com/en/home/">Air Escargot</a> from Remigny (8 km) <sup><a href="https://www.air-escargot.com/en/home/">[44]</a></sup></span></li>
+        <li><span class="when">Sat 09:30</span><span>Aperitif on landing, minibus back to take-off</span></li>
+        <li><span class="when">Sat 11:00</span><span>Voie des Vignes by e-bike Santenay → Meursault (~12 km) and back <sup><a href="https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay">[37]</a></sup></span></li>
+        <li><span class="when">Sat 16:30</span><span>Back in Chagny — rest</span></li>
+        <li><span class="when">Sat 19:45</span><span>Walk to Lameloise &mdash; tasting menu &mdash; late</span></li>
+        <li><span class="when">Sun 10:00</span><span>Drive to Chalon-sur-Saône; Sunday market 10:30–12:30 <sup><a href="https://www.achalon.com/en/homepage-tourism/discover-grand-chalon/burgundian-gastronomy/immerse-yourself-in-the-hustle-and-bustle-of-the-markets/">[56]</a></sup></span></li>
+        <li><span class="when">Sun 13:00</span><span>Lunch on Île Saint-Laurent</span></li>
+        <li><span class="when">Sun 14:30</span><span><a href="https://www.museeniepce.com/">Musée Nicéphore Niépce</a> (free entry) + Cathédrale Saint-Vincent <sup><a href="https://www.museeniepce.com/">[52]</a></sup><sup><a href="https://fr.wikipedia.org/wiki/Cath%C3%A9drale_Saint-Vincent_de_Chalon-sur-Sa%C3%B4ne">[58]</a></sup></span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="caveats">
+    <h4>Beyond the circle &mdash; skip unless you'll burn most of a day</h4>
+    <p><strong>Château du Clos de Vougeot</strong> sits in the Côte de Nuits ~55–60 km north-east; daily 9:30–18:00 high season, guided tour €15<sup><a href="https://www.closdevougeot.fr/">[30]</a></sup><sup><a href="https://en.wikipedia.org/wiki/Clos_de_Vougeot">[31]</a></sup>.</p>
+    <p><strong>Abbaye de Cîteaux</strong> ~45–50 km away, Wed–Sun 10–13 / 14–18, guided 1 h 15, reservations essential<sup><a href="https://citeaux-abbaye.org/venez-nous-vous-accueillons/visiter-l-abbaye">[32]</a></sup>.</p>
+    <p><strong>Château de Cormatin</strong> sits ~41 km SSW into the Mâconnais<sup><a href="https://www.francethisway.com/places/a/chagny-saone-et-loire.php">[81]</a></sup>. All three are real attractions; none belong on a Chagny day-trip list.</p>
+  </div>
+</section>
+
+<!-- =================== COLOPHON =================== -->
+<footer class="colophon">
+  <div class="colophon-grid">
+    <div>
+      <h4>This plate</h4>
+      <ul>
+        <li>81 sources · 30 km radius · 22 targets</li>
+        <li>Pivot: Maison Lameloise · 36 Place d'Armes · Chagny</li>
+        <li>Distances per <a href="https://www.viamichelin.com/web/Routes/Route-Chagny-71150-Saone_et_Loire-France-to-Beaune-21200-Cote_d_Or-France">ViaMichelin</a>; angles approximate.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>This expedition</h4>
+      <ul>
+        <li><a href="../../">↑ A weekend in Chagny anchored on Lameloise</a></li>
+        <li><a href="../../walking-distance-lodging-at-or-near-maison-lameloise/">→ Walking-distance lodging</a></li>
+        <li><a href="../../special-character-lodging-within-taxi-range-of-maison-lameloise/">→ Character lodging within taxi range</a></li>
+        <li><a href="../../it-conferences-and-tech-events-within-30-km-of-maison-lameloise/">→ IT conferences in the radius</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>This view</h4>
+      <ul>
+        <li>Register: vintage Michelin road-atlas plate</li>
+        <li>Source of truth: <a href="../">the canonical page</a></li>
+        <li><a href="/">↑ Atlas</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+</div>
+</div>
