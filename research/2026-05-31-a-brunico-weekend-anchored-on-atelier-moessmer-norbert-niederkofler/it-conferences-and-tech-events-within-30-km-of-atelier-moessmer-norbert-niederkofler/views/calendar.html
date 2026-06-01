@@ -1,0 +1,958 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "Tech events within 30 km of Atelier Moessmer (Brunico) — Calendar"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Special+Elite&family=Permanent+Marker&display=swap');
+
+  .cal-wrap {
+    --paper: #f3ead5;
+    --paper-2: #ede2c4;
+    --ink: #1a1714;
+    --ink-soft: #4a3f33;
+    --rule: #c5b48a;
+    --rule-soft: #d9cba2;
+    --red: #b8341a;
+    --red-deep: #8e1e10;
+    --highlight: rgba(245, 220, 70, 0.42);
+    --dstncmp: #d68a3a;
+    --csama:   #2e7a73;
+    --ontobrix:#6a3d8a;
+    --cmt:     #50623f;
+    --csa:     #4a5b88;
+    --inmotion:#a04a2a;
+    --sfscon:  #3a3a3a;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+    padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem;
+    line-height: 1.45;
+    /* subtle paper texture */
+    background-image:
+      radial-gradient(rgba(60,40,10,0.04) 1px, transparent 1px),
+      radial-gradient(rgba(60,40,10,0.03) 1px, transparent 1px);
+    background-size: 22px 22px, 11px 11px;
+    background-position: 0 0, 6px 9px;
+  }
+
+  /* MASTHEAD */
+  .cal-mast {
+    border-top: 4px double var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 1.1rem 0 0.7rem;
+    margin-bottom: 1.4rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 1.5rem;
+  }
+  .cal-mast h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 4.4vw, 3.8rem);
+    line-height: 1.02;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .cal-mast .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    color: var(--ink-soft);
+    margin-bottom: 0.4rem;
+  }
+  .cal-mast .meta {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .cal-mast .meta strong { color: var(--ink); font-weight: 600; }
+
+  /* TL;DR strip */
+  .cal-tldr {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.8rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .cal-tldr a { color: var(--red-deep); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .cal-tldr sup a { border: none; }
+  .cal-tldr .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.1rem 0.5rem;
+    letter-spacing: 0.16em;
+    margin-right: 0.5rem;
+    vertical-align: 0.15em;
+  }
+
+  /* Calendar layout */
+  .months {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.4rem;
+    margin-bottom: 2.4rem;
+  }
+  @media (max-width: 880px) { .months { grid-template-columns: 1fr; } }
+
+  .month {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    padding: 1rem 1rem 1.1rem;
+    box-shadow: 0 1px 0 var(--paper-2), 0 8px 22px -16px rgba(40,28,8,0.5);
+  }
+  .month-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.6rem;
+  }
+  .month-head h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 1.9rem;
+    margin: 0;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .month-head .year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+  }
+
+  .dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.5rem;
+  }
+  .dow span { text-align: center; }
+  .dow .we { color: var(--red); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    position: relative;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--rule-soft);
+    padding: 0.28rem 0.32rem 0.3rem;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    min-height: 78px;
+  }
+  .cell.pad { background: transparent; border-color: transparent; }
+  .cell .d {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .cell.sat .d { color: var(--red-deep); }
+  .cell.sun .d { color: var(--red); }
+  .cell.in-window { background: var(--highlight); }
+  .cell.in-window.sat { background: linear-gradient(180deg, var(--highlight) 0%, rgba(245,220,70,0.55) 100%); }
+
+  /* event chip inside a cell */
+  .chips {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+  }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 4px;
+    border-radius: 1px;
+    color: #fff;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chip.bar { font-size: 0; padding: 2px 4px; min-height: 6px; }
+  .chip.dstncmp { background: var(--dstncmp); }
+  .chip.csama   { background: var(--csama); }
+  .chip.ontobrix{ background: var(--ontobrix); }
+
+  /* Atelier-Moessmer star stamp */
+  .atelier {
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 0.62rem;
+    color: var(--red);
+    text-align: right;
+    line-height: 1;
+    transform: rotate(-3deg);
+    pointer-events: none;
+  }
+  .atelier .star {
+    display: block;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--red);
+    margin-bottom: -1px;
+  }
+
+  /* WINDOW BANNER */
+  .window-banner {
+    margin: 0.2rem 0 1.6rem;
+    background: var(--highlight);
+    border-left: 6px solid var(--red);
+    padding: 0.8rem 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.8rem;
+  }
+  .window-banner b {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    background: var(--red);
+    color: var(--paper);
+    padding: 0.18rem 0.6rem;
+    border-radius: 1px;
+  }
+  .window-banner .stars {
+    font-family: 'Permanent Marker', cursive;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    margin-left: auto;
+  }
+
+  /* legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 0.9rem;
+    margin: -0.4rem 0 1.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .legend .dot {
+    display: inline-block;
+    width: 11px; height: 11px;
+    border-radius: 1px;
+    vertical-align: -1px;
+    margin-right: 5px;
+  }
+  .legend .star { color: var(--red); font-size: 1rem; margin-right: 3px; vertical-align: -2px; }
+
+  /* Off-calendar sticky-note column */
+  .off-cal {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.4rem;
+    margin-bottom: 2.4rem;
+  }
+  @media (max-width: 880px) { .off-cal { grid-template-columns: 1fr; } }
+
+  .also-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 600px) { .also-grid { grid-template-columns: 1fr; } }
+
+  .also {
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    padding: 0.85rem 0.95rem;
+    position: relative;
+    border-radius: 2px;
+  }
+  .also .when {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.3rem;
+  }
+  .also h3 {
+    margin: 0 0 0.4rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+  .also h3 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .also p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); line-height: 1.5; }
+  .also .where {
+    margin-top: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .also.outside { background: var(--paper-2); }
+  .also.outside::after {
+    content: "OUTSIDE 30 KM";
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family: 'Special Elite', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 1px 5px;
+    transform: rotate(4deg);
+  }
+  .also.tba::after {
+    content: "DATE TBA";
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family: 'Special Elite', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    border: 1px dashed var(--ink-soft);
+    padding: 1px 5px;
+    transform: rotate(-3deg);
+  }
+
+  /* Sticky note */
+  .sticky {
+    background: #f7e370;
+    background-image: linear-gradient(180deg, #fbeb86, #f4d94a);
+    box-shadow: 0 1px 0 #d8ba32, 0 14px 26px -16px rgba(60,40,0,0.55);
+    transform: rotate(-1.2deg);
+    padding: 1rem 1.1rem 1.1rem;
+    font-family: 'Special Elite', monospace;
+    color: #2a2410;
+    border-radius: 1px;
+    align-self: start;
+  }
+  .sticky h3 {
+    margin: 0 0 0.6rem;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 1.2rem;
+    letter-spacing: 0.04em;
+    color: var(--red-deep);
+  }
+  .sticky p { margin: 0 0 0.55rem; font-size: 0.84rem; line-height: 1.5; }
+  .sticky p:last-child { margin-bottom: 0; }
+  .sticky b { font-family: 'Permanent Marker', cursive; color: var(--red-deep); font-weight: 400; }
+  .sticky a { color: #2a2410; text-decoration: underline; }
+
+  /* Section heading */
+  .section-h {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 0 0 0.9rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid var(--ink);
+    letter-spacing: 0.01em;
+  }
+  .section-h .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--red);
+    letter-spacing: 0.2em;
+    margin-right: 0.6rem;
+    vertical-align: 0.25em;
+  }
+
+  /* Venue cards */
+  .venues {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 880px) { .venues { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .venues { grid-template-columns: 1fr; } }
+
+  .venue {
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .venue .photo {
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+    background-position: center;
+    border-bottom: 1px solid var(--ink);
+    position: relative;
+  }
+  .venue .photo.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper);
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    padding: 0 0.8rem;
+    text-align: center;
+  }
+  .venue .photo .km {
+    position: absolute;
+    bottom: 6px; right: 6px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    padding: 1px 6px;
+    border-radius: 1px;
+  }
+  .venue .body { padding: 0.7rem 0.85rem 0.9rem; }
+  .venue h3 {
+    margin: 0 0 0.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  .venue h3 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .venue .town {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .venue p { margin: 0; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.45; }
+
+  /* Distance callout */
+  .dist {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.2rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  .dist .big {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 2.6rem;
+    line-height: 1;
+    color: var(--red-deep);
+    letter-spacing: -0.01em;
+  }
+  .dist .big small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .dist p { margin: 0; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; line-height: 1.45; }
+  .dist p a { color: var(--red-deep); text-decoration: none; border-bottom: 1px solid currentColor; }
+
+  /* Recurring strip */
+  .recurring {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.7rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 880px) { .recurring { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .recurring { grid-template-columns: 1fr; } }
+  .rec {
+    border: 1px dashed var(--ink-soft);
+    padding: 0.7rem 0.8rem;
+    border-radius: 2px;
+  }
+  .rec .lab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .rec h4 {
+    margin: 0 0 0.3rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .rec h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .rec p { margin: 0; font-size: 0.76rem; color: var(--ink-soft); line-height: 1.45; }
+
+  /* Itinerary picks */
+  .picks {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.2rem;
+  }
+  @media (max-width: 880px) { .picks { grid-template-columns: 1fr; } }
+  .pick {
+    border-left: 4px solid var(--red);
+    padding: 0.6rem 0.95rem 0.8rem;
+    background: var(--paper);
+  }
+  .pick .when {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    color: var(--red-deep);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .pick h4 {
+    margin: 0 0 0.35rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .pick p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); line-height: 1.5; }
+  .pick.warn { border-left-color: var(--ink-soft); }
+  .pick.warn .when { color: var(--ink-soft); }
+
+  /* footer */
+  .colophon {
+    border-top: 4px double var(--ink);
+    margin-top: 2rem;
+    padding-top: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+  .colophon a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+
+  sup a {
+    color: var(--red-deep);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55em;
+    border: none;
+  }
+</style>
+
+<div class="cal-wrap">
+
+  <header class="cal-mast">
+    <div>
+      <div class="kicker">Wall calendar · Val Pusteria + Eisacktal · within 30 km of Atelier Moessmer</div>
+      <h1>The conference window<br>in <span style="color: var(--red-deep);">late May → early June</span> 2026.</h1>
+    </div>
+    <div class="meta">
+      <div><strong>22</strong> citations</div>
+      <div><strong>6</strong> confirmed events · <strong>5</strong> in Brixen</div>
+      <div><strong>3</strong> Atelier Saturdays in window</div>
+      <div>Anchor · <strong>Brunico (BZ)</strong></div>
+    </div>
+  </header>
+
+  <div class="cal-tldr">
+    <span class="tag">TL;DR</span>
+    Inside the 30 km radius around <a href="https://guide.michelin.com/us/en/trentino-alto-adige/brunico/restaurant/atelier-moessmer-norbert-niederkofler">Atelier Moessmer</a> there are <b>six confirmed 2026 events</b>. Five sit in Brixen / Bressanone, one is the not-yet-dated <a href="https://www.automotive-suedtirol.com/tech-festival/">IN MOTION Tech Festival</a> at NOI Techpark Brunico itself. The only window that pairs naturally with a Saturday dinner is <b>23 May → 13 June</b>, when DSTNCMP, CSAMA and OntoBRIX cluster back-to-back. The region's flagship <a href="https://www.sfscon.it/">SFSCON</a> sits in Bolzano (~75 km), outside the circle. <sup><a href="https://www.distance.to/Brixen/Bruneck-Brunico">[2]</a></sup>
+  </div>
+
+  <div class="window-banner">
+    <b>CLUSTER WINDOW</b>
+    <span>Sat 23 May → Sat 13 June 2026 · three back-to-back conferences and three Atelier Moessmer Saturdays</span>
+    <span class="stars">★ 30 May &nbsp;·&nbsp; ★ 6 Jun &nbsp;·&nbsp; ★ 13 Jun</span>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background: var(--dstncmp);"></span>DSTNCMP</span>
+    <span><span class="dot" style="background: var(--csama);"></span>CSAMA</span>
+    <span><span class="dot" style="background: var(--ontobrix);"></span>OntoBRIX</span>
+    <span><span class="star">★</span>Atelier Moessmer · Sat</span>
+    <span style="margin-left:auto; font-style: italic; text-transform: none; letter-spacing: 0.04em;">Highlighted cells = inside the cluster window.</span>
+  </div>
+
+  <section class="months">
+
+    <!-- MAY 2026 -->
+    <div class="month">
+      <div class="month-head">
+        <h2>May</h2>
+        <span class="year">2026 · WK 18–22</span>
+      </div>
+      <div class="dow">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="we">Sat</span><span class="we">Sun</span>
+      </div>
+      <div class="grid">
+        <!-- Week 1: Apr 27-30 pad, May 1 (Fri), 2 (Sat), 3 (Sun) -->
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+        <div class="cell"><span class="d">1</span></div>
+        <div class="cell sat"><span class="d">2</span></div>
+        <div class="cell sun"><span class="d">3</span></div>
+
+        <!-- Week 2: May 4-10 -->
+        <div class="cell"><span class="d">4</span></div>
+        <div class="cell">
+          <span class="d">5</span>
+          <div class="chips"><span class="chip dstncmp">DSTNCMP</span></div>
+        </div>
+        <div class="cell">
+          <span class="d">6</span>
+          <div class="chips"><span class="chip dstncmp bar"></span></div>
+        </div>
+        <div class="cell">
+          <span class="d">7</span>
+          <div class="chips"><span class="chip dstncmp bar"></span></div>
+        </div>
+        <div class="cell"><span class="d">8</span></div>
+        <div class="cell sat"><span class="d">9</span></div>
+        <div class="cell sun"><span class="d">10</span></div>
+
+        <!-- Week 3: May 11-17 -->
+        <div class="cell"><span class="d">11</span></div>
+        <div class="cell"><span class="d">12</span></div>
+        <div class="cell"><span class="d">13</span></div>
+        <div class="cell"><span class="d">14</span></div>
+        <div class="cell"><span class="d">15</span></div>
+        <div class="cell sat"><span class="d">16</span></div>
+        <div class="cell sun"><span class="d">17</span></div>
+
+        <!-- Week 4: May 18-24 -->
+        <div class="cell"><span class="d">18</span></div>
+        <div class="cell"><span class="d">19</span></div>
+        <div class="cell"><span class="d">20</span></div>
+        <div class="cell"><span class="d">21</span></div>
+        <div class="cell"><span class="d">22</span></div>
+        <div class="cell sat in-window"><span class="d">23</span></div>
+        <div class="cell sun in-window">
+          <span class="d">24</span>
+          <div class="chips"><span class="chip csama">CSAMA</span></div>
+        </div>
+
+        <!-- Week 5: May 25-31 -->
+        <div class="cell in-window">
+          <span class="d">25</span>
+          <div class="chips"><span class="chip csama bar"></span></div>
+        </div>
+        <div class="cell in-window">
+          <span class="d">26</span>
+          <div class="chips"><span class="chip csama bar"></span></div>
+        </div>
+        <div class="cell in-window">
+          <span class="d">27</span>
+          <div class="chips"><span class="chip csama bar"></span></div>
+        </div>
+        <div class="cell in-window">
+          <span class="d">28</span>
+          <div class="chips"><span class="chip csama bar"></span></div>
+        </div>
+        <div class="cell in-window">
+          <span class="d">29</span>
+          <div class="chips"><span class="chip csama bar"></span></div>
+        </div>
+        <div class="cell sat in-window">
+          <span class="d">30</span>
+          <div class="atelier"><span class="star">★</span>Atelier</div>
+        </div>
+        <div class="cell sun in-window"><span class="d">31</span></div>
+      </div>
+    </div>
+
+    <!-- JUNE 2026 -->
+    <div class="month">
+      <div class="month-head">
+        <h2>June</h2>
+        <span class="year">2026 · WK 23–27</span>
+      </div>
+      <div class="dow">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="we">Sat</span><span class="we">Sun</span>
+      </div>
+      <div class="grid">
+        <!-- Week 1: Jun 1-7 -->
+        <div class="cell in-window"><span class="d">1</span></div>
+        <div class="cell in-window"><span class="d">2</span></div>
+        <div class="cell in-window"><span class="d">3</span></div>
+        <div class="cell in-window"><span class="d">4</span></div>
+        <div class="cell in-window"><span class="d">5</span></div>
+        <div class="cell sat in-window">
+          <span class="d">6</span>
+          <div class="atelier"><span class="star">★</span>Atelier</div>
+        </div>
+        <div class="cell sun in-window"><span class="d">7</span></div>
+
+        <!-- Week 2: Jun 8-14 -->
+        <div class="cell in-window">
+          <span class="d">8</span>
+          <div class="chips"><span class="chip ontobrix">OntoBRIX</span></div>
+        </div>
+        <div class="cell in-window">
+          <span class="d">9</span>
+          <div class="chips"><span class="chip ontobrix bar"></span></div>
+        </div>
+        <div class="cell in-window">
+          <span class="d">10</span>
+          <div class="chips"><span class="chip ontobrix bar"></span></div>
+        </div>
+        <div class="cell in-window"><span class="d">11</span></div>
+        <div class="cell in-window"><span class="d">12</span></div>
+        <div class="cell sat in-window">
+          <span class="d">13</span>
+          <div class="atelier"><span class="star">★</span>Atelier</div>
+        </div>
+        <div class="cell sun"><span class="d">14</span></div>
+
+        <!-- Week 3: Jun 15-21 -->
+        <div class="cell"><span class="d">15</span></div>
+        <div class="cell"><span class="d">16</span></div>
+        <div class="cell"><span class="d">17</span></div>
+        <div class="cell"><span class="d">18</span></div>
+        <div class="cell"><span class="d">19</span></div>
+        <div class="cell sat"><span class="d">20</span></div>
+        <div class="cell sun"><span class="d">21</span></div>
+
+        <!-- Week 4: Jun 22-28 -->
+        <div class="cell"><span class="d">22</span></div>
+        <div class="cell"><span class="d">23</span></div>
+        <div class="cell"><span class="d">24</span></div>
+        <div class="cell"><span class="d">25</span></div>
+        <div class="cell"><span class="d">26</span></div>
+        <div class="cell sat"><span class="d">27</span></div>
+        <div class="cell sun"><span class="d">28</span></div>
+
+        <!-- Week 5: Jun 29-30 + pad -->
+        <div class="cell"><span class="d">29</span></div>
+        <div class="cell"><span class="d">30</span></div>
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+        <div class="cell pad"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <h2 class="section-h"><span class="num">02</span>Picking the Saturday</h2>
+
+  <div class="picks">
+    <div class="pick">
+      <div class="when">Sat 30 May · CSAMA mid-week</div>
+      <h4>The best pairing</h4>
+      <p>CSAMA's hands-on labs run all week; Saturday is a free evening. Take the train Brixen → Brunico (~35 min by road <sup><a href="https://www.distance.to/Brixen/Bruneck-Brunico">[2]</a></sup>) and let <a href="https://guide.michelin.com/us/en/trentino-alto-adige/brunico/restaurant/atelier-moessmer-norbert-niederkofler">Atelier Moessmer</a> cap the week.</p>
+    </div>
+    <div class="pick">
+      <div class="when">Sat 6 Jun · between events</div>
+      <h4>The clean cap</h4>
+      <p>CSAMA finishes Fri 29 May, <a href="https://sites.google.com/view/spe13-ontobrix2026/">OntoBRIX</a> opens Mon 8 Jun. The Saturday in between is the ideal arrival-day dinner for OntoBRIX speakers.</p>
+    </div>
+    <div class="pick">
+      <div class="when">Sat 13 Jun · OntoBRIX wrap weekend</div>
+      <h4>The unwind</h4>
+      <p>OntoBRIX closes Wed 10 Jun. A Saturday dinner here lets attendees stay on for a Plan-de-Corones day before flying out — and falls inside the cluster window's last day.</p>
+    </div>
+  </div>
+
+  <h2 class="section-h"><span class="num">03</span>Off the May–June page</h2>
+
+  <div class="off-cal">
+    <div class="also-grid">
+      <div class="also">
+        <div class="when">Feb 5 – 7 · Thu–Sat</div>
+        <h3><a href="https://www.escop.eu/news/news/conference-news/cognitive-science-arena">Cognitive Science Arena 2026</a></h3>
+        <p>14th edition. Early-career cognitive-science conference for grad students and post-docs. <sup><a href="https://www.escop.eu/news/news/conference-news/cognitive-science-arena">[3]</a></sup></p>
+        <div class="where">Bressanone · venue via cogsci.unibz.it</div>
+      </div>
+      <div class="also">
+        <div class="when">Aug 26 – 28 · Wed–Fri</div>
+        <h3><a href="https://cmtconference.it/">CMT @ Brixen 2026</a></h3>
+        <p>3rd edition. Condensed-matter theory. Closing Friday → Sat 29 Aug Atelier dinner is the clean cap. <sup><a href="https://cmtconference.it/">[9]</a></sup></p>
+        <div class="where">Brixen · physics</div>
+      </div>
+      <div class="also outside">
+        <div class="when">Nov 13 – 14 · Fri–Sat</div>
+        <h3><a href="https://www.sfscon.it/">SFSCON 2026</a></h3>
+        <p>South Tyrol's flagship Free Software conference. The closest thing to a developer conference in the region — but ~75 km from Brunico. <sup><a href="https://www.sfscon.it/">[21]</a></sup></p>
+        <div class="where">NOI Techpark, Bolzano</div>
+      </div>
+      <div class="also tba">
+        <div class="when">2026 · date not published</div>
+        <h3><a href="https://www.automotive-suedtirol.com/tech-festival/">IN MOTION Tech Festival</a></h3>
+        <p>The actual local tech expo (AI, automation, robotics, VR, Industry 4.0). 2025 ran 10 May at <a href="https://noi.bz.it/en/about-us/bruneck-brunico">NOI Techpark Brunico</a>; expect a similar May/June slot. <sup><a href="https://www.altoadigeinnovazione.it/tech-festival/">[13]</a></sup></p>
+        <div class="where">NOI Techpark + <a href="https://www.nobis-bruneck.com/en/">NOBIS</a>, Brunico</div>
+      </div>
+    </div>
+
+    <aside class="sticky">
+      <h3>Don't anchor on IN MOTION</h3>
+      <p>The Brunico-local festival is the only event that lets the dinner happen inside Brunico itself — but <b>AES hasn't published a 2026 date.</b></p>
+      <p>The 2025 edition was a single Saturday (May 10). Watch <a href="https://www.automotive-suedtirol.com/tech-festival/">automotive-suedtirol.com</a> and re-plan if it lands on a target weekend.</p>
+      <p style="margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px dashed #2a2410;">Until then: anchor on <b>CSAMA week</b> or the post-CSAMA Saturday.</p>
+    </aside>
+  </div>
+
+  <h2 class="section-h"><span class="num">04</span>The 35 km caveat</h2>
+
+  <div class="dist">
+    <div class="big">23.6<small>KM AIR-LINE</small></div>
+    <p>Brunico → Brixen is <b>23.6 km air-line</b> but <b>~35 km by road</b>. <sup><a href="https://www.distance.to/Brixen/Bruneck-Brunico">[2]</a></sup> Brixen is <i>inside</i> a 30 km radius but <i>outside</i> a 30 km drive. If "30 km" means driving distance, drop the Brixen rows. <a href="https://www.oadguides.com/restaurant/atelier-moessmer-norbert-niederkofler">Atelier Moessmer</a> is in central Brunico, so the difference is real — call it before you commit.</p>
+  </div>
+
+  <h2 class="section-h"><span class="num">05</span>The venues you'll actually be in</h2>
+
+  <div class="venues">
+
+    <div class="venue">
+      <div class="photo" style="background-image: url('calendar/images/inmotion.jpg');">
+        <span class="km">~1 KM · BRUNICO</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://noi.bz.it/en/about-us/bruneck-brunico">NOI Techpark Brunico</a></h3>
+        <div class="town">Europastraße 9 · Brunico</div>
+        <p>4,000 m² Centre for Sustainable Mobility · 5 seminar rooms, up to 450 combined. Host for IN MOTION when it dates. <sup><a href="https://noi.bz.it/en/about-us/bruneck-brunico">[10]</a></sup></p>
+      </div>
+    </div>
+
+    <div class="venue">
+      <div class="photo" style="background-image: url('calendar/images/nobis.jpg');">
+        <span class="km">~1 KM · BRUNICO</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.nobis-bruneck.com/en/">NOBIS</a></h3>
+        <div class="town">Via Europa 9 · Brunico</div>
+        <p>Adjacent to NOI Techpark · 365-day event centre for conferences and workshops. <sup><a href="https://www.nobis-bruneck.com/en/">[18]</a></sup></p>
+      </div>
+    </div>
+
+    <div class="venue">
+      <div class="photo" style="background-image: url('calendar/images/destinationcamp.jpg');">
+        <span class="km">~23.6 KM · BRIXEN</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.forum-brixen.com/en/cultural-and-congress-centre/">FORUM Brixen</a></h3>
+        <div class="town">Bressanone · DSTNCMP host</div>
+        <p>6 meeting rooms · 48–555 capacity · 622 m² main hall. <sup><a href="https://www.forum-brixen.com/en/cultural-and-congress-centre/">[19]</a></sup></p>
+      </div>
+    </div>
+
+    <div class="venue">
+      <div class="photo placeholder" style="background: linear-gradient(135deg, #6a5a3a 0%, #4a3f2a 100%);">
+        Cusanus Akademie
+        <span class="km">~23.6 KM · BRIXEN</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://www.cusanus.bz.it/">Cusanus Akademie</a></h3>
+        <div class="town">Piazza Seminario 2 · Brixen</div>
+        <p>Diocesan congress centre · 10 rooms · 10–700 capacity · simultaneous translation in 2 rooms. <sup><a href="https://www.cusanus.bz.it/">[20]</a></sup></p>
+      </div>
+    </div>
+
+    <div class="venue">
+      <div class="photo" style="background-image: url('calendar/images/ontobrix.jpg');">
+        <span class="km">~23.6 KM · BRIXEN</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://sites.google.com/view/spe13-ontobrix2026/">PTH Brixen College</a></h3>
+        <div class="town">Seminargasse 4 · Brixen</div>
+        <p>Theological college hosting OntoBRIX 2026 (June 8–10). <sup><a href="https://sites.google.com/view/spe13-ontobrix2026/">[8]</a></sup></p>
+      </div>
+    </div>
+
+    <div class="venue">
+      <div class="photo" style="background-image: url('calendar/images/csama.png'); background-color: var(--csama);">
+        <span class="km">~23.6 KM · BRIXEN</span>
+      </div>
+      <div class="body">
+        <h3><a href="https://bioinformatics.it/meetings-and-workshops/detail/1835/csama-biological-data-science-summer-school-2026">Casa della Gioventù</a></h3>
+        <div class="town">UniPD site · Bressanone</div>
+        <p>University of Padova's Bressanone teaching site · CSAMA 2026 host. <sup><a href="https://bioinformatics.it/meetings-and-workshops/detail/1835/csama-biological-data-science-summer-school-2026">[7]</a></sup></p>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-h"><span class="num">06</span>Recurring · no fixed 2026 date</h2>
+
+  <div class="recurring">
+    <div class="rec">
+      <div class="lab">Annual · placeholder</div>
+      <h4><a href="https://www.automotive-suedtirol.com/tech-festival/">IN MOTION Tech Festival</a></h4>
+      <p>AES Automotive Excellence Südtirol. 2025 ran 10 May, NOI Techpark Brunico — expect May/June 2026. <sup><a href="https://www.altoadigeinnovazione.it/tech-festival/">[13]</a></sup></p>
+    </div>
+    <div class="rec">
+      <div class="lab">Plausible 2026 return</div>
+      <h4><a href="https://www.altoadigeinnovazione.it/noi-techpark-brunico-conferenza-internazionale-automotive/">Automotive Transformation Conf.</a></h4>
+      <p>Drive2Transform / Interreg CE. 23–24 Oct 2025 at NOI Techpark Brunico; project runs through end-2026. <sup><a href="https://www.altoadigeinnovazione.it/noi-techpark-brunico-conferenza-internazionale-automotive/">[14]</a></sup></p>
+    </div>
+    <div class="rec">
+      <div class="lab">Developer meetup · 532 members</div>
+      <h4><a href="https://www.meetup.com/tech-talks-south-tyrol/">Tech Talks South Tyrol</a></h4>
+      <p>Alternates Brixen ↔ Bolzano. Recent Brixen hosts: Progress Holding AG (May 2025, 43 attendees), <a href="https://x.com/tech_talks_st/status/1859511228449657331">Duka (Nov 2024)</a>. No 2026 event listed yet. <sup><a href="https://www.meetup.com/tech-talks-south-tyrol/">[16]</a></sup></p>
+    </div>
+    <div class="rec">
+      <div class="lab">Opening · 2026 target</div>
+      <h4><a href="https://www.tttech.com/press/innovation-campus-brixen">TTTech Innovation Campus Brixen</a></h4>
+      <p>Public "mailab" AI lab and machine-vision focus (TTControl, MiCROTEC). Worth a side-visit if open. No public conference programme yet. <sup><a href="https://www.tttech.com/press/innovation-campus-brixen">[15]</a></sup></p>
+    </div>
+  </div>
+
+  <footer class="colophon">
+    <span>22 citations · 6 events · 1 cluster window</span>
+    <span><a href="../">Default view</a> · <a href="../../">A Brunico weekend</a> · <a href="/">Atlas</a></span>
+  </footer>
+
+</div>
