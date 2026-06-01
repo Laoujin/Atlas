@@ -1,0 +1,6 @@
+Wine villages and tastings on the Côte de Beaune within 30 km of Chagny — which villages (Meursault, Puligny-Montrachet, Pommard, Volnay, Santenay, Chassagne, Saint-Aubin), what to book, prices, reservation rules.
+Beaune itself — Hospices de Beaune (Hôtel-Dieu), wine cellars / négociant cellars (Patriarche, Joseph Drouhin, Bouchard, Marché aux Vins), and museums; opening hours and ticket info.
+Châteaux and historic monuments within 30 km — La Rochepot, Château de Pommard, Château de Rully, Château de Couches, Château du Clos de Vougeot (edge of 30 km), Cormatin, abbey of Maizières — what's worth visiting, how to get in.
+Outdoor activities — Voie Verte / Voie Bleue cycling, e-bike rentals, Canal du Centre boating, hot-air balloon flights over the Côte d'Or, walking trails (sentier des Grands Crus, climats UNESCO walks).
+Côte Chalonnaise and Chalon-sur-Saône — Givry, Mercurey, Bouzeron, Rully tastings; Chalon old town, Musée Nicéphore Niépce (photography), riverside Sunday market.
+Practical day-trip patterns for a weekend anchored on a Saturday dinner at Maison Lameloise — what fits as a half-day vs full-day; how to time Saturday so you're back rested for an 8pm Michelin three-star service; what's open on a Sunday in rural Burgundy.
