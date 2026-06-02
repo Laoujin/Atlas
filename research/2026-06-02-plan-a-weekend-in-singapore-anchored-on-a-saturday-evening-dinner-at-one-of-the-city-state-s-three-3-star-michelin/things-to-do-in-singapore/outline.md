@@ -1,0 +1,6 @@
+Iconic Marina Bay sights — Marina Bay Sands SkyPark, Gardens by the Bay (Cloud Forest, Flower Dome, Supertree Grove), Merlion Park, ArtScience Museum — what's worth visiting and what's overrated in 2026.
+Hawker centre and street-food experience — best centres (Maxwell, Lau Pa Sat, Tiong Bahru, Chinatown Complex, Newton, Old Airport Road), Michelin Bib Gourmand / stall picks, signature dishes, opening hours.
+Cultural neighborhoods worth wandering — Chinatown, Little India, Kampong Glam (Arab Street, Haji Lane), Tiong Bahru, Katong/Joo Chiat (Peranakan), what to actually see in each.
+Green-space and nature experiences — Singapore Botanic Gardens (UNESCO), MacRitchie TreeTop Walk, Southern Ridges/Henderson Waves, Pulau Ubin, Sungei Buloh, Bukit Timah Nature Reserve.
+Sentosa and family entertainment — Universal Studios Singapore (Minion Land 2025), S.E.A. Aquarium / Singapore Oceanarium reopen, beaches, Skyline Luge, Mega Adventure.
+Nightlife and bars worth your evenings — World's 50 Best Bars Singapore picks (Jigger & Pony, Atlas, Manhattan, Native, Sago House), rooftops (CÉ LA VI, 1-Altitude, Smoke & Mirrors), offbeat / contrarian picks loved by locals (Haw Par Villa, Coney Island, supper clubs).
