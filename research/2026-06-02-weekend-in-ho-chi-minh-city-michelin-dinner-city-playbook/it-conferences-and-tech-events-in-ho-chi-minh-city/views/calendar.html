@@ -1,0 +1,1037 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Ho Chi Minh City — Calendar"
+---
+
+<style>
+  :root {
+    --bg: #0b0d12;
+    --surface: #13161f;
+    --surface2: #1b1f2d;
+    --border: #242836;
+    --text: #e2e6f0;
+    --muted: #8892a4;
+    --accent-free: #22c55e;
+    --accent-paid: #f59e0b;
+    --accent-invite: #a78bfa;
+    --accent-community: #38bdf8;
+    --accent-tbd: #94a3b8;
+    --month-line: #1e2235;
+    --red: #f87171;
+    --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .cal-root {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ── Header ── */
+  .cal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1040 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cal-header::before {
+    content: "";
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cal-header::after {
+    content: "";
+    position: absolute;
+    bottom: -80px; left: 40px;
+    width: 400px; height: 200px;
+    background: radial-gradient(ellipse, rgba(56,189,248,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cal-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-community);
+    margin-bottom: 12px;
+  }
+
+  .cal-title {
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .cal-subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 560px;
+  }
+
+  /* ── Stats row ── */
+  .cal-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .stat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .stat-num {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  /* ── Legend ── */
+  .cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .legend-badge {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  /* ── Main body ── */
+  .cal-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 32px 0;
+  }
+
+  /* ── Month section ── */
+  .month-section {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 0;
+    margin-bottom: 4px;
+    position: relative;
+  }
+
+  .month-label {
+    padding: 20px 16px 20px 0;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .month-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .month-num {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--border);
+    line-height: 1;
+  }
+
+  .month-events {
+    border-left: 2px solid var(--month-line);
+    padding: 12px 0 12px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── Event card ── */
+  .event-card {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .event-card:hover {
+    border-color: var(--accent-community);
+  }
+
+  .event-card.free { border-left: 3px solid var(--accent-free); }
+  .event-card.paid { border-left: 3px solid var(--accent-paid); }
+  .event-card.invite { border-left: 3px solid var(--accent-invite); }
+  .event-card.tbd { border-left: 3px solid var(--accent-tbd); }
+  .event-card.employer { border-left: 3px solid var(--accent-community); }
+
+  .event-date-col {
+    background: var(--surface2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 4px;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .event-day {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .event-dow {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .event-body {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .event-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .event-tag {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .cost-badge {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .cost-badge.free { background: rgba(34,197,94,0.12); color: var(--accent-free); border: 1px solid rgba(34,197,94,0.25); }
+  .cost-badge.paid { background: rgba(245,158,11,0.12); color: var(--accent-paid); border: 1px solid rgba(245,158,11,0.25); }
+  .cost-badge.invite { background: rgba(167,139,250,0.12); color: var(--accent-invite); border: 1px solid rgba(167,139,250,0.25); }
+  .cost-badge.tbd { background: rgba(148,163,184,0.12); color: var(--accent-tbd); border: 1px solid rgba(148,163,184,0.25); }
+  .cost-badge.employer { background: rgba(56,189,248,0.12); color: var(--accent-community); border: 1px solid rgba(56,189,248,0.25); }
+
+  .event-venue {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── Featured card (with image) ── */
+  .event-card.featured {
+    grid-template-columns: 52px 1fr 140px;
+  }
+
+  .event-img {
+    height: 100%;
+    min-height: 80px;
+    object-fit: cover;
+    display: block;
+    border-left: 1px solid var(--border);
+    opacity: 0.85;
+  }
+
+  /* ── Annual calendar ── */
+  .annual-section {
+    margin-top: 48px;
+  }
+
+  .section-heading {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-heading::before {
+    content: "";
+    display: inline-block;
+    width: 3px; height: 14px;
+    background: var(--accent-community);
+    border-radius: 2px;
+  }
+
+  /* ── Annual grid ── */
+  .annual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .annual-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+
+  .annual-card:hover {
+    border-color: var(--accent-community);
+  }
+
+  .annual-month-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  .annual-info { flex: 1; min-width: 0; }
+
+  .annual-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+
+  .annual-meta {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .scale-badge {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(56,189,248,0.1);
+    color: var(--accent-community);
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+
+  /* ── Community section ── */
+  .community-section {
+    margin-top: 48px;
+  }
+
+  .community-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+
+  .community-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+
+  .community-card:hover {
+    border-color: var(--accent-community);
+  }
+
+  .community-favicon {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  .community-info { flex: 1; min-width: 0; }
+
+  .community-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .community-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .community-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .community-chip {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: rgba(56,189,248,0.1);
+    color: var(--accent-community);
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+
+  /* ── Context box ── */
+  .context-box {
+    margin-top: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-community);
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .context-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .context-num {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-community);
+    line-height: 1;
+  }
+
+  .context-label {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .context-source {
+    font-size: 10px;
+    color: var(--border);
+  }
+
+  /* ── Featured images section ── */
+  .hero-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+
+  .hero-img-wrap {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    aspect-ratio: 16/9;
+    background: var(--surface2);
+  }
+
+  .hero-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0.88;
+  }
+
+  /* ── Separator ── */
+  .month-sep {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: var(--month-line);
+    margin: 4px 0;
+  }
+
+  /* ── Empty month note ── */
+  .no-events {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--border);
+    padding: 18px 0;
+    font-style: italic;
+  }
+
+  /* ── Past marker ── */
+  .past-marker {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(248,113,113,0.1);
+    color: var(--red);
+    border: 1px solid rgba(248,113,113,0.2);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .upcoming-marker {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(34,197,94,0.1);
+    color: var(--accent-free);
+    border: 1px solid rgba(34,197,94,0.25);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 640px) {
+    .cal-header, .cal-stats, .cal-legend, .cal-body { padding-left: 16px; padding-right: 16px; }
+    .month-section { grid-template-columns: 60px 1fr; }
+    .month-num { font-size: 16px; }
+    .event-card.featured { grid-template-columns: 52px 1fr; }
+    .event-img { display: none; }
+    .hero-images { display: none; }
+  }
+</style>
+
+<div class="cal-root">
+
+  <!-- Header -->
+  <div class="cal-header">
+    <div class="cal-eyebrow">Ho Chi Minh City · 2026</div>
+    <h1 class="cal-title">IT Conferences & Tech Events</h1>
+    <p class="cal-subtitle">
+      Upcoming paid conferences, free mixers, and year-round community groups for IT professionals in HCMC. Today: 2 Jun 2026.
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="cal-stats">
+    <div class="stat-chip">
+      <span class="stat-dot" style="background:var(--accent-free)"></span>
+      <span class="stat-num">4</span>
+      <span style="color:var(--muted)">free upcoming</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-dot" style="background:var(--accent-paid)"></span>
+      <span class="stat-num">2</span>
+      <span style="color:var(--muted)">paid conferences</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-dot" style="background:var(--accent-invite)"></span>
+      <span class="stat-num">1</span>
+      <span style="color:var(--muted)">invite-only</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-dot" style="background:var(--accent-community)"></span>
+      <span class="stat-num">5</span>
+      <span style="color:var(--muted)">community groups</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-dot" style="background:#e2e6f0"></span>
+      <span class="stat-num">10k</span>
+      <span style="color:var(--muted)">FPT Techday peak</span>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="cal-legend">
+    <div class="legend-item"><span class="legend-badge" style="background:var(--accent-free)"></span> Free</div>
+    <div class="legend-item"><span class="legend-badge" style="background:var(--accent-paid)"></span> Paid</div>
+    <div class="legend-item"><span class="legend-badge" style="background:var(--accent-invite)"></span> Invite-only</div>
+    <div class="legend-item"><span class="legend-badge" style="background:var(--accent-community)"></span> Employer / Community</div>
+    <div class="legend-item"><span class="legend-badge" style="background:var(--accent-tbd)"></span> Cost TBD</div>
+  </div>
+
+  <!-- Body -->
+  <div class="cal-body">
+
+    <!-- Featured photos -->
+    <div class="hero-images">
+      <div class="hero-img-wrap">
+        <img src="calendar/images/vn-cloud-dc.png" alt="Vietnam Cloud & DC Convention 2026">
+      </div>
+      <div class="hero-img-wrap">
+        <img src="calendar/images/gstar-summit.jpg" alt="GStar Summit 2026">
+      </div>
+      <div class="hero-img-wrap">
+        <img src="calendar/images/ai-revolution-summit.webp" alt="AI Revolution Summit Vietnam">
+      </div>
+    </div>
+
+    <!-- ─────────────── JUNE ─────────────── -->
+    <div class="month-section">
+      <div class="month-label">
+        <span class="month-name">Jun</span>
+        <span class="month-num">06</span>
+      </div>
+      <div class="month-events">
+
+        <a class="event-card free" href="https://www.eventbrite.sg/e/vietnam-all-things-data-ai-and-digital-social-mixer-other-sgn-tickets-1990764099010">
+          <div class="event-date-col">
+            <span class="event-day">11</span>
+            <span class="event-dow">Thu</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">All Things Data, AI &amp; Digital — Social Mixer <span class="upcoming-marker">upcoming</span></div>
+            <div class="event-meta">
+              <span class="cost-badge free">Free</span>
+              <span class="event-tag">AI / Data</span>
+              <span class="event-tag">Networking</span>
+            </div>
+            <div class="event-venue">CREO Bar &amp; Cafe, HCMC · 7:00 PM</div>
+          </div>
+        </a>
+
+        <a class="event-card free" href="https://www.eventbrite.com/e/future-of-ai-and-engineering-tickets-1990764957578">
+          <div class="event-date-col">
+            <span class="event-day">17</span>
+            <span class="event-dow">Wed</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">Future of AI and Engineering <span class="upcoming-marker">upcoming</span></div>
+            <div class="event-meta">
+              <span class="cost-badge free">Free</span>
+              <span class="event-tag">AI + Engineering</span>
+            </div>
+            <div class="event-venue">The American Center HCMC · 3:00 PM</div>
+          </div>
+        </a>
+
+        <a class="event-card paid featured" href="https://datacenterinnovationseries.com/vietnam/">
+          <div class="event-date-col">
+            <span class="event-day">19</span>
+            <span class="event-dow">Fri</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">World Datacentre Summit Vietnam <span class="upcoming-marker">upcoming</span></div>
+            <div class="event-meta">
+              <span class="cost-badge paid">$999</span>
+              <span class="event-tag">DC / Cloud / Infra</span>
+              <span class="event-tag">250+ pros</span>
+            </div>
+            <div class="event-venue">Holiday Inn &amp; Suites Saigon Airport</div>
+          </div>
+          <img class="event-img" src="calendar/images/worlddc-summit.png" alt="World Datacentre Summit Vietnam">
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ─────────────── JULY ─────────────── -->
+    <div class="month-section">
+      <div class="month-label">
+        <span class="month-name">Jul</span>
+        <span class="month-num">07</span>
+      </div>
+      <div class="month-events">
+
+        <a class="event-card tbd" href="https://www.eventbrite.com/e/vietnam-pfa-2026-platform-connecting-technology-investment-in-the-proce-tickets-1976112928966">
+          <div class="event-date-col">
+            <span class="event-day">15</span>
+            <span class="event-dow">Wed</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">Vietnam PFA 2026 — Tech &amp; Investment Platform</div>
+            <div class="event-meta">
+              <span class="cost-badge tbd">TBD</span>
+              <span class="event-tag">Tech + Investment</span>
+            </div>
+            <div class="event-venue">SECC, District 7 · 10:00 AM</div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ─────────────── AUGUST ─────────────── -->
+    <div class="month-section">
+      <div class="month-label">
+        <span class="month-name">Aug</span>
+        <span class="month-num">08</span>
+      </div>
+      <div class="month-events">
+
+        <a class="event-card paid featured" href="https://clouddatacenter.events/events/vietnam-cloud-datacenter-ho-chi-minh-convention-2026/">
+          <div class="event-date-col">
+            <span class="event-day">20</span>
+            <span class="event-dow">Thu</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">Vietnam Cloud &amp; DC Convention 2026</div>
+            <div class="event-meta">
+              <span class="cost-badge paid">$395</span>
+              <span class="cost-badge free">Free (end users/gov)</span>
+              <span class="event-tag">Cloud / AI / DC</span>
+              <span class="event-tag">750+ delegates</span>
+              <span class="event-tag">40% intl</span>
+            </div>
+            <div class="event-venue">Reverie Saigon, La Scala Ballroom, District 1 · 8:00 AM – 5:00 PM</div>
+          </div>
+          <img class="event-img" src="calendar/images/vn-cloud-dc.png" alt="Vietnam Cloud & DC Convention">
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ─────────────── SEPTEMBER ─────────────── -->
+    <div class="month-section">
+      <div class="month-label">
+        <span class="month-name">Sep</span>
+        <span class="month-num">09</span>
+      </div>
+      <div class="month-events">
+
+        <a class="event-card employer" href="https://www.eventbrite.com/e/hackerx-ho-chi-minh-city-employer-ticket-93-tickets-1982698330078">
+          <div class="event-date-col">
+            <span class="event-day">04</span>
+            <span class="event-dow">Fri</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">HackerX Ho Chi Minh City</div>
+            <div class="event-meta">
+              <span class="cost-badge employer">Employer pass</span>
+              <span class="event-tag">Tech Hiring</span>
+              <span class="event-tag">Developers</span>
+            </div>
+            <div class="event-venue">HCMC — venue TBD</div>
+          </div>
+        </a>
+
+        <a class="event-card invite" href="https://cdovision.aim.media/events/cdo-vision-ho-chi-minh-city-2026">
+          <div class="event-date-col">
+            <span class="event-day">18</span>
+            <span class="event-dow">Fri</span>
+          </div>
+          <div class="event-body">
+            <div class="event-name">CDO Vision Ho Chi Minh City 2026</div>
+            <div class="event-meta">
+              <span class="cost-badge invite">Invite-only</span>
+              <span class="event-tag">CDO / AI Strategy</span>
+              <span class="event-tag">30+ CDOs</span>
+            </div>
+            <div class="event-venue">Venue TBD · Request: info@aim.media</div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ─────────────── Annual Calendar ─────────────── -->
+    <div class="annual-section">
+      <div class="section-heading">Annual Conference Calendar — Recurring Anchors</div>
+
+      <div class="annual-grid">
+
+        <a class="annual-card" href="https://luma.com/holfneup">
+          <span class="annual-month-badge">FEB</span>
+          <div class="annual-info">
+            <div class="annual-name">GenAI Builders Meetup</div>
+            <div class="annual-meta">
+              <span class="scale-badge">~50, selective</span>
+              Bình Thạnh (rotates)
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://airevolutionsummit.com/vietnam/">
+          <span class="annual-month-badge">APR</span>
+          <div class="annual-info">
+            <div class="annual-name">AI Revolution Summit</div>
+            <div class="annual-meta">
+              <span class="scale-badge">200+ C-suite</span>
+              Holiday Inn &amp; Suites · $499
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://www.createwith.com/event/ho-chi-minh-city-smart-city-asia-may-2026">
+          <span class="annual-month-badge">MAY</span>
+          <div class="annual-info">
+            <div class="annual-name">Smart City Asia</div>
+            <div class="annual-meta">
+              <span class="scale-badge">Exhibition</span>
+              SECC, District 7
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://www.testingmind.com/event/test-automation-summit-ho-chi-minh-city/">
+          <span class="annual-month-badge">MAY</span>
+          <div class="annual-info">
+            <div class="annual-name">Test Automation Summit</div>
+            <div class="annual-meta">
+              <span class="scale-badge">~300 · 10+ talks</span>
+              Sofitel Saigon Plaza · ~$120
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://summit.newturing.ai/">
+          <span class="annual-month-badge">MAY</span>
+          <div class="annual-info">
+            <div class="annual-name">GStar Summit <small style="color:var(--muted)">(New Turing Institute)</small></div>
+            <div class="annual-meta">
+              <span class="scale-badge">1,000+ · 20 spkrs</span>
+              Sheraton Saigon Grand Opera
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://datacenterinnovationseries.com/vietnam/">
+          <span class="annual-month-badge">JUN</span>
+          <div class="annual-info">
+            <div class="annual-name">World Datacentre Summit</div>
+            <div class="annual-meta">
+              <span class="scale-badge">250+ DC pros</span>
+              Holiday Inn &amp; Suites · $999
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://clouddatacenter.events/events/vietnam-cloud-datacenter-ho-chi-minh-convention-2026/">
+          <span class="annual-month-badge">AUG</span>
+          <div class="annual-info">
+            <div class="annual-name">Vietnam Cloud &amp; DC Convention</div>
+            <div class="annual-meta">
+              <span class="scale-badge">750+ delegates</span>
+              Reverie Saigon · $395
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://cdovision.aim.media/events/cdo-vision-ho-chi-minh-city-2026">
+          <span class="annual-month-badge">SEP</span>
+          <div class="annual-info">
+            <div class="annual-name">CDO Vision HCMC</div>
+            <div class="annual-meta">
+              <span class="scale-badge">30+ CDOs</span>
+              Invite-only
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://techday.fptsoftware.com/en">
+          <span class="annual-month-badge">NOV</span>
+          <div class="annual-info">
+            <div class="annual-name">FPT Techday</div>
+            <div class="annual-meta">
+              <span class="scale-badge">~10,000 attend.</span>
+              Thiskyhall, Thu Duc City
+            </div>
+          </div>
+        </a>
+
+        <a class="annual-card" href="https://gdg.community.dev/gdg-ho-chi-minh-city/">
+          <span class="annual-month-badge">DEC</span>
+          <div class="annual-info">
+            <div class="annual-name">DevFest HCMC <small style="color:var(--muted)">(GDG)</small></div>
+            <div class="annual-meta">
+              <span class="scale-badge">Developer comm.</span>
+              Varies
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ─────────────── Community Groups ─────────────── -->
+    <div class="community-section">
+      <div class="section-heading">Community Groups — Year-Round</div>
+      <div class="community-grid">
+
+        <a class="community-card" href="https://gdg.community.dev/gdg-ho-chi-minh-city/">
+          <img class="community-favicon" src="https://www.google.com/s2/favicons?domain=gdg.community.dev&sz=128" alt="GDG">
+          <div class="community-info">
+            <div class="community-name">GDG Ho Chi Minh City</div>
+            <div class="community-desc">1,990 members · Irregular + DevFest Dec · Partners: Thoughtworks, JetBrains, VNG Corp</div>
+            <div class="community-chips">
+              <span class="community-chip">Google/Android</span>
+              <span class="community-chip">Web</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="community-card" href="https://gdg.community.dev/gdg-cloud-hcmc/">
+          <img class="community-favicon" src="https://www.google.com/s2/favicons?domain=gdg.community.dev&sz=128" alt="GDG Cloud">
+          <div class="community-info">
+            <div class="community-name">GDG Cloud HCMC</div>
+            <div class="community-desc">Irregular meetups · GCP and cloud-native</div>
+            <div class="community-chips">
+              <span class="community-chip">GCP</span>
+              <span class="community-chip">Cloud-native</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="community-card" href="https://ho-chi-minh-city.aitinkerers.org/">
+          <img class="community-favicon" src="https://www.google.com/s2/favicons?domain=ho-chi-minh-city.aitinkerers.org&sz=128" alt="AI Tinkerers">
+          <div class="community-info">
+            <div class="community-name">AI Tinkerers HCMC</div>
+            <div class="community-desc">Monthly · Selective · 101k global / 220 cities · <strong style="color:var(--text)">No slides — live demos only</strong></div>
+            <div class="community-chips">
+              <span class="community-chip">LLMs</span>
+              <span class="community-chip">Agents</span>
+              <span class="community-chip">Live demos</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="community-card" href="https://community.cncf.io/cloud-native-ho-chi-minh/">
+          <img class="community-favicon" src="https://www.google.com/s2/favicons?domain=community.cncf.io&sz=128" alt="CNCF">
+          <div class="community-info">
+            <div class="community-name">CNCF Cloud Native HCMC</div>
+            <div class="community-desc">Growing · Meetups for Kubernetes and cloud-native practitioners</div>
+            <div class="community-chips">
+              <span class="community-chip">Kubernetes</span>
+              <span class="community-chip">Cloud-native</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="community-card" href="https://www.meetup.com/aws-vn/">
+          <img class="community-favicon" src="https://www.google.com/s2/favicons?domain=meetup.com&sz=128" alt="AWS Vietnam">
+          <div class="community-info">
+            <div class="community-name">AWS Vietnam User Group</div>
+            <div class="community-desc">638 members · 4.9/5 · Sporadic meetups</div>
+            <div class="community-chips">
+              <span class="community-chip">AWS</span>
+              <span class="community-chip">Cloud</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ─────────────── City context ─────────────── -->
+    <div class="context-box">
+      <div class="context-stat">
+        <span class="context-num">50%</span>
+        <span class="context-label">of Vietnam's startups in HCMC</span>
+        <a class="context-source" href="https://www.growthhq.io/our-thinking/vietnam-startup-ecosystem-2026-hcmc-hanoi-da-nang-power-big-tech-growth-in-ai-semiconductors-green-tech">[20] GrowthHQ 2026</a>
+      </div>
+      <div class="context-stat">
+        <span class="context-num">$7.5B</span>
+        <span class="context-label">startup ecosystem value</span>
+        <a class="context-source" href="https://www.growthhq.io/our-thinking/vietnam-startup-ecosystem-2026-hcmc-hanoi-da-nang-power-big-tech-growth-in-ai-semiconductors-green-tech">[20] GrowthHQ 2026</a>
+      </div>
+      <div class="context-stat">
+        <span class="context-num">30k</span>
+        <span class="context-label">ICT workers at QTSC alone</span>
+        <a class="context-source" href="https://www.growthhq.io/our-thinking/vietnam-startup-ecosystem-2026-hcmc-hanoi-da-nang-power-big-tech-growth-in-ai-semiconductors-green-tech">[20] GrowthHQ 2026</a>
+      </div>
+      <div class="context-stat">
+        <span class="context-num">44%</span>
+        <span class="context-label">of Vietnam VC investment in HCMC</span>
+        <a class="context-source" href="https://www.growthhq.io/our-thinking/vietnam-startup-ecosystem-2026-hcmc-hanoi-da-nang-power-big-tech-growth-in-ai-semiconductors-green-tech">[20] GrowthHQ 2026</a>
+      </div>
+    </div>
+
+  </div><!-- /cal-body -->
+</div><!-- /cal-root -->
