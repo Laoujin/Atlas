@@ -1,0 +1,820 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences and Tech Events in Tokyo 2026 — Calendar"
+---
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .cal-root {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    padding-bottom: 2rem;
+  }
+
+  /* Breadcrumb */
+  .cal-crumb {
+    padding: 0.75rem 2rem 0;
+    font-size: 0.75rem;
+    color: #484f58;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .cal-crumb a { color: #484f58; text-decoration: none; }
+  .cal-crumb a:hover { color: #58a6ff; text-decoration: underline; }
+  .cal-crumb-sep { opacity: 0.4; }
+
+  /* ── HEADER ─────────────────────────────────────── */
+  .cal-head {
+    padding: 1.25rem 2rem 1.25rem;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .cal-head-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #58a6ff;
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .eyebrow-sep { color: #30363d; }
+
+  .cal-head h1 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #f0f6fc;
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+  }
+
+  .cal-head-sub {
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.55;
+  }
+
+  /* Two-peak summary chips */
+  .peak-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    align-self: center;
+    flex-shrink: 0;
+  }
+  .peak-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 0.3rem 0.65rem;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .peak-summer {
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    color: #79c0ff;
+  }
+  .peak-autumn {
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    color: #fb923c;
+  }
+  .peak-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    display: block;
+    margin-bottom: 0.1rem;
+  }
+
+  /* ── ALERT BAR ──────────────────────────────────── */
+  .cal-alert {
+    padding: 0.55rem 2rem;
+    background: rgba(247, 129, 102, 0.07);
+    border-bottom: 1px solid rgba(247, 129, 102, 0.2);
+    font-size: 0.8rem;
+    color: #ffa985;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+  .alert-now {
+    background: #f78166;
+    color: #0d1117;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.45rem;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .alert-text strong { color: #f78166; }
+
+  /* ── LEGEND ─────────────────────────────────────── */
+  .cal-legend {
+    padding: 0.6rem 2rem;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.4rem;
+  }
+  .leg { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #8b949e; white-space: nowrap; }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .d-cloud    { background: #3b82f6; }
+  .d-ai       { background: #8b5cf6; }
+  .d-security { background: #ef4444; }
+  .d-mobile   { background: #22c55e; }
+  .d-web3     { background: #f97316; }
+  .d-devops   { background: #06b6d4; }
+  .d-expo     { background: #6b7280; }
+  .d-testing  { background: #f59e0b; }
+  .d-os       { background: #10b981; }
+
+  /* ── BODY ───────────────────────────────────────── */
+  .cal-body { padding: 0 2rem; }
+
+  /* Month section */
+  .month-section { margin-top: 1.75rem; }
+
+  .month-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .month-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #58a6ff;
+  }
+  .month-count { font-size: 0.72rem; color: #8b949e; }
+  .month-past-pill {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #484f58;
+    border: 1px solid #21262d;
+    padding: 0.08rem 0.35rem;
+    border-radius: 3px;
+  }
+  .month-surge-pill {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #58a6ff;
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    background: rgba(88, 166, 255, 0.08);
+    padding: 0.08rem 0.35rem;
+    border-radius: 3px;
+  }
+
+  /* Events grid */
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+    gap: 0.55rem;
+  }
+
+  /* ── EVENT CARD ─────────────────────────────────── */
+  .event-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    transition: border-color 0.15s;
+  }
+  .event-card:hover { border-color: rgba(56, 139, 253, 0.4); }
+
+  .event-card.is-past {
+    opacity: 0.38;
+    background: #0d1117;
+  }
+  .event-card.is-past:hover { opacity: 0.6; }
+
+  .event-card.is-soon {
+    border-color: rgba(247, 129, 102, 0.55);
+    background: #18120e;
+  }
+  .event-card.is-soon:hover { border-color: #f78166; }
+
+  /* Card top row */
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .card-favicon {
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    background: #21262d;
+    flex-shrink: 0;
+    display: block;
+  }
+  .card-date {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #58a6ff;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    flex: 1;
+  }
+  .event-card.is-past .card-date { color: #3d444d; }
+  .soon-flag {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #f78166;
+    background: rgba(247, 129, 102, 0.12);
+    border: 1px solid rgba(247, 129, 102, 0.3);
+    padding: 0.1rem 0.38rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* Card name */
+  .card-name a {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    text-decoration: none;
+    line-height: 1.35;
+    display: block;
+  }
+  .card-name a:hover { color: #58a6ff; text-decoration: underline; }
+  .event-card.is-past .card-name a { color: #484f58; }
+
+  /* Venue */
+  .card-venue {
+    font-size: 0.71rem;
+    color: #6e7681;
+    line-height: 1.3;
+  }
+  .event-card.is-past .card-venue { color: #3d444d; }
+
+  /* Tags row */
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.28rem;
+    padding-top: 0.1rem;
+  }
+  .tag {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.38rem;
+    border-radius: 3px;
+    line-height: 1.45;
+  }
+
+  /* Category colours */
+  .t-cloud    { background: rgba(59,130,246,.16);  color: #93c5fd; border: 1px solid rgba(59,130,246,.32); }
+  .t-ai       { background: rgba(139,92,246,.16);  color: #c4b5fd; border: 1px solid rgba(139,92,246,.32); }
+  .t-security { background: rgba(239,68,68,.16);   color: #fca5a5; border: 1px solid rgba(239,68,68,.32); }
+  .t-mobile   { background: rgba(34,197,94,.16);   color: #86efac; border: 1px solid rgba(34,197,94,.32); }
+  .t-web3     { background: rgba(249,115,22,.16);  color: #fdba74; border: 1px solid rgba(249,115,22,.32); }
+  .t-devops   { background: rgba(6,182,212,.16);   color: #67e8f9; border: 1px solid rgba(6,182,212,.32); }
+  .t-expo     { background: rgba(107,114,128,.16); color: #d1d5db; border: 1px solid rgba(107,114,128,.32); }
+  .t-testing  { background: rgba(245,158,11,.16);  color: #fcd34d; border: 1px solid rgba(245,158,11,.32); }
+  .t-os       { background: rgba(16,185,129,.16);  color: #6ee7b7; border: 1px solid rgba(16,185,129,.32); }
+  .t-ruby     { background: rgba(204,52,45,.16);   color: #fca5a5; border: 1px solid rgba(204,52,45,.32); }
+  .t-startup  { background: rgba(236,72,153,.16);  color: #f9a8d4; border: 1px solid rgba(236,72,153,.32); }
+
+  /* Cost / access badges */
+  .b-free    { background: rgba(22,163,74,.13);   color: #4ade80; border: 1px solid rgba(22,163,74,.28); }
+  .b-lottery { background: rgba(234,179,8,.13);   color: #fde047; border: 1px solid rgba(234,179,8,.28); }
+  .b-paid    { background: rgba(107,114,128,.1);  color: #9ca3af; border: 1px solid rgba(107,114,128,.28); }
+  .b-apply   { background: rgba(6,182,212,.1);    color: #67e8f9; border: 1px solid rgba(6,182,212,.28); }
+
+  /* English access */
+  .b-en-y    { background: rgba(88,166,255,.1);   color: #79c0ff; border: 1px solid rgba(88,166,255,.28); }
+  .b-en-p    { background: rgba(255,211,61,.08);  color: #e6b800; border: 1px solid rgba(255,211,61,.22); }
+  .b-en-n    { background: transparent;           color: #484f58; border: 1px solid #21262d; }
+
+  /* ── FOOTER ─────────────────────────────────────── */
+  .cal-footer {
+    margin-top: 2.5rem;
+    padding: 0.9rem 2rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .footer-label {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-right: 0.25rem;
+  }
+  .sib-link {
+    font-size: 0.76rem;
+    color: #8b949e;
+    text-decoration: none;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.28rem 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .sib-link:hover { color: #58a6ff; border-color: rgba(56,139,253,.4); }
+  .sib-depth {
+    font-size: 0.6rem;
+    color: #484f58;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────── */
+  @media (max-width: 620px) {
+    .cal-crumb,
+    .cal-head,
+    .cal-alert,
+    .cal-legend,
+    .cal-body,
+    .cal-footer { padding-left: 1rem; padding-right: 1rem; }
+    .events-grid { grid-template-columns: 1fr; }
+    .peak-chips { display: none; }
+  }
+</style>
+
+<div class="cal-root">
+
+  <!-- Breadcrumb -->
+  <div class="cal-crumb">
+    <a href="../../">A Tokyo Weekend Around a 3-Star Michelin Dinner</a>
+    <span class="cal-crumb-sep">›</span>
+    <span>IT Conferences &amp; Tech Events 2026</span>
+  </div>
+
+  <!-- Header -->
+  <div class="cal-head">
+    <div>
+      <div class="cal-head-eyebrow">
+        <span>2026</span>
+        <span class="eyebrow-sep">·</span>
+        <span>Tokyo metro</span>
+        <span class="eyebrow-sep">·</span>
+        <span>21 events</span>
+        <span class="eyebrow-sep">·</span>
+        <span>Apr – Dec</span>
+      </div>
+      <h1>Tokyo Tech Calendar</h1>
+      <p class="cal-head-sub">IT conferences, developer summits, and trade shows in the Tokyo metro area.<br>
+        <sup>¹</sup> Makuhari Messe, Chiba (~30 min from Shinjuku) &nbsp;·&nbsp;
+        <sup>²</sup> Yokohama (~25 min from Shinjuku)</p>
+    </div>
+    <div class="peak-chips">
+      <div class="peak-chip peak-summer">
+        <span class="peak-label">Summer surge</span>
+        Jun–Jul · 7 events in 7 weeks
+      </div>
+      <div class="peak-chip peak-autumn">
+        <span class="peak-label">Autumn run</span>
+        Sep–Nov · 8 events
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert: imminent event -->
+  <div class="cal-alert">
+    <span class="alert-now">Today: Jun 2</span>
+    <span class="alert-text">
+      <strong>Code with Claude Tokyo</strong> in 8 days ·
+      AWS Summit Japan in 23 days ·
+      KubeCon Japan &amp; Google Cloud Next Tokyo in 57–58 days
+    </span>
+  </div>
+
+  <!-- Legend -->
+  <div class="cal-legend">
+    <span class="leg"><span class="leg-dot d-cloud"></span>Cloud</span>
+    <span class="leg"><span class="leg-dot d-ai"></span>AI</span>
+    <span class="leg"><span class="leg-dot d-security"></span>Security</span>
+    <span class="leg"><span class="leg-dot d-mobile"></span>Mobile</span>
+    <span class="leg"><span class="leg-dot d-web3"></span>Web3</span>
+    <span class="leg"><span class="leg-dot d-devops"></span>DevOps / SRE</span>
+    <span class="leg"><span class="leg-dot d-expo"></span>Trade Show</span>
+    <span class="leg"><span class="leg-dot d-testing"></span>Testing</span>
+    <span class="leg"><span class="leg-dot d-os"></span>Open Source</span>
+  </div>
+
+  <!-- ══ BODY ══════════════════════════════════════════ -->
+  <div class="cal-body">
+
+    <!-- ── APRIL (past) ───────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">April</span>
+        <span class="month-count">5 events</span>
+        <span class="month-past-pill">Past</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card is-past">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=tokyo.waytoagi.com&sz=32" alt="">
+            <span class="card-date">Apr 6–8</span>
+          </div>
+          <div class="card-name"><a href="https://tokyo.waytoagi.com/">Tokyo AI Week / TS26</a></div>
+          <div class="card-venue">Happo-En, Tokyo (co-located with <a href="https://www.teamz.co.jp/en">TEAMZ Summit</a>)</div>
+          <div class="card-tags">
+            <span class="tag t-ai">AI</span>
+            <span class="tag t-web3">Web3</span>
+            <span class="tag b-paid">Paid · ¥31,550+</span>
+          </div>
+        </div>
+
+        <div class="event-card is-past">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=japan-it.jp&sz=32" alt="">
+            <span class="card-date">Apr 8–10</span>
+          </div>
+          <div class="card-name"><a href="https://japan-it.jp/spring">Japan IT Week Spring</a></div>
+          <div class="card-venue">Tokyo Big Sight · 51,370 visitors in 2026</div>
+          <div class="card-tags">
+            <span class="tag t-expo">Trade Show</span>
+            <span class="tag b-free">Free</span>
+          </div>
+        </div>
+
+        <div class="event-card is-past">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=devopsdaystokyo.org&sz=32" alt="">
+            <span class="card-date">Apr 14–16</span>
+          </div>
+          <div class="card-name"><a href="https://devopsdaystokyo.org">DevOpsDays Tokyo</a></div>
+          <div class="card-venue">Osaki Bright Core Hall</div>
+          <div class="card-tags">
+            <span class="tag t-devops">DevOps</span>
+            <span class="tag b-paid">Paid</span>
+            <span class="tag b-en-y">EN ✓ (simul. interp.)</span>
+          </div>
+        </div>
+
+        <div class="event-card is-past">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=nextech-week.jp&sz=32" alt="">
+            <span class="card-date">Apr 15–17</span>
+          </div>
+          <div class="card-name"><a href="https://nextech-week.jp">NexTech Week Spring</a></div>
+          <div class="card-venue">Tokyo Big Sight</div>
+          <div class="card-tags">
+            <span class="tag t-ai">AI</span>
+            <span class="tag t-expo">B2B Expo</span>
+            <span class="tag b-paid">Paid</span>
+          </div>
+        </div>
+
+        <div class="event-card is-past">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=sushitech-startup.metro.tokyo.lg.jp&sz=32" alt="">
+            <span class="card-date">Apr 27–29</span>
+          </div>
+          <div class="card-name"><a href="https://sushitech-startup.metro.tokyo.lg.jp/en/">SusHi Tech Tokyo</a></div>
+          <div class="card-venue">Tokyo Big Sight · 700+ startups · ~60,000 participants</div>
+          <div class="card-tags">
+            <span class="tag t-startup">Startup</span>
+            <span class="tag b-free">Free</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── JUNE ──────────────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">June</span>
+        <span class="month-count">2 events</span>
+        <span class="month-surge-pill">Summer surge begins</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card is-soon">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=32" alt="">
+            <span class="card-date">Jun 10</span>
+            <span class="soon-flag">8 days away</span>
+          </div>
+          <div class="card-name"><a href="https://gadgetbond.com/code-with-claude-2026-anthropic-developer-conference/">Code with Claude</a></div>
+          <div class="card-venue">Tokyo (venue TBC) · Final stop: SF May 6 → London May 19 → Tokyo</div>
+          <div class="card-tags">
+            <span class="tag t-ai">AI · Claude</span>
+            <span class="tag b-lottery">Free · Lottery</span>
+            <span class="tag b-en-y">EN only</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=32" alt="">
+            <span class="card-date">Jun 25–26</span>
+          </div>
+          <div class="card-name"><a href="https://aws.amazon.com/jp/summits/japan/">AWS Summit Japan</a></div>
+          <div class="card-venue">Makuhari Messe, Chiba <sup>¹</sup> · 260+ sessions</div>
+          <div class="card-tags">
+            <span class="tag t-cloud">Cloud</span>
+            <span class="tag t-ai">Agentic AI</span>
+            <span class="tag b-free">Free</span>
+            <span class="tag b-en-y">Full EN track</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── JULY ──────────────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">July</span>
+        <span class="month-count">5 events</span>
+        <span class="month-surge-pill">Peak month</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=techspotokyo.jp&sz=32" alt="">
+            <span class="card-date">Jul 2–3</span>
+          </div>
+          <div class="card-name"><a href="https://techspotokyo.jp/">TECHSPO Tokyo</a></div>
+          <div class="card-venue">Hilton Tokyo Bay</div>
+          <div class="card-tags">
+            <span class="tag t-expo">AdTech · MarTech · SaaS</span>
+            <span class="tag b-paid">Paid</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=sre-next.dev&sz=32" alt="">
+            <span class="card-date">Jul 10–11</span>
+          </div>
+          <div class="card-name"><a href="https://sre-next.dev/2026/">SRE NEXT 2026</a></div>
+          <div class="card-venue">TOC Ariake, Tokyo · Hybrid in-person + stream</div>
+          <div class="card-tags">
+            <span class="tag t-devops">SRE</span>
+            <span class="tag b-paid">Paid</span>
+            <span class="tag b-en-n">JP</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=tf.jma.or.jp&sz=32" alt="">
+            <span class="card-date">Jul 15–17</span>
+          </div>
+          <div class="card-name"><a href="https://tf.jma.or.jp">TECHNO-FRONTIER</a></div>
+          <div class="card-venue">Tokyo Big Sight</div>
+          <div class="card-tags">
+            <span class="tag t-expo">Industrial · IoT · Embedded</span>
+            <span class="tag b-paid">Paid</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=events.linuxfoundation.org&sz=32" alt="">
+            <span class="card-date">Jul 28–30</span>
+          </div>
+          <div class="card-name"><a href="https://events.linuxfoundation.org/kubecon-cloudnativecon-japan/">KubeCon + CloudNativeCon Japan</a></div>
+          <div class="card-venue">Yokohama <sup>²</sup> · +ArgoCon, KeycloakCon, Community Day</div>
+          <div class="card-tags">
+            <span class="tag t-cloud">Kubernetes</span>
+            <span class="tag t-cloud">Cloud-Native</span>
+            <span class="tag b-apply">Paid · Scholarships</span>
+            <span class="tag b-en-y">EN + JP</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=googlecloudevents.com&sz=32" alt="">
+            <span class="card-date">Jul 30–31</span>
+          </div>
+          <div class="card-name"><a href="https://www.googlecloudevents.com/next-tokyo/">Google Cloud Next Tokyo</a></div>
+          <div class="card-venue">Tokyo Big Sight · 9 breakout tracks · Dev Night evening event</div>
+          <div class="card-tags">
+            <span class="tag t-cloud">Cloud</span>
+            <span class="tag t-ai">Gemini AI</span>
+            <span class="tag b-free">Free</span>
+            <span class="tag b-en-p">Partial EN</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── SEPTEMBER ──────────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">September</span>
+        <span class="month-count">4 events</span>
+        <span class="month-surge-pill">Autumn run begins</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=droidkaigi.jp&sz=32" alt="">
+            <span class="card-date">Sep 1–3</span>
+          </div>
+          <div class="card-name"><a href="https://2026.droidkaigi.jp/en/">DroidKaigi 2026</a></div>
+          <div class="card-venue">Bellesalle Shibuya Garden</div>
+          <div class="card-tags">
+            <span class="tag t-mobile">Android</span>
+            <span class="tag b-paid">Paid</span>
+            <span class="tag b-en-p">Partial EN</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=dev.events&sz=32" alt="">
+            <span class="card-date">Sep 10–11</span>
+          </div>
+          <div class="card-name"><a href="https://dev.events/AS/JP/Tokyo/tech">MCP Dev Summit / AGNTCon + MCPCon Japan</a></div>
+          <div class="card-venue">Tokyo (venue TBC) · New for 2026</div>
+          <div class="card-tags">
+            <span class="tag t-ai">Agentic AI</span>
+            <span class="tag t-ai">MCP</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=iosdc.jp&sz=32" alt="">
+            <span class="card-date">Sep 11–13</span>
+          </div>
+          <div class="card-name"><a href="https://iosdc.jp/2026/">iOSDC Japan 2026</a></div>
+          <div class="card-venue">Tokyo (venue TBC) · Hybrid offline/online</div>
+          <div class="card-tags">
+            <span class="tag t-mobile">iOS · Swift</span>
+            <span class="tag b-paid">Paid</span>
+            <span class="tag b-en-n">JP</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=ethglobal.com&sz=32" alt="">
+            <span class="card-date">Sep 25–27</span>
+          </div>
+          <div class="card-name"><a href="https://ethglobal.com/events/tokyo">ETHGlobal Tokyo</a></div>
+          <div class="card-venue">Tokyo (venue TBC) · 48-hour hackathon · Web2 devs welcome</div>
+          <div class="card-tags">
+            <span class="tag t-web3">Ethereum</span>
+            <span class="tag b-apply">Free · Apply</span>
+            <span class="tag b-en-y">EN ✓</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── OCTOBER ────────────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">October</span>
+        <span class="month-count">2 events</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=kaigionrails.org&sz=32" alt="">
+            <span class="card-date">Oct 16–17</span>
+          </div>
+          <div class="card-name"><a href="https://kaigionrails.org/2026">Kaigi on Rails 2026</a></div>
+          <div class="card-venue">Bellesalle Shibuya Garden</div>
+          <div class="card-tags">
+            <span class="tag t-ruby">Ruby on Rails</span>
+            <span class="tag b-paid">Paid</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=japan-it.jp&sz=32" alt="">
+            <span class="card-date">Oct 21–23</span>
+          </div>
+          <div class="card-name"><a href="https://japan-it.jp/autumn">Japan IT Week Autumn</a></div>
+          <div class="card-venue">Makuhari Messe, Chiba <sup>¹</sup></div>
+          <div class="card-tags">
+            <span class="tag t-expo">Trade Show</span>
+            <span class="tag b-free">Free</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── NOVEMBER ───────────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">November</span>
+        <span class="month-count">2 events</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=tokyotestfest.com&sz=32" alt="">
+            <span class="card-date">Nov 12–13</span>
+          </div>
+          <div class="card-name"><a href="https://tokyotestfest.com">Tokyo Test Fest</a></div>
+          <div class="card-venue">Osaki Bright Core Hall</div>
+          <div class="card-tags">
+            <span class="tag t-testing">QA · Testing</span>
+            <span class="tag b-paid">Paid</span>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=codeblue.jp&sz=32" alt="">
+            <span class="card-date">Nov 17–18</span>
+          </div>
+          <div class="card-name"><a href="https://codeblue.jp">CODE BLUE 2026</a></div>
+          <div class="card-venue">Versailles Takadanobaba · Trainings Nov 11–15</div>
+          <div class="card-tags">
+            <span class="tag t-security">Security Research</span>
+            <span class="tag b-paid">Paid</span>
+            <span class="tag b-en-y">Simul. interp.</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── DECEMBER ───────────────────────────────── -->
+    <section class="month-section">
+      <div class="month-header">
+        <span class="month-name">December</span>
+        <span class="month-count">1 event</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="event-card">
+          <div class="card-top">
+            <img class="card-favicon" src="https://www.google.com/s2/favicons?domain=events.linuxfoundation.org&sz=32" alt="">
+            <span class="card-date">Dec 7–9</span>
+          </div>
+          <div class="card-name"><a href="https://events.linuxfoundation.org/open-source-summit-japan/">Open Source Summit Japan</a></div>
+          <div class="card-venue">Tokyo</div>
+          <div class="card-tags">
+            <span class="tag t-os">Linux · Open Source</span>
+            <span class="tag b-paid">Paid</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /.cal-body -->
+
+  <!-- Footer: sibling pages -->
+  <div class="cal-footer">
+    <span class="footer-label">Also in this research:</span>
+    <a href="../../tokyo-s-3-star-michelin-restaurants/" class="sib-link">
+      Tokyo's 3-star Michelin restaurants
+      <span class="sib-depth">survey</span>
+    </a>
+    <a href="../../things-to-do-in-tokyo/" class="sib-link">
+      Things to do in Tokyo
+      <span class="sib-depth">expedition</span>
+    </a>
+  </div>
+
+</div><!-- /.cal-root -->
