@@ -1,0 +1,672 @@
+---
+layout: view
+view_name: "Corkboard"
+view_of: ../
+title: "Things to do in Bangkok — Corkboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --cork:        #c49a55;
+  --cork-dark:   #a87b34;
+  --shadow:      0 4px 14px rgba(0,0,0,0.28);
+  --shadow-sm:   0 2px 6px rgba(0,0,0,0.2);
+  --hand:        'Caveat', cursive;
+  --body:        'Inter', system-ui, sans-serif;
+  --pin-red:     #dc2626;
+  --pin-blue:    #2563eb;
+  --pin-green:   #16a34a;
+  --pin-amber:   #d97706;
+  --y-sticky:    #fef3c7;
+  --b-sticky:    #dbeafe;
+  --g-sticky:    #dcfce7;
+  --r-sticky:    #fee2e2;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+a { color: #1d4ed8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---- BOARD ---- */
+.board {
+  min-height: 100vh;
+  padding: 2.5rem 2rem 3rem;
+  font-family: var(--body);
+  background-color: var(--cork);
+  /* Cork grain via layered radial gradients */
+  background-image:
+    radial-gradient(ellipse 2px 6px at 10% 15%, rgba(0,0,0,0.07) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 4px at 33% 72%, rgba(0,0,0,0.05) 0%, transparent 100%),
+    radial-gradient(ellipse 3px 5px at 58% 38%, rgba(255,255,255,0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 2px 7px at 80% 90%, rgba(0,0,0,0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 4px 3px at 92% 22%, rgba(255,255,255,0.04) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 8px at 45% 55%, rgba(0,0,0,0.05) 0%, transparent 100%),
+    linear-gradient(160deg, #d4a85a 0%, #b88236 40%, #c9994e 70%, #a87334 100%);
+}
+
+/* ---- BOARD HEADER ---- */
+.board-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.board-title-card {
+  display: inline-block;
+  background: #fff;
+  padding: 0.65rem 2.5rem 0.65rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  transform: rotate(-0.8deg);
+}
+.board-title-card::before {
+  content: '';
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--pin-red);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+.board-title-card h1 {
+  font-family: var(--hand);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.1;
+}
+.board-title-card .sub {
+  font-family: var(--hand);
+  font-size: 1rem;
+  color: #777;
+  margin-top: 0.15rem;
+}
+
+/* ---- VERDICT BANNER ---- */
+.verdict-banner {
+  max-width: 1380px;
+  margin: 0 auto 2rem;
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  box-shadow: var(--shadow-sm);
+  transform: rotate(0.2deg);
+  border-left: 4px solid #fbbf24;
+}
+.verdict-banner strong { color: #fbbf24; }
+.verdict-banner a { color: #93c5fd; }
+
+/* ---- MAIN GRID ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1380px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+/* ---- CARD ---- */
+.card {
+  background: #fff;
+  padding: 1.4rem 1.25rem 1.25rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 1;
+}
+
+/* push pin */
+.card::before {
+  content: '';
+  position: absolute;
+  top: -13px;
+  left: 1.4rem;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 2;
+}
+.pin-red::before    { background: var(--pin-red); }
+.pin-blue::before   { background: var(--pin-blue); }
+.pin-green::before  { background: var(--pin-green); }
+.pin-amber::before  { background: var(--pin-amber); }
+
+/* tape strip alternative (no pin) */
+.tape-card::before { display: none; }
+.tape-card::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 64px;
+  height: 18px;
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(180,160,120,0.4);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.rot-m2 { transform: rotate(-1.8deg); }
+.rot-m1 { transform: rotate(-0.9deg); }
+.rot-0  { transform: rotate(0.2deg); }
+.rot-1  { transform: rotate(0.9deg); }
+.rot-2  { transform: rotate(1.7deg); }
+
+/* ---- CARD LABEL ---- */
+.card-label {
+  font-family: var(--hand);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px dashed #e5e7eb;
+}
+
+/* ---- POLAROID ---- */
+.polaroid {
+  background: #fff;
+  padding: 0.45rem 0.45rem 1.8rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+  display: block;
+}
+.polaroid img {
+  display: block;
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+}
+.polaroid .caption {
+  font-family: var(--hand);
+  font-size: 0.82rem;
+  color: #555;
+  text-align: center;
+  margin-top: 0.35rem;
+  line-height: 1.3;
+}
+
+.photo-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+/* ---- FACTS LIST ---- */
+.facts { list-style: none; }
+.facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  padding: 0.22rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+.facts li:last-child { border-bottom: none; }
+.facts .site { font-weight: 600; color: #111; flex: 0 0 auto; }
+.facts .price { color: #6b7280; font-size: 0.77rem; flex: 1; }
+.badge {
+  font-size: 0.67rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 2px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.badge-red  { background: #fee2e2; color: #991b1b; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-grn  { background: #dcfce7; color: #166534; }
+
+/* ---- STICKY NOTE ---- */
+.sticky {
+  padding: 0.75rem 0.9rem;
+  margin-top: 0.85rem;
+  font-family: var(--hand);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  box-shadow: 1px 3px 6px rgba(0,0,0,0.15);
+}
+.sticky-y { background: var(--y-sticky); transform: rotate(-0.6deg); }
+.sticky-b { background: var(--b-sticky); transform: rotate(0.4deg); }
+.sticky-g { background: var(--g-sticky); transform: rotate(-0.3deg); }
+.sticky-r { background: var(--r-sticky); transform: rotate(0.5deg); }
+
+.sticky-head {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ---- SKIP LIST CARD ---- */
+.skip-card {
+  max-width: 1380px;
+  margin: 2rem auto 0;
+  background: #fff;
+  border-left: 5px solid var(--pin-red);
+  padding: 0.9rem 1.4rem;
+  box-shadow: var(--shadow);
+  transform: rotate(-0.3deg);
+}
+.skip-card .skip-title {
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--pin-red);
+  margin-bottom: 0.6rem;
+}
+.skip-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.skip-pill {
+  background: var(--pin-red);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 2px;
+}
+
+/* ---- WEEKEND STRIP ---- */
+.weekend-strip {
+  max-width: 1380px;
+  margin: 2rem auto 0;
+  background: #fff;
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  transform: rotate(0.2deg);
+}
+.weekend-strip::before {
+  content: '';
+  position: absolute;
+  top: -13px;
+  left: 1.4rem;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--pin-red);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+}
+.strip-title {
+  font-family: var(--hand);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 0.9rem;
+}
+.itinerary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.65rem;
+}
+.slot {
+  background: #f9fafb;
+  border-radius: 3px;
+  padding: 0.55rem 0.7rem;
+  border-left: 3px solid #f59e0b;
+}
+.slot.anchor { border-left-color: var(--pin-red); background: #fff8f8; }
+.slot-time {
+  font-size: 0.67rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.slot-act {
+  font-size: 0.79rem;
+  color: #1f2937;
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+.slot.anchor .slot-act { font-weight: 700; color: #991b1b; }
+
+sup a { color: #9ca3af; font-size: 0.65em; }
+sup a:hover { color: #3b82f6; }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 960px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .itinerary { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; }
+  .itinerary { grid-template-columns: 1fr; }
+  .board { padding: 1.5rem 1rem 2rem; }
+}
+</style>
+
+<div class="board">
+
+  <!-- HEADER -->
+  <div class="board-header">
+    <div class="board-title-card">
+      <h1>&#127481;&#127469; Bangkok Weekend</h1>
+      <div class="sub">temples · street food · rooftops · markets · massage · river</div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="verdict-banner">
+    <strong>Anchor plan:</strong>
+    Riverside hotel (walk to 3★ dinner) → Sat AM
+    <a href="https://www.am2026thailand.go.th/explore-bangkok/wat-pho">Wat Pho</a> +
+    <a href="https://www.tripthaitour.com/blog/wat-arun-temple-of-dawn-bangkok">Wat Arun</a> →
+    <a href="https://migrationology.com/or-tor-kor-market-bangkok-thailand/">Or Tor Kor</a> lunch →
+    <a href="https://www.tripadvisor.com/Attraction_Review-g293916-d2621694-Reviews-Health_Land_Spa_Massage_Asoke-Bangkok.html">Health Land</a> massage →
+    3★ dinner → nightcap at
+    <a href="https://www.theworlds50best.com/bars/asia/the-list/bkk-social-club.html">BKK Social Club</a>.
+    Sun: <a href="https://www.chatuchakmarket.org/opening-times/">Chatuchak</a> before 10:30 →
+    <a href="https://offpaththailand.com/quiet-rooftops-bangkok-2026/">Mahanakhon</a> sunset →
+    <a href="https://bangkokdays.com/yaowarat-delights-a-guide-to-bangkoks-best-chinatown-street-food-year/">Yaowarat</a> crawl.
+    <sup><a href="https://www.southeastasiasimplified.com/blog/luxury-stays-10/best-luxury-hotels-in-bangkok-2026-what-the-authoritative-rankings-actually-show-102">[6]</a></sup>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+
+    <!-- 1. TEMPLES -->
+    <div class="card pin-red rot-m2">
+      <div class="card-label">&#9961; Temples &amp; Landmarks</div>
+      <div class="photo-pair">
+        <div class="polaroid" style="transform:rotate(-2.5deg)">
+          <img src="corkboard/images/wat-pho.jpg" alt="Wat Pho Reclining Buddha">
+          <div class="caption">Wat Pho — &#10003; best pick</div>
+        </div>
+        <div class="polaroid" style="transform:rotate(1.8deg)">
+          <img src="corkboard/images/wat-arun.jpg" alt="Wat Arun at sunrise">
+          <div class="caption">Wat Arun — &#10003; worth it</div>
+        </div>
+      </div>
+      <ul class="facts">
+        <li>
+          <span class="site"><a href="https://www.royalgrandpalace.th/en/visit/practical-information">Grand Palace</a></span>
+          <span class="price">500 THB · 8:30–15:30</span>
+          <span class="badge badge-red">&#9888; polarising</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.am2026thailand.go.th/explore-bangkok/wat-pho">Wat Pho</a> <sup><a href="https://www.am2026thailand.go.th/explore-bangkok/wat-pho">[12]</a></sup></span>
+          <span class="price">300 THB · 8:00–18:30</span>
+          <span class="badge badge-grn">&#10003; strongest</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.tripthaitour.com/blog/wat-arun-temple-of-dawn-bangkok">Wat Arun</a> <sup><a href="https://www.tripthaitour.com/blog/wat-arun-temple-of-dawn-bangkok">[13]</a></sup></span>
+          <span class="price">200 THB · 8:30–17:40</span>
+          <span class="badge badge-grn">&#10003; worth it</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://thebackpackingfamily.com/golden-mount-bangkok-wat-saket-visitors-guide/">Wat Saket</a> <sup><a href="https://thebackpackingfamily.com/golden-mount-bangkok-wat-saket-visitors-guide/">[21]</a></sup></span>
+          <span class="price">100 THB · 318 steps · 360°</span>
+          <span class="badge">&#10003; underrated</span>
+        </li>
+      </ul>
+      <div class="sticky sticky-b">
+        <span class="sticky-head">&#128161; Sunset hack</span>
+        East bank near Wat Pho pier, ~1 h before sunset — Wat Arun silhouette shot. Mid-Feb–mid-Mar the sun sets directly behind the prang at 18:10–18:30.
+      </div>
+    </div>
+
+    <!-- 2. STREET FOOD -->
+    <div class="card pin-amber rot-1">
+      <div class="card-label">&#127836; Street Food — named stalls only</div>
+      <div style="margin-bottom:0.85rem;">
+        <div class="polaroid" style="transform:rotate(-1.2deg)">
+          <img src="corkboard/images/jay-fai.jpg" alt="Jay Fai at her charcoal wok">
+          <div class="caption">Raan Jay Fai &#11088; — 2–4 h wait, crab omelette 1,500 THB <sup><a href="https://www.thefinestthai.com/2026/04/16/jay-fai-bangkok-the-street-food-legend-with-a-michelin-star/">[23]</a></sup></div>
+        </div>
+      </div>
+      <div class="sticky sticky-y" style="margin-top:0;margin-bottom:0.85rem;font-size:0.9rem;">
+        <span class="sticky-head">&#127750; Yaowarat crawl — after 17:00</span>
+        <a href="https://www.thefinestthai.com/2026/04/16/jay-fai-bangkok-the-street-food-legend-with-a-michelin-star/">Jay Fai</a> &#11088; &#8594;
+        <a href="https://bangkokdays.com/yaowarat-delights-a-guide-to-bangkoks-best-chinatown-street-food-year/">T&amp;K Seafood</a> &#8594;
+        <a href="https://www.thefinestthai.com/2026/04/16/yaowarat-the-ultimate-guide-to-bangkoks-chinatown-street-food/">Lim Lao Ngow</a> (9&#xD7; Bib) &#8594;
+        <a href="https://danielfooddiary.com/2022/08/18/naiekrollnoodle/">Nai Ek Roll Noodles</a> &#8594;
+        <a href="https://www.thefinestthai.com/2026/04/16/yaowarat-the-ultimate-guide-to-bangkoks-chinatown-street-food/">Nai Mong Hoi Tod</a> &#8594;
+        <a href="https://www.thefinestthai.com/2026/04/16/yaowarat-the-ultimate-guide-to-bangkoks-chinatown-street-food/">Pa Tong Go</a>
+      </div>
+      <ul class="facts">
+        <li><span class="site"><a href="https://www.feastographyblog.com/blog/padthai-thipsamai-review">Thip Samai</a></span><span class="price">~80 THB · Old Town</span><span class="badge">pad thai legend</span></li>
+        <li><span class="site"><a href="https://danielfooddiary.com/2024/08/19/maevaree/">Mae Varee</a></span><span class="price">Thonglor BTS · take-away</span><span class="badge">mango sticky rice</span></li>
+        <li><span class="site"><a href="https://www.mytravelbuzzg.com/go-ang-pratunam-chicken-rice-bangkok/">Go-Ang Pratunam</a></span><span class="price">~50 THB · since 1960</span><span class="badge">Bib Gourmand</span></li>
+        <li><span class="site"><a href="https://phedmark.com/">Phed Mark</a></span><span class="price">80–150 THB · Ekkamai BTS</span><span class="badge">Bib · pad krapao</span></li>
+        <li><span class="site"><a href="https://migrationology.com/or-tor-kor-market-bangkok-thailand/">Or Tor Kor</a> <sup><a href="https://migrationology.com/or-tor-kor-market-bangkok-thailand/">[31]</a></sup></span><span class="price">Opp. Chatuchak</span><span class="badge badge-red">&#128247; before 10 AM!</span></li>
+      </ul>
+    </div>
+
+    <!-- 3. MARKETS -->
+    <div class="card pin-green rot-0">
+      <div class="card-label">&#127868; Markets &amp; Shopping</div>
+      <div class="polaroid" style="transform:rotate(0.8deg);margin-bottom:0.85rem;">
+        <img src="corkboard/images/chatuchak.jpg" alt="Chatuchak Weekend Market">
+        <div class="caption">Chatuchak — 15,000+ stalls · Sat–Sun only <sup><a href="https://www.chatuchakmarket.org/opening-times/">[37]</a></sup></div>
+      </div>
+      <ul class="facts">
+        <li>
+          <span class="site"><a href="https://www.chatuchakmarket.org/opening-times/">Chatuchak</a></span>
+          <span class="price">Sat–Sun 09:00–18:00</span>
+          <span class="badge badge-red">&#8987; before 10:30!</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.iconsiam.com/en">ICONSIAM</a></span>
+          <span class="price">Daily 10–22 · BTS Gold Line</span>
+          <span class="badge">free shuttle boat</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://goasia.cc/en/article/asiatique-the-riverfront">Asiatique</a></span>
+          <span class="price">Daily 16–24</span>
+          <span class="badge">free 10-min ferry</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.thaitrainguide.com/timetables/maeklong-line/">Maeklong Railway</a> <sup><a href="https://www.thaitrainguide.com/timetables/maeklong-line/">[47]</a></sup></span>
+          <span class="price">Daily · arrivals 8:30/11:10/14:30/17:40</span>
+          <span class="badge">stalls retract</span>
+        </li>
+      </ul>
+      <div class="sticky sticky-g">
+        <span class="sticky-head">&#128688; Floating markets</span>
+        Skip Damnoen Saduak — tourist busloads. Amphawa (Fri–Sun) still draws Thai locals and does firefly boat rides after dark.
+      </div>
+    </div>
+
+    <!-- 4. BARS & NIGHTLIFE -->
+    <div class="card pin-blue rot-2">
+      <div class="card-label">&#127798; Rooftops &amp; Bars</div>
+      <div class="polaroid" style="transform:rotate(-1deg);margin-bottom:0.85rem;">
+        <img src="corkboard/images/bkk-social-club.jpg" alt="BKK Social Club at Four Seasons">
+        <div class="caption"><a href="https://www.theworlds50best.com/bars/asia/the-list/bkk-social-club.html">BKK Social Club</a> — Asia's 50 Best #19 <sup><a href="https://www.bkmagazine.com/nightlife/7-bangkok-bars-rank-asias-50-best-bars-2025-barus-and-dry-wave-earn-top-5-rankings/">[49]</a></sup></div>
+      </div>
+      <ul class="facts">
+        <li>
+          <span class="site"><a href="https://www.theworlds50best.com/bars/asia/the-list/bkk-social-club.html">BKK Social Club</a></span>
+          <span class="price">Four Seasons · riverside</span>
+          <span class="badge badge-blue">Asia #19</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.banyantree.com/thailand/bangkok/dining/vertigo">Vertigo &amp; Moon Bar</a></span>
+          <span class="price">F61 Banyan Tree · ~3,100 THB set</span>
+          <span class="badge">smart casual</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://offpaththailand.com/quiet-rooftops-bangkok-2026/">Mahanakhon SkyWalk</a></span>
+          <span class="price">F78 · 314 m · closes 19:00</span>
+          <span class="badge">highest deck</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://thailandmagazine.com/bangkok/rooftop-bars/octave-rooftop-lounge-bar/">Octave</a></span>
+          <span class="price">370–450 THB · Marriott Sukhumvit</span>
+          <span class="badge badge-grn">50% HH 17–19</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.hyatt.com/park-hyatt/en-US/bkkph-park-hyatt-bangkok/dining/penthouse-bar-grill">Penthouse</a></span>
+          <span class="price">Park Hyatt L35</span>
+          <span class="badge">live jazz Wed–Sun</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://lebua.com/restaurants/sky/">Lebua Sky Bar</a></span>
+          <span class="price">F64 · $50+ cocktails</span>
+          <span class="badge badge-red">&#128247; one-and-done</span>
+        </li>
+      </ul>
+      <div class="sticky sticky-y">
+        <span class="sticky-head">&#127880; Districts</span>
+        Khaosan (~5 AM, 100 THB beer) · Soi 11 (mixed local/expat) · Thonglor (craft cocktail, hi-so)
+      </div>
+    </div>
+
+    <!-- 5. MASSAGE + MUAY THAI -->
+    <div class="card tape-card rot-m1">
+      <div class="card-label">&#128134; Thai Massage — tier by tier</div>
+      <ul class="facts">
+        <li>
+          <span class="site"><a href="https://www.watpho.com/en/massage-school">Wat Pho School</a> <sup><a href="https://www.watpho.com/en/massage-school">[70]</a></sup></span>
+          <span class="price">~520 THB / 60 min</span>
+          <span class="badge">origin · 1955</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.tripadvisor.com/Attraction_Review-g293916-d2621694-Reviews-Health_Land_Spa_Massage_Asoke-Bangkok.html">Health Land</a> <sup><a href="https://www.tripadvisor.com/Attraction_Review-g293916-d2621694-Reviews-Health_Land_Spa_Massage_Asoke-Bangkok.html">[72]</a></sup></span>
+          <span class="price">~650–700 THB / 2 h</span>
+          <span class="badge">mid · 3 branches</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.tripadvisor.com/Attraction_Review-g293916-d2724354-Reviews-Divana_Virtue_Spa-Bangkok.html">Divana Virtue Spa</a></span>
+          <span class="price">2,150 THB / 90 min</span>
+          <span class="badge">affordable luxury</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.banyantree.com/thailand/bangkok/spa/banyan-tree-spa-bangkok">Banyan Tree Spa</a></span>
+          <span class="price">on request · 16 suites</span>
+          <span class="badge">hotel luxury</span>
+        </li>
+      </ul>
+      <div class="sticky sticky-b">
+        <span class="sticky-head">&#9200; Pre-dinner timing</span>
+        Book Health Land 13:30–15:30 Sat. Walk out rested for the 3&#x2605; dinner.
+      </div>
+      <div style="margin-top:1rem;">
+        <div class="card-label" style="font-size:1.1rem;margin-bottom:0.6rem;">&#129354; Muay Thai</div>
+        <p style="font-size:0.81rem;line-height:1.55;">
+          <a href="https://rajadamnern.com/tickets/">Rajadamnern Stadium</a> (1945) — Wed/Thu/Fri/Sat/Sun cards. <sup><a href="https://rajadamnern.com/tickets/">[62]</a></sup><br>
+          1,600 THB (2nd class) → 4,500 THB (VIP). <strong>Book online</strong> — popular cards sell out.
+        </p>
+      </div>
+    </div>
+
+    <!-- 6. DAY TRIPS & RIVER -->
+    <div class="card tape-card rot-1">
+      <div class="card-label">&#127941; Day Trips</div>
+      <div class="sticky sticky-r" style="margin-top:0;margin-bottom:0.85rem;">
+        <span class="sticky-head">&#9888; 2-day trip: skip these</span>
+        Ayutthaya eats a full day. Add Bang Krachao half-day if you have a free morning.
+      </div>
+      <ul class="facts">
+        <li>
+          <span class="site"><a href="https://www.migrationology.com/bang-krachao-bangkok-bike-tour/">Bang Krachao</a> <sup><a href="https://www.migrationology.com/bang-krachao-bangkok-bike-tour/">[68]</a></sup></span>
+          <span class="price">50 THB/h bike</span>
+          <span class="badge badge-grn">half-day &#10003;</span>
+        </li>
+        <li>
+          <span class="site">Ayutthaya</span>
+          <span class="price">1,000–1,500 THB pp</span>
+          <span class="badge">9–9.5 h full day</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.thaitrainguide.com/timetables/maeklong-line/">Maeklong</a> + Damnoen</span>
+          <span class="price">7–8 h · combine them</span>
+          <span class="badge">Friday option</span>
+        </li>
+      </ul>
+      <div class="card-label" style="font-size:1.1rem;margin-top:1rem;margin-bottom:0.6rem;">&#128676; River</div>
+      <ul class="facts">
+        <li>
+          <span class="site"><a href="https://www.manohracruises.com/events-offers/dinner-river-cruise/">Manohra</a> <sup><a href="https://www.manohracruises.com/events-offers/dinner-river-cruise/">[74]</a></sup></span>
+          <span class="price">3,500–4,500 THB</span>
+          <span class="badge">teak barge · premium</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.renown-travel.com/daytripsbangkok/wanfahdinnercruise.html">Wan Fah</a> <sup><a href="https://www.renown-travel.com/daytripsbangkok/wanfahdinnercruise.html">[75]</a></sup></span>
+          <span class="price">~1,100 THB / 2 h</span>
+          <span class="badge badge-grn">value pick</span>
+        </li>
+        <li>
+          <span class="site"><a href="https://www.thairivercruise.com/longtail-boat-bangkok/">Longtail klong tour</a></span>
+          <span class="price">750 THB/h</span>
+          <span class="badge">canals · Wat Paknam</span>
+        </li>
+      </ul>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- SKIP LIST -->
+  <div class="skip-card">
+    <div class="skip-title">&#9986; Skip-list for a 2-day trip</div>
+    <div class="skip-pills">
+      <span class="skip-pill">&#10007; Ayutthaya — eats a full day</span>
+      <span class="skip-pill">&#10007; Damnoen Saduak — tourist trap</span>
+      <span class="skip-pill">&#10007; Lebua Sky Bar — $50+ photo stop</span>
+      <span class="skip-pill">&#10007; Asiatique — only if shopping is the goal</span>
+      <span class="skip-pill">&#10007; Grand Palace — 500 THB, strict dress, polarising</span>
+    </div>
+  </div>
+
+  <!-- WEEKEND SHAPE STRIP -->
+  <div class="weekend-strip">
+    <div class="strip-title">&#128197; The Anchor Plan — weekend shape</div>
+    <div class="itinerary">
+      <div class="slot">
+        <div class="slot-time">Fri evening</div>
+        <div class="slot-act"><a href="https://www.theworlds50best.com/bars/asia/the-list/bkk-social-club.html">BKK Social Club</a> or Bamboo Bar — check in, jet-lag drinks riverside</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sat 08:00</div>
+        <div class="slot-act"><a href="https://www.am2026thailand.go.th/explore-bangkok/wat-pho">Wat Pho</a> → cross river → <a href="https://www.tripthaitour.com/blog/wat-arun-temple-of-dawn-bangkok">Wat Arun</a> (first terrace) — beat tour buses</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sat 11:00</div>
+        <div class="slot-act"><a href="https://migrationology.com/or-tor-kor-market-bangkok-thailand/">Or Tor Kor Market</a> lunch before sellouts</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sat 13:30</div>
+        <div class="slot-act"><a href="https://www.tripadvisor.com/Attraction_Review-g293916-d2621694-Reviews-Health_Land_Spa_Massage_Asoke-Bangkok.html">Health Land</a> spa — prep for dinner</div>
+      </div>
+      <div class="slot anchor">
+        <div class="slot-time">Sat 18:30 &#9733;&#9733;&#9733;</div>
+        <div class="slot-act">Anchor 3-star dinner — Le Normandie or C&#244;te by Mauro Colagreco</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sat late</div>
+        <div class="slot-act">Nightcap at <a href="https://www.theworlds50best.com/bars/asia/the-list/bkk-social-club.html">BKK Social Club</a> or <a href="https://www.hyatt.com/park-hyatt/en-US/bkkph-park-hyatt-bangkok/dining/penthouse-bar-grill">Penthouse jazz</a></div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sun 08:30</div>
+        <div class="slot-act"><a href="https://www.chatuchakmarket.org/opening-times/">Chatuchak</a> — before 10:30 AM heat &amp; crowds</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sun 13:00</div>
+        <div class="slot-act">Jim Thompson House OR <a href="https://www.migrationology.com/bang-krachao-bangkok-bike-tour/">Bang Krachao</a> bikes</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sun 17:30</div>
+        <div class="slot-act"><a href="https://offpaththailand.com/quiet-rooftops-bangkok-2026/">Mahanakhon SkyWalk</a> sunset — closes 19:00</div>
+      </div>
+      <div class="slot">
+        <div class="slot-time">Sun 19:30</div>
+        <div class="slot-act"><a href="https://bangkokdays.com/yaowarat-delights-a-guide-to-bangkoks-best-chinatown-street-food-year/">Yaowarat crawl</a> — T&amp;K → Nai Mong → Pa Tong Go (Jay Fai needs its own evening)</div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,717 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Bangkok 2026 — Calendar"
+---
+
+<style>
+:root {
+  --bg:         #080c14;
+  --surface:    #0d1220;
+  --surface2:   #131b2e;
+  --border:     #1c2840;
+  --border2:    #243050;
+  --text-dim:   #3a4d6a;
+  --text-mid:   #6a8099;
+  --text:       #b8ccdf;
+  --text-hi:    #e0eeff;
+
+  --academic:   #64748b;
+  --opensrc:    #22c55e;
+  --fintech:    #3b82f6;
+  --aidev:      #f59e0b;
+  --cybersec:   #ef4444;
+  --enterprise: #8b5cf6;
+  --flagship:   #ec4899;
+
+  --now-glow:   rgba(248,210,80,0.18);
+  --now-col:    #f8d250;
+  --past-fade:  0.38;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cv {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, 'Cascadia Code', monospace;
+  padding: 2.5rem 2rem 3rem;
+  min-height: 100vh;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.cv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.cv-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-hi);
+  line-height: 1;
+}
+.cv-year {
+  font-size: 1.6rem;
+  font-weight: 200;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+.cv-byline {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+  margin-bottom: 1.4rem;
+}
+
+/* ── Legend ──────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  margin-bottom: 1.8rem;
+}
+.leg {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mid);
+}
+.leg-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── 12-Month Firing Grid ────────────────────────────────── */
+.grid-wrap {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+}
+.mc {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+.mc:last-child { border-right: none; }
+.mc.cur {
+  background: var(--surface2);
+  box-shadow: inset 0 0 0 1px rgba(248, 210, 80, 0.22);
+}
+
+.mc-head {
+  padding: 0.45rem 0.3rem 0.3rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.mc-name {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: block;
+}
+.mc.cur .mc-name { color: var(--now-col); }
+.mc.upcoming .mc-name { color: var(--text-mid); }
+
+.mc-now {
+  font-size: 0.46rem;
+  letter-spacing: 0.06em;
+  color: var(--now-col);
+  display: block;
+  margin-top: 0.12rem;
+  line-height: 1;
+}
+
+.mc-events {
+  padding: 0.35rem 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-height: 5.5rem;
+}
+
+/* Event pill in grid */
+.ep {
+  display: block;
+  padding: 0.18rem 0.28rem;
+  border-radius: 2px;
+  font-size: 0.52rem;
+  line-height: 1.35;
+  text-decoration: none;
+  color: var(--text-hi);
+  background: rgba(255,255,255,0.04);
+  border-left: 2px solid transparent;
+  transition: background 0.15s, opacity 0.15s;
+}
+.ep.past { opacity: var(--past-fade); }
+.ep:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+
+.ep-academic  { border-left-color: var(--academic);   }
+.ep-opensrc   { border-left-color: var(--opensrc);    }
+.ep-fintech   { border-left-color: var(--fintech);    }
+.ep-aidev     { border-left-color: var(--aidev);      }
+.ep-cybersec  { border-left-color: var(--cybersec);   }
+.ep-enterprise{ border-left-color: var(--enterprise); }
+.ep-flagship  { border-left-color: var(--flagship);   }
+
+/* ── Signal bar (activity chart under grid) ──────────────── */
+.signal-bar {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+}
+.sb-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-right: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.sb-cell:last-child { border-right: none; }
+.sb-fill {
+  background: var(--text-dim);
+  opacity: 0.25;
+  width: 100%;
+}
+.sb-cell.cur .sb-fill  { background: var(--now-col); opacity: 0.6; }
+.sb-cell.busy .sb-fill { opacity: 0.45; }
+.sb-cell.hot .sb-fill  { opacity: 0.7; }
+
+/* ── Section titles ──────────────────────────────────────── */
+.sec-title {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ── Flagship event ──────────────────────────────────────── */
+.flagship-card {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  border: 1px solid rgba(236,72,153,0.25);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+.flagship-card:hover { border-color: rgba(236,72,153,0.55); }
+.flagship-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  min-height: 200px;
+}
+.flagship-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.f-date {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--flagship);
+}
+.f-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-hi);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.f-venue {
+  font-size: 0.65rem;
+  color: var(--text-mid);
+}
+.f-desc {
+  font-size: 0.7rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+.f-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.f-stat {
+  font-size: 0.6rem;
+  color: var(--text-mid);
+  background: rgba(236,72,153,0.07);
+  border: 1px solid rgba(236,72,153,0.15);
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+}
+.f-badge {
+  display: inline-block;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--flagship);
+  background: rgba(236,72,153,0.1);
+  border: 1px solid rgba(236,72,153,0.2);
+  padding: 0.18rem 0.5rem;
+  border-radius: 2px;
+  align-self: flex-start;
+}
+
+/* ── Upcoming events grid ────────────────────────────────── */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 2.5rem;
+}
+.ev-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s;
+}
+.ev-card:hover { border-color: var(--border2); }
+.ev-thumb {
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.ev-thumb-glyph {
+  font-size: 1.6rem;
+  line-height: 1;
+  opacity: 0.6;
+}
+.ev-fav {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+}
+.ev-body {
+  padding: 0.7rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.ev-date {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.ev-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  line-height: 1.2;
+}
+.ev-venue {
+  font-size: 0.6rem;
+  color: var(--text-mid);
+}
+.ev-focus {
+  font-size: 0.62rem;
+  color: var(--text);
+  line-height: 1.5;
+  flex: 1;
+}
+.ev-badge {
+  display: inline-block;
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+  margin-top: 0.3rem;
+  align-self: flex-start;
+}
+
+/* ── Meetups ─────────────────────────────────────────────── */
+.meetups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 2.5rem;
+}
+.mt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.8rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s;
+}
+.mt-card:hover { border-color: var(--border2); }
+.mt-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+}
+.mt-cadence {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--opensrc);
+  margin-bottom: 0.25rem;
+}
+.mt-fmt {
+  font-size: 0.6rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.cv-foot {
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .cv { padding: 1.5rem 1rem 2rem; }
+  .flagship-card { grid-template-columns: 1fr; }
+  .flagship-img { min-height: 160px; max-height: 200px; }
+  .month-grid { grid-template-columns: repeat(6, 1fr); }
+  .signal-bar { grid-template-columns: repeat(6, 1fr); }
+  .mc:nth-child(6) { border-right: none; }
+  .mc:nth-child(7), .mc:nth-child(8), .mc:nth-child(9),
+  .mc:nth-child(10), .mc:nth-child(11), .mc:nth-child(12) {
+    border-top: 1px solid var(--border);
+  }
+}
+@media (max-width: 540px) {
+  .cv-title, .cv-year { font-size: 1.2rem; }
+  .f-name { font-size: 1.1rem; }
+}
+</style>
+
+<div class="cv">
+
+  <!-- ── Header ── -->
+  <div class="cv-head">
+    <span class="cv-title">Bangkok Tech Calendar</span>
+    <span class="cv-year">2026</span>
+  </div>
+  <div class="cv-byline">IT Conferences &amp; Events · Firing Pattern Grid · Survey</div>
+
+  <div class="legend">
+    <span class="leg"><span class="leg-dot" style="background:var(--academic)"></span>Academic</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--opensrc)"></span>Open Source</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--fintech)"></span>Fintech</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--aidev)"></span>AI / Dev</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--cybersec)"></span>Cybersec</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--enterprise)"></span>Enterprise</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--flagship)"></span>Flagship</span>
+    <span class="leg" style="margin-left:auto; color:var(--text-dim)">✓ concluded &nbsp;·&nbsp; <span style="color:var(--now-col)">▼</span> today Jun 2</span>
+  </div>
+
+  <!-- ── 12-Month Grid ── -->
+  <div class="grid-wrap">
+    <div class="month-grid">
+
+      <!-- JAN -->
+      <div class="mc past">
+        <div class="mc-head"><span class="mc-name">Jan</span></div>
+        <div class="mc-events">
+          <a href="https://conferenceindex.org/event/international-conference-on-information-technology-and-computer-sciences-icitcs-2026-january-bangkok-th" class="ep ep-academic past">ICITCS<br>19–20 ✓</a>
+        </div>
+      </div>
+
+      <!-- FEB -->
+      <div class="mc past">
+        <div class="mc-head"><span class="mc-name">Feb</span></div>
+        <div class="mc-events"></div>
+      </div>
+
+      <!-- MAR -->
+      <div class="mc past">
+        <div class="mc-head"><span class="mc-name">Mar</span></div>
+        <div class="mc-events">
+          <a href="https://www.techtalkthai.com/fossasia-summit-2026-returns-to-bangkok-focusing-on-ai-postgresql-cybersecurity-and-devops-8-10-march-2026/" class="ep ep-opensrc past">FOSSASIA<br>8–10 ✓</a>
+        </div>
+      </div>
+
+      <!-- APR -->
+      <div class="mc past">
+        <div class="mc-head"><span class="mc-name">Apr</span></div>
+        <div class="mc-events">
+          <a href="https://ictisthailand.com/" class="ep ep-academic past">ICTIS<br>9–11 ✓</a>
+          <a href="https://asia.money2020.com/attend" class="ep ep-fintech past">Money20/20<br>21–23 ✓</a>
+        </div>
+      </div>
+
+      <!-- MAY -->
+      <div class="mc past">
+        <div class="mc-head"><span class="mc-name">May</span></div>
+        <div class="mc-events"></div>
+      </div>
+
+      <!-- JUN ← NOW -->
+      <div class="mc cur">
+        <div class="mc-head">
+          <span class="mc-name">Jun</span>
+          <span class="mc-now">▼ now</span>
+        </div>
+        <div class="mc-events">
+          <a href="https://globalai.community/events/build-localhost/4n0bissa/" class="ep ep-aidev">Build //BKK<br>14</a>
+          <a href="https://www.iait-conf.org/2026/" class="ep ep-academic">IAIT2026<br>17–19</a>
+          <a href="https://developer.microsoft.com/en-us/reactor/events/27200/" class="ep ep-aidev">MS Reactor<br>21</a>
+        </div>
+      </div>
+
+      <!-- JUL -->
+      <div class="mc upcoming">
+        <div class="mc-head"><span class="mc-name">Jul</span></div>
+        <div class="mc-events">
+          <a href="https://thailand.cysecglobal.com/" class="ep ep-cybersec">CYSEC<br>22</a>
+        </div>
+      </div>
+
+      <!-- AUG -->
+      <div class="mc upcoming">
+        <div class="mc-head"><span class="mc-name">Aug</span></div>
+        <div class="mc-events">
+          <a href="https://summit.techsauce.co/" class="ep ep-flagship">Techsauce<br>26–28</a>
+        </div>
+      </div>
+
+      <!-- SEP -->
+      <div class="mc upcoming">
+        <div class="mc-head"><span class="mc-name">Sep</span></div>
+        <div class="mc-events"></div>
+      </div>
+
+      <!-- OCT -->
+      <div class="mc upcoming">
+        <div class="mc-head"><span class="mc-name">Oct</span></div>
+        <div class="mc-events"></div>
+      </div>
+
+      <!-- NOV -->
+      <div class="mc upcoming">
+        <div class="mc-head"><span class="mc-name">Nov</span></div>
+        <div class="mc-events">
+          <a href="https://digitechasean.com/overview/" class="ep ep-enterprise">DigiTech<br>ASEAN 25–27</a>
+        </div>
+      </div>
+
+      <!-- DEC -->
+      <div class="mc upcoming">
+        <div class="mc-head"><span class="mc-name">Dec</span></div>
+        <div class="mc-events"></div>
+      </div>
+
+    </div><!-- /month-grid -->
+  </div><!-- /grid-wrap -->
+
+  <!-- ── Signal Activity Bar ── -->
+  <div class="signal-bar">
+    <!-- Jan: 1 event -->
+    <div class="sb-cell past"><div class="sb-fill" style="height:33%"></div></div>
+    <!-- Feb: 0 -->
+    <div class="sb-cell past"><div class="sb-fill" style="height:0%"></div></div>
+    <!-- Mar: 1 -->
+    <div class="sb-cell past"><div class="sb-fill" style="height:33%"></div></div>
+    <!-- Apr: 2 -->
+    <div class="sb-cell past busy"><div class="sb-fill" style="height:66%"></div></div>
+    <!-- May: 0 -->
+    <div class="sb-cell past"><div class="sb-fill" style="height:0%"></div></div>
+    <!-- Jun: 3 ← hot -->
+    <div class="sb-cell cur hot"><div class="sb-fill" style="height:100%"></div></div>
+    <!-- Jul: 1 -->
+    <div class="sb-cell upcoming"><div class="sb-fill" style="height:33%"></div></div>
+    <!-- Aug: 1 -->
+    <div class="sb-cell upcoming"><div class="sb-fill" style="height:33%"></div></div>
+    <!-- Sep: 0 -->
+    <div class="sb-cell upcoming"><div class="sb-fill" style="height:0%"></div></div>
+    <!-- Oct: 0 -->
+    <div class="sb-cell upcoming"><div class="sb-fill" style="height:0%"></div></div>
+    <!-- Nov: 1 -->
+    <div class="sb-cell upcoming"><div class="sb-fill" style="height:33%"></div></div>
+    <!-- Dec: 0 -->
+    <div class="sb-cell upcoming"><div class="sb-fill" style="height:0%"></div></div>
+  </div>
+
+  <!-- ── Flagship ── -->
+  <div class="sec-title">Flagship</div>
+  <a href="https://summit.techsauce.co/" class="flagship-card">
+    <img src="calendar/images/techsauce.png" alt="Techsauce Global Summit 2026 — Bangkok" class="flagship-img">
+    <div class="flagship-body">
+      <span class="f-date">Aug 26–28, 2026</span>
+      <span class="f-name">Techsauce Global Summit 2026</span>
+      <span class="f-venue">
+        <img src="https://www.google.com/s2/favicons?domain=summit.techsauce.co&sz=32" alt="" style="width:12px;height:12px;vertical-align:middle;margin-right:0.3rem;border-radius:2px;">
+        <a href="https://www.qsncc.com/en/" style="color:inherit;text-decoration:none;">Queen Sirikit National Convention Center (QSNCC)</a>, Bangkok
+      </span>
+      <span class="f-desc">Southeast Asia's largest private-sector tech summit — Bangkok's SXSW equivalent. AI, fintech, sustainability, venture investment, and curated 1-on-1 business matching across 10+ stages.</span>
+      <div class="f-stats">
+        <span class="f-stat">20,000+ attendees</span>
+        <span class="f-stat">400+ speakers</span>
+        <span class="f-stat">130+ sessions</span>
+        <span class="f-stat">30+ workshops</span>
+        <span class="f-stat">200+ exhibitors</span>
+      </div>
+      <span class="f-badge">Flagship · Largest in SE Asia</span>
+    </div>
+  </a>
+
+  <!-- ── Upcoming events ── -->
+  <div class="sec-title">Upcoming — Jun · Jul · Nov 2026</div>
+  <div class="events-grid">
+
+    <!-- Jun 14: Build //localhost (Global AI) -->
+    <a href="https://globalai.community/events/build-localhost/4n0bissa/" class="ev-card">
+      <div class="ev-thumb" style="background:linear-gradient(135deg,#0e1f38,#142840)">
+        <img src="https://www.google.com/s2/favicons?domain=globalai.community&sz=128" alt="" class="ev-fav">
+      </div>
+      <div class="ev-body">
+        <span class="ev-date" style="color:var(--aidev)">Jun 14, 2026</span>
+        <span class="ev-name">Build //localhost:Bangkok</span>
+        <span class="ev-venue">SCBX NEXT TECH, 4F, Siam Paragon</span>
+        <span class="ev-focus">Azure AI workshops, hands-on labs. Global AI Community series.</span>
+        <span class="ev-badge" style="background:rgba(245,158,11,0.09);color:var(--aidev)">AI / Dev</span>
+      </div>
+    </a>
+
+    <!-- Jun 17-19: IAIT2026 -->
+    <a href="https://www.iait-conf.org/2026/" class="ev-card">
+      <div class="ev-thumb" style="background:linear-gradient(135deg,#14121e,#1c1830)">
+        <span class="ev-thumb-glyph" style="color:var(--academic)">⊠</span>
+      </div>
+      <div class="ev-body">
+        <span class="ev-date" style="color:var(--academic)">Jun 17–19, 2026</span>
+        <span class="ev-name">IAIT2026</span>
+        <span class="ev-venue">KX Building, KMUTT, Bangkok</span>
+        <span class="ev-focus">Trustworthy AI &amp; Cybersecurity. 9 tracks. Keynotes: IIT Delhi &amp; NASA JPL. ACM ICPS proceedings. 18,500 THB full / 6,500 THB attendee.</span>
+        <span class="ev-badge" style="background:rgba(100,116,139,0.09);color:var(--academic)">Academic</span>
+      </div>
+    </a>
+
+    <!-- Jun 21: MS Reactor -->
+    <a href="https://developer.microsoft.com/en-us/reactor/events/27200/" class="ev-card">
+      <div class="ev-thumb" style="background:linear-gradient(135deg,#0e1c38,#102040)">
+        <img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="" class="ev-fav">
+      </div>
+      <div class="ev-body">
+        <span class="ev-date" style="color:var(--aidev)">Jun 21, 2026</span>
+        <span class="ev-name">MS Build //localhost:Bangkok</span>
+        <span class="ev-venue">4F, 991/1 Rama I Rd, Pathum Wan</span>
+        <span class="ev-focus">Azure AI, Microsoft Foundry, GitHub Copilot. Conducted in Thai. Limited seats — register early.</span>
+        <span class="ev-badge" style="background:rgba(245,158,11,0.09);color:var(--aidev)">AI / Dev</span>
+      </div>
+    </a>
+
+    <!-- Jul 22: CYSEC Thailand -->
+    <a href="https://thailand.cysecglobal.com/" class="ev-card">
+      <div class="ev-thumb" style="background:linear-gradient(135deg,#200e0e,#2e1212)">
+        <img src="https://www.google.com/s2/favicons?domain=cysecglobal.com&sz=128" alt="" class="ev-fav">
+      </div>
+      <div class="ev-body">
+        <span class="ev-date" style="color:var(--cybersec)">Jul 22, 2026</span>
+        <span class="ev-name">CYSEC Thailand 2026</span>
+        <span class="ev-venue">Royal Orchid Sheraton Riverside, Bangkok</span>
+        <span class="ev-focus">150+ cybersecurity decision-makers. Cloud security, threat intel, AI-driven defence, critical infrastructure resilience. CPD-approved. Inaugural Thailand edition.</span>
+        <span class="ev-badge" style="background:rgba(239,68,68,0.09);color:var(--cybersec)">Cybersecurity</span>
+      </div>
+    </a>
+
+    <!-- Nov 25-27: DigiTech ASEAN -->
+    <a href="https://digitechasean.com/overview/" class="ev-card">
+      <div class="ev-thumb" style="background:linear-gradient(135deg,#120e2a,#1a1240)">
+        <img src="https://www.google.com/s2/favicons?domain=digitechasean.com&sz=128" alt="" class="ev-fav">
+      </div>
+      <div class="ev-body">
+        <span class="ev-date" style="color:var(--enterprise)">Nov 25–27, 2026</span>
+        <span class="ev-name">DigiTech ASEAN + AI Connect</span>
+        <span class="ev-venue">IMPACT Hall 7–8, Bangkok</span>
+        <span class="ev-focus">Enterprise AI for business. Co-org: Ministry of Digital Economy &amp; Society. AI Connect 2026 (AI for Business) runs simultaneously. ~400 exhibitors · ~12,000 attendees.</span>
+        <span class="ev-badge" style="background:rgba(139,92,246,0.09);color:var(--enterprise)">Enterprise</span>
+      </div>
+    </a>
+
+  </div><!-- /events-grid -->
+
+  <!-- ── Recurring Meetups ── -->
+  <div class="sec-title">Recurring — Weekly &amp; Monthly</div>
+  <div class="meetups">
+    <a href="https://www.meetup.com/bangkok-ai-tech-builders/" class="mt-card">
+      <div class="mt-name">Bangkok AI &amp; Tech Builders</div>
+      <div class="mt-cadence">Weekly · Wed</div>
+      <div class="mt-fmt">Builder-only · No slides, no pitching · Cafés / coworking, central Bangkok</div>
+    </a>
+    <a href="https://www.meetup.com/bangkok-artificial-intelligence-meetup-group/" class="mt-card">
+      <div class="mt-name">Bangkok AI Meetup Group</div>
+      <div class="mt-cadence">Monthly</div>
+      <div class="mt-fmt">Talks + networking · Amber Rooftop Bar, Wyndham (34th floor)</div>
+    </a>
+    <a href="https://www.meetup.com/global-ai-thailand/" class="mt-card">
+      <div class="mt-name">Global AI Bangkok</div>
+      <div class="mt-cadence">Monthly · Free</div>
+      <div class="mt-fmt">Open to all levels · Evening talk · Central Bangkok (varies)</div>
+    </a>
+    <a href="https://bangkok.aitinkerers.org/" class="mt-card">
+      <div class="mt-name">AI Tinkerers Bangkok</div>
+      <div class="mt-cadence">Monthly</div>
+      <div class="mt-fmt">Live-code demos only · No decks · Central Bangkok (varies)</div>
+    </a>
+    <a href="https://www.truedigitalpark.com/en" class="mt-card">
+      <div class="mt-name">True Digital Park Tech Meetup</div>
+      <div class="mt-cadence">Monthly</div>
+      <div class="mt-fmt">Software, AI, startups · True Digital Park, Sukhumvit</div>
+    </a>
+  </div>
+
+  <div class="cv-foot">
+    ✓ Jan–May events concluded before Jun 2, 2026. &nbsp;·&nbsp;
+    <a href="https://asia.money2020.com/" style="color:inherit">Money20/20 Asia 2027</a>: Apr 27–29. &nbsp;·&nbsp;
+    <a href="https://cybersec-asia.net/" style="color:inherit">Cybersec Asia 2027</a>: Jan 20–21, QSNCC. &nbsp;·&nbsp;
+    Research date: Jun 2, 2026.
+  </div>
+
+</div>
