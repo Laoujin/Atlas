@@ -1,0 +1,677 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences and Tech Events in Osaka (2026) — Calendar"
+---
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cv {
+  --bg:       #07090f;
+  --surface:  #0d1017;
+  --card:     #111622;
+  --card2:    #151d2e;
+  --border:   #1c2336;
+  --spine:    #1e2a40;
+  --text:     #dde4f0;
+  --dim:      #7a8499;
+  --xdim:     #374155;
+
+  /* type palette */
+  --gdg:      #2563eb;
+  --dev:      #7c3aed;
+  --startup:  #059669;
+  --trade:    #d97706;
+  --netops:   #0891b2;
+  --os:       #475569;
+  --comm:     #4f46e5;
+  --now:      #ef4444;
+
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────────────────── */
+.cv-head {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0c1525 0%, #070b14 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 2.75rem 2.5rem 2.25rem;
+}
+.cv-head-year {
+  position: absolute;
+  right: -0.04em;
+  top: -0.12em;
+  font-size: clamp(110px, 17vw, 190px);
+  font-weight: 900;
+  letter-spacing: -6px;
+  line-height: 1;
+  color: #1a2540;
+  pointer-events: none;
+  user-select: none;
+}
+.cv-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--now);
+  margin-bottom: 0.6rem;
+}
+.cv-h1 {
+  font-size: clamp(26px, 4.5vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: #eef2fb;
+  margin-bottom: 1.4rem;
+}
+.cv-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  font-size: 13px;
+  color: var(--dim);
+}
+.cv-stats strong { color: var(--text); }
+
+/* ── LEGEND ──────────────────────────────────────────── */
+.cv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+  padding: 0.9rem 2.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--dim);
+}
+.ld { display: inline-flex; align-items: center; gap: 6px; }
+.ld-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── TIMELINE ────────────────────────────────────────── */
+.cv-tl { padding-bottom: 2rem; }
+
+.cv-row {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.cv-row.empty { opacity: 0.25; min-height: 32px; }
+.cv-row.past  { opacity: 0.45; }
+.cv-row.is-now { background: rgba(239,68,68,0.025); }
+
+/* month label cell */
+.mo-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 14px 0 14px 1.75rem;
+  border-right: 1px solid var(--spine);
+  position: relative;
+}
+.mo-name {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: var(--xdim);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.cv-row.is-now .mo-name { color: var(--now); }
+.cv-row.empty .mo-name  { color: var(--xdim); }
+
+.badge {
+  display: inline-block;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 2px;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+.badge-now  { background: var(--now); color: #fff; }
+.badge-held { background: transparent; color: var(--xdim); border: 1px solid var(--xdim); }
+
+/* events cell */
+.ev-cell {
+  padding: 10px 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ── EVENT CARD ─────────────────────────────────────── */
+.ev {
+  display: flex;
+  align-items: stretch;
+  background: var(--card);
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 54px;
+}
+.ev:hover { background: var(--card2); }
+
+.ev-stripe { width: 4px; flex-shrink: 0; }
+
+.ev-body {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.ev-fav {
+  width: 20px; height: 20px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  object-fit: cover;
+  vertical-align: middle;
+}
+.ev-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+.ev-name:hover { opacity: 0.8; }
+.ev-date {
+  font-size: 12px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.ev-venue {
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+.ev-scale {
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.ev-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ev-star {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.05);
+  color: var(--dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* OG image thumbnail (flagship cards only) */
+.ev-img-wrap {
+  flex-shrink: 0;
+  width: 108px;
+  align-self: stretch;
+  overflow: hidden;
+}
+.ev-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Register CTA */
+.ev-reg {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-left: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  color: #60a5fa;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ev-reg:hover { color: #fff; background: rgba(96,165,250,0.08); }
+
+/* Past — hide register, dim further */
+.cv-row.past .ev-reg    { display: none; }
+.cv-row.past .ev-img-wrap { display: none; }
+.cv-row.past .ev-name   { color: var(--xdim); }
+
+/* Type stripe colors */
+.s-gdg     { background: var(--gdg); }
+.s-dev     { background: var(--dev); }
+.s-startup { background: var(--startup); }
+.s-trade   { background: var(--trade); }
+.s-netops  { background: var(--netops); }
+.s-os      { background: var(--os); }
+.s-comm    { background: var(--comm); }
+
+/* Type tag bg/fg */
+.t-gdg     { background: rgba(37,99,235,.15);  color: #60a5fa; }
+.t-dev     { background: rgba(124,58,237,.15); color: #a78bfa; }
+.t-startup { background: rgba(5,150,105,.15);  color: #34d399; }
+.t-trade   { background: rgba(217,119,6,.15);  color: #fbbf24; }
+.t-netops  { background: rgba(8,145,178,.15);  color: #38bdf8; }
+.t-os      { background: rgba(71,85,105,.15);  color: #94a3b8; }
+.t-comm    { background: rgba(79,70,229,.15);  color: #818cf8; }
+
+/* ── RECURRING & WATCH ──────────────────────────────── */
+.cv-section {
+  padding: 2rem 2.5rem;
+  border-top: 1px solid var(--border);
+}
+.cv-section + .cv-section { border-top: 1px solid var(--border); }
+
+.sec-head {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 1.25rem;
+}
+
+.comm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+.comm-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 1rem 1.1rem;
+}
+.comm-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 5px;
+}
+.comm-title:hover { opacity: 0.8; }
+.comm-meta {
+  font-size: 11.5px;
+  color: var(--dim);
+  line-height: 1.55;
+}
+.comm-meta strong { color: var(--text); }
+
+.watch-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.watch-row  { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; font-size: 13px; }
+.watch-diamond { color: var(--trade); font-size: 9px; flex-shrink: 0; }
+.watch-name { font-weight: 700; color: var(--text); text-decoration: none; }
+.watch-name:hover { opacity: 0.8; }
+.watch-note { color: var(--dim); font-size: 12px; }
+sup a { color: var(--dim); font-size: 10px; text-decoration: none; }
+sup a:hover { color: var(--text); }
+
+/* ── SIBLING NAV ────────────────────────────────────── */
+.cv-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+  padding: 1.25rem 2.5rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.nav-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--xdim); }
+.cv-nav a { color: var(--dim); text-decoration: none; }
+.cv-nav a:hover { color: var(--text); }
+</style>
+
+<div class="cv">
+
+  <!-- ═══ HEADER ═══════════════════════════════════════ -->
+  <header class="cv-head">
+    <div class="cv-head-year">2026</div>
+    <div class="cv-eyebrow">大阪 · Kansai Tech Scene · Japan</div>
+    <h1 class="cv-h1">IT Conference<br>Calendar 2026</h1>
+    <div class="cv-stats">
+      <span><strong>4</strong> flagship events</span>
+      <span><strong>3+</strong> monthly meetups</span>
+      <span><strong>12 k</strong> peak visitors</span>
+      <span><strong>¥0</strong> admission at all listed events</span>
+    </div>
+  </header>
+
+  <!-- ═══ LEGEND ════════════════════════════════════════ -->
+  <div class="cv-legend">
+    <span class="ld"><span class="ld-dot" style="background:var(--gdg)"></span>GDG / Google Community</span>
+    <span class="ld"><span class="ld-dot" style="background:var(--dev)"></span>Developer Conference</span>
+    <span class="ld"><span class="ld-dot" style="background:var(--startup)"></span>Startup / Deep-tech</span>
+    <span class="ld"><span class="ld-dot" style="background:var(--trade)"></span>Trade Show / B2B</span>
+    <span class="ld"><span class="ld-dot" style="background:var(--netops)"></span>Network Operators</span>
+    <span class="ld"><span class="ld-dot" style="background:var(--os)"></span>Open Source</span>
+    <span class="ld"><span class="ld-dot" style="background:var(--comm)"></span>Community Meetup</span>
+  </div>
+
+  <!-- ═══ TIMELINE ══════════════════════════════════════ -->
+  <div class="cv-tl">
+
+    <!-- JAN — held -->
+    <div class="cv-row past">
+      <div class="mo-cell">
+        <span class="mo-name">Jan</span>
+        <span class="badge badge-held">Held</span>
+      </div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-os"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=event.ospn.jp&sz=128" alt="">
+            <a class="ev-name" href="https://event.ospn.jp/osc2026-osaka/">OSC 2026 Osaka</a>
+            <span class="ev-date">Jan 31</span>
+            <span class="ev-tag t-os">Open Source</span>
+            <span class="ev-venue">Osaka Industrial Creation Hall</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEB — held -->
+    <div class="cv-row past">
+      <div class="mo-cell">
+        <span class="mo-name">Feb</span>
+        <span class="badge badge-held">Held</span>
+      </div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-netops"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=www.janog.gr.jp&sz=128" alt="">
+            <a class="ev-name" href="https://www.janog.gr.jp/meeting/janog57/">JANOG57</a>
+            <span class="ev-date">Feb 11–13</span>
+            <span class="ev-tag t-netops">NetOps</span>
+            <span class="ev-venue">Grand Front Osaka</span>
+            <span class="ev-scale">100+ booths</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAR — empty -->
+    <div class="cv-row empty">
+      <div class="mo-cell"><span class="mo-name">Mar</span></div>
+      <div class="ev-cell"></div>
+    </div>
+
+    <!-- APR — held -->
+    <div class="cv-row past">
+      <div class="mo-cell">
+        <span class="mo-name">Apr</span>
+        <span class="badge badge-held">Held</span>
+      </div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-gdg"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=connpass.com&sz=128" alt="">
+            <a class="ev-name" href="https://gdgkwansai.connpass.com/event/381901/">Build with AI Kansai 2026</a>
+            <span class="ev-date">Apr 19</span>
+            <span class="ev-tag t-gdg">GDG</span>
+            <span class="ev-venue">IPUT Osaka, Umeda</span>
+            <span class="ev-scale">300 in-person</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAY — empty -->
+    <div class="cv-row empty">
+      <div class="mo-cell"><span class="mo-name">May</span></div>
+      <div class="ev-cell"></div>
+    </div>
+
+    <!-- JUN — NOW -->
+    <div class="cv-row is-now">
+      <div class="mo-cell">
+        <span class="mo-name">Jun</span>
+        <span class="badge badge-now">Now</span>
+      </div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-comm"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=oktech.jp&sz=128" alt="">
+            <a class="ev-name" href="https://oktech.jp/">OKTech Kansai</a>
+            <span class="ev-date">Jun 20</span>
+            <span class="ev-tag t-comm">Meetup</span>
+            <span class="ev-venue">R3 Institute / gusuku OSAKA</span>
+            <span class="ev-scale">2,000+ members</span>
+          </div>
+          <a class="ev-reg" href="https://oktech.jp/">Register →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- JUL -->
+    <div class="cv-row">
+      <div class="mo-cell"><span class="mo-name">Jul</span></div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-gdg"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=connpass.com&sz=128" alt="">
+            <a class="ev-name" href="https://gdgkwansai.connpass.com/event/391029/">Google I/O Extended Osaka</a>
+            <span class="ev-date">Jul 18</span>
+            <span class="ev-tag t-gdg">GDG</span>
+            <span class="ev-venue">QUINTBRIDGE, Osaka</span>
+            <span class="ev-scale">100 in-person</span>
+          </div>
+          <a class="ev-reg" href="https://gdgkwansai.connpass.com/event/391029/">Register →</a>
+        </div>
+        <div class="ev">
+          <div class="ev-stripe s-comm"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=oktech.jp&sz=128" alt="">
+            <a class="ev-name" href="https://oktech.jp/">OKTech Kansai</a>
+            <span class="ev-date">Jul 18</span>
+            <span class="ev-tag t-comm">Meetup</span>
+            <span class="ev-venue">Cybozu Osaka, 35F</span>
+          </div>
+          <a class="ev-reg" href="https://oktech.jp/">Register →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUG — flagship -->
+    <div class="cv-row">
+      <div class="mo-cell"><span class="mo-name">Aug</span></div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-dev"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=event.shoeisha.jp&sz=128" alt="">
+            <a class="ev-name" href="https://event.shoeisha.jp/devsumi/20260821">Developers Summit KANSAI 2026</a>
+            <span class="ev-date">Aug 21</span>
+            <span class="ev-tag t-dev">Dev Conf</span>
+            <span class="ev-star">★ FLAGSHIP</span>
+            <span class="ev-venue">Umeda South Hall, 11F</span>
+            <span class="ev-scale">18 sessions · 2 tracks</span>
+          </div>
+          <div class="ev-img-wrap">
+            <img src="calendar/images/devsumi.png" alt="Developers Summit KANSAI 2026">
+          </div>
+          <a class="ev-reg" href="https://event.shoeisha.jp/devsumi/20260821">Register →</a>
+        </div>
+        <div class="ev">
+          <div class="ev-stripe s-comm"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=oktech.jp&sz=128" alt="">
+            <a class="ev-name" href="https://oktech.jp/">OKTech Kansai</a>
+            <span class="ev-date">Aug 29</span>
+            <span class="ev-tag t-comm">Meetup</span>
+            <span class="ev-venue">R3 Institute</span>
+          </div>
+          <a class="ev-reg" href="https://oktech.jp/">Register →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEP — empty -->
+    <div class="cv-row empty">
+      <div class="mo-cell"><span class="mo-name">Sep</span></div>
+      <div class="ev-cell"></div>
+    </div>
+
+    <!-- OCT — flagship -->
+    <div class="cv-row">
+      <div class="mo-cell"><span class="mo-name">Oct</span></div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-startup"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=global-startup-expo.com&sz=128" alt="">
+            <a class="ev-name" href="https://global-startup-expo.com/">Global Startup EXPO 2026</a>
+            <span class="ev-date">Oct 5–7</span>
+            <span class="ev-tag t-startup">Deep Tech</span>
+            <span class="ev-star">★ FLAGSHIP</span>
+            <span class="ev-venue">Knowledge Capital / Grand Green Osaka</span>
+            <span class="ev-scale">Bio · AI · Quantum · Space <sup><a href="https://www.meti.go.jp/english/press/2026/0203_002.html">[5]</a></sup></span>
+          </div>
+          <div class="ev-img-wrap">
+            <img src="calendar/images/gse2026.jpg" alt="Global Startup EXPO 2026">
+          </div>
+          <a class="ev-reg" href="https://global-startup-expo.com/">Register →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOV — flagship -->
+    <div class="cv-row">
+      <div class="mo-cell"><span class="mo-name">Nov</span></div>
+      <div class="ev-cell">
+        <div class="ev">
+          <div class="ev-stripe s-trade"></div>
+          <div class="ev-body">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=www.japan-it.jp&sz=128" alt="">
+            <a class="ev-name" href="https://www.japan-it.jp/osaka/en-gb.html">Japan IT Week &amp; DX Week Osaka</a>
+            <span class="ev-date">Nov 18–20</span>
+            <span class="ev-tag t-trade">Trade Show</span>
+            <span class="ev-star">★★ LARGEST</span>
+            <span class="ev-venue">INTEX Osaka</span>
+            <span class="ev-scale">250 exhibitors · 12 k visitors</span>
+          </div>
+          <div class="ev-img-wrap">
+            <img src="calendar/images/japan-it-week.png" alt="Japan IT Week Osaka 2026">
+          </div>
+          <a class="ev-reg" href="https://www.japan-it.jp/osaka/en-gb.html">Register →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEC — empty -->
+    <div class="cv-row empty">
+      <div class="mo-cell"><span class="mo-name">Dec</span></div>
+      <div class="ev-cell"></div>
+    </div>
+
+  </div><!-- /cv-tl -->
+
+  <!-- ═══ RECURRING COMMUNITIES ═════════════════════════ -->
+  <section class="cv-section">
+    <div class="sec-head">Recurring Communities</div>
+    <div class="comm-grid">
+      <div class="comm-card">
+        <a class="comm-title" href="https://oktech.jp/">OKTech Kansai</a>
+        <div class="comm-meta">
+          <strong>Monthly · Saturdays · English</strong><br>
+          Kansai's largest English-speaking tech meetup · 2,000+ members · free <sup><a href="https://oktech.jp/">[9]</a></sup>
+        </div>
+      </div>
+      <div class="comm-card">
+        <a class="comm-title" href="https://lambda-kansai.connpass.com/">Lambda Kansai</a>
+        <div class="comm-meta">
+          <strong>Regular reading groups · Online + in-person</strong><br>
+          Functional programming (FP in Lean) · Osaka-based <sup><a href="https://lambda-kansai.connpass.com/">[10]</a></sup>
+        </div>
+      </div>
+      <div class="comm-card">
+        <a class="comm-title" href="https://www.meetup.com/osaka-web-designers-and-developers-meetup/">Osaka WDDM</a>
+        <div class="comm-meta">
+          <strong>Monthly · English</strong><br>
+          Web Designers &amp; Developers · 1,400+ members <sup><a href="https://japan-dev.com/blog/tech-communities-in-osaka-and-kyoto">[11]</a></sup>
+        </div>
+      </div>
+      <div class="comm-card">
+        <a class="comm-title" href="https://www.facebook.com/rubykansai/">Ruby Kansai</a>
+        <div class="comm-meta">
+          <strong>3–4× / year · Japanese</strong><br>
+          1,400+ members <sup><a href="https://japan-dev.com/blog/tech-communities-in-osaka-and-kyoto">[11]</a></sup>
+        </div>
+      </div>
+      <div class="comm-card">
+        <a class="comm-title" href="https://medium.com/@pydataosaka">PyData Osaka</a>
+        <div class="comm-meta">
+          <strong>3–4× / year · Japanese</strong><br>
+          400+ members <sup><a href="https://japan-dev.com/blog/tech-communities-in-osaka-and-kyoto">[11]</a></sup>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ WATCH LIST ═════════════════════════════════════ -->
+  <section class="cv-section">
+    <div class="sec-head">Watch List — Date TBD</div>
+    <div class="watch-list">
+      <div class="watch-row">
+        <span class="watch-diamond">◆</span>
+        <a class="watch-name" href="https://fec-kansai.connpass.com/">Frontend Conference Kansai 2026</a>
+        <span class="watch-note">Expected late 2026 — staff recruitment kicked off Mar 2026 <sup><a href="https://fec-kansai.connpass.com/event/385682/">[12]</a></sup></span>
+      </div>
+      <div class="watch-row">
+        <span class="watch-diamond">◆</span>
+        <span class="watch-name">JANOG58</span>
+        <span class="watch-note">Biannual; Jul 2026 location TBD</span>
+      </div>
+      <div class="watch-row">
+        <span class="watch-diamond">◆</span>
+        <span class="watch-name">Tech Osaka Summit 2027</span>
+        <span class="watch-note">Jan 26–27, 2027 · Grand Front Osaka North · 3,500+ past attendees</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SIBLING NAV ════════════════════════════════════ -->
+  <nav class="cv-nav">
+    <span class="nav-label">Also in this run:</span>
+    <a href="../../things-to-do-in-osaka/">Things to do in Osaka</a>
+    <a href="../../osaka-s-3-star-michelin-restaurants/">3-star Michelin Restaurants</a>
+    <a href="../../">← Full Osaka Weekend</a>
+  </nav>
+
+</div>
