@@ -1,0 +1,1123 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Singapore 2026 — Calendar"
+---
+
+<style>
+/* ── Custom properties ─────────────────────────────────────────────────── */
+:root {
+  --bg:          #0D1117;
+  --surface:     #161B22;
+  --surface-2:   #21262D;
+  --border:      #30363D;
+  --border-soft: rgba(48,54,61,0.6);
+  --text:        #E6EDF3;
+  --muted:       #8B949E;
+  --dim:         #484F58;
+  --accent:      #58A6FF;
+  --accent-glow: rgba(88,166,255,0.15);
+
+  /* category palette */
+  --ai:       #A855F7;
+  --cloud:    #3B82F6;
+  --security: #F85149;
+  --dev:      #3FB950;
+  --fintech:  #D29922;
+  --crypto:   #06B6D4;
+  --govtech:  #8B949E;
+  --deeptech: #EC4899;
+  --exec:     #F97316;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.sgcal {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.sgcal-header {
+  background: linear-gradient(160deg, #1a0a2e 0%, #0d1117 45%, #071628 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 2rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.sgcal-header::after {
+  content: '2026';
+  position: absolute;
+  right: -0.5rem;
+  top: -1.2rem;
+  font-size: 9rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.03);
+  letter-spacing: -6px;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.header-titles h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.header-titles .sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.stats-strip {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  text-align: center;
+}
+
+.stat-box .n {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+
+.stat-box .lbl {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* ── Deadline alert ──────────────────────────────────────────────────────── */
+.deadline-bar {
+  background: linear-gradient(90deg, #7c1d06 0%, #1a0a00 100%);
+  border-bottom: 1px solid #9a3412;
+  padding: 0.45rem 2rem;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.deadline-bar .icon { font-size: 0.95rem; }
+.deadline-bar strong { color: #fbbf24; }
+.deadline-bar a { color: #fbbf24; text-decoration: none; font-size: 0.75rem; }
+.deadline-bar a:hover { text-decoration: underline; }
+.deadline-bar span { color: #fcd34d; }
+
+/* ── Month overview grid ─────────────────────────────────────────────────── */
+.month-overview {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 1.5rem;
+  overflow-x: auto;
+}
+
+.month-overview-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  margin-bottom: 0.6rem;
+}
+
+.month-strip {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(72px, 1fr));
+  gap: 4px;
+  min-width: 580px;
+}
+
+.mcell {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+
+.mcell.past   { opacity: 0.45; }
+.mcell.now    { background: #0e1f32; border-color: var(--accent); }
+.mcell.future { opacity: 0.8; }
+
+.mcell-name {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mcell.now .mcell-name { color: var(--accent); }
+
+.mcell-now-marker {
+  font-size: 0.55rem;
+  background: var(--accent);
+  color: #000;
+  border-radius: 3px;
+  padding: 0 3px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.mdots {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mdot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mdot-tbd {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  border: 1px dashed var(--dim);
+  flex-shrink: 0;
+}
+
+.mcell-note {
+  font-size: 0.6rem;
+  color: var(--dim);
+  margin-top: 3px;
+  line-height: 1.3;
+}
+
+/* ── Timeline body ───────────────────────────────────────────────────────── */
+.timeline {
+  padding: 0;
+}
+
+/* ── Month section ───────────────────────────────────────────────────────── */
+.msect { border-bottom: 1px solid var(--border-soft); }
+
+.msect-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.5rem 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+}
+
+.msect.past   .msect-header { background: var(--bg); }
+.msect.now    .msect-header { background: #0a1827; border-bottom: 1px solid rgba(88,166,255,0.2); }
+.msect.future .msect-header { background: var(--bg); }
+
+.msect-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  min-width: 72px;
+  white-space: nowrap;
+}
+
+.msect.now .msect-name { color: var(--accent); }
+
+.msect-tag {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.msect.now  .msect-tag { color: var(--accent); border-color: rgba(88,166,255,0.4); background: rgba(88,166,255,0.07); }
+.msect.past .msect-tag { color: var(--dim); }
+
+.msect-rule { flex: 1; height: 1px; background: var(--border); }
+
+/* ── Event rows ──────────────────────────────────────────────────────────── */
+.elist { padding: 0.2rem 0 0.4rem; }
+
+.erow {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.55rem 1.5rem;
+  position: relative;
+  transition: background 0.12s;
+}
+
+.erow:hover { background: var(--surface); }
+
+/* Left accent line for "upcoming" */
+.erow.upcoming {
+  border-left: 2px solid transparent;
+  padding-left: calc(1.5rem - 2px);
+}
+
+/* Imminent = Jun 10-11, Jun 19-21 */
+.erow.imminent {
+  background: linear-gradient(90deg, rgba(88,166,255,0.06) 0%, transparent 80%);
+  border-left: 2px solid var(--accent);
+  padding-left: calc(1.5rem - 2px);
+}
+
+.erow.imminent:hover {
+  background: linear-gradient(90deg, rgba(88,166,255,0.1) 0%, transparent 80%);
+}
+
+/* date column */
+.edate {
+  font-size: 0.73rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  padding-top: 0.15rem;
+  white-space: nowrap;
+}
+
+.erow.past     .edate { color: var(--dim); }
+.erow.imminent .edate { color: var(--accent); font-weight: 600; }
+
+/* center column */
+.einfo { min-width: 0; }
+
+.ename {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.3;
+  display: inline-block;
+}
+
+.ename:hover { color: var(--accent); }
+.erow.past .ename    { color: var(--muted); }
+.erow.imminent .ename { color: #fff; }
+
+.etag {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.erow.past .etag { color: var(--dim); }
+
+/* right column: badges */
+.ebadges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.bcat  { color: #fff; }
+.bscale { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.bfree  { background: rgba(63,185,80,0.12); color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+.bdone  { background: var(--surface); color: var(--dim); border: 1px solid var(--border); }
+.binvite { background: rgba(249,115,22,0.1); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+
+/* category badge backgrounds */
+.bai       { background: var(--ai); }
+.bcloud    { background: var(--cloud); }
+.bsecurity { background: var(--security); }
+.bdev      { background: var(--dev); }
+.bfintech  { background: var(--fintech); }
+.bcrypto   { background: var(--crypto); color: #000; }
+.bgovtech  { background: var(--govtech); }
+.bdeeptech { background: var(--deeptech); }
+.bexec     { background: var(--exec); }
+
+/* ── Q4 feature band ─────────────────────────────────────────────────────── */
+.q4-band {
+  background: linear-gradient(90deg, #0f1a1a 0%, var(--bg) 100%);
+  border-top: 1px solid rgba(6,182,212,0.2);
+  border-bottom: 1px solid rgba(6,182,212,0.2);
+  padding: 0.4rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.q4-band strong { color: #06b6d4; }
+
+/* ── Spotlight: Next Up ──────────────────────────────────────────────────── */
+.spotlight {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem;
+}
+
+.spotlight-heading {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dim);
+  margin-bottom: 1rem;
+}
+
+.spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1rem;
+}
+
+.scard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.scard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.scard.superai::before { background: linear-gradient(90deg, var(--ai), #7c3aed); }
+.scard.pycon::before   { background: linear-gradient(90deg, var(--dev), #0d9458); }
+
+.scard-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.scard-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.scard-icon.ai  { background: rgba(168,85,247,0.15); }
+.scard-icon.dev { background: rgba(63,185,80,0.15); }
+
+.scard-meta {}
+
+.scard-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+  line-height: 1.2;
+}
+
+.scard-name:hover { color: var(--accent); }
+
+.scard-when {
+  font-size: 0.73rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.scard-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.scard-pill {
+  font-size: 0.62rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.scard-bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scard-bullets li {
+  font-size: 0.76rem;
+  color: var(--muted);
+  padding-left: 0.85rem;
+  position: relative;
+}
+
+.scard-bullets li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 0.7rem;
+}
+
+.scard-bullets a { color: var(--accent); text-decoration: none; }
+.scard-bullets a:hover { text-decoration: underline; }
+
+/* ── Category legend ─────────────────────────────────────────────────────── */
+.legend {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.65rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.legend-title {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  margin-right: 0.2rem;
+}
+
+.lgitem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.lgdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Audience guide ──────────────────────────────────────────────────────── */
+.audience {
+  padding: 1.5rem 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.audience h2 {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dim);
+  margin-bottom: 1rem;
+}
+
+.atable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.79rem;
+}
+
+.atable th {
+  text-align: left;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+  padding: 0.35rem 0.5rem;
+  font-weight: 500;
+}
+
+.atable td {
+  padding: 0.42rem 0.5rem;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+  color: var(--muted);
+}
+
+.atable td:first-child {
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.atable a { color: var(--accent); text-decoration: none; }
+.atable a:hover { text-decoration: underline; }
+
+/* ── Sources footer ──────────────────────────────────────────────────────── */
+.sources {
+  padding: 1rem 1.5rem 1.5rem;
+  background: var(--bg);
+}
+
+.sources h3 {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  margin-bottom: 0.6rem;
+}
+
+.src-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.src-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--dim);
+}
+
+.src-item a { color: var(--dim); text-decoration: none; }
+.src-item a:hover { color: var(--accent); }
+
+.src-n {
+  min-width: 24px;
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .sgcal-header { padding: 1.25rem 1rem 1rem; }
+  .sgcal-header h1 { font-size: 1.2rem; }
+  .deadline-bar { padding: 0.45rem 1rem; font-size: 0.78rem; }
+  .month-overview { padding: 0.75rem 1rem; }
+  .msect-header,
+  .erow { padding-left: 1rem; padding-right: 1rem; }
+  .erow { grid-template-columns: 80px 1fr; }
+  .ebadges { display: none; }
+  .spotlight, .legend, .audience, .sources { padding-left: 1rem; padding-right: 1rem; }
+}
+</style>
+
+<div class="sgcal">
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="sgcal-header">
+    <div class="header-row">
+      <div class="header-titles">
+        <h1>Singapore Tech Calendar 2026</h1>
+        <p class="sub">IT conferences, developer events &amp; fintech summits across the city-state</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="n">13</span><span class="lbl">Events</span></div>
+      <div class="stat-box"><span class="n">6</span><span class="lbl">Ran ✓</span></div>
+      <div class="stat-box"><span class="n">2</span><span class="lbl">This month</span></div>
+      <div class="stat-box"><span class="n">70k+</span><span class="lbl">SFF Nov</span></div>
+      <div class="stat-box"><span class="n">25k+</span><span class="lbl">TOKEN2049</span></div>
+      <div class="stat-box"><span class="n">Q4</span><span class="lbl">Headliners</span></div>
+    </div>
+  </header>
+
+  <!-- ── SLINGSHOT deadline alert ───────────────────────────── -->
+  <div class="deadline-bar">
+    <span class="icon">⚠</span>
+    <strong>Deadline:</strong>
+    <span><strong>Jun 30, 2026</strong> — SLINGSHOT deep-tech pitching application closes</span>
+    <span>· S$2M+ in grant prizes ·</span>
+    <a href="https://www.switchsg.org/">[11]</a>
+    &nbsp;|&nbsp;
+    <span>SFF early-bird <strong>Jul 31</strong> — SGD 750</span>
+    <a href="https://www.fintechfestival.sg/">[12]</a>
+  </div>
+
+  <!-- ── Month overview strip ───────────────────────────────── -->
+  <div class="month-overview">
+    <div class="month-overview-label">Full-year overview</div>
+    <div class="month-strip">
+      <div class="mcell past">
+        <div class="mcell-name">Apr</div>
+        <div class="mdots">
+          <div class="mdot" style="background:var(--govtech)" title="STACKx Cybersecurity"></div>
+          <div class="mdot" style="background:var(--security)" title="Black Hat Asia"></div>
+        </div>
+      </div>
+      <div class="mcell past">
+        <div class="mcell-name">May</div>
+        <div class="mdots">
+          <div class="mdot" style="background:var(--cloud)"   title="AWS Summit"></div>
+          <div class="mdot" style="background:var(--ai)"      title="ATxEnterprise"></div>
+          <div class="mdot" style="background:var(--exec)"    title="ATxSummit"></div>
+        </div>
+      </div>
+      <div class="mcell now">
+        <div class="mcell-name">Jun <span class="mcell-now-marker">NOW</span></div>
+        <div class="mdots">
+          <div class="mdot" style="background:var(--exec)"    title="CIO Leaders Summit ✓"></div>
+          <div class="mdot" style="background:var(--ai)"      title="SuperAI Jun 10–11"></div>
+          <div class="mdot" style="background:var(--dev)"     title="PyCon SG Jun 19–21"></div>
+        </div>
+      </div>
+      <div class="mcell future">
+        <div class="mcell-name">Jul–Aug</div>
+        <div class="mdots">
+          <div class="mdot-tbd" title="No major events · SFF early-bird Jul 31"></div>
+        </div>
+        <div class="mcell-note">SFF early-bird Jul 31</div>
+      </div>
+      <div class="mcell future">
+        <div class="mcell-name">Sep</div>
+        <div class="mdots">
+          <div class="mdot" style="background:var(--cloud)"   title="Tech Week Sep 29–30"></div>
+        </div>
+      </div>
+      <div class="mcell future">
+        <div class="mcell-name">Oct</div>
+        <div class="mdots">
+          <div class="mdot" style="background:var(--crypto)"  title="TOKEN2049 Oct 7–8"></div>
+          <div class="mdot" style="background:var(--deeptech)" title="SWITCH Oct 27–29"></div>
+        </div>
+      </div>
+      <div class="mcell future">
+        <div class="mcell-name">Nov</div>
+        <div class="mdots">
+          <div class="mdot" style="background:var(--fintech)" title="FinTech Festival Nov 18–20"></div>
+        </div>
+      </div>
+      <div class="mcell future">
+        <div class="mcell-name">H2 TBD</div>
+        <div class="mdots">
+          <div class="mdot-tbd" title="STACK Conference — date TBD"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Timeline ───────────────────────────────────────────── -->
+  <div class="timeline">
+
+    <!-- APRIL ─────────────────── -->
+    <div class="msect past">
+      <div class="msect-header">
+        <span class="msect-name">April</span>
+        <span class="msect-tag">✓ Ran</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow past">
+          <div class="edate">Apr 17</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.developer.tech.gov.sg/communities/events/conferences/stackx-cybersecurity-2026/overview">STACKx Cybersecurity 2026</a><sup><a href="https://www.developer.tech.gov.sg/communities/events/conferences/stackx-cybersecurity-2026/overview" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [1]</a></sup>
+            <div class="etag">AI cyber-defence, securing AI, cyber leadership · MBS Sands Expo</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bgovtech">GovTech</span>
+            <span class="badge bscale">~1,000</span>
+            <span class="badge bdone">✓ Done</span>
+          </div>
+        </div>
+        <div class="erow past">
+          <div class="edate">Apr 21–24</div>
+          <div class="einfo">
+            <a class="ename" href="https://blackhat.com/asia-26/">Black Hat Asia 2026</a><sup><a href="https://blackhat.com/asia-26/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [2]</a></sup>
+            <div class="etag">Infosec trainings + briefings · 110+ speakers · Marina Bay Sands</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bsecurity">Security</span>
+            <span class="badge bscale">3,500+</span>
+            <span class="badge bdone">✓ Done</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAY ─────────────────────── -->
+    <div class="msect past">
+      <div class="msect-header">
+        <span class="msect-name">May</span>
+        <span class="msect-tag">✓ Ran</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow past">
+          <div class="edate">May 6</div>
+          <div class="einfo">
+            <a class="ename" href="https://aws.amazon.com/events/summits/singapore/">AWS Summit Singapore 2026</a><sup><a href="https://aws.amazon.com/events/summits/singapore/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [3]</a></sup>
+            <div class="etag">Cloud, agentic AI, serverless · sessions on-demand · Marina Bay Sands</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bcloud">Cloud</span>
+            <span class="badge bfree">Free</span>
+            <span class="badge bdone">✓ Done</span>
+          </div>
+        </div>
+        <div class="erow past">
+          <div class="edate">May 20–22</div>
+          <div class="einfo">
+            <a class="ename" href="https://asiatechxsg.com/atxenterprise/">ATxEnterprise 2026</a><sup><a href="https://asiatechxsg.com/atxenterprise/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [4]</a></sup>
+            <div class="etag">Telecom, broadcast, media, satellite, AI · Singapore EXPO</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bai">AI / Telecom</span>
+            <span class="badge bscale">22,000+</span>
+            <span class="badge bdone">✓ Done</span>
+          </div>
+        </div>
+        <div class="erow past">
+          <div class="edate">May 20–21</div>
+          <div class="einfo">
+            <a class="ename" href="https://atxsummit.asiatechxsg.com/">ATxSummit 2026</a><sup><a href="https://atxsummit.asiatechxsg.com/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [5]</a></sup>
+            <div class="etag">Tech policy, digital economy · IMDA-led · Capella Singapore</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bexec">Policy</span>
+            <span class="badge binvite">Invite-only</span>
+            <span class="badge bdone">✓ Done</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JUNE ────────────────────── -->
+    <div class="msect now">
+      <div class="msect-header">
+        <span class="msect-name">June</span>
+        <span class="msect-tag">◀ You are here</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow past">
+          <div class="edate">Jun 1</div>
+          <div class="einfo">
+            <a class="ename" href="https://10times.com/cio-leaders-singapore">CIO Leaders Summit Singapore</a><sup><a href="https://10times.com/cio-leaders-singapore" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [14]</a></sup>
+            <div class="etag">IT leadership, AI strategy · 12 speakers · 1-on-1 meetings · MBS</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bexec">Exec</span>
+            <span class="badge bscale">~150 CxO</span>
+            <span class="badge bdone">✓ Done</span>
+          </div>
+        </div>
+        <div class="erow imminent">
+          <div class="edate">Jun 10–11</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.superai.com/">SuperAI 2026</a><sup><a href="https://www.superai.com/" style="color:var(--accent);font-size:0.65rem;text-decoration:none"> [7]</a></sup>
+            <div class="etag">OpenAI · Nvidia · Anthropic · Meta · Apple · DeepMind · MBS</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bai">AI</span>
+            <span class="badge bscale">10,000+</span>
+            <span class="badge bscale">$499 USD</span>
+          </div>
+        </div>
+        <div class="erow imminent">
+          <div class="edate">Jun 19–21</div>
+          <div class="einfo">
+            <a class="ename" href="https://pycon.sg/">PyCon Singapore 2026</a><sup><a href="https://pycon.sg/" style="color:var(--accent);font-size:0.65rem;text-decoration:none"> [8]</a></sup>
+            <div class="etag">Python, ML/AI, open source · Google · NUS · Hugging Face · Lifelong Learning Inst.</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bdev">Developer</span>
+            <span class="badge bscale">~500</span>
+            <span class="badge bfree">Community pricing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEPTEMBER ───────────────── -->
+    <div class="msect future">
+      <div class="msect-header">
+        <span class="msect-name">September</span>
+        <span class="msect-tag">Q3</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow upcoming">
+          <div class="edate">Sep 29–30</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.singaporetechnologyweek.com/">Tech Week Singapore 2026</a><sup><a href="https://www.singaporetechnologyweek.com/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [9]</a></sup>
+            <div class="etag">Cloud &amp; AI Infra · DevOps Live! · Cyber Security World · Data Centre World · MBS</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bcloud">Cloud</span>
+            <span class="badge bscale">5 co-events</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 band ─────────────────── -->
+    <div class="q4-band">
+      <strong>Q4 Lineup</strong>
+      <span>· Three headliners in 52 days ·</span>
+      <span>TOKEN2049 Oct 7 · SWITCH Oct 27 · FinTech Festival Nov 18</span>
+      <span>· Combined ~120,000 attendees</span>
+    </div>
+
+    <!-- OCTOBER ─────────────────── -->
+    <div class="msect future">
+      <div class="msect-header">
+        <span class="msect-name">October</span>
+        <span class="msect-tag">Q4</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow upcoming">
+          <div class="edate">Oct 7–8</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.token2049.com/singapore">TOKEN2049 Singapore 2026</a><sup><a href="https://www.token2049.com/singapore" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [10]</a></sup>
+            <div class="etag">Vitalik Buterin · 300+ speakers · 500+ exhibitors · Origins hackathon $50k · MBS SkyPark closing party Oct 9</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bcrypto">Crypto / Web3</span>
+            <span class="badge bscale">25,000+</span>
+          </div>
+        </div>
+        <div class="erow upcoming">
+          <div class="edate">Oct 27–29</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.switchsg.org/">SWITCH 2026</a><sup><a href="https://www.switchsg.org/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [11]</a></sup>
+            <div class="etag">SLINGSHOT S$2M+ grants · 400+ exhibitors · 30 global pavilions · AI · robotics · quantum</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bdeeptech">Deep Tech</span>
+            <span class="badge bscale">25,000+</span>
+            <span class="badge bfree">Free entry</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVEMBER ─────────────────── -->
+    <div class="msect future">
+      <div class="msect-header">
+        <span class="msect-name">November</span>
+        <span class="msect-tag">Q4</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow upcoming">
+          <div class="edate">Nov 18–20</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.fintechfestival.sg/">Singapore FinTech Festival 2026</a><sup><a href="https://www.fintechfestival.sg/" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [12]</a></sup>
+            <div class="etag">142 countries · 600+ exhibitors · 41 intl pavilions · Global Hackcelerator · EXPO Halls 1–6 + Sands</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bfintech">Fintech</span>
+            <span class="badge bscale">70,000+</span>
+            <span class="badge bscale">SGD 750</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- H2 TBD ──────────────────── -->
+    <div class="msect future">
+      <div class="msect-header">
+        <span class="msect-name">H2 TBD</span>
+        <span class="msect-tag">Date pending</span>
+        <div class="msect-rule"></div>
+      </div>
+      <div class="elist">
+        <div class="erow upcoming">
+          <div class="edate">TBD</div>
+          <div class="einfo">
+            <a class="ename" href="https://www.developer.tech.gov.sg/communities/events/conferences/stack-conference-2026/overview">STACK Conference 2026</a><sup><a href="https://www.developer.tech.gov.sg/communities/events/conferences/stack-conference-2026/overview" style="color:var(--dim);font-size:0.65rem;text-decoration:none"> [13]</a></sup>
+            <div class="etag">GovTech Singapore · AI autonomy · intent-driven dev · cloud resilience · speaker proposals open</div>
+          </div>
+          <div class="ebadges">
+            <span class="badge bcat bgovtech">GovTech</span>
+            <span class="badge bscale">~2,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- ── Spotlight: Next Up ─────────────────────────────────── -->
+  <div class="spotlight">
+    <div class="spotlight-heading">Next up — June</div>
+    <div class="spotlight-grid">
+
+      <div class="scard superai">
+        <div class="scard-top">
+          <div class="scard-icon ai">🤖</div>
+          <div class="scard-meta">
+            <a class="scard-name" href="https://www.superai.com/">SuperAI 2026</a>
+            <div class="scard-when">Jun 10–11 · Marina Bay Sands · $499 USD early-bird</div>
+          </div>
+        </div>
+        <div class="scard-pills">
+          <span class="scard-pill">10,000+ attendees</span>
+          <span class="scard-pill">150+ speakers</span>
+          <span class="scard-pill">Singapore AI Week Jun 8–14</span>
+        </div>
+        <ul class="scard-bullets">
+          <li>Speakers from OpenAI, Nvidia, Anthropic, Meta, Apple, DeepMind <sup><a href="https://www.superai.com/">[7]</a></sup></li>
+          <li>NEXT Hackathon — $130k+ prize pool, 200 builders <sup><a href="https://www.superai.com/">[7]</a></sup></li>
+          <li>Genesis Startup Competition — $850k prizes, backed by OpenAI &amp; Microsoft for Startups <sup><a href="https://www.superai.com/">[7]</a></sup></li>
+        </ul>
+      </div>
+
+      <div class="scard pycon">
+        <div class="scard-top">
+          <div class="scard-icon dev">🐍</div>
+          <div class="scard-meta">
+            <a class="scard-name" href="https://pycon.sg/">PyCon Singapore 2026</a>
+            <div class="scard-when">Jun 19–21 · Lifelong Learning Institute, Paya Lebar MRT</div>
+          </div>
+        </div>
+        <div class="scard-pills">
+          <span class="scard-pill">~500 attendees</span>
+          <span class="scard-pill">Community pricing</span>
+          <span class="scard-pill">Hackathon included</span>
+        </div>
+        <ul class="scard-bullets">
+          <li>Keynotes from Google, NUS, Python Software Foundation, Hugging Face <sup><a href="https://pycon.sg/">[8]</a></sup></li>
+          <li>Sessions: Python, ML/AI, open source <sup><a href="https://pycon.sg/">[8]</a></sup></li>
+          <li>Three-day format: talks + workshops + hackathon <sup><a href="https://pycon.sg/">[8]</a></sup></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Legend ─────────────────────────────────────────────── -->
+  <div class="legend">
+    <span class="legend-title">Categories</span>
+    <div class="lgitem"><div class="lgdot" style="background:var(--ai)"></div> AI / ML</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--cloud)"></div> Cloud</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--security)"></div> Security</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--dev)"></div> Developer</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--fintech)"></div> Fintech</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--crypto)"></div> Crypto / Web3</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--govtech)"></div> GovTech</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--deeptech)"></div> Deep Tech</div>
+    <div class="lgitem"><div class="lgdot" style="background:var(--exec)"></div> Policy / Exec</div>
+  </div>
+
+  <!-- ── Audience guide ─────────────────────────────────────── -->
+  <div class="audience">
+    <h2>By audience</h2>
+    <table class="atable">
+      <thead>
+        <tr>
+          <th>If you are a…</th>
+          <th>Best upcoming bets</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AI / ML practitioner</td>
+          <td><a href="https://www.superai.com/">SuperAI</a> (Jun 10–11, $499) · SWITCH deep-tech track (Oct) · STACK Conference H2</td>
+        </tr>
+        <tr>
+          <td>Python / developer</td>
+          <td><a href="https://pycon.sg/">PyCon SG</a> (Jun 19–21, community pricing) · DevOps Live @ Tech Week (Sep) · STACK Conference H2</td>
+        </tr>
+        <tr>
+          <td>Security professional</td>
+          <td>Cyber Security World @ <a href="https://www.singaporetechnologyweek.com/">Tech Week</a> (Sep 29–30) · Black Hat Asia returns Apr 2027</td>
+        </tr>
+        <tr>
+          <td>Cloud / infra</td>
+          <td>Cloud &amp; AI Infra @ <a href="https://www.singaporetechnologyweek.com/">Tech Week</a> (Sep 29–30) · <a href="https://aws.amazon.com/events/summits/singapore/">AWS Summit</a> sessions on-demand now</td>
+        </tr>
+        <tr>
+          <td>Fintech / banking</td>
+          <td><a href="https://www.fintechfestival.sg/">Singapore FinTech Festival</a> (Nov 18–20, SGD 750 before Jul 31) · <a href="https://www.token2049.com/singapore">TOKEN2049</a> if Web3-adjacent</td>
+        </tr>
+        <tr>
+          <td>Crypto / Web3</td>
+          <td><a href="https://www.token2049.com/singapore">TOKEN2049</a> (Oct 7–8, 25k+ attendees, 300+ speakers)</td>
+        </tr>
+        <tr>
+          <td>Startup / VC</td>
+          <td>SuperAI Genesis $850k (Jun 10–11) · <a href="https://www.switchsg.org/">SWITCH SLINGSHOT</a> S$2M+ grants (apply by Jun 30; event Oct 27–29)</td>
+        </tr>
+        <tr>
+          <td>C-suite / exec</td>
+          <td>CIO Leaders Summit ✓ (Jun 1) · ATxSummit invite-only ✓ · <a href="https://www.fintechfestival.sg/">SFF</a> (Nov 18–20)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Sources ────────────────────────────────────────────── -->
+  <div class="sources">
+    <h3>Sources</h3>
+    <div class="src-list">
+      <div class="src-item"><span class="src-n">[1]</span><img src="https://www.google.com/s2/favicons?domain=developer.tech.gov.sg&sz=16" width="12" height="12" alt=""><a href="https://www.developer.tech.gov.sg/communities/events/conferences/stackx-cybersecurity-2026/overview">developer.tech.gov.sg — STACKx Cybersecurity 2026</a></div>
+      <div class="src-item"><span class="src-n">[2]</span><img src="https://www.google.com/s2/favicons?domain=blackhat.com&sz=16" width="12" height="12" alt=""><a href="https://blackhat.com/asia-26/">blackhat.com — Black Hat Asia 2026</a></div>
+      <div class="src-item"><span class="src-n">[3]</span><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=16" width="12" height="12" alt=""><a href="https://aws.amazon.com/events/summits/singapore/">aws.amazon.com — AWS Summit Singapore 2026</a></div>
+      <div class="src-item"><span class="src-n">[4]</span><img src="https://www.google.com/s2/favicons?domain=asiatechxsg.com&sz=16" width="12" height="12" alt=""><a href="https://asiatechxsg.com/atxenterprise/">asiatechxsg.com — ATxEnterprise 2026</a></div>
+      <div class="src-item"><span class="src-n">[5]</span><img src="https://www.google.com/s2/favicons?domain=atxsummit.asiatechxsg.com&sz=16" width="12" height="12" alt=""><a href="https://atxsummit.asiatechxsg.com/">atxsummit.asiatechxsg.com — ATxSummit 2026</a></div>
+      <div class="src-item"><span class="src-n">[6]</span><img src="https://www.google.com/s2/favicons?domain=asiatechxsg.com&sz=16" width="12" height="12" alt=""><a href="https://asiatechxsg.com/aisummitsingapore/">asiatechxsg.com — AI Summit Singapore 2026</a></div>
+      <div class="src-item"><span class="src-n">[7]</span><img src="https://www.google.com/s2/favicons?domain=superai.com&sz=16" width="12" height="12" alt=""><a href="https://www.superai.com/">superai.com — SuperAI 2026</a></div>
+      <div class="src-item"><span class="src-n">[8]</span><img src="https://www.google.com/s2/favicons?domain=pycon.sg&sz=16" width="12" height="12" alt=""><a href="https://pycon.sg/">pycon.sg — PyCon Singapore 2026</a></div>
+      <div class="src-item"><span class="src-n">[9]</span><img src="https://www.google.com/s2/favicons?domain=singaporetechnologyweek.com&sz=16" width="12" height="12" alt=""><a href="https://www.singaporetechnologyweek.com/">singaporetechnologyweek.com — Tech Week Singapore 2026</a></div>
+      <div class="src-item"><span class="src-n">[10]</span><img src="https://www.google.com/s2/favicons?domain=token2049.com&sz=16" width="12" height="12" alt=""><a href="https://www.token2049.com/singapore">token2049.com — TOKEN2049 Singapore 2026</a></div>
+      <div class="src-item"><span class="src-n">[11]</span><img src="https://www.google.com/s2/favicons?domain=switchsg.org&sz=16" width="12" height="12" alt=""><a href="https://www.switchsg.org/">switchsg.org — SWITCH 2026</a></div>
+      <div class="src-item"><span class="src-n">[12]</span><img src="https://www.google.com/s2/favicons?domain=fintechfestival.sg&sz=16" width="12" height="12" alt=""><a href="https://www.fintechfestival.sg/">fintechfestival.sg — Singapore FinTech Festival 2026</a></div>
+      <div class="src-item"><span class="src-n">[13]</span><img src="https://www.google.com/s2/favicons?domain=developer.tech.gov.sg&sz=16" width="12" height="12" alt=""><a href="https://www.developer.tech.gov.sg/communities/events/conferences/stack-conference-2026/overview">developer.tech.gov.sg — STACK Conference 2026</a></div>
+      <div class="src-item"><span class="src-n">[14]</span><img src="https://www.google.com/s2/favicons?domain=10times.com&sz=16" width="12" height="12" alt=""><a href="https://10times.com/cio-leaders-singapore">10times.com — CIO Leaders Summit Singapore</a></div>
+      <div class="src-item"><span class="src-n">[15]</span><img src="https://www.google.com/s2/favicons?domain=dev.events&sz=16" width="12" height="12" alt=""><a href="https://dev.events/AS/SG/tech">dev.events — Singapore tech conferences directory</a></div>
+      <div class="src-item"><span class="src-n">[16]</span><img src="https://www.google.com/s2/favicons?domain=infosec-conferences.com&sz=16" width="12" height="12" alt=""><a href="https://infosec-conferences.com/country/singapore/">infosec-conferences.com — Singapore cybersecurity conferences 2026</a></div>
+      <div class="src-item"><span class="src-n">[17]</span><img src="https://www.google.com/s2/favicons?domain=govinsider.asia&sz=16" width="12" height="12" alt=""><a href="https://govinsider.asia/intl-en/article/stackx-cybersecurity-2026-event-focuses-on-actionable-strategies-for-ai-systems">govinsider.asia — STACKx Cybersecurity 2026 recap</a></div>
+    </div>
+  </div>
+
+</div>
