@@ -1,0 +1,947 @@
+---
+layout: view
+view_name: "Corkboard"
+view_of: ../
+title: "Things to do in Nice and the Côte d'Azur — Corkboard"
+---
+
+<style>
+/* ── Base board ────────────────────────────────────────────────────── */
+.board { margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+
+.cork {
+  background-color: #b87d45;
+  background-image:
+    repeating-linear-gradient(78deg, transparent, transparent 9px, rgba(0,0,0,0.025) 9px, rgba(0,0,0,0.025) 10px),
+    repeating-linear-gradient(12deg, transparent, transparent 7px, rgba(255,255,255,0.025) 7px, rgba(255,255,255,0.025) 8px),
+    radial-gradient(ellipse at 20% 30%, rgba(200,140,70,0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, rgba(140,90,30,0.3) 0%, transparent 55%);
+  min-height: 100vh;
+  padding: 32px 20px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── GP Warning banner ─────────────────────────────────────────────── */
+.gp-banner {
+  background: #b91c1c;
+  color: #fff;
+  text-align: center;
+  padding: 12px 20px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+.gp-banner a { color: #fca5a5; }
+
+/* ── Section label (tape strip) ────────────────────────────────────── */
+.tape {
+  display: inline-block;
+  background: rgba(255, 255, 210, 0.88);
+  color: #2d2d2d;
+  font-size: 0.95rem;
+  font-family: Georgia, serif;
+  font-style: italic;
+  padding: 5px 20px;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+  margin-bottom: 18px;
+  transform: rotate(var(--rt, -0.8deg));
+}
+
+/* ── Flex row ──────────────────────────────────────────────────────── */
+.row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+
+/* ── Pin mixin (applied via ::before on many elements) ─────────────── */
+/* Individual card types set their own ::before */
+
+/* ── Base paper card ───────────────────────────────────────────────── */
+.card {
+  background: #fafaf3;
+  border-radius: 2px;
+  box-shadow: 2px 3px 9px rgba(0,0,0,0.36), 0 1px 2px rgba(0,0,0,0.1);
+  padding: 14px 16px;
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #f87171 0%, #b91c1c 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 -1px 2px rgba(0,0,0,0.25);
+  z-index: 5;
+}
+.card.pin-blue::before  { background: radial-gradient(circle at 38% 38%, #93c5fd 0%, #1d4ed8 65%); }
+.card.pin-gold::before  { background: radial-gradient(circle at 38% 38%, #fde68a 0%, #b45309 65%); }
+.card.pin-green::before { background: radial-gradient(circle at 38% 38%, #86efac 0%, #15803d 65%); }
+.card.pin-purple::before{ background: radial-gradient(circle at 38% 38%, #d8b4fe 0%, #7e22ce 65%); }
+.card.pin-pink::before  { background: radial-gradient(circle at 38% 38%, #f9a8d4 0%, #be185d 65%); }
+.card.pin-none::before  { display: none; }
+
+/* ── Sticky note ───────────────────────────────────────────────────── */
+.sticky {
+  background: #fef08a;
+  box-shadow: 2px 3px 7px rgba(0,0,0,0.22), inset 0 -3px 0 rgba(0,0,0,0.06);
+  padding: 12px 13px;
+  position: relative;
+  border-radius: 1px;
+  transform: rotate(var(--r, 0deg));
+}
+.sticky::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #fde68a 0%, #d97706 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.sticky.red   { background: #fee2e2; border-left: 3px solid #dc2626; }
+.sticky.red::before   { background: radial-gradient(circle at 38% 38%, #fca5a5 0%, #b91c1c 65%); }
+.sticky.blue  { background: #dbeafe; }
+.sticky.blue::before  { background: radial-gradient(circle at 38% 38%, #93c5fd 0%, #1d4ed8 65%); }
+.sticky.green { background: #dcfce7; }
+.sticky.green::before { background: radial-gradient(circle at 38% 38%, #86efac 0%, #15803d 65%); }
+.sticky.orange{ background: #fff7ed; border-left: 3px solid #f97316; }
+.sticky.orange::before{ background: radial-gradient(circle at 38% 38%, #fed7aa 0%, #c2410c 65%); }
+
+/* ── HEADER card ───────────────────────────────────────────────────── */
+.header-card {
+  flex: 1 1 300px;
+  max-width: 540px;
+  padding: 22px 28px;
+}
+.header-badge {
+  display: inline-block;
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 2px;
+  margin-bottom: 10px;
+}
+.header-card h1 {
+  font-family: Georgia, serif;
+  font-size: 1.9rem;
+  margin: 0 0 10px;
+  color: #111;
+  line-height: 1.15;
+}
+.header-tagline {
+  font-size: 0.88rem;
+  color: #444;
+  margin: 0 0 14px;
+  line-height: 1.55;
+}
+.header-tagline a { color: #1e3a5f; }
+.header-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  font-size: 0.75rem;
+}
+.header-pills span {
+  background: rgba(30,58,95,0.08);
+  padding: 3px 9px;
+  border-radius: 10px;
+  color: #333;
+}
+
+/* ── Weather card ──────────────────────────────────────────────────── */
+.weather-card {
+  width: 185px;
+  background: #eff6ff;
+  border-radius: 2px;
+  box-shadow: 2px 3px 9px rgba(0,0,0,0.3);
+  padding: 14px 16px;
+  position: relative;
+  transform: rotate(var(--r, 2.5deg));
+}
+.weather-card::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #93c5fd 0%, #1d4ed8 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.weather-card h3 {
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  color: #1e40af;
+  margin: 0 0 8px;
+}
+.weather-card p {
+  font-size: 0.75rem;
+  color: #1e40af;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── Timeline (Saturday) ───────────────────────────────────────────── */
+.timeline { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+
+.tl-card {
+  width: 155px;
+  background: #fafaf3;
+  border-radius: 2px;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.32);
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+}
+.tl-card::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #fbbf24 0%, #d97706 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.tl-card.jan { background: #0f2540; width: 175px; }
+.tl-card.jan::before {
+  width: 22px; height: 22px;
+  top: -13px; left: calc(50% - 11px);
+  background: radial-gradient(circle at 38% 38%, #fde68a 0%, #92400e 65%);
+}
+.tl-time {
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 0.67rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  letter-spacing: 0.04em;
+}
+.tl-card.jan .tl-time { background: rgba(255,255,255,0.12); color: #93c5fd; }
+.tl-img { display: block; width: 100%; height: 95px; object-fit: cover; }
+.tl-ph {
+  width: 100%; height: 95px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem;
+}
+.tl-body { padding: 8px 10px 10px; }
+.tl-name {
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+.tl-name a { color: #1e3a5f; text-decoration: none; }
+.tl-name a:hover { text-decoration: underline; }
+.tl-card.jan .tl-name { color: #fde68a; font-size: 1rem; }
+.tl-card.jan .tl-name a { color: #fde68a; }
+.tl-note { font-size: 0.7rem; color: #555; line-height: 1.4; }
+.tl-card.jan .tl-note { color: rgba(255,255,255,0.75); }
+.tl-note sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+.tl-card.jan .tl-note sup a { color: #93c5fd; }
+
+/* ── Day Trip cards ────────────────────────────────────────────────── */
+.trip-card {
+  width: 245px;
+  background: #fafaf3;
+  border-radius: 2px;
+  box-shadow: 2px 3px 9px rgba(0,0,0,0.33);
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+}
+.trip-card::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.trip-card.p-red::before    { background: radial-gradient(circle at 38% 38%, #f87171 0%, #b91c1c 65%); }
+.trip-card.p-teal::before   { background: radial-gradient(circle at 38% 38%, #5eead4 0%, #0f766e 65%); }
+.trip-card.p-sky::before    { background: radial-gradient(circle at 38% 38%, #7dd3fc 0%, #0369a1 65%); }
+.trip-card.p-amber::before  { background: radial-gradient(circle at 38% 38%, #fde68a 0%, #b45309 65%); }
+.trip-card.p-purple::before { background: radial-gradient(circle at 38% 38%, #d8b4fe 0%, #7e22ce 65%); }
+
+.trip-img { display: block; width: 100%; height: 145px; object-fit: cover; }
+.trip-ph {
+  width: 100%; height: 145px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+}
+.trip-body { padding: 11px 13px 13px; }
+.trip-label {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  margin-bottom: 6px;
+}
+.trip-name {
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+  color: #111;
+}
+.trip-name a { color: #1e3a5f; text-decoration: none; }
+.trip-name a:hover { text-decoration: underline; }
+.trip-transport { font-size: 0.72rem; color: #555; margin-bottom: 7px; }
+.trip-why { font-size: 0.74rem; color: #333; line-height: 1.45; margin-bottom: 7px; }
+.trip-skip { font-size: 0.68rem; color: #dc2626; font-style: italic; }
+.trip-why sup a, .trip-skip sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Dish stickies ─────────────────────────────────────────────────── */
+.dish { width: 138px; }
+.dish h4 { font-family: Georgia, serif; font-size: 0.88rem; margin: 0 0 4px; color: #111; }
+.dish p  { font-size: 0.7rem; color: #444; line-height: 1.4; margin: 0; }
+.dish .where { font-size: 0.68rem; color: #555; font-style: italic; margin-top: 5px; }
+.dish .where a { color: #1e3a5f; }
+.dish .warn  { color: #dc2626; font-weight: 600; }
+.dish p sup a, .dish .where sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Restaurant cards ──────────────────────────────────────────────── */
+.resto {
+  width: 195px;
+  background: #fafaf3;
+  border-radius: 2px;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.3);
+  padding: 11px 13px;
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+}
+.resto::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #f9a8d4 0%, #be185d 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.resto.dark { background: #1e3a5f; }
+.resto.dark::before { background: radial-gradient(circle at 38% 38%, #fde68a 0%, #92400e 65%); }
+.resto-name {
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 0 0 3px;
+  display: flex; align-items: center; gap: 5px;
+}
+.resto-name a { color: #1e3a5f; text-decoration: none; }
+.resto-name a:hover { text-decoration: underline; }
+.resto.dark .resto-name a { color: #fde68a; }
+.resto-tier { font-size: 0.67rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.resto.dark .resto-tier { color: rgba(255,255,255,0.5); }
+.resto-order { font-size: 0.72rem; color: #333; line-height: 1.4; }
+.resto.dark .resto-order { color: rgba(255,255,255,0.82); }
+.resto-caveat { font-size: 0.68rem; color: #dc2626; font-style: italic; margin-top: 5px; }
+.resto sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+.resto.dark sup a { color: #93c5fd; }
+.fav { width: 14px; height: 14px; vertical-align: middle; }
+
+/* ── Polaroid (museums) ────────────────────────────────────────────── */
+.polaroid {
+  background: #fff;
+  padding: 8px 8px 30px;
+  box-shadow: 3px 4px 11px rgba(0,0,0,0.36);
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+  width: 165px;
+}
+.polaroid::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #d8b4fe 0%, #7e22ce 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.polaroid.closed { opacity: 0.55; filter: grayscale(0.6); }
+.polaroid.closed::before { background: radial-gradient(circle at 38% 38%, #d1d5db 0%, #4b5563 65%); }
+.pol-img { display: block; width: 100%; height: 125px; object-fit: cover; }
+.pol-ph  {
+  width: 100%; height: 125px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.8rem;
+}
+.pol-label {
+  text-align: center;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: #222;
+  padding-top: 6px;
+  line-height: 1.3;
+}
+.pol-label a { color: #1e3a5f; text-decoration: none; }
+.pol-label a:hover { text-decoration: underline; }
+.pol-detail { text-align: center; font-size: 0.66rem; color: #666; margin-top: 3px; line-height: 1.3; }
+.pol-detail sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Beach cards ───────────────────────────────────────────────────── */
+.beach {
+  width: 185px;
+  background: #ecfdf5;
+  border-radius: 2px;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.27);
+  padding: 11px 13px;
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+}
+.beach::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #6ee7b7 0%, #059669 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+  z-index: 5;
+}
+.beach h4 { font-family: Georgia, serif; font-size: 0.88rem; margin: 0 0 4px; color: #064e3b; }
+.beach p  { font-size: 0.71rem; color: #065f46; line-height: 1.4; margin: 0; }
+.beach sup a { color: #064e3b; font-size: 0.65em; text-decoration: none; }
+
+/* ── Transport ticket ──────────────────────────────────────────────── */
+.ticket {
+  background: #fff;
+  border: 2px dashed #b0b0b0;
+  border-radius: 3px;
+  padding: 12px 15px;
+  position: relative;
+  transform: rotate(var(--r, 0deg));
+}
+.ticket::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #93c5fd 0%, #1d4ed8 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.ticket h3 { font-family: Georgia, serif; font-size: 0.88rem; color: #1e3a5f; margin: 0 0 9px; }
+.ticket table { border-collapse: collapse; font-size: 0.76rem; width: 100%; }
+.ticket th { text-align: left; font-size: 0.67rem; color: #777; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 7px; border-bottom: 1px solid #e0e0e0; }
+.ticket td { padding: 3px 7px; border-bottom: 1px solid #f2f2f2; color: #333; }
+.ticket td:first-child { font-weight: 600; }
+.ticket .fare { color: #15803d; font-weight: 700; }
+.ticket .note { font-size: 0.66rem; color: #888; margin-top: 6px; }
+.ticket sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Bus lines note ────────────────────────────────────────────────── */
+.bus-note { min-width: 200px; max-width: 240px; }
+.bus-note .bus-row { font-size: 0.74rem; line-height: 1.75; color: #1e40af; }
+.bus-note .bus-row strong { display: inline-block; min-width: 48px; color: #1e3a5f; }
+.bus-note .bus-warn { font-size: 0.68rem; color: #dc2626; margin-top: 5px; font-style: italic; }
+.bus-note sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Skip card ─────────────────────────────────────────────────────── */
+.skip-card {
+  background: #fee2e2;
+  border-left: 4px solid #dc2626;
+  padding: 13px 15px;
+  position: relative;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.28);
+  transform: rotate(var(--r, -1deg));
+  min-width: 230px;
+  max-width: 340px;
+  border-radius: 1px;
+}
+.skip-card::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #f87171 0%, #b91c1c 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.skip-card h3 { font-family: Georgia, serif; font-size: 0.92rem; color: #b91c1c; margin: 0 0 8px; }
+.skip-card ul { margin: 0; padding-left: 16px; font-size: 0.75rem; color: #444; line-height: 1.65; }
+.skip-card sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Stay card ─────────────────────────────────────────────────────── */
+.stay-card {
+  width: 195px;
+  background: #eff6ff;
+  border-radius: 2px;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.27);
+  padding: 13px 15px;
+  position: relative;
+  transform: rotate(var(--r, 1.5deg));
+}
+.stay-card::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: calc(50% - 9px);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #93c5fd 0%, #1d4ed8 65%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  z-index: 5;
+}
+.stay-card h3 { font-family: Georgia, serif; font-size: 0.9rem; color: #1e40af; margin: 0 0 8px; }
+.stay-card p  { font-size: 0.73rem; color: #1e40af; line-height: 1.6; margin: 0 0 7px; }
+.stay-card sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+
+/* ── Global sup links ──────────────────────────────────────────────── */
+sup a { color: #1e3a5f; font-size: 0.65em; text-decoration: none; }
+sup a:hover { text-decoration: underline; }
+
+/* ── Misc ──────────────────────────────────────────────────────────── */
+.section-note { font-size: 0.75rem; color: rgba(255,255,255,0.72); margin-top: 10px; padding-left: 2px; }
+.section-note strong { color: rgba(255,255,255,0.9); }
+.section-note sup a { color: rgba(255,255,255,0.6); }
+</style>
+
+<div class="board">
+
+  <!-- ─── GP WARNING ─────────────────────────────────────────────── -->
+  <div class="gp-banner">
+    ⚠&thinsp; MONACO GRAND PRIX 5–7 JUNE 2026 &mdash; Qualifying Saturday 6 June · Race Sunday 7 June · All buses and trains through Monaco jammed both days · Skip Monaco entirely or plan a different weekend
+    <a href="https://www.formula1.com/en/racing/2026/monaco"><sup>[76]</sup></a>
+  </div>
+
+  <div class="cork">
+
+    <!-- ─── HEADER ─────────────────────────────────────────────── -->
+    <div class="row" style="justify-content:center; margin-bottom: -4px;">
+
+      <div class="card header-card pin-none" style="--r: -1.2deg;">
+        <div style="position:absolute; top:-10px; left:calc(50% - 9px); width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 38% 38%, #fde68a 0%, #b45309 65%); box-shadow:0 2px 5px rgba(0,0,0,.5); z-index:5;"></div>
+        <div class="header-badge">UNESCO World Heritage · 2021 · 522 ha</div>
+        <h1>Nice &amp; Côte d'Azur</h1>
+        <p class="header-tagline">
+          Weekend anchored on <strong><a href="../../dinner-at-jan-nice/">JAN ★</a></strong> at 19:30 Saturday —
+          Chef Jan Hendrik van der Westhuizen, 1 Michelin star, 20 seats. No car needed:
+          TER + Lignes d'Azur reaches Cannes to Menton from €1.70.<sup><a href="https://www.bestofniceblog.com/transport-in-nice/train/">[67]</a></sup>
+        </p>
+        <div class="header-pills">
+          <span>☀ June 24–27 °C</span>
+          <span>🌊 Sea 23 °C</span>
+          <span>🏨 Old Town from €160/night</span>
+          <span>🚆 TER every ~15 min</span>
+          <span>Less crowded than Jul–Aug<sup><a href="https://gotripzi.com/destinations/nice-fr/weather/june">[75]</a></sup></span>
+        </div>
+      </div>
+
+      <div class="weather-card">
+        <h3>June Weather</h3>
+        <p>
+          ☀ 24–27 °C daytime<br>
+          🌙 17 °C nights<br>
+          🌊 23 °C sea<br>
+          ⛅ ~12 h sunshine/day<br>
+          🌧 ~4 rainy days<sup><a href="https://provencelovers.fr/en/cote-azur-june-weather-temperatures/">[63]</a></sup>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ─── SATURDAY ITINERARY ──────────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: -1deg;">📅 Saturday — anchored on JAN at 19:30</div>
+      <div class="timeline">
+
+        <div class="tl-card" style="--r: -2.2deg;">
+          <div class="tl-time">08:30–10:30</div>
+          <img class="tl-img" src="corkboard/images/cours-saleya.jpg" alt="Cours Saleya market">
+          <div class="tl-body">
+            <div class="tl-name"><a href="https://niceandbeyond.com/cours-saleya-markets-nice/">Cours Saleya</a></div>
+            <div class="tl-note">Flower + Provençal market · socca slice · Tue–Sat 06:00–17:00<sup><a href="https://niceandbeyond.com/cours-saleya-markets-nice/">[5]</a></sup></div>
+          </div>
+        </div>
+
+        <div class="tl-card" style="--r: 1.8deg;">
+          <div class="tl-time">10:30–13:00</div>
+          <img class="tl-img" src="corkboard/images/vieux-nice.jpg" alt="Vieux Nice streets">
+          <div class="tl-body">
+            <div class="tl-name"><a href="https://niceandbeyond.com/vieux-nice-old-town/">Vieux Nice Walk</a></div>
+            <div class="tl-note">Place Rossetti · Cathédrale Sainte-Réparate · Palais Lascaris · 2–3 h loop<sup><a href="https://niceandbeyond.com/vieux-nice-old-town/">[8]</a></sup></div>
+          </div>
+        </div>
+
+        <div class="tl-card" style="--r: -1deg;">
+          <div class="tl-time">13:00–14:00</div>
+          <div class="tl-ph" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">🍕</div>
+          <div class="tl-body">
+            <div class="tl-name">Socca Lunch</div>
+            <div class="tl-note"><a href="https://www.chezpipo.fr/fr">Chez Pipo</a> (port) or René Socca (Pairolière) · €4–8<sup><a href="https://www.chezpipo.fr/fr">[38]</a></sup></div>
+          </div>
+        </div>
+
+        <div class="tl-card" style="--r: 2.5deg;">
+          <div class="tl-time">14:00–16:30</div>
+          <img class="tl-img" src="corkboard/images/beaches-nice.jpg" alt="Nice beach Promenade">
+          <div class="tl-body">
+            <div class="tl-name">Promenade des Anglais</div>
+            <div class="tl-note">7 km · Le Negresco · pebble swim · 22 free sections<sup><a href="https://ibis.accor.com/en/ibis-magazine/travel-for-a-reason/public-beaches-in-nice.html">[10]</a></sup></div>
+          </div>
+        </div>
+
+        <div class="tl-card" style="--r: -2.8deg;">
+          <div class="tl-time">16:30–18:00</div>
+          <img class="tl-img" src="corkboard/images/castle-hill.jpg" alt="View from Castle Hill over Bay of Angels">
+          <div class="tl-body">
+            <div class="tl-name"><a href="https://niceandbeyond.com/castle-hill-nice/">Castle Hill</a></div>
+            <div class="tl-note">360° views · free elevator (unreliable hours)<sup><a href="https://niceandbeyond.com/castle-hill-nice/">[6]</a></sup></div>
+          </div>
+        </div>
+
+        <div class="tl-card" style="--r: 1.2deg;">
+          <div class="tl-time">18:00–19:15</div>
+          <div class="tl-ph" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">🥂</div>
+          <div class="tl-body">
+            <div class="tl-name">Aperitivo</div>
+            <div class="tl-note">Place Rossetti gelato · or rosé on a Cours Saleya terrace</div>
+          </div>
+        </div>
+
+        <div class="tl-card jan" style="--r: -1.8deg;">
+          <div class="tl-time">19:30</div>
+          <div class="tl-ph" style="background:linear-gradient(135deg,#1e3a5f,#0f2540); color:#fde68a;">★</div>
+          <div class="tl-body">
+            <div class="tl-name"><a href="../../dinner-at-jan-nice/">JAN Restaurant</a></div>
+            <div class="tl-note">1★ Michelin · Chef Jan Hendrik · 20 seats · tasting menu 2.5–3 h · book months ahead<sup><a href="https://www.pocketwanderings.com/michelin-star-restaurants-nice/">[42]</a></sup></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── DAY TRIPS ───────────────────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: 0.5deg;">🗺 Day Trips — pick one for Sunday</div>
+      <div class="row">
+
+        <div class="trip-card p-amber" style="--r: -1.8deg;">
+          <div class="trip-label" style="background:#fef3c7; color:#92400e;">bus #82 / #602 · 30+20 min · €1.70/leg</div>
+          <img class="trip-img" src="corkboard/images/eze-monaco-corniche.jpg" alt="Corniche view towards Monaco">
+          <div class="trip-body">
+            <div class="trip-name"><a href="https://www.frenchrivieratraveller.com/Nice/day-trip-eze-monaco.html">Èze Village + Monaco</a></div>
+            <div class="trip-why">Hilltop medieval village in the morning (beat cruise crowds), principality sights in the afternoon.<sup><a href="https://www.frenchrivieratraveller.com/Nice/day-trip-eze-monaco.html">[14]</a></sup></div>
+            <div class="trip-skip">⚠ June 6–7 = Monaco GP qualifying + race. Do Èze only and return.</div>
+          </div>
+        </div>
+
+        <div class="trip-card p-teal" style="--r: 2.2deg;">
+          <div class="trip-label" style="background:#ccfbf1; color:#0f766e;">TER 5 min €2.10 + bus #15 · full day ~7 h</div>
+          <img class="trip-img" src="corkboard/images/cap-ferrat.jpg" alt="Cap Ferrat coastal path">
+          <div class="trip-body">
+            <div class="trip-name"><a href="https://inbetweenpictures.com/blog/how-to-get-to-villa-ephrussi-de-rothschild-from-nice">Villefranche + Cap Ferrat</a></div>
+            <div class="trip-why">Citadel · Rue Obscure · Plage des Marinières · 6–7 km sentier littoral · <a href="https://www.villa-ephrussi.com/en">Villa Ephrussi</a> €18.<sup><a href="https://inbetweenpictures.com/blog/how-to-get-to-villa-ephrussi-de-rothschild-from-nice">[15]</a></sup></div>
+            <div class="trip-skip">Skip if: you don't swim.</div>
+          </div>
+        </div>
+
+        <div class="trip-card p-sky" style="--r: -2.2deg;">
+          <div class="trip-label" style="background:#e0f2fe; color:#0369a1;">TER 25–40 min · €5.20–€7.90</div>
+          <div class="trip-ph" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">⚓</div>
+          <div class="trip-body">
+            <div class="trip-name"><a href="https://teaspoonofadventure.com/nice-to-antibes-day-trip/">Antibes + Cannes + Lérins</a></div>
+            <div class="trip-why"><a href="https://musees-nationaux-alpesmaritimes.fr/picasso/en/practical-information">Musée Picasso</a> at Château Grimaldi · Cap d'Antibes coastal path · ferry to Île Sainte-Marguerite from €16.<sup><a href="https://en.cannes-france.com/discover-visit/lerins-islands/lerins-island-guide/">[19]</a></sup></div>
+            <div class="trip-skip">Skip if: you can't handle June crowds in Cannes.</div>
+          </div>
+        </div>
+
+        <div class="trip-card p-red" style="--r: 1deg;">
+          <div class="trip-label" style="background:#ffe4e6; color:#9f1239;">TER 40 min · ~€6 each way</div>
+          <img class="trip-img" src="corkboard/images/menton.jpg" alt="Menton pastel old town">
+          <div class="trip-body">
+            <div class="trip-name"><a href="https://niceandbeyond.com/nice-to-menton-day-trip/">Menton</a></div>
+            <div class="trip-why">Belle Époque pastels · Cocteau Museum · citrus-tinted Old Town · Plage des Sablettes. Sit right side for sea views.<sup><a href="https://traveleatsleeprepeat.co.uk/2025/06/30/a-day-trip-to-menton-france-%F0%9F%8D%8B/">[22]</a></sup></div>
+            <div class="trip-skip">Skip if: you want quintessential Riviera — Menton feels Italian.</div>
+          </div>
+        </div>
+
+        <div class="trip-card p-purple" style="--r: -1.2deg;">
+          <div class="trip-label" style="background:#f3e8ff; color:#6b21a8;">TER + Zou #655 · ~€5.90</div>
+          <div class="trip-ph" style="background:linear-gradient(135deg,#7c3aed,#4c1d95);">🎨</div>
+          <div class="trip-body">
+            <div class="trip-name"><a href="https://www.bestofniceblog.com/day-trips-from-nice/day-trip-to-vence-and-saint-paul-de-vence/">Saint-Paul-de-Vence + Maeght</a></div>
+            <div class="trip-why"><a href="https://www.fondation-maeght.com/visit/">Fondation Maeght</a> €18: Miró, Giacometti, Calder in Sert's purpose-built complex.<sup><a href="https://www.frenchrivieratraveller.com/Itineraries/Art-Museums.html">[30]</a></sup> Medieval hill town.</div>
+            <div class="trip-skip">Skip if: 2-leg public-transport puzzle frustrates you.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── FOOD ────────────────────────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: -0.5deg;">🍽 Eat Niçoise</div>
+      <div class="row" style="align-items:flex-start;">
+
+        <!-- Dishes column -->
+        <div>
+          <div style="font-size:0.78rem; color:rgba(0,0,0,0.45); font-style:italic; margin-bottom:12px; transform:rotate(-1deg); display:inline-block;">What to order</div>
+          <div class="row">
+            <div class="sticky dish" style="--r: -2.5deg;">
+              <h4>Socca</h4>
+              <p>Wood-fired chickpea galette — pure, hot, cheap. The canonical Niçoise street food.<sup><a href="https://fromparistoprovence.com/cuisine-nicoise/">[40]</a></sup></p>
+              <p class="where">→ <a href="https://www.chezpipo.fr/fr">Chez Pipo</a> or René Socca</p>
+            </div>
+            <div class="sticky dish" style="--r: 1.5deg;">
+              <h4>Pissaladière</h4>
+              <p>Caramelised onion + anchovy + Niçois-olive tart on thin crust.</p>
+              <p class="where warn">⚠ No cheese — ever.</p>
+            </div>
+            <div class="sticky dish" style="--r: -1deg;">
+              <h4>Pan-bagnat</h4>
+              <p>Round bread soaked with salade niçoise fillings — takeaway single portion.</p>
+            </div>
+            <div class="sticky dish" style="--r: 2.8deg;">
+              <h4>Salade niçoise</h4>
+              <p>Raw veg + hard-boiled egg + tuna/anchovy. Jacques Médecin codified it, 1972.<sup><a href="https://www.pardonyourfrench.com/authentic-nicoise-salad/">[41]</a></sup></p>
+              <p class="where warn">⚠ No potato. No green beans.</p>
+            </div>
+            <div class="sticky dish" style="--r: -3deg;">
+              <h4>Petits farcis</h4>
+              <p>Courgette, tomato, onion stuffed with herbs and meat.</p>
+            </div>
+            <div class="sticky dish" style="--r: 1deg; background:#fce7f3;">
+              <h4>Tourte de blettes</h4>
+              <p>Chard tart with raisins + pine nuts. Sweet or savoury — the definitive Niçoise vegetable-as-dessert oddity.<sup><a href="https://www.explorenicecotedazur.com/en/explore/art-of-living/gastronomy-and-local-produce/nicoise-recipes/tourte-de-blettes/">[48]</a></sup></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Restaurants column -->
+        <div>
+          <div style="font-size:0.78rem; color:rgba(0,0,0,0.45); font-style:italic; margin-bottom:12px; transform:rotate(0.7deg); display:inline-block;">Where to eat</div>
+          <div class="row">
+            <div class="resto" style="--r: -1.5deg;">
+              <div class="resto-name">
+                <img class="fav" src="https://www.google.com/s2/favicons?domain=andyhayler.com&sz=128" alt="">
+                <a href="https://www.andyhayler.com/restaurant/merenda">La Merenda</a>
+              </div>
+              <div class="resto-tier">Cult bistro · Vieux Nice</div>
+              <div class="resto-order">Pissaladière, stockfish, tourte de blettes<sup><a href="https://www.andyhayler.com/restaurant/merenda">[45]</a></sup></div>
+              <div class="resto-caveat">No phone · no cards · walk in to book</div>
+            </div>
+            <div class="resto" style="--r: 2deg;">
+              <div class="resto-name">
+                <img class="fav" src="https://www.google.com/s2/favicons?domain=guide.michelin.com&sz=128" alt="">
+                <a href="https://guide.michelin.com/us/en/provence-alpes-cote-dazur/nice/restaurant/bistrot-d-antoine">Bistrot d'Antoine</a>
+              </div>
+              <div class="resto-tier">Bib Gourmand</div>
+              <div class="resto-order">Off the chalkboard, daily market menu<sup><a href="https://guide.michelin.com/us/en/provence-alpes-cote-dazur/nice/restaurant/bistrot-d-antoine">[44]</a></sup></div>
+              <div class="resto-caveat">Book ahead · closed Sun–Mon</div>
+            </div>
+            <div class="resto" style="--r: -2deg;">
+              <div class="resto-name">
+                <img class="fav" src="https://www.google.com/s2/favicons?domain=guide.michelin.com&sz=128" alt="">
+                <a href="https://guide.michelin.com/en/provence-alpes-cote-dazur/nice/restaurant/olive-et-artichaut">Olive &amp; Artichaut</a>
+              </div>
+              <div class="resto-tier">Bib Gourmand</div>
+              <div class="resto-order">Mediterranean small plates · rue Sainte Réparate<sup><a href="https://guide.michelin.com/en/provence-alpes-cote-dazur/nice/restaurant/olive-et-artichaut">[47]</a></sup></div>
+            </div>
+            <div class="resto" style="--r: 1deg;">
+              <div class="resto-name">
+                <img class="fav" src="https://www.google.com/s2/favicons?domain=michelinstarfinedinings.wordpress.com&sz=128" alt="">
+                <a href="https://michelinstarfinedinings.wordpress.com/tag/chez-acchiardo-nice/">Chez Acchiardo</a>
+              </div>
+              <div class="resto-tier">90-yr family trattoria · Vieux Nice</div>
+              <div class="resto-order">Petits farcis, grilled meats<sup><a href="https://michelinstarfinedinings.wordpress.com/tag/chez-acchiardo-nice/">[46]</a></sup></div>
+            </div>
+            <div class="resto dark" style="--r: -1.2deg;">
+              <div class="resto-name">
+                <img class="fav" src="https://www.google.com/s2/favicons?domain=pocketwanderings.com&sz=128" alt="">
+                <a href="https://www.pocketwanderings.com/michelin-star-restaurants-nice/">Flaveur ★★</a>
+              </div>
+              <div class="resto-tier">Only 2 Michelin stars in Nice</div>
+              <div class="resto-order">Tourteaux brothers · 25 rue Gubernatis<sup><a href="https://www.pocketwanderings.com/michelin-star-restaurants-nice/">[42]</a></sup></div>
+            </div>
+            <div class="resto" style="--r: 2.5deg;">
+              <div class="resto-name">
+                <img class="fav" src="https://www.google.com/s2/favicons?domain=myguidefrenchriviera.com&sz=128" alt="">
+                <a href="https://www.myguidefrenchriviera.com/nightlife/l-effervescence">L'Effervescence</a>
+              </div>
+              <div class="resto-tier">Champagne bar · Vieux Nice</div>
+              <div class="resto-order">80+ champagnes · Tue–Sat 18:00–00:00<sup><a href="https://www.myguidefrenchriviera.com/nightlife/l-effervescence">[49]</a></sup></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── MUSEUMS ─────────────────────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: -0.3deg;">🎨 Museums</div>
+      <div class="row">
+
+        <div class="polaroid" style="--r: -2.2deg;">
+          <div class="pol-ph" style="background:linear-gradient(135deg,#fbbf24,#d97706);">🖼</div>
+          <div class="pol-label"><a href="https://www.musee-matisse-nice.org/en/practical-information/">Musée Matisse</a></div>
+          <div class="pol-detail">Cimiez · bus #5 · €10 · closed Tue<br>~600 works · 57 sculptures (world's largest public Matisse-sculpture collection)<sup><a href="https://www.musee-matisse-nice.org/en/the-collection/highlights/">[26]</a></sup></div>
+        </div>
+
+        <div class="polaroid" style="--r: 2deg;">
+          <div class="pol-ph" style="background:linear-gradient(135deg,#60a5fa,#2563eb);">🕊</div>
+          <div class="pol-label"><a href="https://musees-nationaux-alpesmaritimes.fr/chagall/en/practical-information">Musée Chagall</a></div>
+          <div class="pol-detail">Cimiez · bus #5 · €10–12<br>Biblical Message cycle · 1st Sun free<sup><a href="https://musees-nationaux-alpesmaritimes.fr/chagall/en/practical-information">[27]</a></sup></div>
+        </div>
+
+        <div class="polaroid" style="--r: -1.5deg;">
+          <div class="pol-ph" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);">∞</div>
+          <div class="pol-label"><a href="https://www.fondation-maeght.com/visit/">Fondation Maeght</a></div>
+          <div class="pol-detail">Saint-Paul-de-Vence · €18<br>Miró · Giacometti · Calder · Braque<br>France's leading private art foundation<sup><a href="https://www.frenchrivieratraveller.com/Itineraries/Art-Museums.html">[30]</a></sup></div>
+        </div>
+
+        <div class="polaroid" style="--r: 1.8deg;">
+          <div class="pol-ph" style="background:linear-gradient(135deg,#f9a8d4,#db2777);">🌹</div>
+          <div class="pol-label"><a href="https://www.villa-ephrussi.com/en">Villa Ephrussi de Rothschild</a></div>
+          <div class="pol-detail">Cap Ferrat · €18<br>Pink Belle-Époque villa · 9 themed gardens<sup><a href="https://www.villa-ephrussi.com/en/prepare-your-visit/rates">[31]</a></sup></div>
+        </div>
+
+        <div class="polaroid" style="--r: -2.5deg;">
+          <div class="pol-ph" style="background:linear-gradient(135deg,#34d399,#059669);">🐂</div>
+          <div class="pol-label"><a href="https://musees-nationaux-alpesmaritimes.fr/picasso/en/practical-information">Musée Picasso</a></div>
+          <div class="pol-detail">Antibes · Château Grimaldi · €12<br>Picasso worked here in 1946<br>Tue–Sun 10:00–18:00<sup><a href="https://musees-nationaux-alpesmaritimes.fr/picasso/en/practical-information">[34]</a></sup></div>
+        </div>
+
+        <div class="polaroid closed" style="--r: 2.8deg;">
+          <div class="pol-ph" style="background:linear-gradient(135deg,#9ca3af,#6b7280);">🚧</div>
+          <div class="pol-label"><a href="https://www.mamac-nice.org/en/">MAMAC</a></div>
+          <div class="pol-detail"><strong>CLOSED</strong> Jan 2024–~2028<br>Renovation<sup><a href="https://www.mamac-nice.org/en/">[28]</a></sup><br><em>Do not visit.</em></div>
+        </div>
+
+      </div>
+      <p class="section-note"><strong>4-day Nice Museums Pass: €15</strong> — covers Matisse + Chagall + all municipal museums. Pays for itself at 2 visits.<sup><a href="https://www.musee-matisse-nice.org/en/practical-information/">[25]</a></sup></p>
+    </div>
+
+    <!-- ─── BEACHES ─────────────────────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: 0.8deg;">🏖 Beaches — locals leave town to swim</div>
+      <div class="row">
+
+        <div class="beach" style="--r: -1.8deg;">
+          <h4>Plage de la Mala</h4>
+          <p>Cap d'Ail · pebble · cliff-walled cove · long staircase keeps crowds thin · cleanest water in the region<sup><a href="https://www.homanieluxuryrentals.com/magazine/cote-d-azur-beaches">[54]</a></sup></p>
+        </div>
+
+        <div class="beach" style="--r: 2deg;">
+          <h4>Plage des Marinières</h4>
+          <p>Villefranche-sur-Mer · <strong>sand</strong> · ~1 km bay · shallow · locals' default<sup><a href="https://www.bontraveler.com/french-riviera-beaches/">[56]</a></sup></p>
+        </div>
+
+        <div class="beach" style="--r: -2deg;">
+          <h4>Paloma Beach</h4>
+          <p>Saint-Jean-Cap-Ferrat east side · end of the cape's most photogenic stretch<sup><a href="https://www.characrosstheworld.com/sentier-littoral-cap-ferrat/">[53]</a></sup></p>
+        </div>
+
+        <div class="beach" style="--r: 1deg;">
+          <h4>Plage de la Garoupe</h4>
+          <p>Cap d'Antibes · <strong>fine sand</strong> · crystal-clear · entrance to the coastal path<sup><a href="https://www.seeantibes.com/beaches/plage-de-la-garoupe-688779">[55]</a></sup></p>
+        </div>
+
+        <div class="beach" style="--r: -1deg;">
+          <h4>Nice in town</h4>
+          <p>Pebble · 22 free public sections along 7 km · private clubs €30–90/day<sup><a href="https://ibis.accor.com/en/ibis-magazine/travel-for-a-reason/public-beaches-in-nice.html">[10]</a></sup></p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── TRANSPORT ───────────────────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: -0.6deg;">🚆 Getting Around (2026)</div>
+      <div class="row">
+
+        <div class="ticket" style="--r: -1.2deg; min-width: 250px;">
+          <h3>TER Coastal Train from Nice-Ville</h3>
+          <table>
+            <tr><th>Destination</th><th>Time</th><th>Fare</th></tr>
+            <tr><td>Villefranche</td><td>5 min</td><td class="fare">€2.10</td></tr>
+            <tr><td>Monaco</td><td>20 min</td><td class="fare">€4.40</td></tr>
+            <tr><td>Antibes</td><td>25 min</td><td class="fare">€5.20</td></tr>
+            <tr><td>Cannes</td><td>40 min</td><td class="fare">€7.90</td></tr>
+            <tr><td>Menton</td><td>40 min</td><td class="fare">~€6</td></tr>
+          </table>
+          <p class="note">Every ~15 min until 22:00<sup><a href="https://www.bestofniceblog.com/transport-in-nice/train/">[67]</a></sup></p>
+        </div>
+
+        <div class="ticket" style="--r: 1.5deg; min-width: 200px;">
+          <h3>Lignes d'Azur City Fares</h3>
+          <table>
+            <tr><th>Ticket</th><th>Price</th></tr>
+            <tr><td>Single (74 min)</td><td class="fare">€1.70</td></tr>
+            <tr><td>24-hour pass</td><td class="fare">€7.00</td></tr>
+            <tr><td>10-trip card</td><td class="fare">€15.00</td></tr>
+            <tr><td>Airport T2 tram</td><td class="fare">€1.70</td></tr>
+          </table>
+          <p class="note">T2 airport → centre 20–30 min, every 7–8 min<sup><a href="https://frenchriviera.travel/how-to-get-from-airport-to-nice/">[70]</a></sup></p>
+        </div>
+
+        <div class="sticky blue bus-note" style="--r: -2deg; padding: 14px;">
+          <div style="font-weight:700; font-size:0.88rem; margin-bottom:8px; color:#1e40af;">Key Bus Lines</div>
+          <div class="bus-row">
+            <strong>#5</strong> → Matisse + Chagall (Cimiez)<br>
+            <strong>#15</strong> → Villefranche + Cap Ferrat<br>
+            <strong>#82/#602</strong> → Èze Village (hilltop)<br>
+            <strong>#600</strong> → Èze-<em>sur-Mer</em> ≠ village!<br>
+            <strong>#600</strong> → Monaco · Menton (15 min headway)
+          </div>
+          <div class="bus-warn">⚠ #82 or #602 for hilltop Èze — NOT #600<sup><a href="https://www.bestofniceblog.com/transport-in-nice/buses-in-nice/bus-from-nice-to-eze/">[13]</a></sup></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── SKIP / GOTCHAS / STAY ───────────────────────────────── -->
+    <div>
+      <div class="tape" style="--rt: -1deg;">✕ Skip · Watch Out · Where to Sleep</div>
+      <div class="row">
+
+        <div class="skip-card" style="--r: -1deg;">
+          <h3>What to Skip</h3>
+          <ul>
+            <li><strong>MAMAC</strong> — closed Jan 2024 through ~2028 (renovation)<sup><a href="https://www.mamac-nice.org/en/">[28]</a></sup></li>
+            <li><strong>Monaco on June 6–7</strong> — Grand Prix qualifying + race<sup><a href="https://www.formula1.com/en/racing/2026/monaco">[76]</a></sup></li>
+            <li><strong>Bus #600 to "Èze"</strong> — stops at sea-level Èze-sur-Mer, not the hilltop village<sup><a href="https://www.bestofniceblog.com/transport-in-nice/buses-in-nice/bus-from-nice-to-eze/">[13]</a></sup></li>
+            <li><strong>Salade niçoise with potato or green beans</strong> — Parisian remix<sup><a href="https://www.pardonyourfrench.com/authentic-nicoise-salad/">[41]</a></sup></li>
+            <li><strong>Calanques National Park</strong> — hours west of Nice, day trip impossible<sup><a href="https://travelinginreallife.com/best-day-trip-from-marseille-calanques/">[66]</a></sup></li>
+            <li><strong>Vélo Bleu bike share</strong> — dead; use Pony or Lime e-bikes instead<sup><a href="https://www.frenchrivieratraveller.com/Nice/Transport/Velo-Bleu.html">[82]</a></sup></li>
+          </ul>
+        </div>
+
+        <div class="sticky orange" style="--r: 2deg; min-width: 195px; max-width: 230px; padding: 13px;">
+          <div style="font-weight:700; font-size:0.88rem; margin-bottom:8px;">⚠ Gotchas</div>
+          <div style="font-size:0.73rem; line-height:1.7; color:#444;">
+            • <strong>La Merenda:</strong> no phone, no cards, walk in to book<sup><a href="https://www.andyhayler.com/restaurant/merenda">[45]</a></sup><br>
+            • <strong>Castle Hill elevator:</strong> free but hours unreliable<sup><a href="https://niceandbeyond.com/castle-hill-nice/">[6]</a></sup><br>
+            • <strong>Pickpockets:</strong> Promenade, markets, trams<sup><a href="https://www.bestofniceblog.com/practical-information/crime-and-scams-in-nice/">[81]</a></sup><br>
+            • <strong>Maeght bus stop</strong> is <em>before</em> the village — tell the driver<sup><a href="https://www.bestofniceblog.com/day-trips-from-nice/day-trip-to-vence-and-saint-paul-de-vence/">[21]</a></sup><br>
+            • <strong>Saint-Paul #400 bus</strong> is gone — it's TER + Zou #655 now<sup><a href="https://niceandbeyond.com/get-from-nice-to-saint-paul-de-vence/">[20]</a></sup>
+          </div>
+        </div>
+
+        <div class="stay-card" style="--r: 1.5deg;">
+          <h3>Where to Stay</h3>
+          <p><strong>Vieux Nice</strong> — from ~€160/night. Walk to JAN. Earplugs advised.</p>
+          <p><strong>Carré d'Or</strong> — boutique-hotel band, central and quieter.</p>
+          <p><strong>Promenade des Anglais</strong> — ~17% below city average (~€143).<sup><a href="https://goaskalocal.com/blog/where-to-stay-in-nice">[80]</a></sup></p>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /.cork -->
+</div><!-- /.board -->
