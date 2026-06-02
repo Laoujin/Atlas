@@ -1,0 +1,6 @@
+Iconic must-see sights for a first weekend (Senso-ji, Meiji Shrine, Skytree, Shibuya Crossing, Imperial Palace)
+Best neighborhoods to walk and what each is for (Shibuya, Shinjuku, Harajuku, Asakusa, Ginza, Akihabara, Roppongi)
+Food experiences beyond Michelin (Tsukiji outer market, ramen/sushi/izakaya/yakitori, depachika, themed cafes)
+Cultural and traditional experiences (gardens, shrines, sumo, kabuki/noh, tea ceremony, onsen, museums)
+Modern Tokyo and pop culture (teamLab Planets/Borderless, Shibuya Sky, Akihabara, Nakano Broadway, Harajuku youth culture)
+Day trips and hidden gems (Kamakura, Hakone, Nikko, Mt Fuji; Yanaka, Shimokitazawa, Golden Gai, Kichijoji)
