@@ -1,0 +1,958 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in London, 2026 — Calendar"
+---
+
+<style>
+.cv-root {
+  --col-dev:   #3fb950;
+  --col-cloud: #58a6ff;
+  --col-ai:    #bc8cff;
+  --col-sec:   #ff7b72;
+  --col-ops:   #ffa657;
+  --col-lead:  #39d3cf;
+  --col-data:  #d2f24d;
+  --col-broad: #8b949e;
+  --col-ent:   #f778ba;
+  --col-today: #f0a500;
+  --bg0: #0a0e1a;
+  --bg1: #111827;
+  --bg2: #1a2236;
+  --border: #1e2d40;
+  --text: #c9d1d9;
+  --muted: #6e7681;
+  font-family: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+  background: var(--bg0);
+  color: var(--text);
+  padding: 0 0 4rem;
+}
+.cv-root * { box-sizing: border-box; }
+.cv-root a { color: inherit; text-decoration: none; }
+.cv-root a:hover { text-decoration: underline; }
+
+/* ── HEADER ── */
+.cv-header {
+  padding: 2.5rem 2rem 1.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.cv-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--col-today);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.cv-header h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #e6edf3;
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.02em;
+}
+.cv-stats {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+.cv-stat-n {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #e6edf3;
+  line-height: 1;
+}
+.cv-stat-n.accent { color: var(--col-today); }
+.cv-stat-n.free   { color: var(--col-dev); }
+.cv-stat-label {
+  font-size: 0.64rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.2rem;
+}
+
+/* ── LEGEND ── */
+.cv-legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.cv-legend-item { display: flex; align-items: center; gap: 5px; }
+.cv-legend-swatch {
+  width: 9px; height: 9px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.cv-today-label {
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--col-today);
+  letter-spacing: 0.05em;
+}
+
+/* ── CHRONOGRAM ── */
+.cv-chrono-head {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  padding: 1.25rem 2rem 0.5rem;
+}
+.cv-chrono-scroll { overflow-x: auto; padding: 0 2rem 0.5rem; }
+
+.chrono-wrap { min-width: 820px; }
+
+/* flex row used for BOTH header and event rows */
+.crow {
+  display: flex;
+  align-items: center;
+  height: 26px;
+}
+.crow-label {
+  width: 192px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 10px;
+  font-size: 0.74rem;
+  overflow: hidden;
+}
+.crow-label small {
+  margin-left: auto;
+  font-size: 0.6rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.crow-label a { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crow-label a:hover { color: #e6edf3; }
+.ccat {
+  width: 7px; height: 7px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.crow-track {
+  flex: 1;
+  position: relative;
+  height: 26px;
+  /* alternating month shading + june highlight */
+  background-image: linear-gradient(to right,
+    rgba(100,120,160,.07) 0%,           rgba(100,120,160,.07) 8.48%,
+    transparent 8.49%,                  transparent 16.15%,
+    rgba(100,120,160,.07) 16.16%,       rgba(100,120,160,.07) 24.65%,
+    transparent 24.66%,                 transparent 32.87%,
+    rgba(100,120,160,.07) 32.88%,       rgba(100,120,160,.07) 41.36%,
+    rgba(240,165,0,.08) 41.37%,         rgba(240,165,0,.08) 49.58%,
+    transparent 49.59%,                 transparent 58.07%,
+    rgba(100,120,160,.07) 58.08%,       rgba(100,120,160,.07) 66.57%,
+    transparent 66.58%,                 transparent 74.78%,
+    rgba(100,120,160,.07) 74.79%,       rgba(100,120,160,.07) 83.28%,
+    transparent 83.29%,                 transparent 91.50%,
+    rgba(100,120,160,.07) 91.51%,       rgba(100,120,160,.07) 100%
+  );
+}
+/* TODAY line on every track row */
+.crow-track::before {
+  content: '';
+  position: absolute;
+  left: 41.64%;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(240,165,0,.65);
+  z-index: 5;
+}
+.crow-cost {
+  width: 90px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.67rem;
+  color: var(--muted);
+  padding-left: 8px;
+  white-space: nowrap;
+}
+.cv-free  { color: var(--col-dev); }
+.cv-paid  { color: var(--col-today); }
+
+/* month header row — no track background, no today line */
+.crow-months .crow-track {
+  background: none;
+}
+.crow-months .crow-track::before { display: none; }
+.mlabel {
+  position: absolute;
+  font-size: 0.63rem;
+  color: var(--muted);
+  transform: translateX(-50%);
+}
+.mlabel.peak { color: var(--col-today); font-weight: 700; }
+
+/* event bar */
+.cbar {
+  position: absolute;
+  top: 6px; height: 14px;
+  min-width: 7px;
+  border-radius: 2px;
+  z-index: 2;
+}
+.cbar.dev   { background: var(--col-dev);   box-shadow: 0 0 5px rgba(63,185,80,.45); }
+.cbar.cloud { background: var(--col-cloud); box-shadow: 0 0 5px rgba(88,166,255,.45); }
+.cbar.ai    { background: var(--col-ai);    box-shadow: 0 0 5px rgba(188,140,255,.45); }
+.cbar.sec   { background: var(--col-sec);   box-shadow: 0 0 5px rgba(255,123,114,.45); }
+.cbar.ops   { background: var(--col-ops);   box-shadow: 0 0 5px rgba(255,166,87,.45); }
+.cbar.lead  { background: var(--col-lead);  box-shadow: 0 0 5px rgba(57,211,207,.45); }
+.cbar.data  { background: var(--col-data);  box-shadow: 0 0 5px rgba(210,242,77,.45); }
+.cbar.broad { background: var(--col-broad); }
+.cbar.ent   { background: var(--col-ent);   box-shadow: 0 0 5px rgba(247,120,186,.45); }
+
+/* past events dimmed */
+.crow.past .cbar    { opacity: .32; }
+.crow.past .crow-label { opacity: .48; }
+.crow.past .crow-cost  { opacity: .48; }
+
+/* group separator */
+.csep { height: 5px; }
+
+/* ── JUNE ZOOM ── */
+.june-panel {
+  margin: 2rem 2rem 0;
+  border: 1px solid rgba(240,165,0,.22);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.june-panel-head {
+  background: rgba(240,165,0,.07);
+  border-bottom: 1px solid rgba(240,165,0,.18);
+  padding: .6rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.june-panel-head h3 {
+  margin: 0;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--col-today);
+}
+.june-panel-head span { font-size: .68rem; color: var(--muted); }
+.june-body { padding: .75rem 1.25rem; }
+
+.june-day-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: .2rem;
+}
+.june-name {
+  width: 152px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 10px;
+  font-size: .72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.june-track-wrap { flex: 1; position: relative; height: 22px; }
+.june-track {
+  position: relative;
+  height: 22px;
+  background: rgba(255,255,255,.025);
+  border-radius: 2px;
+}
+/* TODAY line in june: Jun 2 = day 2, pos = (2-1)/30*100 = 3.33% */
+.june-track::before {
+  content: '';
+  position: absolute;
+  left: 3.33%;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(240,165,0,.75);
+  z-index: 5;
+}
+.jbar {
+  position: absolute;
+  top: 4px; height: 14px;
+  border-radius: 2px;
+  min-width: 6px;
+  z-index: 2;
+}
+.june-day-labels {
+  display: flex;
+  margin-left: 152px;
+  padding-left: 10px;
+  position: relative;
+  height: 18px;
+  margin-bottom: .3rem;
+}
+.june-day-labels span {
+  position: absolute;
+  font-size: .6rem;
+  color: var(--muted);
+  transform: translateX(-50%);
+}
+.june-day-labels .today-tick {
+  color: var(--col-today);
+  font-weight: 700;
+}
+
+/* ── UPCOMING CARDS ── */
+.upcoming-section {
+  margin: 2rem 2rem 0;
+}
+.upcoming-section h2 {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--muted);
+  margin: 0 0 .9rem;
+}
+.upcoming-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ucard {
+  background: var(--bg1);
+  padding: .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+.ucard-img {
+  margin: -.9rem -.9rem .5rem;
+  height: 72px;
+  overflow: hidden;
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ucard-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .85;
+}
+.ucard-img img.contain {
+  object-fit: contain;
+  padding: 8px;
+}
+.ucard-name {
+  font-size: .82rem;
+  font-weight: 600;
+  color: #e6edf3;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ucard-meta { font-size: .68rem; color: var(--muted); }
+.ucard-desc { font-size: .7rem; color: var(--text); line-height: 1.45; }
+.ucard-cost {
+  font-size: .7rem;
+  font-weight: 600;
+  margin-top: auto;
+  padding-top: .25rem;
+}
+.ctag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.ctag.dev   { background: rgba(63,185,80,.14);   color: var(--col-dev); }
+.ctag.cloud { background: rgba(88,166,255,.14);  color: var(--col-cloud); }
+.ctag.ai    { background: rgba(188,140,255,.14); color: var(--col-ai); }
+.ctag.sec   { background: rgba(255,123,114,.14); color: var(--col-sec); }
+.ctag.ops   { background: rgba(255,166,87,.14);  color: var(--col-ops); }
+.ctag.lead  { background: rgba(57,211,207,.14);  color: var(--col-lead); }
+.ctag.data  { background: rgba(210,242,77,.14);  color: var(--col-data); }
+.ctag.broad { background: rgba(139,148,158,.14); color: var(--col-broad); }
+.ctag.ent   { background: rgba(247,120,186,.14); color: var(--col-ent); }
+
+/* ── BY ROLE ── */
+.role-section {
+  margin: 2rem 2rem 0;
+}
+.role-section h2 {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--muted);
+  margin: 0 0 .75rem;
+}
+.role-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .74rem;
+}
+.role-table td {
+  padding: .45rem .75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.role-table td:first-child {
+  color: var(--muted);
+  white-space: nowrap;
+  width: 200px;
+}
+.role-table td:last-child { color: var(--text); line-height: 1.5; }
+.role-table tr:last-child td { border-bottom: none; }
+
+/* ── FOOTER ── */
+.cv-footer {
+  margin: 2rem 2rem 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: .68rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.cv-footer strong { color: var(--text); }
+
+@media (max-width: 620px) {
+  .cv-header h1 { font-size: 1.35rem; }
+  .cv-stats { gap: 1.25rem; }
+  .cv-stat-n { font-size: 1.35rem; }
+}
+</style>
+
+<div class="cv-root">
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="cv-header">
+  <div class="cv-eyebrow">London · 2026 · Tech Conference Firing Schedule</div>
+  <h1>London Tech<br>Conference Calendar</h1>
+  <div class="cv-stats">
+    <div>
+      <div class="cv-stat-n">17</div>
+      <div class="cv-stat-label">Events total</div>
+    </div>
+    <div>
+      <div class="cv-stat-n accent">7</div>
+      <div class="cv-stat-label">Fire in June</div>
+    </div>
+    <div>
+      <div class="cv-stat-n free">3</div>
+      <div class="cv-stat-label">Free entry</div>
+    </div>
+    <div>
+      <div class="cv-stat-n">5</div>
+      <div class="cv-stat-label">At ExCeL</div>
+    </div>
+    <div>
+      <div class="cv-stat-n">£49</div>
+      <div class="cv-stat-label">Cheapest paid</div>
+    </div>
+    <div>
+      <div class="cv-stat-n">£2,690</div>
+      <div class="cv-stat-label">Dev conf peak</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ LEGEND ═══════════ -->
+<div class="cv-legend">
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-dev)"></div>Software Dev</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-cloud)"></div>Cloud / Infra</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-ai)"></div>AI / ML</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-sec)"></div>Security</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-ops)"></div>DevOps</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-lead)"></div>Leadership</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-data)"></div>Data / Python</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-broad)"></div>Broad</div>
+  <div class="cv-legend-item"><div class="cv-legend-swatch" style="background:var(--col-ent)"></div>Enterprise</div>
+  <div class="cv-today-label">▐ TODAY — Jun 2</div>
+</div>
+
+<!-- ═══════════ FULL-YEAR CHRONOGRAM ═══════════ -->
+<div class="cv-chrono-head">Full-Year Chronogram — 2026</div>
+<div class="cv-chrono-scroll">
+  <div class="chrono-wrap">
+
+    <!-- Month labels -->
+    <div class="crow crow-months">
+      <div class="crow-label" style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">Event</div>
+      <div class="crow-track" style="position:relative;height:20px;">
+        <span class="mlabel" style="left:0%">Jan</span>
+        <span class="mlabel" style="left:8.49%">Feb</span>
+        <span class="mlabel" style="left:16.16%">Mar</span>
+        <span class="mlabel" style="left:24.66%">Apr</span>
+        <span class="mlabel" style="left:32.88%">May</span>
+        <span class="mlabel peak" style="left:41.37%">Jun ★</span>
+        <span class="mlabel" style="left:49.59%">Jul</span>
+        <span class="mlabel" style="left:58.08%">Aug</span>
+        <span class="mlabel" style="left:66.58%">Sep</span>
+        <span class="mlabel" style="left:74.79%">Oct</span>
+        <span class="mlabel" style="left:83.29%">Nov</span>
+        <span class="mlabel" style="left:91.51%">Dec</span>
+        <span class="mlabel" style="left:41.64%;color:rgba(240,165,0,.9);font-size:.55rem;top:12px">▲</span>
+      </div>
+      <div class="crow-cost" style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Ticket</div>
+    </div>
+
+    <!-- ── PAST EVENTS ── -->
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat dev"></div>
+        <img src="https://www.google.com/s2/favicons?domain=ndclondon.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://ndclondon.com/tickets">NDC London</a>
+        <small>Jan 26–30</small>
+      </div>
+      <div class="crow-track"><div class="cbar dev" style="left:6.85%;width:1.37%"></div></div>
+      <div class="crow-cost">£850–2,490</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat cloud"></div>
+        <img src="https://www.google.com/s2/favicons?domain=containerdays.io&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.containerdays.io/containerdays-london-2026/">ContainerDays</a>
+        <small>Feb 11–12</small>
+      </div>
+      <div class="crow-track"><div class="cbar cloud" style="left:11.23%;width:1.5%"></div></div>
+      <div class="crow-cost">see site</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat broad"></div>
+        <img src="https://www.google.com/s2/favicons?domain=excel.london&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.excel.london/whats-on/tech-show-london-2026">Tech Show London</a>
+        <small>Mar 4–5</small>
+      </div>
+      <div class="crow-track"><div class="cbar broad" style="left:16.99%;width:1.5%"></div></div>
+      <div class="crow-cost cv-free">Free</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat dev"></div>
+        <img src="https://www.google.com/s2/favicons?domain=qconlondon.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://qconlondon.com/pricing-table/mar2026">QCon London</a>
+        <small>Mar 16–19</small>
+      </div>
+      <div class="crow-track"><div class="cbar dev" style="left:20.27%;width:1.5%"></div></div>
+      <div class="crow-cost">£2,690</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat cloud"></div>
+        <img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://aws.amazon.com/events/summits/london/">AWS Summit London</a>
+        <small>Apr 22</small>
+      </div>
+      <div class="crow-track"><div class="cbar cloud" style="left:30.41%;width:1.5%"></div></div>
+      <div class="crow-cost cv-free">Free</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat dev"></div>
+        <img src="https://www.google.com/s2/favicons?domain=devoxx.co.uk&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.devoxx.co.uk/">Devoxx UK</a>
+        <small>May 6–7</small>
+      </div>
+      <div class="crow-track"><div class="cbar dev" style="left:34.25%;width:1.5%"></div></div>
+      <div class="crow-cost">£649</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat ops"></div>
+        <img src="https://www.google.com/s2/favicons?domain=devopscon.io&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://devopscon.io/london/">DevOpsCon London</a>
+        <small>May 11–15</small>
+      </div>
+      <div class="crow-track"><div class="cbar ops" style="left:35.62%;width:1.5%"></div></div>
+      <div class="crow-cost">£989–1,979</div>
+    </div>
+
+    <div class="crow past">
+      <div class="crow-label">
+        <div class="ccat ent"></div>
+        <img src="https://www.google.com/s2/favicons?domain=gartner.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.gartner.com/en/newsroom/press-releases/2026-05-11-gartner-data-and-analytics-summit-london-2026-day-1-highlights">Gartner D&amp;A Summit</a>
+        <small>May 11–13</small>
+      </div>
+      <div class="crow-track"><div class="cbar ent" style="left:35.62%;width:1.5%"></div></div>
+      <div class="crow-cost">Gartner</div>
+    </div>
+
+    <div class="csep"></div>
+
+    <!-- ── UPCOMING EVENTS ── -->
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat ai"></div>
+        <img src="https://www.google.com/s2/favicons?domain=tessl.io&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://tessl.io/blog/ai-native-devcon26-the-london-conference-for-developers-building-with-ai/">AI Native DevCon</a>
+        <small>Jun 1–2</small>
+      </div>
+      <div class="crow-track"><div class="cbar ai" style="left:41.37%;width:1.5%"></div></div>
+      <div class="crow-cost cv-paid">R30 −30%</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat sec"></div>
+        <img src="https://www.google.com/s2/favicons?domain=infosecurityeurope.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.infosecurityeurope.com/en-gb.html">Infosecurity Europe</a>
+        <small>Jun 2–4</small>
+      </div>
+      <div class="crow-track"><div class="cbar sec" style="left:41.64%;width:1.5%"></div></div>
+      <div class="crow-cost cv-paid">£49</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat lead"></div>
+        <img src="https://www.google.com/s2/favicons?domain=leaddev.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://leaddev.com/leaddev-london/">LDX3 (LeadDev)</a>
+        <small>Jun 2–3</small>
+      </div>
+      <div class="crow-track"><div class="cbar lead" style="left:41.64%;width:1.5%"></div></div>
+      <div class="crow-cost">see site</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat ent"></div>
+        <img src="https://www.google.com/s2/favicons?domain=londonscalling.net&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.londonscalling.net/">London's Calling</a>
+        <small>Jun 5</small>
+      </div>
+      <div class="crow-track"><div class="cbar ent" style="left:42.47%;width:1.5%"></div></div>
+      <div class="crow-cost cv-free">Community</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat data"></div>
+        <img src="https://www.google.com/s2/favicons?domain=pydata.org&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://pydata.org/london2026/about">PyData London</a>
+        <small>Jun 5–7</small>
+      </div>
+      <div class="crow-track"><div class="cbar data" style="left:42.47%;width:1.5%"></div></div>
+      <div class="crow-cost">see site</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat broad"></div>
+        <img src="https://www.google.com/s2/favicons?domain=londontechweek.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://londontechweek.com/">London Tech Week</a>
+        <small>Jun 8–12</small>
+      </div>
+      <div class="crow-track"><div class="cbar broad" style="left:43.29%;width:1.5%"></div></div>
+      <div class="crow-cost">Various</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat ai"></div>
+        <img src="https://www.google.com/s2/favicons?domain=aiconference.london&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://aiconference.london/">AI World Congress</a>
+        <small>Jun 23–24</small>
+      </div>
+      <div class="crow-track"><div class="cbar ai" style="left:47.40%;width:1.5%"></div></div>
+      <div class="crow-cost cv-paid">£495</div>
+    </div>
+
+    <div class="csep"></div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat sec"></div>
+        <img src="https://www.google.com/s2/favicons?domain=gartner.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://infosec-conferences.com/event/20260922-gartner-security-and-risk-management-summit-london-2026/">Gartner Security</a>
+        <small>Sep 22–24</small>
+      </div>
+      <div class="crow-track"><div class="cbar sec" style="left:72.33%;width:1.5%"></div></div>
+      <div class="crow-cost">Gartner</div>
+    </div>
+
+    <div class="crow">
+      <div class="crow-label">
+        <div class="ccat ent"></div>
+        <img src="https://www.google.com/s2/favicons?domain=gartner.com&sz=128" width="11" height="11" alt="" style="border-radius:2px;flex-shrink:0">
+        <a href="https://www.gartner.com/en/conferences/emea/infrastructure-operations-cloud-uk">Gartner IT Infra</a>
+        <small>Nov 16–17</small>
+      </div>
+      <div class="crow-track"><div class="cbar ent" style="left:87.40%;width:1.5%"></div></div>
+      <div class="crow-cost">Gartner</div>
+    </div>
+
+  </div><!-- /chrono-wrap -->
+</div><!-- /cv-chrono-scroll -->
+
+
+<!-- ═══════════ JUNE CLUSTER ZOOM ═══════════ -->
+<div class="june-panel">
+  <div class="june-panel-head">
+    <h3>⚡ June Cluster — Zoomed</h3>
+    <span>7 events · Jun 1–30 · 30-day scale</span>
+  </div>
+  <div class="june-body">
+
+    <div class="june-day-labels">
+      <span style="left:0%">1</span>
+      <span class="today-tick" style="left:3.33%">2▲</span>
+      <span style="left:10%">4</span>
+      <span style="left:13.33%">5</span>
+      <span style="left:23.33%">8</span>
+      <span style="left:36.67%">12</span>
+      <span style="left:73.33%">23</span>
+      <span style="left:76.67%">24</span>
+      <span style="left:100%">30</span>
+    </div>
+
+    <!-- AI Native DevCon: Jun 1–2 → 0%–6.67% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://tessl.io/blog/ai-native-devcon26-the-london-conference-for-developers-building-with-ai/" style="color:var(--col-ai)">AI Native DevCon</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:0%;width:6.67%;background:var(--col-ai);box-shadow:0 0 6px rgba(188,140,255,.5)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Infosecurity Europe: Jun 2–4 → 3.33%–13.33% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://www.infosecurityeurope.com/en-gb.html" style="color:var(--col-sec)">Infosecurity Europe</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:3.33%;width:10%;background:var(--col-sec);box-shadow:0 0 6px rgba(255,123,114,.5)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LDX3: Jun 2–3 → 3.33%–10% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://leaddev.com/leaddev-london/" style="color:var(--col-lead)">LDX3 (LeadDev)</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:3.33%;width:6.67%;background:var(--col-lead);box-shadow:0 0 6px rgba(57,211,207,.5)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- London's Calling: Jun 5 → 13.33%–16.67% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://www.londonscalling.net/" style="color:var(--col-ent)">London's Calling</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:13.33%;width:3.33%;background:var(--col-ent);box-shadow:0 0 6px rgba(247,120,186,.5)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PyData: Jun 5–7 → 13.33%–23.33% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://pydata.org/london2026/about" style="color:var(--col-data)">PyData London</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:13.33%;width:10%;background:var(--col-data);box-shadow:0 0 6px rgba(210,242,77,.5)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- London Tech Week: Jun 8–12 → 23.33%–40% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://londontechweek.com/" style="color:var(--col-broad)">London Tech Week</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:23.33%;width:16.67%;background:var(--col-broad)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI World Congress: Jun 23–24 → 73.33%–80% -->
+    <div class="june-day-row">
+      <div class="june-name"><a href="https://aiconference.london/" style="color:var(--col-ai)">AI World Congress</a></div>
+      <div class="june-track-wrap">
+        <div class="june-track">
+          <div class="jbar" style="left:73.33%;width:6.67%;background:var(--col-ai);box-shadow:0 0 6px rgba(188,140,255,.5)"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════ UPCOMING EVENT CARDS ═══════════ -->
+<section class="upcoming-section">
+  <h2>Upcoming From Jun 2, 2026</h2>
+  <div class="upcoming-grid">
+
+    <div class="ucard">
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=tessl.io&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://tessl.io/blog/ai-native-devcon26-the-london-conference-for-developers-building-with-ai/">AI Native DevCon</a>
+      </div>
+      <div class="ucard-meta">Jun 1–2 · The Brewery, Barbican EC1Y</div>
+      <div><span class="ctag ai">AI / agentic</span></div>
+      <div class="ucard-desc">4 tracks: context engineering, agent orchestration, org enablement, agent security. Senior engineers + platform leads running AI agents in production. Speakers: Ryan Lopopolo (OpenAI), Dana Lawson (Netlify CTO), Dave Farley.</div>
+      <div class="ucard-cost cv-paid">Code R30 → 30% off</div>
+    </div>
+
+    <div class="ucard" style="background:linear-gradient(160deg,#140a0a 0%,#111827 60%)">
+      <div class="ucard-img">
+        <img src="calendar/images/infosec.png" alt="Infosecurity Europe 2026">
+      </div>
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=infosecurityeurope.com&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://www.infosecurityeurope.com/en-gb.html">Infosecurity Europe</a>
+      </div>
+      <div class="ucard-meta">Jun 2–4 · ExCeL London</div>
+      <div><span class="ctag sec">Security</span></div>
+      <div class="ucard-desc">Europe's leading cyber event. 13,000+ professionals, 380+ exhibitors, 250 speakers. 2026 themes: agentic AI in security, post-quantum cryptography, ransomware economics. SANS workshops available (£75–125 extra).</div>
+      <div class="ucard-cost cv-paid">£49+VAT full pass</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=leaddev.com&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://leaddev.com/leaddev-london/">LDX3 London</a>
+      </div>
+      <div class="ucard-meta">Jun 2–3 · InterContinental O2, North Greenwich</div>
+      <div><span class="ctag lead">Engineering leadership</span></div>
+      <div class="ucard-desc">LeadDev + StaffPlus + LeadingEng merged into one festival. 2,500+ attendees, 3 main stages, Director+ track, workshops. Riverside venue near O2 Arena. Jubilee line: North Greenwich.</div>
+      <div class="ucard-cost">see site</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=londonscalling.net&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://www.londonscalling.net/">London's Calling</a>
+      </div>
+      <div class="ucard-meta">Jun 5 · The Brewery, 52 Chiswell St EC1Y</div>
+      <div><span class="ctag ent">Salesforce</span></div>
+      <div class="ucard-desc">Europe's largest community-led Salesforce event, 11th edition. Multi-track: dev, admin, architecture, marketing, career. Community-run; full day including meals. Same venue as AI Native DevCon.</div>
+      <div class="ucard-cost cv-free">Community-priced</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=pydata.org&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://pydata.org/london2026/about">PyData London</a>
+      </div>
+      <div class="ucard-meta">Jun 5–7 · Convene Sancroft, St. Paul's</div>
+      <div><span class="ctag data">Data / Python</span></div>
+      <div class="ucard-desc">Annual Python data science gathering organised by NumFOCUS. Tutorials on Friday, talks Sat–Sun. Central line: St. Paul's.</div>
+      <div class="ucard-cost">see site</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-img" style="background:#00112a">
+        <img src="calendar/images/ltw.png" alt="London Tech Week 2026" class="contain">
+      </div>
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=londontechweek.com&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://londontechweek.com/">London Tech Week</a>
+      </div>
+      <div class="ucard-meta">Jun 8–12 · Olympia London (Expo: Jun 8–10)</div>
+      <div><span class="ctag broad">Broad / festival</span></div>
+      <div class="ucard-desc">Europe's largest tech festival. 8,000+ companies, 2,000+ senior decision-makers. Theme: "Shaping the Future of Business." Partners: Microsoft, AWS, Deloitte, Accenture. Speakers: Aravind Srinivas (Perplexity), Ivan Zhao (Notion).</div>
+      <div class="ucard-cost">Various passes</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-img">
+        <img src="calendar/images/aiwc.jpg" alt="AI World Congress 2026">
+      </div>
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=aiconference.london&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://aiconference.london/">AI World Congress</a>
+      </div>
+      <div class="ucard-meta">Jun 23–24 · Kensington Conference &amp; Events Centre W8</div>
+      <div><span class="ctag ai">AI / enterprise</span></div>
+      <div class="ucard-desc">100+ speakers from Anthropic, Microsoft, IBM. Tracks: autonomous systems, neural networks, enterprise AI. VIP (£1,550) includes Speakers' Lounge + Congress Gala Dinner.</div>
+      <div class="ucard-cost cv-paid">from £495 · VIP £1,550</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=gartner.com&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://infosec-conferences.com/event/20260922-gartner-security-and-risk-management-summit-london-2026/">Gartner Security Summit</a>
+      </div>
+      <div class="ucard-meta">Sep 22–24 · ExCeL London</div>
+      <div><span class="ctag sec">Security / enterprise</span></div>
+      <div class="ucard-desc">CISOs and risk officers. Gartner analyst briefings, vendor-neutral research sessions. ExCeL Royal Docks campus. Part of the autumn Gartner trio.</div>
+      <div class="ucard-cost" style="color:var(--muted)">Gartner pricing (≈£3k–4.5k)</div>
+    </div>
+
+    <div class="ucard">
+      <div class="ucard-name">
+        <img src="https://www.google.com/s2/favicons?domain=gartner.com&sz=128" width="14" height="14" alt="" style="border-radius:3px">
+        <a href="https://www.gartner.com/en/conferences/emea/infrastructure-operations-cloud-uk">Gartner IT Infra &amp; Cloud</a>
+      </div>
+      <div class="ucard-meta">Nov 16–17 · London</div>
+      <div><span class="ctag ent">Cloud / enterprise</span></div>
+      <div class="ucard-desc">Infrastructure leads and cloud ops. Analyst-led sessions on infra strategy, ops, cloud. Closes the autumn Gartner trilogy (Security Sep → Apps → IT Infra Nov).</div>
+      <div class="ucard-cost" style="color:var(--muted)">Gartner pricing (≈£3k–4.5k)</div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════ BY ROLE ═══════════ -->
+<section class="role-section">
+  <h2>By Role</h2>
+  <table class="role-table">
+    <tr>
+      <td>Security professional</td>
+      <td><a href="https://www.infosecurityeurope.com/en-gb.html">Infosecurity Europe</a> (£49, Jun 2–4) · <a href="https://infosec-conferences.com/event/20260922-gartner-security-and-risk-management-summit-london-2026/">Gartner Security</a> (Sep 22–24)</td>
+    </tr>
+    <tr>
+      <td>Software / platform engineer</td>
+      <td><a href="https://qconlondon.com/pricing-table/mar2026">QCon London</a> £2,690 · <a href="https://www.devoxx.co.uk/">Devoxx UK</a> £649 · <a href="https://ndclondon.com/tickets">NDC London</a> £850–2,490</td>
+    </tr>
+    <tr>
+      <td>AI / ML practitioner</td>
+      <td><a href="https://tessl.io/blog/ai-native-devcon26-the-london-conference-for-developers-building-with-ai/">AI Native DevCon</a> · <a href="https://pydata.org/london2026/about">PyData London</a> · <a href="https://aiconference.london/">AI World Congress</a></td>
+    </tr>
+    <tr>
+      <td>DevOps / cloud engineer</td>
+      <td><a href="https://devopscon.io/london/">DevOpsCon London</a> £989–1,979 · <a href="https://www.excel.london/whats-on/tech-show-london-2026">Tech Show London</a> free · <a href="https://aws.amazon.com/events/summits/london/">AWS Summit</a> free</td>
+    </tr>
+    <tr>
+      <td>Engineering manager / director</td>
+      <td><a href="https://leaddev.com/leaddev-london/">LDX3 London</a> (LeadDev + StaffPlus + LeadingEng)</td>
+    </tr>
+    <tr>
+      <td>Salesforce ecosystem</td>
+      <td><a href="https://www.londonscalling.net/">London's Calling</a> (Jun 5, community-priced)</td>
+    </tr>
+    <tr>
+      <td>Enterprise / CTO / CIO</td>
+      <td><a href="https://londontechweek.com/">London Tech Week</a> · Gartner summits · <a href="https://aiconference.london/">AI World Congress</a></td>
+    </tr>
+  </table>
+</section>
+
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<div class="cv-footer">
+  <strong>ExCeL London</strong> (Custom House, Elizabeth line / DLR) — Tech Show, AWS Summit, Infosecurity Europe, and both autumn Gartner summits are all on the Royal Docks campus.<br>
+  <strong>QEII Centre, Westminster</strong> (St. James's Park tube) — QCon London and NDC London.<br>
+  <strong>The Brewery, Barbican EC1Y</strong> — AI Native DevCon (Jun 1–2) and London's Calling (Jun 5) share this venue in the same week.<br>
+  UK Electronic Travel Authorisation (ETA) required for most nationalities since Jan 2025 — check eligibility before booking.
+</div>
+
+</div>
