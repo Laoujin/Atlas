@@ -11,6 +11,8 @@ summary: "No public IT conference exists in Courchevel; the nearest is Les Somme
 citations: 10
 reading_time_min: 3
 cover: cover.svg
+cost_usd: 1.73
+duration_sec: 518
 ---
 
 > **TL;DR** No public IT or tech conference is based in Courchevel. The nearest equivalent is **[Les Sommets](https://www.les-sommets.fr/)** in Méribel — same Les 3 Vallées ski valley, ~30 min by road, ski-lift accessible — running **March 29–31, 2026** with AI and digital speakers [[2]](https://www.les-sommets.fr/). For private corporate tech retreats, Courchevel has capable infrastructure for up to 400 attendees [[1]](https://courchevel.com/en/espaces-groupes-et-seminaires/).
