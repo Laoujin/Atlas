@@ -11,6 +11,8 @@ summary: "La Rochelle hosts two recurring anchor events — the IA-NA AI congres
 citations: 15
 reading_time_min: 4
 cover: cover.svg
+cost_usd: 1.40
+duration_sec: 434
 ---
 
 > **TL;DR** La Rochelle punches above its size for tech events. The main fixed dates are **IA-NA** (AI congress, early June, 3rd edition in 2026) and **EBG Digital Benchmark** (MarTech/data, October, recurring since at least 2023). For the rest of the year, [Technopole ATLAS](https://technopole-atlas.fr) and [Village by CA CMDS](https://cmds.levillagebyca.com) run a steady cadence of workshops and pitch events. There is no GDG or DevFest chapter in La Rochelle — the nearest active developer community hub is Bordeaux.
