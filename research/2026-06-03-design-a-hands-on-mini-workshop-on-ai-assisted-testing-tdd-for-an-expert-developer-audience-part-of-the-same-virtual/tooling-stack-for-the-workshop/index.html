@@ -1,0 +1,235 @@
+---
+title: "Tooling Stack for the AI-Assisted TDD Workshop"
+date: 2026-06-03
+depth: standard
+format: html
+topic: "Tooling stack for the workshop"
+topic_raw: "Tooling stack for the workshop"
+issue: 182
+tags: [tdd, ai-coding, tools, vitest, cursor, github-copilot, workshop, devcontainer, codespaces]
+summary: "Layer-by-layer stack recommendation: AI assistant (Copilot/Cursor/Cline), test framework (Vitest/pytest), infra (Codespaces devcontainer), and optional quality-demo tools — with copy-paste TDD prompts."
+citations: 20
+reading_time_min: 5
+cover: cover.svg
+---
+
+<style>
+  .tldr {
+    background: #f8f4f0;
+    border-left: 4px solid #b05020;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .tldr p { margin: 0; line-height: 1.6; }
+  .layer { margin: 2.5rem 0; }
+  .layer h2 {
+    margin-bottom: 0.75rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.4rem;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.75rem 0 1rem; }
+  th { background: #2d2d2d; color: #fff; padding: 0.5rem 0.75rem; text-align: left; font-weight: 600; }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #eee; vertical-align: top; line-height: 1.45; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  td.win { color: #1a8a1a; font-weight: 600; }
+  td.lose { color: #aaa; }
+  .stack-box {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    font-family: "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    margin: 0.75rem 0;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .stack-box .comment { color: #6c7086; }
+  .prompt-box {
+    background: #f0f4ff;
+    border: 1px solid #c5d5ff;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin: 0.6rem 0;
+    font-family: monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .prompt-box strong { display: block; margin-bottom: 0.3rem; color: #3a4a8a; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .note { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+</style>
+
+<div class="tldr">
+  <p><strong>Decision:</strong> Use <strong>VS Code + GitHub Copilot Pro</strong> ($10/mo) if the audience already has Copilot — lowest friction, most familiarity. Switch to <strong>Cursor Pro</strong> ($20/mo) for the cleanest AI-native TDD loop and YOLO mode. For a zero-cost fallback: <strong>VS Code + Continue.dev or Cline + shared API key</strong>. Language: <strong>TypeScript + Vitest</strong> (fastest watch-mode feedback, zero TypeScript config). Infrastructure: <strong>GitHub Codespaces + <code>.devcontainer</code></strong> so participants click one button and have a working environment in 90 seconds.</p>
+</div>
+
+<div class="layer">
+  <h2>Layer 1 — AI Coding Assistant</h2>
+  <p>The AI tool is the centerpiece of every exercise. Five realistic options for an expert audience, ranked by workshop friction. Plan for a mix: 56% of enterprise developers use Copilot; 75% at small companies use Claude Code — your audience will have both.<sup><a href="https://newsletter.pragmaticengineer.com/p/ai-tooling-2026">[1]</a></sup></p>
+
+  <table>
+    <tr>
+      <th>Tool</th>
+      <th>Type</th>
+      <th>TDD-relevant features</th>
+      <th>Price</th>
+      <th>Workshop fit</th>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/features/copilot">GitHub Copilot</a></td>
+      <td>IDE extension (VS Code, JetBrains, Visual Studio)</td>
+      <td>
+        <code>/tests</code> command scaffolds suites from open file;<sup><a href="https://docs.github.com/en/copilot/tutorials/write-tests">[3]</a></sup>
+        custom TDD-red / TDD-green / TDD-refactor agents with automated handoffs;<sup><a href="https://code.visualstudio.com/docs/copilot/guides/test-driven-development-guide">[4]</a></sup>
+        detects existing test conventions (Jest describe/it, pytest fixtures, JUnit)
+      </td>
+      <td>Free (2k completions/mo) · Pro $10/mo · Pro+ $39/mo<sup><a href="https://github.com/features/copilot">[2]</a></sup></td>
+      <td class="win">Best default — most participants already have it</td>
+    </tr>
+    <tr>
+      <td><a href="https://cursor.com">Cursor</a></td>
+      <td>AI-native VS Code fork (imports VS Code extensions &amp; keybindings)</td>
+      <td>
+        Composer for multi-file edits; <strong>YOLO mode</strong> auto-runs tests, reads failures, and iterates without manual intervention;<sup><a href="https://engineering.monday.com/coding-with-cursor-heres-why-you-still-need-tdd/">[6]</a></sup>
+        <code>@file</code> references pin test files as specs
+      </td>
+      <td>Free (limited) · Pro $20/mo · Business $40/user/mo<sup><a href="https://www.nxcode.io/resources/news/cursor-ai-pricing-plans-guide-2026">[5]</a></sup></td>
+      <td>Best AI-native TDD loop; ≈30 min install overhead for non-users</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/continuedev/continue">Continue.dev</a> ⭐ 33.5k</td>
+      <td>Open-source VS Code / JetBrains agent (BYOM)</td>
+      <td>Bring-your-own model (Anthropic, OpenAI, Ollama local); shared config via version-controlled files — every participant gets identical AI behaviour out of the repo<sup><a href="https://github.com/continuedev/continue">[8]</a></sup></td>
+      <td class="win">Free (BYOK)</td>
+      <td>Best for "use your own model" segment; mild setup overhead for API keys</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/cline/cline">Cline</a> ⭐ 62.7k</td>
+      <td>Autonomous VS Code agent (BYOK)</td>
+      <td>Runs dev servers and test commands inside the terminal, reads failures, iterates across files; <strong>Plan Mode</strong> narrates intent before acting — useful for live demos<sup><a href="https://github.com/cline/cline">[9]</a></sup></td>
+      <td class="win">Free (BYOK)</td>
+      <td>High-impact demos; requires Claude/OpenAI API key per participant</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/aider-ai/aider">Aider</a> ⭐ 45.7k</td>
+      <td>Terminal agent (git-native, BYOK)</td>
+      <td>Writes tests → runs pytest/vitest → auto-commits on green; entire TDD loop visible as git history; no IDE required<sup><a href="https://github.com/aider-ai/aider">[10]</a></sup></td>
+      <td class="win">Free (BYOK)</td>
+      <td>Best for backend-only exercises or "show git as the TDD ledger" segment</td>
+    </tr>
+  </table>
+  <p class="note">→ Exercises must work with either Copilot or Cursor. Write prompts as plain text instructions, not tool-specific slash commands, so any agent can execute them.</p>
+</div>
+
+<div class="layer">
+  <h2>Layer 2 — Testing Framework</h2>
+
+  <table>
+    <tr>
+      <th>Language</th>
+      <th>Recommended</th>
+      <th>Alternative</th>
+      <th>Rationale</th>
+    </tr>
+    <tr>
+      <td>TypeScript / JS</td>
+      <td><a href="https://vitest.dev/">Vitest</a> ⭐ 16.6k<sup><a href="https://github.com/vitest-dev/vitest">[12]</a></sup></td>
+      <td><a href="https://jestjs.io/">Jest</a> ⭐ 45.4k for existing codebases<sup><a href="https://github.com/jestjs/jest">[13]</a></sup></td>
+      <td>2–5× faster cold start; watch-mode reruns in &lt;300ms vs Jest's 3–10s; native ESM; TypeScript zero-config via esbuild — participants spend time on TDD, not config.<sup><a href="https://reintech.io/blog/jest-vs-vitest-2026-testing-framework-comparison">[11]</a></sup> Jest-compatible API means AI tools output valid Vitest code without prompting.</td>
+    </tr>
+    <tr>
+      <td>Python</td>
+      <td>pytest + hypothesis</td>
+      <td>unittest</td>
+      <td>De facto standard; every major AI tool defaults to pytest idioms; hypothesis enables property-based testing demo in one exercise slot</td>
+    </tr>
+    <tr>
+      <td>Browser / E2E</td>
+      <td><a href="https://playwright.dev/">Playwright</a> ⭐ 90.1k<sup><a href="https://github.com/microsoft/playwright">[14]</a></sup></td>
+      <td>Cypress (JS only)</td>
+      <td>Multi-browser; AI copilots generate Playwright selectors natively; <code>codegen</code> command creates a test by recording clicks — good for "AI-generated E2E from user story" demo</td>
+    </tr>
+  </table>
+  <p class="note">→ Run the main exercises in TypeScript + Vitest. Offer a Python track if the audience skews backend-heavy. Avoid mixing languages mid-exercise — it dilutes the TDD-loop focus.</p>
+</div>
+
+<div class="layer">
+  <h2>Layer 3 — Workshop Infrastructure</h2>
+  <p>"Works on my machine" is the primary failure mode of virtual workshops. Use <strong>GitHub Codespaces</strong> backed by a <code>.devcontainer</code>: each participant clicks one button and has a running environment in ≈90 seconds; if it breaks, they delete and re-create in 2 minutes.<sup><a href="https://dasroot.net/posts/2026/03/remote-development-dev-containers-github-codespaces/">[15]</a></sup> This approach was validated at Simon Willison's NICAR 2026 coding-agents workshop, where YOLO-mode aliases were pre-wired into the container so participants skipped all permission dialogs.<sup><a href="https://simonw.github.io/nicar-2026-coding-agents/setup.html">[16]</a></sup></p>
+
+<div class="stack-box"><span class="comment">// .devcontainer/devcontainer.json — minimal workshop starter</span>
+{
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.copilot",           <span class="comment">// swap for Continue.continue if BYOK day</span>
+        "vitest.explorer",
+        "hbenl.vscode-test-explorer",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "vitest.enable": true,
+        "editor.formatOnSave": true
+      }
+    }
+  }
+}</div>
+
+  <p>Codespaces free tier covers 120 core-hours/month per GitHub account — enough for a 4-hour workshop for most individual participants. For Copilot, participants bring their own subscription; the extension authenticates automatically inside the container.</p>
+</div>
+
+<div class="layer">
+  <h2>Layer 4 — Optional Quality-Demo Tools</h2>
+  <p>Each of these fits a 5-minute slot that makes a high-signal point without needing to be part of every exercise:</p>
+
+  <table>
+    <tr>
+      <th>Tool</th>
+      <th>What it demonstrates</th>
+      <th>Cost</th>
+    </tr>
+    <tr>
+      <td><a href="https://www.qodo.ai/">Qodo</a> (formerly CodiumAI) — VS Code + JetBrains</td>
+      <td>AI generates behaviourally meaningful tests, not just coverage-padding ones; v2.0 multi-agent PR review scored 60.1% F1 (9 points ahead of next tool)<sup><a href="https://aicodereview.cc/blog/qodo-review/">[17]</a></sup></td>
+      <td>Free 250 credits/mo; Teams $30–38/user/mo<sup><a href="https://www.qodo.ai/pricing/">[18]</a></sup></td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/boxed/mutmut">mutmut</a> ⭐ 1.3k (Python mutation testing)</td>
+      <td>Runs <code>mutmut run</code> against AI-generated tests → reveals the "pass but miss bugs" problem concretely; makes visible why oracle-designed tests fail<sup><a href="https://codemanship.wordpress.com/2026/01/09/why-does-test-driven-development-work-so-well-in-ai-assisted-programming/">[19]</a></sup></td>
+      <td class="win">Free / open source</td>
+    </tr>
+    <tr>
+      <td>VS Code Copilot TDD Custom Agents</td>
+      <td>Three agents (TDD-red / TDD-green / TDD-refactor) wired as <code>.github/agents/</code> files with automated phase handoffs — shows how to codify the discipline into the project repo itself<sup><a href="https://code.visualstudio.com/docs/copilot/guides/test-driven-development-guide">[4]</a></sup></td>
+      <td class="win">Free (with any Copilot plan)</td>
+    </tr>
+  </table>
+</div>
+
+<div class="layer">
+  <h2>TDD Prompt Patterns — Put These on Exercise Sheets</h2>
+  <p>These two prompts prevent the most common AI failure mode: the model rewrites the failing test to pass rather than fixing the implementation.<sup><a href="https://rapidevelopers.com/cursor-tutorial/how-to-prompt-cursor-ai-for-test-driven-development-by-first-generating-test-outlines">[7]</a></sup></p>
+
+  <div class="prompt-box">
+    <strong>Phase 1 — Test authoring (Red)</strong>
+    Write ONLY test cases for [function name and spec]. DO NOT write any implementation code. The tests must fail when run right now. Commit when all tests are red.
+  </div>
+
+  <div class="prompt-box">
+    <strong>Phase 2 — Implementation (Green)</strong>
+    Write the implementation for [function name] that passes ALL tests in [test file]. DO NOT modify the test file. Write the minimal code that makes every test pass.
+  </div>
+
+  <p><strong>Two-session pattern:</strong> start a fresh chat between Phase 1 and Phase 2. This prevents the model from using the test-authoring context to "cheat" by writing an implementation before the red phase is committed. Git checkpoint after red is mandatory — it's the proof that tests were genuinely failing.<sup><a href="https://rapidevelopers.com/cursor-tutorial/how-to-prompt-cursor-ai-for-test-driven-development-by-first-generating-test-outlines">[7]</a></sup></p>
+
+  <p class="note">⚠ Verify tests are genuinely red before issuing the implementation prompt. Vacuously-passing tests (no assertion, <code>expect(true).toBe(true)</code>) make the entire exercise pointless and are a common AI mistake when the spec is underspecified.</p>
+</div>
