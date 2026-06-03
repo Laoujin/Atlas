@@ -11,6 +11,7 @@ summary: "Expert guide to authoring Agent Skills, MCP servers, and Claude Code p
 citations: 18
 reading_time_min: 9
 cover: cover.svg
+validation_error: "exit 2 at `jq -r .result "$RESULT_JSON"` — jq: error: Could not open file /home/runner/actions-runner/_work/Scout/Scout/atlas-checkout/research/2026-06-03-fourth-session-in-a-virtual-deep-dive-series-for-an-expert-developer-audience-1-2h-virtual-prior-sessions-1-ai-security/skill-mcp-plugin-authoring-craft/.scout-result.json: No such file or directory"
 ---
 
 > **TL;DR** Write a skill when you own the words (repeated instructions, project workflows); write an MCP server when you own the tools (external APIs, databases, filesystems); wrap both in a plugin when you need to ship. These are three different interface contracts — conflating them is the root cause of most authoring errors.
