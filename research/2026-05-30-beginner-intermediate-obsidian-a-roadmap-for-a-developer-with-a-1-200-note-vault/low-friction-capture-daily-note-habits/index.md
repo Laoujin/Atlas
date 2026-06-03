@@ -58,7 +58,7 @@ Do **not** install Periodic Notes [[3]](https://github.com/liamcain/obsidian-per
 Five lines. No more.
 
 ```markdown
-# {{date:dddd, MMMM Do YYYY}}
+# {% raw %}{{date:dddd, MMMM Do YYYY}}{% endraw %}
 
 ## Captures
 -
@@ -101,10 +101,10 @@ A minimal QuickAdd capture choice that appends a timestamped bullet to today's d
 
 | Setting          | Value                                  |
 | ---------------- | -------------------------------------- |
-| File name        | `Daily/{{DATE:YYYY-MM-DD}}.md`         |
+| File name        | `Daily/{% raw %}{{DATE:YYYY-MM-DD}}{% endraw %}.md`         |
 | Insert After     | `## Captures`                          |
 | Write to bottom  | ✓                                      |
-| Capture format   | `- {{DATE:HH:mm}} {{VALUE}}`           |
+| Capture format   | `- {% raw %}{{DATE:HH:mm}} {{VALUE}}{% endraw %}`           |
 
 Bind it to `Ctrl+Shift+N` (or whatever doesn't collide). One keystroke, type the line, Enter — the entry lands under today's `## Captures` heading with a timestamp.
 
