@@ -11,6 +11,8 @@ summary: "Six primitives, two transports, tool design patterns, tool-poisoning a
 citations: 19
 reading_time_min: 10
 cover: cover.svg
+cost_usd: 1.41
+duration_sec: 680
 ---
 
 > **TL;DR** Most "hello tool" tutorials show one of six MCP primitives on one of two transports. The expert path: design tools at workflow granularity (not API-copy), deploy the three client-side primitives (sampling, elicitation, roots) for genuine agent patterns [[4]](https://www.channel.tel/blog/mcp-sampling-elicitation-patterns-builders-skip), put OAuth 2.1 in from day one [[2]](https://workos.com/blog/everything-your-team-needs-to-know-about-mcp-in-2026), and treat every tool `description` field as a prompt-injection surface. [[11]](https://www.practical-devsecops.com/mcp-tool-poisoning/)
