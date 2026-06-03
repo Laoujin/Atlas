@@ -12,14 +12,14 @@ children:
   - slug: skill-mcp-plugin-authoring-craft
     title: "Skill / MCP / plugin authoring craft"
     depth: standard
-    status: error_with_content
+    status: success
     summary: "Expert guide to authoring Agent Skills, MCP servers, and Claude Code plugins: format specs, craft rules, security contracts, and the decision matrix between all three."
     citations: 18
     reading_time_min: 9
   - slug: operating-extensions-at-scale
     title: "Operating extensions at scale"
     depth: standard
-    status: error_with_content
+    status: success
     summary: "Token budget maths, skill routing mechanics, the six MCP primitives, headless CI patterns, and team rate-limit tables for expert developers operating Claude Code extensions at scale."
     citations: 18
     reading_time_min: 9
@@ -33,7 +33,7 @@ children:
   - slug: claude-agent-sdk-headless-agents
     title: "Claude Agent SDK & headless agents"
     depth: standard
-    status: error_with_content
+    status: success
     summary: "Complete technical reference: the query() API, claude -p headless mode, subagents, hooks, dynamic workflows, and the June 15 2026 billing separation—all from official docs."
     citations: 18
     reading_time_min: 8
@@ -41,6 +41,7 @@ cost_usd: 1.75
 duration_sec: 831
 citations: 73
 reading_time_min: 36
+model: "Sonnet 4.6"
 ---
 
 Four research threads converge on a single structural insight: **the `description` field is the universal interface contract** for every extension layer in Claude Code. It is the activation signal in `SKILL.md` [[1]](https://agentskills.io/specification), the tool-selection mechanism in MCP server schemas [[2]](https://modelcontextprotocol.io/specification/2025-11-25), and the dispatch signal for subagent auto-invocation in the Agent SDK [[3]](https://code.claude.com/docs/en/agent-sdk/subagents). Getting a description wrong is not a documentation problem — it is a routing failure that compounds across every session. The session should open here and make participants write one before the first break.

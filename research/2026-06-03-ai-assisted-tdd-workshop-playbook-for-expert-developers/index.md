@@ -41,6 +41,7 @@ cost_usd: 6.36
 duration_sec: 2564
 citations: 79
 reading_time_min: 25
+model: "Sonnet 4.6"
 ---
 
 The expedition landed on two facts that should be in the facilitator's opening frame, not buried in slides.

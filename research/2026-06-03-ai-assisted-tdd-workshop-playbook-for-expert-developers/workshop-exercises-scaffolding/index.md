@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 1.46
 duration_sec: 620
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** — Run 2–3 exercises, not ten. Expert developers disengage from trivially simple katas; start with a warm-up that calibrates the room (15 min), then move immediately to a realistic problem. The dominant scaffolding pattern: **failing tests pre-written, participants implement with AI** — this enforces TDD discipline without debating whether to write tests first. Use a Dev Container to eliminate environment setup as a time sink. [[1]](https://www.theregister.com/2026/02/20/from_agile_to_ai_anniversary/) [[2]](https://github.com/eficode/copilot-tdd-exercise)

@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 1.59
 duration_sec: 629
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** TDD is more critical with AI, not less. AI-authored PRs carry ~67% more defects than human ones, and LLM test generators are designed to pass rather than catch bugs. The winning pattern is test-first, spec-anchored prompting with an explicit "you may not modify the tests" constraint. For coding agents, skip the TDD procedure instructions — graph-based impact analysis (TDAD) cuts regressions 70%; adding procedural TDD text without that context makes things *worse*.
