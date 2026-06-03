@@ -34,6 +34,7 @@ cost_usd: 16.46
 duration_sec: 2150
 citations: 146
 reading_time_min: 22
+issue: 108
 ---
 
 The weekend has four hard pins: the dinner (picked separately), the time-locked exhibitions and shows, a small set of dates in late May–June 2026 to either chase or avoid, and one silent constraint — booking lead time — that ties everything else together.

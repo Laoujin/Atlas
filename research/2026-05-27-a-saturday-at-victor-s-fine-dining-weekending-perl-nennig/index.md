@@ -39,6 +39,7 @@ cost_usd: 16.06
 duration_sec: 1554
 citations: 117
 reading_time_min: 23
+issue: 82
 ---
 
 ## The booking-anchor

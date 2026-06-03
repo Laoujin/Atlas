@@ -34,6 +34,7 @@ cost_usd: 13.53
 duration_sec: 1191
 citations: 102
 reading_time_min: 18
+issue: 92
 ---
 
 Three sub-topics, one anchor question collapsed: **RE-NAA is the only Michelin 2-or-above restaurant in Stavanger** — it holds 3★ as of 2024 [[1]](https://business.edgeofnorway.com/news/re-naa-awarded-a-3rd-michelin-star), and the city has zero 2-star restaurants; the next 2-star in Norway is Kontrast in Oslo [[2]](https://www.visitnorway.com/things-to-do/food-and-drink/restaurants/here-are-the-norwegian-michelin-restaurants/). So the dinner picks itself. The non-trivial step is securing it: RE-NAA's 22-seat open-kitchen format books out far in advance [[3]](http://www.restaurantrenaa.no/), which makes the reservation — not the flight or the hike — the gating decision on which weekend the trip happens.

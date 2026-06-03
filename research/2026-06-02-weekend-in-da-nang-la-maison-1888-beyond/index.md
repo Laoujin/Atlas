@@ -34,6 +34,7 @@ cost_usd: 11.51
 duration_sec: 2133
 citations: 116
 reading_time_min: 23
+issue: 137
 ---
 
 The linchpin of this weekend is geography: [La Maison 1888](dinner-at-la-maison-1888-da-nang/) sits inside the InterContinental Danang Sun Peninsula Resort on Sơn Trà peninsula, 20–30 min from central Da Nang by road. That transfer isn't a problem — it's a scheduling constraint that actually simplifies Saturday's structure. You're heading to the peninsula in the late afternoon anyway; the natural move is to spend the preceding hours *on the peninsula* (wildlife spotting at Sơn Trà Nature Reserve, the Linh Ứng Pagoda viewpoint, or simply the resort pool) rather than scrambling back from another district. The [activities guide](things-to-do-in-and-around-da-nang/) maps this sequence in detail.

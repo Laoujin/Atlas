@@ -35,6 +35,7 @@ duration_sec: 1291
 citations: 80
 reading_time_min: 15
 model: "Sonnet 4.6"
+issue: 165
 ---
 
 The weekend has one structural dependency: the Michelin dinner. [Quique Dacosta](https://quiquedacosta.es/en/home/) (3★, Dénia) holds only 30 seats per service and sells out weeks ahead [[1]](https://en.quiquedacosta.es/ver/92/-frequently-asked-questions.html); [BonAmb](https://bonamb.com/en/) (2★, Jávea) runs dinner only Thu–Sat [[2]](https://bonamb.com/en/reservations/). Confirm the reservation before planning anything else — it gates the entire weekend.

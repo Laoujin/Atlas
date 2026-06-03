@@ -41,6 +41,7 @@ cost_usd: 15.49
 duration_sec: 2407
 citations: 113
 reading_time_min: 24
+issue: 88
 ---
 
 The dinner is the spine. Memories serves Wed–Sat from 19:00 in a single seating, pairings push the meal well past 22:30, and the kitchen closes around 21:30 [[1]](https://www.resortragaz.ch/en/rooms-suites/inclusive-services-2026) [[2]](https://guide.michelin.com/en/sankt-gallen-region/bad-ragaz/restaurant/memories) — so every other decision falls into place once you fix the night-of geometry: walk home, or accept a 5–25-minute taxi back to wherever you're sleeping.

@@ -34,6 +34,7 @@ cost_usd: 7.39
 duration_sec: 1665
 citations: 87
 reading_time_min: 18
+issue: 156
 ---
 
 **Booking sequence governs everything.** [La Pergola](https://romecavalieri.com/la-pergola/) — Rome's only 3-star — requires a 2–3 month runway for weekend tables [[1]](https://www.mightytravels.com/2025/04/inside-the-rome-cavalieris-la-pergola-a-deep-dive-into-romes-only-three-michelin-starred-restaurant/); the three 2-star options run roughly 4–8 weeks [[2]](https://www.romeing.it/michelin-starred-restaurants-rome/). Lock the restaurant first, then layer in the must-book sights in descending lead time: Colosseum (~30 days out [[3]](https://colosseum-rome.co/tickets-tours/colosseum-ticket-types/)), Galleria Borghese (mandatory 2-hour entry slots, 3–4 weeks out [[4]](https://visitrome.com/rome/travel-guides/tours-and-attractions/borghese-gallery-tickets-guide)), Vatican Museums (anytime, but closed Sundays except the mobbed free-entry last Sunday [[5]](https://www.museivaticani.va/content/museivaticani/en/info/orari-musei-vaticani.html)). Everything else — Pantheon, Trevi, Piazza Navona, neighbourhood wanders — can be sorted the week before.

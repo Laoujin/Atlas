@@ -41,6 +41,7 @@ cost_usd: 13.68
 duration_sec: 2079
 citations: 118
 reading_time_min: 20
+issue: 112
 ---
 
 **The booking sequence is the whole plan.** Both lodging surveys converge on the same first move: lock the table at La Marine (3 Rue Marie Lemonnier, L'Herbaudière, Wed–Sat dinner only, tasting menus €240–350) [[1]](https://guide.michelin.com/en/pays-de-la-loire/l-herbaudire/restaurant/la-marine3780), then in the same call ask about **Maison Moizeau** — Alexandre and Céline Couillon's own five-room guesthouse at no. 7 of the same street, €180–275 [[2]](https://www.alexandrecouillon.com/en/dream.html). One TripAdvisor reviewer puts it plainly: *"The hotel touches the 3-star Michelin restaurant 'la marine'"* [[3]](https://www.tripadvisor.com/Hotel_Review-g425088-d15237675-Reviews-La_Maison_Moizeau-Noirmoutier_en_l_Ile_Ile_de_Noirmoutier_Vendee_Pays_de_la_Loire.html). Five rooms against three-star demand means a lead time measured in months, not weeks — contact `contact@alexandrecouillon.com` / `+33 2 51 39 23 09` the day the table confirms [[4]](https://www.alexandrecouillon.com/en/). La Marine kept its three stars in the 2026 guide, so the calculus is stable [[5]](https://vendeeinfo.fr/03/17/guide-michelin-2026-le-restaurant-la-marine-a-noirmoutier-conserve-ses-trois-etoiles/16048).

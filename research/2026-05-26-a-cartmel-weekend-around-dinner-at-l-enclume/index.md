@@ -41,6 +41,7 @@ cost_usd: 15.64
 duration_sec: 2087
 citations: 135
 reading_time_min: 26
+issue: 77
 ---
 
 The L'Enclume room book is the master key. The Saturday table is the bottleneck — not the bed — and the easiest way to lock one in is to book one of L'Enclume's own 16 village rooms Tue-Sat, which bundles the dinner reservation and breakfast at Rogan & Co [[1]](https://www.lenclume.co.uk/stay) [[2]](https://www.lenclume.co.uk/our-rooms). The advertised DB&B Package is Tue-Fri only, so a Saturday booking is room + dinner billed separately [[3]](https://www.straysleepeat.com/blog/lenclume-cartmel). Pursue this first; everything else is a fallback.

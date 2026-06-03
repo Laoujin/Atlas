@@ -41,6 +41,7 @@ cost_usd: 27.93
 duration_sec: 2097
 citations: 128
 reading_time_min: 34
+issue: 46
 ---
 
 The four angles converge on one prescription: an amateur should add **three serves, not seven**, anchor them in the **forehand pendulum motion family**, and treat every serve as a launcher for the third-ball loop rather than a point-winner in itself [[1]](https://pingsunday.com/third-ball-attack-table-tennis/) [[2]](https://www.tabletenniscoaching.com/node/144). The shortlist — short pendulum with a same-motion backspin/no-spin pair, long fast no-spin to the elbow, and the short forehand tomahawk — is what the deception, tutorial, and drilling angles all happen to optimise for. That is not coincidence: the pair-from-one-motion is *also* deception lever #1 [[3]](https://www.tabletenniscoaching.com/node/27), and the tomahawk supplies the second motion family the receiver must read separately [[4]](https://www.experttabletennis.com/tomahawk-serve/).

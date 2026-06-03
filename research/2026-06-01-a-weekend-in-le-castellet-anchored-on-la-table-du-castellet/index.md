@@ -41,6 +41,7 @@ cost_usd: 19.04
 duration_sec: 3161
 citations: 143
 reading_time_min: 30
+issue: 113
 ---
 
 The four sub-topics converge on a single structural fact: **La Table du Castellet sits on an isolated 430 m plateau**, the same address as its host hotel, with **nothing else within 1 km on foot** [[1]](https://www.hotelducastellet.net/en/la-table-du-castellet.html). Everything downstream — where you sleep, what you do, when you can even come — descends from that geography and from the restaurant's narrow opening pattern: Wed–Sat dinner, Fri–Sun lunch [[2]](https://www.hotelducastellet.net/en/la-table-du-castellet.html). The four angles chain together in non-obvious ways.

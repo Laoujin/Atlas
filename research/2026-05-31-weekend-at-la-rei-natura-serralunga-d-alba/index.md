@@ -41,6 +41,7 @@ cost_usd: 21.33
 duration_sec: 3028
 citations: 182
 reading_time_min: 32
+issue: 121
 ---
 
 ## One constraint runs through everything

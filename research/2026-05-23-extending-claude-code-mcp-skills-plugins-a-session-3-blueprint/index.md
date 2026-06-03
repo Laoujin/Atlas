@@ -55,6 +55,7 @@ cost_usd: 11.19
 duration_sec: 2080
 citations: 85
 reading_time_min: 31
+issue: 57
 ---
 
 ## The through-line: composition, not selection

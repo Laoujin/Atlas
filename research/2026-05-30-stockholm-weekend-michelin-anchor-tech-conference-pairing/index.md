@@ -34,6 +34,7 @@ cost_usd: 13.34
 duration_sec: 1915
 citations: 107
 reading_time_min: 20
+issue: 90
 ---
 
 The binding constraint for this trip isn't taste — it's the calendar. Frantzén, the city's only ★★★, closes Saturday through Monday and only takes bookings on the 1st of the prior month at 10:00 local [[1]](https://www.restaurantfrantzen.com/). AIRA, the only operational ★★ after Aloë's indefinite pause following co-founder Daniel Höglander's death [[2]](https://www.mitti.se/nyheter/alo-pausar-restaurangen-efter-stjarnkockens-dod-6.3.270699.230ba21ea7), runs Tue–Sat dinner [[3]](https://aira.se/contact/). So a strict Sat–Sun "weekend" is AIRA-only; anything that includes Frantzén has to stretch to Wed–Sat or Thu–Sun. Every other choice — flights, conference day passes, which neighbourhood your hotel sits in — flows from picking one of those two windows.

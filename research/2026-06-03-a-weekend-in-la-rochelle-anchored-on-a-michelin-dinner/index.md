@@ -34,6 +34,7 @@ cost_usd: 6.75
 duration_sec: 1434
 citations: 79
 reading_time_min: 16
+issue: 151
 ---
 
 The dinner makes one decision for you: La Rochelle has exactly one restaurant at 2-star level or above in all of Charente-Maritime, and it is a 3-star [[1]](https://guide.michelin.com/us/en/nouvelle-aquitaine/la-rochelle/restaurants). [Christopher Coutanceau](https://christophercoutanceau.com/en/restaurant-coutanceau.html) sits in a floor-to-ceiling-windowed room on Plage de la Concurrence — ocean as both view and menu philosophy — with menus from €275 (7-course "Sea Voyage") to €340 (9-course) and optional wine pairings adding €90–130 [[2]](https://christophercoutanceau.com/en/restaurant-coutanceau.html). Weekend slots go weeks to months in advance [[3]](https://www.tripadvisor.com/Restaurant_Review-g187206-d797887-Reviews-Restaurant_Christopher_Coutanceau-La_Rochelle_Charente_Maritime_Nouvelle_Aquitaine.html). This reservation is the first thing to secure, not the last.

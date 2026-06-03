@@ -35,6 +35,7 @@ duration_sec: 1785
 citations: 91
 reading_time_min: 15
 model: "Sonnet 4.6"
+issue: 176
 ---
 
 The anchor decision is made for you: [JL Studio](https://jlstudiotw.com/) is Taichung's only 2-star-or-above restaurant — a 3-star, world's-first Singaporean-hawker-reinterpreted-through-French-technique tasting menu (NT$5,880/person, 9+ courses) in Nantun District, ranked #50 on Asia's 50 Best 2026 [[1]](https://www.theworlds50best.com/asia/en/the-list/jl-studio.html). **Book before anything else.** Weekend dinner seats are competitive; Saturday lunch (12:00–14:30) is the easiest slot to secure [[2]](https://jlstudiotw.com/reservation/). All seven of Taiwan's 2-star restaurants are in Taipei [[3]](https://www.taipeitimes.com/News/taiwan/archives/2025/08/20/2003842354) — there is no second-tier option to deliberate over.

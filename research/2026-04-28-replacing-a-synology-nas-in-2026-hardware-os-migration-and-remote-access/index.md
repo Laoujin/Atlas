@@ -41,6 +41,7 @@ cost_usd: 25.07
 duration_sec: 3024
 citations: 246
 reading_time_min: 38
+issue: 40
 ---
 
 The trigger across all four angles is the same: Synology's 2025-Plus drive lock-in pulled ServeTheHome's recommendation [[1]](https://www.servethehome.com/synology-lost-the-plot-with-hard-drive-locking-move/), and even though DSM 7.3 reversed the 3.5″ HDD restriction in October 2025, M.2 SSDs remain HCL-gated and the trajectory is what convinced operators to leave [[2]](https://nascompares.com/news/synology-reverse-the-hard-drive-policy-in-dsm-7-3-we-win/) [[3]](https://hostbor.com/synology-nas-blocks-hdd/).

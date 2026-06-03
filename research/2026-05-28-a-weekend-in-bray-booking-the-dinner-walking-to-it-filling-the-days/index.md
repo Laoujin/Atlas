@@ -41,6 +41,7 @@ cost_usd: 16.51
 duration_sec: 2062
 citations: 142
 reading_time_min: 22
+issue: 85
 ---
 
 A weekend in Bray is a constraint-satisfaction problem before it's a pleasure trip, and the four sub-pages all converge on the same load-bearing fact: the village is *tiny*. The Fat Duck, Hind's Head and Waterside Inn sit within ~200 m of each other on/near High Street [[1]](https://mapcarta.com/N60491186), which means the lodging answer is binary — inside that ring you walk to every starred kitchen, outside it you're in taxi country from 1.1 mi up [[2]](https://www.tripadvisor.com/HotelsNear-g528798-d1571626-The_Fat_Duck-Bray_on_Thames_Berkshire_England.html). That collapses the in-village options to three: [Bray Cottages](https://www.braycottages.com/) (cheapest, whole-cottage exclusivity, from £425) [[3]](http://www.braycottages.com/rates/), the [Waterside Inn](https://www.waterside-inn.co.uk/) itself (11 rooms, ~£790, and booking a room guarantees a dinner table) [[4]](https://www.aladyinlondon.com/2023/04/24-hours-bray-berkshire.html), and [Monkey Island Estate](https://www.monkeyislandestate.co.uk/) (41 rooms, ~£275, a 15-min walk via footbridge) [[5]](https://boardinggroup.one/review/hotels/monkey-island-estate-hotel-review/).

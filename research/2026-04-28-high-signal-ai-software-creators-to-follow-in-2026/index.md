@@ -48,6 +48,7 @@ cost_usd: 30.72
 duration_sec: 2097
 citations: 246
 reading_time_min: 41
+issue: 41
 ---
 
 The five-angle expedition produces a striking coincidence: a small set of voices dominates *every* category. [**Andrej Karpathy**](https://karpathy.ai/) [[1]](https://x.com/karpathy), [**Simon Willison**](https://simonwillison.net/) [[2]](https://simonwillison.net/), [**Sebastian Raschka**](https://magazine.sebastianraschka.com/) [[3]](https://magazine.sebastianraschka.com/archive), [**Nathan Lambert**](https://www.interconnects.ai/) [[4]](https://www.interconnects.ai/), [**Gergely Orosz**](https://newsletter.pragmaticengineer.com/) [[5]](https://newsletter.pragmaticengineer.com/), [**Ethan Mollick**](https://www.oneusefulthing.org/) [[6]](https://x.com/emollick) and [**swyx (Shawn Wang)**](https://www.latent.space/about) [[7]](https://www.latent.space/about) each appear in the long-form blog list, the YouTube/long-form-video list, the X follow list and the podcast list. When three independent curation runs converge on the same names, that *is* the signal — start there in whichever medium you actually consume.

@@ -41,6 +41,7 @@ cost_usd: 19.56
 duration_sec: 2547
 citations: 144
 reading_time_min: 24
+issue: 80
 ---
 
 The whole weekend collapses onto one fact both lodging sub-topics surface independently: **ES:SENZ sits inside Das Achental Resort at Mietenkamer Straße 65** [[1]](https://www.das-achental.com/en/es-senz.html). That makes the "walking distance, no driving after dinner" constraint trivial to solve: book the resort's **es:senz Dine & Sleep package (from €515 pp/night)** [[2]](https://www.das-achental.com/en/), which bundles the wine-paired tasting menu with the room and turns logistics into a 90-second walk. Every other lodging option in this expedition is a deliberate trade against that default — heritage character (Residenz Heinz Winkler 1405 [[3]](https://www.residenz-heinz-winkler.de/en/), Hotel Bonnschlössl 1477 [[4]](https://www.booking.com/hotel/de/bonnschloessl.html)), island isolation (Inselhotel zur Linde on Fraueninsel [[5]](http://www.linde-frauenchiemsee.de/impressum.html)), or self-catering value (Mietenkam Ferienwohnungen, ~€100–200/night for multi-night stays).

@@ -34,6 +34,7 @@ cost_usd: 15.99
 duration_sec: 2025
 citations: 150
 reading_time_min: 22
+issue: 95
 ---
 
 The brief framed dinner as the anchor — but the three angles together show the dinner anchor is *binding*, not decorative. Only two of the eight ★★/★★★ houses sit inside the central walking loop: Kong Hans Kælder in a 1420 cellar off Strøget and a|o|c in the basement of Moltkes Palæ near Kongens Nytorv [[1]](https://konghans.com/) [[2]](https://restaurantaoc.dk/en/about). Every other option pulls you to a specific neighbourhood for the evening, and the rational play is to let it pull your *afternoon* too: Alchemist or a future-bookable noma slot pair with a Refshaleøen day (Reffen street food, Copenhagen Contemporary, La Banchina) [[3]](https://en.wikipedia.org/wiki/Alchemist_(restaurant)) [[4]](https://reffen.dk/en/); Geranium or Koan pair with an Østerbro/Langelinie afternoon and a Juno cardamom bun [[5]](https://www.geranium.dk/) [[6]](https://www.koancph.dk/info); Jordnær forces a 20-min S-train hop to Gentofte and a quieter day [[7]](https://www.thelocal.dk/20240527/denmark-gets-third-three-star-michelin-restaurant). Pick the restaurant before you pick the neighbourhood map, not the other way around.

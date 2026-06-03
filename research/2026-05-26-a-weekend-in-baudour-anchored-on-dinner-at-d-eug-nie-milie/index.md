@@ -41,6 +41,7 @@ cost_usd: 16.92
 duration_sec: 2339
 citations: 145
 reading_time_min: 25
+issue: 65
 ---
 
 The weekend has one binding constraint and one absorber. The binding constraint is **Triple E**, the Fernez family's three-room inn on the square opposite the restaurant — the only bed in Baudour from which you walk home after wine [[1]](https://triple-e-hotel.be/). Three keys, one phone line shared with the restaurant office (065/61.31.70) [[2]](https://eugenie-emilie.be/informations-reservation): book dinner and room in a single call, or accept that "no walking distance" means a 3–13 km taxi. The restaurant reopened late February 2026 after a full dining-room and kitchen overhaul and is reportedly booked solid since [[3]](https://www.dhnet.be/lifestyle/2026/04/14/baudour-le-chef-eric-fernez-et-son-homologue-italien-anthony-giovanese-reunis-a-loccasion-de-momentum-organise-par-les-grandes-tables-du-monde-LX5YDSZWPRAOZAVEXTQVQZGOV4/), single seating 19:00–19:45 [[2]](https://eugenie-emilie.be/informations-reservation) — lead time is the variable that everything else moves around.

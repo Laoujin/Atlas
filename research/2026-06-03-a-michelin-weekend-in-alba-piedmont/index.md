@@ -34,6 +34,7 @@ cost_usd: 5.88
 duration_sec: 1081
 citations: 93
 reading_time_min: 19
+issue: 157
 ---
 
 Alba in early June sits in a calendar gap: the spring Vinitaly-satellite wine fairs close by early May, [[1]](https://www.winalist.com/blog/italy-wine-region/piedmont/best-towns-to-stay) Collisioni (Alba's AgriRock festival) opens 1 July, [[2]](https://www.guidatorino.com/eventi-torino/collisioni-2026/) and the International White Truffle Fair doesn't start until 10 October. [[3]](https://www.fieradeltartufo.org/en/calendar/) That makes early June the quieter, greener window — vineyard visits without tourist buses, cellar tastings without queues. [[4]](https://www.secretpiemonte.com/best-food-wine-festivals-piedmont-italy/)

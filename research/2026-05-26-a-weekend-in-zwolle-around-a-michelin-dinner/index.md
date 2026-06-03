@@ -34,6 +34,7 @@ cost_usd: 13.14
 duration_sec: 1627
 citations: 119
 reading_time_min: 16
+issue: 79
 ---
 
 The expedition resolves cleanly because the three sub-topics nest rather than compete: the restaurant choice fixes the geography, the calendar window fixes the festival overlay, and the tech sub-topic resolves a side question the brief implied but never asked.

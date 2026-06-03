@@ -34,6 +34,7 @@ cost_usd: 8.63
 duration_sec: 2039
 citations: 76
 reading_time_min: 14
+issue: 149
 ---
 
 The entire expedition collapses to one prior question: **which season?** Every other choice — restaurant, activity, pace — is downstream of it.

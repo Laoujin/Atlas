@@ -41,6 +41,7 @@ cost_usd: 19.18
 duration_sec: 2578
 citations: 145
 reading_time_min: 25
+issue: 110
 ---
 
 The whole trip pivots on one constraint: you cannot drive after dinner, and Fontjoncouse has ~127 residents [[1]](https://citypopulation.de/en/france/aude/narbonne/11152__fontjoncouse/) clustered on two streets. That puts the entire walking-distance bed budget at roughly 20 — 12 at [the Auberge itself](https://www.aubergeduvieuxpuits.fr/fr/chambres.html) (€310 Maison des Chefs annex to €490 Suite Terrasse) [[2]](https://www.aubergeduvieuxpuits.fr/fr/chambres.html), 3 at [Le Petit Clos](https://lepetitclos.net/chambres.html) (€94 with breakfast) [[3]](https://lepetitclos.net/chambres.html), 3 at adults-only [MaCoCo](https://www.maisoncoeurcorbieres.fr/) (€115) [[4]](https://www.maisoncoeurcorbieres.fr/), plus a weekly-rental gîte and one 4-person Airbnb. The two lodging sub-topics converge on the same shortlist; the only meaningful disagreement is whether the Auberge's in-village Maison des Chefs annex counts as walking distance — TripAdvisor regulars say its 5-minute dark stroll past the lavoir is "a bit too far for a post-dinner stroll" [[5]](https://www.tripadvisor.com/Hotel_Review-g674102-d481567-Reviews-Auberge_Du_Vieux_Puits-Fontjoncouse_Aude_Occitanie.html). Book months ahead or fall back to a taxi from Lézignan or Narbonne (€60–€185 round-trip at 2026 night tariffs) [[6]](https://prix-taxi.fr/departement-aude.html).

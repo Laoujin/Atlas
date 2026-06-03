@@ -34,6 +34,7 @@ cost_usd: 12.48
 duration_sec: 2326
 citations: 126
 reading_time_min: 21
+issue: 127
 ---
 
 The whole weekend orbits a booking sequence. [DiverXO](https://diverxo.com/en/home/) (3 stars, €450 prepaid) releases one new date per night at midnight, 90 days out [[1]](https://diverxo.com/en/reservations/) — that 12-week horizon is the outer planning edge; lock it before anything else. Two-star tables open 4–6 weeks ahead [[2]](https://restaurantsforkings.com/blog/best-regions/madrid-2026); one-stars at 3–4. The two hardest seats in the 2-star tier are not DiverXO clones: [Smoked Room](https://smokedroomrestaurants.com/en/madrid/) (14 seats, fire-omakase) drops on a monthly release only [[3]](https://smokedroomrestaurants.com/en/madrid/menus/), and [Ramón Freixa Atelier](https://ramonfreixaatelier.com/en) (10 seats, promoted to 2 stars five months after opening [[4]](https://www.gastronomistas.com/nuevas-estrellas-guia-michelin-espana-2026/)) is the buzziest new ticket in Madrid — both require faster action than their nominally shorter lead times suggest.

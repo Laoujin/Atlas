@@ -34,6 +34,7 @@ cost_usd: 7.46
 duration_sec: 1369
 citations: 117
 reading_time_min: 21
+issue: 178
 ---
 
 Dubai's five Michelin 2- and 3-star restaurants cluster into two corridors, and which you book defines where the rest of the weekend gravitates.

@@ -41,6 +41,7 @@ cost_usd: 18.14
 duration_sec: 2843
 citations: 139
 reading_time_min: 22
+issue: 69
 ---
 
 The weekend has one gate: Maison Colette's five upstairs guestrooms are sold *only* in combination with a dinner reservation, at €305 incl. breakfast, with check-in 16:00–18:00 [[1]](https://maison-colette.be/en/overnight-stay). Booking dinner *and* the room together resolves the brief in a single transaction — wine pairings without a drive home, the table secured, and the only on-square lodging at De Trannoyplein 17 [[2]](https://maison-colette.be/en/contact-us). Take that path first.

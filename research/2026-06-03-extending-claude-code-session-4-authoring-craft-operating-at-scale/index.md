@@ -42,6 +42,7 @@ duration_sec: 831
 citations: 73
 reading_time_min: 36
 model: "Sonnet 4.6"
+issue: 181
 ---
 
 Four research threads converge on a single structural insight: **the `description` field is the universal interface contract** for every extension layer in Claude Code. It is the activation signal in `SKILL.md` [[1]](https://agentskills.io/specification), the tool-selection mechanism in MCP server schemas [[2]](https://modelcontextprotocol.io/specification/2025-11-25), and the dispatch signal for subagent auto-invocation in the Agent SDK [[3]](https://code.claude.com/docs/en/agent-sdk/subagents). Getting a description wrong is not a documentation problem — it is a routing failure that compounds across every session. The session should open here and make participants write one before the first break.

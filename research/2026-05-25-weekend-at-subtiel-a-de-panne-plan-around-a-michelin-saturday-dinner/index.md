@@ -41,6 +41,7 @@ cost_usd: 19.00
 duration_sec: 2771
 citations: 141
 reading_time_min: 24
+issue: 73
 ---
 
 ## The shape of the weekend

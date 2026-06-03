@@ -27,6 +27,7 @@ cost_usd: 11.74
 duration_sec: 1618
 citations: 99
 reading_time_min: 20
+issue: 55
 ---
 
 The whole shape of this weekend comes from one mechanical fact: a 2-Michelin-star tasting menu plus the wine pairing [[1]](https://guide.michelin.com/en/be-luxembourg/our/restaurant/la-table-de-maxime) is not compatible with driving home. Solve that and everything else falls into place. The hamlet of Our holds roughly 24 rooms across four Maxime Collard-run properties [[2]](https://www.maximecollard.be/en/la-table-de-maxime/) [[3]](https://www.maximecollard.be/en/la-fabrique-du-pre-maho/) [[4]](https://www.lesterrassesdelour.be/); the six rooms directly above the restaurant (€240–260) are the only ones that turn dinner into a three-metre commute [[2]](https://www.maximecollard.be/en/la-table-de-maxime/), and they book by **phone** at +32 61 23 95 10, not via OTAs [[2]](https://www.maximecollard.be/en/la-table-de-maxime/) — so a 3–6 month lead time and a phone call belong in the trip plan ahead of any kayak slot. If Our is full, Le Moulin de Daverdisse 11 km out works as a spa-style fallback with pool and hammam [[5]](https://www.daverdisse.com/) at the cost of a 15-minute taxi to dinner.

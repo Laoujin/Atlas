@@ -41,6 +41,7 @@ cost_usd: 19.04
 duration_sec: 2560
 citations: 145
 reading_time_min: 23
+issue: 76
 ---
 
 The single load-bearing fact of this trip is geographic, not gastronomic. **Ma Langue Sourit's** postal address reads "1 rue de Remich, Moutfort," but the building actually sits at the **Éitermillen mill**, 1.4 km outside the village along the unlit CR132 [[1]](https://www.bergfex.com/sommer/luxemburg-region/touren/wanderung/4214228,eitermillen--moutfort--ma-langue-sourit/) — and Moutfort itself has **zero hotels, B&Bs, or guesthouses** on any major inventory [[2]](https://www.tripadvisor.com/Hotels-g1049422-Moutfort-Hotels.html). The "walking distance after dinner" constraint therefore forces a binary: a small handful of [Moutfort/Oetrange Airbnbs](walking-distance-lodging-at-or-near-ma-langue-sourit/) [[3]](https://www.airbnb.com/moutfort-contern-luxembourg/stays), or accept a taxi. There is no third option.

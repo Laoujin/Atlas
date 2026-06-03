@@ -41,6 +41,7 @@ cost_usd: 9.52
 duration_sec: 2377
 citations: 113
 reading_time_min: 20
+issue: 179
 ---
 
 The booking cascade determines everything else. The French Laundry's reservations open at midnight 60 days before service on [exploretock.com](https://www.exploretock.com/thefrenchlaundry) [[1]](https://www.exploretock.com/thefrenchlaundry) and fill within minutes; that slot is the weekend's foundation, not a detail to arrange later. Once secured: lock the hotel the same day (Yountville's walkable properties track the same demand curve); book wineries 2–4 weeks out; [[2]](https://jessupcellars.com/napa-valley-wine-tasting-cost/) consider any conference attendance last.

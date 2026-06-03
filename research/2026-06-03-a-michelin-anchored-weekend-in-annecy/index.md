@@ -34,6 +34,7 @@ cost_usd: 6.71
 duration_sec: 1557
 citations: 84
 reading_time_min: 15
+issue: 150
 ---
 
 Three research angles converge on a single practical constraint: **pick the restaurant first, then build the weekend around its closed days**.

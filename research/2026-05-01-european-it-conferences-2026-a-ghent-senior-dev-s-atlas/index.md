@@ -41,6 +41,7 @@ cost_usd: 12.25
 duration_sec: 2042
 citations: 128
 reading_time_min: 27
+issue: 53
 ---
 
 The four sub-reports converge on a single, almost embarrassing fact for a Ghent-based senior dev: the densest concentration of 2026 flagships happens within an hour of home. Antwerp alone hosts **Techorama Belgium** (May 11-13) [[1]](https://techorama.be/), **DDD Europe** (Jun 8-12) [[2]](https://2026.dddeurope.com/), and **Devoxx Belgium** (Oct 5-9) [[3]](https://devoxx.be/) — covering .NET, architecture, and the Java/AI generalist circuit respectively. Brussels adds **FOSDEM** (Jan 31-Feb 1) for free [[4]](https://fosdem.org/2026/). The "short flight or train" filter barely needs to be applied; staying local already buys three of the strongest events on the European calendar.

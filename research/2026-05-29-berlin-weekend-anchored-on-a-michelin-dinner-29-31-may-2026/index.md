@@ -34,6 +34,7 @@ cost_usd: 14.19
 duration_sec: 2028
 citations: 132
 reading_time_min: 18
+issue: 105
 ---
 
 The three angles snap together around one constraint: **the restaurant pick decides which neighbourhood Saturday lives in**, and the 29–31 May 2026 window (Fri–Sun) narrows the field harder than the Michelin list suggests.

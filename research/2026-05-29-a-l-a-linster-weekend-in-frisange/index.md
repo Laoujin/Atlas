@@ -41,6 +41,7 @@ cost_usd: 17.61
 duration_sec: 2210
 citations: 155
 reading_time_min: 25
+issue: 75
 ---
 
 The dinner is the constraint, and it's a sharp one. Louis Linster's two-star tasting menu at [17 route de Luxembourg, Frisange](https://guide.michelin.com/us/en/luxembourg/frisange/restaurant/lea-linster) runs into the night, well past the last bus back to Mondorf [[bus]](https://www.rome2rio.com/s/Mondorf-les-Bains/Frisange). "No driving after dinner" therefore collapses to two real choices: stay in walking distance, or pre-book a Webtaxi (€3 base + €4.30/km, +10 % after 22:00 — a 20 km ride lands near €90) [[taxi]](https://www.webtaxi.lu/en/fares.html).

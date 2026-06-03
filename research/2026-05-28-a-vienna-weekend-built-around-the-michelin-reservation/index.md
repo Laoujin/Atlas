@@ -34,6 +34,7 @@ cost_usd: 16.73
 duration_sec: 2128
 citations: 152
 reading_time_min: 26
+issue: 98
 ---
 
 The Michelin reservation is the only fixed pin; everything else builds around it. The first cross-cutting decision is **which night** the tasting menu falls, because the six Vienna restaurants holding ≥2 stars in 2026 are heavily skewed against weekend service: only **Amador (★★★)** and **Doubek (★★)** take a Saturday seating — Steirereck, Konstantin Filippou, Mraz & Sohn and Silvio Nickol close weekends or run weekdays only [[1]](https://www.wien.info/en/dine-drink/restaurants/luxury-restaurants-351340). A "Vienna weekend" anchored on the other four is really a long-weekend with a Thursday or Friday dinner — book the flight to match.

@@ -34,6 +34,7 @@ cost_usd: 8.58
 duration_sec: 2047
 citations: 89
 reading_time_min: 17
+issue: 186
 ---
 
 The booking bottleneck shapes everything. Ru Yuan (如院) — Asia's 50 Best 2026 #10 [[1]](https://www.theworlds50best.com/asia/en/the-list/Ru-Yuan.html), eight tables in a pinewood sanctuary inside the Botanical Garden, four decades of Southern Song court cooking channeled through chef Fu Yueliang [[2]](https://medium.com/@JohannesPong/hangzhous-2-michelin-star-ru-yuan-is-a-restaurant-unlike-any-other-953f1e98eec1) — opens next-month reservations on the 1st of each month and they're gone in minutes [[3]](https://www.enprimeurclub.com/restaurants/ru-yuan-hangzhou-restaurant). Plan the entire weekend *after* that slot is secured. If it doesn't land, Jie Xiang Lou (解香楼) is not a consolation: promoted to 2-star in 2026 and led by inaugural Michelin Mentor Chef Award winner Bin Yu [[4]](https://www.ehangzhou.gov.cn/2026-04/13/c_297325.htm), its 13 private rooms in a bamboo-forest hillside resort offer a different but equally deliberate experience [[5]](https://hedonisthk.blogspot.com/2025/04/jie-xiang-lou-seven-villas-hangzhou-west-lake-china-michelin-star-black-pearl-two-diamond-amazing-modern-jiangnan-cuisine-at-the-very-best.html).

@@ -34,6 +34,7 @@ cost_usd: 12.65
 duration_sec: 2106
 citations: 144
 reading_time_min: 23
+issue: 136
 ---
 
 **The decision that unlocks the itinerary** is which of Hanoi's three 1★ Michelin restaurants you book for Saturday evening [[1]](https://guide.michelin.com/us/en/article/michelin-guide-ceremony/michelin-guide-vietnam-2025). The three span a 13× price range and three entirely different experiences: Gia's 12-course modern-Vietnamese tasting (~$130/person) [[2]](https://www.gia-hanoi.com/menu) is the flagship experience and this expedition's default anchor; Hibana by Koki offers Japanese teppanyaki at the Capella hotel for $60–110 at a 14-seat counter [[3]](https://guide.michelin.com/us/en/ha-noi/ha-noi_2974158/restaurant/hibana-by-koki) — paradoxically the most exclusive (hardest to get) and least expensive of the three starred options; Tầm Vị serves traditional Northern Vietnamese à la carte in an antique villa at $10–20/person [[4]](https://www.tripadvisor.com/Restaurant_Review-g293924-d17631911-Reviews-Tam_Vi-Hanoi.html), making it the only option where a second starred meal on Friday or Sunday costs nothing painful.

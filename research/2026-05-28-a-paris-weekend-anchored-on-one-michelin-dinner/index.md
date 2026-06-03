@@ -34,6 +34,7 @@ cost_usd: 19.14
 duration_sec: 3302
 citations: 172
 reading_time_min: 24
+issue: 93
 ---
 
 The three angles share one geometry: the Michelin dinner is the fixed point and the rest of the weekend gets timed around it. That coupling produces consequences none of the individual sub-topics surfaces alone.

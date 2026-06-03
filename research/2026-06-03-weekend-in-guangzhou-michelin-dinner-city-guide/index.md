@@ -34,6 +34,7 @@ cost_usd: 9.30
 duration_sec: 2024
 citations: 98
 reading_time_min: 19
+issue: 184
 ---
 
 Three research threads converge on one practical decision tree: pick a restaurant, pick a date, then build the daylight hours around both.

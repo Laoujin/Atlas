@@ -34,6 +34,7 @@ cost_usd: 7.25
 duration_sec: 1517
 citations: 87
 reading_time_min: 17
+issue: 158
 ---
 
 Senigallia is unusual among Italian beach towns: 13 km of fine sand classified Blue Flag since 1997 [[1]](https://www.feelsenigallia.it/en/sea-and-beach/), and five Michelin stars split across two restaurants in the same stretch of coastline [[2]](https://www.senigallianotizie.it/1327644248/guida-michelin-2026-senigallia-conferma-le-sue-5-stelle-ma-perde-un-bib-gourmand). The beach day happens regardless of which restaurant you book — but the restaurant choice shapes the rest of the weekend more than it first appears.

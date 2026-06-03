@@ -41,6 +41,7 @@ cost_usd: 18.84
 duration_sec: 2686
 citations: 146
 reading_time_min: 22
+issue: 118
 ---
 
 The four angles converge on a single booking order: **table first, bed second, calendar third, activities last.** Atelier Moessmer Norbert Niederkofler — 3 Michelin stars plus the Green Star [[1]](https://guide.michelin.com/us/en/trentino-alto-adige/brunico/restaurant/atelier-moessmer-norbert-niederkofler), No. 20 on The World's 50 Best 2025 [[2]](https://www.theworlds50best.com/the-list/atelier-moessmer-norbert-niederkofler.html) — opens its restaurant-only villa on Saturdays at lunch 12:15 and the same evening, with no on-site rooms [[3]](https://www.bruneck.com/en/info/atelier-moessmer-norbert-niederkofler_72384), so the Saturday-night seat is what every other choice rotates around.

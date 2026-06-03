@@ -34,6 +34,7 @@ cost_usd: 11.88
 duration_sec: 1328
 citations: 112
 reading_time_min: 19
+issue: 143
 ---
 
 The restaurant reservation is the critical path. All three 3-star restaurants need 3–6 months' lead time for a Saturday seat [[1]](https://myconciergejapan.com/restaurants/hajime/) — secure that before flights, hotels, or activities are finalised.

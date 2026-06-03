@@ -34,6 +34,7 @@ cost_usd: 7.69
 duration_sec: 1563
 citations: 89
 reading_time_min: 16
+issue: 152
 ---
 
 The dining picture is clear: **Flocons de Sel** (3★, Emmanuel Renaut, ~€310/person) is Megève's only restaurant above one star, and it reopens on **5 June** [[1]](https://emmanuelrenaut.com/en/la-table-gastronomique-en/) — exactly when a first-of-June weekend lands. Book immediately; it fills weeks in advance [[2]](https://www.floconsdesel.com/en/fine-dining/gourmet-table.html). **Vous** (1★, €140–190, year-round) is the sound fallback if Flocons de Sel is full [[3]](https://www.juliengatillon.fr/en/vous-en/), and significantly easier to get into — 14-seat counter, single sitting per service, awarded its first star in 2025.

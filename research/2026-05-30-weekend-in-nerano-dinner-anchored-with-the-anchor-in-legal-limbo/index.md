@@ -41,6 +41,7 @@ cost_usd: 9.94
 duration_sec: 1808
 citations: 146
 reading_time_min: 30
+issue: 123
 ---
 
 The premise of this expedition — Saturday-evening dinner at Quattro Passi, lodging within a walk of it, activities radiating ~30 km out — has a major fault. The whole tourist-accommodation complex was seized in January 2026 over building-permit issues [[1]](https://en.cronachedellacampania.it/2026/01/sequestrato-ristorante-quattro-passi-di-nerano/), and the Mellino family confirmed on 18 May 2026 that the restaurant will not reopen for the 2026 season; the merits hearing is October 2026 [[2]](https://www.italiaatavola.net/attualita-mercato/2026/5/18/quattro-passi-salta-stagione-2026-niente-riapertura-ristorante-tre-stelle/119254/). The walking-lodging child surfaced this and rebuilt around it; the special-character lodging child did not, and reads throughout as if the 2-star were still operating — treat its dinner-anchored framing as written before the 18 May announcement, and verify everything booking-side. The 7-room Quattro Passi Relais next door still shows 2026 availability on Booking but is part of the same seized complex; get written confirmation that your dates will be honoured before paying [[3]](https://www.booking.com/hotel/it/quattro-passi-relais.html).

@@ -34,6 +34,7 @@ cost_usd: 14.11
 duration_sec: 2215
 citations: 148
 reading_time_min: 25
+issue: 94
 ---
 
 The weekend hangs together cleanly because three separate decisions — *when* to come, *what* to do during the day, *where* to dine — share the same pressure points: a thin Michelin top end, day-of-week closures, and Motor Valley.

@@ -41,6 +41,7 @@ cost_usd: 11.59
 duration_sec: 2501
 citations: 122
 reading_time_min: 24
+issue: 138
 ---
 
 The central planning constraint is geographic: [PRU](https://trisara.com/dining/pru/) sits inside Trisara resort in Cherngtalay (northern Phuket), so accommodation is a drive-time question first and a preference question second. The lodging research ranked four viable zones — Trisara on-site (from $680/night [[1]](https://trisara.com/offer/extend-your-escape-in-a-private-pool-villas-suites/)), Bang Tao (~6 min, from $261 [[2]](https://www.kayak.com/Choeng-Thale-Hotels-Anantara-Layan-Phuket-Resort.2019209.ksp)), Surin/Pansea (~18 min, from $147 [[3]](https://twinpalmssurinphuket.beachresort.net/)), Kamala (~30 min, from $217 [[4]](https://www.kayak.com/Phuket-City-Hotels-InterContinental-Phuket-Resort-SHA-Plus-.901365.ksp)) — with Patong eliminated at 40 min and an incompatible atmosphere [[5]](https://www.phuket101.net/trisara-phuket/). June wet season drops rates 30–50% below peak [[6]](https://www.kayak.com/Choeng-Thale-Hotels-Banyan-Tree-Phuket.689694.ksp), which makes Trisara itself or Anantara Layan accessible at prices their headlines don't advertise.

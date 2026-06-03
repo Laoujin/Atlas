@@ -33,6 +33,7 @@ cost_usd: 19.47
 duration_sec: 3062
 citations: 138
 reading_time_min: 25
+issue: 63
 ---
 
 The non-negotiable is the anchor itself: [Cuchara](https://cuchara.be/restaurant/) at Lepelstraat 3 — Jan Tournier's two-Michelin-star kitchen in a pedestrian street one block off Hertog Janplein, serving Tue–Sat with arrivals at 18:30 or 19:00 [[1]](https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara) [[2]](https://cuchara.be/restaurant/). A tasting menu plus pairings finishes around 22:30–23:30, which is why "walking distance" is a hard constraint and not a preference.

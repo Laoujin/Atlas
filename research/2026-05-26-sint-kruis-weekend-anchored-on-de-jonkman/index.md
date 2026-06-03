@@ -41,6 +41,7 @@ cost_usd: 17.23
 duration_sec: 2420
 citations: 129
 reading_time_min: 25
+issue: 66
 ---
 
 The trip's only fixed point is dinner: [De Jonkman](https://dejonkman.be/en/) serves Saturday 19:00–20:30 [[1]](https://dejonkman.be/en/contact), Filip Claeys' 2-Michelin-star kitchen (Gault&Millau 18/20) in the former hunting lodge of Male Castle [[2]](https://guide.michelin.com/us/en/west-vlaanderen/sint-kruis/restaurant/de-jonkman). A tasting-menu evening realistically lands you back at the door around 22:30. The closed days (Sun/Mon/Tue) make Saturday the natural anchor [[1]](https://dejonkman.be/en/contact). Everything else flexes around that.

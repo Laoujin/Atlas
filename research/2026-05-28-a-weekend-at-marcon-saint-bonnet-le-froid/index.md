@@ -41,6 +41,7 @@ cost_usd: 17.37
 duration_sec: 3093
 citations: 124
 reading_time_min: 25
+issue: 100
 ---
 
 The weekend cleanly halves into two questions — *where do you sleep* and *what do you do between checkout and tasting menu* — both pinned to a single 3-Michelin reservation. Across all four sub-topics, one fact dominates: **the bottleneck is the hotel, not the table.** The 4★ Hôtel Régis & Jacques Marcon has ten keys on a six-month rolling window that opens the 1st of each month at 10h00 [[1]](https://boutique.lesmaisonsmarcon.fr/saint-bonnet-le-froid/40-chambre-suite-luxe-1-ou-2-personnes.html), so the room has to be locked in before the dinner. The dinner mechanics themselves — tasting-menu price, wine-pairing cost, exact end time, dress code, whether the booking flow bundles a room — were not verified in this run despite being framed as the trip's anchor; treat them as the open call to make.

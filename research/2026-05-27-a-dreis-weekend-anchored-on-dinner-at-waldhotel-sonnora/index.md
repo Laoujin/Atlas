@@ -39,6 +39,7 @@ cost_usd: 15.79
 duration_sec: 2105
 citations: 135
 reading_time_min: 19
+issue: 83
 ---
 
 The walkable-lodging question — the trip's hardest constraint — was only partially answered: the dedicated walking-distance child failed (`run.sh exit 1`), but the taxi-range sub-topic incidentally resolves it. Dreis has exactly one hotel, and that hotel *is* Waldhotel Sonnora itself, rated #1 of 1 in the village on Tripadvisor [[1]](https://www.tripadvisor.com/Hotel_Review-g20304189-d1812361-Reviews-Waldhotel_Sonnora-Dreis_Rhineland_Palatinate.html). The dining room and the 20 rooms above it share one tiny inventory and one phone call — Tripadvisor reviewers and the property's own positioning both warn that "rooms exist mostly to serve the restaurant's guests" [[2]](https://www.travelsforstars.com/blog/2024/12/05/waldhotel-sonnora-dreis), and the gourmet breakfast is part of the three-star ritual [[3]](https://hotel-sonnora.de/en/hotel-en/). Standard renovated doubles run ~€268, the Heritage Suite €315, the 90 m² Forest Suite €595 [[4]](https://hotel-sonnora.de/en/hotel-en/forest-suite/). Lead time should be measured in months, not weeks. Book table and room in the same call.

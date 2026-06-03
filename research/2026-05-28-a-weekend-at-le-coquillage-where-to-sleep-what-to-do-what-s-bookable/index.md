@@ -41,6 +41,7 @@ cost_usd: 17.52
 duration_sec: 2541
 citations: 131
 reading_time_min: 28
+issue: 101
 ---
 
 The Saturday-evening reservation at [Le Coquillage](https://www.maisons-de-bricourt.com/en/page/le-coquillage) is not just the social anchor — it is the geographic one. Hugo Roellinger's kitchen sits on the ground floor of Château Richeux on the D155 between Cancale and Mont-Saint-Michel; service runs to about 23h30 and the closest streetlight is several hundred metres away [[1]](https://www.ille-et-vilaine-tourisme.bzh/sejourner/restaurants/le-coquillage-saint-meloir-des-ondes-fr-2726069/). That one fact forks the rest of the weekend into a single binary choice — sleep where you eat, or budget for a return taxi.

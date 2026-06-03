@@ -48,6 +48,7 @@ cost_usd: 17.20
 duration_sec: 2633
 citations: 121
 reading_time_min: 38
+issue: 109
 ---
 
 The expedition's five chapters cluster around one cross-cutting decision: **what to do first when the scaffolding already exists but has never been used.** All five recommend "habit before system," but their individual adoption orders differ — and for a 1,200-note vault with unused templates and `.base` files, that order needs reshuffling.

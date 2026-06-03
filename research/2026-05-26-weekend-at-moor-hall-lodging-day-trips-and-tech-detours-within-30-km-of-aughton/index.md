@@ -41,6 +41,7 @@ cost_usd: 18.01
 duration_sec: 2852
 citations: 143
 reading_time_min: 25
+issue: 78
 ---
 
 The weekend pivots on one fact: Moor Hall is a rural manor on a five-acre plot off Prescot Road, Aughton L39 6RT [[1]](https://moorhall.com/moor-hall/about/), and only its own 14 bedrooms — Gatehouse from £275, Main House £300–£425, Koto Garden Rooms £450–£500 B&B [[2]](https://moorhall.com/rooms) — are a true walk from the table. The "next-closest" hotels (West Tower 1.4 mi, Birches Brow 1.6 mi) are along unlit country lanes; treat them as a £4.50 taxi, not a stroll [[3]](https://www.tripadvisor.com/Hotel_Review-g3213860-d10823614-Reviews-Birches_Brow_Boutique_Guestrooms-Aughton_Ormskirk_Lancashire_England.html). The two lodging angles agree on the ranking and disagree only on framing: book Moor Hall first; if it's full or out of budget, Birches Brow is the closest non-Moor-Hall option, [Briars Hall](https://briarshallhotel.co.uk/) (1745 manor, 4.3 mi, from ~£99 [[4]](https://www.kayak.co.uk/Ormskirk-Hotels-Briars-Hall-Hotel.610751.ksp)) is the sleeper value, and [The Secret Garden Glamping](https://thesecretgardenglamping.uk/) (4.5 mi) is the wild card if you'd rather walk out of a hot-tub yurt at breakfast [[5]](https://www.tripadvisor.co.uk/HotelsNear-g3213860-d12388578-Moor_Hall_Restaurant_With_Rooms-Aughton_Ormskirk_Lancashire_England.html).

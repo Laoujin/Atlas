@@ -41,6 +41,7 @@ cost_usd: 18.51
 duration_sec: 2401
 citations: 174
 reading_time_min: 32
+issue: 70
 ---
 
 The four sub-topics converge on one structural fact: Nuance occupies a 42-cover former bank on a residential side street in a 17,000-person commuter village [[1]](https://guide.michelin.com/en/antwerpen/duffel/restaurant/nuance), and that village has zero hotels in its municipality [[2]](https://www.a-hotel.com/belgium/49251-duffel/). Every recommendation in this expedition is downstream of that one constraint — and the restaurant has already solved it: an in-house partnership with **Taxi Symforosa** carries diners to and from four officially listed Mechelen and Antwerp hotels [[3]](https://resto-nuance.be/en/recommended-hotels-transport/).

@@ -48,6 +48,7 @@ cost_usd: 0.39
 duration_sec: 89
 citations: 155
 reading_time_min: 38
+issue: 26
 ---
 
 The five angles below converge on a single meta-insight: **the gift's format matters more than its category**. A commissioned jewellery piece from [Saskia Shutt](belgian-eu-artisan-studios-for-one-off-objects/) (Brussels, ~6 weeks, Fairmined gold, [saskiashutt.com](https://saskiashutt.com/jewellery-commissions-brussels/)) and a [StoryWorth](personalised-published-artefacts-that-aren-t-trinkets/) memoir book ($59–$199, [help.storyworth.com](https://help.storyworth.com/en_US/book-pricing)) have nothing in common as objects — but both pass the same filter: they contain content that could only exist for this person. The "personalised mug" tier fails that test; everything below passes it.
