@@ -1,0 +1,756 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Agent Harness Toolkit Showdown: 2026 — Dashboard"
+---
+<style>
+  :root {
+    --bg:      #07101d;
+    --surface: #0e1a2e;
+    --card:    #162035;
+    --border:  #213050;
+    --border2: #2d4268;
+    --text:    #d4e0f5;
+    --dim:     #546a8c;
+    --dim2:    #7a93b8;
+    --cyan:    #00c9e4;
+    --green:   #1de9b6;
+    --amber:   #ffab40;
+    --red:     #f45b69;
+    --purple:  #b388ff;
+    --blue:    #5c9cf5;
+    --mono: "JetBrains Mono", "Fira Code", ui-monospace, "Cascadia Code", monospace;
+    --sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .bc { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+
+  /* ── TOPBAR ── */
+  .bc-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 28px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .bc-topbar-left .t1 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--cyan);
+  }
+  .bc-topbar-left .t2 {
+    font-family: var(--mono); font-size: 10px; color: var(--dim2);
+    letter-spacing: .07em; margin-top: 2px;
+  }
+  .live-pill {
+    display: flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    color: var(--green); text-transform: uppercase;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); animation: ldot 1.8s ease-in-out infinite;
+  }
+  @keyframes ldot { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+  /* ── BODY ── */
+  .bc-body { max-width: 1140px; margin: 0 auto; padding: 36px 28px 60px; }
+
+  /* ── KPI ROW ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 44px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: 3px solid var(--cyan); padding: 22px 18px 18px; text-align: center;
+  }
+  .kpi.a { border-top-color: var(--purple); }
+  .kpi.w { border-top-color: var(--amber); }
+  .kpi.d { border-top-color: var(--red); }
+  .kpi-n {
+    font-family: var(--mono); font-size: 46px; font-weight: 700;
+    color: var(--cyan); line-height: 1; margin-bottom: 7px;
+  }
+  .kpi.a .kpi-n { color: var(--purple); }
+  .kpi.w .kpi-n { color: var(--amber); }
+  .kpi.d .kpi-n { color: var(--red); }
+  .kpi-l { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim2); }
+  .kpi-s { font-size: 11px; color: var(--dim); margin-top: 5px; }
+
+  /* ── SECTION DIVIDER ── */
+  .sec {
+    display: flex; align-items: center; gap: 14px;
+    margin: 44px 0 20px;
+  }
+  .sec-l { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim2); white-space: nowrap; }
+  .sec-r { flex: 1; height: 1px; background: var(--border); }
+  .sec-tag { font-family: var(--mono); font-size: 9px; color: var(--dim); white-space: nowrap; }
+
+  /* ── SPREAD VISUAL ── */
+  .spread-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 28px 28px 24px; margin-bottom: 8px;
+  }
+  .spread-kicker {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--dim2); margin-bottom: 10px;
+  }
+  .spread-claim {
+    font-size: 18px; font-weight: 600; color: var(--text);
+    margin-bottom: 28px; line-height: 1.45;
+  }
+  .spread-claim em { font-style: normal; color: var(--cyan); font-family: var(--mono); }
+
+  /* bar track */
+  .strack { position: relative; height: 96px; margin: 0 0 16px; }
+  .sbar-bg {
+    position: absolute; top: 46px; left: 0; right: 0;
+    height: 5px; background: rgba(255,255,255,.08); border-radius: 3px;
+  }
+  .sbar-active {
+    position: absolute; top: 46px; left: 44.8%; width: 29.8%;
+    height: 5px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--red) 0%, var(--amber) 45%, var(--green) 100%);
+    box-shadow: 0 0 12px rgba(29,233,182,.25);
+  }
+  /* gap label over active zone */
+  .sbar-gap {
+    position: absolute; top: 28px; left: 44.8%; width: 29.8%;
+    text-align: center; font-family: var(--mono); font-size: 12px;
+    font-weight: 700; color: var(--cyan); letter-spacing: .08em; pointer-events: none;
+  }
+  .sbar-gap::before, .sbar-gap::after {
+    content: ''; position: absolute; top: 50%; width: 6px; height: 6px;
+    border-top: 1.5px solid var(--cyan); transform: translateY(-50%);
+  }
+  .sbar-gap::before { left: 2px; border-left: 1.5px solid var(--cyan); transform: translateY(-50%) rotate(-45deg); }
+  .sbar-gap::after  { right: 2px; border-right: 1.5px solid var(--cyan); transform: translateY(-50%) rotate(45deg); }
+
+  /* markers */
+  .smark {
+    position: absolute; top: 0; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .smark-name {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--dim2); white-space: nowrap;
+    height: 38px; display: flex; align-items: flex-end; padding-bottom: 4px;
+  }
+  .smark-tick {
+    width: 2px; height: 12px; background: currentColor; opacity: .5;
+    flex-shrink: 0;
+  }
+  .smark-val {
+    font-family: var(--mono); font-size: 16px; font-weight: 700;
+    color: inherit; margin-top: 4px; white-space: nowrap;
+  }
+
+  .spread-meta {
+    font-size: 11px; color: var(--dim); border-top: 1px solid var(--border);
+    padding-top: 14px; margin-top: 4px;
+  }
+  .spread-meta a { color: var(--dim); text-decoration: none; }
+  .spread-meta a:hover { color: var(--cyan); }
+
+  /* ── LEADERBOARD ── */
+  .lb { border: 1px solid var(--border); margin-bottom: 8px; }
+  .lb-head {
+    display: grid; grid-template-columns: 42px 1fr 200px 88px 88px 100px;
+    gap: 14px; padding: 8px 16px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 9px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .lb-row {
+    display: grid; grid-template-columns: 42px 1fr 200px 88px 88px 100px;
+    gap: 14px; padding: 14px 16px; align-items: center;
+    background: var(--surface); border-top: 1px solid var(--border);
+    transition: background .12s;
+  }
+  .lb-row:first-of-type { border-top: none; }
+  .lb-row:hover { background: var(--card); }
+  .lb-rank {
+    font-family: var(--mono); font-size: 15px; font-weight: 700;
+    text-align: center; color: var(--dim2);
+  }
+  .lb-rank.gold   { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,.4); }
+  .lb-rank.silver { color: #b0bec5; }
+  .lb-rank.bronze { color: #cd9f5b; }
+  .lb-name-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .lb-fav { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; }
+  .lb-fw-name {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    text-decoration: none; display: block;
+  }
+  .lb-fw-name:hover { color: var(--cyan); }
+  .lb-school {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--dim); margin-top: 2px;
+  }
+  .lb-bar-wrap { display: flex; align-items: center; gap: 9px; }
+  .lb-bar-bg { flex: 1; height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; overflow: hidden; }
+  .lb-bar-fill { height: 100%; border-radius: 3px; }
+  .c1 { background: var(--green); }
+  .c2 { background: var(--cyan); }
+  .c3 { background: var(--blue); }
+  .c4 { background: var(--amber); }
+  .lb-pct { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--text); min-width: 38px; text-align: right; }
+  .lb-cost { font-family: var(--mono); font-size: 12px; color: var(--dim2); text-align: right; }
+  .lb-stars { font-family: var(--mono); font-size: 11px; color: var(--purple); text-align: right; }
+
+  /* ── PILLS ── */
+  .pill {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px; border-radius: 2px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .pg { background: rgba(29,233,182,.12); color: var(--green);  border: 1px solid rgba(29,233,182,.25); }
+  .pa { background: rgba(255,171,64,.12); color: var(--amber);  border: 1px solid rgba(255,171,64,.25); }
+  .pr { background: rgba(244,91,105,.12); color: var(--red);    border: 1px solid rgba(244,91,105,.25); }
+  .pb { background: rgba(92,156,245,.12); color: var(--blue);   border: 1px solid rgba(92,156,245,.25); }
+  .pc { background: rgba(0,201,228,.12);  color: var(--cyan);   border: 1px solid rgba(0,201,228,.25); }
+  .pp { background: rgba(179,136,255,.12); color: var(--purple); border: 1px solid rgba(179,136,255,.25); }
+  .pd { background: rgba(84,106,140,.12); color: var(--dim2);   border: 1px solid rgba(84,106,140,.25); }
+
+  /* ── FRAMEWORK GRID ── */
+  .fw-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 8px; }
+  .fw-card {
+    background: var(--surface); border: 1px solid var(--border); padding: 16px;
+    display: flex; flex-direction: column; gap: 9px;
+    transition: border-color .12s;
+  }
+  .fw-card:hover { border-color: var(--border2); }
+  .fw-card.deprecated { opacity: .55; }
+  .fw-head { display: flex; align-items: center; gap: 10px; }
+  .fw-fav { width: 24px; height: 24px; border-radius: 4px; flex-shrink: 0; }
+  .fw-nm { font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; flex: 1; }
+  .fw-nm:hover { color: var(--cyan); }
+  .fw-stars { font-family: var(--mono); font-size: 11px; color: var(--purple); flex-shrink: 0; }
+  .fw-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .fw-desc { font-size: 12px; color: var(--dim2); line-height: 1.55; }
+
+  /* ── PHILOSOPHY TABLE ── */
+  .phil-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .phil-row {
+    display: grid; grid-template-columns: 195px 200px 1fr;
+    align-items: start; gap: 16px;
+    padding: 13px 16px; background: var(--surface);
+    border: 1px solid var(--border); border-left: 3px solid var(--border2);
+  }
+  .phil-row.p1 { border-left-color: var(--green); }
+  .phil-row.p2 { border-left-color: var(--amber); }
+  .phil-row.p3 { border-left-color: var(--blue); }
+  .phil-row.p4 { border-left-color: var(--cyan); }
+  .phil-row.p5 { border-left-color: var(--purple); }
+  .phil-row.p6 { border-left-color: #60a5fa; }
+  .phil-row.p7 { border-left-color: var(--red); }
+  .phil-name { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); }
+  .phil-members { font-size: 12px; color: var(--dim2); }
+  .phil-trait { font-size: 12px; color: var(--dim2); font-style: italic; }
+
+  /* ── RISK PANEL ── */
+  .risk-panel {
+    background: rgba(244,91,105,.04); border: 1px solid rgba(244,91,105,.2);
+    padding: 24px 28px; margin-bottom: 8px;
+  }
+  .risk-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--red); margin-bottom: 20px;
+  }
+  .risk-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; }
+  .rs-n { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--red); line-height: 1; margin-bottom: 5px; }
+  .rs-l { font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .rs-s { font-size: 11px; color: var(--dim); }
+  .rs-s a { color: var(--dim); text-decoration: none; }
+  .rs-s a:hover { color: var(--red); }
+
+  /* ── SUBTOPIC GRID ── */
+  .st-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  .st-tile {
+    display: block; text-decoration: none;
+    background: var(--surface); border: 1px solid var(--border); padding: 22px;
+    transition: border-color .12s;
+  }
+  .st-tile:hover { border-color: var(--cyan); }
+  .st-num { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; color: var(--dim2); text-transform: uppercase; margin-bottom: 9px; }
+  .st-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 8px; }
+  .st-tile:hover .st-title { color: var(--cyan); }
+  .st-desc { font-size: 12px; color: var(--dim2); line-height: 1.55; margin-bottom: 12px; }
+  .st-meta { display: flex; gap: 10px; font-family: var(--mono); font-size: 10px; color: var(--dim); }
+
+  /* ── FOOTER ── */
+  .bc-foot {
+    border-top: 1px solid var(--border); padding: 18px 28px;
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+    text-align: center; letter-spacing: .04em;
+  }
+  .bc-foot a { color: var(--dim); text-decoration: none; }
+  .bc-foot a:hover { color: var(--cyan); }
+
+  /* ── SOURCE NOTE ── */
+  .src-note { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-top: -2px; margin-bottom: 36px; }
+  .src-note a { color: var(--dim); text-decoration: none; }
+  .src-note a:hover { color: var(--cyan); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 960px) {
+    .kpi-row { grid-template-columns: repeat(2,1fr); }
+    .fw-grid  { grid-template-columns: repeat(2,1fr); }
+    .lb-head, .lb-row { grid-template-columns: 36px 1fr 160px 70px; }
+    .lb-stars, .col-stars, .col-pill { display: none; }
+    .phil-row { grid-template-columns: 1fr 1fr; }
+    .phil-trait { display: none; }
+    .risk-stats { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .fw-grid  { grid-template-columns: 1fr; }
+    .st-grid  { grid-template-columns: 1fr; }
+    .lb-head, .lb-row { grid-template-columns: 36px 1fr 120px; }
+    .lb-cost { display: none; }
+    .bc-body { padding: 24px 16px 48px; }
+    .bc-topbar { padding: 10px 16px; }
+  }
+</style>
+
+<div class="bc">
+
+  <!-- TOPBAR -->
+  <div class="bc-topbar">
+    <div class="bc-topbar-left">
+      <div class="t1">▌ Agent Harness Benchmark Console · 2026</div>
+      <div class="t2">GAIA · Princeton HAL · Q1 Lushbinary · 12 Frameworks · 7 Design Schools</div>
+    </div>
+    <div class="live-pill">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+  </div>
+
+  <div class="bc-body">
+
+    <!-- KPI TILES -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-n">+30</div>
+        <div class="kpi-l">Point Spread</div>
+        <div class="kpi-s">identical model · different harness</div>
+      </div>
+      <div class="kpi a">
+        <div class="kpi-n">12</div>
+        <div class="kpi-l">Frameworks</div>
+        <div class="kpi-s">7 design philosophies</div>
+      </div>
+      <div class="kpi w">
+        <div class="kpi-n">37%</div>
+        <div class="kpi-l">Lab → Prod Gap</div>
+        <div class="kpi-s">CLEAR framework average</div>
+      </div>
+      <div class="kpi d">
+        <div class="kpi-n">95%</div>
+        <div class="kpi-l">Pilot Failure Rate</div>
+        <div class="kpi-s">never reach production</div>
+      </div>
+    </div>
+
+    <!-- THE SPREAD -->
+    <div class="sec">
+      <div class="sec-l">The 30-Point Spread</div>
+      <div class="sec-r"></div>
+      <div class="sec-tag">GAIA Benchmark · Claude Opus 4 · identical model</div>
+    </div>
+
+    <div class="spread-panel">
+      <div class="spread-kicker">Orchestration scaffold contribution · Princeton HAL / Q1 2026</div>
+      <div class="spread-claim">
+        Framework selection is a <em>performance decision</em> masquerading as an infrastructure one.
+      </div>
+
+      <div class="strack">
+        <div class="sbar-bg"></div>
+        <div class="sbar-active"></div>
+        <div class="sbar-gap">+ 29.8 pt</div>
+
+        <!-- marker: bare model at 44.8% -->
+        <div class="smark" style="left:44.8%; color:var(--red)">
+          <div class="smark-name">no harness</div>
+          <div class="smark-tick"></div>
+          <div class="smark-val">44.8%</div>
+        </div>
+
+        <!-- marker: HAL scaffolding at 64.9% -->
+        <div class="smark" style="left:64.9%; color:var(--blue)">
+          <div class="smark-name">HAL scaffolding</div>
+          <div class="smark-tick"></div>
+          <div class="smark-val">64.9%</div>
+        </div>
+
+        <!-- marker: best harness at 74.6% -->
+        <div class="smark" style="left:74.6%; color:var(--green)">
+          <div class="smark-name">best harness</div>
+          <div class="smark-tick"></div>
+          <div class="smark-val">74.6%</div>
+        </div>
+      </div>
+
+      <div class="spread-meta">
+        HuggingFace Open Deep Research on the same model: 57.6% (same GAIA run, different scaffold).
+        <a href="https://rapidclaw.dev/blog/ai-agent-benchmarks-2026">rapidclaw.dev</a> ·
+        <a href="https://uvik.net/blog/agentic-ai-frameworks/">uvik.net / Princeton HAL</a> ·
+        <a href="https://dev.to/cristian_iridon_286794874/langgraph-vs-crewai-vs-autogen-in-2026-pick-the-right-ai-agent-framework-or-skip-frameworks-4m2c">HAL vs HF analysis</a>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="sec">
+      <div class="sec-l">Benchmark Leaderboard</div>
+      <div class="sec-r"></div>
+      <div class="sec-tag">Q1 Lushbinary · multi-step accuracy · cost per task</div>
+    </div>
+
+    <div class="lb">
+      <div class="lb-head">
+        <div></div>
+        <div>Framework</div>
+        <div>Accuracy</div>
+        <div style="text-align:right">Cost/task</div>
+        <div style="text-align:right">Stars</div>
+        <div style="text-align:right">Signal</div>
+      </div>
+
+      <!-- #1 LangGraph -->
+      <div class="lb-row">
+        <div class="lb-rank gold">#1</div>
+        <div class="lb-name-wrap">
+          <img class="lb-fav" src="https://www.google.com/s2/favicons?domain=langchain.com&sz=128" alt="">
+          <div>
+            <a href="https://github.com/langchain-ai/langgraph" class="lb-fw-name">LangGraph</a>
+            <div class="lb-school">Control-explicit graph</div>
+          </div>
+        </div>
+        <div class="lb-bar-wrap">
+          <div class="lb-bar-bg"><div class="lb-bar-fill c1" style="width:94%"></div></div>
+          <div class="lb-pct">94%</div>
+        </div>
+        <div class="lb-cost">$0.08</div>
+        <div class="lb-stars">⭐ 26.9k</div>
+        <div style="text-align:right"><span class="pill pg">efficient</span></div>
+      </div>
+
+      <!-- #2 AG2 -->
+      <div class="lb-row">
+        <div class="lb-rank silver">#2</div>
+        <div class="lb-name-wrap">
+          <img class="lb-fav" src="https://www.google.com/s2/favicons?domain=ag2.ai&sz=128" alt="">
+          <div>
+            <a href="https://github.com/ag2ai/ag2" class="lb-fw-name">AG2</a>
+            <div class="lb-school">Event-driven async</div>
+          </div>
+        </div>
+        <div class="lb-bar-wrap">
+          <div class="lb-bar-bg"><div class="lb-bar-fill c2" style="width:91%"></div></div>
+          <div class="lb-pct">91%</div>
+        </div>
+        <div class="lb-cost">$0.45</div>
+        <div class="lb-stars">⭐ 4.6k</div>
+        <div style="text-align:right"><span class="pill pr">costly</span></div>
+      </div>
+
+      <!-- #3 OpenAI SDK -->
+      <div class="lb-row">
+        <div class="lb-rank bronze">#3</div>
+        <div class="lb-name-wrap">
+          <img class="lb-fav" src="https://www.google.com/s2/favicons?domain=openai.com&sz=128" alt="">
+          <div>
+            <a href="https://github.com/openai/openai-agents-python" class="lb-fw-name">OpenAI Agents SDK</a>
+            <div class="lb-school">Managed runtime</div>
+          </div>
+        </div>
+        <div class="lb-bar-wrap">
+          <div class="lb-bar-bg"><div class="lb-bar-fill c3" style="width:90%"></div></div>
+          <div class="lb-pct">90%</div>
+        </div>
+        <div class="lb-cost">$0.11</div>
+        <div class="lb-stars">⭐ 33.7k</div>
+        <div style="text-align:right"><span class="pill pc">balanced</span></div>
+      </div>
+
+      <!-- #4 CrewAI -->
+      <div class="lb-row">
+        <div class="lb-rank">#4</div>
+        <div class="lb-name-wrap">
+          <img class="lb-fav" src="https://www.google.com/s2/favicons?domain=crewai.com&sz=128" alt="">
+          <div>
+            <a href="https://github.com/crewAIInc/crewAI" class="lb-fw-name">CrewAI</a>
+            <div class="lb-school">Role-declarative</div>
+          </div>
+        </div>
+        <div class="lb-bar-wrap">
+          <div class="lb-bar-bg"><div class="lb-bar-fill c4" style="width:87%"></div></div>
+          <div class="lb-pct">87%</div>
+        </div>
+        <div class="lb-cost">$0.12</div>
+        <div class="lb-stars">⭐ 52.7k</div>
+        <div style="text-align:right"><span class="pill pa">3× tokens</span></div>
+      </div>
+    </div>
+
+    <div class="src-note">
+      Source: <a href="https://qubittool.com/blog/ai-agent-framework-comparison-2026">Lushbinary Agent Benchmark Q1 2026 · qubittool.com</a>
+    </div>
+
+    <!-- ALL 12 FRAMEWORKS -->
+    <div class="sec">
+      <div class="sec-l">All 12 Frameworks</div>
+      <div class="sec-r"></div>
+    </div>
+
+    <div class="fw-grid">
+
+      <!-- LangGraph -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=langchain.com&sz=128" alt="">
+          <a href="https://github.com/langchain-ai/langgraph" class="fw-nm">LangGraph</a>
+          <span class="fw-stars">⭐ 26.9k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pg">control-graph</span> <span class="pill pc">96% error recovery</span></div>
+        <div class="fw-desc">400+ companies · 34.5M PyPI/mo · 40–50% LLM call reduction via stateful caching. Steep 1–2 week learning curve. Production ceiling highest of any framework tested. <sup><a href="https://uvik.net/blog/agentic-ai-frameworks/" style="color:var(--dim)">[2]</a></sup></div>
+      </div>
+
+      <!-- CrewAI -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=crewai.com&sz=128" alt="">
+          <a href="https://github.com/crewAIInc/crewAI" class="fw-nm">CrewAI</a>
+          <span class="fw-stars">⭐ 52.7k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pa">role-declarative</span> <span class="pill pr">3× token overhead</span></div>
+        <div class="fw-desc">10M+ agents/month · prototype in 2–4 hrs · AMP Suite $120K/yr. No checkpointing. Control flow encoded in prompts — not inspectable state. <sup><a href="https://madappgang.com/blog/ai-agent-framework-decision-guide-2026/" style="color:var(--dim)">[24]</a></sup></div>
+      </div>
+
+      <!-- OpenAI Agents SDK -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=openai.com&sz=128" alt="">
+          <a href="https://github.com/openai/openai-agents-python" class="fw-nm">OpenAI Agents SDK</a>
+          <span class="fw-stars">⭐ 33.7k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pb">managed runtime</span> <span class="pill pc">onboard in hours</span></div>
+        <div class="fw-desc">Evolved from Swarm · MCP added v0.7 · session-based checkpoints (2026) · 100+ LLMs. Lock-in risk: 6-month state history tied to OpenAI Stateful Runtime. <sup><a href="https://zylos.ai/research/2026-04-05-ai-agent-ecosystem-fragmentation-platform-lock-in-portability" style="color:var(--dim)">[20]</a></sup></div>
+      </div>
+
+      <!-- Google ADK -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=google.com&sz=128" alt="">
+          <a href="https://github.com/google/adk-python" class="fw-nm">Google ADK</a>
+          <span class="fw-stars">⭐ 20k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pg">control-graph</span> <span class="pill pb">A2A v2.0</span></div>
+        <div class="fw-desc">Reframed as execution framework Feb 2026 · graph-based engine · GitHub/Jira/MongoDB connectors · Vertex AI one-command deploy · Kotlin support. GCP-native teams only. <sup><a href="https://qubittool.com/blog/ai-agent-framework-comparison-2026" style="color:var(--dim)">[1]</a></sup></div>
+      </div>
+
+      <!-- Mastra -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=mastra.ai&sz=128" alt="">
+          <a href="https://github.com/mastra-ai/mastra" class="fw-nm">Mastra</a>
+          <span class="fw-stars">⭐ 24.7k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pp">type-safe</span> <span class="pill pc">TypeScript-first</span></div>
+        <div class="fw-desc">From the Gatsby team · 3,300+ models · 94 providers · time-travel debugging · suspend/resume HITL · first-class MCP. TypeScript-only — no Python. <sup><a href="https://mastra.ai/ai-agent-framework" style="color:var(--dim)">[27]</a></sup></div>
+      </div>
+
+      <!-- Smolagents -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=huggingface.co&sz=128" alt="">
+          <a href="https://github.com/huggingface/smolagents" class="fw-nm">Smolagents</a>
+          <span class="fw-stars">⭐ 27.7k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pc">code-first</span> <span class="pill pg">40-line agent</span></div>
+        <div class="fw-desc">HuggingFace · action primitive is generated Python code · 40 lines vs 120 for equivalent LangGraph agent · leads in local LLM support. Minimal orchestration surface. <sup><a href="https://qubittool.com/blog/ai-agent-framework-comparison-2026" style="color:var(--dim)">[1]</a></sup></div>
+      </div>
+
+      <!-- PydanticAI -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=pydantic.dev&sz=128" alt="">
+          <a href="https://github.com/pydantic/pydantic-ai" class="fw-nm">PydanticAI</a>
+          <span class="fw-stars">⭐ 17.5k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pp">type-safe</span> <span class="pill pb">FastAPI-style</span></div>
+        <div class="fw-desc">Strict types · dependency injection · structured responses. FastAPI ergonomics — immediately familiar to Python web teams. Smaller multi-agent orchestration surface than LangGraph. <sup><a href="https://qubittool.com/blog/ai-agent-framework-comparison-2026" style="color:var(--dim)">[1]</a></sup></div>
+      </div>
+
+      <!-- MS Agent Framework -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="">
+          <a href="https://github.com/microsoft/agent-framework" class="fw-nm">MS Agent Framework</a>
+          <span class="fw-stars">⭐ 10.9k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pb">managed</span> <span class="pill pa">GA Apr 2026</span></div>
+        <div class="fw-desc">Replaces AutoGen + Semantic Kernel · 5 orchestration patterns · 7 LLM providers · MCP first-class · Python + .NET. Inherits 58.7k-star AutoGen community. <sup><a href="https://devblogs.microsoft.com/agent-framework/microsoft-agent-framework-version-1-0/" style="color:var(--dim)">[18]</a></sup></div>
+      </div>
+
+      <!-- AG2 -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=ag2.ai&sz=128" alt="">
+          <a href="https://github.com/ag2ai/ag2" class="fw-nm">AG2</a>
+          <span class="fw-stars">⭐ 4.6k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pa">event-async</span> <span class="pill pr">$0.45/task</span></div>
+        <div class="fw-desc">Community fork of AutoGen v0.2 · MCP v0.12 · event-driven async. GroupChat: 20+ LLM calls per interaction — token costs balloon fast in group deliberation scenarios. <sup><a href="https://qubittool.com/blog/ai-agent-framework-comparison-2026" style="color:var(--dim)">[1]</a></sup></div>
+      </div>
+
+      <!-- Strands -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=strandsagents.com&sz=128" alt="">
+          <a href="https://strandsagents.com/" class="fw-nm">Strands Agents</a>
+          <span class="fw-stars">⭐ 6.7k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pb">model-driven</span> <span class="pill pa">AWS-native</span></div>
+        <div class="fw-desc">From Amazon production systems · steering handlers: 100% vs 82.5% prompt-only accuracy · Bedrock/Anthropic/OpenAI/Ollama. Orchestrator is a single point of failure — bad routing propagates. <sup><a href="https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/" style="color:var(--dim)">[17]</a></sup></div>
+      </div>
+
+      <!-- LlamaIndex -->
+      <div class="fw-card">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=llamaindex.ai&sz=128" alt="">
+          <a href="https://github.com/run-llama/llama_index" class="fw-nm">LlamaIndex</a>
+          <span class="fw-stars">⭐ 49.9k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pg">RAG-first</span> <span class="pill pc">checkpoint + HiL</span></div>
+        <div class="fw-desc">Data framework for LLM apps · Workflows with checkpointing and human-in-the-loop · RAG-optimized agent design. Best when retrieval is the primary agent action. <sup><a href="https://github.com/run-llama/llama_index" style="color:var(--dim)">[14]</a></sup></div>
+      </div>
+
+      <!-- Semantic Kernel (deprecated) -->
+      <div class="fw-card deprecated">
+        <div class="fw-head">
+          <img class="fw-fav" src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="">
+          <a href="https://github.com/microsoft/semantic-kernel" class="fw-nm">Semantic Kernel</a>
+          <span class="fw-stars">⭐ 28k</span>
+        </div>
+        <div class="fw-tags"><span class="pill pr">superseded</span> <span class="pill pd">migrate → MS AF</span></div>
+        <div class="fw-desc">C# + Azure-native plugin planner. Superseded by MS Agent Framework GA April 2026. One-year v1.x maintenance commitment. Migrate now. <sup><a href="https://devblogs.microsoft.com/semantic-kernel/migrate-your-semantic-kernel-and-autogen-projects-to-microsoft-agent-framework-release-candidate/" style="color:var(--dim)">[19]</a></sup></div>
+      </div>
+
+    </div><!-- /.fw-grid -->
+
+    <!-- 7 DESIGN SCHOOLS -->
+    <div class="sec">
+      <div class="sec-l">7 Design Schools</div>
+      <div class="sec-r"></div>
+      <div class="sec-tag">Philosophy determines ceiling, not just style</div>
+    </div>
+
+    <div class="phil-list">
+      <div class="phil-row p1">
+        <div class="phil-name">Control-explicit graph</div>
+        <div class="phil-members">LangGraph · Google ADK</div>
+        <div class="phil-trait">Write the graph. Highest accuracy ceiling (94%). Rewarded with 40–50% LLM call savings via state checkpoints. 1–2 week ramp.</div>
+      </div>
+      <div class="phil-row p2">
+        <div class="phil-name">Role-declarative</div>
+        <div class="phil-members">CrewAI</div>
+        <div class="phil-trait">Role-based teams; prototype in 2–4 hrs. 3× token overhead vs LangGraph, no checkpointing, control flow lives in prompts — not inspectable code.</div>
+      </div>
+      <div class="phil-row p3">
+        <div class="phil-name">Model-driven minimalism</div>
+        <div class="phil-members">Strands Agents</div>
+        <div class="phil-trait">LLM decides orchestration. Steering handlers close 82.5% → 100% accuracy gap. Orchestrator is a single point of failure with no graph-level guard on bad routing.</div>
+      </div>
+      <div class="phil-row p4">
+        <div class="phil-name">Code-first</div>
+        <div class="phil-members">Smolagents</div>
+        <div class="phil-trait">Action primitive = generated Python code. 40-line agent vs 120 for LangGraph equivalent. Best for local-LLM research workflows. Limited multi-agent orchestration.</div>
+      </div>
+      <div class="phil-row p5">
+        <div class="phil-name">Type-safe composition</div>
+        <div class="phil-members">PydanticAI · Mastra</div>
+        <div class="phil-trait">Strict typed interfaces and DI throughout. FastAPI ergonomics (Python) or Vercel AI SDK patterns (TypeScript). Predictable — type errors surface at compile time, not runtime.</div>
+      </div>
+      <div class="phil-row p6">
+        <div class="phil-name">Managed runtime</div>
+        <div class="phil-members">OpenAI SDK · MS Agent Framework</div>
+        <div class="phil-trait">Platform-native patterns, fastest onboarding. Lock-in risk is structural: 6-month state history cannot migrate without rebuilding the memory layer from scratch.</div>
+      </div>
+      <div class="phil-row p7">
+        <div class="phil-name">Event-driven async</div>
+        <div class="phil-members">AG2</div>
+        <div class="phil-trait">Community fork of AutoGen v0.2, preserving stable API. Top quality score (91%) at highest cost ($0.45/task). GroupChat = 20+ LLM calls per interaction.</div>
+      </div>
+    </div>
+
+    <!-- PRODUCTION RISK SIGNALS -->
+    <div class="sec">
+      <div class="sec-l">Production Risk Signals</div>
+      <div class="sec-r"></div>
+    </div>
+
+    <div class="risk-panel">
+      <div class="risk-title">⚠ Reality Check</div>
+      <div class="risk-stats">
+        <div>
+          <div class="rs-n">37%</div>
+          <div class="rs-l">Average lab-to-production performance gap</div>
+          <div class="rs-s">CLEAR framework across all tested harnesses · <a href="https://uvik.net/blog/agentic-ai-frameworks/">[2]</a></div>
+        </div>
+        <div>
+          <div class="rs-n">95%</div>
+          <div class="rs-l">Enterprise pilots that never reach production</div>
+          <div class="rs-s">Regardless of which framework is chosen · <a href="https://uvik.net/blog/agentic-ai-frameworks/">[2]</a></div>
+        </div>
+        <div>
+          <div class="rs-n">40–60%</div>
+          <div class="rs-l">Of total agent operating cost is LLM API calls</div>
+          <div class="rs-s">A 3× token-overhead framework nearly doubles the largest line item · <a href="https://uvik.net/blog/agentic-ai-frameworks/">[2]</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-TOPICS -->
+    <div class="sec">
+      <div class="sec-l">Research Sub-topics</div>
+      <div class="sec-r"></div>
+      <div class="sec-tag">4 surveys · 84 citations total</div>
+    </div>
+
+    <div class="st-grid">
+      <a class="st-tile" href="../the-contenders-their-philosophies/">
+        <div class="st-num">survey 01 / 04</div>
+        <div class="st-title">The Contenders &amp; Their Philosophies</div>
+        <div class="st-desc">Seven design philosophies — control-explicit graphs to model-driven minimalism — define the 2026 landscape, with harness choice causing measurable performance variance on identical models.</div>
+        <div class="st-meta"><span>23 citations</span> <span>·</span> <span>5 min</span></div>
+      </a>
+      <a class="st-tile" href="../head-to-head-comparison-matrix/">
+        <div class="st-num">survey 02 / 04</div>
+        <div class="st-title">Head-to-Head Comparison Matrix</div>
+        <div class="st-desc">15-dimension matrix across 12 frameworks — LangGraph leads on production control, CrewAI on time-to-prototype, Mastra on TypeScript teams; MS Agent Framework replaces AutoGen and Semantic Kernel.</div>
+        <div class="st-meta"><span>23 citations</span> <span>·</span> <span>7 min</span></div>
+      </a>
+      <a class="st-tile" href="../when-each-wins-the-risk/">
+        <div class="st-num">survey 03 / 04</div>
+        <div class="st-title">When Each Wins + The Risk</div>
+        <div class="st-desc">Framework choice alone swings benchmark scores 30 points on identical models — when each of the seven agent harnesses wins, and what breaks under production load.</div>
+        <div class="st-meta"><span>18 citations</span> <span>·</span> <span>9 min</span></div>
+      </a>
+      <a class="st-tile" href="../demo-eval-methodology/">
+        <div class="st-num">survey 04 / 04</div>
+        <div class="st-title">Demo &amp; Eval Methodology</div>
+        <div class="st-desc">How to structure a live comparison session — fix the model, tasks, and environment; score at three levels (end-to-end, trajectory, component); separate pass@k from pass^k and utility from security.</div>
+        <div class="st-meta"><span>20 citations</span> <span>·</span> <span>6 min</span></div>
+      </a>
+    </div>
+
+  </div><!-- /.bc-body -->
+
+  <div class="bc-foot">
+    Agent Harness Toolkit Showdown 2026 · 84 citations · 4 surveys ·
+    <a href="https://qubittool.com/blog/ai-agent-framework-comparison-2026">Lushbinary Q1 Benchmark</a> ·
+    <a href="https://rapidclaw.dev/blog/ai-agent-benchmarks-2026">GAIA 2026</a> ·
+    <a href="https://uvik.net/blog/agentic-ai-frameworks/">Princeton HAL</a> ·
+    <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Anthropic Evals Guide</a>
+  </div>
+
+</div><!-- /.bc -->
