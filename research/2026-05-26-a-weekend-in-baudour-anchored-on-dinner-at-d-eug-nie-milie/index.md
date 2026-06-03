@@ -19,7 +19,7 @@ children:
   - slug: walking-distance-lodging-at-or-near-d-eug-nie-emilie
     title: "Walking-distance lodging at or near d'Eugénie à Émilie"
     depth: standard
-    status: error_with_content
+    status: success
     summary: "Triple E — the Fernez family's three-room boutique inn directly across the square — is the only real walk-home bed; everything else is a 3 km+ taxi."
     citations: 13
     reading_time_min: 4
@@ -37,10 +37,10 @@ children:
     summary: "The 30 km bubble around Baudour is anchored on Mons — Le CLICK and the Initialis science park host the flagships (DevDay 3 Dec, DevFest 27 Nov, Forum Innovation & Cloud); Valenciennes's Serre Numérique grazes the edge."
     citations: 22
     reading_time_min: 5
-cost_usd: 14.56
-duration_sec: 1915
-citations: 132
-reading_time_min: 21
+cost_usd: 16.92
+duration_sec: 2339
+citations: 145
+reading_time_min: 25
 ---
 
 The weekend has one binding constraint and one absorber. The binding constraint is **Triple E**, the Fernez family's three-room inn on the square opposite the restaurant — the only bed in Baudour from which you walk home after wine [[1]](https://triple-e-hotel.be/). Three keys, one phone line shared with the restaurant office (065/61.31.70) [[2]](https://eugenie-emilie.be/informations-reservation): book dinner and room in a single call, or accept that "no walking distance" means a 3–13 km taxi. The restaurant reopened late February 2026 after a full dining-room and kitchen overhaul and is reportedly booked solid since [[3]](https://www.dhnet.be/lifestyle/2026/04/14/baudour-le-chef-eric-fernez-et-son-homologue-italien-anthony-giovanese-reunis-a-loccasion-de-momentum-organise-par-les-grandes-tables-du-monde-LX5YDSZWPRAOZAVEXTQVQZGOV4/), single seating 19:00–19:45 [[2]](https://eugenie-emilie.be/informations-reservation) — lead time is the variable that everything else moves around.

@@ -11,9 +11,10 @@ summary: "What's on for IT/engineering near Cartmel after May 2026 — Lancaster
 citations: 15
 reading_time_min: 3
 cover: cover.svg
-validation_error: "validate_ledger: duplicate url at line 7: https://localevents.theiet.org/network/lancscumbria (first seen at line 6);"
+cost_usd: 2.23
+duration_sec: 369
+model: "Opus 4.7"
 ---
-
 > **TL;DR — Decision.** Within 30 km of L'Enclume in Cartmel [[1]](https://en.wikipedia.org/wiki/L'Enclume) there is no local tech-conference scene to speak of: the only cluster is Lancaster (~23 km south), driven by Lancaster University. For a Saturday-dinner anchor, the three pairings that actually work in 2026 are **BMVC 2026** at Lancaster Town Hall (Mon-Thu **23-26 Nov 2026**) [[2]](https://bmvc2026.bmva.org/) → dinner Sat 28 Nov; **EAI SecureComm 2026** at Lancaster University (Tue-Fri **21-24 Jul 2026**) [[4]](https://securecomm.eai-conferences.org/2026/) → dinner Sat 25 Jul; or the **IET "Wings Over Windermere" evening talk at Grange-over-Sands** (Thu **3 Dec 2026**, 11:00, ~3 km from L'Enclume) [[6]](https://localevents.theiet.org/network/lancscumbria) → dinner Sat 5 Dec. Anything else within the radius is a university open day, a hackathon, or already in the past.
 
 ## The 30 km radius around Cartmel

@@ -26,12 +26,12 @@ children:
   - slug: it-conferences-and-tech-events-in-chengdu
     title: "IT conferences and tech events in Chengdu"
     depth: standard
-    status: failed
+    status: success
     summary: "Chengdu's tech calendar peaks in April (C3 Security + China Network Audio-Visual Conference) and July (electronics expos); primarily Chinese-language industry events with real AI and cybersecurity depth."
-cost_usd: 6.50
-duration_sec: 1166
-citations: 88
-reading_time_min: 16
+cost_usd: 8.16
+duration_sec: 1748
+citations: 103
+reading_time_min: 20
 ---
 
 The dinner is the fixed point; everything else orbits it. Chengdu has exactly two Michelin 2-star restaurants and no 3-stars after four guide editions [[1]](https://en.wikipedia.org/wiki/List_of_Michelin-starred_restaurants_in_Chengdu). They represent opposite philosophies: **Yu Zhi Lan** is an unmarked 18-seat house in Qingyang, owner-chef Lan Guijun's ~20-course modern Sichuan degustation at ~600–2,380 RMB [[2]](https://www.tripadvisor.com/Restaurant_Review-g297463-d7211656-Reviews-Yu_ZhiLan-Chengdu_Sichuan.html); **Xin Rong Ji** is a high-rise financial-district operation bringing Taizhou coastal seafood to a spice-forward city, Asia's 50 Best–ranked [[3]](https://www.enprimeurclub.com/restaurants/xin-rong-ji-chengdu-restaurant) at a comparable price.

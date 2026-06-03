@@ -30,8 +30,8 @@ children:
     summary: "Basel's tech calendar is bimodal — life-sciences mega-events at Messe and one pure-developer flagship (BaselOne in October), with a thin layer of monthly meetups."
     citations: 20
     reading_time_min: 4
-cost_usd: 10.04
-duration_sec: 1189
+cost_usd: 12.65
+duration_sec: 1724
 citations: 116
 reading_time_min: 15
 ---

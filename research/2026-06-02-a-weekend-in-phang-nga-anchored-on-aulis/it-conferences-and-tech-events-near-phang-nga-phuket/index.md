@@ -10,9 +10,10 @@ tags: [phuket, thailand, tech-events, conferences, digital-nomad, southeast-asia
 summary: "Phuket has one recurring weekly tech mixer and an annual AI marketing summit; all major IT conferences are in Bangkok, 1–1.5 hrs by flight."
 citations: 18
 reading_time_min: 4
-validation_error: "run.sh exit 1"
+cost_usd: 1.28
+duration_sec: 832
+model: "Sonnet 4.6"
 ---
-
 > **TL;DR** Phuket itself has no standing annual IT conference — the local scene is a free weekly tech social at Mollys Tavern (Patong) and the boutique Phuket Summit (AI marketing, next edition April 2027). Every major tech conference in Thailand is in Bangkok [[11]](https://dev.events/AS/TH/Phuket/tech), a 1–1.5-hr flight away; the next Bangkok dates worth noting are IAIT2026 (Jun 17–19), Techsauce (Aug 26–28), and DigiTech ASEAN (Nov 25–27).
 
 ---

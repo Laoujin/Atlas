@@ -33,12 +33,12 @@ children:
   - slug: it-conferences-and-tech-events-within-30-km-of-hi-a-franko
     title: "IT conferences and tech events within 30 km of Hiša Franko"
     depth: standard
-    status: failed
+    status: success
     summary: "Within 30 km of Hiša Franko there are no IT/dev conferences in 2026 — only PRC digital-skills workshops in Tolmin, the Coworking BAZA venue, and Hubs Travel's winter-only Bovec workation. For real conferences, drive 60+ km."
-cost_usd: 16.67
-duration_sec: 2151
-citations: 146
-reading_time_min: 26
+cost_usd: 18.93
+duration_sec: 2512
+citations: 161
+reading_time_min: 29
 ---
 
 The restaurant is the schedule. Hiša Franko serves Wed–Sun, dinner 19:00–23:00 with last seating 20:00, and the tasting menu runs three to four hours [[1]](https://www.hisafranko.com/en/faq) — meaning every other decision (where to sleep, what to do Saturday, when to start it) collapses out of that one fixed window. The winter pause (recently early Jan through mid-Feb) also rules out late-winter weekends entirely [[2]](https://www.hisafranko.com/en/news/200/hisa-franko-has-ended-another-beautiful-season-see-you-on-14th-february-2025).

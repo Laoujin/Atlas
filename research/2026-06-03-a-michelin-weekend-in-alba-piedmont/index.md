@@ -19,7 +19,7 @@ children:
   - slug: michelin-2-and-3-star-restaurants-in-alba
     title: "Michelin 2 and 3-star restaurants in Alba"
     depth: standard
-    status: error_with_content
+    status: success
     summary: "Four restaurants in and near Alba hold 2 or 3 Michelin stars in 2026 — two three-stars (Piazza Duomo in Alba city, La Rei Natura in Serralunga) and two two-stars (Antica Corona Reale in Cervere, Locanda del Sant'Uffizio near Asti)."
     citations: 14
     reading_time_min: 4
@@ -32,8 +32,8 @@ children:
     reading_time_min: 3
 cost_usd: 5.88
 duration_sec: 1081
-citations: 79
-reading_time_min: 15
+citations: 93
+reading_time_min: 19
 ---
 
 Alba in early June sits in a calendar gap: the spring Vinitaly-satellite wine fairs close by early May, [[1]](https://www.winalist.com/blog/italy-wine-region/piedmont/best-towns-to-stay) Collisioni (Alba's AgriRock festival) opens 1 July, [[2]](https://www.guidatorino.com/eventi-torino/collisioni-2026/) and the International White Truffle Fair doesn't start until 10 October. [[3]](https://www.fieradeltartufo.org/en/calendar/) That makes early June the quieter, greener window — vineyard visits without tourist buses, cellar tastings without queues. [[4]](https://www.secretpiemonte.com/best-food-wine-festivals-piedmont-italy/)

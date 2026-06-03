@@ -37,8 +37,8 @@ children:
     summary: "What's on for IT/engineering near Cartmel after May 2026 — Lancaster is the only real cluster; pair a Saturday at L'Enclume with BMVC, SecureComm, or the Dec 3 IET talk in Grange-over-Sands."
     citations: 15
     reading_time_min: 3
-cost_usd: 13.41
-duration_sec: 1718
+cost_usd: 15.64
+duration_sec: 2087
 citations: 135
 reading_time_min: 26
 ---

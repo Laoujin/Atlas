@@ -11,9 +11,10 @@ summary: "Most tech in the Bruges 30-km bubble is weekday-evening Howest/Buildin
 citations: 16
 reading_time_min: 4
 cover: cover.svg
-validation_error: "validate_ledger: duplicate url at line 8: https://www.cyber3lab.be/en/news/cybersecurity-ai-community-events (first seen at line 7);"
+cost_usd: 2.69
+duration_sec: 392
+model: "Opus 4.7"
 ---
-
 > **Decision.** Weekend-only window: the only Saturday-aligned IT thing in the 30 km bubble is **CoderDojo Brugge** (kids 7–18, monthly Sat mornings) [[1]](https://www.brugge.be/activiteiten/coderdojo-brugge-952026). For an adult tech anchor, plan a **week** around a conference, not a weekend — best pick is **EUSIPCO 2026** at Concertgebouw Brugge, 31 Aug–4 Sep, ending the Friday before a Sat De Jonkman dinner [[2]](https://eusipco2026.org/). Everything else — Building Bruges, Howest Tech&Meet, Cyber 3 Lab seminars — is Tuesday/Wednesday evenings at Howest Campus Brugge Station, 6 km from De Jonkman [[3]](https://sites.google.com/howest.be/howest-techmeet) [[4]](https://buildingbruges.be/).
 
 ## Geography

@@ -37,8 +37,8 @@ children:
     summary: "Phuket has one recurring weekly tech mixer and an annual AI marketing summit; all major IT conferences are in Bangkok, 1–1.5 hrs by flight."
     citations: 18
     reading_time_min: 4
-cost_usd: 10.21
-duration_sec: 2015
+cost_usd: 11.49
+duration_sec: 2847
 citations: 128
 reading_time_min: 21
 ---

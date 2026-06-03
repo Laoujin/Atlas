@@ -37,8 +37,8 @@ children:
     summary: "Most tech in the Bruges 30-km bubble is weekday-evening Howest/Building Bruges. EUSIPCO at Concertgebouw (Aug 31–Sep 4) is the one big-conference week to anchor a trip on."
     citations: 16
     reading_time_min: 4
-cost_usd: 14.54
-duration_sec: 2028
+cost_usd: 17.23
+duration_sec: 2420
 citations: 129
 reading_time_min: 25
 ---

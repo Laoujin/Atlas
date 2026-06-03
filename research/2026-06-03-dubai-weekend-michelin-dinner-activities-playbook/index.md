@@ -26,14 +26,14 @@ children:
   - slug: it-conferences-and-tech-events-in-dubai
     title: "IT conferences and tech events in Dubai"
     depth: standard
-    status: error_with_content
+    status: success
     summary: "Dubai's 2026 tech calendar: GITEX Global (Dec, 200k+ attendees, world's largest), GISEC cybersecurity (Sep), AWS Summit (Jun, free), Gartner CIO (Oct), FinTech Summit (Nov) — dates, venues, and ticket prices."
     citations: 18
     reading_time_min: 4
 cost_usd: 7.46
 duration_sec: 1369
-citations: 99
-reading_time_min: 17
+citations: 117
+reading_time_min: 21
 ---
 
 Dubai's five Michelin 2- and 3-star restaurants cluster into two corridors, and which you book defines where the rest of the weekend gravitates.

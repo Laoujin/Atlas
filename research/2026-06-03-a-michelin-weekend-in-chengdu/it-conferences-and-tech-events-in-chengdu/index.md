@@ -11,9 +11,10 @@ summary: "Chengdu's tech calendar peaks in April (C3 Security + China Network Au
 citations: 15
 reading_time_min: 4
 cover: cover.svg
-validation_error: "exit 1 at `bash "$SCOUT_DIR/scripts/validate_ledger.sh" "$LEDGER" "$ARTIFACT"` — validate_ledger: line 1 is not valid JSON"
+cost_usd: 1.66
+duration_sec: 582
+model: "Sonnet 4.6"
 ---
-
 > **TL;DR** Chengdu is a credible tech-event city — not Shanghai-scale but with genuine depth in cybersecurity (C3 Security, annual 8-year run), AI/streaming content (China Network Audio-Visual Conference, permanent host since 2016), and B2B electronics. **April** is the peak conference month; **July** brings two major electronics expos at Century City. Industry events are Chinese-language; IEEE academic conferences are English-friendly.
 
 ## 2026 Event Calendar

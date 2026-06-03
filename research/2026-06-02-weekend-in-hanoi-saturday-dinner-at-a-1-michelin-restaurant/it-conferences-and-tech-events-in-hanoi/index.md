@@ -11,9 +11,10 @@ summary: "Two major conferences anchor the Hanoi tech calendar for the rest of 2
 citations: 19
 reading_time_min: 4
 cover: cover.svg
-validation_error: "exit 1 at `bash "$SCOUT_DIR/scripts/validate_ledger.sh" "$LEDGER" "$ARTIFACT"` — validate_ledger: line 6 is not valid JSON"
+cost_usd: 1.16
+duration_sec: 344
+model: "Sonnet 4.6"
 ---
-
 > **TL;DR** The two unmissable events for the rest of 2026 are **KCD & OpenInfra Days Vietnam** (July 25, free, Sheraton Hanoi) and **GITEX Vietnam** (Oct 1–2 per most listings; ⚠ official site says Nov 26–27 — verify before booking). For impromptu visits, free monthly meetups from AI Tinkerers and GDG run throughout the year.
 
 ## Upcoming conferences (June 2026 →)

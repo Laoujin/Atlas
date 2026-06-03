@@ -11,7 +11,9 @@ summary: "Within 30 km of Hiša Franko there are no IT/dev conferences in 2026 �
 citations: 15
 reading_time_min: 3
 cover: cover.svg
-validation_error: "validate_ledger: duplicate url at line 6: https://www.prc.si/novice-in-dogodki/dogodki (first seen at line 5);"
+cost_usd: 2.26
+duration_sec: 361
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Within 30 km of Hiša Franko there are no traditional IT/developer conferences in 2026.** The closest tech-flavoured options are two PRC digital-skills workshops in Tolmin (AI primer 9 Jun, Google Analytics 16 Jun) [[5]](https://www.prc.si/novice-in-dogodki/dogodki)[[6]](https://www.prc.si/novice-in-dogodki/dogodki), [Coworking BAZA Tolmin](http://cw-baza.si/en/home/) as a rentable venue [[8]](http://cw-baza.si/en/home/), and [Hubs Travel's](https://www.hubs.travel/destinations/slovenian-alps-bovec) Bovec workation — winter-only (5 Jan – 15 Apr 2026), already closed by late May [[9]](https://www.hubs.travel/destinations/slovenian-alps-bovec). For a real dev/security conference, the nearest options are 60+ km away: POPRI in Nova Gorica (April, past) [[14]](https://www.mamarketing.si/organizacija-dogodka-popri2026/) or Ljubljana (~110 km) for BSides and DragonHack [[12]](https://0x7ea.bsidesljubljana.si/)[[13]](https://www.eventbrite.co.uk/e/dragonhack-2026-tickets-1964551314867).

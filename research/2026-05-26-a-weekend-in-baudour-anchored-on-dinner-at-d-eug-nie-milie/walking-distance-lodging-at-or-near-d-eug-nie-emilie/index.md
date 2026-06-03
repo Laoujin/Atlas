@@ -11,9 +11,10 @@ summary: "Triple E — the Fernez family's three-room boutique inn directly acro
 citations: 13
 reading_time_min: 4
 cover: cover.svg
-validation_error: "validate_ledger: duplicate url at line 3: https://triple-e-hotel.be/ (first seen at line 2);"
+cost_usd: 2.36
+duration_sec: 424
+model: "Opus 4.7"
 ---
-
 > **Decision.** Book **[Triple E](https://triple-e-hotel.be/)** — three rooms at €190–€210/night, run by the same family, **directly across the square from the restaurant** (Avenue Louis Goblet 152 ↔ Place de la Résistance 1, ~150 m on foot). [[1]](https://triple-e-hotel.be/contact/) [[2]](https://triple-e-hotel.be/) [[4]](https://eugenie-emilie.be/informations-reservation) If its three rooms are full, accept that you'll need a **car or taxi**: TripAdvisor lists no other lodging *inside* Baudour. [[7]](https://www.tripadvisor.com/Hotels-g2266822-Baudour_Hainaut_Province_Wallonia-Hotels.html)
 
 ## Why this is essentially a one-option question
