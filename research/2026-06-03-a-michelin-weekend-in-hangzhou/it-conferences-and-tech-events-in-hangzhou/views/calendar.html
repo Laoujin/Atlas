@@ -1,0 +1,591 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences and Tech Events in Hangzhou — Calendar"
+---
+<style>
+:root {
+  --c-yunqi:  #f97316;
+  --c-grand:  #3b82f6;
+  --c-other:  #a855f7;
+  --c-wuzhen: #10b981;
+  --bg:       #090d18;
+  --bg-cell:  #0b0f1c;
+  --bg-peak:  #081409;
+  --border:   #192130;
+  --text:     #dde4f0;
+  --muted:    #5a6a82;
+  --dim:      #2e3d54;
+}
+
+/* ── wrapper ── */
+.cv-wrap {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* ── masthead ── */
+.cv-head {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.cv-head .breadcrumb {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+.cv-head .breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.cv-head .breadcrumb a:hover { color: var(--text); }
+.cv-head .breadcrumb .sep { margin: 0 0.4rem; opacity: 0.4; }
+.cv-head h1 {
+  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.4rem;
+  line-height: 1.05;
+  color: #f1f5fb;
+}
+.cv-head .cal-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.cv-head .peak-pill {
+  background: #14532d;
+  color: #86efac;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2px;
+}
+
+/* ── venue legend ── */
+.venue-legend {
+  display: flex;
+  gap: 1.8rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: #07090f;
+}
+.vk {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.vk-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.vk-yunqi  .vk-dot { background: var(--c-yunqi); }
+.vk-grand  .vk-dot { background: var(--c-grand); }
+.vk-other  .vk-dot { background: var(--c-other); }
+.vk-wuzhen .vk-dot { background: var(--c-wuzhen); }
+
+/* ── calendar grid section ── */
+.cv-grid-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cv-grid {
+  display: grid;
+  grid-template-columns: 72px 210px 230px 210px 190px;
+  min-width: 912px;
+  border-left: 1px solid var(--border);
+}
+
+/* column headers */
+.ch {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-right: 1px solid var(--border);
+  border-bottom: 3px solid var(--border);
+  line-height: 1.4;
+  background: #07090f;
+}
+.ch small { font-weight: 400; opacity: 0.55; font-size: 0.58rem; letter-spacing: 0.06em; }
+.ch.ch-month { border-bottom-color: var(--border); }
+.ch.ch-yunqi  { color: var(--c-yunqi);  border-bottom-color: var(--c-yunqi); }
+.ch.ch-grand  { color: var(--c-grand);  border-bottom-color: var(--c-grand); }
+.ch.ch-other  { color: var(--c-other);  border-bottom-color: var(--c-other); }
+.ch.ch-wuzhen { color: var(--c-wuzhen); border-bottom-color: var(--c-wuzhen); border-right: none; }
+
+/* month label cell */
+.month-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 1rem 0.5rem 1rem 0.75rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-cell);
+}
+.month-cell .mo {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4a6080;
+  line-height: 1;
+}
+.month-cell .yr {
+  font-size: 0.58rem;
+  color: #2e3d54;
+  margin-top: 0.15rem;
+}
+.month-cell.peak .mo { color: #86efac; }
+.month-cell.peak .yr { color: #4ade80; opacity: 0.6; }
+.peak-badge {
+  display: inline-block;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #86efac;
+  background: #14532d;
+  padding: 0.12rem 0.3rem;
+  border-radius: 2px;
+  margin-top: 0.35rem;
+  width: fit-content;
+}
+
+/* grid cells */
+.gc {
+  padding: 0.75rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-cell);
+  min-height: 4rem;
+  vertical-align: top;
+}
+.gc.last { border-right: none; }
+.gc.peak-bg { background: var(--bg-peak); }
+.gc.empty  { background: transparent; }
+
+/* event card */
+.ec {
+  border-radius: 3px;
+  padding: 0.6rem 0.7rem;
+  border-left: 3px solid;
+}
+.ec + .ec { margin-top: 0.5rem; }
+
+.ec-yunqi  { background: #170c03; border-color: var(--c-yunqi); }
+.ec-grand  { background: #030818; border-color: var(--c-grand); }
+.ec-other  { background: #0e0617; border-color: var(--c-other); }
+.ec-wuzhen { background: #031310; border-color: var(--c-wuzhen); }
+
+.ec-thumb {
+  width: 100%;
+  max-height: 68px;
+  object-fit: cover;
+  border-radius: 2px;
+  display: block;
+  margin-bottom: 0.45rem;
+  opacity: 0.85;
+}
+
+.ev-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+.ev-fav {
+  width: 13px; height: 13px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.ev-name {
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  color: var(--text);
+  text-decoration: none;
+}
+a.ev-name:hover { text-decoration: underline; }
+
+.ev-org-badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+  background: #1e3a5f;
+  color: #93c5fd;
+  white-space: nowrap;
+  margin-left: 0.2rem;
+}
+
+.ev-dates {
+  font-size: 0.69rem;
+  color: #7a9abd;
+  margin-bottom: 0.2rem;
+  font-variant-numeric: tabular-nums;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+.ev-focus {
+  font-size: 0.67rem;
+  color: #8a9bb5;
+  margin-bottom: 0.2rem;
+  line-height: 1.35;
+}
+.ev-scale {
+  font-size: 0.63rem;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+.ev-note {
+  font-size: 0.62rem;
+  color: #3d5268;
+  line-height: 1.4;
+  margin-top: 0.3rem;
+}
+.ev-note a {
+  color: #4a6070;
+  text-decoration: none;
+}
+.ev-note a:hover { color: #94a3b8; }
+
+.ev-badges { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
+.badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.35rem;
+  border-radius: 2px;
+}
+.badge-soldout { background: #7f1d1d; color: #fca5a5; }
+.badge-flagship { background: #2a1a08; color: var(--c-yunqi); border: 1px solid #3d2208; }
+.badge-gov { background: #0f1f14; color: var(--c-wuzhen); border: 1px solid #14391a; }
+
+/* ── year-round section ── */
+.cv-yearround {
+  padding: 1.5rem 2rem;
+  border-top: 2px solid var(--border);
+}
+.section-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.7rem;
+}
+.cc {
+  background: var(--bg-cell);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+}
+.cc-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.cc-name a { color: #93c5fd; text-decoration: none; }
+.cc-name a:hover { text-decoration: underline; }
+.cc-meta {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+.cc-detail {
+  font-size: 0.65rem;
+  color: #4a6080;
+  line-height: 1.4;
+}
+.cc-detail a { color: #4a6080; text-decoration: none; }
+.cc-detail a:hover { color: #94a3b8; }
+
+/* ── sibling nav ── */
+.cv-siblings {
+  padding: 1rem 2rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.sibling-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--dim);
+  border-radius: 3px;
+  transition: border-color 0.15s;
+}
+.sibling-link:hover { color: var(--text); border-color: #4a6080; }
+.sibling-label { font-size: 0.6rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.08em; }
+</style>
+
+<div class="cv-wrap">
+
+  <header class="cv-head">
+    <div class="breadcrumb">
+      <a href="../../">A Michelin Weekend in Hangzhou</a>
+      <span class="sep">›</span>
+      <a href="../">IT Conferences &amp; Tech Events</a>
+    </div>
+    <h1>TECH EVENT CALENDAR</h1>
+    <div class="cal-meta">
+      <span>Hangzhou · China · 2026–2027</span>
+      <span>7 scheduled events · 5 venues</span>
+      <span class="peak-pill">● September peak window</span>
+    </div>
+  </header>
+
+  <nav class="venue-legend" aria-label="Venue color key">
+    <div class="vk vk-yunqi"><span class="vk-dot"></span>Yunqi Town, Xihu District</div>
+    <div class="vk vk-grand"><span class="vk-dot"></span>Hangzhou Grand Conv. &amp; Exhibition Center</div>
+    <div class="vk vk-other"><span class="vk-dot"></span>Other Hangzhou venues</div>
+    <div class="vk vk-wuzhen"><span class="vk-dot"></span>Wuzhen · day trip, 74 km</div>
+  </nav>
+
+  <div class="cv-grid-wrap">
+    <div class="cv-grid">
+
+      <!-- Column headers -->
+      <div class="ch ch-month"></div>
+      <div class="ch ch-yunqi">Yunqi Town<br><small>Xihu District</small></div>
+      <div class="ch ch-grand">Grand Conv. &amp; Exhibition Center</div>
+      <div class="ch ch-other">Other Hangzhou<br><small>TBD / Intl Expo Center</small></div>
+      <div class="ch ch-wuzhen last">Wuzhen<br><small>74 km · day trip</small></div>
+
+      <!-- ── JUN 2026 ── -->
+      <div class="month-cell">
+        <span class="mo">JUN</span>
+        <span class="yr">2026</span>
+      </div>
+      <div class="gc empty"></div>
+      <div class="gc empty"></div>
+      <div class="gc">
+        <div class="ec ec-other">
+          <div class="ev-head">
+            <span class="ev-name">ICETIS 2026</span>
+          </div>
+          <div class="ev-dates">Jun 26–28, 2026</div>
+          <div class="ev-focus">Electronic technology &amp; information science</div>
+          <div class="ev-note">Venue: Hangzhou (TBD)</div>
+        </div>
+      </div>
+      <div class="gc empty last"></div>
+
+      <!-- ── SEP 2026 · PEAK ── -->
+      <div class="month-cell peak">
+        <span class="mo">SEP</span>
+        <span class="yr">2026</span>
+        <span class="peak-badge">PEAK</span>
+      </div>
+      <div class="gc peak-bg">
+        <div class="ec ec-yunqi">
+          <img class="ec-thumb" src="calendar/images/apsara-alibaba.jpg" alt="Apsara Conference">
+          <div class="ev-head">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=alibabacloud.com&sz=128" alt="">
+            <a href="https://www.alibabacloud.com/en/apsara-conference" class="ev-name">Yunqi / Apsara Conference</a>
+          </div>
+          <div class="ev-dates">Sep 1, 2026 · 9:00–18:00</div>
+          <div class="ev-focus">Cloud computing · LLMs (Qwen) · AI agents · enterprise digital transformation</div>
+          <div class="ev-scale">~60,000 attendees · 238 exhibitors · 40,000 sqm expo</div>
+          <div class="ev-badges">
+            <span class="badge badge-soldout">⚠ Sold out</span>
+            <span class="badge badge-flagship">Flagship</span>
+          </div>
+          <div class="ev-note">
+            No. 369 Heshan St, Yunqi Town, Xihu District<br>
+            Theme: "Computing, for the value that cannot be computed"<br>
+            Monitor apsaraticket@service.alibaba.com
+            <sup><a href="https://en.jufair.com/exhibition/14572.html">[5]</a></sup>
+            <sup><a href="https://www.alibabacloud.com/en/apsara-conference">[2]</a></sup>
+            <sup><a href="https://yunqi.aliyun.com/about">[3]</a></sup>
+          </div>
+        </div>
+      </div>
+      <div class="gc peak-bg">
+        <div class="ec ec-grand">
+          <div class="ev-head">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=gdte.org.cn&sz=128" alt="">
+            <a href="https://www.gdte.org.cn/En/" class="ev-name">GDTE 2026</a>
+          </div>
+          <div class="ev-dates">Sep 23–27, 2026</div>
+          <div class="ev-focus">Digital commerce · e-commerce · smart logistics · AI · digital medicine</div>
+          <div class="ev-scale">10,000+ buyers · ¥162B trade agreements (4th ed.)</div>
+          <div class="ev-note">
+            Co-hosted by Zhejiang Province &amp; Ministry of Commerce
+            <sup><a href="https://www.gdte.org.cn/En/">[7]</a></sup>
+          </div>
+        </div>
+        <div class="ec ec-grand">
+          <div class="ev-head">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=messefrankfurt.com&sz=128" alt="">
+            <a href="https://international-smart-space-exhibition.hk.messefrankfurt.com/hangzhou/en.html" class="ev-name">ISSE 2026</a>
+          </div>
+          <div class="ev-dates">Sep 23–27, 2026</div>
+          <div class="ev-focus">Smart cities · IoT · AI urban governance · energy-efficient buildings</div>
+          <div class="ev-note">
+            2nd edition · co-located with GDTE · Messe Frankfurt (HK)
+            <sup><a href="https://international-smart-space-exhibition.hk.messefrankfurt.com/hangzhou/en.html">[8]</a></sup>
+          </div>
+        </div>
+      </div>
+      <div class="gc peak-bg empty"></div>
+      <div class="gc peak-bg empty last"></div>
+
+      <!-- ── OCT 2026 ── -->
+      <div class="month-cell">
+        <span class="mo">OCT</span>
+        <span class="yr">2026</span>
+      </div>
+      <div class="gc empty"></div>
+      <div class="gc empty"></div>
+      <div class="gc">
+        <div class="ec ec-other">
+          <div class="ev-head">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=icsict.org&sz=128" alt="">
+            <a href="https://www.icsict.org/" class="ev-name">ICSICT 2026</a>
+            <span class="ev-org-badge">IEEE</span>
+          </div>
+          <div class="ev-dates">Oct 27–30, 2026</div>
+          <div class="ev-focus">Semiconductor · IC design · chiplets · ferroelectrics · advanced memory</div>
+          <div class="ev-note">
+            18th IEEE International Conference on Solid-State &amp; Integrated Circuit Technology<br>
+            Org: IEEE China Council + Zhejiang University<br>
+            Paper deadline: Jun 25, 2026
+            <sup><a href="https://www.icsict.org/">[9]</a></sup>
+            <sup><a href="https://easychair.org/cfp/ICSICT2026">[10]</a></sup>
+          </div>
+        </div>
+      </div>
+      <div class="gc empty last"></div>
+
+      <!-- ── NOV 2026 ── -->
+      <div class="month-cell">
+        <span class="mo">NOV</span>
+        <span class="yr">2026</span>
+      </div>
+      <div class="gc empty"></div>
+      <div class="gc empty"></div>
+      <div class="gc empty"></div>
+      <div class="gc last">
+        <div class="ec ec-wuzhen">
+          <div class="ev-head">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=wicinternet.org&sz=128" alt="">
+            <a href="https://www.wicinternet.org/" class="ev-name">World Internet Conference</a>
+            <span class="badge badge-gov" style="margin-left:auto;white-space:nowrap;">Gov</span>
+          </div>
+          <div class="ev-dates">Early Nov 2026 (TBD)</div>
+          <div class="ev-focus">Internet governance · AI policy · digital economy · cybersecurity</div>
+          <div class="ev-scale">50+ countries · senior officials &amp; CEOs</div>
+          <div class="ev-note">
+            Wuzhen canal town · 74 km from Hangzhou (~1 hr by car)<br>
+            2025 edition: Nov 6–9; invitation-heavy, observer credentials available
+            <sup><a href="https://www.wicinternet.org/">[12]</a></sup>
+            <sup><a href="https://www.rome2rio.com/s/Hangzhou/Wuzhen">[11]</a></sup>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MAR 2027 ── -->
+      <div class="month-cell">
+        <span class="mo">MAR</span>
+        <span class="yr">2027</span>
+      </div>
+      <div class="gc empty"></div>
+      <div class="gc empty"></div>
+      <div class="gc">
+        <div class="ec ec-other">
+          <div class="ev-head">
+            <img class="ev-fav" src="https://www.google.com/s2/favicons?domain=fintechnews.hk&sz=128" alt="">
+            <span class="ev-name">GAIC-HZ 2027</span>
+          </div>
+          <div class="ev-dates">Mar TBD, 2027</div>
+          <div class="ev-focus">AI full chain: chips → LLMs → intelligent manufacturing → fintech</div>
+          <div class="ev-note">
+            Hangzhou International Expo Center<br>
+            Key names: Huawei · Alibaba Cloud · DeepSeek · NVIDIA · SenseTime<br>
+            2026 edition: Mar 12–14 (concluded)
+            <sup><a href="https://fintechnews.hk/hong-kong-fintech-events/event/global-artificial-intelligence-conference-hangzhou-summit-and-expo-gaic-hz/">[15]</a></sup>
+          </div>
+        </div>
+      </div>
+      <div class="gc empty last"></div>
+
+    </div><!-- /cv-grid -->
+  </div><!-- /cv-grid-wrap -->
+
+  <!-- Year-round / developer community -->
+  <section class="cv-yearround">
+    <h3 class="section-label">Year-round · Developer Community</h3>
+    <div class="community-grid">
+      <div class="cc">
+        <div class="cc-name"><a href="https://www.ehangzhou.gov.cn/2026-04/10/c_297382.htm">ModelScope Developer Center</a></div>
+        <div class="cc-meta">Xihu District · 10,000+ sqm · opened late 2025</div>
+        <div class="cc-detail">
+          170,000+ open-source AI models · 25M+ developers globally · regular hackathons &amp; technical seminars year-round
+          <sup><a href="https://www.ehangzhou.gov.cn/2026-04/10/c_297382.htm">[17]</a></sup>
+        </div>
+      </div>
+      <div class="cc">
+        <div class="cc-name"><a href="https://www.meetup.com/hangzhou-apache-spark-meetup/">Hangzhou Apache Spark Meetup</a></div>
+        <div class="cc-meta">1,077 members · Meetup.com</div>
+        <div class="cc-detail">
+          Recurring developer meetups
+          <sup><a href="https://www.meetup.com/hangzhou-apache-spark-meetup/">[19]</a></sup>
+        </div>
+      </div>
+      <div class="cc">
+        <div class="cc-name">Hangzhou Big Data Developers</div>
+        <div class="cc-meta">97 members · Meetup.com</div>
+        <div class="cc-detail">Recurring community meetups</div>
+      </div>
+      <div class="cc">
+        <div class="cc-name">Unity Hangzhou</div>
+        <div class="cc-meta">242 members · Meetup.com</div>
+        <div class="cc-detail">Game / XR developer community</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sibling pages -->
+  <nav class="cv-siblings" aria-label="Related research">
+    <a href="../../things-to-do-in-hangzhou/" class="sibling-link">
+      <span class="sibling-label">expedition</span>
+      Things to do in Hangzhou
+    </a>
+    <a href="../../michelin-2-and-3-star-restaurants-in-hangzhou/" class="sibling-link">
+      <span class="sibling-label">survey</span>
+      Michelin 2 &amp; 3-star Restaurants
+    </a>
+  </nav>
+
+</div>
