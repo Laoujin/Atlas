@@ -9,6 +9,10 @@ tags: [mcp, security, oauth, authorization, prompt-injection, supply-chain]
 summary: "The MCP auth spec makes your server an OAuth 2.1 resource server; the real danger is the agent layer — poisoned tool descriptions and injected tool results. Teach both."
 citations: 18
 reading_time_min: 7
+model: "Opus 4.8"
+duration_sec: 217
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **TL;DR for the session.** Two layers to teach. **(1) Protocol auth is solved-ish:** since the 2025-06-18 spec your MCP server is an OAuth 2.1 *resource server* — it validates externally-issued tokens, advertises its auth server via RFC 9728 protected-resource metadata, enforces audience binding (RFC 8707), and **MUST NOT** pass tokens through to upstream APIs [[1]](https://modelcontextprotocol.io/specification/draft/basic/authorization)[[3]](https://www.descope.com/blog/post/mcp-auth-spec). **(2) The auth spec does not protect you from the agent layer** — the live 2026 threat is tool poisoning and prompt-injection-via-tool-results, where a malicious tool *description* or returned *result* hijacks the model. Anchor the session on: validate token audience, never proxy tokens, least-privilege scopes, and treat every tool description and tool result as untrusted input [[5]](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)[[2]](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices).

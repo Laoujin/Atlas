@@ -9,6 +9,10 @@ tags: [mcp, debugging, mcp-inspector, stdio, streamable-http, typescript-sdk]
 summary: "The Inspector is your first stop, stdout pollution is the #1 killer, and stderr is the only safe log channel for stdio servers."
 citations: 12
 reading_time_min: 6
+model: "Opus 4.8"
+duration_sec: 225
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **Decision.** Reach for the [MCP Inspector](https://github.com/modelcontextprotocol/inspector) ⭐ 9.9k (Jun 2026) first — it's transport-agnostic and shows the raw JSON-RPC stream [[1]](https://modelcontextprotocol.io/docs/tools/debugging). The single most common bug is **stdout pollution**: any `console.log`/`print` on a stdio server corrupts the protocol and kills the connection — log to **stderr** only, always [[2]](https://modelcontextprotocol.io/docs/tools/debugging)[[3]](https://www.mcpevals.io/blog/debugging-mcp-servers-tips-and-best-practices). After the Inspector passes, smoke-test against the real clients (Claude Desktop, Claude Code, VS Code, Cursor) because each has its own config schema and log location [[4]](https://code.claude.com/docs/en/mcp).

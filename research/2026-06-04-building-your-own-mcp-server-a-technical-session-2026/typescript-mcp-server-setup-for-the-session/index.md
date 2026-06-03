@@ -9,6 +9,10 @@ tags: [mcp, typescript, sdk, quickstart, tooling]
 summary: "One-page quickstart for a TypeScript MCP server over stdio with MCP Inspector, plus a TS/Python/C# SDK comparison and the Java SDK maturity line."
 citations: 7
 reading_time_min: 2
+model: "Opus 4.8"
+duration_sec: 80
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **Decision:** TypeScript **is** the lowest-friction live-follow for a mixed Java/.NET room. It is one of two Tier-1 official SDKs (~66M npm downloads), zero-install beyond Node, and MCP Inspector ships as a single `npx` command [[1]](https://modelcontextprotocol.io/docs/sdk) [[6]](https://github.com/modelcontextprotocol/inspector). Python ties it on maturity but adds a venv/`uv` step; C# is official and excellent but needs the .NET SDK + project scaffolding. Follow in TS, port after.

@@ -9,6 +9,10 @@ tags: [mcp, typescript, model-context-protocol, live-coding, ai-tooling]
 summary: "Build a read-only SQLite/Postgres query server: it exercises tools + resources + prompts together, needs zero external auth, and fits a 2-3h live session for a senior audience."
 citations: 16
 reading_time_min: 4
+model: "Opus 4.8"
+duration_sec: 200
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **Decision.** Build a **read-only database query server (SQLite or Postgres)**. It's the only single idea that naturally exercises all three core primitives — `tools` (run SQL), `resources` (expose table schemas as `schema://...` URIs), `prompts` (canned "analyze this table" templates) — needs **zero external auth** (ship a seeded `.db`), and lands inside 2-3h for a senior audience that already thinks in schemas and queries [[1]](https://github.com/jparkerweb/mcp-sqlite)[[2]](https://modelcontextprotocol.info/docs/concepts/resources/). Backup pick if you want a sampling "wow" moment: a **Hacker News digest server** that uses MCP **sampling** to make the *client's* LLM summarize stories the server fetched — a server with no LLM key of its own acting like an agent [[3]](https://workos.com/blog/mcp-sampling)[[4]](https://dev.to/agent-andy/10-free-mcp-servers-that-work-without-api-keys-tested-by-an-ai-agent-3c45).

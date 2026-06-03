@@ -9,6 +9,10 @@ tags: [mcp, protocol, json-rpc, llm-tooling, typescript-sdk]
 summary: "The wire-level mechanics of MCP — transports, three primitives, lifecycle handshake, capability negotiation, JSON-RPC shapes, and versioning — on the current 2025-11-25 spec, with what's changing in 2026."
 citations: 16
 reading_time_min: 9
+model: "Opus 4.8"
+duration_sec: 207
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **TL;DR.** MCP is JSON-RPC 2.0 over one of two transports — **stdio** (local subprocess) or **Streamable HTTP** (remote, one endpoint, optional SSE) [[3]](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports). A server exposes three primitives — **tools** (model-controlled), **resources** (app-driven), **prompts** (user-controlled) — discovered via `*/list` and invoked via `tools/call` / `resources/read` / `prompts/get` [[5]](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)[[6]](https://modelcontextprotocol.io/specification/2025-11-25/server/resources)[[7]](https://modelcontextprotocol.io/specification/2025-11-25/server/prompts). Every connection opens with an `initialize` → `initialize` result → `notifications/initialized` handshake that negotiates a date-string protocol version and per-feature capabilities [[4]](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle). **Current stable spec: `2025-11-25`** [[1]](https://modelcontextprotocol.io/specification/2025-11-25). The TS SDK [[10]](https://github.com/modelcontextprotocol/typescript-sdk) ⭐ 12.6k hides most of this — but the wire contract below is what leaks through when something breaks.

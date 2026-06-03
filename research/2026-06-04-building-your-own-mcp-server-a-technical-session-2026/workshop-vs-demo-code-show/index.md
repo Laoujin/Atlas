@@ -9,6 +9,10 @@ tags: [mcp, workshop, live-coding, conference, facilitation, typescript-sdk]
 summary: "When to make a 2–3h MCP-server session hands-on vs watch-only, with two timeboxed agendas and a de-risking checklist for live coding."
 citations: 18
 reading_time_min: 9
+model: "Opus 4.8"
+duration_sec: 234
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **Decision.** For a mixed Java/.NET room with a 2–3h budget building their first MCP server on an unfamiliar TypeScript SDK, run a **demo-led hybrid, not a pure build-along**: you drive a live demo and reach two or three short "now you try it" checkpoints where attendees clone a pinned starter branch and add one tool each. A pure build-along burns ~40% of the budget on environment setup [[8]](https://github.com/autodesk-platform-services/devcon-mcp-workshop-prerequisites) and strands the slowest attendee; a pure demo leaves no retention [[1]](https://www.fielddrive.com/blog/best-workshop-ideas-next-event). The hybrid keeps the hands on the keyboard without the room falling apart. Both full agendas below.

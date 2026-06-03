@@ -9,6 +9,10 @@ tags: [mcp, deployment, distribution, registry, mcpb, claude-code]
 summary: "How you actually ship and share the MCP server you built: transport choice, packaging channels, the official registry, and client config."
 citations: 16
 reading_time_min: 4
+model: "Opus 4.8"
+duration_sec: 223
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **Decision.** Ship a **local stdio** server when one user runs it on their own machine — publish it as an npm/PyPI package (`npx`/`uvx`) or wrap it in a `.mcpb` bundle for one-click Claude Desktop install [[1]](https://www.truefoundry.com/blog/mcp-stdio-vs-streamable-http-enterprise)[[7]](https://github.com/modelcontextprotocol/mcpb). Go **remote Streamable-HTTP** the moment many users share one instance or you need auth, audit, and horizontal scale — host it on Cloudflare Workers, a container, or a serverless platform [[1]](https://www.truefoundry.com/blog/mcp-stdio-vs-streamable-http-enterprise)[[2]](https://developers.cloudflare.com/agents/guides/remote-mcp-server/). For discovery, publish `server.json` to the **official MCP Registry** [[4]](https://modelcontextprotocol.io/registry/about) — but it only stores metadata pointing at npm/PyPI/NuGet/Docker; your code still lives in a package registry.

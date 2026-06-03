@@ -9,6 +9,10 @@ tags: [mcp, rag, session-design, typescript, vector-search]
 summary: "Cut the vector DB from a 2–3h MCP session; a RAG tool is just a tool — show retrieval with a 30-line in-memory search instead."
 citations: 7
 reading_time_min: 2
+model: "Opus 4.8"
+duration_sec: 81
+cost_usd: "sub"
+cover: cover.svg
 ---
 
 > **Decision: CUT dedicated RAG.** RAG is not a peer concept to MCP that the session must "cover" — MCP is the transport/standard, RAG is one thing a tool can *do* behind it [[1]](https://www.merge.dev/blog/rag-vs-mcp)[[2]](https://infranodus.com/docs/mcp-vs-rag-vs-ai-agents). For expert devs on a 2–3h budget, a vector-DB demo spends 30–45 min teaching embeddings, chunking, and a Qdrant/Milvus dependency [[3]](https://github.com/qdrant/mcp-server-qdrant) — none of which is *MCP*. **If** you want to show "expose a knowledge source," do it as a single `search_docs` tool over an in-memory array with substring/keyword match. That delivers the entire conceptual payload (server exposes a retrieval capability → model calls it → grounded answer) in ~30 lines and zero infra.
