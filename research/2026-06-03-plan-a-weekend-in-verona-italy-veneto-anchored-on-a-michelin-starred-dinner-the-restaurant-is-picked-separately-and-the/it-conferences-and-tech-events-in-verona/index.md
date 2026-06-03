@@ -11,6 +11,9 @@ summary: "Six confirmed IT events in Verona in 2026: DATE (EDA/chips, April, ~1,
 citations: 18
 reading_time_min: 4
 cover: cover.svg
+cost_usd: 1.52
+duration_sec: 465
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** The developer-conference anchor is the [GrUSP](https://www.grusp.org/en/) cluster [[16]](https://www.grusp.org/en/) at Hotel San Marco: [phpday](https://www.phpday.it/) (PHP, May 14–15), [reactjsday](https://www.reactjsday.it/) (React, Nov 19), and [angularday](https://www.angularday.it/) (Angular, Nov 20) [[9]](https://www.grusp.org/en/conferences/) — all at the same venue, making a combined trip easy. [DATE 2026](https://www.date-conference.com/) (EDA / chip design, April 20–22 at Palazzo Gran Guardia) is the biggest event with ~1,500 attendees from 50+ countries [[3]](https://www.veronatomorrow.it/2026/04/15/verona-capitale-dellinnovazione-con-la-conferenza-date-2026/). Free options: [UseCaseConf](https://sessionize.com/usecaseconf-2026) (Oct 1) and the AgrifoodTech Hackathon (Apr 16–17, students only).
