@@ -1,0 +1,732 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Weekend in Reims: Champagne, Michelin Stars & Beyond — Dashboard"
+---
+
+<style>
+:root {
+  --bg:        #0d1117;
+  --surface:   #161b22;
+  --surface2:  #21262d;
+  --border:    #30363d;
+  --border-lo: #21262d;
+  --text:      #e6edf3;
+  --muted:     #8b949e;
+  --gold:      #d4a843;
+  --gold-lo:   rgba(212,168,67,.12);
+  --red:       #f85149;
+  --red-lo:    rgba(248,81,73,.12);
+  --green:     #3fb950;
+  --green-lo:  rgba(63,185,80,.12);
+  --orange:    #d29922;
+  --orange-lo: rgba(210,153,34,.12);
+  --blue:      #58a6ff;
+  --blue-lo:   rgba(88,166,255,.12);
+  --purple:    #bc8cff;
+  --purple-lo: rgba(188,140,255,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+sup a { color: var(--muted); font-size: .65em; }
+
+.db {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Mono','Cascadia Code','Fira Code','Consolas',monospace;
+  font-size: .8rem;
+  padding: 1.25rem 1.5rem 2rem;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: .9rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--gold);
+  gap: 1rem;
+}
+.hdr-left { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.hdr-logo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.hdr-sub { color: var(--muted); font-size: .72rem; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .65rem;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.pill.live { background: var(--green-lo); border: 1px solid rgba(63,185,80,.4); color: var(--green); }
+.pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 1.8s ease-in-out infinite; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+.hdr-stats { display: flex; gap: 1.5rem; }
+.hdr-stat { text-align: right; }
+.hdr-stat-val { display: block; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.hdr-stat-lbl { font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── KPI STRIP ── */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: .4rem;
+  margin-bottom: 1rem;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .55rem .6rem;
+  text-align: center;
+}
+.kpi-val {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.15;
+}
+.kpi-lbl { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.kpi.warn .kpi-val { color: var(--red); }
+.kpi.ok   .kpi-val { color: var(--green); }
+
+/* ── SECTION TITLE ── */
+.stitle {
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  padding-bottom: .45rem;
+  margin-bottom: .55rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── CALENDAR ── */
+.cal-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .7rem .85rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: 70px repeat(4, 1fr);
+  gap: 3px;
+  min-width: 560px;
+}
+.cal-hdr-cell { padding: 3px 6px; text-align: center; font-size: .68rem; }
+.cal-hdr-cell span { display: block; font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.1; }
+.cal-hdr-cell small { color: var(--muted); font-size: .6rem; }
+.cal-row-lbl {
+  display: flex;
+  align-items: center;
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted);
+  padding: 0 4px;
+}
+.cal-cell {
+  border-radius: 2px;
+  padding: 5px 7px;
+  font-size: .67rem;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+}
+.cal-cell.empty { background: var(--surface2); color: var(--border); justify-content: center; }
+.cal-cell.tech   { background: var(--blue-lo);   border: 1px solid rgba(88,166,255,.25);  color: var(--blue);   }
+.cal-cell.music  { background: var(--purple-lo); border: 1px solid rgba(188,140,255,.2);  color: var(--purple); }
+.cal-cell.dining { background: var(--gold-lo);   border: 1px solid rgba(212,168,67,.25);  color: var(--gold);   }
+.cal-cell.cellar { background: rgba(139,73,20,.12); border: 1px solid rgba(139,73,20,.3); color: #c98b4a; }
+.cal-cell.tech-free { background: var(--green-lo); border: 1px solid rgba(63,185,80,.25); color: var(--green); }
+.cal-cell.span2 { grid-column: span 2; }
+.cal-cell.span4 { grid-column: span 4; }
+
+/* ── MAIN PANELS ── */
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .75rem .85rem;
+}
+
+/* ── RESTAURANT CARDS ── */
+.rest-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: .5rem;
+  overflow: hidden;
+}
+.rest-card:last-child { margin-bottom: 0; }
+.rest-card.three-star { border-color: rgba(212,168,67,.45); }
+.rest-card.urgent { border-left: 3px solid var(--red); }
+.rest-card.ok { border-left: 3px solid var(--green); }
+
+.rest-inner { display: grid; grid-template-columns: 1fr auto; gap: .4rem .65rem; padding: .6rem .7rem; align-items: start; }
+.rest-inner.has-photo { grid-template-columns: 1fr 130px; }
+
+.rest-head { display: flex; align-items: center; gap: .45rem; }
+.rest-stars { color: var(--red); font-size: .72rem; letter-spacing: 1px; }
+.rest-name { font-weight: 700; font-size: .85rem; }
+.rest-name a { color: var(--text); }
+.rest-name a:hover { color: var(--gold); text-decoration: none; }
+.rest-badge { display: inline-flex; }
+.rest-chef { color: var(--muted); font-size: .68rem; margin-top: .15rem; }
+.rest-info { color: var(--muted); font-size: .68rem; margin-top: .3rem; line-height: 1.6; }
+.rest-prices { display: flex; flex-wrap: wrap; gap: 3px; margin-top: .4rem; }
+.rest-avail { font-size: .65rem; color: var(--muted); margin-top: .3rem; }
+
+.rest-photo-col { display: flex; align-items: stretch; }
+.rest-photo-col img {
+  width: 130px;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 2px 2px 0;
+  display: block;
+  min-height: 90px;
+  max-height: 150px;
+}
+
+.badge {
+  font-size: .6rem;
+  padding: 1px 7px;
+  border-radius: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.badge.urgent { background: var(--red-lo);    border: 1px solid rgba(248,81,73,.4);  color: var(--red);    }
+.badge.ok     { background: var(--green-lo);  border: 1px solid rgba(63,185,80,.35); color: var(--green);  }
+.badge.caution{ background: var(--orange-lo); border: 1px solid rgba(210,153,34,.4); color: var(--orange); }
+
+.ptag {
+  font-size: .63rem;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.ptag.lo { color: var(--green); border-color: rgba(63,185,80,.3); background: var(--green-lo); }
+
+/* ── CELLAR TABLE ── */
+.cellar-row {
+  display: grid;
+  grid-template-columns: 110px 1fr auto auto;
+  gap: .2rem .5rem;
+  padding: .4rem 0;
+  border-bottom: 1px solid var(--border-lo);
+  align-items: baseline;
+}
+.cellar-row:last-of-type { border-bottom: none; }
+.cellar-name { font-weight: 600; font-size: .78rem; }
+.cellar-name a { color: var(--text); }
+.cellar-name a:hover { color: var(--gold); text-decoration: none; }
+.cellar-note { font-size: .67rem; color: var(--muted); }
+.cellar-price { font-weight: 700; font-size: .78rem; color: var(--gold); white-space: nowrap; }
+.cellar-dur   { font-size: .65rem; color: var(--muted); text-align: right; white-space: nowrap; }
+
+/* ── SIGHTS ── */
+.sight-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .2rem .5rem;
+  padding: .38rem 0;
+  border-bottom: 1px solid var(--border-lo);
+  align-items: baseline;
+}
+.sight-row:last-of-type { border-bottom: none; }
+.sight-name { font-weight: 600; font-size: .77rem; }
+.sight-name a { color: var(--text); }
+.sight-name a:hover { color: var(--gold); text-decoration: none; }
+.sight-note { font-size: .66rem; color: var(--muted); grid-column: 1; }
+.sight-cost { font-size: .72rem; color: var(--gold); text-align: right; white-space: nowrap; }
+
+/* ── ALERTS STRIP ── */
+.alerts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.alert-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .55rem .7rem;
+  display: flex;
+  gap: .5rem;
+  align-items: flex-start;
+}
+.alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: .22rem;
+}
+.alert-dot.red    { background: var(--red);    box-shadow: 0 0 5px var(--red);    }
+.alert-dot.yellow { background: var(--orange); box-shadow: 0 0 5px var(--orange); }
+.alert-dot.green  { background: var(--green);  box-shadow: 0 0 5px var(--green);  }
+.alert-body strong { display: block; font-size: .75rem; color: var(--text); }
+.alert-body span   { font-size: .67rem; color: var(--muted); line-height: 1.45; display: block; margin-top: .1rem; }
+
+/* ── DECISION MATRIX ── */
+.decision {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .75rem .85rem;
+  margin-bottom: 1rem;
+}
+.dec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin-top: .55rem;
+}
+.dec-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: .65rem .7rem;
+  border-top: 2px solid transparent;
+}
+.dec-card.pinnacle { border-top-color: var(--gold); }
+.dec-card.rare     { border-top-color: var(--red);  }
+.dec-card.value    { border-top-color: var(--green);}
+.dec-card.setting  { border-top-color: var(--blue); }
+.dec-tag {
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  font-weight: 700;
+  margin-bottom: .3rem;
+}
+.dec-tag.pinnacle { color: var(--gold); }
+.dec-tag.rare     { color: var(--red);  }
+.dec-tag.value    { color: var(--green);}
+.dec-tag.setting  { color: var(--blue); }
+.dec-name { font-weight: 700; font-size: .84rem; margin-bottom: .1rem; }
+.dec-name a { color: var(--text); }
+.dec-name a:hover { color: var(--gold); text-decoration: none; }
+.dec-stars { color: var(--red); font-size: .7rem; margin-bottom: .4rem; }
+.dec-body  { font-size: .68rem; color: var(--muted); line-height: 1.55; }
+.dec-price { font-size: .7rem; color: var(--gold); font-weight: 600; margin-top: .4rem; }
+.dec-avail { font-size: .63rem; color: var(--muted); margin-top: .2rem; }
+
+/* ── FOOTER ── */
+.dash-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: .65rem;
+  font-size: .65rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.dash-footer a { color: var(--muted); }
+.dash-footer a:hover { color: var(--gold); text-decoration: none; }
+.footer-links { display: flex; gap: 1rem; }
+.footer-links a::before { content: '↗ '; font-size: .6rem; }
+
+/* ── DIVIDER ── */
+.sect-gap { margin-top: .85rem; }
+</style>
+
+<div class="db">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">Reims Weekend — Mission Control</div>
+      <div class="hdr-sub">Champagne · Michelin · Tech Calendar · June 2026</div>
+      <div class="pill live"><span class="pill-dot"></span>Planning</div>
+    </div>
+    <div class="hdr-stats">
+      <div class="hdr-stat">
+        <span class="hdr-stat-val">84</span>
+        <span class="hdr-stat-lbl">Sources</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="hdr-stat-val">3</span>
+        <span class="hdr-stat-lbl">Angles</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="hdr-stat-val">15 min</span>
+        <span class="hdr-stat-lbl">Read</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpis">
+    <div class="kpi">
+      <span class="kpi-val">1★★★</span>
+      <div class="kpi-lbl">Three-star</div>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val">3★★</span>
+      <div class="kpi-lbl">Two-star</div>
+    </div>
+    <div class="kpi warn">
+      <span class="kpi-val">14</span>
+      <div class="kpi-lbl">Racine covers</div>
+    </div>
+    <div class="kpi ok">
+      <span class="kpi-val">€80</span>
+      <div class="kpi-lbl">Lowest Michelin</div>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val">5</span>
+      <div class="kpi-lbl">Cellar houses</div>
+    </div>
+    <div class="kpi ok">
+      <span class="kpi-val">3</span>
+      <div class="kpi-lbl">Tech events</div>
+    </div>
+    <div class="kpi warn">
+      <span class="kpi-val">2</span>
+      <div class="kpi-lbl">Venues closed</div>
+    </div>
+  </div>
+
+  <!-- CALENDAR TIMELINE -->
+  <div class="cal-wrap">
+    <div class="stitle">June 2026 — Event Calendar Overlay · Target window Jun 22–25</div>
+    <div class="cal-grid">
+
+      <!-- Header row -->
+      <div></div>
+      <div class="cal-hdr-cell"><span>22</span><small>Mon</small></div>
+      <div class="cal-hdr-cell"><span>23</span><small>Tue</small></div>
+      <div class="cal-hdr-cell"><span>24</span><small>Wed</small></div>
+      <div class="cal-hdr-cell"><span>25</span><small>Thu</small></div>
+
+      <!-- Tech row -->
+      <div class="cal-row-lbl">Tech</div>
+      <div class="cal-cell tech"><a href="https://coter-numerique.org/congres-2026/index.html">CoTer JET<br><small>Prep day</small></a></div>
+      <div class="cal-cell tech"><a href="https://coter-numerique.org/congres-2026/index.html">CoTer Day 1<br><small>~1,300 attendees</small></a></div>
+      <div class="cal-cell tech"><a href="https://coter-numerique.org/congres-2026/index.html">CoTer Day 2<br><small>AI · NIS2 · Cloud</small></a></div>
+      <div class="cal-cell tech-free"><a href="https://lafrenchtechest.fr/event/fete-de-linnovation-2026/">Fête de l'Innovation<br><small>16:00–23:00 · Free</small></a></div>
+
+      <!-- Music row -->
+      <div class="cal-row-lbl">Music</div>
+      <div class="cal-cell music span4"><a href="https://www.reims-tourisme.com/les-grands-evenements-remois/flaneries-musicales-festival-2026/">Flâneries Musicales — Classical festival · Jun 18–Jul 10 · 400+ artists across Reims venues</a></div>
+
+      <!-- Dining row -->
+      <div class="cal-row-lbl">Dining ★</div>
+      <div class="cal-cell dining">Arbane open<br><small>(Mon)</small></div>
+      <div class="cal-cell dining">Arbane open<br><small>(Tue)</small></div>
+      <div class="cal-cell dining">Le Parc open<br><small>(Wed–Sun)</small></div>
+      <div class="cal-cell dining">Le Parc open<br><small>after Fête at 16h</small></div>
+
+      <!-- Cellars row -->
+      <div class="cal-row-lbl">Cellars</div>
+      <div class="cal-cell cellar span4">Taittinger · Pommery · Mumm · Veuve Clicquot · Ruinart — open daily · advance booking strongly advised · pair cellar morning with starred dinner evening</div>
+
+    </div>
+  </div>
+
+  <!-- MAIN PANELS -->
+  <div class="panels">
+
+    <!-- Left: Restaurants -->
+    <div class="panel">
+      <div class="stitle">Michelin Restaurants — Booking Status &amp; Availability</div>
+
+      <!-- L'Assiette Champenoise -->
+      <div class="rest-card three-star">
+        <div class="rest-inner has-photo">
+          <div>
+            <div class="rest-head">
+              <div class="rest-stars">★★★</div>
+              <div class="rest-name"><a href="https://www.assiettechampenoise.com/en/home/">L'Assiette Champenoise</a></div>
+              <div class="rest-badge"><span class="badge caution">Verify schedule</span></div>
+            </div>
+            <div class="rest-chef">Arnaud Lallement · three stars since 2014 · Tinqueux (~5 min) <sup><a href="https://guide.michelin.com/us/en/article/news-and-views/michelin-star-restaurants-france-full-list">[Michelin]</a></sup></div>
+            <div class="rest-info">One of 31 three-star tables in France. "Nature writes the menu" — own garden, local foragers, Champagne terroir. Langoustine Royale · Blue Lobster · Pigeon des Ardennes.</div>
+            <div class="rest-prices">
+              <span class="ptag lo">Weekday lunch €175</span>
+              <span class="ptag">Saveur €295</span>
+              <span class="ptag">Émotion €395</span>
+            </div>
+          </div>
+          <div class="rest-photo-col">
+            <img src="dashboard/images/assiette-champenoise.jpg" alt="L'Assiette Champenoise">
+          </div>
+        </div>
+      </div>
+
+      <!-- Racine -->
+      <div class="rest-card urgent">
+        <div class="rest-inner">
+          <div>
+            <div class="rest-head">
+              <div class="rest-stars">★★</div>
+              <div class="rest-name"><a href="https://www.racine.re/">Racine</a></div>
+              <div class="rest-badge"><span class="badge urgent">Book now — 14 covers</span></div>
+            </div>
+            <div class="rest-chef">6 Place Godinot · Franco-Japanese · 4 tables + counter <sup><a href="https://www.racine.re/">[1]</a></sup></div>
+            <div class="rest-info">Most distinctive seat in Reims. Japanese precision applied to local Champagne ingredients. Fills weeks ahead. Closed Tue–Wed and Mon/Thu lunch.</div>
+            <div class="rest-prices">
+              <span class="ptag lo">Suki €150</span>
+              <span class="ptag">Daisuki €200</span>
+              <span class="ptag">Marine €265</span>
+              <span class="ptag">Kazuyuki €310</span>
+            </div>
+            <div class="rest-avail">Open: Fri &amp; Sat (lunch + dinner)</div>
+          </div>
+          <div>
+            <img src="https://www.google.com/s2/favicons?domain=racine.re&sz=64" alt="" width="32" height="32" style="border-radius:4px;margin-top:.25rem">
+          </div>
+        </div>
+      </div>
+
+      <!-- Arbane -->
+      <div class="rest-card ok">
+        <div class="rest-inner">
+          <div>
+            <div class="rest-head">
+              <div class="rest-stars">★★</div>
+              <div class="rest-name"><a href="https://www.arbane-philippe-mille.com/en">Arbane</a></div>
+              <div class="rest-badge"><span class="badge ok">Mon · Tue · Fri · Sat</span></div>
+            </div>
+            <div class="rest-chef">Philippe Mille · 7 Rue Noël · 1874 mansion · 2nd star March 2026 <sup><a href="https://guide.michelin.com/en/article/news-and-views/michelin-starred-restaurants-france-new">[Michelin]</a></sup></div>
+            <div class="rest-info">Named after the 7th Champagne grape variety. Vine-branch cooking, open kitchen. Michelin Passion Dessert distinction. Sharpest value post-upgrade.</div>
+            <div class="rest-prices">
+              <span class="ptag lo">Lunch €80</span>
+              <span class="ptag">Tasting €290</span>
+            </div>
+          </div>
+          <div>
+            <img src="https://www.google.com/s2/favicons?domain=arbane-philippe-mille.com&sz=64" alt="" width="32" height="32" style="border-radius:4px;margin-top:.25rem">
+          </div>
+        </div>
+      </div>
+
+      <!-- Le Parc -->
+      <div class="rest-card ok">
+        <div class="rest-inner">
+          <div>
+            <div class="rest-head">
+              <div class="rest-stars">★★</div>
+              <div class="rest-name"><a href="https://lescrayeres.com/en/restaurant-le-parc.html">Le Parc — Les Crayères</a></div>
+              <div class="rest-badge"><span class="badge ok">Wed – Sun</span></div>
+            </div>
+            <div class="rest-chef">Christophe Moret · 64 Bd Henry Vasnier · Relais &amp; Châteaux <sup><a href="https://lescrayeres.com/en/restaurant-le-parc.html">[3]</a></sup></div>
+            <div class="rest-info">Château dining, 900+ champagne references, La Liste world top 200. Most complete Champagne-country experience. Pairs best after a cellar-tour morning.</div>
+            <div class="rest-prices">
+              <span class="ptag lo">Inspiration €120</span>
+              <span class="ptag">Plaisir €180</span>
+              <span class="ptag">Signature €270</span>
+              <span class="ptag">Printemps €360</span>
+            </div>
+          </div>
+          <div>
+            <img src="https://www.google.com/s2/favicons?domain=lescrayeres.com&sz=64" alt="" width="32" height="32" style="border-radius:4px;margin-top:.25rem">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Cellars + Sights -->
+    <div class="panel">
+      <div class="stitle">Cellar Tours — UNESCO Chalk Crayères <sup><a href="https://www.reims-tourisme.com/les-grands-evenements-remois/flaneries-musicales-festival-2026/">[15]</a></sup></div>
+
+      <div class="cellar-row">
+        <div class="cellar-name"><a href="https://www.maisonpommery.com/visites/en/le-domaine-pommery">Pommery</a></div>
+        <div class="cellar-note">120 crayères · 18 km tunnels · 30 m deep · 116 steps</div>
+        <div class="cellar-price">€30+</div>
+        <div class="cellar-dur">incl. tasting</div>
+      </div>
+      <div class="cellar-row">
+        <div class="cellar-name"><a href="https://www.mumm.com/en-ww/book-a-visit/">G.H. Mumm</a></div>
+        <div class="cellar-note">25M bottles · Cordon Rouge or Grand Cru Vintage · max 6</div>
+        <div class="cellar-price">€32–60</div>
+        <div class="cellar-dur">1h30</div>
+      </div>
+      <div class="cellar-row">
+        <div class="cellar-name"><a href="https://www.veuveclicquot.com/en-us/visitus.html">Veuve Clicquot</a></div>
+        <div class="cellar-note">No walk-in · guided only · peak season May–Oct</div>
+        <div class="cellar-price">€36–260</div>
+        <div class="cellar-dur">1h / 4h</div>
+      </div>
+      <div class="cellar-row">
+        <div class="cellar-name"><a href="https://www.taittinger.com/en/visits-reims">Taittinger</a></div>
+        <div class="cellar-note">Gallo-Roman cellars · Instant Rosé (€40) → Instant Comtes (€90)</div>
+        <div class="cellar-price">€40–150</div>
+        <div class="cellar-dur">1h–1h30</div>
+      </div>
+      <div class="cellar-row">
+        <div class="cellar-name"><a href="https://www.ruinart.com/en-us/visitedescrayeresreims.html">Ruinart</a></div>
+        <div class="cellar-note">~40 m deep · max 12 pax · 2 champagnes · UNESCO classified</div>
+        <div class="cellar-price">€90</div>
+        <div class="cellar-dur">max 12</div>
+      </div>
+
+      <div class="sect-gap">
+        <div class="stitle">Sights &amp; Day Trips</div>
+      </div>
+
+      <div class="sight-row">
+        <div class="sight-name"><a href="https://www.cathedrale-reims.fr/en/visit/practical-information">Reims Cathedral</a></div>
+        <div class="sight-cost">Free / €9 tower</div>
+        <div class="sight-note">UNESCO · 25 coronations 1223–1825 · Chagall windows · tower min 10 people, guided</div>
+      </div>
+      <div class="sight-row">
+        <div class="sight-name"><a href="https://en.reims.fr/visit-reims/saint-remi-basilica">Basilique Saint-Remi</a></div>
+        <div class="sight-cost">€5.50</div>
+        <div class="sight-note">UNESCO · museum Tue–Sun 10–18 · closed Mon · 53 rue Simon</div>
+      </div>
+      <div class="sight-row">
+        <div class="sight-name"><a href="https://www.reims-tourisme.com/en/activite/musee-du-fort-de-la-pompelle/">Fort de la Pompelle</a></div>
+        <div class="sight-cost">€5.50 / free 1st Sun</div>
+        <div class="sight-note">560 German imperial headdresses · only WWI fort to stay Allied · Apr–Sep 10–18</div>
+      </div>
+      <div class="sight-row">
+        <div class="sight-name"><a href="https://www.phare-verzenay.com/version-anglaise/visit.html">Verzenay Lighthouse</a></div>
+        <div class="sight-cost">Entry fee</div>
+        <div class="sight-note">1909 · 101 steps · 360° Montagne de Reims panorama · grower tasting on-site</div>
+      </div>
+      <div class="sight-row">
+        <div class="sight-name"><a href="https://www.thetrainline.com/en/train-times/reims-ville-to-epernay">Épernay day trip</a></div>
+        <div class="sight-cost">From ~€4 SNCF</div>
+        <div class="sight-note">34 min fastest · 22 trains/day · Avenue de Champagne · Moët 28 km cellars · Mercier</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ALERTS STRIP -->
+  <div class="alerts">
+    <div class="alert-card">
+      <div class="alert-dot red"></div>
+      <div class="alert-body">
+        <strong>Book Racine immediately</strong>
+        <span>14 covers only — fills weeks in advance. Fri &amp; Sat service only. This is the hardest seat in Reims by far.</span>
+      </div>
+    </div>
+    <div class="alert-card">
+      <div class="alert-dot red"></div>
+      <div class="alert-body">
+        <strong><a href="https://www.palais-du-tau.fr/en">Palais du Tau</a> — closed until 2027</strong>
+        <span>Being converted to Musée des Sacres. Remove from itinerary. Royal coronation treasury inaccessible this cycle.</span>
+      </div>
+    </div>
+    <div class="alert-card">
+      <div class="alert-dot red"></div>
+      <div class="alert-body">
+        <strong>Musée des Beaux-Arts — closed 2026</strong>
+        <span>Under renovation. No substitute planned this year. Replaced by Saint-Remi museum for the museum slot.</span>
+      </div>
+    </div>
+    <div class="alert-card">
+      <div class="alert-dot yellow"></div>
+      <div class="alert-body">
+        <strong><a href="https://www.reims-tourisme.com/en/activite/musee-de-la-reddition/">Musée de la Reddition</a> — verify</strong>
+        <span>Closed May 2025 for rehabilitation. Spring 2026 reopening scheduled. Confirm before building a day around it.</span>
+      </div>
+    </div>
+    <div class="alert-card">
+      <div class="alert-dot yellow"></div>
+      <div class="alert-body">
+        <strong>Ruinart — book weeks ahead</strong>
+        <span>Max 12 people per session. €90/adult from Jan 2026. Deepest UNESCO cellars (~40 m). Fills quickly.</span>
+      </div>
+    </div>
+    <div class="alert-card">
+      <div class="alert-dot green"></div>
+      <div class="alert-body">
+        <strong><a href="https://lafrenchtechest.fr/event/fete-de-linnovation-2026/">Fête de l'Innovation</a> Jun 25 — free, open</strong>
+        <span>16:00–23:00, Villa Douce. Startup pitches → innovation village → cocktail. <a href="https://my.weezevent.com/fete-de-linnovation-2026-1">RSVP via Weezevent</a>. Follow with Le Parc dinner.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISION MATRIX -->
+  <div class="decision">
+    <div class="stitle">Anchor Dinner — Decision Matrix: Which Restaurant Sets the Trip's Tone</div>
+    <div class="dec-grid">
+
+      <div class="dec-card pinnacle">
+        <div class="dec-tag pinnacle">★ Pinnacle</div>
+        <div class="dec-name"><a href="https://www.assiettechampenoise.com/en/home/">L'Assiette Champenoise</a></div>
+        <div class="dec-stars">★★★</div>
+        <div class="dec-body">One of 31 three-star tables in France. Lallement's terroir philosophy — own garden, local foragers, vineyard producers. Signature Langoustine Royale + Osciètre caviar. Trip tone: pinnacle gastronomy.</div>
+        <div class="dec-price">€175 weekday lunch → €395 Émotion</div>
+        <div class="dec-avail">40 Av. Paul Vaillant-Couturier, Tinqueux · check current schedule</div>
+      </div>
+
+      <div class="dec-card rare">
+        <div class="dec-tag rare">★ Rarest Seat</div>
+        <div class="dec-name"><a href="https://www.racine.re/">Racine</a></div>
+        <div class="dec-stars">★★</div>
+        <div class="dec-body">14 covers. Most distinctive address in Reims. Franco-Japanese precision on Champagne-region ingredients. Book weeks ahead or miss entirely. Trip tone: singular, intimate, hard-to-get.</div>
+        <div class="dec-price">€150 Suki (lunch) → €310 Kazuyuki (9 courses)</div>
+        <div class="dec-avail">6 Place Godinot · Fri &amp; Sat only</div>
+      </div>
+
+      <div class="dec-card value">
+        <div class="dec-tag value">★ Best Value 2★</div>
+        <div class="dec-name"><a href="https://www.arbane-philippe-mille.com/en">Arbane</a></div>
+        <div class="dec-stars">★★</div>
+        <div class="dec-body">Freshly 2★ (March 2026). Philippe Mille, 1874 mansion. Named after the 7th Champagne grape. Vine-branch cooking, Michelin Passion Dessert. Best price-to-prestige ratio in the city.</div>
+        <div class="dec-price">€80 lunch → €290 tasting menu</div>
+        <div class="dec-avail">7 Rue Noël · Mon · Tue · Fri · Sat</div>
+      </div>
+
+      <div class="dec-card setting">
+        <div class="dec-tag setting">★ Grandest Setting</div>
+        <div class="dec-name"><a href="https://lescrayeres.com/en/restaurant-le-parc.html">Le Parc</a></div>
+        <div class="dec-stars">★★</div>
+        <div class="dec-body">Château dining, Relais &amp; Châteaux, 900+ champagnes, La Liste world top 200. Christophe Moret's generous modern French. Most complete Champagne-country package. Pairs ideally with a cellar-tour morning.</div>
+        <div class="dec-price">€120 Inspiration → €360 Printemps 2026</div>
+        <div class="dec-avail">64 Bd Henry Vasnier · Wed – Sun</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="dash-footer">
+    <span>Research: 2026-06-03 · 84 citations · 3 sub-angles · <a href="https://coter-numerique.org/congres-2026/index.html">CoTer</a> · <a href="https://lafrenchtechest.fr/event/fete-de-linnovation-2026/">Fête Innovation</a> · <a href="https://www.hacksecureims.eu/">HS'R CTF (Jun 5–6)</a></span>
+    <div class="footer-links">
+      <a href="../things-to-do-in-reims/">Activities</a>
+      <a href="../michelin-2-and-3-star-restaurants-in-reims/">Restaurants</a>
+      <a href="../it-conferences-and-tech-events-in-reims/">Tech Events</a>
+    </div>
+  </div>
+
+</div>
