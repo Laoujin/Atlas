@@ -11,6 +11,8 @@ summary: "Practical playbook for a 90-min virtual hands-on AI-TDD workshop with 
 citations: 15
 reading_time_min: 7
 cover: cover.svg
+cost_usd: 1.30
+duration_sec: 509
 ---
 
 > **TL;DR** — Eliminate environment setup from live time with GitHub Codespaces prebuilds [[6]](https://dev.to/bengreenberg/unlocking-github-codespaces-for-workshops-344o); pre-provision capped AI API keys per participant, not shared [[9]](https://blog.mehdio.com/p/running-an-ai-workshop-build-a-llm); assign a separate producer role so the lead never touches Zoom controls [[7]](https://www.trainingforchange.org/training_tools/facilitation-and-roles-prep-for-a-large-online-training/); run 60–70% hands-on exercises in a 90-min max session [[12]](https://www.kaizenko.com/test-driven-development-deep-dive-workshop/). Every failure mode in this domain is predictable — the table at the end is your pre-mortem checklist.
