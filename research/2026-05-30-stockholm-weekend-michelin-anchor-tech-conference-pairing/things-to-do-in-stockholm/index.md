@@ -10,7 +10,9 @@ tags: [stockholm, sweden, travel, weekend, archipelago, museums]
 summary: "Late-May Stockholm weekend plan: Vasa + one of Skansen/Fotografiska/Moderna, a Djurgården-Söder-Gamla Stan day, a half-day archipelago run to Vaxholm or Fjäderholmarna, plus fika, terraces and 18-hour daylight to use up."
 citations: 78
 reading_time_min: 11
-validation_error: "run.sh exit 1"
+cost_usd: 8.34
+duration_sec: 913
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Late May lands you in Stockholm's 18-hour daylight window with the archipelago season just opening [[56]](https://sunrise-sunset.org/se/stockholm) [[63]](https://stockholmarchipelagotrail.com/questions-and-aswers/). For two-and-a-half days, do **Vasa** Friday afternoon, **Djurgården + Skansen or Fotografiska** Saturday, an archipelago half-day to **Vaxholm** or **Fjäderholmarna** Sunday, and wander **Södermalm** (Skinnarviksberget at golden hour) at least once [[1]](https://www.vasamuseet.se/en/visit/hours--admission) [[45]](https://travelcollecting.com/day-trip-to-vaxholm-sweden/) [[66]](https://www.stockholmmuseum.com/museums/gardens/skinnarviksparken.htm). The ABBA Museum is heavily interactive and earns its 2–3 hour billing for ABBA fans, but ticket price is the most common visitor complaint — skip it if you're not a pop-nostalgia draw [[5]](https://www.wonderfulmuseums.com/museum/abba-the-museum-reviews/). Heads-up: the **Stockholm Marathon is Saturday May 30**, with central road closures from noon [[59]](https://worldsmarathons.com/marathon/stockholm-marathon).
