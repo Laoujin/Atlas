@@ -35,6 +35,7 @@ duration_sec: 1814
 citations: 103
 reading_time_min: 17
 issue: 107
+model: "Opus 4.7"
 ---
 
 The plan resolves cleanly because Lausanne is small. All three Michelin anchors sit within 7 km of the main station — Pic on the Ouchy lakefront, La Table in the city centre, and the 3-star Hôtel de Ville reachable in ~7 minutes by SBB train [[1]](https://www.rome2rio.com/s/Lausanne-Station/Crissier) — and daytime sights cluster in three M2-metro-linked zones (lake, downtown, uphill) along the world's steepest metro at an 11.6 % gradient [[2]](https://en.wikipedia.org/wiki/M%C3%A9tro_Lausanne%E2%80%93Ouchy). The restaurant choice therefore drives the day's activity geography more than the itinerary drives the restaurant pick.

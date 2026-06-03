@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.46
 duration_sec: 545
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Book around **September 2026** for the highest density of events: Alibaba Cloud's Yunqi / Apsara Conference (the flagship, already sold out for Sep 1) [[5]](https://en.jufair.com/exhibition/14572.html) overlaps with the Global Digital Trade Expo and International Smart Space Exhibition the week of Sep 23–27. [[7]](https://www.gdte.org.cn/En/) [[8]](https://international-smart-space-exhibition.hk.messefrankfurt.com/hangzhou/en.html) ICSICT (semiconductors/IC) fills late October, [[9]](https://www.icsict.org/) and the World Internet Conference in Wuzhen — 74 km away — runs in November. [[12]](https://www.wicinternet.org/) [[11]](https://www.rome2rio.com/s/Hangzhou/Wuzhen)

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.35
 duration_sec: 414
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a weekend-anchored visit, [hackaTUM](https://hack.tum.de/) (Fri–Sun, Nov 27–29) and the [European Defense Tech Hackathon](https://luma.com/edth-anniversary-munich) (Fri–Sun, Jun 26–28) fit cleanly across two nights [[14]](https://hack.tum.de/) [[15]](https://luma.com/edth-anniversary-munich). For marquee scale and a Bavarian capstone, [Bits & Pretzels](https://www.bitsandpretzels.com/) (Mon–Wed, Sep 28–30) ends mid-Oktoberfest — wrap the weekend after [[4]](https://www.bitsandpretzels.com/). For zero commitment, monthly [AI Tinkerers Munich](https://munich.aitinkerers.org/) and [Munich Datageeks](https://www.meetup.com/munich-datageeks/) cost a free RSVP [[16]](https://munich.aitinkerers.org/) [[18]](https://www.meetup.com/munich-datageeks/). Note: [IAA Mobility](https://www.iaa-mobility.com/en) is **not in Munich in 2026** — next edition is Sep 7–12, 2027 [[6]](https://www.iaa-mobility.com/en).

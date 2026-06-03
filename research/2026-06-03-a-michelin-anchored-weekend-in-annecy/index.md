@@ -35,6 +35,7 @@ duration_sec: 1557
 citations: 84
 reading_time_min: 15
 issue: 150
+model: "Sonnet 4.6"
 ---
 
 Three research angles converge on a single practical constraint: **pick the restaurant first, then build the weekend around its closed days**.

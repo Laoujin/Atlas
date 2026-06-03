@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 3.74
 duration_sec: 577
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** One real anchor in this radius: **[KIKK Festival](https://kikkfestival.be/)** 21–25 October 2026 in Namur [[1]](https://visitwallonia.com/en-gb/content/kikk-festival-celebrating-digital-world-namur) — Wallonia's flagship digital-culture event with ~50 speakers across AI, dataviz, design and XR. Outside KIKK week, the area is venue-rich but conference-thin: year-round programming at **[Le Pavillon](https://www.le-pavillon.be/en/events)** [[5]](https://www.le-pavillon.be/en/events) and **[TRAKK](https://www.trakk.be/)** [[6]](https://www.trakk.be/) in Namur, and Charleroi's **[A6K](https://www.a6k.be/)** innovation hub [[8]](https://www.a6k.be/) sitting right at the 30 km edge. If you want a developer-track conference (Devoxx, Java, AWS user groups), nothing fits — those all happen in Antwerp/Brussels [[15]](https://dev.events/EU/BE/Namur)[[16]](https://devoxx.be/).

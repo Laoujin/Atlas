@@ -13,6 +13,7 @@ reading_time_min: 14
 cover: cover.svg
 cost_usd: 7.23
 duration_sec: 687
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.**

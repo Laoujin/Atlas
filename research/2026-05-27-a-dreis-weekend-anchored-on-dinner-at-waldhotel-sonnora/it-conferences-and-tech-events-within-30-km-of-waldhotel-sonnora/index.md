@@ -13,6 +13,7 @@ citations: 18
 reading_time_min: 4
 cost_usd: 3.32
 duration_sec: 541
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** The 30 km circle around Waldhotel Sonnora is rural Eifel — no startup hub, no recurring developer conference. Almost everything IT/tech-flavoured is anchored at the University and Hochschule of Trier (25 km straight-line south [[1]](https://de.entfernung.himmera.com/entfernungen_stadten-trier-deutschland.html)). The flagship picks for 2026 are **CiE 2026** (theoretical CS, July 27-31) [[4]](https://www.uni-trier.de/en/universitaet/fachbereiche-faecher/fachbereich-iv/faecher/informatikwissenschaften/professuren/theoretische-informatik/research/conferences-and-workshops/translate-to-englisch-cie-2026) and the **WRO Deutschlandfinale** (robotics, June 19-20) [[7]](https://www.trier.de/aktuelles/nachrichten/16974.Deutschland-Finale-der-World-Robot-Olympiad-2026-in-Trier.html). Outside Trier the offering is thin: a few SMB AI workshops in Daun/Nerdlen [[9]](https://wirtschaft.eifel.info/2026/03/02/ki-praxisnah-und-datenschutzkonform-einsetzen/) and online sessions from the Bernkastel-Wittlich Wirtschaftsförderung [[11]](https://www.bernkastel-wittlich.de/pressemitteilungen/2026/februar-2026/neue-online-workshopreihe-vermittelt-grundlagen-im-online-marketing-und-den-einsatz-von-kuenstlicher-intelligenz/).

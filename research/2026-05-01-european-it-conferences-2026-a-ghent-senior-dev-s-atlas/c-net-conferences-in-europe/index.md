@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.66
 duration_sec: 459
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — From a Belgium base, the strongest May→Dec 2026 line-up is **Techorama Belgium** (11-13 May, Antwerp, €899 conference) [[12]](https://techorama.be/tickets) for the home-turf flagship, **NDC Copenhagen** (1-4 June) [[5]](https://ndccopenhagen.com/) or **NDC Oslo** (14-18 September) [[4]](https://ndcoslo.com/) when you want the full NDC speaker roster, and **Update Conference Prague** (12-13 November) [[14]](https://prague.updateconference.net/) for the densest .NET-only programme in CEE. **Build Stuff** Vilnius (2-4 December) [[16]](https://buildstuff.events/) and **.NET DeveloperDays** Warsaw (19-23 October) [[15]](https://developerdays.eu/warsaw/) round out CEE; **CloudBrew** Mechelen (10-11 December) [[20]](https://www.cloudbrew.be/) is the cheap Azure-community pick close to home. **Devoxx Belgium** [[22]](https://devoxx.be/) and **DDD Europe** [[21]](https://2026.dddeurope.com/) are adjacent (Java- and language-agnostic respectively) but draw .NET architects in significant numbers.

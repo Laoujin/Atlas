@@ -35,6 +35,7 @@ duration_sec: 1905
 citations: 94
 reading_time_min: 19
 issue: 146
+model: "Sonnet 4.6"
 ---
 
 The planning spine is simple: reserve the dinner first, then build days around it. All three 3-star tables run narrow windows — [AM par Alexandre Mazzia](https://www.alexandre-mazzia.com) (24 seats, Wed–Sat) [[1]](https://fr.wikipedia.org/wiki/Liste_des_restaurants_deux_et_trois_%C3%A9toiles_du_Guide_Michelin), [Le Petit Nice Passedat](https://www.passedat.fr) (Tue–Sat, ~30 seats) [[2]](https://www.passedat.fr/en/le-petit-nice/gastronomic-michelin-star-restaurants-marseille), and [La Villa Madie](https://lavillamadie.com) in Cassis (Thu–Sun until mid-June, then adds Mon through August) [[3]](https://lavillamadie.com/en/menu/) — and each choice shapes whether a Saturday or Friday arrival makes more sense. AM's 24-seat room is the hardest constraint of the whole weekend: it books out weeks ahead and offers a sub-€295 entry only at Wednesday–Friday lunch (the €115 "Premier Pas" menu) [[4]](https://www.thefork.fr/restaurant/am-par-alexandre-mazzia-r829913/menu).

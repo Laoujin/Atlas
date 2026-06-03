@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.34
 duration_sec: 333
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** If you want a pure software-developer conference in Basel, there is exactly one that matters: [BaselOne](https://baselone.org/en/baselone-home/) on **14–15 October 2026** at Markthalle [[1]](https://baselone.org/en/baselone-home/). Everything else is life-sciences-adjacent — Messe Basel hosts [health.tech](https://www.health.tech/) (March), [Swiss Biotech Day](https://swissbiotechday.ch/) (May), [Future Labs Live](https://www.terrapinn.com/conference/future-labs-live/index.stm) (May) and [BioTechX Europe](https://www.terrapinn.com/conference/biotechx/index.stm) (October), all heavy on data/AI tracks [[5]](https://www.health.tech/)[[7]](https://swissbiotechday.ch/)[[4]](https://www.terrapinn.com/conference/future-labs-live/index.stm)[[8]](https://www.terrapinn.com/conference/biotechx/index.stm). For grassroots, [Hackergarten Basel](https://www.meetup.com/hackergarten-basel/) and [Basel Data Science & AI](https://www.meetup.com/basel-data-scientists/) are the only meetups with a reliable monthly heartbeat [[11]](https://www.meetup.com/hackergarten-basel/)[[12]](https://www.meetup.com/basel-data-scientists/).

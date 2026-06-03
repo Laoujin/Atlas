@@ -13,6 +13,7 @@ reading_time_min: 11
 cover: cover.svg
 cost_usd: 9.34
 duration_sec: 1115
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Cenador de Amós sits in Villaverde de Pontones, 15–25 minutes by car from the four highest-value outings in the 30 km radius: **(1)** [Parque de la Naturaleza de Cabárceno](https://parquedecabarceno.com/) for the half-day wildlife park on a reclaimed iron-mine landscape [[32]](https://en.wikipedia.org/wiki/Cabarceno_Natural_Park); **(2)** Santander city for [Centro Botín](https://www.centrobotin.org/en/) + the [Magdalena Peninsula](https://turismo.santander.es/en/tren-turistico-de-la-magdalena) + a pintxo crawl on the port [[15]](https://audiala.com/en/spain/santander/botin-centre); **(3)** [Santoña](https://www.anchoasdesantona.net/que-ver-en-santona/) for an anchoa-factory tasting and the Monte Buciero loop — but the famous Faro del Caballo staircase is **closed all summer 2026** for rockfall stabilisation [[76]](https://www.radionervion.com/2026/05/20/cierre-total-de-la-bajada-al-faro-del-caballo-en-santona-este-verano-por-riesgo-de-desprendimientos/); **(4)** the bay itself — cross by [Los Reginas](https://www.losreginas.com/) ferry to Somo for surfing or a Pedreña port lunch [[75]](https://www.losreginas.com/paseos-en-barco-por-la-bahia-de-santander-con-escala-en-pedrena-y-somo/horarios-y-tarifas-viaje-pedrena-somo/). Add the [Liérganes](https://www.miruta.es/que-ver-en-lierganes/) Pasiego village for a slow afternoon. Santillana del Mar is ~10 km past the radius but worth the stretch.

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.11
 duration_sec: 364
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — If you can time the trip, anchor on **GOTO Copenhagen** (Sep 28–Oct 2, devs/architects) [[1]](https://gotocph.com/), **NDC Copenhagen** (Jun 1–4, .NET/full-stack) [[2]](https://ndccopenhagen.com/), **TechBBQ** (Aug 26–27, Nordic startups) [[3]](https://techbbq.dk/), **Nordic Fintech Week** (Sep 21–25) [[4]](https://nfweek.com/), or **Future Product Days** (Sep 22–24, product/AI, 9,000+ people) [[5]](https://www.futureproductdays.com/). Off-cycle weeks: free monthly meetups via [CopenhagenJS](https://copenhagenjs.dk/) [[13]](https://copenhagenjs.dk/), [CNUG (.NET)](https://www.meetup.com/copenhagen-net-user-group/) [[12]](https://www.meetup.com/copenhagen-net-user-group/), [PyData CPH](https://www.meetup.com/pydata-copenhagen/) [[14]](https://www.meetup.com/pydata-copenhagen/). September is the peak: three of the largest five fall in one fortnight.

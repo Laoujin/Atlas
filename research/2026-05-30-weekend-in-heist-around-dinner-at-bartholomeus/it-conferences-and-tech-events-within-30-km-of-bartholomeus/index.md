@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.21
 duration_sec: 338
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Bartholomeus sits at Zeedijk-Heist 267 [[1]](https://www.myknokke-heist.be/en/restaurant/bartholomeus); within a 30 km arc, **Bruges (16 km)** [[2]](https://www.trippy.com/distance/Knokke-Heist-to-Bruges) is the only real tech hub. If you can only pick one upcoming event, make it **[EUSIPCO 2026](https://eusipco2026.org/)** at Concertgebouw Brugge, 31 Aug – 4 Sep — 600-attendee European signal-processing & ML conference [[4]](https://eusipco2026.org/)[[5]](https://www.visitbrugesconventionbureau.be/en/conference-calendar). For shorter-format, **Howest Brugge** runs an AI-in-healthcare keynote on 9 Jun [[8]](https://www.howest.be/en/digital-health-lab/community-en-events) and an OT/ICS security focus group + Tech BBQ on 17 & 25 Jun [[9]](https://www.cyber3lab.be/en/news/cybersecurity-ai-community-events). The big-name Belgian tech events (Connect IT, Tech Connect, Devoxx, Hack the Future) all sit **outside** the radius.

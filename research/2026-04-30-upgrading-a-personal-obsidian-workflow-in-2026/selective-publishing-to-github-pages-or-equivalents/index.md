@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.07
 duration_sec: 329
+model: "Opus 4.7"
 ---
 
 > **Decision.** For an Obsidian vault → public site in 2026, pick the **opt-in (whitelist) frontmatter** pattern, not draft-style opt-out — one missing `draft: true` shouldn't be the only thing between a note and the open web. Concrete picks:

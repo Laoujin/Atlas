@@ -35,6 +35,7 @@ duration_sec: 1695
 citations: 135
 reading_time_min: 17
 issue: 103
+model: "Opus 4.7"
 ---
 
 The three angles compose into one constraint graph: the **Michelin pick determines which day the anchor lands**, the anchor determines the day shape, and the day shape determines which sights and day-trips fit around it.

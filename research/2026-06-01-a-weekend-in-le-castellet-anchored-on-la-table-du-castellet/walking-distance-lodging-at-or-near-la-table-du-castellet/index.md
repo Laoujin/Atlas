@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.22
 duration_sec: 428
+model: "Opus 4.7"
 ---
 
 > **Decision:** Book the [Hôtel & Spa du Castellet](https://www.hotelducastellet.net/en/) — La Table du Castellet is on the ground floor of the same building, no transfer needed [[1]](https://www.hotelducastellet.net/en/la-table-du-castellet.html). The only other hotel within walking distance is the 3★ [Grand Prix Hôtel](https://grandprixhotel.fr/en/) (~700 m east on Route des Hauts du Camp [[9]](https://www.kayak.com/Le-Castellet-Hotels-Grand-Prix-Hotel.315989.ksp)), useful as a budget fallback but on an unlit rural road ⚠ — plan to walk back in daylight or take a 5-minute taxi after dinner [[7]](https://grandprixhotel.fr/en/access.html). The perched medieval village of Le Castellet is several km away on a separate hill [[12]](https://www.france-voyage.com/tourism/castellet-784.htm) — not walkable.

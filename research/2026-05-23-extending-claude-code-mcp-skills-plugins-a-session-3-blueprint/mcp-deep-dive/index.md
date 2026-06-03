@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 2.86
 duration_sec: 521
+model: "Opus 4.7"
 ---
 
 > **TL;DR — what to teach.** MCP is a JSON-RPC 2.0 protocol that lets any LLM host call any tool/data source through a standard wire format. Anthropic open-sourced it in Nov 2024 [[1]](https://www.anthropic.com/news/model-context-protocol); the Linux Foundation's Agentic AI Foundation now governs it [[3]](https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation); every major lab (Anthropic, OpenAI, Google, Microsoft, AWS) ships first-class client support, with **110M+ SDK downloads per month** [[4]](https://aaif.io/blog/mcp-is-now-enterprise-infrastructure-everything-that-happened-at-mcp-dev-summit-north-america-2026/). For a deep-dive talk, anchor on three pillars: **(1) the six primitives** (tools/resources/prompts on the server; sampling/roots/elicitation on the client), **(2) the 2025-11-25 spec + 2026-07-28 release candidate** (stateless core, MCP Apps, Tasks extension, OAuth 2.1 hardening), and **(3) the security session** — tool poisoning and the "lethal trifecta" [[22]](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) are where this protocol is most interesting and least solved.

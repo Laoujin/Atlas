@@ -13,6 +13,7 @@ reading_time_min: 17
 cover: cover.svg
 cost_usd: 11.04
 duration_sec: 1988
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Piesport sits in the middle of one of the densest hike-vineyard-Roman-site networks on the German Mosel. Pick by the day's plan:

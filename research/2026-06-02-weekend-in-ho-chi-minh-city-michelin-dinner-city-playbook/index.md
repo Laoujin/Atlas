@@ -35,6 +35,7 @@ duration_sec: 1968
 citations: 132
 reading_time_min: 21
 issue: 135
+model: "Sonnet 4.6"
 ---
 
 The expedition's three angles converge on a single decision: **pick the restaurant first, then let its location shape the rest of the day.**

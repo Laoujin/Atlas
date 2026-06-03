@@ -13,6 +13,7 @@ citations: 13
 reading_time_min: 4
 cost_usd: 3.15
 duration_sec: 571
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book [B&B Domo Togan](https://www.booking.com/hotel/be/domo-togan.html) — three rooms, 41 m from De Jonkman's door, 4.8/5 on TripAdvisor [[5]](https://www.tripadvisor.com/Hotel_Review-g1813818-d3262124-Reviews-Domo_Togan_Bed_Breakfast-Sint_Kruis_West_Flanders_Province.html). Want wellness? [Hof Ter Beuke](https://hofterbeuke.be/) (10 min walk, sauna + spa bath) [[8]](https://www.bruges-belgium-hotels.com/en/property/hof-ter-beuke.html). Want a 20-room country hotel? [Hotel Lodewijk Van Male](https://www.booking.com/hotel/be/lodewijk-van-male.html) (13 min, ask for a renovated room) [[10]](https://www.tripadvisor.com/Hotel_Review-g1813818-d1794515-Reviews-Lodewijk_Van_Male-Sint_Kruis_West_Flanders_Province.html). Anything past ~25 min stops being a walk and becomes a taxi.

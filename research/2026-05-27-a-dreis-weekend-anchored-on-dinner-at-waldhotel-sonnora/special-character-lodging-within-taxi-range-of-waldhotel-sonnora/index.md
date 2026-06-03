@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.98
 duration_sec: 490
+model: "Opus 4.7"
 ---
 
 > **Decision.** Sleep at [Waldhotel Sonnora](https://hotel-sonnora.de/en/hotel-en/) itself unless its 20 rooms [[1]](https://hotel-sonnora.de/en/hotel-en/) are full or the €268+ entry rate is a problem — taxi cost is zero, breakfast is part of the three-star ritual [[3]](https://guide.michelin.com/us/en/rheinland-pfalz/dreis/restaurant/waldhotel-sonnora) [[21]](https://www.tripadvisor.com/Hotel_Review-g20304189-d1812361-Reviews-Waldhotel_Sonnora-Dreis_Rhineland_Palatinate.html), and Dreis is the most remote of Germany's ten 3★ tables [[4]](https://www.travelsforstars.com/blog/2024/12/05/waldhotel-sonnora-dreis). Castle grandeur on the Mosel → [Schloss Lieser](https://www.schlosslieser.de/en/zimmer-suiten638496311566079665) (16 min taxi). 1903 Art Nouveau on the river → [Romantik Jugendstilhotel Bellevue](https://www.bellevue-hotel.de/en/) in Traben-Trarbach (26 min). Vineyard-estate romance → [Weinromantikhotel Richtershof](https://www.weinromantikhotel.com/en/) (16 min). Skip the Märchenhotel unless themed-bedroom kitsch is the point.

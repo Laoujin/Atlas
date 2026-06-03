@@ -13,6 +13,7 @@ reading_time_min: 12
 cover: cover.svg
 cost_usd: 8.26
 duration_sec: 728
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Valence itself is a half-day at most: a walking loop of Champ de Mars [[9]](https://www.valence.fr/patrimoine-remarquable/champ-de-mars/), Vieux Valence's côtes [[10]](https://fr.wikipedia.org/wiki/Vieux_Valence), the Maison des Têtes [[4]](https://www.valence-romans-tourisme.com/en/sinspirer/must-sees/maison-des-tetes/) and the Musée de Valence [[5]](https://www.museedevalence.fr/). Spend the other day-and-a-half across the Rhône in **Hermitage wine country** (Tain-l'Hermitage + Tournon, the obvious anchor day) and on **Château de Crussol**, the ruined castle staring back at the city [[27]](https://en.ardeche-guide.com/discover/top-10-explore/castle-crussol/). One real warning: in early June the lavender fields are still green [[65]](https://travelfrancebucketlist.com/provence-lavender-season/) — Drôme provençale lavandin only starts blooming mid-June [[66]](https://routes-lavande.com/en/the-flowering-of-the-lavender/). Plan around that, not for it.

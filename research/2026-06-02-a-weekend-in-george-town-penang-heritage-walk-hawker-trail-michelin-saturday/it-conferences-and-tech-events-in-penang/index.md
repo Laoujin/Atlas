@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.52
 duration_sec: 586
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Penang's "Silicon Valley of the East" identity anchors a dense 2026 tech event calendar. **July is peak season**: [PDX2026](https://penangdigitalisation.com/) (Jul 15–16, ~10k attendees) and the [EMAX/SMAX/PMAX electronics cluster](https://emaxasia.com/) (Jul 22–24) both land at the Setia SPICE Convention Centre within the same week. IEEE academic conferences run quarterly. The grassroots developer community is modest — a few active Meetup groups — not a KL-scale scene.

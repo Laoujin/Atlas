@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 3.99
 duration_sec: 568
+model: "Opus 4.7"
 ---
 
 > **TL;DR — submit today/this week.** Only three security CFPs in Belgium/France/Netherlands/Germany are still open on April 30, 2026: [**BruCON 0x12**](https://www.brucon.org/) (Mechelen, BE) closes **today** at 23:59 CEST [[1]](https://www.brucon.org/call-for-papers); [**OWASP AppSec Days France**](https://www.owaspappsecdays.fr/) (Paris) closes **May 7** [[3]](https://sessionize.com/owasp-appsec-days-france-2026); [**escar Europe 24**](https://escar.info/escar-europe) (Bonn, DE) closes **May 10** — automotive-only [[5]](https://escar.info/escar-europe/call-for-papers). Most heavyweights for 2026 ([TROOPERS](https://troopers.de/), [OffensiveCon](https://www.offensivecon.org/), [Hardwear.io NL](https://hardwear.io/nl-2026/), [leHACK](https://lehack.org/), [Pass the SALT](https://2026.pass-the-salt.org/), [OrangeCon](https://orangecon.nl/), [heise devSec](https://www.heise-devsec.de/), [MCTTP](https://www.mcttp.de/), BSides Frankfurt, [ACM WiSec](https://wisec26.events.cispa.de/)) closed CFP between March 1 and April 15.

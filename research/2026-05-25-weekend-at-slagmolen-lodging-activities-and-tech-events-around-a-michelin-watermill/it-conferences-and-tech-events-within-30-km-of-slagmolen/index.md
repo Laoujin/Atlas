@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.54
 duration_sec: 459
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Three flagship draws sit inside an easy day-trip from [Slagmolen](https://slagmolen.be/en/) (Opglabbeek) [[1]](https://slagmolen.be/en/): [**BSides Limburg**](https://www.bsides-limburg.be/) — cybersecurity, Corda Campus Hasselt, 12-13 Mar [[2]](https://www.bsides-limburg.be/); [**IEEE WCCI 2026**](https://attend.ieee.org/wcci-2026/) — ~1500-attendee AI/computational-intelligence congress at MECC Maastricht, 21-26 Jun [[5]](https://attend.ieee.org/wcci-2026/) [[6]](https://www.maastrichtuniversity.nl/news/maastricht-will-host-2026-world-conference-computational-intelligence); and the [**FTI Festival**](https://www.ftifestival.be/) — Flanders Technology & Innovation, Hasselt + Genk hubs, 16 Oct - 15 Nov [[8]](https://www.ftifestival.be/). A steady drumbeat of [EnergyVille / Thor Park](https://thorpark.be/en/events/) seminars (Genk, ~10 km) and [Brightlands](https://www.brightlands.com/en/smart-services-campus/events) workshops (Heerlen NL, ~30 km) fills the gaps [[11]](https://thorpark.be/en/events/) [[15]](https://www.brightlands.com/en/smart-services-campus/events).

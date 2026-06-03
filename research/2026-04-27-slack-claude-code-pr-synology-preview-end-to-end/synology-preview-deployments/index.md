@@ -13,6 +13,7 @@ cover: cover.svg
 reading_time_min: 10
 cost_usd: 10.48
 duration_sec: 1193
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** A Synology NAS *can* host [Vercel](https://vercel.com)-style per-PR preview deployments, but every layer has a sharp edge. Use **Cloudflare Tunnel + a wildcard hostname** [[32]](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/configuration-file/) for ingress (sidesteps NAT, CGNAT and wildcard certs in one move), **GHCR + SSH-and-`docker compose pull`** for delivery [[38]](https://www.tobyscott.dev/blog/2024/06/29/ghcr-synology-container-manager/) (Container Manager's UI can't auth to GHCR), and **a thin shell wrapper over Docker Compose** as the orchestrator — [Coolify](https://coolify.io)'s installer doesn't run on DSM [[58]](https://github.com/coollabsio/coolify/discussions/3166), [Dokploy](https://dokploy.com) breaks on DSM's old engine [[55]](https://github.com/Dokploy/dokploy/issues/3888). If your previews must be reachable by external reviewers on a public repo, **a $5/mo VPS or [Cloudflare Pages](https://pages.cloudflare.com) free tier is the better call** — reserve the NAS for storage and internal-only previews [[72]](https://www.simplehomelab.com/udms-02-hardware-nas-minipc-vps/).

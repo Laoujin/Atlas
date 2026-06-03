@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 3.56
 duration_sec: 606
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book the chef's own **Le Cube** (in L'Eau Vive's garden, sleeps 6) or **Espace Médissey** (3 km, pool, full gourmet packages with the restaurant) if you want the dinner-and-bed seam to vanish[[1]](https://www.eau-vive.be/en)[[2]](https://www.beperfect.be/leau-vive-pierre-resimont-30-ans-detoiles-au-compteur/). For an actual *hotel* with riverside character, **Hôtel Vedette** in Profondeville (~4 km) is the local favourite, four-star, 6 rooms[[3]](https://www.hotelvedette.be/fr/). If you'd rather sleep in Namur old town and taxi south, **Les Tanneurs** (15 connected 17th-century tannery houses) is the high-character pick[[4]](https://www.tanneurs.com/en/index.php). Themed-room novelty seekers: **River Lodge** in Maredret (Titanic cabin, trapper's hut, in an old watermill)[[5]](https://www.riverlodge.be/en/).

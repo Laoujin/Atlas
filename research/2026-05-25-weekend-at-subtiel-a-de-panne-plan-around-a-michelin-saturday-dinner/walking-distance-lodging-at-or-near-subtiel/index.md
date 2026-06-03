@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 4.46
 duration_sec: 859
+model: "Opus 4.7"
 ---
 
 > **Decision** — Closest by a wide margin is [Hotel Donny](https://www.hoteldonny.com/en/) on Donnylaan, a ~5-min walk and the only 4-star with full spa within shouting distance of the restaurant [[5]](https://www.hoteldonny.com/en/) [[19]](https://nominatim.openstreetmap.org/search?format=json&q=Donnylaan+17,+De+Panne,+Belgium). For heritage atmosphere, pick [Parkhotel](https://www.parkhoteldepanne.be/en) or [B&B Villa Bon Papa](https://www.villabonpapa.be/en) in the listed Dumontwijk (~12-min walk) [[7]](https://www.parkhoteldepanne.be/en) [[15]](https://www.villabonpapa.be/en). For toes-in-the-sand, [Hotel Villa Select](https://hotelvillaselect.be/en/) is 33 ft from the beach but a ~19-min walk back after dinner [[9]](https://hotelvillaselect.be/en/). Subtiel itself has no rooms — the restaurant directs all overnight guests to Visit De Panne [[17]](https://www.subtiel-dining.be/en/spending-the-night).

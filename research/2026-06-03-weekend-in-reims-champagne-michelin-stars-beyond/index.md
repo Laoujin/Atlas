@@ -35,6 +35,7 @@ duration_sec: 2008
 citations: 84
 reading_time_min: 15
 issue: 148
+model: "Sonnet 4.6"
 ---
 
 Reims is small enough to walk, rich enough to fill two days, and compact enough that every meaningful sight sits within a 30-minute radius. The research across three angles — activities, starred restaurants, and tech events — reveals structural dependencies that shape planning.

@@ -42,6 +42,7 @@ duration_sec: 3631
 citations: 145
 reading_time_min: 28
 issue: 81
+model: "Opus 4.7"
 ---
 
 > **One-line plan.** Book **schanz.hotel** the same hour you book the table at [schanz. restaurant.](https://www.schanz-restaurant.de/en/) [[hotel]](https://www.schanz-restaurant.de/en/hotel/about-the-hotel); fill Saturday morning and Sunday from the day-trip menu inside a 30 km circle; if the dates flex, line the weekend up against late-July week so the CiE conference cluster at Uni Trier earns its own justification [[CiE]](https://www.uni-trier.de/en/universitaet/fachbereiche-faecher/fachbereich-iv/faecher/informatikwissenschaften/professuren/theoretische-informatik/research/conferences-and-workshops/translate-to-englisch-cie-2026).

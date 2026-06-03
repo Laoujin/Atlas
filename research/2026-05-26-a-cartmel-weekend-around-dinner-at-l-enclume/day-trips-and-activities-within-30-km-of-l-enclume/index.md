@@ -13,6 +13,7 @@ reading_time_min: 14
 cover: cover.svg
 cost_usd: 7.20
 duration_sec: 699
+model: "Opus 4.7"
 ---
 
 > **Decision** — Pick **one half-day in Cartmel itself** (Priory, Unsworth's Yard, Hampsfell Hospice walk) before Saturday dinner [[1]](https://cartmelpriory.org.uk/visit-us/)[[7]](https://unsworthsyard.co.uk/)[[50]](https://where2walk.co.uk/walk/hampsfell-from-grange-over-sands/); **one full-day excursion** on the other day — either the **Coniston literary loop** (Brantwood + Hill Top + Tarn Hows) [[27]](https://www.brantwood.org.uk/visit/)[[32]](https://www.nationaltrust.org.uk/visit/lake-district/hill-top)[[34]](https://www.nationaltrust.org.uk/visit/lake-district/tarn-hows-and-coniston/tarn-hows-circular-walk) or the **Windermere steamer + Blackwell** combination [[15]](https://www.windermere-lakecruises.co.uk/cruises-fares/freedom-of-the-lake)[[20]](https://lakelandarts.org.uk/blackwell/). Booking late-May 2026? The Cartmel Racecourse jump season opens Sat 23 / Mon 25 / Wed 27 May — three Bank Holiday fixtures two minutes' walk from L'Enclume [[5]](https://cartmel-racecourse.co.uk/2025/08/08/race-dates-announced-for-2026/)[[6]](https://www.tripadvisor.co.uk/FAQ_Answers-g499539-d1759118-t3750793-How_far_is_it_to_walk_from_the_racecourse_car.html). **Skip** Muncaster Castle — it's 1.5+ hours each way on the west coast, well outside the 30 km cap [[48]](https://www.muncaster.co.uk/findus).

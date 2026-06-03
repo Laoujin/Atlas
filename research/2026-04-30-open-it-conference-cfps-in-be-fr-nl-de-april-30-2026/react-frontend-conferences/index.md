@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.90
 duration_sec: 372
+model: "Opus 4.7"
 ---
 
 > **TL;DR (Decision):** If you want to speak at a frontend-leaning conference in BE/FR/NL/DE, five CFPs are still open as of 30 Apr 2026. [**React Day Berlin**](https://reactday.berlin/) is the only React-branded one [[1]](https://reactday.berlin/). For broad frontend, [**Frontmania (Utrecht)**](https://frontmania.com/) [[2]](https://sessionize.com/frontmania-2026) and [**code.talks (Hamburg)**](https://codetalks.com/) [[3]](https://codetalks.com/) close first (mid-May / late-May). Both [**DevFest Paris**](https://devfest.gdgparis.fr/) [[4]](https://devfest.gdgparis.fr/) and [**DevFest Belgium**](https://devfest-belgium.be/) [[5]](https://conference-hall.io/devfest-belgium-2026) carry frontend tracks and stay open into late June. The marquee Amsterdam/Paris events ([JSNation](https://www.papercall.io/jsnation), [React Summit](https://gitnation.com/events/react-summit-2026), [Vue Amsterdam](https://vuejs.amsterdam/), [React Paris](https://cfp.watch/cfps/2026-react-paris/), [dotJS](https://www.dotjs.io/)) are either past or have closed CFPs for 2026 — submit early for next year.

@@ -42,6 +42,7 @@ duration_sec: 2630
 citations: 137
 reading_time_min: 25
 issue: 102
+model: "Opus 4.7"
 ---
 
 Villa Crespi sits at Via Fava 18 on the Sacro Monte side of Orta San Giulio, ~10 minutes downhill to Piazza Motta — and the same in reverse, uphill, after dinner [[1]](https://villacrespi.it/en/our-location/). Every lodging decision in the two property surveys turns on that uphill return, and the activity radius is anchored on the same point.

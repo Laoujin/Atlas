@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 1.39
 duration_sec: 240
+model: "Opus 4.7"
 ---
 
 > **Decision:** Book [Jardines Villaverde](https://jardinesvillaverde.com/) — it shares the Plaza del Sol with [Cenador de Amós](https://cenadordeamos.com/en/) [[4]](https://jardinesvillaverde.com/en/activities/) and is the only "open the gate, you're there" option. If full, fall back to [Posada Río Cubas](https://www.posadariocubas.com/web/en/) (≈0.9 km, ~12 min walk) or [Hostería El Laurel](https://www.booking.com/hotel/es/hosteraa-el-laurel.en-gb.html) in Hoz de Anero (≈1.0 km) [[3]](https://www.tripadvisor.com/HotelsNear-g5562707-d1752010-Cenador_de_Amos-Villaverde_de_Pontones_Cantabria.html). Beyond ~1.5 km after a 3-star tasting menu and wine pairings, take a taxi.

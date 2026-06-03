@@ -13,6 +13,7 @@ reading_time_min: 9
 cover: cover.svg
 cost_usd: 7.99
 duration_sec: 896
+model: "Opus 4.7"
 ---
 
 > **Decision.** If you're on Pro/Max with GitHub repos and want zero ops, use Anthropic's first-party **Claude Code in Slack** — the @mention routes to a sandboxed claude.ai/code session [[1]](https://code.claude.com/docs/en/slack). If you need GitLab, local-only repos, or to keep the runtime on your own machine and quota, deploy [chenhg5/cc-connect](https://github.com/chenhg5/cc-connect) ⭐ 6.4k (Apr 2026) [[7]](https://github.com/chenhg5/cc-connect) for a multi-platform bridge or [jeremylongshore/claude-code-slack-channel](https://github.com/jeremylongshore/claude-code-slack-channel) ⭐ 15 [[10]](https://github.com/jeremylongshore/claude-code-slack-channel) for the security-hardened pattern. If "I want to ship code from Slack" is the only requirement and Claude isn't a hard pin, **[Cursor](https://cursor.com) Background Agents** [[58]](https://cursor.com/changelog/1-1) or **[OpenAI Codex](https://openai.com/codex) Slack** [[60]](https://developers.openai.com/codex/integrations/slack) are equally credible — both run on vendor cloud VMs instead of your laptop.

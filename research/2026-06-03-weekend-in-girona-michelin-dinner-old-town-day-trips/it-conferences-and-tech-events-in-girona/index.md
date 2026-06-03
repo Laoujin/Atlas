@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.32
 duration_sec: 482
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Girona has no dedicated IT conferences. The local scene is small but real — GDG Girona runs free monthly meetups, and Girona Tech Hub anchors the startup community. For actual conferences, Barcelona is 40 min by high-speed train: DevBcn (Jun), AI Summit Barcelona (Sep), EuroRust (Oct), and DevOpsDays (Nov) are all within day-trip range.

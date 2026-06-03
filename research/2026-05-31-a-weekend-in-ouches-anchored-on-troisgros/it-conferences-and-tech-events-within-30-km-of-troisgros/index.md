@@ -13,6 +13,7 @@ citations: 30
 reading_time_min: 5
 cost_usd: 3.06
 duration_sec: 563
+model: "Opus 4.7"
 ---
 
 > **Decision.** Within 30 km of Troisgros there is no full-format IT conference happening on a weekend in 2026. The only weekend-aligned tech event is **Fête de la Science / Village des Sciences Roanne** on **2-12 October 2026** [[21]](https://www.fetedelascience.fr/) [[22]](https://www.aggloroanne.fr/enfance-jeunesse-education/enseignement-superieur-et-recherche/le-village-des-sciences-346.html). For weekday options, the recurring **Cafés numériques** (Fridays 8:30) and **FabLab Roannais Agglomération** open sessions are the only consistent meet-ups [[17]](https://www.roannais-tourisme.com/espace-pro/accompagnement-professionnel/les-cafes-numeriques-de-roannais-agglomeration/) [[20]](https://www.fablabroannaisagglomeration.fr/nos-evenements-2481.html). All real conference-grade IT events sit in **Saint-Étienne (~83 km)** or **Lyon (~85 km)** — outside the 30 km radius but within an hour's drive [[5]](https://fr.distance.to/Roanne/Saint-%C3%89tienne).

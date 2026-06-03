@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.62
 duration_sec: 428
+model: "Opus 4.7"
 ---
 
 > **Decision.** There is **no hotel within walking distance** of Ma Langue Sourit [[3]](https://www.tripadvisor.com/Hotels-g1049422-Moutfort-Hotels.html). The restaurant sits at the Éitermillen mill, 1.4 km from Moutfort village along a country lane [[2]](https://www.bergfex.com/sommer/luxemburg-region/touren/wanderung/4214228,eitermillen--moutfort--ma-langue-sourit/). Pick by trade-off: **walk + DIY** → Airbnb in Moutfort village (≈17–20 min walk, from ~$80/night) [[7]](https://www.airbnb.com/moutfort-contern-luxembourg/stays); **walk + train access** → Airbnb in Oetrange (≈25–30 min walk, near CFL line 30) [[8]](https://www.airbnb.com/oetrange-contern-luxembourg/stays) [[9]](https://www.rome2rio.com/s/Oetrange/Luxembourg-Station); **drive/taxi + hotel comforts** → Mercure Kikuoka in Canach, 4.3 km away, 4★ spa-and-golf, $179–$311/night [[5]](https://www.tripadvisor.com/Hotel_Review-g1096258-d250745-Reviews-Mercure_Kikuoka_Golf_Club-Canach.html) [[6]](https://all.accor.com/hotel/2898/index.en.shtml). Late return is solved either way — MLS staff call you a taxi if buses/trains are done [[11]](https://www.tripadvisor.com/Restaurant_Review-g1049422-d1060870-Reviews-Ma_Langue_Sourit-Moutfort.html).

@@ -35,6 +35,7 @@ duration_sec: 1724
 citations: 116
 reading_time_min: 15
 issue: 106
+model: "Opus 4.7"
 ---
 
 The three angles point at the same shape of weekend: **arrive Friday, anchor the dinner Friday or Saturday night, leave Sunday evening.** That isn't a stylistic preference — it's forced by the calendar. All three top-starred houses ([Cheval Blanc](https://www.chevalblancbasel.com/en/), [Roots](https://roots-basel.ch/), [Stucki](https://guide.michelin.com/en/basel-stadt/basel/restaurant/stucki-tanja-grandits)) are closed Sundays and Mondays, so the anchor cannot be Sunday night [[1]](https://www.chevalblancbasel.com/en/)[[2]](https://roots-basel.ch/)[[3]](https://guide.michelin.com/en/basel-stadt/basel/restaurant/stucki-tanja-grandits). That makes Sunday a daytime-only day — perfect for the Old Town loop the activities child describes, or a tram-8 hop to the [Vitra Campus](https://www.vitra.com/en-un/campus) in Weil am Rhein, which the free hotel [BaselCard](https://www.basel.com/en/baselcard) covers despite crossing into Germany [[4]](https://www.basel.com/en/attractions/vitra-campus-041dbf1acf)[[5]](https://www.basel.com/en/baselcard).

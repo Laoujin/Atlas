@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 3.46
 duration_sec: 502
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a single in-Ghent date afternoon: book the **MIGLOT private perfume workshop** (€545, 2.5 h, capped at 2 people — the format itself is a couple)[[4]](https://miglot.com/en/products/miglot-perfume-workshop-private). For a cheap memorable hour: **Gruut city brewery** three-beer tasting, €15/pers, advance booking, min two people[[7]](https://www.gruut.be/en/visit-and-reservation/). Best half-day combo: the **Onderbergen 4A chocolate workshop with Belgian beer tasting**[[3]](https://www.tripadvisor.com/AttractionProductReview-g188666-d32763998-Unique_Belgian_Chocolate_Making_Workshop_in_Ghent-Ghent_East_Flanders_Province.html). Best workshop-themed weekend getaway: **Bokrijk** in Genk (six €5 craft workshops on a single day)[[18]](https://bokrijk.be/en/workshops) or **Bruges** for chocolate + beer + waffles[[19]](https://www.belgianchocolateworkshop.com/)[[20]](https://www.mybeerexperience.com/en).

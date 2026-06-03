@@ -13,6 +13,7 @@ citations: 27
 reading_time_min: 7
 cost_usd: 2.82
 duration_sec: 580
+model: "Opus 4.7"
 ---
 
 > **Decision.** Default stack: **Tailscale** for private remote access (free tier covers a household, traverses CGNAT)[[3]](https://homelabstarter.com/tailscale-vs-wireguard-comparison/), **Cloudflare Tunnel** for any service you want public on a real domain, **NUT + Uptime Kuma + a smart plug** for always-on hygiene[[13]](https://networkupstools.org/docs/user-manual.chunked/Configuration_notes.html)[[16]](https://www.xda-developers.com/cheap-home-lab-upgrade/). Self-host **Pangolin** ⭐ 20k (Apr 2026)[[7]](https://github.com/fosrl/pangolin) instead of Cloudflare if vendor-independence matters. Skip Synology QuickConnect — it terminates TLS at Synology's edge[[11]](https://www.techrounder.com/synology/synology-quickconnect-security-alternatives-and-best-practices/).

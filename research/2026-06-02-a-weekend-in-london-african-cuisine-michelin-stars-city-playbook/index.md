@@ -35,6 +35,7 @@ duration_sec: 1940
 citations: 118
 reading_time_min: 20
 issue: 129
+model: "Sonnet 4.6"
 ---
 
 The Saturday dinner question answers itself once you check the hours. Of the three starred restaurants named in the brief, only **Akoko** (1★, 21 Berners Street, Fitzrovia) serves Saturday dinner [[1]](https://guide.michelin.com/gb/en/greater-london/london/restaurant/akoko). [Ikoyi](https://ikoyilondon.com/) (2★) runs dinner Monday–Friday only [[2]](https://ikoyilondon.com/), and [Chishuru](https://www.chishuru.com/) (1★) closes entirely at weekends [[3]](https://www.chishuru.com/). The effective choice is already made: **book Akoko for Saturday evening** at £130 (SevenRooms via akoko.co.uk [[1]](https://guide.michelin.com/gb/en/greater-london/london/restaurant/akoko)). Critical booking caveat: the kitchen cannot accommodate tomatoes, alliums, ginger, or coconut milk — declare at reservation [[5]](https://akoko.co.uk/).

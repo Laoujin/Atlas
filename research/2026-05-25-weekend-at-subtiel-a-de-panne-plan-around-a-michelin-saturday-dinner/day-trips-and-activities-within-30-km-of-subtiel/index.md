@@ -13,6 +13,7 @@ reading_time_min: 12
 cover: cover.svg
 cost_usd: 8.54
 duration_sec: 879
+model: "Opus 4.7"
 ---
 
 > **TL;DR — pick your day.**

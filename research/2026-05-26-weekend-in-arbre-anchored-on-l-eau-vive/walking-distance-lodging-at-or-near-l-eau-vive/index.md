@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.85
 duration_sec: 547
+model: "Opus 4.7"
 ---
 
 > **Decision:** Book **[Le Cube](http://www.eau-vive.be/en/le-cube)**, [L'Eau Vive](https://www.eau-vive.be/en)'s own 150 m² cottage in the restaurant garden by the Burnot brook — it is the only lodging within true walking distance of the dining room [[1]](https://www.eau-vive.be/en) [[2]](http://www.eau-vive.be/en/le-cube). €300/night for 2, €350 for 4 [[3]](https://www.eau-vive.be/hebergement/le-cube). Every other option sits 3–4 km away across hills or down the Meuse; expect to call a taxi after dinner [[12]](https://taxinamurois.be/transfert-vers-villes-proches/profondeville).

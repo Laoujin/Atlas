@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 1.89
 duration_sec: 887
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Harness engineering shifts benchmark scores 20–30+ points without changing the model [[1]](https://rapidclaw.dev/blog/ai-agent-benchmarks-2026), making the harness layer the decisive variable in any toolkit comparison. Structure a session around three task types (precise tool calls, multi-step planning, error recovery), evaluate at three levels (end-to-end / trajectory / component) [[2]](https://www.confident-ai.com/blog/llm-agent-evaluation-complete-guide), and distinguish `pass@k` (solution exists?) from `pass^k` (solution is reliable?) [[3]](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents). Source your first 20–50 test tasks from real failures — not invented scenarios.

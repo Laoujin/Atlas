@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.87
 duration_sec: 592
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Berlin's tech calendar is anchored by four flagships: **IFA** (4–8 Sep, ~220k visitors, consumer electronics) [[1]](https://www.visitberlin.de/en/event/ifa-2026-innovation-all), **re:publica** (18–20 May, 1,000+ speakers, digital society) [[2]](https://www.re-publica.com/en), **WeAreDevelopers World Congress** (8–10 Jul, 15k+ devs) [[3]](https://www.wearedevelopers.com/world-congress), and **Bosch ConnectedWorld** (10–11 Jun, AI/IoT/mobility) [[4]](https://bosch-connected-world.com/). For the **29–31 May 2026** weekend the marquee IT shows are quiet — re:publica wrapped 20 May [[2]](https://www.re-publica.com/en) and [Tech Open Air](https://event.toa.media/) opens 2 Jun [[5]](https://event.toa.media/). What's actually on those dates: **Berlin Design Week's** closing days [[6]](https://www.visitberlin.de/en/event/berlin-design-week-2026) plus the one-day **Applied AI Conference** on 28 May [[7]](https://www.techinberlin.com/news/top-tech-and-startup-events-in-berlin-to-attend-in-2026).

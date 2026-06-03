@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 1.29
 duration_sec: 607
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Two annual peaks: a **summer surge (June–July)** stacking [Code with Claude](https://gadgetbond.com/code-with-claude-2026-anthropic-developer-conference/) [[7]](https://gadgetbond.com/code-with-claude-2026-anthropic-developer-conference/), [AWS Summit Japan](https://aws.amazon.com/jp/summits/japan/) [[8]](https://aws.amazon.com/jp/summits/japan/), [KubeCon Japan](https://events.linuxfoundation.org/kubecon-cloudnativecon-japan/) [[12]](https://events.linuxfoundation.org/kubecon-cloudnativecon-japan/), and [Google Cloud Next Tokyo](https://www.googlecloudevents.com/next-tokyo/) [[13]](https://www.googlecloudevents.com/next-tokyo/) within seven weeks; and an **autumn run (Sept–Nov)** with [DroidKaigi](https://2026.droidkaigi.jp/en/) [[14]](https://2026.droidkaigi.jp/en/), [iOSDC Japan](https://iosdc.jp/2026/) [[16]](https://iosdc.jp/2026/), [ETHGlobal Tokyo](https://ethglobal.com/events/tokyo) [[17]](https://ethglobal.com/events/tokyo), and [CODE BLUE](https://codeblue.jp) [[21]](https://codeblue.jp). Enterprise visitors anchor on [Japan IT Week](https://japan-it.jp/spring) [[3]](https://japan-it.jp/spring) (April/October). Makuhari Messe (AWS, Japan IT Week Autumn) and Yokohama (KubeCon) are ~30 min from Shinjuku by train.

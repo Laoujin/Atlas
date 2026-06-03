@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.89
 duration_sec: 497
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision** — If you can get it, **[Villa Pinin](https://www.villapinin.com/)** (Via Fava 12, ~50 m from Villa Crespi's gate) wins on sheer adjacency at €80–€120 [[3]](https://www.tripadvisor.com/Hotel_Review-g187854-d1639031-Reviews-Villa_Pinin-Orta_San_Giulio_Province_of_Novara_Piedmont.html). For a real hotel ~5–8 min away on the same Via Panoramica promontory, pick **[Hotel La Bussola](https://www.hotelbussolaorta.it/en/)** (3★, pool, lake view) [[6]](https://www.hotelbussolaorta.it/en/). For Piazza Motta charm at the cost of a 10-min uphill return after dinner, **[Hotel Leon d'Oro](https://www.albergoleondoro.it/en/3-stars-hotel-lake-orta/hotel-leon-doro)** or **[Hotel Aracoeli](https://www.expedia.com/Orta-San-Giulio-Hotels-Hotel-Aracoeli.h2533019.Hotel-Information)** — both ON the square [[7]](https://www.albergoleondoro.it/en/3-stars-hotel-lake-orta/hotel-leon-doro)[[9]](https://www.expedia.com/Orta-San-Giulio-Hotels-Hotel-Aracoeli.h2533019.Hotel-Information). Skip **Hotel Bocciolo** — 30 min on foot to the center [[16]](https://www.tripadvisor.com/Hotel_Review-g187854-d11998151-Reviews-Hotel_Bocciolo-Orta_San_Giulio_Province_of_Novara_Piedmont.html).

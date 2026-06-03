@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 8.41
 duration_sec: 500
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Decision for a 2026 workshop facilitator.**

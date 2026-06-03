@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 1.04
 duration_sec: 218
+model: "Opus 4.7"
 ---
 
 > **Plan:** Run **90 minutes live** with **75 min of content + 15 min buffer**, segmented into **8-12 min active blocks** with interaction every 5-10 min, a **recap at the 45-min mark**, and an explicit callback to sessions 1 (AI) and 2 (security) in the cold-open to cash in on the series' built-up audience habit [[1]](https://exemplarglobal.org/virtual-training-our-best-tips-to-maximize-your-sessions/) [[2]](https://www.airmeet.com/hub/blog/how-to-design-high-engagement-virtual-training-sessions-for-employees/) [[6]](https://www.getcontrast.io/learn/webinar-benchmarks).

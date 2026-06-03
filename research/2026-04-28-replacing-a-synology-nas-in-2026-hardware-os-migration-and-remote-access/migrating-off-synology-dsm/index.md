@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 2.70
 duration_sec: 455
+model: "Opus 4.7"
 ---
 
 > **Decision.** Migrate if you want hardware freedom or fear another lock-in cycle; stay on DSM 7.3 if you value the polished bundle and your current box still works. Where to land: **TrueNAS SCALE** for data integrity (ZFS), **Unraid** for mixed-disk flexibility and a smooth app store, **Proxmox + TrueNAS-VM** for full-stack homelabs, **UGREEN NASync** if you want a turnkey appliance without going DIY [[14]](https://nascompares.com/guide/truenas-vs-unraid-vs-omv-in-2025/) [[18]](https://www.xda-developers.com/moving-from-my-nas-from-dsm-to-truenas-best-storage-decision-ever/) [[20]](https://www.xda-developers.com/ugreen-most-powerful-nas-exposes-synology/). Plan a **two-machine, side-by-side** transfer — never wipe SHR drives until the new system is verified.

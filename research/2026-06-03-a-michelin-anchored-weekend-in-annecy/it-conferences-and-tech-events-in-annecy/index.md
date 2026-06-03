@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.35
 duration_sec: 512
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** MIFA (June 21–27) is the only world-class tech event in Annecy — a professional animation/XR/AI market requiring paid accreditation (€420–€600) that fills every hotel in the city. NuméricA (free, ~April) is the best option for a casual visitor with digital curiosity. Outside those two anchors, Annecy has a growing startup community but no major developer conference circuit. [[1]](https://www.annecyfestival.com/en) [[8]](https://www.moka-mag.com/agenda/numerica-2026-festival-du-numerique)

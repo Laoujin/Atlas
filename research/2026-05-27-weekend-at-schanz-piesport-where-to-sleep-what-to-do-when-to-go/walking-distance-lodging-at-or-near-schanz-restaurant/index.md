@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.07
 duration_sec: 382
+model: "Opus 4.7"
 ---
 
 > **Decision.** **Book schanz.hotel itself** — the 12-room hotel is directly above the restaurant at Bahnhofstraße 8a [[2]](https://www.schanz-restaurant.de/en/hotel/about-the-hotel), and breakfast runs until noon so a late tasting-menu evening doesn't cost you the morning [[3]](https://www.tripadvisor.com/Hotel_Review-g319769-d3531788-Reviews-Schanz_Hotel-Piesport_Rhineland_Palatinate.html). If it's full, fall back to a Moselstraße address (Alt Reinsport, Moselloreley, Moselblick) — all on the same Niederemmel bank as Schanz, 5–10 min flat walk down Bahnhofstraße to the river [[9]](https://www.moselblick-piesport.de/anreise.php).

@@ -49,6 +49,7 @@ duration_sec: 2486
 citations: 117
 reading_time_min: 19
 issue: 51
+model: "Opus 4.7"
 ---
 
 ## The 14-day window

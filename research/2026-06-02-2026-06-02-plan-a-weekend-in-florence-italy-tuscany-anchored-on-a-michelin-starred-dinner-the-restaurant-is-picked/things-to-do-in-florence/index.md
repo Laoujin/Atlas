@@ -5,6 +5,7 @@ status: failed
 failure_reason: "Claude returned an error (subtype=success): Not logged in · Please run /login"
 attempted_at: 2026-06-02T23:41:00Z
 depth: deep
+model: "Opus 4.7"
 ---
 
 Research failed: Claude returned an error (subtype=success): Not logged in · Please run /login

@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.18
 duration_sec: 393
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** Use **shallow folders** for true containers (Daily, Templates, Attachments), **wikilinks on every new note** as the default organising act, and **3–5 MOCs** as your navigation layer once you cross ~50–100 notes. Treat folders as "where it lives," links as "what it relates to," tags as "what state it's in." If you're forcing a perfect folder tree, you're spending energy that should be going into links. [[1]](https://obsidian.rocks/how-i-use-folders-in-obsidian/) [[2]](https://stephango.com/vault) [[3]](https://blog.shuvangkardas.com/obsidian-note-organization/)

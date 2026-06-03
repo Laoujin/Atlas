@@ -35,6 +35,7 @@ duration_sec: 1829
 citations: 86
 reading_time_min: 17
 issue: 187
+model: "Sonnet 4.6"
 ---
 
 The single planning decision that cascades into everything else is **picking the restaurant before anything else**. All four 2-star restaurants in Nara's 2026 Michelin guide except Oryori Hanagaki sit within walking distance of Kintetsu Nara Station — the better of the two arrival points for the park — so the dinner address becomes the dinner neighborhood, and the dinner neighborhood shapes where your afternoon gravitates. [[1]](https://guide.michelin.com/us/en/article/michelin-guide-ceremony/michelin-guide-nara-2026-restaurants)

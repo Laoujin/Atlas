@@ -13,6 +13,7 @@ reading_time_min: 11
 cover: cover.svg
 cost_usd: 8.31
 duration_sec: 897
+model: "Opus 4.7"
 ---
 
 > **Decision (anchored to a Saturday dinner at [De Jonkman](https://www.dejonkman.be/) in Sint-Kruis):**

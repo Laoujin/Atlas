@@ -35,6 +35,7 @@ duration_sec: 2024
 citations: 98
 reading_time_min: 19
 issue: 184
+model: "Sonnet 4.6"
 ---
 
 Three research threads converge on one practical decision tree: pick a restaurant, pick a date, then build the daylight hours around both.

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.62
 duration_sec: 535
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Strictly inside the 30 km bubble, the action is academic / meetup-scale: KU Leuven hosts the [Leuven IP & AI Conference](https://www.law.kuleuven.be/citip/en/citip-conferences/ip-and-ai/leuven-ip-and-ai-conference-2026) (May 18-19) and [Large-Scale AI Risks](https://www.kuleuven.be/ethics-kuleuven/chair-ai/conference-ai-risks) (June 23-24); the recurring meetups worth pinning are [Data Science Leuven](https://www.meetup.com/data-science-leuven/), [Data Mesh Belgium](https://www.meetup.com/data-mesh-belgium/), and [Ixor Tech Talks Mechelen](https://www.meetup.com/ixor-tech-talks-mechelen/) [[12]](https://www.law.kuleuven.be/citip/en/citip-conferences/ip-and-ai/leuven-ip-and-ai-conference-2026)[[13]](https://www.kuleuven.be/ethics-kuleuven/chair-ai/conference-ai-risks)[[14]](https://www.meetup.com/data-science-leuven/)[[16]](https://www.meetup.com/ixor-tech-talks-mechelen/). The headliner Antwerp conferences — [Techorama](https://techorama.be/), [DDD Europe](https://2026.dddeurope.com/), [BC TechDays](https://www.bctechdays.com/event), [Devoxx](https://devoxx.be/), [SmashingConf](https://smashingconf.com/antwerp-2026/), [AutomationSTAR](https://automation.eurostarsoftwaretesting.com/) — sit just outside (~35-47 km by road) but are reachable in well under an hour from Tongerlo [[2]](https://www.travelmath.com/distance/from/Westerlo,+Belgium/to/Antwerp,+Belgium)[[19]](https://www.rome2rio.com/s/Westerlo/Antwerp).

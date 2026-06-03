@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 4.08
 duration_sec: 520
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Within 30 km of Villa Crespi, the only **upcoming** tech event in 2026 is **TEDxVerbania on Saturday 21 November** in Pallanza [[11]](https://www.ted.com/tedx/events/69414). The two real IT conferences in the radius — **Ambrosetti's Technology Forum** in Stresa [[6]](https://www.ambrosetti.eu/en/innotech-hub/technology-forum/) and **AUSED's CIO Leaders Summit** in Baveno [[10]](https://aused.org/grande-evento/cio-leaders-summit/) — both happen in spring and **already ran** this year (and both are invite-only anyway). For an open, walk-in tech conference you have to drive: Milan and Cernobbio are 75–85 km out, outside the radius.

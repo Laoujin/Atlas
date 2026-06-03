@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.15
 duration_sec: 399
+model: "Opus 4.7"
 ---
 
 > **Decision.** Sleep on the Troisgros estate: [Le Bois Dormant](https://www.troisgros.fr/en/le-bois-dormant/) — Relais & Châteaux, 15 rooms, from €300/night [[1]](https://fr.gaultmillau.com/en/hotels/hotel-troisgros). Same estate at half the price: [Le Pré Cheval](https://www.troisgros.fr/en/le-pre-cheval/), three gîtes run by sibling Marion (€220–320) [[2]](https://www.troisgros.fr/le-pre-cheval/les-hebergements/). Cheapest real walks: [Domaine Bérenguer](https://www.gites-de-france-loire.com/location-chambre-d-hotes-ouches-loire-42G3714.html) or [Domaine d'Aromm](https://domainedaromm.fr/), €125–165 with breakfast [[3]](https://www.gites-de-france-loire.com/location-chambre-d-hotes-ouches-loire-42G3714.html)[[4]](https://domainedaromm.fr/). Or treat dinner as a shuttled trip from another Michelin★ B&B: [Château d'Origny](https://www.chateaudorigny.com/en/) (free return ride to Troisgros) [[5]](https://www.chateaudorigny.com/en/).

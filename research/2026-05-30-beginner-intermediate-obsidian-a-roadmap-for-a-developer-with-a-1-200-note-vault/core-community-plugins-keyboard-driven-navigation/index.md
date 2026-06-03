@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.81
 duration_sec: 540
+model: "Opus 4.7"
 ---
 
 > **Decision.** Three switches separate a notetaker from a navigator. **(1)** Enable seven core plugins — Command palette, Quick switcher, Daily notes, Templates, Bookmarks, Outline, Backlinks [[2]](https://obsidian.md/help/plugins) [[5]](https://practicalpkm.com/obsidian-core-plugins-tier-list/) — and ignore the rest until you need them. **(2)** Memorise five default hotkeys: `Ctrl/Cmd+P`, `Ctrl/Cmd+O`, `Ctrl/Cmd+E`, `Ctrl/Cmd+Shift+F`, `Ctrl/Cmd+Shift+T` [[3]](https://www.xda-developers.com/obsidian-keyboard-shortcuts-productivity/). **(3)** Add a six-plugin community starter pack — [Dataview](https://github.com/blacksmithgu/obsidian-dataview), [Templater](https://github.com/SilentVoid13/Templater), [Periodic Notes](https://github.com/liamcain/obsidian-periodic-notes) + [Calendar](https://github.com/liamcain/obsidian-calendar-plugin), [Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks), [Quick Switcher++](https://github.com/darlal/obsidian-switcher-plus) [[6]](https://www.dsebastien.net/the-must-have-obsidian-plugins-for-2026/) [[7]](https://www.obsibrain.com/blog/top-obsidian-plugins-in-2026-the-essential-list-for-power-users). Vim mode is a separate decision — turn it on only if you already think in Vim [[11]](https://publish.obsidian.md/hub/04+-+Guides,+Workflows,+&+Courses/for+Vim+users).

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.44
 duration_sec: 494
+model: "Opus 4.7"
 ---
 
 > **Decision.** For pure pedigree and zero logistical friction: **Residenz Heinz Winkler** in Aschau (1405 medieval complex, ~14 min taxi)[[5]](https://www.residenz-heinz-winkler.de/en/)[[4]](https://www.rome2rio.com/s/Grassau/Aschau-im-Chiemgau). For a genuine 15th-century *Schloss* stay: **Hotel Bonnschlössl** in Bernau[[7]](https://www.booking.com/hotel/de/bonnschloessl.html). For a one-off island night with a 600-year-old inn, accept the late-ferry gymnastics and book **Inselhotel zur Linde** on Fraueninsel — call the Chiemsee night taxi (+49 170 2053542) before midnight to get back[[12]](http://www.linde-frauenchiemsee.de/impressum.html)[[13]](https://www.chiemsee-schifffahrt.de/de/sonderfahrt/nachttaxifahrten). If you want the shortest possible walk home after the tasting menu: just stay in-house at **Das Achental** — the resort that *contains* ES:SENZ[[2]](https://www.das-achental.com/en/es-senz.html)[[17]](https://guide.michelin.com/us/en/hotels-stays/Grassau/das-achental-resort-13234).

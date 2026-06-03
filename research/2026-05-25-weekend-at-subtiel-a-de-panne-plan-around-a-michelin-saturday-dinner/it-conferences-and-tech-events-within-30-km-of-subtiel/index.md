@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.91
 duration_sec: 518
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Subtiel is at Belgium's western corner, so 30 km is sparse for IT conferences. The single in-radius event overlapping your trip is the **[Blue Innovation Village at Ostend at Anchor](https://www.bluecluster.be/calendar/blue-innovation-village-at-ostend-at-anchor-2026), 28-31 May 2026** in Oostende [[8]](https://www.bluecluster.be/calendar/blue-innovation-village-at-ostend-at-anchor-2026) — borderline ~30 km, blue-economy / marine-tech focus, free. The two recurring anchors — **Belgian Offshore Days** (Oostende, March) and **Dunkerque Digital Day** (May) — are already past for 2026; next editions land in 2027. For a generalist dev/IT conference, the nearest is **Devoxx Belgium** in Antwerp, October 2026 [[18]](https://devoxx.be/) — ~145 km, outside scope.

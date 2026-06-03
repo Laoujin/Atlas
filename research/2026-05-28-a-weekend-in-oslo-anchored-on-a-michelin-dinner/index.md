@@ -35,6 +35,7 @@ duration_sec: 1608
 citations: 119
 reading_time_min: 17
 issue: 91
+model: "Opus 4.7"
 ---
 
 The dinner is the hinge — every other choice cascades off it, and the two children that matter for that decision pull in the same direction: **lock the restaurant first, then the neighbourhood, then the day around it.**

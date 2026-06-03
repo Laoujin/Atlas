@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 0.85
 duration_sec: 144
+model: "Opus 4.7"
 ---
 
 > **Decision.** Spend 30 min on pre-flight (accounts, wifi, billing) before participants arrive — the workshop dies on logistics, not pedagogy. Plan for one AI provider going down: have a second IDE/key ready. Cut scope ruthlessly; one shipped tiny app beats a half-built ambitious one [[1]](https://medium.com/design-bootcamp/top-7-most-common-mistakes-done-by-workshop-facilitators-a5e7588de262)[[2]](https://voltagecontrol.com/articles/the-pitfalls-of-poor-facilitation-common-mistakes-and-how-to-avoid-them/).

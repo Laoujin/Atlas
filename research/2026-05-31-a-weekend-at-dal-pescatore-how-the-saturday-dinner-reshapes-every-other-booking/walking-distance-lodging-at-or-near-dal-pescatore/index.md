@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.96
 duration_sec: 585
+model: "Opus 4.7"
 ---
 
 > **Decision.** Runate has no inn. The closest bed is **[Agriturismo L'Airone](http://lnx.laironeagriturismo.com/ns/)** ("Hotel Airone" on Tripadvisor) at ~1.6 km — a ~20-min walk on a quiet country road that's fine in daylight but unlit at night [[8]](https://www.tripadvisor.com/Hotel_Review-g21085013-d2100659-Reviews-Hotel_Airone-Castelfranco_d_Oglio_Province_of_Cremona_Lombardy.html). For an evening that ends late after a tasting menu, the sensible booking is **[9 Muse B&B](https://beb.it/9muse/en/)** (3 km): co-owner Alberto used to cook at Dal Pescatore and runs a free drop-off / pick-up service so you skip the drive-after-wine problem [[15]](https://beb.it/9muse/en/) [[16]](https://www.tripadvisor.com/ShowUserReviews-g1238427-d1234929-r127489241-9_Muse_B_B-Canneto_sull_Oglio_Province_of_Mantua_Lombardy.html).

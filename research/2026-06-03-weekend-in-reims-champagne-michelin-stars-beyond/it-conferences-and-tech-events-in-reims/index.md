@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.29
 duration_sec: 464
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** The most compelling pairing is **CoTer Numérique** (June 23-24, public-sector IT congress, 1 300+ attendees) immediately followed by the free **Fête de l'Innovation** (June 25, startup pitches + networking). For cybersecurity specialists, **HS'R CTF** runs 5-6 June at URCA. Community meetups are sparse — **Sacrée Tech** is the main recurring developer series, active but infrequent.

@@ -33,6 +33,7 @@ duration_sec: 1748
 citations: 103
 reading_time_min: 20
 issue: 185
+model: "Sonnet 4.6"
 ---
 
 The dinner is the fixed point; everything else orbits it. Chengdu has exactly two Michelin 2-star restaurants and no 3-stars after four guide editions [[1]](https://en.wikipedia.org/wiki/List_of_Michelin-starred_restaurants_in_Chengdu). They represent opposite philosophies: **Yu Zhi Lan** is an unmarked 18-seat house in Qingyang, owner-chef Lan Guijun's ~20-course modern Sichuan degustation at ~600–2,380 RMB [[2]](https://www.tripadvisor.com/Restaurant_Review-g297463-d7211656-Reviews-Yu_ZhiLan-Chengdu_Sichuan.html); **Xin Rong Ji** is a high-rise financial-district operation bringing Taizhou coastal seafood to a spice-forward city, Asia's 50 Best–ranked [[3]](https://www.enprimeurclub.com/restaurants/xin-rong-ji-chengdu-restaurant) at a comparable price.

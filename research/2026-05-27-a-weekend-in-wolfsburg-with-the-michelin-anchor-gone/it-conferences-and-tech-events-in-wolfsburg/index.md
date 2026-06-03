@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.84
 duration_sec: 521
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Wolfsburg's tech calendar in 2026 has exactly two heavyweights — both automotive: **Circularity Days** at the MobileLifeCampus (20–21 May) [[3]](https://www.ist.fraunhofer.de/en/events-trade-fairs/2026/circularity-days-2026.html) and **IZB**, Europe's leading automotive supplier fair, at Allerpark (27–29 Oct, ~40 k visitors, 800+ exhibitors) [[1]](https://www.izb-online.com/en/)[[2]](https://www.izb-online.com/en/izb/news/news-overview/news/izb-2026-postponed-new-dates-confirmed.html). Outside those, **there is no standalone IT/cloud/cyber conference of Berlin-or-Munich scale** — the pulse is community-format: monthly phaeno science talks [[10]](https://www.phaeno.de/en/events/science/), quarterly 42 Wolfsburg open days [[13]](https://42wolfsburg.de/faq/), the #WolfsburgDigital Stammtisch [[11]](https://wolfsburgdigital.org/), and Volkswagen-internal events like the AI Campus and ISMC.

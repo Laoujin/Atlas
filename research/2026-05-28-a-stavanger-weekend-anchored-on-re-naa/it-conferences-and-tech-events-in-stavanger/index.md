@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.23
 duration_sec: 578
+model: "Opus 4.7"
 ---
 
 > **Decision:** For a software-flavoured trip, anchor on [Hello Stavanger](https://www.hellostavanger.no/) (Wed–Thu, Oct 21–22) — Stavanger's only home-grown software conference, walkable to the city centre [[1]](https://www.hellostavanger.no/). Pick [ONS](https://www.ons.no/) (Mon–Thu, Aug 24–27) if your interest is AI/digital in energy — by far the largest event of the year, with a real Digital Transformation track [[2]](https://www.ons.no/) [[3]](https://www.ons.no/programme/technical-session). Skip the rest of 2026's headline tech events: ERF, Energy Norway and Nordic Edge Expo all wrapped up before late May. Weekend-pairing notes at the bottom.

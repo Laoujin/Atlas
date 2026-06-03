@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 0.93
 duration_sec: 144
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — For a Ghent couple, the standout date-night sport is the **Six Days of Ghent** (17–22 Nov 2026 at 't Kuipke) [[1]](https://en.wikipedia.org/wiki/Six_Days_of_Ghent) — track cycling on a 166 m banked indoor track wrapped in a beer-tent atmosphere, doors open 18:00–midnight on weeknights [[2]](https://visit.gent.be/en/calendar/six-days-ghent). For a regular winter Saturday, **KAA Gent** at the Ghelamco Arena — kick-off prices from €20 [[3]](https://footballtripper.com/belgium/kaa-gent-stadium/). For free, daylight, outdoor: pick a curve on the **spring cobbled classics**, all within 30–60 min of Ghent.

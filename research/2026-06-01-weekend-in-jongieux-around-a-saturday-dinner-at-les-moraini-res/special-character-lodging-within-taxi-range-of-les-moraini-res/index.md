@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.70
 duration_sec: 537
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book **[La Maison des Morainières](https://www.les-morainieres.com/fr/chambres.html)** — the Arnoults' own six-room guesthouse 3.4 km from the restaurant with a free door-to-door shuttle [[3]](https://www.les-morainieres.com/fr/chambres.html). If full: **[Château de La Mar](https://www.chateaudelamar.fr/)** in Jongieux village for a 17th-c château + working Marestel vineyard + spa [[5]](https://www.chateaudelamar.fr/)[[6]](https://www.booking.com/hotel/fr/chac-teau-de-la-mar.html). On a budget or wanting a quirkier base: **[Le Doux Nid](https://le-doux-nid.com/en/)** in the Chanaz canal village [[11]](https://le-doux-nid.com/en/).

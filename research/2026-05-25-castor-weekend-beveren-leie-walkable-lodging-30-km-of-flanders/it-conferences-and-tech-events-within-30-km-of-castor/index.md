@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.84
 duration_sec: 554
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Kortrijk Xpo and Howest do all the lifting.** Inside a strict 30 km radius from Castor (Kortrijkseweg 164, 8791 Beveren-Leie [[1]](https://guide.michelin.com/us/en/west-vlaanderen/beveren-leie/restaurant/castor) [[20]](https://cas-tor.be/en)), the IT-event calendar is essentially **Kortrijk** (~13 km). Kortrijk Xpo runs four named trade shows in 2026 — Indumation (Feb), Machineering NextGen (Mar), Sustainable Solutions (Sep), ABISS (Oct) [[4]](https://www.kortrijkxpo.com/en/calendar/) — and Howest Kortrijk Weide adds Research Day (Mar), Tech Connect (Jun) and the **UNWRAP + FTI + WONDER + Mutation** city-festival cluster in late Oct–early Nov. For pure software-developer community fare, expect only sporadic meetups (BJUG, K-Tech, DigiPinguïns); Ghent's bigger scene is ~36 km away [[2]](https://nl.distance.to/Gent/Beveren) — just outside the radius.

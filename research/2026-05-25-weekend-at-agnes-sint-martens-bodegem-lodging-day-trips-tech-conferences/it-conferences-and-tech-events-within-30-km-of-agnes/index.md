@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.49
 duration_sec: 383
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Agnes sits ~10 km west of Brussels [[2]](https://places-in-the-world.com/belgium/sint-martens-bodegem/2786595), so the 30 km circle catches almost every major Brussels venue (ULB Solbosch, VUB Etterbeek, Brussels Expo, BeCentral) plus Mechelen at the edge. The anchor dates for 2026 are **FOSDEM (31 Jan – 1 Feb)** [[3]](https://fosdem.org/2026/), **Microsoft AI Tour (26 Mar)** [[7]](https://www.reply.com/en/newsroom/events/microsoft-ai-tour-2026-brussels), **Cybersec Europe (20–21 May)** [[9]](https://www.cyberseceurope.com/artikelen/cybersec-europe-on-20-and-21-may-2026-first-speakers-announced), **EuroBSDCon (9–13 Sep)** [[11]](https://2026.eurobsdcon.org/), and **Apply AI Summit (17 Nov)** [[18]](https://digital-strategy.ec.europa.eu/en/policies/apply-ai-summit). Leuven, Antwerp and Ghent fall outside the 30 km ring.

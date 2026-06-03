@@ -13,6 +13,7 @@ reading_time_min: 12
 cover: cover.svg
 cost_usd: 8.96
 duration_sec: 162
+model: "Opus 4.7"
 ---
 
 > **Decision.** Spend Saturday in Nice itself (Cours Saleya market → Vieux Nice → Castle Hill sunset → JAN at 19:30), give Sunday to **one** day trip — pair Èze Village in the morning with Monaco in the afternoon on bus #602, or take the TER 5 minutes east to Villefranche-sur-Mer + Cap Ferrat for the swim and Villa Ephrussi. If you have a third day, swap in Antibes (Picasso) + Cannes (Lérins ferry). Skip Saint-Paul-de-Vence and the Esterel unless you have a car. ⚠ Saturday is **June 6 = Monaco Grand Prix weekend** (qualifying Saturday, race Sunday June 7) [[76]](https://www.formula1.com/en/racing/2026/monaco) — every bus and train through Monaco is jammed, all Monaco hotels are full, and bus #600/#602 routings are often diverted. Skip Monaco entirely or do it from a different weekend.

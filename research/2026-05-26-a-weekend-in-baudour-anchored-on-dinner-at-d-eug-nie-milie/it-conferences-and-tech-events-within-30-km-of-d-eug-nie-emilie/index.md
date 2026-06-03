@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 3.11
 duration_sec: 499
+model: "Opus 4.7"
 ---
 
 > **Decision.** If you're anchoring a weekend on dinner at [d'Eugénie à Emilie][m1] in Baudour [[1]](https://guide.michelin.com/us/en/hainaut/baudour/restaurant/d-eugenie-a-emilie), pin the trip to one of two December flagships in Mons (~10 km away): [**DevDay 2026**](https://www.devday.be/) on **3 Dec** (Wallonia's biggest dev conf, 600+ attendees) [[4]](https://www.devday.be/), or [**DevFest Belgium 2026**](https://devfest-belgium.be/) on **27 Nov** (GDG Mons, AI/Cloud/DevOps/Web) [[5]](https://dev.events/EU/BE/Mons)[[6]](https://devfest-belgium.be/). Off-flagship weekends, the recurring layer is [Le CLICK](https://le-click.be/) in Initialis Park — Forum Innovation & Cloud (March) [[8]](https://www.eventbrite.fr/e/billets-forum-innovation-cloud-2026-1977499324713), Girls in ICT Day (April) [[10]](https://technocite.be/girls-in-ict-day-2026/) — plus GDG Mons monthly meetups [[7]](https://gdg.community.dev/gdg-mons/).

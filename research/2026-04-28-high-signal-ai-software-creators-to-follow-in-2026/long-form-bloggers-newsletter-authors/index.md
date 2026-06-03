@@ -13,6 +13,7 @@ reading_time_min: 12
 cover: cover.svg
 cost_usd: 9.28
 duration_sec: 779
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** If you only have five slots: [**Simon Willison**](https://simonwillison.net/) (near-daily, ground truth on every model release [[1]]), [**Sebastian Raschka's Ahead of AI**](https://magazine.sebastianraschka.com/) (monthly architecture deep-dives, 150k+ readers [[2]][[19]]), [**Nathan Lambert's Interconnects**](https://www.interconnects.ai/) (1–3×/week on open models and post-training [[15]]), [**Gergely Orosz's Pragmatic Engineer**](https://newsletter.pragmaticengineer.com/) (weekly, original eng-org survey reporting, paid [[25]]), and [**Ben Thompson's Stratechery**](https://stratechery.com/) (daily strategy lens, paid [[51]]). Add [**Hamel Husain**](https://hamel.dev/) for evals and applied AI [[8]], [**Marc Brooker**](https://brooker.co.za/blog/) for distributed systems [[31]], [**Zvi Mowshowitz**](https://thezvi.substack.com/) for rapid model + policy synthesis [[17]], and [**Ethan Mollick**](https://www.oneusefulthing.org/) for "what to do with the thing" [[18]]. Cap at 2–3 newsletters in your inbox; the rest belongs in an RSS reader [[76]]. Drop anything unopened for 30+ days [[75]].

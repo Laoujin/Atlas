@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 2.23
 duration_sec: 402
+model: "Opus 4.7"
 ---
 
 > **TL;DR for the session.** A Claude Code *plugin* is a packaging unit — a directory bundling any of skills, agents, slash commands, hooks, MCP servers, LSP servers — installed via `/plugin` from a *marketplace* (a `marketplace.json` catalog hosted on GitHub or anywhere reachable). The **official** Anthropic marketplace ships automatically (~101 plugins, 33 Anthropic + 68 partner as of May 2026) [[20]](https://knightli.com/en/2026/05/23/claude-plugins-official-claude-code-plugin-directory/); the **community** marketplace is one `/plugin marketplace add` away, with submissions gated by automated safety screening [[7]](https://github.com/anthropics/claude-plugins-community). Spend ~25 min on anatomy and install flow, ~15 min on building/distributing your own, and ~15 min on the trust boundary — plugins execute arbitrary code with the user's privileges, and there is already a CVE history to point to [[13]](https://blog.checkpoint.com/research/check-point-researchers-expose-critical-claude-code-flaws/).

@@ -42,6 +42,7 @@ duration_sec: 2771
 citations: 141
 reading_time_min: 24
 issue: 73
+model: "Opus 4.7"
 ---
 
 ## The shape of the weekend

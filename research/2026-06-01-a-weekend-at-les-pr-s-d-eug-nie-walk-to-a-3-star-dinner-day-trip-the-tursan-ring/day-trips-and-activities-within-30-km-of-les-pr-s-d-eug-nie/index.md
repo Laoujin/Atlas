@@ -13,6 +13,7 @@ reading_time_min: 13
 cover: cover.svg
 cost_usd: 9.11
 duration_sec: 985
+model: "Opus 4.7"
 ---
 
 > **TL;DR — pick one per half-day.** Closest hit (8 km): walk the 1318 bastide grid of **Geaune** then taste at the Cave des Vignerons du Tursan [[6]](https://www.guide-des-landes.com/en/experiences/culture-and-heritage/article-bastide-geaune-184.html) [[23]](https://www.tourisme-aire-eugenie.fr/Se-regaler/Nos-producteurs/la-cave-des-vignerons-tursan/881). Biggest-name half-day (14 km): Aire-sur-l'Adour's UNESCO **Sainte-Quitterie crypt** with the 4th-c. white-marble sarcophagus, free 45-min guided tour July–mid-September [[2]](https://www.tourismelandes.com/patrimoine-culturel/eglise-sainte-quitterie-pcuaqu04001oxgtr/) [[4]](https://www.tourisme-aire-eugenie.fr/Sites-et-musees/eglise-sainte-quitterie/848). Full-day pick (26 km): the **Saint-Sever** Benedictine abbey-church — rare seven-staggered-apses choir, 77 capitals, UNESCO Compostela [[11]](https://www.tourismelandes.com/patrimoine-culturel/abbaye-benedictine-et-son-abbatiale-pcuaqu040010r9f0/) [[57]](https://www.chemins-compostelle.com/composante-du-bien/abbaye-saint-sever/). Vineyard pilgrimage (insider): **Château de Bachen**, Michel Guérard's own estate, by-appointment-only, Mon–Fri 10:00/15:00 [[22]](https://lespresdeugenie.com/en/chateau-de-bachen-vineyard/). Skip Pau (≥55 min) unless it's a Sunday or Monday when most Landes museums close [[74]](https://chateau-pau.fr/informations-pratiques).

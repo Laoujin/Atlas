@@ -13,6 +13,7 @@ citations: 28
 reading_time_min: 4
 cost_usd: 2.21
 duration_sec: 392
+model: "Opus 4.7"
 ---
 
 > **Decision.** Anchor a Paris tech weekend on **[VivaTech](https://vivatech.com/), Jun 17–20** — Europe's biggest tech & startup show at Porte de Versailles [[1]](https://vivatech.com/) [[2]](https://www.eubiz.org/events-2026/vivatech-paris-2026.html). If you want depth instead of scale, pick **[Devoxx France](https://www.devoxx.fr/en/), Apr 22–24** at Palais des Congrès — 240 talks, ~4,600 devs [[3]](https://www.devoxx.fr/en/) [[4]](https://numerique360.banquedesterritoires.fr/evenements/nationaux/devoxx-france-2026/). For **the May 28–31 weekend specifically**, there is no headline conference on; bridge the gap with [AI Tinkerers Paris](https://paris.aitinkerers.org/) evenings or [Station F's](https://stationf.co/events) rolling event programme [[21]](https://paris.aitinkerers.org/) [[26]](https://stationf.co/events).

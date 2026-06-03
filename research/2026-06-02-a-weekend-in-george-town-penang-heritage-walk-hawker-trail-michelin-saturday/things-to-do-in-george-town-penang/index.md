@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 7.32
 duration_sec: 667
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book the Saturday-night Michelin seat **first** — the choice is between two 1-star rooms in George Town and they are very different: [Au Jardin](https://www.restaurant-aujardin.com/) for an 18-seat contemporary tasting menu at RM568++ with a 3-month reservation window and a strict dress code [[31]](https://www.thestar.com.my/lifestyle/living/2025/11/18/vegetables-are-the-stars-at-penang-michelin-starred-restaurant-au-jardin) [[32]](https://www.restaurant-aujardin.com/reservations), or [Auntie Gaik Lean's Old School Eatery](https://guide.michelin.com/my/en/article/people/auntie-gaik-leans-old-school-eatery-penang-malaysia-michelin-guide) for à-la-carte homestyle Peranakan in a Bishop Street shophouse where parties of three or fewer walk in [[34]](https://danielfooddiary.com/2025/05/03/auntiegaiklean/) [[35]](https://guide.michelin.com/my/en/article/people/auntie-gaik-leans-old-school-eatery-penang-malaysia-michelin-guide). Stay inside the UNESCO heritage core, walk it Saturday day, ride the Penang Hill funicular Sunday morning, and budget a cocktail crawl on Jalan Gurdwara after dinner. June is off-peak — cheaper rooms, fewer crowds, daily afternoon rain [[64]](https://www.weather-atlas.com/en/malaysia/george-town-weather-june) [[65]](https://my.trip.com/guide/info/weather-in-penang.html).

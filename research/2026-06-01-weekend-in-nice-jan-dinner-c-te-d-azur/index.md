@@ -35,6 +35,7 @@ duration_sec: 1367
 citations: 113
 reading_time_min: 20
 issue: 130
+model: "Sonnet 4.6"
 ---
 
 The expedition's three research threads pull in slightly different directions, and that tension is the most useful thing to hold onto. The Saturday JAN dinner is a fixed point: a 20-seat restaurant [[1]](dinner-at-jan-nice/#booking) where a no-show or last-minute cancel means someone else loses a coveted seat — so the entire weekend is built backwards from that reservation, not around it as an afterthought.

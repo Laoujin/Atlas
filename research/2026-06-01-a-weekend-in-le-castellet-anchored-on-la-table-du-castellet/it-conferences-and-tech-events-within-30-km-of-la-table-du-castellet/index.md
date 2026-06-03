@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.85
 duration_sec: 455
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Inside a 30 km radius of La Table du Castellet, **Toulon (~23 km) is the only real tech hub** [[1]](https://www.viamichelin.com/routes/results/toulon-83000-var-provence_alpes_cote_d_azur-france-to-le_castellet-83330-var-provence_alpes_cote_d_azur-france) — driven by [French Tech Toulon](https://www.frenchtechtoulon.fr/) monthly meetups [[27]](https://www.frenchtechtoulon.fr/les-meetups), [ISEN Méditerranée](https://isen-mediterranee.fr/) hackathons [[10]](https://isen-mediterranee.fr/en/evenements/actinspace-2026/), and [Pôle Mer Méditerranée](https://polemermediterranee.com/) defence/maritime-AI events [[16]](https://polemermediterranee.com/evenements/journee-mer-et-defense-2026/). La Ciotat (~19 km) [[2]](https://www.rome2rio.com/fr/s/La-Ciotat/Le-Castellet) and the Bandol/Sanary/Six-Fours coast have business clusters but no IT conferences of their own. **For a Saturday-dinner trip, the only weekend-shaped events are Var Gaming Festival (late Jan / early Feb) and ActInSpace (24h hackathon, same weekend)** [[7]](https://www.info83.fr/var-gaming-festival-2026-un-week-end-dedie-au-jeu-video-et-a-la-creativite-numerique-a-toulon/)[[10]](https://isen-mediterranee.fr/en/evenements/actinspace-2026/). Everything else is a weekday evening meetup.

@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.03
 duration_sec: 315
+model: "Opus 4.7"
 ---
 
 > **Decision (Apr 2026).** Two-plugin baseline: **Smart Connections** for local-first semantic retrieval + related-notes sidebar [[1]](https://github.com/brianpetro/obsidian-smart-connections) [[2]](https://smartconnections.app/smart-connections/), and **Copilot for Obsidian** for polished vault chat with Ollama or cloud models [[4]](https://github.com/logancyang/obsidian-copilot) [[14]](https://www.xda-developers.com/using-my-local-llm-with-obsidian/). Add **Smart Composer** if you want Cursor-style `@file` edits and one-click apply [[7]](https://github.com/glowingjade/obsidian-smart-composer). Pick **Khoj** instead if you need the same brain on phone/WhatsApp/browser, self-hosted [[9]](https://github.com/khoj-ai/khoj). For pure summarization, **Text Generator** templates [[11]](https://github.com/nhaouari/obsidian-textgenerator-plugin) cover most workflows; the dedicated `obsidian-ai-summary` is only worth installing for weekly/monthly link-walking review notes [[16]](https://github.com/irbull/obsidian-ai-summary).

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.40
 duration_sec: 602
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — [Schanz](https://www.schanz-restaurant.de/en/) sits at Bahnhofstraße 8A, 54498 Piesport [[1]](https://guide.michelin.com/us/en/rheinland-pfalz/piesport/restaurant/schanz-restaurant) [[2]](https://www.oadguides.com/restaurant/schanz). Within a strict 30 km road radius (Bernkastel-Kues 17 km [[4]](https://www.rome2rio.com/s/Piesport/Bernkastel-Kues), Wittlich ~15 km), there are **no dedicated IT conferences or tech meetups** in 2026 — only a Westnetz substation tour [[15]](https://wirtschaftskreis.de/events). The action is in **Trier** (34 km by road, just over the strict 30 km line [[3]](https://www.rome2rio.com/s/Piesport/Trier)). If your Saturday dinner can flex, anchor on **27–31 July 2026**: Uni Trier hosts the co-located **CiE / MCU / CCA / GSW** theoretical-CS conference cluster [[6]](https://www.uni-trier.de/en/universitaet/fachbereiche-faecher/fachbereich-iv/faecher/informatikwissenschaften/professuren/theoretische-informatik/research/conferences-and-workshops/translate-to-englisch-cie-2026). Second pick: the **IRDT Conference** on online speech, **10–11 September 2026** [[10]](https://irdt.uni-trier.de/save-the-date-irdtconference-am-10-11-09-2026/).

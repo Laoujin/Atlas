@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.58
 duration_sec: 625
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Inside the 30 km radius (air-line) around [Atelier Moessmer](https://guide.michelin.com/us/en/trentino-alto-adige/brunico/restaurant/atelier-moessmer-norbert-niederkofler) at Via Walther von der Vogelweide 17, Brunico [[1]](https://www.oadguides.com/restaurant/atelier-moessmer-norbert-niederkofler), there are six confirmed 2026 events. Five sit in Brixen / Bressanone (23.6 km air-line, ~35 km by road [[2]](https://www.distance.to/Brixen/Bruneck-Brunico)); one is the not-yet-dated IN MOTION Tech Festival at NOI Techpark Brunico itself [[12]](https://www.automotive-suedtirol.com/tech-festival/). The cleanest pair-with-dinner window is **23 May → 13 June**, when CSAMA, DSTNCMP and OntoBRIX cluster back-to-back in Brixen. The region's flagship — [SFSCON](https://www.sfscon.it/) — sits in Bolzano (~75 km), outside the circle [[21]](https://www.sfscon.it/).

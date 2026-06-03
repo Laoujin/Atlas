@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 3.93
 duration_sec: 750
+model: "Opus 4.7"
 ---
 
 > **Decision:** Skip the idea of walking back. Nuance sits at Kiliaanstraat 6-8 in Duffel's town centre [[1]](https://resto-nuance.be/en/), but the entire municipality has only 3 listed B&Bs and zero hotels [[5]](https://www.a-hotel.com/belgium/49251-duffel/) — the closest, Paradiso Park, is still a 23-minute walk [[14]](https://router.project-osrm.org/route/v1/foot/4.5057324,51.0957719;4.4941442,51.1090566). The restaurant's own recommended list contains no Duffel properties; they partner with Taxi Symforosa to ferry guests to Mechelen hotels [[3]](https://resto-nuance.be/en/recommended-hotels-transport/) [[4]](https://taxisymforosa.be/taxi/). **Best play: book Martin's Patershof in Mechelen, ~18 min by taxi.**

@@ -13,6 +13,7 @@ reading_time_min: 8
 cover: cover.svg
 cost_usd: 8.29
 duration_sec: 756
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** Slagmolen sits inside Belgium's only national park, so a 30 km arc covers an unusually dense slice of Flanders. Pick one and book the rest around dinner:

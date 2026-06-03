@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 1.62
 duration_sec: 524
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** For developer conferences: **[Developers Summit KANSAI](https://event.shoeisha.jp/devsumi/20260821)** (Aug 21, free) is the highest-signal event. For deep-tech and startups: **[Global Startup EXPO](https://global-startup-expo.com/)** (Oct 5–7). For trade/B2B: **[Japan IT Week Osaka](https://www.japan-it.jp/osaka/en-gb.html)** (Nov 18–20, 12k visitors). For ongoing English-language community: **[OKTech](https://oktech.jp/)** meets monthly.

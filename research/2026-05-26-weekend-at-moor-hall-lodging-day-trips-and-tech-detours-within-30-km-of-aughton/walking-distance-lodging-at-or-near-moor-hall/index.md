@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.16
 duration_sec: 332
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a Saturday three-Michelin-star dinner [[17]](https://guide.michelin.com/gb/en/lancashire/aughton/restaurant/moor-hall) at [Moor Hall](https://moorhall.com/) [[2]](https://moorhall.com/), the only genuine walking-distance lodging is **Moor Hall itself** — 14 rooms from £270 B&B [[4]](https://www.visitlancashire.com/places-to-stay/moor-hall-restaurant-with-rooms-p856170). It is also the only on-property option: the restaurant sits on a 5-acre rural plot on Prescot Road [[1]](https://moorhall.com/moor-hall/about/), and the next-closest hotels — [West Tower](https://www.west-tower.com/) (1.4 mi) and [Birches Brow](https://birchesbrow.co.uk/) (1.6 mi) — are along unlit country lanes [[9]](https://www.tripadvisor.com/HotelsNear-g3213860-d12388578-Moor_Hall_Restaurant_With_Rooms-Aughton_Ormskirk_Lancashire_England.html). Treat them as a £4–5 taxi ride [[11]](https://www.tripadvisor.com/Hotel_Review-g3213860-d10823614-Reviews-Birches_Brow_Boutique_Guestrooms-Aughton_Ormskirk_Lancashire_England.html), not a walk back from dinner.

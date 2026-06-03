@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.87
 duration_sec: 395
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — The 30 km circle around Le Calandre covers Padova city, Piazzola sul Brenta and Vicenza. Inside it, six dated IT/innovation events run through year-end 2026: **EG-ICE** (Jul 1-3, academic) [[1]](https://www.dicea.unipd.it/eg-ice-2026-padua), **AzureOnBeer** (Sep 11, Vicenza, community) [[2]](https://www.azurelab.blog/2026/05/25/azureonbeer-la-seconda-edizione-si-terra-l11-settembre-2026/), **VenetoNight** (Sep 25, public science) [[7]](https://www.unipd.it/universa/notte-ricercatori-venetonight), **IMPACT** (Oct 14-16, trade fair) [[4]](https://www.imp-act.it/), **DIGITALmeet** (Oct 19-24, festival) [[6]](https://digitalmeet.it/), plus recurring **AWS / Azure / WordPress** meetups. Only DIGITALmeet's final day is a Saturday — the natural pairing with a Saturday dinner at Le Calandre [[6]](https://digitalmeet.it/).

@@ -42,6 +42,7 @@ duration_sec: 2647
 citations: 163
 reading_time_min: 22
 issue: 71
+model: "Opus 4.7"
 ---
 
 Restaurant Ralf Berendsen sits inside Domaine La Butte aux Bois at Paalsteenlaan 90, Neerharen, holding two Michelin stars and a Relais & Châteaux address [[1]](https://guide.michelin.com/us/en/be-limburg/neerharen/restaurant/ralf-berendsen)[[2]](https://www.relaischateaux.com/us/hotel/la-butte-aux-bois/). Service runs Tue–Sat 18:30–21:00; Sunday and Monday are dark [[1]](https://guide.michelin.com/us/en/be-limburg/neerharen/restaurant/ralf-berendsen). That single fact ripples through the whole weekend — it forces a Saturday-evening anchor, rules out a Sun- or Mon-arrival package, and makes a Friday-night second-Michelin stop the natural way to fill the weekend's other dinner.

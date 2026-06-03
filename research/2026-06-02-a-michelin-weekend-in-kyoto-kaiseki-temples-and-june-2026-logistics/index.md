@@ -35,6 +35,7 @@ duration_sec: 2163
 citations: 125
 reading_time_min: 21
 issue: 142
+model: "Sonnet 4.6"
 ---
 
 The booking decision is the critical path, and it must happen before anything else. Of the six three-star restaurants, only **[Hyotei](https://www.insidekyoto.com/hyotei-restaurant-northern-higashiyama)** (online booking, 90-day window, ¥25,000–35,000) [[1]](https://www.magical-trip.com/media/hyotei-kyotos-michelin-3-star-restaurant-near-nanzenji-temple/) and **[Kikunoi Honten](https://kikunoi.jp/en/)** (phone only, ¥47,500–74,000) [[2]](https://www.magical-trip.com/media/kikunoi-honten-michelin-starred-japanese-restaurant-in-kyoto/) are realistically accessible for a Saturday dinner on short-to-medium notice. [Isshisoden Nakamura](https://kyoto-nakamura.com/) is a viable third — website booking, 3+ days' notice, private rooms only [[3]](https://kyoto-nakamura.com/restaurant-info/). Gion Sasaki is effectively closed to new guests (16+ year wait by regulars; TABLEALL is the only crack in the door) [[4]](https://www.tableall.com/restaurant/124), Mizai requires 18 months minimum and is near-impossible even then at ¥60,000 cash [[5]](https://major-foodie.com/mizai-kyoto/), and Miyamaso's mountain location (1h 40m by bus, fully booked 1+ year out) makes it a Friday overnight rather than a Saturday dinner [[6]](https://miyamasou.jp/en/). Default to Hyotei: its midnight-JST slot release exactly 90 days ahead is the only guaranteed self-service path to a Kyoto three-star [[7]](https://www.insidekyoto.com/hyotei-restaurant-northern-higashiyama).

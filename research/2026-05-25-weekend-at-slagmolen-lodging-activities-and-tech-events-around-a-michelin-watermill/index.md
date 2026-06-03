@@ -42,6 +42,7 @@ duration_sec: 2560
 citations: 140
 reading_time_min: 20
 issue: 72
+model: "Opus 4.7"
 ---
 
 **One phone call collapses the whole weekend.** Both lodging sub-topics converge independently on the same first move: call Slagmolen on **+32 89 85 48 88** and ask for one of the four villa rooms beside the watermill. The Michelin guide describes the rooms as built precisely so diners "prolong the evening in style" [[1]](https://guide.michelin.com/us/en/be-limburg/opglabbeek/restaurant/slagmolen); Slagmolen takes the booking by phone only, with no online form and no email [[2]](https://slagmolen.be/en/overnight/). Treat that single call as the trip's load-bearing constraint — the table almost certainly books in the same conversation.

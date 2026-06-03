@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.22
 duration_sec: 378
+model: "Opus 4.7"
 ---
 
 > **Decision.** Léa Linster sits at 17 route de Luxembourg in Frisange [[1]](https://guide.michelin.com/en/luxembourg/frisange/restaurant/lea-linster) — ~14 km from the Kirchberg conference belt [[2]](https://www.viamichelin.com/routes/results/luxembourg-l_1111-luxembourg-_-luxembourg-to-frisange-l_4661-esch_sur_alzette-_-luxembourg). Five flagship 2026 events fall inside the 30 km circle and are still upcoming as of May 29, 2026: **Nexus Luxembourg (Jun 10–11)** [[3]](https://nexusluxembourg.com/), **ICT Spring (Jun 29–30)** [[6]](https://startupsmagazine.co.uk/index.php/article-international-tech-conference-ict-spring-back-luxembourg-next-june-29-30), **Open Source Conference Luxembourg (Oct 7, Belval)** [[7]](https://conference.opensource.lu/), **hack.lu (Oct 20–23, Dommeldange)** [[9]](https://2026.hack.lu/blog/hack.lu-2026-call-for-papers/), and **Luxembourg Internet Days (Nov 17–18)** [[11]](https://luxembourg-internet-days.com/). The June ICT Spring and June Nexus weekends are the cleanest pairing with a Saturday dinner at Léa Linster.

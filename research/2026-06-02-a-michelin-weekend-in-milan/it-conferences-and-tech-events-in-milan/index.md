@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.40
 duration_sec: 467
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** From June 2, the next events are **AI Conf** (Jun 24, €99, Italian-language AI), **Codemotion** (Oct 28–29, €179, broadest dev conference), **ServerlessDays** (Oct 13, free, community), and **Cloud Day** (Nov 18, €49, vendor-neutral cloud). May 2026 was the peak cluster — AI Week, ETHMilan, AWS Summit, and Google Cloud AI Live all ran within 10 days of each other. [[2]](https://www.aiweek.it/en/) [[8]](https://aws.amazon.com/it/events/summits/milano/) [[5]](https://en.cryptonomist.ch/2026/04/04/ethmilan-returns-for-its-fourth-edition/) [[6]](https://datwave.ai/event/enterprise-intelligence-agentic-ai-cloud-ai-live-milano-2026/)

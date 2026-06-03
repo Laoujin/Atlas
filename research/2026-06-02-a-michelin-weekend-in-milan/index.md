@@ -35,6 +35,7 @@ duration_sec: 2355
 citations: 122
 reading_time_min: 19
 issue: 126
+model: "Sonnet 4.6"
 ---
 
 The architecture of a Milan weekend is simple: pick the restaurant first, then let the geography cascade. Each of Milan's five 2- and 3-star tables sits in a distinct district with a natural afternoon-to-dinner flow — a dependency not surfaced in either child article on its own.

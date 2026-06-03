@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.04
 duration_sec: 494
+model: "Opus 4.7"
 ---
 
 > **Decision.** If you want to pair a Memories weekend with an IT event in the same 30 km, target **late March** (Digital Summit in Vaduz [[1]](https://digitalsummit.li/) — the region's flagship, 450+ attendees [[2]](https://www.vaduz.li/veranstaltungen/digital-summit-2026-globale-technologie-trifft-europaische-souveranitat)) or **November** (Digitaltag Vaduz [[6]](https://www.digitaltag.li/) + PreXcon precision-tech convention in Buchs [[8]](https://www.rhysearch.ch/en/news/events.html)). June carries the recurring AI/dev scene (KI-Meetup Graubünden [[5]](https://eventfrog.ch/en/p/science-and-technology/ki-meetup-graubuenden-nr-7-7447191608016009720.html), RhySearch Technologietag [[8]](https://www.rhysearch.ch/en/news/events.html)). St. Gallen tech events (START Hack, SwissHacks) and Davos sit outside the 30 km radius.

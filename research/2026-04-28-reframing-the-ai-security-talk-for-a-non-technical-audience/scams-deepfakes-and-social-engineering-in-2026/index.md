@@ -13,6 +13,7 @@ reading_time_min: 14
 cover: cover.svg
 cost_usd: 8.55
 duration_sec: 844
+model: "Opus 4.7"
 ---
 
 > **TL;DR for the talk.** AI didn't invent scams — it removed every last constraint on running them. In 2024 US victims lost a record $16.6B to internet crime [[1]](https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf), Deloitte projects gen-AI fraud reaches $40B by 2027 [[8]](https://www.deloitte.com/us/en/insights/industry/financial-services/deepfake-banking-fraud-risk-on-the-rise.html), and [Microsoft](https://www.microsoft.com/) now measures AI-written phishing emails at a 54% click rate vs 12% for human-written [[54]](https://www.paubox.com/blog/microsoft-ai-makes-phishing-4.5x-more-effective-and-far-more-profitable). For a non-technical audience the shape worth conveying is: **the attacker side has industrialised** (Telegram-distributed jailbroken LLMs, real-time face-swap from one photo, $40B/year SE-Asia scam compounds), **the detector side is losing the arms race** (peer-reviewed accuracy drops 10-15% on unseen generators [[92]](https://arxiv.org/abs/2508.06248)), and **the only consumer defenses that survive contact with reality are out-of-band human protocols** — family codewords, callback verification on a known number, and dual-officer sign-off on any video-call money instruction [[93]](https://www.ic3.gov/PSA/2025/PSA250515)[[95]](https://www.adaptivesecurity.com/blog/arup-deepfake-scam-attack).

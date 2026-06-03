@@ -42,6 +42,7 @@ duration_sec: 2611
 citations: 125
 reading_time_min: 32
 issue: 122
+model: "Opus 4.7"
 ---
 
 The four angles agree on geography: Le Calandre is at Via Liguria 1, Sarmeola di Rubano, ~6–10 km west of Padua on the SS11 [[link]](https://guide.michelin.com/en/veneto/rubano/restaurant/le-calandre), and a 30 km radius covers Padua, the Euganean Hills, Piazzola sul Brenta, and the western edge of Vicenza — but not Venice, Verona, or Montagnana [[link]](https://www.percorsokm.it/it-it/percorso-da-Vicenza-a-Rubano). The shape of the weekend follows from one operational fact repeated across every sub-topic: the tasting menu runs ~4 hours and ends 22:30–23:30 [[link]](https://taxipadova.it/en/services/night-taxi/), so post-dinner mobility is the binding constraint, not distance to the restaurant on arrival.

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.45
 duration_sec: 515
+model: "Opus 4.7"
 ---
 
 > **Decision.** Stay at **Hotel Le Calandre** [[3]](https://www.tripadvisor.com/Hotel_Review-g1028608-d6614826-Reviews-Hotel_le_Calandre-Rubano_Province_of_Padua_Veneto.html) if you want to fall out the restaurant door into bed (1 min, 3★, ~$140). Upgrade to **Hotel Vittoria** [[6]](https://www.tripadvisor.com/Hotel_Review-g1028608-d283075-Reviews-Hotel_Vittoria-Rubano_Province_of_Padua_Veneto.html) (4★, ~$127–175, 10–12 min walk) for nicer rooms. Skip walking entirely and use the Alajmo family's own picks [[1]](https://alajmo.it/en/pages/homepage-le-calandre) in central Padua or Abano Terme if a car or taxi is fine.

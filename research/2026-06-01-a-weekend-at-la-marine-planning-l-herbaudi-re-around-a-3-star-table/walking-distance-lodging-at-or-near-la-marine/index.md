@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 1.91
 duration_sec: 384
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book **Maison Moizeau** — it adjoins La Marine on Rue Marie Lemonnier, is run by chef Alexandre Couillon, and has 5 rooms at €180–275 [[1]](https://www.alexandrecouillon.com/en/dream.html). If Moizeau is sold out (likely — guests warn the rooms book a year+ in advance [[2]](https://www.tripadvisor.com/Hotel_Review-g425088-d15237675-Reviews-La_Maison_Moizeau-Noirmoutier_en_l_Ile_Ile_de_Noirmoutier_Vendee_Pays_de_la_Loire.html)), walk to **Hôtel Bord à Bord** on the marina (~4 min, €80–165) [[3]](https://www.ile-noirmoutier.com/en/accommodation/our-hosting-solutions/hotels/hotel-bord-bord) or **La Tranquillité** (~12 min, 9.5/10 over 266 reviews) [[4]](https://www.chambres-hotes.fr/chambres-hotes_la-tranquillite_noirmoutier-en-l-ile_h7552795.htm). Skip Ancre Marine — its Thalgo spa is appealing but it's ~3 km out and means a taxi after dinner [[5]](https://www.tripadvisor.com/HotelsNear-g425088-d23686307-Port_De_L_Herbaudiere-Noirmoutier_en_l_Ile_Ile_de_Noirmoutier_Vendee_Pays_de_la_Loire.html).

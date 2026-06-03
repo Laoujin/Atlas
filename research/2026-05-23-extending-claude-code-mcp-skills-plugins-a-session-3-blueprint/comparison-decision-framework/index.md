@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 0.84
 duration_sec: 147
+model: "Opus 4.7"
 ---
 
 > **Decision.** Use a weighted decision matrix with four axes — **Audience fit · Series continuity · Speaker readiness · Demo viability** — and lock the weights *before* scoring candidates. If two candidates tie, pick the one with the runnable live demo.

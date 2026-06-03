@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.50
 duration_sec: 511
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** [**NeurIPS 2026**](https://neurips.cc/) is the headline open CFP — abstract May 4, paper May 6 [[1]](https://neurips.cc/Conferences/2026/CallForPapers) — and it has a **Paris venue node** alongside Atlanta and Sydney [[3]](https://neurips.cc/Conferences/2026/Dates). Among Belgium/France/Netherlands/Germany venues, the only academic AI/ML conference still accepting submissions is [**BNAIC 2026 in Maastricht**](https://www.maastrichtuniversity.nl/bnaic2026/call_papers) (subs open June 1, deadline Aug 31) [[2]](https://www.maastrichtuniversity.nl/bnaic2026/call_papers). Closest open-CFP NLP venue to the region is [**EMNLP 2026 / Budapest**](https://2026.emnlp.org/) (May 25 via ARR) [[9]](https://2026.emnlp.org/calls/main_conference_papers/) [[10]](https://2026.emnlp.org/); closest CV venue is [**BMVC 2026 / Lancaster, UK**](https://bmvc2026.bmva.org/) (May 29) [[8]](https://bmvc2026.bmva.org/calls/call-for-papers/). The big regional series — [ECAI/IJCAI Bremen](https://2026.ijcai.org/), ECML PKDD Naples, [HHAI Brussels](https://ii.tudelft.nl/bnvki/call-for-papers-hybrid-human-artificial-intelligence-hhai-2026/), [ICCBR Bremen](https://2026.iccbr.org/), [UAI Amsterdam](https://www.auai.org/uai2026/call_for_papers), [ESANN Bruges](https://www.esann.org/) — have all already closed.

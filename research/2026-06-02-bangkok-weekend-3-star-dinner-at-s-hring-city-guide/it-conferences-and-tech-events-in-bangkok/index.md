@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 1.29
 duration_sec: 563
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** [Techsauce Global Summit](https://summit.techsauce.co/) (Aug 26–28, QSNCC) is Bangkok's SXSW-equivalent at 20,000+ attendees [[1]](https://summit.techsauce.co/). For focused tracks: [CYSEC Thailand](https://thailand.cysecglobal.com/) (Jul 22, cybersecurity), [IAIT2026](https://www.iait-conf.org/2026/) (Jun 17–19, AI research), [DigiTech ASEAN](https://digitechasean.com/) (Nov 25–27, enterprise digital). For hands-on developer engagement: two Microsoft Build //localhost events in June, plus weekly AI builder meetups year-round.

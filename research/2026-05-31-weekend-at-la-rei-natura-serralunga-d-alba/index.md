@@ -42,6 +42,7 @@ duration_sec: 3028
 citations: 182
 reading_time_min: 32
 issue: 121
+model: "Opus 4.7"
 ---
 
 ## One constraint runs through everything

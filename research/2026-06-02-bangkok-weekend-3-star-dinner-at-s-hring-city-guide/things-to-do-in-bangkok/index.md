@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 7.57
 duration_sec: 704
+model: "Opus 4.7"
 ---
 
 > **Decision** — Anchor the trip on the Riverside (Mandarin Oriental / Capella / Four Seasons) [[6]](https://www.southeastasiasimplified.com/blog/luxury-stays-10/best-luxury-hotels-in-bangkok-2026-what-the-authoritative-rankings-actually-show-102): your 3-star dinner is a walk or buggy ride from the room. Spend Saturday morning on **Wat Pho → Wat Arun** (skip the Grand Palace if budget-conscious) [[16]](https://thailandstartshere.com/2026/03/04/bangkok-grand-palace/), late afternoon at a Thai-massage parlour, then dinner. Reserve Sunday for **Chatuchak before 10:30 AM** [[38]](https://www.odynovotours.com/thailand/bangkok/chatuchak-weekend-market.html) (it's the only weekend it's open [[37]](https://www.chatuchakmarket.org/opening-times/)) and a late-afternoon **Yaowarat street-food crawl** [[26]](https://www.thefinestthai.com/2026/04/16/yaowarat-the-ultimate-guide-to-bangkoks-chinatown-street-food/). Day trips (Ayutthaya, Maeklong) need a full extra day — skip on a tight weekend.

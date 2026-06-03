@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 0.90
 duration_sec: 138
+model: "Opus 4.7"
 ---
 
 > **Decision.** For software-broad signal: **[Hacker News](https://news.ycombinator.com/)** (sort by score). For curated technical-only posts: **[Lobsters](https://lobste.rs/)** (invite-only). For frontier open-model practice: **[r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/)**. For papers with discussion: **[alphaXiv](https://www.alphaxiv.org/)**. Subscribe to **one** daily digest (TLDR AI) plus **one** weekly deep-read (Import AI or The Batch). Skip everything else — it duplicates these.

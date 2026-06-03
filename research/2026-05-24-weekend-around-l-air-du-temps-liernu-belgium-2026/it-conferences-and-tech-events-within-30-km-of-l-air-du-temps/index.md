@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 3.13
 duration_sec: 602
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a Saturday-dinner trip to [L'Air du Temps](https://guide.michelin.com/en/namur/liernu/restaurant/l-air-du-temps371956) [[2]](https://guide.michelin.com/en/namur/liernu/restaurant/l-air-du-temps371956), only two in-radius 2026 events span a Saturday: **[KIKK Festival](https://kikkfestival.be/) 21–25 Oct** in central Namur [[8]](https://visitwallonia.com/en-gb/content/kikk-festival-celebrating-digital-world-namur) (the obvious pairing — digital-arts festival, ~20 km, runs Wed–Sun) and the **CSLabs hackathon 27–29 Mar** at UNamur [[12]](https://www.unamur.be/fr/agenda/hackathon-leducation-aux-enjeux-du-numerique-en-utilisant-des-elements-de-fiction). The other three confirmed in-radius events fall on weekdays. If a single weekday off-site visit is acceptable, the AI talks at TRAIL in Louvain-la-Neuve (19 Mar) or the Mind & Market startup forum in LLN (14 Apr) are both ~22 km away. **[FOSDEM](https://fosdem.org/2026/) (31 Jan–1 Feb)** in Brussels [[15]](https://fosdem.org/2026/) sits just outside the radius at ~45 km / 50 min drive [[5]](https://www.rome2rio.com/s/Brussels/Liernu) — the biggest open-source event in the country and the strongest "stretch the circle" candidate.

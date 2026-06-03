@@ -35,6 +35,7 @@ duration_sec: 3072
 citations: 129
 reading_time_min: 20
 issue: 132
+model: "Sonnet 4.6"
 ---
 
 The first thing this run surfaced is a hard constraint: **Zén closed for "renewal" on June 2, 2026 — no reopen date announced.** [[1]](https://restaurantzen.com) The three-restaurant brief collapsed to a two-way decision the day research started.

@@ -13,6 +13,7 @@ citations: 94
 reading_time_min: 9
 cost_usd: 8.76
 duration_sec: 735
+model: "Opus 4.7"
 ---
 
 > **Decision.** Base in **Lehel** (quiet, walk to Altstadt) or **Altstadt** proper for a 2-night trip [[1]](https://www.munichtourism.org/where-to-stay-in-munich/); **Maxvorstadt** if museum mornings dominate [[5]](https://www.timeout.com/munich/hotels/where-to-stay-munich); **Glockenbachviertel** if dinner spills into nightlife [[2]](https://www.munich.travel/en/topics/urban-districts/districts-of-munich/glockenbachviertel-and-gaertnerplatz-trendy-and-nightlife-neighborhood). Day 1: a walking loop through the Altstadt + a biergarten dinner [[45]](https://www.augustinerkeller.de/en/Beer-garden). Day 2: either Dachau (free entry, half-day) [[69]](https://tourismattractions.net/germany/dachau-day-trip-munich) or Andechs (monastery + brewery + biergarten, half-day) [[71]](https://www.munich.travel/en/pois/lakes-mountains/kloster-andechs), or the **Lenbachhaus** if you want the single most distinctive art museum in town [[44]](https://www.muenchen.de/en/sights/museums/lenbachhaus). Skip Neuschwanstein on a 2-night trip — book ahead or it eats the day for limited payoff [[67]](https://overrateddestinations.com/europe/neuschwanstein-disappoints-shocking-truth-revealed/). Late May is peak biergarten season [[93]](https://www.munichbeergardens.com/News_and_events), and the May 29–31 weekend is a quiet pocket between Pfingsten and Tollwood [[80]](https://www.tollwood.de/en/tollwood-sommerfestival/) [[85]](https://worlddaysoff.com/holiday/germany/2026/whit-monday).

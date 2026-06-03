@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.54
 duration_sec: 486
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Within 30 km of [Nuance](https://guide.michelin.com/en/antwerpen/duffel/restaurant/nuance) [[1]](https://guide.michelin.com/en/antwerpen/duffel/restaurant/nuance) (Duffel — 15 km from Antwerp, 7 km from Mechelen, *Brussels at 53 km is out* [[2]](https://www.distancefromto.net/distance-from-duffel-be-to-brussels-be)) ten major IT conferences run in 2026. Most end Thursday or Friday — the natural Saturday-Nuance bundles are **Devoxx Belgium (5-9 Oct)** [[9]](https://devoxx.be/), **DDD Europe + BC TechDays (8-12 Jun)** [[6]](https://2026.dddeurope.com/) [[7]](https://www.bctechdays.com/event), **SmashingConf (12-15 Oct)** [[11]](https://smashingconf.com/antwerp-2026/) and **CloudBrew (10-11 Dec)** [[13]](https://www.cloudbrew.be/). The only event already on a Saturday is **dataMinds Saturday (21 Feb, free)** [[14]](https://datamindssaturday.be/) — same-day bundle with dinner.

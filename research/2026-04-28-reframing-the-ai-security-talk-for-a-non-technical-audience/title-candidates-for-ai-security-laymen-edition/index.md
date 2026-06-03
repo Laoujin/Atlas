@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.77
 duration_sec: 128
 cover: cover.svg
+model: "Opus 4.7"
 ---
 
 > **Decision.** Lead with **"ProbLLMs: Why You Can't Trust the Robot"** (the original [[1]](https://github.com/itenium-be/AI-Security-Talk/blob/master/presentation/slides.md)) — it already nails the playful-but-pointed tone laymen titles need, and the wordplay survives translation to a non-technical room. If the wordplay feels too inside-baseball for the new audience, swap to **"The Confident Liar in Your Pocket"** as the safer-but-still-sharp alternative. Avoid TED-grandiose ("catastrophic", "ultimate test") — wrong register for a 60-min club talk [[2]](https://www.ted.com/talks/tristan_harris_why_ai_is_our_ultimate_test_and_greatest_invitation).

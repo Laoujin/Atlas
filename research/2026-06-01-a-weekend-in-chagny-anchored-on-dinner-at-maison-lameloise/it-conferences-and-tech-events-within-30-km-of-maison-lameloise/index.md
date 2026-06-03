@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.05
 duration_sec: 509
+model: "Opus 4.7"
 ---
 
 > **Decision.** The radius is mostly Burgundy vineyard and small cities, so the IT calendar is sparse. Anchor a tech detour on **[Forum InCyber des Territoires](https://europe.forum-incyber.com/creusot/)** in Le Creusot, **Thu–Fri 11–12 June 2026** [[6]](https://franceurbaine.org/initiatives-locales/la-communaute-urbaine-creusot-montceau-co-organise-le-forum-incyber-des-territoires/) — the one regional event of national weight. Everything else in-radius is a half-day local salon ([CGLOBAL'IT](https://www.cglobal.fr/salon-cglobalit-jeudi-26-03-2026-colisee-de-chalon-sur-saone/) and [CAP 26](https://www.c2ip.com/c2ip-salon-cap-26-chalon-sur-saone-juin-2026) in Chalon-sur-Saône) [[8]](https://www.cglobal.fr/salon-cglobalit-jeudi-26-03-2026-colisee-de-chalon-sur-saone/)[[9]](https://www.c2ip.com/c2ip-salon-cap-26-chalon-sur-saone-juin-2026). All weekday-only — to pair tech with the Saturday dinner you must extend the weekend into Thu–Sat. If your dates miss the cluster, the radius offers permanent innovation venues but no Saturday meetup scene.

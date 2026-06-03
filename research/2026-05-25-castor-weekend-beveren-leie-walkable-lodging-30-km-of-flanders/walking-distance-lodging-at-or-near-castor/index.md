@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.11
 duration_sec: 640
+model: "Opus 4.7"
 ---
 
 > **Decision.** Only one property is a comfortable walk back from a wine-paired dinner: **[Casa Liebaard](https://www.bedandbreakfast.eu/en/a/pXu3GojGAs9G/casa-liebaard)** in Desselgem, 2.1 km / ~28 min on foot [[5]](https://www.bedandbreakfast.eu/en/a/pXu3GojGAs9G/casa-liebaard) [[19]](https://router.project-osrm.org/). Beyond it, **[The Cotton Suites](https://www.bedandbreakfast.eu/en/a/np4Elu73Qapf/the-cotton-suites-bb)** (3.3 km) and **[La Maison des Papillons](https://lamaisondespapillons.be/)** (4.0 km) are 40–55 min strolls — fine if the digestif walk is part of the plan, otherwise a 5-minute taxi. Anything in Waregem proper ([Hotel T](https://www.hotel-t.be/), [ParkHotel](https://www.parkhotelwaregem.be/), [Au Paradis](https://au-paradis.be/)) is 6.7–7.8 km — book the cab on the way in [[20]](https://www.taxiwaregemcity.be/).

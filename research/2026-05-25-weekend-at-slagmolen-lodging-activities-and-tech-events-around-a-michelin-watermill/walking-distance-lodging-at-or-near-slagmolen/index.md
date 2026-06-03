@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.27
 duration_sec: 671
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Book one of [De Slagmolen](https://slagmolen.be/en/)'s **four on-site villa rooms** — they sit beside the watermill dining room and prices include breakfast [[1]](https://slagmolen.be/en/overnight/). The only genuine walking-distance fallback is **Bed and Beyond** at Vinkenkantstraat 33, a 1.6 km / ~20-min walk away [[2]](https://www.tripadvisor.com/HotelsNear-g3478302-d809326-Slagmolen-Opglabbeek_Limburg_Province.html)[[3]](https://www.tripadvisor.com/Hotel_Review-g3478302-d3489379-Reviews-Bed_and_Beyond-Opglabbeek_Limburg_Province.html). Everything else is ≥3.7 km — taxi or car only after a wine pairing.

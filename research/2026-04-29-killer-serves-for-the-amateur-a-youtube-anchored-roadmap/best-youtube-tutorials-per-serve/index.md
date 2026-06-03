@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 14.00
 duration_sec: 484
+model: "Opus 4.7"
 ---
 
 > **Decision.** One YouTube video per serve, picked for clarity over view count:

@@ -13,6 +13,7 @@ reading_time_min: 24
 cover: cover.svg
 cost_usd: 10.70
 duration_sec: 1110
+model: "Opus 4.7"
 ---
 
 > **Decision.** YOLO (`--dangerously-skip-permissions`) inside a properly isolated Docker sandbox is safer in 2026 than native Claude Code with permission prompts — *if* the sandbox has both filesystem **and** network isolation. Anthropic itself admits users approve 93% of prompts [[58]](https://www.anthropic.com/engineering/claude-code-auto-mode), and UpGuard found only 1.1% of public configs use deny/ask rules [[61]](https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions) — the prompt layer is theatre. Use **Docker Sandboxes** (GA Jan 2026) [[51]](https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/) or **claudebox** [[52]](https://github.com/RchGrav/claudebox) if you want something turn-key; roll your own off the reference Dockerfile below if you need a specific toolbelt (Playwright + .NET + LibreOffice) or want the egress firewall pinned to your allowlist. Never mount the host Docker socket [[39]](https://opscart.com/docker-runtime-escape-why-mounting-docker-sock-is-worse-than-running-privileged-containers/), never pass `ANTHROPIC_API_KEY` as an env var [[30]](https://oddguan.com/blog/comment-and-control-prompt-injection-credential-theft-claude-code-gemini-cli-github-copilot/).

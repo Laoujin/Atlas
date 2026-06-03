@@ -35,6 +35,7 @@ duration_sec: 1688
 citations: 91
 reading_time_min: 16
 issue: 160
+model: "Sonnet 4.6"
 ---
 
 Girona province holds 20 Michelin stars across 15 restaurants — the densest concentration outside Madrid and Barcelona. [[1]](https://b2b.costabrava.org/es/actualidad/gastronomia-michelin-2026/) The trip's entire logic flows from which table you can secure.

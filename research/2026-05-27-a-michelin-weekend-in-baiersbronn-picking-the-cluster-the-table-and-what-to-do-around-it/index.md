@@ -42,6 +42,7 @@ duration_sec: 3002
 citations: 138
 reading_time_min: 24
 issue: 86
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Baiersbronn's eight Michelin stars are real; the village isn't a village. Three different valleys hold the starred hotels, so the weekend plan is: pick a cluster, walk to dinner, use the complimentary inter-hotel shuttle once, day-trip the 30 km radius by car. The IT-conference cover story doesn't work — the nearest serious event sits just past the line.

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.35
 duration_sec: 516
+model: "Opus 4.7"
 ---
 
 > **Decision.** Anchor a tech-trip weekend on **[Voxxed Days Luxembourg](https://luxembourg.voxxeddays.com/en/), 18–19 June 2026** at Casino 2000 in Mondorf-les-Bains — it is the only major IT conference of 2026 that sits inside Moutfort village's 10 km circle [[8]](https://luxembourg.voxxeddays.com/en/). For a longer stay, [**Nexus Luxembourg**, 10–11 June at LuxExpo The Box](https://nexusluxembourg.com/) (~12 km away) is the flagship AI/tech summit [[2]](https://nexusluxembourg.com/), and [**hack.lu**, 20–23 October](https://hack.lu/) at Parc Hotel Alvisse is the 20th-edition anchor for the cybersecurity crowd [[4]](https://hack.lu/).

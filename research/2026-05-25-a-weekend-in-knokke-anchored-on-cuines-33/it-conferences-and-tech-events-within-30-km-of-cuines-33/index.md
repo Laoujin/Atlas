@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.32
 duration_sec: 454
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Knokke-Heist has zero IT conferences of its own [[12]](https://knokkeheist.com/en/events.php). Inside 30 km, the anchor is Howest in Bruges (~17 km): free Tuesday-evening **Tech&Meet** talks year-round [[4]](https://sites.google.com/howest.be/howest-techmeet) plus a busy 2026 calendar of masterclasses and the **Tech BBQ** on 25 June [[8]](https://app.payit.be/tech-bbq26). The flagship 2026 academic event in the radius is **EUSIPCO 2026** at Concertgebouw Brugge, 31 Aug – 4 Sep [[1]](https://eusipco2026.org/). The big regional fairs (Connect IT Antwerp, Tech Connect Kortrijk) are all 60+ km away [[10]](https://www.howest.be/en/news/tech-connect-2026-talks-showcase)[[11]](https://www.connect-it26.be/en).

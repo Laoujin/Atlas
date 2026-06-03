@@ -56,6 +56,7 @@ duration_sec: 3591
 citations: 300
 reading_time_min: 55
 issue: 49
+model: "Opus 4.7"
 ---
 
 The six angles answer six different questions, but they all converge on the same 2026 inflection point: **Bases became a core plugin in Obsidian 1.9 (May 2025) and stabilised in 1.10 (Oct 2025) with card/list/Maps views and a public layout API** [[1]](https://obsidian.md/changelog/2025-05-21-desktop-v1.9.0/), while Dataview has gone effectively unmaintained for over a year [[2]](https://medium.com/@lennart.dde/obsidian-dataview-is-dead-long-live-bases-9750e8a92877). Every recommendation in this expedition cascades from that single fact.

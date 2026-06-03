@@ -13,6 +13,7 @@ reading_time_min: 16
 cover: cover.svg
 cost_usd: 8.63
 duration_sec: 1040
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** Late May is the sweet spot — the Semois typically runs in the 15–60 m³/s "ideal for sporty paddlers" band [[22]](https://www.kayaksemois-ardenne.be/eng/water-level-semois) and the Parc national runs ~60 ranger-led walks April–October [[16]](https://www.semois-parcnational.be/en/post/discover-the-2026-guided-walk-calendar). Build the weekend around three anchors: **Saturday morning** kayak Poupehan→Frahan (4 km, 1 h, €25) [[19]](https://semois-kayaks.be/reservation/) then drive the meander arc to the Tombeau du Géant at Botassart for the view [[31]](https://www.semois-parcnational.be/le-tombeau-du-geant); **Saturday afternoon** Château de Bouillon (arrive 11:00 to catch the 11:30 falconry) [[26]](https://visitwallonia.com/en-gb/content/bouillon-castle-and-its-falconry-shows); **Sunday morning** the 11.5 km *Au fil de l'Our* signed loop from the village church [[1]](https://www.sitytrail.com/en/trails/449048-paliseul--balade-au-pays-de-la-hautexlesse-x-au-fil-de-lxour/) or the harder Échelles de Rochehaut scramble [[6]](https://www.ardenneresidences.com/fr/experiences/sport/randonnees/balade-des-echelles/). Wet weather → Bouillon Medieval Experience, Grottes de Han or Orval. Dinner Saturday at La Table de Maxim'.

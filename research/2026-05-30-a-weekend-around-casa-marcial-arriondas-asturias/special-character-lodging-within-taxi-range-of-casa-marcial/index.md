@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.54
 duration_sec: 476
+model: "Opus 4.7"
 ---
 
 > **Decision:** Book **[Narbasu](https://www.narbasu.com/en/)** if dates allow — Casa Marcial's own sister-property, a 14th-c. palace 20 min away with a Michelin Green-Star restaurant on-site [[3]](https://casamarcial.es/en/manzano/) [[5]](https://guide.michelin.com/gb/en/principado-de-asturias/cereceda/restaurant/narbasu). If sold out: **[Puebloastur](https://www.puebloastur.com/en)** is the closest serious sleep (~3 km from the dining room) and the only 5★ Gran Lujo in the region [[7]](https://www.puebloastur.com/en) [[8]](https://www.tripadvisor.com/Hotel_Review-g1079283-d10070323-Reviews-Puebloastur_Eco_Resort_Wellness_Spa-Cofino_Parres_Municipality_Asturias.html). **[Hotel Casona del Sella](https://www.tripadvisor.com/Hotel_Review-g608995-d578140-Reviews-Hotel_Casona_Del_Sella-Arriondas_Parres_Municipality_Asturias.html)** is the value pick — a 14-room 1923 Indiano in central Arriondas at €90–€130/night [[12]](https://www.tripadvisor.com/Hotel_Review-g608995-d578140-Reviews-Hotel_Casona_Del_Sella-Arriondas_Parres_Municipality_Asturias.html).

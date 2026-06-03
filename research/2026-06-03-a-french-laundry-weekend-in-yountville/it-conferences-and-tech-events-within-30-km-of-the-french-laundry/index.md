@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 1.26
 duration_sec: 442
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** — The 30 km radius is Napa Valley wine country, not Silicon Valley. Pure IT conferences are nearly absent; what exists are executive-tier or niche-technical gatherings at resort venues. Three upcoming 2026 events qualify: PV ModuleTech USA (Jun 16-17, cleantech), Operating Partners Forum Napa (Jun 23-25, PE/AI), and Summit Napa Valley (Oct 12-14, business leadership/AI). All are 10-16 km from The French Laundry. The French Laundry books weeks out — lock a reservation first, then build the itinerary around it.

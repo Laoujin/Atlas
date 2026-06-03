@@ -42,6 +42,7 @@ duration_sec: 2492
 citations: 120
 reading_time_min: 25
 issue: 117
+model: "Opus 4.7"
 ---
 
 The four sub-topics converge on a single answer: **sleep on the Troisgros estate, anchor the day on the close-in medieval pair, and treat Sunday morning as a single binary choice.** The friction points sit between the children, not inside them.

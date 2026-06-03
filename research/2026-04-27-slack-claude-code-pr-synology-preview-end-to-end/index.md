@@ -56,6 +56,7 @@ duration_sec: 4249
 citations: 259
 reading_time_min: 46
 issue: 17
+model: "Opus 4.7"
 ---
 
 > **Recommended shape.** [Slack](https://slack.com) Events API → ack-and-queue worker → `repository_dispatch` into a private [GitHub](https://github.com) repo → `anthropics/claude-code-action@v1` job ([Claude Code](https://claude.com/claude-code) by [Anthropic](https://www.anthropic.com)) authenticated by a GitHub App installation token → `pull_request.opened` triggers a deploy job that SSH's into the [Synology](https://www.synology.com) and runs `docker compose -p pr-N pull && up -d` against an image pulled from GHCR → [Cloudflare](https://www.cloudflare.com) Tunnel publishes `pr-N.preview.sangu.be` via a wildcard hostname. State is one row per Slack `thread_ts` in [Redis](https://redis.io) or a Cloudflare Durable Object. No durable-execution engine, no [Coolify](https://coolify.io), no [k3s](https://k3s.io) — every component pulled in must justify its weight against this minimum.

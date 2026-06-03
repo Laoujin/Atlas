@@ -13,6 +13,7 @@ reading_time_min: 14
 cover: cover.svg
 cost_usd: 8.11
 duration_sec: 838
+model: "Opus 4.7"
 ---
 
 > **Decision.** If you only do one thing → drive to [Lalouvesc](https://www.lalouvesc.fr/) (14 min east) for the Sunday market, basilica and an easy ridge walk [[57]](https://www.l-itineraire.com/de_saint-bonnet-le-froid_a_lalouvesc) [[48]](https://www.jours-de-marche.fr/43290-saint-bonnet-le-froid/). If you have a full day Saturday → loop east to [Annonay](https://www.annonay.fr/) for the [Musée des Papeteries Canson & Montgolfier](https://musee-papeteries-canson-montgolfier.fr/) and [Safari de Peaugres](https://www.safari-peaugres.com/) (40 min each way) [[20]](https://musee-papeteries-canson-montgolfier.fr/horaires-tarifs-programme/) [[30]](https://www.l-itineraire.com/de_saint-bonnet-le-froid_a_peaugres). If history is the hook → 18 min to [Le Chambon-sur-Lignon](https://memoireduchambon.com/) and the **Lieu de Mémoire** (only French commune collectively named Yad Vashem Righteous Among the Nations) [[19]](https://www.yadvashem.org/righteous/about-the-righteous/collective-rescue.html) [[27]](https://www.verymap.net/distances/2981323-3004774/saint-bonnet-le-froid/le-chambon-sur-lignon/). Sunday morning before departure → the [Velay Express](https://velay-express.fr/) heritage train from Tence (Sundays only May–Jun, both steam and diesel) [[31]](https://velay-express.fr/information/).

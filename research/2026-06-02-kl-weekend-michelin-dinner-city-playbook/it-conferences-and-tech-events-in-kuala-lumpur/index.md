@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.40
 duration_sec: 573
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** KL hosts 20+ tech events in 2026. The tightest cluster is **Jun 24–27** — FutureCIO, Test Automation Summit, and KCD KL back-to-back — suiting a single trip. Fintech dominates July; cybersecurity leads April–May and returns in September; the big infrastructure expo anchors November. Free admission at Bett Asia (EdTech, Sep 23–24) [[14]](https://asia.bettshow.com/home) and KCD KL (Cloud Native, Jun 27) [[7]](https://events.humanitix.com/kcd-kuala-lumpur-2026).

@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.12
 duration_sec: 360
+model: "Opus 4.7"
 ---
 
 > **Decision.** Learn these three, in order:

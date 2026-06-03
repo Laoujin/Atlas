@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.94
 duration_sec: 620
+model: "Opus 4.7"
 ---
 
 > **Decision.** Want logistics to disappear after a 3-star tasting? Sleep on-site at the Hôtel & Spa du Castellet — same building as the restaurant [[1]](https://provence-alpes-cotedazur.com/en/plan-your-stay/restaurants/all-restaurants/the-table-du-castellet-le-castellet-en-4874085/). Want Provençal-village character at a fraction of the rate? [Maison Bérard](https://hotel-berard.com/en/) in La Cadière-d'Azur, ~10 min by taxi [[5]](https://hotel-berard.com/en/). Want a chambres d'hôtes where hosts pour breakfast? [Bastide de Fontvieille](https://www.bastidedefontvieille.com/en/) in Saint-Cyr-sur-Mer [[13]](https://www.bastidedefontvieille.com/en/). Want a Ducasse-restored 18th-c. abbey as the destination itself? [Hostellerie de l'Abbaye de la Celle](https://www.abbaye-celle.com/en/) [[7]](https://www.abbaye-celle.com/en/) — but at 49 km it stretches the meaning of "taxi range" [[8]](https://www.rome2rio.com/s/La-Celle-Var/Le-Castellet).

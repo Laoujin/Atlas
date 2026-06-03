@@ -42,6 +42,7 @@ duration_sec: 3000
 citations: 152
 reading_time_min: 26
 issue: 67
+model: "Opus 4.7"
 ---
 
 The dinner sets every other constraint. [L'Eau Vive](https://www.eau-vive.be/en) is a two-Michelin-star table in a 17th-century mill on the Burnot brook at Route de Floreffe 37, 5170 Rivière (Profondeville) — the Michelin entry says "Arbre", the postal section is Rivière, and the village of Arbre proper sits 2.5 km up on the plateau [[1]](https://www.eau-vive.be/en)[[2]](https://guide.michelin.com/us/en/namur/arbre/restaurant/l-eau-vive). It is closed Tuesday and Wednesday and for Saturday lunch, so Saturday **dinner** is the canonical anchor [[1]](https://www.eau-vive.be/en). Book several weeks ahead by phone — and if you intend to sleep within walking distance, book the bed in the same call.

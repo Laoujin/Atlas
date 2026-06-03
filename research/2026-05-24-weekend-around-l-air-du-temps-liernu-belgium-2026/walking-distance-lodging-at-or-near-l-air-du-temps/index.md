@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.05
 duration_sec: 373
+model: "Opus 4.7"
 ---
 
 > **Decision** — Book **L'Air du Temps SETTING** (on-site, 11 rooms) if you want the Séjour package and zero post-dinner walk [[3]](https://airdutemps.be/les-chambres/). If full or you want more character, **Les Ruines du Château** at ~500 m offers a jacuzzi-or-sauna suite for €170–200 [[6]](https://lesruinesduchateau.be/en/practically/) [[8]](https://www.rtbf.be/article/une-nuit-au-chateau-du-cote-d-eghezee-grace-aux-chambres-d-hote-les-ruines-du-chateau-11229035). **B&B La Chambre d'à Côté** (~1.8 km in Aische-en-Refail) is the budget pick — boutique, ~€140–150, free bikes [[10]](https://www.myboutiquehotel.com/en/boutique-hotels-aische-en-refail/bb-la-chambre-da-cote.html) [[12]](https://www.kayak.com/Aische-en-Refail-Hotels-B-B-La-Chambre-d-a-Cote.456685.ksp). Beyond ~2 km, you're driving — Manoir de Thorembais (5.78 km) is the next nearest hotel [[13]](https://www.belvicci.com/restaurant/belgium/liernu/lair-du-temps).

@@ -13,6 +13,7 @@ reading_time_min: 11
 cover: cover.svg
 cost_usd: 6.92
 duration_sec: 731
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — A [Base](https://obsidian.md/help/bases) is a YAML file that points at a folder or tag, treats every matching note's frontmatter as a row, and renders the result as a sortable, filterable, editable table or card grid [[1]](https://obsidian.md/help/bases). For an intermediate user with messy reference notes, the upgrade path is: (1) add 2-4 consistent properties to the notes you want to query, (2) `Bases: Create new base`, (3) filter by folder/tag, (4) tick the properties you want as columns, (5) save named views. It shipped in Obsidian 1.9 on **May 21, 2025** [[3]](https://www.neowin.net/news/obsidian-190-launches-with-new-file-format-footnotes-view-plugin-and-more/) and is the first-party answer to [Dataview](https://github.com/blacksmithgu/obsidian-dataview) ⭐ 9.0k (May 2026) [[8]](https://practicalpkm.com/moving-to-obsidian-bases-from-dataview/) — but it only reads YAML frontmatter, not inline `key::value` or inline tasks, which is the one rewrite the migration will force [[24]](https://practicalpkm.com/moving-to-obsidian-bases-from-dataview/#limitations) [[30]](https://forum.obsidian.md/t/dataview-vs-bases/113073).

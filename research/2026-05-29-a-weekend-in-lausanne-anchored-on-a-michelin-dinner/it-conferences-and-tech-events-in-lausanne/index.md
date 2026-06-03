@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.75
 duration_sec: 473
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** If the trip is anchored on May 29-31, **don't plan around an IT conference** — the only EPFL-hosted thing on those exact dates is a niche academic Artificial Life workshop at Centre Bernoulli [[20]](https://www.epfl.ch/campus/events/). Lausanne's headline tech events all sit Feb-April: **AMLD** (Feb 10-12, AI/ML, ~thousands of attendees from 40+ countries) [[1]](https://2026.appliedmldays.org/) [[3]](https://memento.epfl.ch/event/epfl-amld-intelligence-summit-2026-2/), **Insomni'hack** (Mar 16-20, cybersecurity + CTF, 500+ delegates) [[5]](https://insomnihack.ch/) [[6]](https://clusis.com/agenda/evenement-externe-insomnihack-lausanne-16-20-mars-2026/), and **HackSummit** (Apr 22-23, climate hardtech, 800 attendees) [[7]](https://www.hacksummit.co/). For a tech-event weekend re-roll, aim Feb (AMLD) or April (HackSummit).

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.48
 duration_sec: 572
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book one of the **10 rooms at [La Dimora](https://davittorio.com/en/hotel-en/la-dimora.html)** — the on-site Relais & Châteaux hotel inside Da Vittorio's 10-hectare Cantalupa estate [[1]](https://davittorio.com/en/hotel-en/la-dimora.html) [[2]](https://www.davittorio.com/en/location-en/cantalupa.html) [[4]](https://www.relaischateaux.com/us/hotel/da-vittorio/). It is literally the only address you can fall out of a three-star tasting menu [[5]](https://guide.michelin.com/en/lombardia/brusaporto/restaurant/da-vittorio) and into a bed without crossing a road. From €650 [[1]](https://davittorio.com/en/hotel-en/la-dimora.html) and books months out — TripAdvisor ranks it #1 of 2 hotels in Brusaporto at 4.7/5 [[3]](https://www.tripadvisor.com/Hotel_Review-g966832-d668060-Reviews-Da_Vittorio-Brusaporto_Province_of_Bergamo_Lombardy.html). If those ten rooms are gone, the *only* genuinely walkable fallback is **[Joia Hotel & Luxury Apartments](https://www.joiahotel.it/)** — Brusaporto's only other hotel — at about 1.4 km / 19 min on village roads from €86–€220 [[10]](https://www.italia.it/en/lombardia/brusaporto/where-to-sleep/joia-hotel-and-luxury-apartments) [[19]](https://www.kayak.com/Brusaporto-Hotels-Joia-Hotel-Luxury-Apartments.374062.ksp) [[7]](https://www.tripadvisor.com/Hotel_Review-g966832-d1007707-Reviews-Joia_Hotel_Luxury_Apartments-Brusaporto_Province_of_Bergamo_Lombardy.html). Everything else needs a taxi.

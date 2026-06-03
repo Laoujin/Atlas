@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.04
 duration_sec: 342
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — If a weekend in Oslo lands in **mid-September** ([NDC Oslo 14-18][1]) or **late October** ([Oslo Innovation Week 19-23][12] + [Y Oslo 26-27][11]), expect hotel scarcity downtown. Best paid tech events for a developer overlap: **JavaZone** (Sep 2-3, Lillestrøm) [[3]](https://www.mondaymerch.com/exhibitions/javazone-2026) and **NDC Oslo** (Sep 14-18, Oslo Spektrum) [[1]](https://ndcoslo.com/). Free option: the May Oslo Tech Show [[5]](https://oslotechshow.com/). For a non-conference weekend, look at IxDA Oslo or Pils og Programmering for a single-evening meetup [[17]](https://www.meetup.com/pils-og-programmering-oslo/) [[18]](https://www.meetup.com/ixda-oslo/).

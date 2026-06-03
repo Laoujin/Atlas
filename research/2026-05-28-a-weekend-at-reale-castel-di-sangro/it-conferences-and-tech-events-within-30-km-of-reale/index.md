@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.77
 duration_sec: 513
+model: "Opus 4.7"
 ---
 
 > **Decision** — Within 30 km of Reale: **zero open IT conferences or tech meetups** in 2026. The only tech-adjacent thing in town is Eni-Joule's closed **MEAL** food-tech accelerator at Niko Romito's Academy (Demo Week 5-7 May 2026) [[5]](https://www.eni.com/joule/en-IT/media/2026/05/meal-demo-week-co-development-process-four-finalist-startups.html). For a real IT-conference fix, drive ~110 km / 1h46 north to **L'Aquila** [[14]](https://it.distanze-chilometriche.himmera.com/distanza-castel_di_sangro-l_aquila-carte_stradale_km_auto-95205.html) — Italian Capital of Culture 2026, with the L'Aquila Software Tech Forum (16 May) [[9]](https://uan.univaq.it/2026/05/06/allaquila-il-software-tech-forum-ricerca-e-industria-a-confronto-sulle-sfide-del-digitale/) and the FAIEMA AI conference (9-11 Sep) [[10]](https://www.faiema.org/) being the highest-value targets.

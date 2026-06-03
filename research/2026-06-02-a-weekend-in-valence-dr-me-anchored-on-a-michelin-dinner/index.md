@@ -35,6 +35,7 @@ duration_sec: 2252
 citations: 112
 reading_time_min: 20
 issue: 128
+model: "Sonnet 4.6"
 ---
 
 The weekend writes itself once you accept a simple geometry: Valence's historic core is genuinely compact — everything fits in a two-hour walk — so the dinner anchors an evening rather than an entire day. The two remaining chunks of time go to the vineyards directly across the Rhône and, if you have a third day, one farther arc into the Drôme.

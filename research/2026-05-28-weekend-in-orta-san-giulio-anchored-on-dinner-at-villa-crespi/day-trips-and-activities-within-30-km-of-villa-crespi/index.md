@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 7.38
 duration_sec: 867
+model: "Opus 4.7"
 ---
 
 > **Decision.** If you have one half-day, walk Villa Crespi → Sacro Monte di Orta → Piazza Motta → boat to Isola San Giulio — all under 1 km from the door, free entrance, ~3 hours [[1]](https://www.sacrimonti.org/en/sacro-monte-di-orta) [[10]](https://www.illagomaggiore.com/itineraries/sacro-monte-di-orta-the-sacred-mountain-and-san-giulio-island/). For a full day, ferry-hop the three Borromean Islands from Stresa (23 minutes by car) [[12]](https://www.rome2rio.com/s/Stresa/Relais-Chateaux-Villa-Crespi-Orta-San-Giulio) [[14]](https://www.navigazionelaghi.it/en/tickets-and-timetables-lake-maggiore/). The Stresa-Mottarone cable car remains closed since 2021 — take the free Armeno road up for the seven-lake summit view [[24]](https://www.stresaturismo.it/en/excursions/the-stresa-alpino-mottarone-cablecar-the-cablecar-is-closed/) [[30]](https://www.milansperanza.it/en/attractions/monte-mottarone-and-7-lakes/). Avoid Parco Pallavicino on Fri May 22 — closed for the Giro [[43]](https://terreborromeo.it/en/parco-pallavicino/timetables-and-fares).

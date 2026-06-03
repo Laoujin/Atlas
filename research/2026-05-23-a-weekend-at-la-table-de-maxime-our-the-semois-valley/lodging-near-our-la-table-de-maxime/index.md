@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.49
 duration_sec: 425
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book one of the **6 rooms above La Table de Maxime itself** (€240–260 [[1]](https://www.maximecollard.be/en/la-table-de-maxime/)) — it's the only way to wobble three metres from a 2-Michelin-star tasting menu [[7]](https://guide.michelin.com/en/be-luxembourg/our/restaurant/la-table-de-maxime) to bed. If those are full (likely — only six exist), the next-best on-site picks are **La Fabrique du Pré Maho** (tree-stilt eco-build 200 m away [[2]](https://www.maximecollard.be/en/la-fabrique-du-pre-maho/)) or budget **Les Terrasses de l'Our** in the same village from €150 [[5]](https://www.lesterrassesdelour.be/). True fallback when the hamlet is sold out: **Le Moulin de Daverdisse**, 4★ with pool ~11 km away [[9]](https://www.daverdisse.com/).

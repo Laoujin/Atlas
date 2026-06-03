@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.43
 duration_sec: 415
+model: "Opus 4.7"
 ---
 
 > **Decision.** Put structured, single-value metadata (status, date, rating, author) in **Properties**; use **tags** for the 1–3 broad topics of a note plus a small set of nested status flags. Query both with **Bases** by default (core plugin in early access since Obsidian 1.9.0 in May 2025 [[1]](https://obsidian.md/changelog/2025-05-21-desktop-v1.9.0/), generally available in 1.9.10 [[14]](https://www.xda-developers.com/obsidians-new-bases-feature-replacing-notion-workflow-for-good/)); only add **Dataview** [⭐ 9.0k](https://github.com/blacksmithgu/obsidian-dataview) [[2]](https://github.com/blacksmithgu/obsidian-dataview) when you hit a wall Bases can't clear — grouping and TASK/CALENDAR/LIST views [[11]](https://practicalpkm.com/moving-to-obsidian-bases-from-dataview/).

@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 1.80
 duration_sec: 776
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Bangkok runs SE Asia's most active tech event calendar in 2026. The flagship event is **[Techsauce Global Summit](https://summit.techsauce.co/)** (Aug 26–28, QSNCC, 20,000+ attendees) — Thailand's "SXSW of tech." For **Nonthaburi** specifically, **IMPACT Exhibition Centre** (Pakkred) hosts **[DigiTech ASEAN + AI Connect](https://digitechasean.com/overview/)** (Nov 25–27) — 400+ exhibitors across Asia's largest convention campus. Lowest-friction entry point: the **[Bangkok Tech Mixer](https://www.eventbrite.com/e/bangkok-tech-mixer-and-social-tech-ai-data-it-tickets-1987407602639)** (free, every Friday, Sukhumvit Soi 8). [[1]](https://summit.techsauce.co/) [[5]](https://digitechasean.com/overview/) [[7]](https://www.eventbrite.com/e/bangkok-tech-mixer-and-social-tech-ai-data-it-tickets-1987407602639)

@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 2.20
 duration_sec: 408
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Run two parallel tracks. **Solo:** 15 min/day, one ball at a time, every serve preceded by a visualisation and aimed at a paper target — escape the "machine-gun" trap [[6]](http://www.tabletenniscoaching.com/node/584) [[7]](https://www.experttabletennis.com/service-detention-improve-your-table-tennis-serve/). **Partner:** for each killer serve, run a third-ball drill that progresses through three stages — fixed feeder return → variable spin/pace → fully random placement [[3]](https://www.tabletenniscoach.me.uk/3rd-ball-attack-training-drills/) [[8]](https://www.tabletenniscoach.me.uk/training-drills-or-matches/). Test it in practice matches and aim for a **40% third-ball-attack conversion** before adding a new serve [[12]](https://topspin11.com/training/improvement-roadmap/).

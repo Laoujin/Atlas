@@ -13,6 +13,7 @@ reading_time_min: 14
 cover: cover.svg
 cost_usd: 8.93
 duration_sec: 760
+model: "Opus 4.7"
 ---
 
 > **Decision.** Saturday afternoon → **Luxembourg City old town + Bock Casemates** (15 km, anchor sight, fits the pre-dinner window) [[1]](https://www.luxembourg-city.com/en/place/tour/bock-casemates). Sunday morning → **Mondorf thermal spa** (10 km, recover) [[54]](https://www.rome2rio.com/s/Mondorf-les-Bains/Frisange) or **Moselle wine villages Remich/Schengen** (~20–25 km, drive the river) [[89]](https://www.viamichelin.com/routes/results/schengen-l_5444-remich-_-luxembourg-to-frisange-l_4661-esch_sur_alzette-_-luxembourg). For families: pivot the Sunday slot to **Parc Merveilleux Bettembourg** (10 km) [[55]](https://www.parc-merveilleux.lu/en/your-park-visit/entry-fee). Mullerthal "Little Switzerland" trailheads (~45 km from Frisange) and Echternach (45.7 km) are out of range — pick something else [[78]](https://www.mullerthal-trail.lu/en) [[64]](https://www.rome2rio.com/s/Frisange/Echternach).

@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.68
 duration_sec: 480
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book one of Maison Colette's own 5 deluxe rooms — they sit literally above the restaurant, are €305/room incl. breakfast, and are only sold *with* a dinner reservation [[1]](https://maison-colette.be/en/overnight-stay). If they're full, the closest real walks are [Tongerlo Abbey's gastenkwartier](https://www.tongerlo.org/tongerlo/gastenkwartier/) (0.94 km, ~12 min — but minimum multi-night and quasi-monastic) [[10]](https://www.tongerlo.org/tongerlo/gastenkwartier/)[[15]](https://routing.openstreetmap.de/routed-foot/route/v1/foot/4.9169387,51.1034583;4.9069945,51.1054086?overview=false) and [B&B Villa Zonneweelde](https://www.toerismewesterlo.be/bb-villa-zonneweelde) (1.01 km, ~14 min) [[5]](https://www.toerismewesterlo.be/bb-villa-zonneweelde)[[14]](https://routing.openstreetmap.de/routed-foot/route/v1/foot/4.9169387,51.1034583;4.9135046,51.1119881?overview=false). Everything else is a 20–26 min walk into Westerlo centre — fine in dry weather, less fun in March rain.

@@ -35,6 +35,7 @@ duration_sec: 1496
 citations: 118
 reading_time_min: 18
 issue: 177
+model: "Sonnet 4.6"
 ---
 
 The weekend's geography divides cleanly: Seoul's cultural showpieces — Gyeongbokgung, Bukchon, Gwangjang Market, Seongsu — sit in the historic core north of the Han River, while all 11 Michelin 2 and 3-star restaurants cluster in Gangnam-gu and its immediate neighbors to the south [[1]](https://guide.michelin.com/en/article/michelin-guide-ceremony/all-the-stars-michelin-guide-seoul-busan-2026). That divide is the design principle: immerse in the city's layered history and neighborhoods by day, cross to Gangnam for the marquee dinner.

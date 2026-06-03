@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 0.97
 duration_sec: 749
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Valence hosts no large-scale international IT conferences. The local tech scene is driven by [French Tech Alpes Valence-Romans](https://www.ftalps.com/territoires/valence-romans/accueil-valence-romans/) [[1]](https://www.ftalps.com/territoires/valence-romans/accueil-valence-romans/) — a grassroots community running biannual startup pitches, open-innovation roundtables, and occasional industry AI days. **June 2026 is an unusually good window**: Mardinnov #24 is tonight (Jun 2) and Décrypt'innov #5 falls on Jun 4. For major multi-track developer conferences, Lyon is 65 km north (35 min by TGV).

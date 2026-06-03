@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.99
 duration_sec: 547
+model: "Opus 4.7"
 ---
 
 > **Decision.** For Saturday dinner at Le Calandre in Sarmeola di Rubano (3 Michelin stars, 2026 [[1]](https://guide.michelin.com/us/en/veneto/rubano/restaurant/le-calandre)): pick [Relais Villa Giulia](https://www.tripadvisor.com/Hotel_Review-g1574991-d2509160-Reviews-Relais_Villa_Giulia-Mestrino_Province_of_Padua_Veneto.html) for a restored 17th-c Venetian villa ~5 km away [[12]](https://www.tripadvisor.com/Hotel_Review-g1574991-d2509160-Reviews-Relais_Villa_Giulia-Mestrino_Province_of_Padua_Veneto.html); [Belludi 37](https://www.collezionebelludi.it/en/struttura/belludi-37/) for a 16-room palazzo boutique near St Anthony's Basilica [[6]](https://www.oyster.com/veneto/hotels/belludi-37/); [Bellavista Terme](https://www.bellavistaterme.com/en/spa-montegrotto/relais-chateaux-venice) for a Relais & Châteaux thermal stay in Montegrotto [[10]](https://www.bellavistaterme.com/en/spa-montegrotto/relais-chateaux-venice); [Hotel Maccaroni](https://www.italiancollection.com/it/hotel-maccaroni.html) (Alajmo's own adjacent property) to literally walk to dinner [[3]](https://www.italiancollection.com/it/hotel-maccaroni.html). Padova↔Rubano is 6–9 km, 10–15 min, €17–25 by taxi; TaxiPadova runs 24/7 [[14]](https://www.rome2rio.com/s/Rubano/Padova) [[16]](https://taxipadova.it/en/services/night-taxi/).

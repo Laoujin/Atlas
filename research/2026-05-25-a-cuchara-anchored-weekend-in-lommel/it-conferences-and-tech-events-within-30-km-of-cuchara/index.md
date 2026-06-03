@@ -13,6 +13,7 @@ citations: 23
 reading_time_min: 4
 cost_usd: 2.98
 duration_sec: 468
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** [Cuchara](https://www.cuchara.be/) sits in Lommel, Belgium [[1]](https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara). A 30 km circle reaches Eindhoven (~26 km, NL) [[2]](https://www.travelmath.com/distance/from/Lommel,+Belgium/to/Eindhoven,+Netherlands) and Mol (~15 km, BE) [[3]](https://www.distancecalculator.net/from-lommel-to-mol) but **misses Hasselt (~33 km)** [[4]](https://www.distancefromto.net/distance-from-lommel-be-to-hasselt-be) **and Genk (~32 km)** [[5]](https://en.needcalc.com/distance/2891-1638). Practically every IT/tech event in radius runs on the [High Tech Campus](https://hightechcampus.com/events) / Brainport ecosystem in Eindhoven [[6]](https://hightechcampus.com/events). If you can extend by two weeks, the **free public [HTC Open Day on Saturday 13 June 2026](https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day)** [[8]](https://www.hightechcampus.com/events/high-tech-campus-eindhoven/high-tech-campus-open-day) is the cleanest weekend match. The Cuchara weekend itself (29–31 May) has no tech event in radius.

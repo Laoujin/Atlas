@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 3.59
 duration_sec: 693
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** "IT" inside this radius means **industrial tech** — robotics, mechatronics, Industry 4.0. The cluster sits at the [Kilometro Rosso](https://www.kilometrorosso.com/en/innovation-district-en/) innovation district (~15 km from Brusaporto) and the [University of Bergamo](https://en.unibg.it/events) Sant'Agostino + Dalmine campuses. **Milan is outside the radius** (~45 km from Bergamo [[1]](https://www.distance.to/Milan/Bergamo)). For a 2026 Saturday-dinner anchor, the catches you can still hit are **Forum Robotica Innovativa (Jun 18)**, the **CREO Hackathon (Jun 17–19, UniBg-only)**, the **APMS Conference (Sep 13–17)** and **BergamoScienza "Convergenze" (Oct 1–11)**. Pure dev/software conferences (Codemotion, PyCon Italia) don't run in this radius.

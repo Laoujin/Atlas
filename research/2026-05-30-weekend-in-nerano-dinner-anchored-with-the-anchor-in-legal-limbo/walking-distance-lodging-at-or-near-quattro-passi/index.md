@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.12
 duration_sec: 432
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Sleep in Nerano village.** The two properties on the same address block as Quattro Passi let you walk back from dinner in 1-5 minutes on flat ground: **Quattro Passi Relais** (the restaurant's own 7-room adults-only guesthouse, 9.3/10 [[4]](https://quattro-passi-relais-guest-house.hotels-in-campania.com/en/)) is the same complex; **Villarena Relais** (apartments, 4.8/5 [[6]](https://www.tripadvisor.com/Hotel_Review-g1472375-d508153-Reviews-Villarena_Relais-Nerano_Massa_Lubrense_Province_of_Naples_Campania.html)) is metres away. Beach-level alternatives at Marina del Cantone (Hotel La Certosa, Taverna del Capitano) work only if you accept a 20-30 min uphill walk back from a late dinner [[6]](https://www.tripadvisor.com/Hotel_Review-g1472375-d508153-Reviews-Villarena_Relais-Nerano_Massa_Lubrense_Province_of_Naples_Campania.html)[[13]](https://www.italyheaven.co.uk/campania/marina-del-cantone/).

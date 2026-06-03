@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.76
 duration_sec: 544
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book [Das Achental](https://www.das-achental.com/en/)'s **es:senz Dine & Sleep** package (from €515 pp/night) — the restaurant is literally in your hotel [[1]](https://www.das-achental.com/en/es-senz.html)[[2]](https://www.das-achental.com/en/). If the resort is full or out of budget, the only properties you can truly *walk* to after a wine-paired tasting menu sit in Mietenkam village (5–15 min): [Ferienwohnungen Moritz](https://www.ferienwohnungen-moritz.de/), [Gästehaus Hochgern](https://www.chiemsee-alpenland.de/chiemsee/ukv/house/Grassau-Mietenkam-Ferienwohnung-Gaestehaus-Hochgern-DEU00000061619833644), or [Ferienwohnung Kreuz](https://www.chiemsee-alpenland.de/chiemsee/ukv/house/Grassau-Mietenkam-Ferienwohnung-Ferienwohnung-Kreuz-DEU00000060350063389). Anything in Grassau town centre (Sperrer, Kleinrachlhof) is ~1.5–2 km along an unlit country road — book a [Taxi Chiemgau](http://www.taxi-chiemgau.de/) instead [[3]](http://www.taxi-chiemgau.de/).

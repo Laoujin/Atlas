@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 1.72
 duration_sec: 334
+model: "Opus 4.7"
 ---
 
 > **TL;DR — none.** Casa Marcial sits in La Salgar, ~3 km from Arriondas in the Parres council [[1]](https://casamarcial.es/en/casa/) — rural eastern Asturias. Within a 30 km radius (Parres, Cangas de Onís, Onís, Amieva, Piloña, Ribadesella, Caravia, Colunga) no IT conference, developer meetup, or tech-industry event runs in 2026 [[3]](https://dev.events/EU/ES/Oviedo)[[4]](https://techconf.es/). The nearest tech scene is in Oviedo (~62 km W) [[5]](https://www.viamichelin.com/routes/results/arriondas_les_arriondes-33540-asturias-principality_of_asturias-spain-to-oviedo-33001-asturias-principality_of_asturias-spain) and Gijón (~64 km NW) [[6]](https://www.rome2rio.com/es/s/Arriondas/Gij%C3%B3n). To combine the weekend with a tech event, you must leave the radius.

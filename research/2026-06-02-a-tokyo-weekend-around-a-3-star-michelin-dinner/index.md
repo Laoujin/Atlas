@@ -35,6 +35,7 @@ duration_sec: 1718
 citations: 126
 reading_time_min: 20
 issue: 141
+model: "Sonnet 4.6"
 ---
 
 The weekend revolves around a booking clock, not a map. Every major anchor — the Michelin dinner, Shibuya Sky's sunset slot, a teamLab session, possibly the Ghibli Museum — runs on an independent countdown that starts months before arrival. Saturday 18:00–19:00 dinner seats at the top restaurants vanish within hours of their booking windows opening, which are themselves 1–3 months out. [[1]](https://www.travelarbitrage.net/en/blog/tokyo-michelin-restaurant-guide-2026) Shibuya Sky releases sunset slots exactly 28 days ahead at 00:00 JST and disappears in minutes. [[2]](https://shibuyaskytickets.com/) teamLab needs 2 weeks for weekend slots. [[3]](https://www.adamandlinds.com/blog/teamlab-planets-tokyo-tickets-guide/) These clocks don't synchronise — you stack them in sequence before you book a flight.

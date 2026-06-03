@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 1.34
 duration_sec: 582
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Barcelona runs one of Europe's densest tech conference calendars year-round. MWC (world's biggest mobile/AI event, 105k+ attendees) has already happened in March. The best near-term anchor for a Barcelona weekend: **[DevBcn](https://www.devbcn.com/2026) (Jun 16–17, developer-focused)** runs back-to-back with **[Sónar+D](https://sonar.es/en/programme/sonar-d) (Jun 18–20, creative tech)** — two distinct events, one long weekend. In autumn: [Smart City Expo](https://www.smartcityexpo.com/) (Nov 3–5) for urban/public-sector tech; [Gartner IT Symposium](https://www.gartner.com/en/conferences/emea/symposium-spain) (Nov 9–12) for CIO-tier enterprise strategy.

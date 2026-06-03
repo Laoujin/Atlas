@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 1.19
 duration_sec: 219
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Three primitives compose the Claude Code harness. **Subagents** give you *isolation* — fresh context, scoped tools, optional cheaper model [[1]](https://code.claude.com/docs/en/sub-agents). **Hooks** give you *determinism* — shell/HTTP/MCP/prompt/agent callbacks fired at ~30 lifecycle events, with `PreToolUse` the only one that can block [[2]](https://code.claude.com/docs/en/hooks). **Settings, permissions, and skills** are the *substrate* the model runs on [[3]](https://code.claude.com/docs/en/settings)[[4]](https://code.claude.com/docs/en/skills). Teach the audience to ask: *is this a context problem, a determinism problem, or a defaults problem?* — that's how they pick the layer.

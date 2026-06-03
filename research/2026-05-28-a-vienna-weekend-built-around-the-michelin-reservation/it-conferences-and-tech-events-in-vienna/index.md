@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.03
 duration_sec: 385
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Tonight (Thu 28 May): [Google Cloud Meetup #36](https://www.meetup.com/google-cloud-meetup-vienna/) at weXelerate, 17:30 [[1]](https://www.meetup.com/google-cloud-meetup-vienna/). This weekend (29-31 May): [RubyConf Austria](https://rubyconf.at/) at Das MuTh, two U-Bahn stops from the centre [[2]](https://rubyconf.at/)[[3]](https://10times.com/e1h1-k1d5-h3gs-d-rubyconf-austria). The 2026 anchors are [OWASP Global AppSec EU](https://owasp.glueup.com/event/owasp-global-appsec-eu-2026-vienna-austria-162243/) (Jun 22-26, Austria Center) [[4]](https://owasp.glueup.com/event/owasp-global-appsec-eu-2026-vienna-austria-162243/), [TEDAI Vienna](https://tedai-vienna.ted.com/) at the Hofburg (Oct 28-30, Geoffrey Hinton on the bill) [[13]](https://tedai-vienna.ted.com/)[[14]](https://tedai-vienna.ted.com/program), and [Cloud Native Days Austria](https://cloudnativedays.at/) (Sep 29-30) [[11]](https://cloudnativedays.at/). Year-round, ViennaJS meets the last Wednesday of every month [[18]](https://viennajs.org/). Note: WeAreDevelopers World Congress, long Vienna's flagship, is in **Berlin** in 2026 [[17]](https://www.wearedevelopers.com/world-congress).

@@ -49,6 +49,7 @@ duration_sec: 2831
 citations: 232
 reading_time_min: 46
 issue: 56
+model: "Opus 4.7"
 ---
 
 > **One-page playbook.** Lock scope to *one screen, one user, no auth, localStorage-or-bundled-cloud* [[1]](https://www.dyad.sh/blog/vibe-coding-project-ideas) [[2]](https://calvinjku.medium.com/it-took-me-three-months-to-vibe-code-a-simple-pomodoro-app-a5bd57eee144). Default tool is **[Lovable](https://lovable.dev)** with **[Bolt.new](https://bolt.new)** as the warm backup [[3]](https://designlab.com/blog/best-vibe-coding-tools) [[4]](https://lovable.dev/guides/bolt-vs-replit-vs-lovable). Spend 30 min refining a PRD in ChatGPT (free, no credits burned), then paste once into Lovable Agent mode [[5]](https://docs.lovable.dev/tips-tricks/chatgpt-app) [[6]](https://docs.lovable.dev/prompting/prompting-one). Sign-ups happen 24-48 h *before* the room, off the venue wifi, with a phone hotspot in reserve [[7]](https://www.craftamplify.com/ai-frontend-coding/prep) [[8]](https://wifit.net/wifi-and-internet-solutions-for-hackathons/). Take-home failures are not the deploy click — they are **the Supabase 7-day pause** [[9]](https://supabase.com/pricing) and **OAuth refresh-token expiry on day 8** [[10]](https://nango.dev/blog/google-oauth-invalid-grant-token-has-been-expired-or-revoked/); the printed take-home card should pre-empt both. Host budget for 20 attendees: ~€0 free-path, ~€23 (≈$25) comfort-path with one shared Lovable Pro seat [[11]](https://lovable.dev/pricing).

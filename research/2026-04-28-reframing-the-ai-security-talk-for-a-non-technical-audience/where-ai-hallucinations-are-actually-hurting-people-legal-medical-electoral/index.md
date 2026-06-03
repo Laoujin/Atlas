@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 2.19
 duration_sec: 380
+model: "Opus 4.7"
 ---
 
 > **TL;DR for the talk.** Three rooms, three different shapes of harm.

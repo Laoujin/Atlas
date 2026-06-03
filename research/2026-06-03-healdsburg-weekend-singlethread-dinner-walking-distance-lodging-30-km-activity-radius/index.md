@@ -42,6 +42,7 @@ duration_sec: 2177
 citations: 112
 reading_time_min: 19
 issue: 180
+model: "Sonnet 4.6"
 ---
 
 The entire weekend resolves to a single critical path: **secure the SingleThread table first, then build everything else around it.** The restaurant releases reservations at [9am PST on the 1st of each month for the following month](https://singlethreadfarms.com/bookings/) — prepaid, non-refundable, via OpenTable. [[1]](https://singlethreadfarms.com/bookings/) The [~$485pp Kaiseki tasting menu](https://singlethreadfarms.com/bookings/) (wine pairings $300/$500/$1500 extra) runs a minimum 2.5 hours within a roughly 4:00–8:45 pm Saturday window. [[2]](https://www.yelp.com/biz/singlethread-restaurant-and-inn-healdsburg) With four courses of logistics depending on having that table, don't plan anything else until the OpenTable confirmation email arrives.

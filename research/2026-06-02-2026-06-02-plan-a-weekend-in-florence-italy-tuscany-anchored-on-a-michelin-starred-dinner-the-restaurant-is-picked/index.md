@@ -14,6 +14,7 @@ cost_usd: 0.00
 duration_sec: 0
 citations: 0
 reading_time_min: 0
+model: "Sonnet 4.6"
 ---
 
 Synthesis skipped — only 0 sub-topic(s) produced output. See child page(s) below.

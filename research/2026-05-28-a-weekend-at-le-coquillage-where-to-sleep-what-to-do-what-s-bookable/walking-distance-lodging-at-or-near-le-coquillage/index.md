@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.59
 duration_sec: 406
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Le Coquillage is on the ground floor of Château Richeux at lieu-dit Le Buot, D155, 35350 Saint‑Méloir‑des‑Ondes [[1]](https://www.maisons-de-bricourt.com/en/page/le-coquillage). The shortest "walk home" is staying in the château itself (~€280–€450); the next-best are Ferme du Vent's kled gîtes 400–500 m through the same gardens [[2]](https://www.cancale-tourisme.fr/la-ferme-du-vent-cancale/), then a handful of chambres d'hôtes in the hamlet of Les Nielles ~1 km up the D155 from €50–€85 [[3]](https://www.chambres-hotes.org/Chambres/4979.php)[[4]](https://lapetitebergere.fr/). Anything past Les Nielles needs a car — Cancale port (incl. the Roellingers' own Les Rimains) is 5 km away [[5]](https://www.maisons-de-bricourt.com/en/page/chateau-richeux).

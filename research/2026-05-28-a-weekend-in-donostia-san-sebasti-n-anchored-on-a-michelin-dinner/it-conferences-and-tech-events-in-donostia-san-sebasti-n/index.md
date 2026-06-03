@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 2.36
 duration_sec: 546
+model: "Opus 4.7"
 ---
 
 > **TL;DR / pair-with-the-trip picks.** If the weekend is flexible, the pairings worth chasing — in date order from today (2026-05-28) — are **EuskalHack Security Congress IX, 19-20 June, Olarain** [[2]](https://securitycongress.euskalhack.org/index_es.html) for cybersecurity (€85-€190, ~200 attendees [[3]](https://10times.com/esc-san-sebasti-n)); **Zinemaldia & Technology, 18-26 September, during the 74th Film Festival** [[15]](https://www.sansebastianfestival.com/industria/zinemaldia_and_technology/1/22407/in/t_8021)[[17]](https://tourism.euskadi.eus/en/agenda/san-sebastian-international-film-festival/webtur00-evento/en/) for AI/audiovisual; and the **Donostia Week-INN + Berrilan Basque Tech Summit stack in mid-to-late November** [[8]](https://weekinn.fomentosansebastian.eus/es/)[[7]](https://basquetechsummit.com/). The first half of 2026 (MUBIL, Debug'Em All, ApplAI) has already passed.

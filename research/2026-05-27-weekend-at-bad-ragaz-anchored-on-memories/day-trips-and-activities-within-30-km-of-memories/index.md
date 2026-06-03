@@ -13,6 +13,7 @@ reading_time_min: 13
 cover: cover.svg
 cost_usd: 7.57
 duration_sec: 1035
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** For a late-May 2026 weekend anchored on Saturday dinner at Memories, the matrix is:

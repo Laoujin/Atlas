@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.03
 duration_sec: 508
+model: "Opus 4.7"
 ---
 
 > **Decision.** Within a strict 30 km radius of Dal Pescatore there are **no general-purpose IT/developer conferences in 2026** — the area is rural Lombardy, between Cremona [[2]](https://www.rome2rio.com/s/Canneto-sull-Oglio/Cremona) (31 km, on the boundary) and Mantova [[3]](https://www.rome2rio.com/s/Canneto-sull-Oglio/Mantua) (46 km straight-line, 39 km road, just outside). The realistic options are **Politecnico di Milano's Cremona campus** (occasional STEM/cyber talks, summer camp) [[10]](https://www.cremonaoggi.it/2026/05/21/cremona-summer-camp-al-politecnico-dal-30-giugno-al-10-luglio/) and **CremonaFiere** (Cremona Musica in October has a 3D-printing-in-lutherie strand; agritech expo in November) [[15]](https://acousticguitarvillage.net/en/2026/03/lacoustic-guitar-village-a-cremona-musica-2026-presenta-il-programma-delle-masterclass-di-liuteria-il-concorso-per-emergenti-new-sounds-of-acoustic-music-cremona-acoustic-blues-meetin/)[[17]](https://fierezootecnichecr.it/?lang=en). For a real IT conference, stretch the radius to Milan (~120 km).

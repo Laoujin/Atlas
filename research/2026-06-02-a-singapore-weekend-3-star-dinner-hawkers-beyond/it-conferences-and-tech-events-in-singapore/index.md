@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.70
 duration_sec: 645
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** The Apr–May wave is done (Black Hat Asia, AWS Summit, ATxSG cluster, CIO Leaders Summit). **Immediately next:** [SuperAI](https://www.superai.com/) Jun 10–11 ($499 early bird, 10k+ attendees) and [PyCon SG](https://pycon.sg/) Jun 19–21 (Python/data science, community pricing). Q4 headliners: Tech Week Sep 29–30 (cloud/DevOps/cyber), TOKEN2049 Oct 7–8 (crypto, 25k+), SWITCH Oct 27–29 (**free** — apply to SLINGSHOT by Jun 30), Singapore FinTech Festival Nov 18–20 (70k+ attendees, SGD 750). STACK Conference 2026 (GovTech's big dev event) has no date yet.

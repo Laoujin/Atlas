@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.30
 duration_sec: 376
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Megève has no dedicated public IT/tech conference of its own. The village's real value for tech professionals is as a **luxury corporate retreat venue**: 15+ seminar spaces, a 2,000 m² congress hall, and year-round MICE services [[2]](https://www.megeve-tourisme.fr/en/sejour-professionnel/) [[3]](https://www.megeve-tourisme.fr/en/decouvrir-megeve/les-infrastructures/espace-congres-du-palais/). The nearest recurring public tech events are [Mountain Planet](https://www.mountain-planet.com/en/) in Grenoble (~1.5 h, biennial) and [Black Alps](https://blackalps.ch/) near Lausanne (~1.5 h, annual).

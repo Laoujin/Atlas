@@ -42,6 +42,7 @@ duration_sec: 2906
 citations: 153
 reading_time_min: 25
 issue: 120
+model: "Opus 4.7"
 ---
 
 **The dinner is the gravity well.** Dal Pescatore is a 28-seat restaurant at Località Runate 15, in a hamlet of ~31 residents [[1]](https://mapcarta.com/30283814) — three Michelin stars since 1996, closed Mondays and Tuesdays and parts of August and January [[2]](https://guide.michelin.com/en/lombardia/runate/restaurant/dal-pescatore). A wine pairing puts every diner over Italy's 0.5 g/L drink-drive limit, so the weekend's first booking decision isn't the room — it's how you get home after dinner. That single fact rewires the rest of the plan: lock the restaurant calendar first via [dalpescatore.com](https://www.dalpescatore.com/en/), then the bed, then day-trips.

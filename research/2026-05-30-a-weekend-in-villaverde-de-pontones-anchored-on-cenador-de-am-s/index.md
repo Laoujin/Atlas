@@ -42,6 +42,7 @@ duration_sec: 2516
 citations: 121
 reading_time_min: 23
 issue: 125
+model: "Opus 4.7"
 ---
 
 The geometry of this trip is set by one constraint: do not drive after dinner. Every other decision falls out of that. Cenador de Amós occupies an 18th-c. *Casa-Palacio Mazarrasa* on Plaza del Sol in a Cantabrian hamlet of a few hundred souls [[1]](https://cenadordeamos.com/en/), holds three Michelin stars in the 2026 guide [[2]](https://guide.michelin.com/us/en/cantabria/villaverde-de-pontones/restaurant/cenador-de-amos), and shares its plaza with exactly one lodging — [Jardines Villaverde](https://jardinesvillaverde.com/), an aparthotel that volunteers its proximity as its main selling point [[3]](https://jardinesvillaverde.com/en/activities/). Both lodging passes converge on it as the default booking, in that order: dinner first (sells out months ahead), then the room across the gate.

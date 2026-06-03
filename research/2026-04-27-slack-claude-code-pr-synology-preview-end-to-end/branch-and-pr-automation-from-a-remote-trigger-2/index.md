@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.49
 duration_sec: 404
+model: "Opus 4.7"
 ---
 
 > **Decision.** Pick by where the trigger lives.

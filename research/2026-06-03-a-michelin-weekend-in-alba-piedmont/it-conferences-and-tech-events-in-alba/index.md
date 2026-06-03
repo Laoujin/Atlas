@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 1.12
 duration_sec: 373
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR:** Alba is a food-and-wine city with no dedicated IT conference scene. The nearest recurring tech event is [Fondazione DIG421](https://www.dig421.org/) in Cherasco (25 km), running free Thursday talks on AI and emerging tech. For a major conference, [Wave by Vento](https://wavebyvento.com/) in Turin (65 km) on October 7–9 is Europe's top tech event. If your weekend is purely gastronomic, there's nothing to schedule. [[11]](https://wavebyvento.com/)

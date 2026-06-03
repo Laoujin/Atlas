@@ -13,6 +13,7 @@ citations: 23
 reading_time_min: 4
 cost_usd: 3.14
 duration_sec: 527
+model: "Opus 4.7"
 ---
 
 > **Decision.** Don't plan the weekend around an IT conference within 30 km of Fontjoncouse [[1]](https://www.audetourisme.com/en/fiche/fontjoncouse/auberge-du-vieux-puits_TFORESLAR011FS000AQ/) — there are essentially none. The radius captures only Narbonne (23 km straight-line) [[2]](https://www.streetplace.org/distance/3017840-2990919/Fontjoncouse/Narbonne/), whose tech footprint is one Fablab + a small public coding school at [IN'ESS](https://www.narbonne.fr/in-ess) [[5]](https://www.narbonne.fr/in-ess) — useful for a weekday daytime visit, not a Saturday/Sunday conference. The nearest *actual* tech events sit 40–60 km out: an [IUT Béziers digital-sovereignty talk on 2 April 2026](https://iut-beziers.edu.umontpellier.fr/en/2026/03/19/conference-sur-la-souverainete-numerique/) [[17]](https://iut-beziers.edu.umontpellier.fr/en/2026/03/19/conference-sur-la-souverainete-numerique/), and the [Train French Tech Perpignan→Madrid on 1–4 June 2026](https://frenchtech-perpignan.fr/train-french-tech-2026/) [[15]](https://frenchtech-perpignan.fr/train-french-tech-2026/).

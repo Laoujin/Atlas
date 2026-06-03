@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.42
 duration_sec: 375
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a Slack/chat → PR pipeline, fire a `repository_dispatch` from your bot, run the work on a GitHub-hosted (or self-hosted) runner, and let `anthropics/claude-code-action` [[6]](https://github.com/anthropics/claude-code-action) ⭐ 7.3k or `peter-evans/create-pull-request` [[1]](https://github.com/peter-evans/create-pull-request) ⭐ 2.8k push the branch and open the PR. **Auth via a custom GitHub App token, not the default `GITHUB_TOKEN`** — otherwise downstream CI on the PR will not run [[2]](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md). For non-AI workflows (issue → scaffold branch, dependency bump), the same shape works with `gh pr create` or `peter-evans/create-pull-request` directly.

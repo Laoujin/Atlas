@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 1.52
 duration_sec: 665
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** For a mid-2026 visit: the free **Vietnam – All Things Data, AI & Digital Social Mixer** (Jun 11) [[1]](https://www.eventbrite.sg/e/vietnam-all-things-data-ai-and-digital-social-mixer-other-sgn-tickets-1990764099010) is the easiest entry point; the **World Datacentre Summit** (Jun 19, $999) [[3]](https://datacenterinnovationseries.com/vietnam/) and the **Vietnam Cloud & DC Convention** (Aug 20, $395 or free for enterprise/gov) [[4]](https://clouddatacenter.events/events/vietnam-cloud-datacenter-ho-chi-minh-convention-2026/) are the two main paid conferences. For the single biggest annual gathering, **FPT Techday** (November, ~10,000 attendees) [[14]](https://www.nucamp.co/blog/coding-bootcamp-viet-nam-vnm-top-10-mustattend-tech-meetups-and-conferences-in-viet-nam) is the flagship. Community groups — **GDG HCMC** [[15]](https://gdg.community.dev/gdg-ho-chi-minh-city/) and **AI Tinkerers** [[17]](https://ho-chi-minh-city.aitinkerers.org/) — run free events year-round.

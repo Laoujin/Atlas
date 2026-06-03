@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 2.53
 duration_sec: 440
+model: "Opus 4.7"
 ---
 
 > **Decision.** GitHub Actions is already running Claude Code [[27]](https://github.com/anthropics/claude-code-action) ⭐ 7.3k, so make Actions the orchestrator and stash correlation state in **one small key-value store keyed by Slack `thread_ts`** ([Redis](https://redis.io), [SQLite](https://www.sqlite.org), or Cloudflare Durable Object [[16]](https://developers.cloudflare.com/durable-objects/)). Reach for a durable-execution engine — **[DBOS](https://www.dbos.dev)** [[7]](https://github.com/dbos-inc/dbos-transact-ts) ⭐ 1.2k for [Postgres](https://www.postgresql.org)-only shops, **[Cloudflare Workflows](https://developers.cloudflare.com/workflows/)** [[14]](https://blog.cloudflare.com/workflows-ga-production-ready-durable-execution/) for Workers shops, **[Temporal](https://temporal.io)** [[4]](https://github.com/temporalio/temporal) ⭐ 20k only when the flow truly needs `step.waitForEvent` semantics, multi-day pauses, or fan-out beyond what Actions matrix gives you. For this pipeline (Slack → Claude → PR → Synology preview), the lightweight path wins — Claude Code's GHA jobs themselves cap at 6 h [[17]](https://docs.github.com/en/actions/reference/limits), and the human approval gate is a Slack button + `repository_dispatch`, not a multi-day suspended workflow.

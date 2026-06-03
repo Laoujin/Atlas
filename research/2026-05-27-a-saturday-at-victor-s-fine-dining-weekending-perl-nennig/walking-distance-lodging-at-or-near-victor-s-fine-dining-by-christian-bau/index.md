@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.05
 duration_sec: 331
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Decision.** Stay at **[Victor's Residenz-Hotel Schloss Berg][s1]** — the restaurant is inside the same complex, the dining FAQ recommends it and will book it for you, and it's the only property at zero walking distance [[2]](https://www.victors-fine-dining.de/en/faq). If it's sold out or over-budget, **[Hotel Zur Traube][s2]** (Bübinger Str. 22) is the realistic fallback at ~11 min on foot, €99–244/night [[7]](https://www.tripadvisor.com/Hotel_Review-g1185063-d3399983-Reviews-Hotel_Zur_Traube-Nennig_Saarland.html)[[9]](https://www.preiswert-uebernachten.de/perl-nennig/hotel-zur-traube/5201). For self-catered stays, **[Wieser Gästehaus][s3]** in the Wies district covers the 4–5 star Ferienwohnung niche [[11]](http://www.wieser-gaestehaus.de/).

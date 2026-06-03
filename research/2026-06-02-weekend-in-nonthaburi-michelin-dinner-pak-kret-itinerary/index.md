@@ -35,6 +35,7 @@ duration_sec: 2244
 citations: 108
 reading_time_min: 20
 issue: 140
+model: "Sonnet 4.6"
 ---
 
 Both Michelin restaurants and the strongest attractions in Nonthaburi sit in a tight cluster around Pak Kret — which means the weekend's activities, dinner, and late-night transport all interact. Three dependencies run across the children that aren't obvious from any single article.

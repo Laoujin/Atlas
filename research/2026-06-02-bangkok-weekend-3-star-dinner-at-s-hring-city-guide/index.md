@@ -35,6 +35,7 @@ duration_sec: 1959
 citations: 109
 reading_time_min: 19
 issue: 131
+model: "Sonnet 4.6"
 ---
 
 **The Saturday decision is forced.** Bangkok has exactly two 3-Michelin-star restaurants: [Sorn](https://sornfinesouthern.com) (Southern Thai) and [Sühring](https://restaurantsuhring.com) (modern German). [[1]](https://guide.michelin.com/en/article/michelin-guide-ceremony/michelin-guide-thailand-2026) Sorn is closed on Saturdays [[2]](https://nox-agency.com/bangkok/sorn) — **Sühring is the only 3-star option for a Saturday dinner**. No trade-off required; the choice is structural.

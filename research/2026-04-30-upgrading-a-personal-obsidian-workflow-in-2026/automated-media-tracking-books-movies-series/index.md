@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 2.87
 duration_sec: 473
+model: "Opus 4.7"
 ---
 
 > **Decision.** Treat tracking as a 3-layer pipeline, not a single app.

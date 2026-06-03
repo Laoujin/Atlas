@@ -13,6 +13,7 @@ citations: 13
 reading_time_min: 3
 cost_usd: 1.67
 duration_sec: 289
+model: "Opus 4.7"
 ---
 
 > **Decision:** Sleep on the resort. Sven Wassmer Memories sits inside the [Grand Hotel Quellenhof][q-site] [[1]](https://www.badragaz.ch/restaurants/153827) — you walk down a hallway to your room. If the resort's rates (CHF 700+/night) are off the table, the [Sorell Hotel Tamina][st-site] is the only credible 4★ alternative, 3 minutes on foot [[2]](https://www.tripadvisor.com/Hotel_Review-g198797-d277429-Reviews-Sorell_Hotel_Tamina_Garni-Bad_Ragaz_Canton_of_St_Gallen.html). 3★ self-check-in options ([Krone][kr-site], [Ochsen][och-site], [Esos Quelle][eq-site]) are all <300 m from the Quellenhof front door [[3]](https://www.kayak.com/Bad-Ragaz-Hotels-Grand-Resort-Bad-Ragaz.48200.ksp).

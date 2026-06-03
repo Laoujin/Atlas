@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.96
 duration_sec: 302
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Pick the weekend.**

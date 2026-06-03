@@ -42,6 +42,7 @@ duration_sec: 2373
 citations: 149
 reading_time_min: 22
 issue: 99
+model: "Opus 4.7"
 ---
 
 One booking decides the whole weekend. Reale and its lodging-wing Casadonna sit on the same 6-hectare estate at Piana Santa Liberata, ~1 km outside Castel di Sangro [[1]](https://www.nikoromito.com/en/casadonna/), and they are jointly closed 16 March – 9 June 2026, reopening 10 June for dinner [[2]](https://www.nikoromito.com/en/news/) — the earliest 2026 Saturday at Reale is therefore **13 June 2026**. The half-board package (room + tasting menu for two + chef-led breakfast, optionally with wine pairing) is sold direct by Casadonna [[1]](https://www.nikoromito.com/en/casadonna/); booking it locks both room and table on the same date and dissolves the entire "no driving after dinner" constraint — the walk to your room is 1 minute [[3]](https://www.tripadvisor.com/Hotel_Review-g644239-d3461589-Reviews-Casadonna_Reale-Castel_di_Sangro_Province_of_L_Aquila_Abruzzo.html). Casadonna has only ~10 named rooms [[1]](https://www.nikoromito.com/en/casadonna/) (Tripadvisor lists 6 [[3]](https://www.tripadvisor.com/Hotel_Review-g644239-d3461589-Reviews-Casadonna_Reale-Castel_di_Sangro_Province_of_L_Aquila_Abruzzo.html) — either way it is tiny), so Saturday inventory disappears months out. **Book the moment you commit to a date; everything else cascades from it.**

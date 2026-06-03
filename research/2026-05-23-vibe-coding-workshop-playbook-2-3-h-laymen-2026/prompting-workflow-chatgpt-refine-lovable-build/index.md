@@ -13,6 +13,7 @@ reading_time_min: 7
 cover: cover.svg
 cost_usd: 2.01
 duration_sec: 370
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a 2–3 hour workshop with laymen: refine the idea into a structured PRD in ChatGPT (free, no Lovable credits burned [[1]](https://docs.lovable.dev/tips-tricks/chatgpt-app)), then hand off to Lovable's Agent mode for the build. If every attendee already has a Lovable account, skip ChatGPT and use Lovable's built-in **Chat Mode** for the same conversation — it's purpose-built to precede a build [[5]](https://lovable.dev/blog/chat-mode-and-questions). The ChatGPT step earns its keep when (a) attendees know ChatGPT but not Lovable, or (b) you want one tool for ideation across the cohort before anyone signs into Lovable.

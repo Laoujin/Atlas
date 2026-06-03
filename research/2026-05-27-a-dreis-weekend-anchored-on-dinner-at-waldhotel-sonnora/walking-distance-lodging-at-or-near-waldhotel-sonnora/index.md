@@ -5,6 +5,7 @@ status: failed
 failure_reason: child run.sh exit 1
 attempted_at: 2026-05-27T08:55:30Z
 depth: standard
+model: "Haiku 4.5"
 ---
 
 Research failed: child run.sh exit 1

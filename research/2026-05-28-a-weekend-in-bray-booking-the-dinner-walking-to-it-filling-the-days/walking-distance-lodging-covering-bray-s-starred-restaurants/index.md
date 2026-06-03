@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.62
 duration_sec: 482
+model: "Opus 4.7"
 ---
 
 > **Decision** — Bray's three starred kitchens (The Fat Duck, The Waterside Inn, The Hind's Head) sit within ~200 m of each other on/near High Street [[1]](https://mapcarta.com/N60491186)[[2]](https://www.my-towns.co.uk/bray-map.html). Only three lodgings keep you on foot for all of them. **Bray Cottages** — best value, ten-second walk to the Fat Duck, opposite Waterside Inn's door, sleeps 2–6 [[3]](https://www.tripadvisor.com/HotelsNear-g528798-d1571626-The_Fat_Duck-Bray_on_Thames_Berkshire_England.html)[[4]](https://www.windsor.gov.uk/accommodation/bray-cottages-p1261511). **The Waterside Inn** itself — 11 rooms above/beside the restaurant, booking guarantees a dinner table, ~£790–£810/night [[5]](https://www.aladyinlondon.com/2023/04/24-hours-bray-berkshire.html)[[6]](https://www.waterside-inn.co.uk/accommodation/). **Monkey Island Estate** — luxury, 41 rooms, ~15-min walk via footbridge, from ~£275 [[7]](https://boardinggroup.one/review/hotels/monkey-island-estate-hotel-review/)[[8]](https://monkeyisland.luxury-hotels.com/). Everything else (Premier Inn, Travelodge, Thames Riviera, Oakley Court) is 1.1+ mi — taxi for a black-tie dinner.

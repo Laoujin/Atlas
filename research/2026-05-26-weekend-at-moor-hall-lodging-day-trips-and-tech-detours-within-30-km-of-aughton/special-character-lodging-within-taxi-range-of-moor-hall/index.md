@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.13
 duration_sec: 493
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** If a room is open at [Moor Hall](https://moorhall.com/rooms) itself, that is the answer — no taxi, the same kitchen at breakfast, 16th-c manor and modern garden rooms from £275 [[1]](https://moorhall.com/rooms). If full or out of budget: pick **[Birches Brow](https://birchesbrow.co.uk/)** (1.6 mi, 18th-c boutique, breakfast-in-room) for closest; **[Briars Hall](https://briarshallhotel.co.uk/)** (4.3 mi, 1745 manor in 5 acres) for grandeur on the cheap; **[The Secret Garden Glamping](https://thesecretgardenglamping.uk/)** (4.5 mi, hot-tub yurts and pods) if you fancy a forest hideout after dinner [[5]](https://www.tripadvisor.co.uk/HotelsNear-g3213860-d12388578-Moor_Hall_Restaurant_With_Rooms-Aughton_Ormskirk_Lancashire_England.html).

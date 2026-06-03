@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.78
 duration_sec: 512
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** There is no proper "next door" hotel — [Casa Marcial](https://casamarcial.es/en/) sits in the hamlet of La Salgar with one country lane in and out [[8]](https://www.oadguides.com/restaurant/casa-marcial)[[14]](https://mapcarta.com/N6190480691). The only sub-2 km bed is [El Interior de Gaia](https://www.elinteriordegaia.com/en/) — ~1.8 km on a rural road, $86-$119/night, 5 rooms [[2]](https://www.tripadvisor.com.sg/HotelsNear-g608995-d1001616-Casa_Marcial-Arriondas_Parres_Municipality_Asturias.html)[[3]](https://www.tripadvisor.com/Hotel_Review-g608995-d16663074-Reviews-El_Interior_De_Gaia-Arriondas_Parres_Municipality_Asturias.html). For most diners the right play is to stay in Arriondas town (~3 km away) and take a taxi the restaurant arranges on request [[1]](https://casamarcial.es/en/reservas/)[[13]](https://arriondasentaxi.com/). For the full Manzano-family bundle, book the restaurant's official partner [Narbasu](https://www.narbasu.com/en/), a 14th-century palace 20 minutes by car [[1]](https://casamarcial.es/en/reservas/)[[5]](https://www.narbasu.com/en/).

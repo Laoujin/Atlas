@@ -13,6 +13,7 @@ reading_time_min: 17
 cover: cover.svg
 cost_usd: 8.70
 duration_sec: 527
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** Spend **Sunday in Mechelen or Antwerp** (most museums open Sun, closed Mon) [[103]](https://www.introducingbrussels.com/opening-times); spend **Monday on retail, brown cafés, parks or the brewery ring** (shops shut Sun, open Mon) [[102]](https://www.fedasilinfo.be/en/when-are-shops-open). The closest serious sight is **Mechelen** — 5–7 min by direct NMBS train, every 30 min [[34]](https://www.rome2rio.com/s/Duffel/Mechelen) — anchored by **St. Rumbold's Tower** (538 steps to a Skywalk, €8) [[20]](https://visit.mechelen.be/ascent-of-st-rumbolds-tower)[[21]](https://mechelenopzijnbest.be/sint-romboutstoren-van-mechelen/) and **Kazerne Dossin** (Holocaust museum, closed Wed) [[22]](https://kazernedossin.eu/en/practical/). **Antwerp** is ~24 min away by train [[7]](https://www.rome2rio.com/Train/Duffel/Antwerpen-Centraal-Station) and worth a full half-day for **KMSKA** + Plantin-Moretus + a Zurenborg walk. For the brewing weekend angle, **Duvel Moortgat in Puurs (~15 km)** is the closest world-famous brewery [[68]](https://www.duvel.com/en/brouwerijbezoek). Skip the **Rubens House** main building — closed for restoration through ~2030 [[1]](https://tripbytrip.org/2024/01/13/antwerp-reopening-rubens-house-delayed-to-2030/); skip **MoMu** — closed for maintenance May 2026 – Mar 2027 [[13]](https://www.momu.be/en/visitor-information).

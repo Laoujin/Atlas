@@ -35,6 +35,7 @@ duration_sec: 2302
 citations: 132
 reading_time_min: 18
 issue: 84
+model: "Opus 4.7"
 ---
 
 The premise of the trip — a Wolfsburg weekend hung on a Michelin-starred dinner — broke between the brief and the research. Sven Elverfeld's three-star **Aqua** at the Ritz-Carlton served its final dinner on **20 March 2026** after 26 years and 15+ uninterrupted years at 3★ [[1]](https://www.restaurant-aqua.com/en.html)[[2]](https://frontrowsociety.com/fine-cuisine/restaurants/the-end-of-an-era-the-3-star-restaurant-aqua-bids-farewell-after-26-years/). The Ritz-Carlton has not announced a successor concept and the Michelin Guide page for Aqua is now historical [[3]](https://www.restaurant-ranking.com/news-magazine/details/15785-the-aqua-in-wolfsburgs-autostadt-closes/). As of May 2026 the city holds **zero** entries at 2★ or 3★, and only one 1★ ([La Fontaine](https://www.gevrekandginger.com/en/la-fontaine-a-fine-alternative-in-wolfburg) in Fallersleben — 7–8 tables, Wed–Sat only [[4]](https://www.gevrekandginger.com/en/la-fontaine-a-fine-alternative-in-wolfburg)).

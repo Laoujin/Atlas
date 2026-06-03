@@ -40,6 +40,7 @@ duration_sec: 1554
 citations: 117
 reading_time_min: 23
 issue: 82
+model: "Opus 4.7"
 ---
 
 ## The booking-anchor

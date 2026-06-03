@@ -42,6 +42,7 @@ duration_sec: 2639
 citations: 147
 reading_time_min: 29
 issue: 116
+model: "Opus 4.7"
 ---
 
 The keystone is a five-hour, €335-per-head Dégustation menu that ends after midnight [[1]](https://www.relaischateaux.com/us/restaurant/maison-lameloise/) [[2]](https://www.thienlan.me/2014/12/04/la-lameloise-3-star-restaurant-chagny-burgundy-france/), and the brief said *no driving after dinner*. That single constraint compresses the lodging decision into a 51-room bubble. The walking-distance child counts every hotel pillow inside an easy post-dinner walk of 36 Place d'Armes and gets to **16 + 11 + 12 + 12 = 51 rooms** across Lameloise itself, Hôtel de la Poste, Hôtel de la Ferté and Auberge de la Musardière [[3]](https://www.lameloise.fr/en/hotel-lameloise/) [[4]](https://www.tripadvisor.com/Hotel_Review-g196538-d645099-Reviews-Hotel_de_La_Poste-Chagny_Saone_et_Loire_Bourgogne_Franche_Comte.html). Saturday-dinner crowds book early — lock the bed when you lock the table.

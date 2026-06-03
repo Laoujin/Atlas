@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.19
 duration_sec: 513
+model: "Opus 4.7"
 ---
 
 > **Decision.** Walking distance to [Hiša Franko](https://www.hisafranko.com/en) means two addresses on a single lane in Staro Selo. **Book the restaurant's own rooms first** (Staro selo 1) — they include breakfast and are 30 m from your table, but you can only have them for one night and only if you're dining [[1]](https://www.hisafranko.com/en/stay-with-us). If those are full, **book [Apartment Žonir](https://visitsoca.net/home/en/apartmaji-zonir/)** at Staro selo 57 — a 5-minute walk down the same lane, with a private sauna and a host who'll drive you to dinner and back at no charge [[5]](https://www.soca-river.com/en/kobarid/apartment-zonir.html)[[8]](https://enrichingpursuits.com/hisa-franko/). Anything in Kobarid town (Hotel Hvala, Hisa Rejmr, Apartments Pri Nas) is ~3 km away — a 35–55 min walk on a country road, so plan on a taxi [[9]](https://www.rome2rio.com/s/Kobarid/Staro-Selo-Slovenia)[[14]](https://www.tripadvisor.com/HotelsNear-g319788-d668383-Hisa_Franko-Kobarid_Slovenian_Littoral_Region.html).

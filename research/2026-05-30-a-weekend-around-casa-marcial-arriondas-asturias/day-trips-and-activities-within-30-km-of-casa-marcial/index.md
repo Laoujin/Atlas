@@ -13,6 +13,7 @@ reading_time_min: 13
 cover: cover.svg
 cost_usd: 7.51
 duration_sec: 793
+model: "Opus 4.7"
 ---
 
 > **Decision:** With one full day, pair the **Sella canoe descent** (morning, 3–4 h) with the **Lakes of Covadonga** via the mandatory shuttle (afternoon). With half a day, drive the **Mirador del Fitu** loop and lunch in Cangas de Onís. In bad weather, swap to the **Tito Bustillo cave** in Ribadesella plus the **Covadonga sanctuary**. The single biggest planning gotcha: from 1 June to 18 October 2026 **private cars are banned all day** on the road to the Lakes [[1]](https://en.asturias.com/covadonga-lakes-plan/) — book the shuttle in Cangas de Onís.

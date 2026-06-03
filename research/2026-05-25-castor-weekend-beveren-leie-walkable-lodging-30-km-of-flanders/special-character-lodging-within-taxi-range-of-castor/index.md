@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.17
 duration_sec: 415
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a Saturday night after Castor (Kortrijkseweg 164, 8791 Beveren-Leie, two Michelin stars in the 2026 Guide[[1]](https://guide.michelin.com/en/west-vlaanderen/beveren-leie/restaurant/castor)[[2]](https://cas-tor.be/en)): book **[Kasteel Ter Wallen](https://www.terwallen.com/en)** in Izegem (12 km, actual 1906 castle, 6 rooms, from ~€204)[[4]](https://www.terwallen.com/en)[[5]](https://www.terwallen.com/en/history)[[6]](https://www.trip.com/hotels/izegem-hotel-detail-47891056/bb-ter-wallen/) if you want the trip-anchoring landmark. Pick **[B&B Broel 4](https://www.broel.be/en/)** (Kortrijk, 8 km, listed brewery on the Lys)[[7]](https://www.broel.be/en/) or **[Hotel Messeyne](https://www.hotelmesseyne.be/en)** (Kortrijk, 8 km, classified monument with spiral stone staircase)[[8]](https://www.hotelmesseyne.be/en)[[9]](https://www.authentichotels.com/en/hotels/hotel-messeyne) if you'd rather wake up in a walkable city centre. Skip the Hotel T / ParkHotel / Blue Woods tier — comfortable but generic. Taxi back is fine: Waregem and Beveren-Leie operators run 24/7.[[17]](https://www.taxiwaregemcity.be/)[[18]](https://www.waregemsetaxi.be/taxi-beveren-leie/)

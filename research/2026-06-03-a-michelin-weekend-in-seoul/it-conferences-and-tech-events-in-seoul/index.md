@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.18
 duration_sec: 420
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Seoul's tech event calendar peaks in June and August, almost entirely at [COEX](https://www.coexcenter.com/) in Gangnam. For practitioners: **Open Source Summit Korea + MCP Dev Summit** (Aug 11–14) is the highest-signal developer week, followed by **AI Summit Seoul** (Aug 19–21). For industry scale: **Smart Tech Korea** (Jun 10–12) is the year's largest umbrella expo with 500+ exhibitors. **Korea Blockchain Week** (Sep 29–Oct 1) at Walkerhill is the region's crypto flagship. Community meetups (Dev Korea, GDG Seoul) run year-round and are free.

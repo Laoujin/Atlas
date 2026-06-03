@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 3.21
 duration_sec: 581
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** Two weekends in 2026 line up cleanly with Hamburg tech: **Jun 26–27** (ITCS festival Fri + CollabDays Sat — back-to-back, both free [[1]](https://it-cs.io/en/events/hamburg/) [[2]](https://www.collabdays.org/2026-hamburg/)) and **Oct 16–17** (DevFest Hamburg, GDG-run, full Fri–Sat [[3]](https://hamburg.devfest.de/)). Hamburg's flagship developer event is **code.talks Nov 4–5** at KINOPOLIS HafenCity (3,500+ devs, 100+ sessions) but it's mid-week [[4]](https://codetalks.com/). The biggest broad-tech moment of the year — **OMR Festival** — already happened May 5–6 (67k visitors, runs again in 2027) [[5]](https://omr.com/en/events/festival/).

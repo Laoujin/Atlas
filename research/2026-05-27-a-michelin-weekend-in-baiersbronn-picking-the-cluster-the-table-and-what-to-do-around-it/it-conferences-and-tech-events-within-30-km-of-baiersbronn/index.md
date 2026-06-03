@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.59
 duration_sec: 554
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Baiersbronn is too rural for tech conferences. Within 30 km the only recurring program is the IHK Nordschwarzwald **Innovation Breakfast** AI series at the [IHK-Bildungszentrum Nagold](https://www.ihk.de/nordschwarzwald/) [[2]](https://www.ihk.de/nordschwarzwald/innovationn/innovation/innovation-veranstaltungen-und-termine/inno-breakfast-social-media-trends-2026-6825748), plus single-day events at [DHBW Campus Horb][8a] (22.30 km Luftlinie [[1]](https://www.luftlinie.org/Horb-am-necker/Baiersbronn)) [[8]](https://www.iket-horb.de/2026/01/30/horber-werkzeugtag-2026/). For a real international IT conference you have to cross the line: **[WFCS 2026](https://www.hs-offenburg.de/wfcs2026/en/welcome)** (IEEE Factory Communication Systems) in Offenburg, 21–24 Apr 2026 — 31.91 km Luftlinie [[15]](https://www.luftlinie.org/Offenburg/Baiersbronn) — is the nearest serious option [[12]](https://www.hs-offenburg.de/wfcs2026/en/welcome).

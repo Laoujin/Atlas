@@ -42,6 +42,7 @@ duration_sec: 2519
 citations: 147
 reading_time_min: 22
 issue: 114
+model: "Opus 4.7"
 ---
 
 The whole weekend pivots on one fixed point: a 19:30–20:00 seating, Thu–Sun only, at [Les Morainières](https://www.les-morainieres.com/fr/) — promoted to three Michelin stars in March 2026 [[1]](https://www.tendancehotellerie.fr/articles-breves/communique-de-presse/25437-article/les-morainieres-a-jongieux-savoie-decroche-trois-etoiles-dans-la-nouvelle-selection-du-guide-michelin-france-monaco-2026), with a €240 tasting menu plus wine pairings on a hillside reached by an unlit vine-terraced road [[2]](https://www.tripadvisor.com/Restaurant_Review-g1926328-d1903848-Reviews-Restaurant_Les_Morainieres-Jongieux_Savoie_Auvergne_Rhone_Alpes.html). Book the table *first*, weeks ahead; every other decision below follows from the date you get.

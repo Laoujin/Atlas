@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.65
 duration_sec: 413
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Book **Casadonna** — Reale is literally on the property, a 1-minute walk from your room [[4]](https://www.tripadvisor.com/Hotel_Review-g644239-d3461589-Reviews-Casadonna_Reale-Castel_di_Sangro_Province_of_L_Aquila_Abruzzo.html), and the half-board package with the tasting menu is the canonical way to do this trip. If its ~10 rooms are gone [[1]](https://www.nikoromito.com/en/casadonna/), fall back to **Hotel Don Luis** (~400 m / 5-min walk along the same Piana Santa Liberata locality) [[5]](https://www.kayak.com/Castel-di-Sangro-Hotels-Casadonna-Reale.462285.ksp) or **Sport Village Hotel & Spa** (~700–900 m / ~10-min walk, 4-star with proper spa) [[7]](https://www.sportvillagehotel.it/en/). Anything further (Il Giardino del Rio, Hotel Natura, Corradetti) is town-centre, ~1–1.5 km out — a 15–25-min walk along a state road, fine in daylight, tricky in the dark after wine.

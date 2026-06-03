@@ -13,6 +13,7 @@ reading_time_min: 9
 cover: cover.svg
 cost_usd: 7.70
 duration_sec: 684
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** For a date night without leaving Flanders, the strongest May–June bets are the Sol Gabetta / Renaud Capuçon / Vilde Frang stretch at **De Bijloke** [[31]](https://www.bijloke.be/nl/programma/Klassiek) and Christos Papadopoulos's **OPUS** ballet at Capitole Gent on May 7/9/10 [[30]](https://bachtrack.com/dance-event/opus-opera-ballet-vlaanderen-opera-vlaanderen-ghent-7-may-2026/425468). For a big-room concert: Massive Attack at Forest National (June 8), Ludovico Einaudi (July 8) or Bryan Adams at AFAS Dome (Oct 15) [[3]](https://concerts50.com/venues/belgium/forest/vorst-nationaal-forest-national)[[1]](https://www.jambase.com/venue/sportpaleis-antwerpen-antwerp-be). For a festival weekend, **Gent Jazz** (July 2–18) is the date-night pick; **Tomorrowland** festival passes are sold out [[11]](https://www.gentjazz.com/en)[[10]](https://www.jambase.com/festival/tomorrowland-belgium-2026). For a getaway, **London West End** is 3 h door-to-door — Wicked's 20th-anniversary weekend (Sept 26–27) is the standout [[51]](https://www.westendtheatre.com/288912/news/wicked-extends-london-run-as-booking-opens-to-may-2026/).

@@ -42,6 +42,7 @@ duration_sec: 2241
 citations: 113
 reading_time_min: 25
 issue: 124
+model: "Opus 4.7"
 ---
 
 The brief's "walking distance" premise breaks on first contact: Casa Marcial sits in the hamlet of La Salgar — a "bucolic" handful of houses on one unlit country lane [[1]](https://www.oadguides.com/restaurant/casa-marcial)[[2]](https://www.verpueblos.com/asturias/asturias/la+salgar/), 3.5 km from Arriondas station, with no second hotel cluster within easy walking distance. The closest sub-2 km bed is El Interior de Gaia at ~1.8 km on unlit rural road [[3]](https://www.tripadvisor.com/Hotel_Review-g608995-d16663074-Reviews-El_Interior_De_Gaia-Arriondas_Parres_Municipality_Asturias.html) — fine in daylight, awkward in dinner clothes after a tasting menu. The whole weekend therefore pivots on a **pre-booked return taxi** — the restaurant arranges one on request and Arriondas en Taxi runs 24h [[4]](https://arriondasentaxi.com/)[[5]](https://casamarcial.es/en/reservas/) — and the brief's "no driving after dinner" constraint becomes "book the cab before you order the wine pairing."

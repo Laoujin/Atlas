@@ -63,6 +63,7 @@ duration_sec: 3842
 citations: 313
 reading_time_min: 43
 issue: 45
+model: "Opus 4.7"
 ---
 
 **Three Ghent weekends do most of the work.** 1–17 May clusters [Floraliën](https://floralien.be/), the [Bruges Holy Blood procession](https://www.holyblood.com/), and [Gent Smaakt](https://www.gentsmaakt.be/) into a single fortnight where you barely leave home [[1]](https://floralien.be/en/welcome/)[[2]](https://www.visitbruges.be/en/whats-on/events-calendar/procession-holy-blood-2026)[[3]](https://www.gentsmaakt.be/en/practical-info/); 17–26 July is [Gentse Feesten](https://gentsefeesten.stad.gent/en) on your doorstep [[4]](https://visit.gent.be/en/calendar/ghent-festivities); 17–22 November is the [Six Days](https://www.lottozesdaagse.be/) at [&apos;t Kuipke](https://stadiongent.be/) — a 166 m banked velodrome wrapped in a beer-tent atmosphere, ten minutes from home [[5]](https://en.wikipedia.org/wiki/Six_Days_of_Ghent). Build the year around those three and treat everything else as optional.

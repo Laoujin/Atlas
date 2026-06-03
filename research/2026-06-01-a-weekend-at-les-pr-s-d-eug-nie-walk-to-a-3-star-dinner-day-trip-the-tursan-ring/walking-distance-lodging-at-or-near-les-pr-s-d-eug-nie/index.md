@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.71
 duration_sec: 642
+model: "Opus 4.7"
 ---
 
 > **Decision.** Eugénie-les-Bains is essentially one village of ~500 people built around the [Guérard](https://lespresdeugenie.com/en/) estate, so every hotel below is a sub-10-min walk to the Michelin 3-star dining room at Place de l'Impératrice [[3]](https://www.tripadvisor.com/Hotel_Review-g950951-d263869-Reviews-Les_Pres_D_eugenie-Eugenie_Les_Bains_Landes_Nouvelle_Aquitaine.html). Best splurge: a room in **Le Couvent des Herbes** on the estate itself — 18th-c convent, ~0 m to the table, from €330 [[2]](https://lespresdeugenie.com/en/rooms-suites/). Best value still inside the Guérard universe: **La Maison Rose** (3★, same domain) from €160 [[4]](https://lespresdeugenie.com/en/la-maison-rose/). Best independent fallback if Guérard properties are full: **Hôtel Le Relais des Champs**, 300 m behind the thermes, €80–90 [[10]](https://en.montdemarsan-tourisme.com/offers/le-relais-des-champs-eugenie-les-bains-en-2955415/)[[11]](https://www.booking.com/hotel/fr/le-relais-des-champs.html).

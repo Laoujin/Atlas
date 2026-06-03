@@ -13,6 +13,7 @@ reading_time_min: 13
 cover: cover.svg
 cost_usd: 8.25
 duration_sec: 844
+model: "Opus 4.7"
 ---
 
 > **TL;DR — pick by trip shape.**

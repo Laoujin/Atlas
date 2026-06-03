@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.18
 duration_sec: 426
+model: "Opus 4.7"
 ---
 
 > **Decision.** As of May 2026, Wolfsburg has **zero** Michelin 2★ or 3★ restaurants. The city's only 3★, [Aqua](https://www.restaurant-aqua.com/en.html) at the Ritz-Carlton, served its final guests on **21 March 2026** [[1]](https://www.visitchef.com/en/news/2815-end-of-an-era-sven-elverfeld-to-close-three-star-restaurant-aqua)[[2]](https://frontrowsociety.com/fine-cuisine/restaurants/the-end-of-an-era-the-3-star-restaurant-aqua-bids-farewell-after-26-years/), and the concept will not be continued [[3]](https://www.restaurant-ranking.com/news-magazine/details/15785-the-aqua-in-wolfsburgs-autostadt-closes/). Your three live anchors for a starred dinner are: stay in Wolfsburg and downgrade to a **1★** ([La Fontaine](https://www.gevrekandginger.com/en/la-fontaine-a-fine-alternative-in-wolfburg) is the safer pick); or ride the ICE 31 min west to Hannover for a **2★** ([Jante](https://www.jante-restaurant.de/en/) or [Votum](https://vo-tum.de/en/)) [[16]](https://www.thetrainline.com/en/train-times/wolfsburg-hbf-to-hannover-hbf).

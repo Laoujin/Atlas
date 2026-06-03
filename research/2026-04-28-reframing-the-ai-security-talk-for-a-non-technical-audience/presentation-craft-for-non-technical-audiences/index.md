@@ -13,6 +13,7 @@ reading_time_min: 2
 cover: cover.svg
 cost_usd: 0.73
 duration_sec: 83
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Open with the bottom line, not the build-up. Frame every technical claim as a business consequence (revenue, cost, risk, reputation), use one analogy per concept, and repeat the core message ~7 times. For an AI security talk specifically: map threats onto risk categories the audience already owns (data protection, third-party, compliance, reputation) and translate findings into dollars + a decision the audience must make [[1]](https://lsaglobal.com/4-proven-ways-to-present-technical-ideas-to-non-technical-audiences/) [[5]](https://www.roguewaive.com/presenting-ai-risk-to-the-board/).

@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 3.86
 duration_sec: 630
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Bartholomeus is at Zeedijk-Heist 267 [[1]](https://guide.michelin.com/us/en/west-vlaanderen/heist/restaurant/bartholomeus). Closest seafront beds: **Hotel St. Yves** (Zeedijk-Heist 204, 3★, ~60 m west, from €100) [[17]](https://booking.westtoer.be/hotel/st-yves-hotel-knokke-heist?lang=en) and the **Brasserie Bristol residences** at Zeedijk 290-291 (~24 m east, full service-apartment range) [[3]](https://www.zeez.be/en/environment/dinner) [[4]](https://brasseriebristol.be/verblijf). For boutique B&B feel: **Aquavit** (Sint-Jorisstraat 7, ~8-10 min inland, 9.6/10) [[11]](https://www.myboutiquehotel.com/en/boutique-hotels-knokke-heist/bb-aquavit.html). Skip Hotel Britannia — it is in Het Zoute, ~1 h walk away [[16]](https://www.booking.com/hotel/be/britannia.html).

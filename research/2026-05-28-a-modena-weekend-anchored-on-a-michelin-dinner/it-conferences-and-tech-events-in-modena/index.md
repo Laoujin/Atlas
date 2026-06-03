@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.80
 duration_sec: 322
+model: "Opus 4.7"
 ---
 
 > **Decision.** Two windows actually pull a tech-curious traveller to Modena: **Motor Valley Fest, May 28-31** [[1]](https://www.motorvalley.it/motorvalleyfest/en/) (happening *now* — 200+ speakers on AI, software-defined vehicles, autonomous driving [[2]](https://www.motorvalley.it/en/news/motor-valley-fest-2026-four-days-of-innovation-culture-and-passion-for-motors-in-modena/)) and the **DevFest Modena → Smart Life Festival arc, Oct 3-18** [[5]](https://devfest.modena.it/) [[8]](https://emiliaromagnaturismo.it/en/events/modena-smart-life). Off-window weekends fall back to monthly community meetups (GDG Cloud, Modena Full Stack, ML Modena) [[9]](https://gdg.community.dev/gdg-cloud-modena/) [[10]](https://www.meetup.com/modena-full-stack/) — fine for a casual evening, not worth re-anchoring a trip.

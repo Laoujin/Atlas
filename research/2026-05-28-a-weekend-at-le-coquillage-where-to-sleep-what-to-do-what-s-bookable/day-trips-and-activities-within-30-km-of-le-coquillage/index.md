@@ -13,6 +13,7 @@ reading_time_min: 13
 cover: cover.svg
 cost_usd: 8.33
 duration_sec: 967
+model: "Opus 4.7"
 ---
 
 > **TL;DR — pick by the time you have.** A half-day → Saint-Malo's ramparts walk + Cancale's oyster market at the foot of Pointe des Crolles. A full day → add the GR34 to Pointe du Grouin or the 10-min sea-bus across the Rance to Dinard. A weekend → fold in Mont-Saint-Michel (45 km, just outside the radius but unmissable [[24]](https://www.l-itineraire.com/de_mont-saint-michel_a_saint-meloir-des-ondes)) and the Dol/Combourg/Dinan inland triangle. Bad weather → Grand Aquarium, Cathédraloscope, Demeure de Corsaire.

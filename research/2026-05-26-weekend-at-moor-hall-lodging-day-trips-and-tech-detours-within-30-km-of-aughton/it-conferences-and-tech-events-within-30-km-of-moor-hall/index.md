@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 3.74
 duration_sec: 523
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Within 30 km of Moor Hall (Aughton, L39 6RT [[1]](https://moorhall.com/)) tech events are almost entirely a Liverpool story. The next set-piece is the **LCR Innovation Investment Fortnight, 1–12 June 2026** [[7]](https://www.liverpoolcityregion-ca.gov.uk/news/liverpool-city-region-gears-up-for-innovation-investment-fortnight) — anchor on the **Innovation Investment Summit (4 June, The Spine)** [[8]](https://www.eventbrite.co.uk/e/lcr-innovation-investment-summit-tickets-1987299167306) and the **AI Summit on 23 October at ACC Liverpool** [[11]](https://www.liverpoolcityregion-ca.gov.uk/ai-summit). Manchester Tech Week (DTX, 29–30 April) is the obvious bigger name nearby but at 44 km straight-line / 56 km by road it sits **outside** the 30 km radius [[2]](https://www.distance.to/Ormskirk/Manchester) [[18]](https://www.dtxevents.io/manchester-tech-week).

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.80
 duration_sec: 489
+model: "Opus 4.7"
 ---
 
 > **Decision** — Book a room at **[Il Boscareto Resort & Spa](https://www.ilboscaretoresort.it/en/)** [[1]](https://www.ilboscaretoresort.it/en/la-rei-natura/). La Rei Natura is *inside* Boscareto, so on-site is the only true walking-distance lodging. The historic village (where the picturesque B&Bs sit) is 1.9 km away, a 25-min uphill walk on a narrow rural road [[5]](https://us.trip.com/hotels/serralunga-d-alba-hotel-detail-775578/il-boscareto-resort-and-spa/) [[6]](https://www.hrs.com/en/hotel/586252) — fine in daylight, not realistic after a multi-hour tasting menu with wine. If Boscareto is full or out of budget, plan a car/driver.

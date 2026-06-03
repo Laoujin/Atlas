@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.58
 duration_sec: 497
+model: "Opus 4.7"
 ---
 
 > **Decision.** Don't plan a tech-conference detour around the dinner — Noirmoutier is not a tech hub. Inside the 30 km radius the offering is one free *soirée numérique* at the [Espace Grain de Sel](https://espacegraindesel.ville-noirmoutier.fr/) library on **Mon 15 Jun 2026, 18:00–19:00** [[10]](https://www.ville-noirmoutier.fr/agenda/soiree-numerique-vacances-en-ligne/), plus the annual [Festival des Sciences de Noirmoutier](https://www.lessciencesetnous.org/festival-des-sciences-de-noirmoutier/) "Prédire le futur" on **24–28 Oct 2026** [[8]](https://www.ile-noirmoutier.com/fr/agenda/du-24-au-28-octobre-2026-festival-des-sciences-12eme-edition-predire-le-futur). The [Rencontres de Noirmoutier 2026](https://indico.ijclab.in2p3.fr/event/11873/) physics conference (1–5 Jun) overlaps your trip [[5]](https://indico.ijclab.in2p3.fr/event/11873/) but it's fundamental-physics, not IT. Real tech events sit 80+ km inland at La Roche-sur-Yon and Nantes.

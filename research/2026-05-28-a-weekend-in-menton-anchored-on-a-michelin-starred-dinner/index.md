@@ -35,6 +35,7 @@ duration_sec: 1680
 citations: 136
 reading_time_min: 15
 issue: 97
+model: "Opus 4.7"
 ---
 
 Three sub-topics, one consistent shape: **Menton is base camp, not the activity zone.** The single 3★ in town ([Mirazur](https://www.mirazur.fr/en/), Mauro Colagreco) sets the only fixed point in the weekend; the rest is logistics around it. There is no 2★ anywhere inside the commune — the closest sits a 14-minute drive west at [Hostellerie Jérôme in La Turbie](https://www.hostellerie-jerome.com/) [[1]](https://guide.michelin.com/gb/en/provence-alpes-cote-dazur/la-turbie/restaurant/hostellerie-jerome) — and no IT conference uses Menton's [Palais de l'Europe](https://www.menton-congres.com/), which books medical and architectural congresses instead [[2]](https://www.menton-congres.com/).

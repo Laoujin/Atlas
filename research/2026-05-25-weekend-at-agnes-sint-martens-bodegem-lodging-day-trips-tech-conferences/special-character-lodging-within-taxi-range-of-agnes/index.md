@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.36
 duration_sec: 570
+model: "Opus 4.7"
 ---
 
 > **Decision** — Want to walk back from dinner? [B&B Bodegem][bod] ⚠ (same village, but mixed cleanliness reviews). Want post-dinner wellness and a real 4★ room? [Waer Waters][ww] in Groot-Bijgaarden (~6 km). Want the trip's "wow" backdrop? [Villa Servais][vs] in Halle (17 km) — a restored 19th-century neo-Palladian villa. [[1]](https://guide.michelin.com/us/en/vlaams-brabant/sint-martens-bodegem/restaurant/agnes-1207215) [[4]](https://www.tripadvisor.com/Hotel_Review-g6735910-d11461249-Reviews-B_B_Bodegem-Sint_Martens_Bodegem_Flemish_Brabant_Province.html) [[7]](https://www.waerwaters.com/en/hotel-eng) [[9]](https://www.villaservais.be/?lang=en)

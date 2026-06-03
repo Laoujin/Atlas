@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.53
 duration_sec: 566
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Within 30 km of Quattro Passi (Nerano) is essentially Sorrento Peninsula + Naples city centre [[1]](https://www.distancefromto.net/between/Naples/Sorrento). The peninsula itself hosts **one** major IT-adjacent event per year — **ICSO 2026** (space optics, 12–16 Oct at Hilton Sorrento Palace, 10-min walk from Sorrento centre) [[2]](https://atpi.eventsair.com/icso-2026/)[[3]](https://www.spaceagenda.com/event/icso-2026/). For everything else — IEEE conferences, GDG DevFest, hackathons, meetups — you'll drive 60–90 min into Naples, where the calendar clusters at Federico II, Città della Scienza (Bagnoli), and Stazione Marittima. If your weekend lands on **17 Oct**, you can do Quattro Passi Saturday evening and Napoli DevFest the same day [[11]](https://www.napolidevfest.it/).

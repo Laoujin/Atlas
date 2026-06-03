@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.90
 duration_sec: 446
+model: "Opus 4.7"
 ---
 
 > **Decision:** No conference-scale IT event sits inside a strict 30 km of Schauenstein. Chur (≈25 km [[1]](https://gemeinde-schweiz.ch/kanton-graubuenden/fuerstenau/)) hosts a small recurring circuit — KI-Meetup GR, KMU-Impuls AI/Innovation evenings at ibW, GRdigital networking — all weekday early-evening, free, German-language. For an actual tech-conference anchor, look to **Davos Tech Summit, 1–4 Jul 2026** (Physical AI, 31 km direct / 47 km road [[2]](https://www.rome2rio.com/s/Davos/F%C3%BCrstenau-Switzerland)), whose Saturday family day slots cleanly into a Sat-evening Schauenstein dinner [[10]](https://davostechsummit.com/).

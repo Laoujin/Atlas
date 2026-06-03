@@ -13,6 +13,7 @@ reading_time_min: 8
 cover: cover.svg
 cost_usd: 8.81
 duration_sec: 1067
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Maison Colette stands on De Trannoyplein, ~1 min on foot from the Norbertine [Tongerlo Abbey](https://www.tongerlo.org/tongerlo/english/) and its full-scale Leonardo *Last Supper* — start there [[1]](https://www.tongerlo.org/tongerlo/english/). Pick **one** half-day from: UNESCO [Lier](https://zimmertoren.be/?lang=en) (begijnhof + Zimmertoren, the strongest cultural day) [[40]](https://zimmertoren.be/?lang=en)[[41]](https://www.tripadvisor.com/Attraction_Review-g680681-d3734496-Reviews-Begijnhof_Lier-Lier_Antwerp_Province.html); [Averbode Bos en Heide](https://www.natuurpunt.be/natuurgebieden/averbode-bos-en-heide) + abbey café (the strongest outdoor) [[23]](https://www.natuurpunt.be/natuurgebieden/averbode-bos-en-heide)[[26]](https://www.abdijaverbode.be/); [Bobbejaanland](https://www.bobbejaanland.be/openingsuren-en-prijzen) (the strongest family day) [[58]](https://www.bobbejaanland.be/openingsuren-en-prijzen). Coffee/dessert before dinner: ⚠ [Café Trappisten](https://www.hours.be/cafe-trappisten/malle/1) at Westmalle sits at the radius edge but is worth the drive [[75]](https://www.hours.be/cafe-trappisten/malle/1). ⚠ Time the day so you're back to change for dinner — most Maison Colette services seat from ~19:00.

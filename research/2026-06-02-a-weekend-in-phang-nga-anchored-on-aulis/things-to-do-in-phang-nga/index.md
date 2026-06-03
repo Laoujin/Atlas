@@ -13,6 +13,7 @@ reading_time_min: 9
 cover: cover.svg
 cost_usd: 7.52
 duration_sec: 855
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Base in Khao Lak from **November–April** for the full menu: kayak the hidden hongs of Phang Nga Bay [[3]](https://johngray-seacanoe.com/tour/hong-by-starlight/), sleep on a floating raft house on Khao Sok's Cheow Lan Lake [[15]](https://passportandstamps.com/khao-sok-floating-bungalows/), and dive or snorkel the Similan/Surin marine parks (open mid-October to mid-May only) [[20]](https://5starmarinephuket.com/2026/01/06/similan-islands-will-close-may-15th-2026/) [[22]](https://thephuketexpress.com/2025/05/16/similan-and-surin-islands-in-phang-nga-temporarily-closed-for-ecological-recovery/). Round it out with Takua Pa's Sunday Walking Street [[42]](https://www.grandmercurekhaolakbangsak.com/beachfront-resort-in-khao-lak-grand-mercure-khao-lak-bangsak/travel-tips/takua-pa-old-town-walking-street-sunday/) and the Police Boat 813 tsunami memorial in Bang Niang [[30]](https://khaolakcenter.com/poi/813-tsunami-memorial-park-in-bang-niang/). A May–October trip loses both island parks — go shoulder season if you can.

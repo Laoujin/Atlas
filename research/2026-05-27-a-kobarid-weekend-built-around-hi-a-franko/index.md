@@ -40,6 +40,7 @@ duration_sec: 2512
 citations: 161
 reading_time_min: 29
 issue: 87
+model: "Opus 4.7"
 ---
 
 The restaurant is the schedule. Hiša Franko serves Wed–Sun, dinner 19:00–23:00 with last seating 20:00, and the tasting menu runs three to four hours [[1]](https://www.hisafranko.com/en/faq) — meaning every other decision (where to sleep, what to do Saturday, when to start it) collapses out of that one fixed window. The winter pause (recently early Jan through mid-Feb) also rules out late-winter weekends entirely [[2]](https://www.hisafranko.com/en/news/200/hisa-franko-has-ended-another-beautiful-season-see-you-on-14th-february-2025).

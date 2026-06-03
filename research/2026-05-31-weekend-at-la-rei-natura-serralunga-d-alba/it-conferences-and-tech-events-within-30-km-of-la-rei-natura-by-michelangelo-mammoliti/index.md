@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 4.42
 duration_sec: 611
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Inside the 30 km circle, the only venue that programs anything resembling an IT conference is [Fondazione DIG421](https://www.dig421.org/) in Roreto di Cherasco (~22 km) — Thursday-evening talks on AI, robotics, additive manufacturing, geopolitics of tech [[7]](https://www.cuneodice.it/eventi/bra-e-roero/fondazione-dig421-al-via-a-cherasco-il-nuovo-semestre-di-eventi-tra-tecnologia-geopolitica-e-ia_113499.html). [Alba](https://www.comune.alba.cn.it/) (~10 km) and [Pollenzo/Bra](https://www.unisg.it/) (~15 km) host adjacent things — the Connessioni AI series [[11]](https://www.comune.alba.cn.it/it/eventi/connessioni-specchi-digitali-dialoghi-intorno-allai), Circonomia [[14]](https://www.lavocedialba.it/2026/05/08/leggi-notizia/argomenti/economia-10/articolo/circonomia-2026-ad-alba-il-festival-che-racconta-il-cambiamento-tra-clima-economia-e-geopolitica.html), UNISG food-tech events [[15]](https://www.unisg.it/comunicati/pronto-allunisg-pollenzo-migranti-film-festival-dal-10-al-12-giugno/) — but these are pop-science / festival format, not developer events. For a real IT conference you must drive ~70 km to Torino: [Wave by Vento](https://italiantechweek.com/) (formerly Italian Tech Week) runs **7–9 Oct 2026** at OGR [[20]](https://www.agenzianova.com/news/torino-italian-tech-week-diventa-wave-by-vento-edizione-2026-dal-7-al-9-ottobre/) — outside the requested radius, but the only serious tech option within ~1 h drive.

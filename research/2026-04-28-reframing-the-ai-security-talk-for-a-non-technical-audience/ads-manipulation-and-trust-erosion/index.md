@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.99
 duration_sec: 480
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** The ad-funded internet was already a manipulation engine — engagement-ranked feeds, dark-pattern UX, and microtargeted profiling. Trust in news fell 20 points in a decade [[1]](https://www.pewresearch.org/short-reads/2025/10/29/how-americans-trust-in-information-from-news-organizations-and-social-media-sites-has-changed-over-time/) and global trust is now contracting into insular circles [[2]](https://www.edelman.com/trust/2026/trust-barometer). AI is not a new vector — it makes each step of the existing loop cheaper, more personalised, and harder to detect. For the talk: don't sell AI as a new threat; sell it as the same threat with the friction removed.

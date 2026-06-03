@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.18
 duration_sec: 520
+model: "Opus 4.7"
 ---
 
 > **Decision:** Sleep at **[Baumanière](https://www.baumaniere.com/en/)** itself if the €325+ rate works — it's the only zero-walk option, the 3★ restaurant is on the same domain [[1]](https://www.baumaniere.com/en/accommodation/). Closest cheaper alternative: **[La Riboto de Taven](https://www.tripadvisor.com/Hotel_Review-g1819081-d310356-Reviews-Taven_Residences-Les_Baux_de_Provence_Bouches_du_Rhone_Provence_Alpes_Cote_d_Azur.html)**, a 3-room troglodyte B&B in the same valley [[5]](https://www.tripadvisor.com/Hotel_Review-g1819081-d310356-Reviews-Taven_Residences-Les_Baux_de_Provence_Bouches_du_Rhone_Provence_Alpes_Cote_d_Azur.html). Budget pick: **[Hostellerie de la Reine-Jeanne](https://www.tripadvisor.com/Hotel_Review-g1819081-d219938-Reviews-Hostellerie_de_la_Reine_Jeanne-Les_Baux_de_Provence_Bouches_du_Rhone_Provence_Alpes_Co.html)**, 4 rooms in the village above [[9]](https://www.tripadvisor.com/Hotel_Review-g1819081-d219938-Reviews-Hostellerie_de_la_Reine_Jeanne-Les_Baux_de_Provence_Bouches_du_Rhone_Provence_Alpes_Co.html). ⚠ **Skip [Hotel Benvengudo](https://benvengudo.com/en/)** despite its Route d'Arles address — recent guests say it's "not walkable" without a car [[11]](https://www.tripadvisor.com/Hotel_Review-g1819081-d219939-Reviews-Hotel_Benvengudo-Les_Baux_de_Provence_Bouches_du_Rhone_Provence_Alpes_Cote_d_Azur.html).

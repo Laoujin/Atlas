@@ -42,6 +42,7 @@ duration_sec: 2535
 citations: 149
 reading_time_min: 21
 issue: 64
+model: "Opus 4.7"
 ---
 
 The four sub-topics converge on three properties that recur on both lodging shortlists: **La Réserve**, **Hotel Britannia** and **Manoir du Dragon** all appear as walking-distance picks (≤1.1 km from Cuines 33) *and* as character properties in the taxi-range frame ([walking-distance-lodging-at-or-near-cuines-33](walking-distance-lodging-at-or-near-cuines-33/), [special-character-lodging-within-taxi-range-of-cuines-33](special-character-lodging-within-taxi-range-of-cuines-33/)). Treat that as the consensus tier — uncertain choosers can pick any of the three and not regret it. The remaining decisions are stylistic: Prins Boudewijn for the shortest after-dinner walk (~360 m on the same square as the SNCB station, which compounds with the Bruges day-trip case where the 17-min direct train [[1]](https://www.rome2rio.com/s/Knokke-Heist/Bruges) outperforms any other arrival mode); Strandhotel Cadzand if architecture is the second draw and a 17-min taxi each way is acceptable.

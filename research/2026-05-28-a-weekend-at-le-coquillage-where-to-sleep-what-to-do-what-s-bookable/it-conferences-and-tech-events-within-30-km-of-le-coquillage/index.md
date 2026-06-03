@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.80
 duration_sec: 489
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — "IT conferences within 30 km of [Le Coquillage](https://guide.michelin.com/us/en/bretagne/saint-mloir-des-ondes/restaurant/le-coquillage)" really means **Saint-Malo, 8.7 km away** [[2]](https://www.viamichelin.com/routes/results/saint_malo-35400-ille_et_vilaine-brittany-france-to-saint_meloir_des_ondes-35350-ille_et_vilaine-brittany-france). The 2026 calendar clusters in **April–May at the Palais des Congrès**: PQCrypto 2026 (14–16 Apr) [[10]](https://pqcrypto2026.irisa.fr/), Rencontres Stratégiques des Trois Océans (9–10 Apr) [[12]](https://www.7jours.fr/actualites/defense-souverainete-et-numerique-au-coeur-dun-evenement-a-saint-malo/), and CPS-IoT Week (11–14 May) [[4]](https://cps-iot-week2026.inria.fr/) bundling HSCC/ICCPS, SenSys, RTAS and seven workshops [[6]](https://cps-iot-week2026.inria.fr/events.php). **All three are already over as of 28 May 2026.** Next upcoming: [Digital Benchmark](https://digital-benchmark-2026.ebg.net/) (28–29 Sep) [[13]](https://digital-benchmark-2026.ebg.net/). Year-round anchors: [Le Poool / French Tech Rennes-St-Malo](https://lepoool.tech/) [[16]](https://lepoool.tech/) and the [IUT de Saint-Malo](https://iut-stmalo.univ-rennes.fr/forum-des-metiers-du-numerique)'s annual Flag'Malo CTF [[15]](https://www.flagmalo.fr/).

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.95
 duration_sec: 518
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Of the .NET / Microsoft-stack conferences physically held in Belgium, France, Netherlands or Germany in 2026, only two big-stage CFPs are still open today: [**Techorama 2026 Netherlands**](https://www.techorama.nl/) (Utrecht, Oct 26-28; CFP closes 29 May 2026) [[1]](https://sessionize.com/techorama-2026-netherlands/) and [**DDC Cologne 2026**](https://www.developer-world.com/ddc) (Nov 23-26; CFP closes 15 Jun 2026, only just opened on Apr 22) [[2]](https://sessionize.com/dotnet-developer-conference-26/). Paris [**MWCP**](https://modern-workplace.pro/) has a rolling "Appel à Speaker" with no published deadline [[8]](https://modern-workplace.pro/). Everything else is closed ([Techorama BE](https://techorama.be/), [DWX](https://www.developer-world.com/dwx), [BASTA Mainz](https://basta.net/mainz-en/), [ESPC Amsterdam](https://espc.tech/conference/espc-2026/), [ECS Cologne](https://collabsummit.eu/), [dataMinds](https://datamindssaturday.be/)), already past ([BASTA Frankfurt](https://basta.net/frankfurt-en/), [Future Tech 2026](https://futuretech.nl/), Microsoft AI Tour Paris), or not yet announced ([CloudBrew](https://www.cloudbrew.be/), [Future Tech 2027](https://futuretech.nl/), [VisugXL](https://www.visug.be/)).

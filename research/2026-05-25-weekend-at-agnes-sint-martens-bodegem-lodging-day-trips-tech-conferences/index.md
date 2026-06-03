@@ -42,6 +42,7 @@ duration_sec: 2878
 citations: 147
 reading_time_min: 29
 issue: 60
+model: "Opus 4.7"
 ---
 
 **Verify the dinner before you book anything else.** Agnes's own site lists Saturday as a closed day, with one designated Sunday per month as the only weekend service [[1]](https://agnes.restaurant/en/). The whole expedition presupposes a Saturday evening that may not exist on the public calendar — phone +32 2 880 74 31 before reserving lodging. If the only Saturday options are private-event nights or the once-a-month Sunday slot, the rest of this plan still works; only the day-anchor moves.

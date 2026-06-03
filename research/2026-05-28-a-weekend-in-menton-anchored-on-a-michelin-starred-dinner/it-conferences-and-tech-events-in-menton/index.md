@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.25
 duration_sec: 393
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Menton is a tech-conference desert — its Palais de l'Europe books medical and scientific congresses (JAS, PILM, ICQC), not IT [[1]](https://www.menton-congres.com/). But it's a 10-minute train ride from Monaco and ~35 minutes from Nice, so you can base a weekend in Menton and step out for [Ready For IT](https://www.ready-for-it.com/en) in Monaco (2–4 Jun) [[5]](https://www.grimaldiforum.com/en/events-schedule-monaco/ready-for-it-7), [WAIB Summit](https://www.waibsummit.com/) (9–10 Jun) [[7]](https://www.waibsummit.com/), [WAICF](https://www.worldaicannes.com/) in Cannes (12–13 Feb) [[9]](https://www.worldaicannes.com/), [Riviera DEV](https://www.rivieradev.fr/) in Sophia Antipolis (6–8 Jul) [[12]](https://www.rivieradev.fr/) or the ETSI conferences year-round [[14]](https://www.etsi.org/events/2645-etsi-security-conference-oct2026/).

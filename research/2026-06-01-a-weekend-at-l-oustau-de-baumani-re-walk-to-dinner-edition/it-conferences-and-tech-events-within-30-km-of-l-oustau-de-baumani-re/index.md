@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 4.07
 duration_sec: 712
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Within a hard 30 km radius of L'Oustau de Baumanière [[1]](https://www.baumaniere.com/en/infos-contact/) the IT-conference scene is thin. The only recurring **pure-IT** events are CIP-PACA's monthly *Incontournable CIPMed* evenings at Novotel Avignon Nord (decision-maker afterworks: 9 Mar, 13 Apr, 18 May, 15 Jun 2026 [[6]](https://www.cip-paca.org/evenements)) and the weekly research seminars at Avignon Université's LIA (Agroparc) [[9]](https://lia.univ-avignon.fr/home/). Pair them with **art‑tech crossovers** at LUMA Arles and the Rencontres d'Arles, plus AgriTech at MED'Agri (Avignon, 13–15 Oct 2026 [[22]](https://paca.chambres-agriculture.fr/toutes-les-actualites/detail-de-lactualite/medagri-2026-le-rendez-vous-incontournable-de-lagriculture-mediterraneenne-a-avignon)). For a real dev/cloud/AI conference, plan a 90 km drive to Marseille (e.g. **WAX**, 1 Oct 2026 [[25]](https://www.waxconf.fr/)).

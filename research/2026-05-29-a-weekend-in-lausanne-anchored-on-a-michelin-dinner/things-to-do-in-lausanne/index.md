@@ -13,6 +13,7 @@ reading_time_min: 10
 cover: cover.svg
 cost_usd: 7.08
 duration_sec: 755
+model: "Opus 4.7"
 ---
 
 > **TL;DR — How to spend a weekend.** Two to three days is the sweet spot [[66]](https://www.budgetyourtrip.com/switzerland/lausanne/enough-time-in-2659994-1). **Day 1:** Olympic Museum on the Ouchy lakefront in the morning, lunch at a lakeside café, afternoon CGN Belle Époque paddle steamer or a Lavaux vineyard walk (Saint-Saphorin → Lutry), then your Michelin dinner. **Day 2:** Plateforme 10's three museums at 10:00, fondue lunch in the old town, climb the Cathédrale belfry then the Sauvabelin Tower for sunset. Stay in **Ouchy** for lakeside calm or **Flon** for nightlife and metro access [[65]](https://seekinplaces.com/switzerland/where-to-stay-in-lausanne/). Whatever you do, collect your free **Lausanne Transport Card** at hotel check-in — it covers bus, metro and regional trains for the whole stay [[55]](https://www.lausanne-tourisme.ch/en/lausanne-transport-card-and-more/).

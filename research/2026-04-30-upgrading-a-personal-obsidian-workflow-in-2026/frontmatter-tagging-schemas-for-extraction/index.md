@@ -13,6 +13,7 @@ reading_time_min: 11
 cover: cover.svg
 cost_usd: 7.88
 duration_sec: 920
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Design for **extraction first, presentation second**. Put canonical data in YAML frontmatter (Bases ignores inline `key:: value` Dataview fields [[5]]); use a `type:` discriminator [[5]] plus reusable property names (`created`, `author`, `topic`) [[13]]; keep YAML keys flat (Properties does not support nested objects [[8]]); reserve hashtags for note-state signals (`#status/active`, `#seedling`) and namespace them so Bases/Dataview can `FROM` the parent prefix [[20]] [[17]]; validate with a code-first schema ([Zod](https://zod.dev/) for JS, [Pydantic](https://docs.pydantic.dev/)/[Yamale](https://github.com/23andMe/Yamale) for Python) [[35]] [[42]] [[38]]; for Markdown pipelines use **gray-matter** in JS (⭐ 4.4k) or **python-frontmatter** in Python (⭐ 412), and add **obsidiantools** (⭐ 553) when you need wikilink/tag awareness [[25]] [[24]] [[28]]. New schemas in 2026 should target Bases, not Dataview — Dataview has stagnated [[9]].

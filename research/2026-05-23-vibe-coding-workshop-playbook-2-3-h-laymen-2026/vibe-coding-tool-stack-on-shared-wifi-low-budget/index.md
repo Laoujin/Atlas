@@ -13,6 +13,7 @@ reading_time_min: 11
 cover: cover.svg
 cost_usd: 8.75
 duration_sec: 827
+model: "Opus 4.7"
 ---
 
 > **Decision.** Pick **[Lovable](https://lovable.dev)** as the primary tool — chat-only UI, server-side rendering, one-click publish to `*.lovable.app`, and the only vendor with a real K-12 / no-account classroom track [[2]](https://designlab.com/blog/best-vibe-coding-tools) [[7]](https://imagilabs.com/pages/lovable-imagi-hour-of-ai) [[38]](https://lovable.dev/faq/deployment/rendering) [[55]](https://docs.lovable.dev/features/publish). Keep **[Bolt.new](https://bolt.new)** warm as the backup (faster cold start, no account, but WebContainers hate locked-down laptops and Lovable has logged 314+ outages since May 2025) [[4]](https://lovable.dev/guides/bolt-vs-replit-vs-lovable) [[5]](https://www.nocode.mba/articles/bolt-ai-new-guide) [[31]](https://support.bolt.new/faqs/troubleshooting/webcontainer) [[71]](https://statusgator.com/services/lovable). Have attendees sign up **24–48 h before** the room, off the venue wifi, and bring a phone-hotspot kit. Host budget: ~$0 if you stretch free tiers, ~$50 if you pay for one shared Pro seat as fallback; the per-attendee marginal cost is zero [[27]](https://hatchworks.com/blog/gendd/cost-of-vibe-coding/) [[76]](https://theschoolhousemommy.wordpress.com/2017/12/14/vipkid-backup-plans-a-hotspot-tutorial/).

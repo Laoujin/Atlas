@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.72
 duration_sec: 425
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — ES:SENZ sits at Das Achental in Grassau [[2]](https://www.das-achental.com/en/es-senz.html). The 30 km radius reaches **Traunstein** (~17 km) [[4]](https://www.luftlinie.org/Grassau/Prien), **Rosenheim** (~26 km) [[3]](https://www.luftlinie.org/Grassau/Rosenheim) and **Kiefersfelden** (~28 km) [[5]](https://www.luftlinie.org/Kiefersfelden) — small towns, no major IT congress. The live scene clusters around **Stellwerk18** (Rosenheim digital startup center) [[13]](https://www.bayern-innovativ.de/en/kompetenzen/competencies-technology-transfer/stellwerk-18-digitale-wirtschaft-suedostoberbayern/) and **TH Rosenheim Campus Chiemgau** (Traunstein) [[10]](https://www.th-rosenheim.de/die-hochschule/standorte/campus-chiemgau-in-traunstein/events-am-campus-chiemgau). If you're picking one event to time the trip around, it's **PPC Camp 2026** at KuKo Rosenheim on **29 October 2026** [[9]](https://www.ppc-camp.de/) — the only paid, full-day tech conference inside the radius.

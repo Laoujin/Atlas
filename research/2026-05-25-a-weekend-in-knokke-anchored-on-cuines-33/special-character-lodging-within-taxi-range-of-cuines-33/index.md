@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.84
 duration_sec: 486
+model: "Opus 4.7"
 ---
 
 > **Decision** — Most distinctive Het Zoute villa: [Hotel Britannia](https://hotelbritannia.be/home-en/), a 1928 Anglo-Norman manor fully renovated in 2022, 5 min by taxi [[3]](https://hotelbritannia.be/home-en/) [[4]](https://www.letsgomylove.com/en/place/hotel-britannia/). Grand 1930s landmark, just reborn: [La Réserve](https://la-reserve.be/en), 5★ superior reopened 2023 after a Glenn Sestig overhaul [[9]](https://la-reserve.be/en) [[10]](https://guide.michelin.com/ee/en/hotels-stays/knokke-heist/hotel-la-reserve-10240). Design-led splurge: cross the NL border to [Strandhotel Cadzand](https://www.strandhotel.eu/en/), interiors by Studio Piet Boon, 17 min taxi [[14]](https://www.strandhotel.eu/en/) [[15]](https://pietboon.com/corporate-projects/strandhotel-cadzand/) [[18]](https://www.viamichelin.com/routes/results/cadzand_bad-4506-zeeland-_-netherlands-to-knokke_heist-8300-bruges-flemish_region-belgium).

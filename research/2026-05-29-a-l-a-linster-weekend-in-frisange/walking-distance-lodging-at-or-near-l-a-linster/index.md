@@ -13,6 +13,7 @@ citations: 18
 reading_time_min: 3
 cost_usd: 3.26
 duration_sec: 523
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — There is one true walking-distance hotel in Frisange: [Hôtel de la Frontière](https://hostellerie.lu/en/hotel/hotel-restaurant-de-la-frontiere/), ~1.1 km / 13–15 min walk along the N3 from the restaurant [[1]](https://www.tripadvisor.com/Hotel_Review-g206524-d4433335-Reviews-Hotel_de_la_Frontiere-Frisange.html)[[2]](https://www.tripadvisor.com/HotelsNear-g206524-d4433335-Hotel_de_la_Frontiere-Frisange.html). Book it **by phone** — its Booking.com listing is dormant [[8]](https://www.booking.com/hotel/lu/de-la-frontiere.html). Otherwise: a handful of Airbnbs in the village, or accept a 6–10 km bus/taxi to Mondorf-les-Bains [[3]](https://www.rome2rio.com/s/Mondorf-les-Bains/Frisange).

@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 1.03
 duration_sec: 402
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** [DevDay](https://www.devday.org/) each **April** is the anchor event — free, 3,000+ attendees, non-profit, 11-year track record [[1]](https://www.devday.org/)[[2]](https://news.laodong.vn/giao-duc/da-nang-khai-mac-ngay-hoi-cong-nghe-thong-tin-thu-hut-hon-3000-nguoi-tham-du-1687441.ldo). **May** packs three overlapping Web3 summits in five days. Academic AI/ML conferences cluster in **Feb–Mar**. Year-round: [GDG Cloud Da Nang](https://gdg.community.dev/gdg-cloud-da-nang/) monthly meetups and annual DevFest [[12]](https://gdg.community.dev/gdg-cloud-da-nang/). Still upcoming in 2026: [Super Vietnam](https://web3voyager.com/event/super-vietnam/) Jul 10–11 [[10]](https://web3voyager.com/event/super-vietnam/).

@@ -13,6 +13,7 @@ reading_time_min: 6
 cover: cover.svg
 cost_usd: 1.60
 duration_sec: 619
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Guangzhou's 2026 tech calendar is trade-expo-heavy, peaking March–June at the Canton Fair Complex. Best standalone bets for IT professionals: **VR/AR/XR Expo** (May 10–12) for immersive tech depth, or **Asia AI Conference** (June 27–29) for AI industry breadth. Smart-manufacturing teams: **GIT/SPS** (March 4–6) or **EAI Show** (October 21–23) for embodied robotics. Add a 30-min train ride to Shenzhen for the national CITE IT mega-expo in April — it's worth it. [[4]](https://www.prnewswire.com/news-releases/the-139th-canton-fair-to-open-on-april-15-with-expanded-scale-and-stronger-innovation-focus-302741285.html) [[8]](https://www.xrom.in/post/world-vr-ar-xr-mr-expo-2026-guangzhou-hosts-global-xr-industry-feast) [[14]](https://www.cnaiplus.com/a/latest/8882656.html) [[21]](https://www.citexpo.org/en)

@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.11
 duration_sec: 379
+model: "Opus 4.7"
 ---
 
 > **Decision.** Sleep **next door** at [Maison Moizeau](https://www.alexandrecouillon.com/en/dream.html) — Alexandre & Céline Couillon's own 5 rooms, 30 m from the restaurant door, €180–€275 [[1]](https://www.alexandrecouillon.com/en/dream.html). If full or you want something different: walk to [Hôtel Bord à Bord](https://www.bordabord.fr/en/) (port view, simple, ⚠ dated) or [La Chambre d'Emilie](https://www.enpaysdelaloire.com/hebergements/chambres-d-hotes/la-chambre-d-emilie-a-l-herbaudiere-sur-l-ile-de-noirmoutier) (B&B, €78) — both walkable from the restaurant. Want a proper hotel with spa/garden/character? Taxi 8–12 min to [Le Général d'Elbée](https://www.generaldelbee.fr/en/) (4★, 18C Monument Historique on the old port) or [Villa Arthus-Bertrand](https://www.villa-arthusbertrand.com/en/) (4★ mansion in the pinewood of Bois de la Chaise).

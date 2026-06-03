@@ -13,6 +13,7 @@ citations: 101
 reading_time_min: 10
 cost_usd: 9.73
 duration_sec: 1001
+model: "Opus 4.7"
 ---
 
 > **TL;DR — pick by profile:**

@@ -13,6 +13,7 @@ citations: 15
 reading_time_min: 4
 cost_usd: 2.56
 duration_sec: 442
+model: "Opus 4.7"
 ---
 
 > **Decision.** For a Saturday dinner you can walk to and from in dress shoes, pick a 4★ in Brunico's old town — [Hotel Post](https://www.hotelpost-bruneck.com/en/home.html) [[5]](https://www.hotelpost-bruneck.com/en/home.html) or [Hotel Corso am Graben](https://www.hotelcorso.com/en/corso-am-graben/location) [[6]](https://www.hotelcorso.com/en/corso-am-graben/location), both on Via Bastioni and ~8-10 min flat walk to the restaurant. Cheapest short walk: [Hotel Blitzburg](https://www.blitzburg.it/en) (3★) by the train station, ~6-8 min [[9]](https://www.blitzburg.it/en)[[10]](https://www.booking.com/hotel/it/blitzburg.it.html). Want the restaurant's own partner perks (mention at check-in, easier booking liaison): only [Niedermairhof](https://www.nmhof.it/en/) (~25 min walk via Teodone) and [Hotel Langgenhof](https://www.langgenhof.com/en/hotel-in-brunico.html) (~10-15 min via the river) qualify on the published partner list [[4]](https://ateliernorbertniederkofler.com/en/partner-hotels).

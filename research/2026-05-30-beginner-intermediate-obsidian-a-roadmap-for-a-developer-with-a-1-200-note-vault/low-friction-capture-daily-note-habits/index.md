@@ -13,6 +13,7 @@ reading_time_min: 9
 cover: cover.svg
 cost_usd: 2.12
 duration_sec: 406
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Build the habit before the system. Week 1: turn on the core Daily Notes plugin [[2]](https://obsidian.md/help/plugins/daily-notes) with a five-line template and nothing else. Week 2: bind one capture hotkey (QuickAdd or a Templater command) that appends to today's note [[6]](https://github.com/chhoumann/quickadd). Week 3: add one mobile pathway — iOS Shortcut + Advanced URI, or a companion app like Drafts [[9]](https://obsidian.rocks/obsidian-mobile-quick-capture/). Week 4: a 10-minute Sunday review that processes the week's captures [[16]](https://bagerbach.com/blog/weekly-review-obsidian/). Skip the elaborate template, the dashboard, and Periodic Notes until the loop has survived a bad week.

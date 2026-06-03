@@ -42,6 +42,7 @@ duration_sec: 2868
 citations: 135
 reading_time_min: 25
 issue: 115
+model: "Opus 4.7"
 ---
 
 The weekend hangs on one table. **Les Prés d'Eugénie** has held three Michelin stars since 1977 [[1]](https://guide.michelin.com/us/en/hotels-stays/eugenie-les-bains/les-pres-deugenie-7394), and the estate's gravity is so total that the village (~500 inhabitants [[2]](https://www.guide-des-landes.com/en/tourism/discover/towns-and-villages/eugenie-les-bains-95/eugenie-les-bains-1216.html)) reads as Michel Guérard's campus with a restaurant inside it rather than the reverse. Every other choice — bed, daytime activity, even whether to bundle a tech-conference excuse — falls out of that anchor.

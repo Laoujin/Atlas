@@ -56,6 +56,7 @@ duration_sec: 2080
 citations: 85
 reading_time_min: 31
 issue: 57
+model: "Opus 4.7"
 ---
 
 ## The through-line: composition, not selection

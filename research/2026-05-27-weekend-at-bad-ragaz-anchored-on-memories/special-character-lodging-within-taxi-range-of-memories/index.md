@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.53
 duration_sec: 453
+model: "Opus 4.7"
 ---
 
 > **Decision.** Want to walk home from [Memories](https://memories.ch/en/) [[1]](https://www.resortragaz.ch/en/cuisine/memories): **[Boutique Hotel Ochsen](https://www.ochsenragaz.ch/)** in Bad Ragaz centre [[3]](https://www.ochsenragaz.ch/). Want a second Michelin meal the next day and a short taxi back: **[Park Hotel Sonnenhof](https://www.sonnenhof.li/en/)** in Vaduz, Relais & Châteaux, 19 km / 13 min [[7]](https://www.relaischateaux.com/us/hotel/park-hotel-sonnenhof/) [[14]](https://www.rome2rio.com/s/Bad-Ragaz/Vaduz). Want full Bündner Herrschaft wine-village immersion: **[Hotel Weiss Kreuz](https://www.weisskreuzmalans.ch/)** in Malans, four rooms, on-site Michelin restaurant [[9]](https://www.weisskreuzmalans.ch/hotel/) [[10]](https://www.gaultmillau.ch/restaurants/hotel-weiss-kreuz-331423). Want the novelty story: a **[converted 8,000-litre wine barrel](https://schlaf-fass.ch/schlaf-faesser/maienfeld)** above Heidi's village [[11]](https://schlaf-fass.ch/schlaf-faesser/maienfeld).

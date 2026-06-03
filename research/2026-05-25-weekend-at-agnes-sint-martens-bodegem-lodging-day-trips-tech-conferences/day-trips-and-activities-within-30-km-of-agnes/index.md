@@ -13,6 +13,7 @@ reading_time_min: 15
 cover: cover.svg
 cost_usd: 9.37
 duration_sec: 1108
+model: "Opus 4.7"
 ---
 
 > **TL;DR — for the Sat 30 / Sun 31 May 2026 weekend anchored on dinner at Agnes:**

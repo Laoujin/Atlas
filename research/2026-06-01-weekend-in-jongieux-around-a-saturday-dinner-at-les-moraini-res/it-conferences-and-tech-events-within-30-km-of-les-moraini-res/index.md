@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.84
 duration_sec: 516
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Don't plan the trip around a conference. The 30 km bubble around Jongieux contains essentially zero proper IT/tech conferences in 2026 [[7]](https://dev.events/EU/FR/Chambery/it). The two scheduled fixtures both fall in **the same week of April 21-24, 2026**: a free 90-min USMB cybersecurity lecture in Chambéry on Tue April 21 [[8]](https://www.grandchambery.fr/tous-les-evenements/amphis-pour-tous-et-pour-toutes-cybersecurite-comment-les-mathematiques-veillent-sur-vos-donnees), and the SOPHIA PV reliability workshop at INES/Savoie Technolac on April 23-24 (registrations already closed) [[10]](https://www.ines-solaire.org/en/agenda/sophia-pv-reliability-workshop-2026/). The three Chambéry dev-meetup groups (GDG Alps 361 members [[13]](https://www.meetup.com/Google-Developer-Group-Alps/), Developers In The Alps 127 [[14]](https://www.meetup.com/Developers-In-The-Alps/), Dev Tech Chambéry 50 [[15]](https://www.meetup.com/Dev-Tech-Chambery/)) fire irregularly and don't keep a public 2026 calendar. For a real conference, plan a separate trip to Lyon (DevFest, Dec 4 2026 [[19]](https://devfest.gdglyon.com/)) or Paris (Devoxx, Apr 22-24 2026 [[18]](https://www.devoxx.fr/en/)).

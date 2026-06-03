@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 3.16
 duration_sec: 530
+model: "Opus 4.7"
 ---
 
 > **Decision** — Closest to the table: **Cense de Lalouette** — an 18th-c Spanish post-relay farm in the same Saint-Ghislain commune, ~5-min taxi after dinner [[1]](https://www.visitmons.be/fr/les-hotels/cense-de-lalouette-218688). Most theatrical: **Martin's Dream Hotel** in central Mons, built inside a former neo-Gothic chapel/convent [[2]](https://visitwallonia.com/en-gb/content/martin-s-dream-hotel-mons-sleep-church). Best small-group take-over: **Mons Dragon House** — five rooms each by a different local designer [[3]](https://www.monsdragonhouse.be/en). Bucket-list splurge: **Pairi Daiza Resort** — lodges and underwater rooms inside the zoo [[4]](https://www.pairidaiza.eu/en/pairi-daiza-resort/).

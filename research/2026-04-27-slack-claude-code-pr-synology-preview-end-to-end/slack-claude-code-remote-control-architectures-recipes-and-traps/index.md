@@ -13,6 +13,7 @@ citations: 44
 reading_time_min: 9
 cost_usd: 8.22
 duration_sec: 787
+model: "Opus 4.7"
 ---
 
 > **Decision.** If you can live with a hosted experience, use **Claude Code in Slack** [[5]](https://code.claude.com/docs/en/slack) [[23]](https://claude.com/blog/claude-code-and-slack) — Anthropic ships it, sessions run on claude.ai/code, no infra to maintain. If you need self-hosted (private repos, custom MCP, on-prem secrets), pick **chenhg5/cc-connect** ⭐ 6.4k (Apr 2026) [[12]](https://github.com/chenhg5/cc-connect) for the Socket-Mode + multi-platform path, or wire **anthropics/claude-code-action** ⭐ 7.3k [[28]](https://github.com/anthropics/claude-code-action) behind a thin Slack→GitHub-Issue shim like AnandChowdhary's bot [[8]](https://github.com/AnandChowdhary/claude-code-slack-bot) for the indirect / GitHub-Actions path. Build-it-yourself only if the use case is genuinely off-pattern — the Slack 3-second ack rule, prompt-injection from arbitrary chat input, and runaway-cost from open @-mentions [[38]](https://dev.to/deployagents/running-ai-agents-247-in-2026-local-vs-cloud-vs-managed-cost-infrastructure-deep-dive-5ab4) are all solved problems but easy to get wrong.

@@ -13,6 +13,7 @@ reading_time_min: 16
 cover: cover.svg
 cost_usd: 14.90
 duration_sec: 172
+model: "Opus 4.7"
 ---
 
 > **TL;DR — the eight subscriptions that earn the click in 2026.** [Andrej Karpathy](https://www.youtube.com/@AndrejKarpathy) [[9]](https://karpathy.ai/zero-to-hero.html) for foundations. [Yannic Kilcher](https://www.youtube.com/c/YannicKilcher) [[1]](https://www.youtube.com/c/YannicKilcher) for paper rigor. [AI Explained](https://www.youtube.com/@aiexplained-official) [[14]](https://www.atakinteractive.com/blog/17-ai-youtubers-were-actually-watching-right-now) as the hype filter. [Dwarkesh Patel](https://www.dwarkesh.com/) [[53]](https://eutechfuture.com/tech-thought-leaders/dwarkesh-patel-leading-tech-interviewer-shaping-ai-journalism/) and [Latent Space](https://www.latent.space/) [[55]](https://www.latent.space/about) for the architects-of-AI long form and AI-engineer canon. [Fireship](https://www.youtube.com/@Fireship) [[24]](https://www.youtube.com/@Fireship) as the weekly "what shipped" tax. [IndyDevDan](https://www.youtube.com/@indydevdan) [[39]](https://www.youtube.com/@indydevdan/videos) for Claude-Code agentic engineering. [Stanford CS25](https://web.stanford.edu/class/cs25/) [[68]](https://web.stanford.edu/class/cs25/) and [MIT 6.S191](https://introtodeeplearning.com/) [[71]](https://introtodeeplearning.com/) for the yearly lab refresh. Everything below adds a specific niche on top.

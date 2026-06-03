@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.77
 duration_sec: 517
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Book [**schanz. hotel.**](https://www.schanz-restaurant.de/en/) — it's the same building as the kitchen [[5]](https://en.bernkastel.de/poi/restaurant-schanz/poi.html), so the taxi problem disappears. If those twelve gourmet-themed rooms are full [[3]](https://www.schanz-restaurant.de/en/hotel/about-the-hotel), the next two character picks are [**Wein- und Tafelhaus**](https://en.visitmosel.de/wine-cuisine/a-culinary-voyage-of-discovery/restaurant-tips/wein-und-tafelhaus) in Trittenheim (7 rooms, fellow Michelin kitchen, ~8 km) [[10]](https://en.visitmosel.de/wine-cuisine/a-culinary-voyage-of-discovery/restaurant-tips/wein-und-tafelhaus) and [**Weinromantikhotel Richtershof**](https://www.weinromantikhotel.com/en/) in Mülheim (300-year winery, 16th-c. cellar, ~11 km) [[13]](https://www.weinromantikhotel.com/en/hotel). For a once-in-a-trip splurge, the riverbank castle [**Schloss Lieser**](https://www.schlosslieser.de/en/) is ~14 km [[17]](https://www.schlosslieser.de/en/).

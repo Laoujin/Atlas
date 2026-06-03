@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.05
 duration_sec: 312
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** "AI" is the umbrella; **LLMs** are one specific flavour of it. The hierarchy is **AI ⊃ Machine Learning ⊃ Deep Learning ⊃ LLMs**[[2]](https://www.ibm.com/think/topics/ai-vs-machine-learning-vs-deep-learning-vs-neural-networks). When people today say "AI", they almost always mean an LLM — a transformer-based neural network trained to predict the next token of text[[3]](https://en.wikipedia.org/wiki/Large_language_model)[[4]](https://aws.amazon.com/what-is/large-language-model/). Everything else on the slide deck (foundation model, RAG, agent, hallucination, prompt injection) is either a property of that LLM, a way of plugging it into something, or a way it goes wrong.

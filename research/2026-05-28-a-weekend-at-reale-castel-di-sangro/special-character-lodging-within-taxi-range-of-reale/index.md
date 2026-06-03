@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.77
 duration_sec: 463
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book [Casadonna][0] first — it's the on-site 16th-century monastery wing of [Reale][1] (3 Michelin stars [[3]](https://guide.michelin.com/en/abruzzo/castel-di-sangro/restaurant/reale)) and a 1-minute walk from the table [[5]](https://www.tripadvisor.co.uk/Hotel_Review-g644239-d3461589-Reviews-Casadonna_Reale-Castel_di_Sangro_Province_of_L_Aquila_Abruzzo.html). Only 10 rooms [[1]](https://www.nikoromito.com/en/casadonna/) and closed 16 Mar–9 Jun 2026 [[4]](https://www.nikoromito.com/en/news/reale-casadonnas-new-season/) — if it's full, the strongest character alternatives within a 3-to-20-minute taxi are [Il Lavatoio Dimora Storica][2] (18th-c washhouse, in-town), [Hotel Il Tiglio][3] (adults-only early-19th-c townhouse, in-town), and [Hotel Le Torri][4] (Palazzo Grilli, 17 min away in Pescocostanzo — one of I Borghi più Belli d'Italia).

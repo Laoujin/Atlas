@@ -35,6 +35,7 @@ duration_sec: 3202
 citations: 118
 reading_time_min: 18
 issue: 133
+model: "Sonnet 4.6"
 ---
 
 The dinner anchor is the first decision because it cascades into neighbourhood, budget headroom, and post-dinner logistics.

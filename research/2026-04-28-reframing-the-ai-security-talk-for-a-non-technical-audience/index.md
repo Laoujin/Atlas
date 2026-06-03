@@ -70,6 +70,7 @@ duration_sec: 3632
 citations: 282
 reading_time_min: 48
 issue: 23
+model: "Opus 4.7"
 ---
 
 > **The single decision.** Keep the title **"ProbLLMs: Why You Can't Trust the Robot"** [[1]](https://github.com/itenium-be/AI-Security-Talk/blob/master/presentation/slides.md), cut the existing deck roughly in half, and graft in four laymen-relevant angles with strong 2026 evidence. Everything below explains why each move survives contact with what the audience actually fears.

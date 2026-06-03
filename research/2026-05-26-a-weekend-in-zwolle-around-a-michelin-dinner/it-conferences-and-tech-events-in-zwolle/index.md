@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.04
 duration_sec: 354
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Zwolle hosts no flagship IT conference. Plan around two recurring meetups (DevPulse, quarterly, free, Sep 3 & Dec 3 2026 [[2]](https://www.meetup.com/dev-pulse/); DevSessions, monthly-ish, free [[1]](https://www.meetup.com/nl-nl/webdevzwolle/)) and a busy two weeks in early-mid June at the Spoorzone / Perron038 hub on Hanzelaan 95B (Demodag Jun 2, Additive Manufacturing Jun 5, Innovation Day Jun 11, Boost Summit Jun 17) [[5]](https://www.spoorzonezwolle.nl/evenementen). For a national-scale tech conference, look to Amsterdam (DEVWorld, DevOpsDays) [[12]](https://devworldconference.com/).

@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 2.03
 duration_sec: 954
+model: "Opus 4.7"
 ---
 
 > **Decision** — Book [Hôtel Régis & Jacques Marcon][r1] (4★, on the restaurant compound, from €430) if you want to roll from tasting menu to bed [[8]](https://boutique.lesmaisonsmarcon.fr/saint-bonnet-le-froid/40-chambre-suite-luxe-1-ou-2-personnes.html). Take [Le Clos des Cimes][r2] (3★, ~500 m, from €175, spa included) for a cheaper Marcon-family room with the same hospitality ecosystem [[4]](https://www.lesmaisonsmarcon.fr/hotel-les-clos-des-cimes/) [[6]](https://www.tripadvisor.com/HotelsNear-g950950-d2196801-Hotel_Regis_et_Jacques_Marcon-Saint_Bonnet_le_Froid_Haute_Loire_Auvergne_Rhone_Alpes.html). Fall back to [Chambres Chatelard][r3] (€130, ~600 m, four-suite chambres d'hôtes with hammam) if the Marcon properties are sold out — reservations there open six months ahead and the gastro hotel is often the bottleneck [[9]](https://www.chambres-chatelard.fr/) [[8]](https://boutique.lesmaisonsmarcon.fr/saint-bonnet-le-froid/40-chambre-suite-luxe-1-ou-2-personnes.html).

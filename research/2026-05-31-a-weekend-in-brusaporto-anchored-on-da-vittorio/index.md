@@ -42,6 +42,7 @@ duration_sec: 2464
 citations: 126
 reading_time_min: 28
 issue: 119
+model: "Opus 4.7"
 ---
 
 A Da Vittorio weekend is a planning problem with one fixed point — Saturday-night dinner at the Cerea brothers' three-Michelin tasting — and three movable pieces around it: where you sleep, what you do, and how you get back from the table. The four sub-topics converge on a clean shape.

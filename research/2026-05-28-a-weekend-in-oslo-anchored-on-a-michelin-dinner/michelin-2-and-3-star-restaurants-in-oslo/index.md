@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.97
 duration_sec: 331
+model: "Opus 4.7"
 ---
 
 > **Decision.** Oslo has exactly two restaurants in scope: [Maaemo][m-site] (3★) and [Kontrast][k-site] (2★). Both are Nordic, both hold a Michelin Green Star. **Anchor the weekend on Maaemo** if you can win the 1st-of-the-month reservation lottery two months out [[7]](https://www.tripadvisor.com/FAQ_Answers-g190479-d2447055-t6331138-Can_you_only_book_via_the_website_90_days_before.html) and the ~NOK 4,500 / 20+ course commitment is desirable [[9]](https://www.top25restaurants.com/europe/norway/restaurant/maaemo-oslo/). Otherwise **Kontrast** at NOK 2,300 is a strong Plan A in its own right, with materially easier availability [[16]](https://restaurantsforkings.com/blog/oslo-best-restaurants-proposal-2026.html).

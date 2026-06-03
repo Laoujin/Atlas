@@ -42,6 +42,7 @@ duration_sec: 2847
 citations: 128
 reading_time_min: 21
 issue: 139
+model: "Sonnet 4.6"
 ---
 
 The **master constraint for this weekend is seasonal alignment**. Aulis shuts from 16 May to 16 November [[1]](https://www.aulisphuket.com/) — essentially the same window that closes both the Similan and Surin marine parks (mid-May to mid-October) [[2]](https://thephuketexpress.com/2025/05/16/similan-and-surin-islands-in-phang-nga-temporarily-closed-for-ecological-recovery/). Every other planning decision flows from fixing the weekend in **November through April**. The next Aulis dinner service opens 17 November 2026; until then, the restaurant is dark.

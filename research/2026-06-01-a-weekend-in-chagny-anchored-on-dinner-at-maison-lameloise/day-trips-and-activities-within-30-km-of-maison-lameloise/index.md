@@ -13,6 +13,7 @@ citations: 81
 reading_time_min: 15
 cost_usd: 9.93
 duration_sec: 1023
+model: "Opus 4.7"
 ---
 
 > **Decision.** Chagny is the geographic pivot of Burgundy — Côte de Beaune to the north, Côte Chalonnaise to the south — so almost every "best of" Burgundy day-trip target fits inside 30 km. If you have one full day, give it to **Beaune** (16 km / 32 min)[[77]](https://www.viamichelin.com/web/Routes/Route-Chagny-71150-Saone_et_Loire-France-to-Beaune-21200-Cote_d_Or-France): Hospices in the morning, négociant cellar in the afternoon, food market on Saturday. If you have a half-day, drive the **Voie des Vignes** from Santenay through Pommard and Meursault — 23 km of vineyard road and bike path between the climats[[37]](https://en.francevelotourisme.com/cycle-route/le-tour-de-bourgogne-by-bike/beaune-santenay). Sunday-quiet day: **Chagny's own Sunday market**[[76]](https://www.valleedelagastronomie.com/en/be-inspired-gourmet-experience/chagny-sunday-market), then a Beaune cellar that's still open (Patriarche, Bouchard Aîné, Marché aux Vins or Jaffelin)[[75]](https://community.ricksteves.com/travel-forum/france/burgundy-on-a-sunday). And before any of this — be back, showered, and hungry by 19:45 for an 8 pm Lameloise dinner; tasting menus run roughly five hours[[73]](https://www.thienlan.me/2014/12/04/la-lameloise-3-star-restaurant-chagny-burgundy-france/).

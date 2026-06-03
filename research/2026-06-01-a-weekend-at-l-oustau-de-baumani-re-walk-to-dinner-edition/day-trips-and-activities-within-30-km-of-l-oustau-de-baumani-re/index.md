@@ -13,6 +13,7 @@ reading_time_min: 12
 cover: cover.svg
 cost_usd: 7.90
 duration_sec: 803
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Walk to the **Château + Carrières des Lumières** straight from Baumanière (≈200 m / 5 min) [[9]](https://www.tripadvisor.com/Attraction_Review-g1819081-d2651179-Reviews-Carrieres_des_Lumieres-Les_Baux_de_Provence_Bouches_du_Rhone_Provence_Alpes_Cote.html). Use **Wednesday for Saint-Rémy** (Van Gogh's asylum + Glanum + the region's biggest Provençal market) [[17]](https://provence-alpes-cotedazur.com/en/things-to-do/events/all-events/weekly-provencal-market-of-saint-remy-de-provence-saint-remy-de-provence-en-2867828/) and **Saturday for Arles** (Roman amphitheatre + LUMA tower + Boulevard des Lices market) [[28]](https://provence-alpes-cotedazur.com/en/things-to-do/events/all-events/market-saturday-morning-arles-en-2879089/). For outdoors: the Mont Gaussier / Rocher des Deux Trous loop from Saint-Paul-de-Mausole is the signature Alpilles hike (8 km, 3 h, 422 m) [[36]](https://www.trailexplorer.eu/en/france/provence-alpes-cote-d-azur/bouches-du-rhone/bouches-du-rhone-walks/1260-mont-gaussier.html) — but check the daily prefectural fire-closure map first from 1 June onward [[40]](https://www.parc-alpilles.fr/actualite/acces-aux-massifs-forestiers/). ⚠ Avignon is a full day, not a half-day [[76]](https://palais-des-papes.com/en/).

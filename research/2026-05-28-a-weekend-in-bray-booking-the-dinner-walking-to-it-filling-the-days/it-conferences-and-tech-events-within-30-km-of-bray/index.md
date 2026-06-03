@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.99
 duration_sec: 450
+model: "Opus 4.7"
 ---
 
 > **TL;DR** — Within 30 km of Bray, the tech-event scene is concentrated in Reading (~20 km west). Free monthly developer meetups cover most of the calendar — **Reading Geek Night** (2nd Tue) [[2]](https://rdggeeknight.wordpress.com/), **Reading Rust Workshop** (2nd Wed) [[11]](https://rustworkshop.co/meetup/), **.NET Thames Valley** (bimonthly) [[5]](https://www.meetup.com/dot-net-thames-valley/) — plus a hybrid **ISC2 Thames Valley** cybersecurity series running 7 dates Apr-Dec 2026 [[7]](https://isc2tvch.co.uk/events.html). For multi-day conferences in radius there are exactly two: **DigiMarCon UK** at Heathrow T5 (3-4 Sep 2026) [[12]](https://digimarconuk.co.uk/) and the **ECMWF Annual Seminar** in Reading on ML for Earth-system assimilation (14-18 Sep 2026) [[13]](https://research.reading.ac.uk/met-darc/news-and-events/conferences/). Anything bigger means a 36-40 km trip to central London.

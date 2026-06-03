@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.38
 duration_sec: 580
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** June is London's peak tech month: [Infosecurity Europe](https://www.infosecurityeurope.com/en-gb.html) (free, 2–4 Jun at ExCeL), [London Tech Week](https://londontechweek.com/) (8–12 Jun, Olympia), and [AI World Congress](https://aiconference.london/) (23–24 Jun, £495) all overlap. For free access at any time of year, also look at Tech Show London (March, ExCeL) and AWS Summit London (April, ExCeL). Developer-focused premium conferences — QCon, Devoxx UK, DevOpsCon — cluster March–May at £650–£2,700. Autumn brings three Gartner summits at ExCeL covering security, apps, and infrastructure.

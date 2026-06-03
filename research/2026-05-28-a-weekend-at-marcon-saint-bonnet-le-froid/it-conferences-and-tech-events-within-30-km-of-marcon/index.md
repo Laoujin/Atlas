@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 3.65
 duration_sec: 640
+model: "Opus 4.7"
 ---
 
 > **TL;DR — Decision:** There are **no IT conferences or tech meetups within 30 km of Marcon** scheduled for the remainder of 2026 (today: 28 May 2026). The only Ardèche AI event of the year — *Routes vers l'IA – Ardèche* at RCCM Saint-Clair, ~28 km from the restaurant — was on **28 April 2026** and is past [[2]](https://campusnumerique.auvergnerhonealpes.fr/evenement/les-routes-vers-lia-2026-ardeche/)[[3]](https://www.ene.fr/evenements/les-routes-vers-lia-saint-clair-07/). Plan the weekend as off-grid; for a real conference, drive ~50–70 km to Saint-Étienne, Le Puy-en-Velay, or Valence, or stretch to Lyon for **DevFest Lyon on 4 Dec 2026** [[16]](https://devfest.gdglyon.com/).

@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.59
 duration_sec: 421
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** Two non-negotiables this year, both UNESCO-listed: the **Bruges Procession of the Holy Blood on Thu 14 May** [[10]](https://www.visitbruges.be/en/whats-on/events-calendar/procession-holy-blood-2026)[[11]](https://ich.unesco.org/en/RL/procession-of-the-holy-blood-in-bruges-00263) and your hometown **Gentse Feesten 17–26 July** [[1]](https://visit.gent.be/en/calendar/ghent-festivities)[[2]](https://en.wikipedia.org/wiki/Gentse_Feesten). The standout 2026-only event is the biennial **Brussels Flower Carpet on the Grand-Place, 13–16 August** (Japan theme) [[19]](https://www.brussels.be/flower-carpet). Heads-up: **Ghent's Light Festival is triennial and skips 2026** — next edition is 2027 [[9]](https://visit.gent.be/en/calendar/ghent-light-festival).

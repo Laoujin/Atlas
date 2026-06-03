@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.75
 duration_sec: 553
+model: "Opus 4.7"
 ---
 
 > **TL;DR / Decision.** For a Saturday at [Cuchara](https://cuchara.be/restaurant/) **(2 MICHELIN Stars, 2026)**[[2]](https://guide.michelin.com/en/be-limburg/lommel/restaurant/cuchara) book **[Hotel Corbie Lommel](https://www.corbielommel.be/)** — Hertog Janplein 68, ~150 m from the restaurant door, and the hotel's own car park is literally Cuchara's recommended overflow parking[[1]](https://cuchara.be/restaurant/)[[4]](https://www.corbielommel.be/). If you want something smaller and quieter, **[Mi Casa Naranja](https://mi-casa-naranja.be/)** at Molsekiezel 24 is a 3-room boutique B&B, ~4 min walk to Cuchara, 4.9★ on TripAdvisor[[7]](https://mi-casa-naranja.be/)[[8]](https://www.tripadvisor.com/Hotel_Review-g641789-d25154526-Reviews-Mi_Casa_Naranja-Lommel_Limburg_Province.html). Cuchara also recommends **'t Wilgenhuys** (~2 km out, ⚠ taxi after dinner) and **Ars Vivendi** (~10 min drive, ✗ not walkable)[[1]](https://cuchara.be/restaurant/) — listed below for completeness.

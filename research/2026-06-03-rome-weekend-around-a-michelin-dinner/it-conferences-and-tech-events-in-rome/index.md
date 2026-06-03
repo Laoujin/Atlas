@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.34
 duration_sec: 593
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Rome's tech calendar runs in two windows. **March–June**: developer-focused events, heavy on free community days — Codemotion Roma (Mar 31, from €159), Cyber 4.0 Forum (Jun 3–4, free), Azure Day (Jun 19, free). **October**: the flagship stretch — [Cybertech Europe](https://italy.cybertechconference.com/) (Oct 13–14, La Nuvola), a Data Science & Cloud Summit (Oct 19–20), and [Maker Faire Rome](https://makerfairerome.eu/en/blog/maker-faire-rome-2026-opens-its-global-call/) (Oct 23–25, Gazometro) arrive back-to-back, ideal for a single autumn trip. Cybersecurity is the deepest track year-round: four distinct events from May through October.

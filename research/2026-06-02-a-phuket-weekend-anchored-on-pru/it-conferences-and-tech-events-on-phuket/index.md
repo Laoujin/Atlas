@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 1.12
 duration_sec: 371
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Phuket is not a tech-conference city — Bangkok owns Thailand's event calendar. The island's one standout recurring tech summit (AI Marketing & SEO, each April) already ran in 2026; the next edition is April 22–24, 2027 [[1]](https://phuketsummit.com/). For the remainder of 2026, the [Global Wellness Summit](https://www.globalwellnesssummit.com/2026-global-wellness-summit/) (Nov 10–13, Angsana Laguna) is the only upcoming Phuket event with meaningful tech/innovation content [[3]](https://www.globalwellnesssummit.com/2026-global-wellness-summit/). The living tech scene on the island is its digital-nomad community, anchored around coworking spaces in Rawai and Patong.

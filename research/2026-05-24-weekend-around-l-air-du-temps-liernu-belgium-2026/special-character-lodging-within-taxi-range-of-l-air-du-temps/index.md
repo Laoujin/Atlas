@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.29
 duration_sec: 435
+model: "Opus 4.7"
 ---
 
 > **Decision.** For walk-to-dinner with zero taxi, book one of L'Air du Temps's own 11 farmstead rooms[[1]](https://qualitylodgings.com/en/lair-du-temps) or [Les Ruines du Château](https://lesruinesduchateau.be/en/welcome/) — two suites inside actual castle ruins, 500 m away[[2]](https://lesruinesduchateau.be/en/welcome/). For a real private château, [Château Bayard](https://chateaubayard.be/en/) — five 17th-century rooms ~5 km off[[4]](https://chateaubayard.be/en/bedrooms). For Namur old-town energy on Sunday, [Les Tanneurs](https://www.tanneurs.com/en/index.php) (15 connected 17th-century tannery houses)[[5]](https://www.tanneurs.com/en/index.php) or [The Royal Snail](https://theroyalsnail.com/en/) (design boutique with pool and spa)[[6]](https://theroyalsnail.com/en/). All within €40 each-way taxi[[7]](https://www.taxiproxi.be/tarif-taxi-departement-namur).

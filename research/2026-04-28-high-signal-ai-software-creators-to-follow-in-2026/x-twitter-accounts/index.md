@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.14
 duration_sec: 363
+model: "Opus 4.7"
 ---
 
 > **TL;DR.** If you only follow five: **[@karpathy](https://x.com/karpathy)** for first-principles AI thinking [[2]](https://x.com/karpathy)[[1]](https://www.kdnuggets.com/10-best-x-twitter-accounts-to-follow-for-llm-updates), **[@simonw](https://x.com/simonw)** for hands-on LLM tooling and the daily blog [[3]](https://x.com/simonw)[[17]](https://x.com/karpathy/status/1933582359347278246), **[@rasbt](https://x.com/rasbt)** (Sebastian Raschka) for from-scratch implementation [[4]](https://x.com/rasbt)[[1]](https://www.kdnuggets.com/10-best-x-twitter-accounts-to-follow-for-llm-updates), **[@_akhaliq](https://x.com/_akhaliq)** (AK) for the arXiv firehose without the noise [[6]](https://x.com/_akhaliq)[[33]](https://arxiv.org/html/2401.13782v3), and **[@GergelyOrosz](https://x.com/GergelyOrosz)** for software-eng industry reality checks [[18]](https://x.com/GergelyOrosz)[[20]](https://www.wearedevelopers.com/en/magazine/294/best-x-twitter-accounts-for-developers). Skip the "AI influencer" lists ranked by follower count — they optimise for volume, not signal.

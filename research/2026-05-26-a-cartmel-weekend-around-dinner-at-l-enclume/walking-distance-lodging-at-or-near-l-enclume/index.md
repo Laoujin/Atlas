@@ -13,6 +13,7 @@ reading_time_min: 4
 cover: cover.svg
 cost_usd: 2.07
 duration_sec: 350
+model: "Opus 4.7"
 ---
 
 > **Decision.** Book a [room with L'Enclume itself](https://www.lenclume.co.uk/our-rooms) first — the rate guarantees your Saturday table and breakfast at Rogan & Co [[2]](https://www.lenclume.co.uk/our-rooms), and every room is a ≤5-minute village walk [[3]](https://www.visitlakedistrict.com/accommodation/our-rooms-by-lenclume-p1839711). If they're sold out, the [Cavendish Arms](https://thecavendisharms.co.uk/) is on the same street as the restaurant [[8]](https://www.coolplaces.co.uk/hotels/uk/england/north-west-england/cumbria/cartmel/10681-the-cavendish-arms), or [Kings Arms](https://kingsarmscartmel.pub/) is 60 paces across the square [[10]](https://kingsarmscartmel.pub/). For more comfort at a 15-min walk: [Aynsome Manor](https://aynsomemanor.com/) (5-star Georgian, complimentary chauffeur) [[14]](https://aynsomemanor.com/) or [Cartmel Old Grammar](https://cartmeloldgrammar.co.uk/) (boutique, by the racecourse) [[12]](https://cartmeloldgrammar.co.uk/).

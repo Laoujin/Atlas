@@ -35,6 +35,7 @@ duration_sec: 1903
 citations: 102
 reading_time_min: 20
 issue: 159
+model: "Sonnet 4.6"
 ---
 
 **The restaurant booking is the critical path** for the entire weekend. Disfrutar's weekend slots fill within hours of the booking window opening — up to 12 months ahead [[1]](https://brightsidetours.com/michelin-star-restaurants-barcelona-2026/); that single constraint sets the planning horizon and, by extension, determines which other timed-entry sites are still bookable in the same session. Sagrada Família and Park Güell are both online-only, timed-entry, and selling out days-to-weeks out during the 2026 Gaudí centenary peak [[2]](https://www.barcelona.com/barcelona-tickets/sagrada-familia)[[3]](https://parkguell.barcelona/en/planning-your-visit/prices-and-times) — booking all three in the same 20-minute window eliminates the biggest friction point of the trip.

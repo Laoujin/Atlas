@@ -13,6 +13,7 @@ reading_time_min: 9
 cover: cover.svg
 cost_usd: 8.13
 duration_sec: 125
+model: "Opus 4.7"
 ---
 
 > **Decision.** Sat AM: Tsukiji outer market 08:00 [[25]](https://getlostinjapan.com/breakfast-at-tsukiji-market/) → Senso-ji 09:30 [[5]](https://matcha-jp.com/en/3759). Sat PM: Meiji Shrine + Harajuku/Omotesando walk into Shibuya [[21]](https://tanuki-tabi-travel.com/blog/shibuya-harajuku-guide), Shibuya Sky sunset slot booked 28 days ahead [[54]](https://shibuyaskytickets.com/). Sat dinner: Michelin anchor. Sun AM: teamLab Borderless or Planets (book ≥ 2 weeks ahead) [[53]](https://www.adamandlinds.com/blog/teamlab-planets-tokyo-tickets-guide/). Sun PM: a contemplative half-day — Hamarikyu + tea at Nakajima [[38]](https://tokyotourists.com/hamarikyu-garden/), or Yanaka old town [[76]](https://www.japan-guide.com/e/e3068.html). Skip Imperial Palace East Gardens (closed Mon/Fri) [[2]](https://www.kunaicho.go.jp/e-event/higashigyoen02.html) and Tsukiji on Sunday [[25]](https://getlostinjapan.com/breakfast-at-tsukiji-market/). For a Tokyo day-trip swap, Kamakura is the cheapest lift [[70]](https://japannook.com/en/articles/tokyo-day-trips-guide); Hakone is the highest reward [[71]](https://www.japan-guide.com/e/e2358_008.html).

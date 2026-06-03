@@ -13,6 +13,7 @@ reading_time_min: 5
 cover: cover.svg
 cost_usd: 2.21
 duration_sec: 393
+model: "Opus 4.7"
 ---
 
 > **TL;DR:** A Skill is a folder with `SKILL.md` (YAML frontmatter + Markdown body) plus optional scripts and reference files. Claude reads only the name/description until a task matches, then loads the body [[1]](https://code.claude.com/docs/en/skills). Use a **Skill** when the workflow has supporting files or you want auto-invocation; a **slash command** when the prompt is one file and triggered manually; **CLAUDE.md** for always-on rules; a **subagent** when you need an isolated context window [[5]](https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/). Skills are an open standard — Cursor, Copilot, Codex, Gemini CLI, OpenHands and 30+ other agents implement the same `SKILL.md` format [[9]](https://agentskills.io).

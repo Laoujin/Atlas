@@ -42,6 +42,7 @@ duration_sec: 3015
 citations: 84
 reading_time_min: 27
 issue: 183
+model: "Sonnet 4.6"
 ---
 
 The four children collectively make one argument: **the harness is not a neutral scaffold.** The same Claude Opus 4 model scores 64.9% vs 57.6% on an identical benchmark task inside two different orchestration scaffolds [[1]](https://dev.to/cristian_iridon_286794874/langgraph-vs-crewai-vs-autogen-in-2026-pick-the-right-ai-agent-framework-or-skip-frameworks-4m2c); on GAIA, the same model spans 74.6% with the right harness to 44.8% bare — a 30-point spread that no model upgrade delivers cleanly [[2]](https://rapidclaw.dev/blog/ai-agent-benchmarks-2026). Framework selection is a performance decision masquerading as an infrastructure one.

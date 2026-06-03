@@ -13,6 +13,7 @@ reading_time_min: 3
 cover: cover.svg
 cost_usd: 1.22
 duration_sec: 396
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** There are no dedicated IT or developer conferences within 30 km of SingleThread. The nearest real developer conference—[North Bay Python](https://northbaypython.org/)—runs once a year in April at ~45 km (Petaluma, outside the radius). If you're planning a Healdsburg weekend around a tech event, **reverse the logic**: check what San Francisco conferences align with your schedule, then book SingleThread as the reward dinner.

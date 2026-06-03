@@ -42,6 +42,7 @@ duration_sec: 2381
 citations: 135
 reading_time_min: 23
 issue: 61
+model: "Opus 4.7"
 ---
 
 Bartholomeus anchors the weekend from a single address — Zeedijk-Heist 267, 8301 Heist-aan-Zee — an 18-seat counter holding two Michelin stars in the 2026 guide and currently ranked #1 of 237 restaurants in Knokke-Heist [[1]](https://guide.michelin.com/us/en/west-vlaanderen/heist/restaurant/bartholomeus) [[2]](https://www.tripadvisor.com/Restaurant_Review-g230021-d741974-Reviews-Bartholomeus_Heist_Aan_Zee-Knokke_Heist_West_Flanders_Province.html). Everything else — beds, Sunday plans, even a possible work pretext — radiates outward from that pin.
