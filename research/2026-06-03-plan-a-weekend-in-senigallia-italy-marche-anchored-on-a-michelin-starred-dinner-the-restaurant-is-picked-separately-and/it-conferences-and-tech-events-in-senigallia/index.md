@@ -11,6 +11,8 @@ summary: "Senigallia has no dedicated annual IT conference; the standout is Fosf
 citations: 15
 reading_time_min: 5
 cover: cover.svg
+cost_usd: 1.46
+duration_sec: 512
 ---
 
 > **TL;DR** Senigallia has no dedicated annual IT conference. The best tech-relevant fixture is [Fosforo](https://fosforo.me/it) — a 4-day science festival every late May with AI talks, 220+ free events, and ~15,000 visitors [[5]](https://fosforo.me/it)[[3]](https://www.senigallianotizie.it/1327661525/fosforo-2026-chiude-con-il-pubblico-delle-grandi-edizioni). Beyond that, the scene is civic digital-literacy talks and a regional dev network ([DevMarche](https://dev.marche.it)) with occasional meetups within 30 km [[10]](https://dev.marche.it/). No vendor expos, hackathons, or developer conferences are scheduled in Senigallia as of mid-2026.
