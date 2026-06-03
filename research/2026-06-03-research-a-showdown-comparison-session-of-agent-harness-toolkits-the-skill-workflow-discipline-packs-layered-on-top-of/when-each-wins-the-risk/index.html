@@ -1,0 +1,352 @@
+---
+title: "Agent Harness Showdown: When Each Wins + the Risk"
+date: 2026-06-03
+depth: standard
+format: html
+topic: "When each wins + the risk"
+topic_raw: "When each wins + the risk"
+issue: 183
+tags: [ai-agents, agent-frameworks, langgraph, crewai, openai-agents, mastra, strands-agents, google-adk, microsoft-agent-framework, risk-assessment, 2026]
+summary: "Framework choice alone swings benchmark scores 30 points on identical models — here is when each of the seven major agent harnesses wins and what breaks in production."
+citations: 18
+reading_time_min: 9
+cover: cover.svg
+cost_usd: "sub"
+duration_sec: 0
+cost_usd: 1.41
+duration_sec: 556
+---
+
+<style>
+.tldr {
+  background: #1e1208;
+  border-left: 3px solid #c1440e;
+  padding: 0.9rem 1.2rem;
+  margin: 0 0 2rem;
+  border-radius: 0 4px 4px 0;
+}
+.tldr strong { color: #e07a5f; }
+
+h2 {
+  color: #e8d5c4;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #2a1608;
+  padding-bottom: 0.3rem;
+  margin: 2.2rem 0 0.8rem;
+}
+
+.scroll-wrap { overflow-x: auto; margin: 0 0 1.5rem; }
+
+.decision-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+  min-width: 700px;
+}
+.decision-table th {
+  background: #150a04;
+  color: #e8d5c4;
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.decision-table td {
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid #2a1608;
+  vertical-align: top;
+}
+.decision-table tr:hover td { background: #1a0e06; }
+.fw-name { font-weight: 600; white-space: nowrap; }
+.fw-name a { color: #e8d5c4; text-decoration: none; }
+.fw-name a:hover { color: #e07a5f; }
+.stars { color: #c1440e; font-size: 0.8rem; display: block; margin-top: 2px; }
+
+.win-col { color: #9ad48e; }
+.pass-col { color: #e07a5f; }
+
+/* Risk grid */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 0.9rem;
+  margin: 0.5rem 0 2rem;
+}
+.risk-card {
+  background: #1a0e06;
+  border: 1px solid #2d1a0a;
+  border-radius: 4px;
+  padding: 0.9rem 1rem;
+}
+.risk-card h3 {
+  margin: 0 0 0.15rem;
+  font-size: 0.97rem;
+  color: #e8d5c4;
+}
+.risk-card h3 a { color: #e8d5c4; text-decoration: none; }
+.risk-card h3 a:hover { color: #e07a5f; }
+.risk-card .stars-sm { color: #c1440e; font-size: 0.78rem; margin-bottom: 0.55rem; display: block; }
+.risk-card ul { margin: 0; padding-left: 1.3rem; }
+.risk-card li { font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.3rem; color: #c8b8a8; }
+.risk-flag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  padding: 0.1rem 0.35rem;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+.flag-high { background: #5c1a0a; color: #e07a5f; }
+.flag-med  { background: #3a2000; color: #d4a040; }
+.flag-lock { background: #1a1040; color: #9090e0; }
+
+/* Universal risks */
+.u-risk-list { list-style: none; padding: 0; margin: 0 0 2rem; }
+.u-risk-list li {
+  border-left: 2px solid #c1440e;
+  padding: 0.55rem 0.8rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.88rem;
+  color: #c8b8a8;
+  line-height: 1.55;
+}
+.u-risk-list li strong { color: #e8d5c4; }
+.u-risk-list .stat { color: #e07a5f; font-weight: 700; }
+
+/* Migration */
+.mig-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin-bottom: 2rem;
+}
+.mig-table th {
+  background: #150a04;
+  color: #e8d5c4;
+  padding: 0.4rem 0.7rem;
+  text-align: left;
+}
+.mig-table td {
+  padding: 0.4rem 0.7rem;
+  border-bottom: 1px solid #2a1608;
+  vertical-align: top;
+  color: #c8b8a8;
+}
+.mig-table tr:hover td { background: #1a0e06; }
+.arrow { color: #c1440e; font-weight: 700; }
+</style>
+
+<div class="tldr">
+  <strong>Decision:</strong> LangGraph when state durability is non-negotiable; CrewAI to have a working demo by Friday (use Flows, not raw crews in prod); Mastra for TypeScript-first backends; Strands/ADK if already AWS/GCP-native; OpenAI Agents SDK only when GPT-committed. The systemic catch: framework choice alone swings benchmark performance <strong>30 points</strong> on identical models,<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup> and <strong>95% of enterprise pilots never reach production</strong> regardless of which framework is picked.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup>
+</div>
+
+<h2>When Each Wins</h2>
+<div class="scroll-wrap">
+<table class="decision-table">
+  <thead>
+    <tr>
+      <th>Framework</th>
+      <th>✓ Pick when</th>
+      <th>✗ Hard pass when</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://www.langchain.com/langgraph">LangGraph</a></span>
+        <span class="stars">⭐ 33.7k <a href="https://github.com/langchain-ai/langgraph" style="color:#8a7060;font-size:0.75rem;">[9]</a></span>
+      </td>
+      <td class="win-col">Production durability required — durable state, human-approval checkpoints, audit trail for compliance. Regulated industries (finance, healthcare). Graph-topology workflows with conditional branching and retries. 96% error-recovery rate on multi-step tasks.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></td>
+      <td class="pass-col">Simple linear single-agent loops with no branching — graph overhead is pure waste. Need a working prototype in hours, not days.<sup><a href="https://particula.tech/blog/langgraph-vs-crewai-vs-openai-agents-sdk-2026">[1]</a></sup></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://www.crewai.com">CrewAI</a></span>
+        <span class="stars">⭐ 52.7k <a href="https://github.com/crewAIInc/crewAI" style="color:#8a7060;font-size:0.75rem;">[10]</a></span>
+      </td>
+      <td class="win-col">Fastest path to working demo (2–4 hours). Workflows that map 1:1 to human specialist roles (researcher, writer, reviewer). First-class MCP integration. 450M monthly workflows in the wild.<sup><a href="https://particula.tech/blog/langgraph-vs-crewai-vs-openai-agents-sdk-2026">[1]</a></sup></td>
+      <td class="pass-col">Complex conditional branching and explicit state snapshots. Running without Flows in production — raw crews have determinism problems within months of going live.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://openai.github.io/openai-agents-python/">OpenAI Agents SDK</a></span>
+        <span class="stars">⭐ 26.9k <a href="https://github.com/openai/openai-agents-python" style="color:#8a7060;font-size:0.75rem;">[11]</a></span>
+      </td>
+      <td class="win-col">Linear triage/handoff chains (Triage → Billing → Tech Support). Sandboxed code execution without third-party container wiring. GPT-committed team wanting &lt;100 lines to a working system.<sup><a href="https://particula.tech/blog/langgraph-vs-crewai-vs-openai-agents-sdk-2026">[1]</a></sup></td>
+      <td class="pass-col">Need model flexibility (Claude, Gemini, open-source). Long-horizon workflows requiring durable checkpoints. TypeScript teams — support is "planned" with no timeline.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://mastra.ai">Mastra</a></span>
+        <span class="stars">⭐ 24.7k <a href="https://github.com/mastra-ai/mastra" style="color:#8a7060;font-size:0.75rem;">[12]</a></span>
+      </td>
+      <td class="win-col">TypeScript-first backend agents needing memory, evaluation, and HITL in one package. Multi-step workflows where some steps should be deterministic TypeScript and others LLM-driven. Production features (observability, evals) from day one.<sup><a href="https://dev.to/gabrielanhaia/mastra-in-2026-what-it-is-when-to-use-it-and-how-it-compares-2go1">[8]</a></sup></td>
+      <td class="pass-col">Python-first teams. Thin chat layer or single model call — framework overhead is unwarranted.<sup><a href="https://www.developersdigest.tech/blog/mastra-durable-typescript-agents">[18]</a></sup></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://strandsagents.com">Strands Agents</a></span>
+        <span class="stars">⭐ 6.0k <a href="https://github.com/strands-agents/harness-sdk" style="color:#8a7060;font-size:0.75rem;">[15]</a></span>
+      </td>
+      <td class="win-col">AWS-native teams (used in production by Amazon Q Developer, AWS Glue). Dynamic, unpredictable domains where you can't enumerate all workflows upfront. Model-driven orchestration preferred over hardcoded graphs.<sup><a href="https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/">[6]</a></sup></td>
+      <td class="pass-col">Compliance mandates requiring deterministic execution paths. Systems needing mandatory checkpoints and audit trails.<sup><a href="https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/">[6]</a></sup></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://cloud.google.com/products/agent-builder">Google ADK</a></span>
+        <span class="stars">⭐ 20.0k <a href="https://github.com/google/adk-python" style="color:#8a7060;font-size:0.75rem;">[13]</a></span>
+      </td>
+      <td class="win-col">GCP-native enterprise teams. Polyglot requirements (Python, TypeScript, Go, Java in one orchestration layer). A2A protocol needed for agent interoperability. One-command path to Vertex AI Agent Engine, Cloud Run, or GKE.<sup><a href="https://futureagi.com/blog/what-is-google-adk-2026">[17]</a></sup></td>
+      <td class="pass-col">Off-GCP deployments where Google Cloud costs are a problem. MCP-native integrations needed — ADK uses adapters, not native MCP.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="fw-name"><a href="https://github.com/microsoft/agent-framework">MS Agent Framework</a></span>
+        <span class="stars">⭐ 11.0k <a href="https://github.com/microsoft/agent-framework" style="color:#8a7060;font-size:0.75rem;">[14]</a></span>
+      </td>
+      <td class="win-col">Azure/M365 ecosystem with Microsoft 365, Graph API, Entra, or Fabric integrations. Native Python + .NET interop in one orchestration layer. Multi-agent deliberation where quality beats latency.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></td>
+      <td class="pass-col">Cost-sensitive applications — GroupChat generates 20+ LLM calls per interaction. Off-Azure footprint.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Risk Profiles</h2>
+<div class="risk-grid">
+
+  <div class="risk-card">
+    <h3><a href="https://www.langchain.com/langgraph">LangGraph</a></h3>
+    <span class="stars-sm">⭐ 33.7k</span>
+    <ul>
+      <li><span class="risk-flag flag-med">complexity</span> Graph state design is irreversible — retrofitting adds costs proportional to the original build.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup></li>
+      <li><span class="risk-flag flag-med">latency</span> LangChain dependency pulls in a heavy abstraction stack, increasing bundle size and inference overhead.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></li>
+      <li><span class="risk-flag flag-high">ops</span> Free tier caps at 100K node executions/month; self-hosting the platform requires an enterprise contract.<sup><a href="https://madappgang.com/blog/ai-agent-framework-decision-guide-2026/">[5]</a></sup></li>
+      <li><span class="risk-flag flag-med">maintenance</span> State schema migrations are painful as domain requirements evolve.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></li>
+    </ul>
+  </div>
+
+  <div class="risk-card">
+    <h3><a href="https://www.crewai.com">CrewAI</a></h3>
+    <span class="stars-sm">⭐ 52.7k</span>
+    <ul>
+      <li><span class="risk-flag flag-high">cost</span> Up to 3× higher token consumption than LangGraph on simple single-tool workflows — a silent cost multiplier at scale.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup></li>
+      <li><span class="risk-flag flag-high">debug</span> Without Flows, control flow is encoded into agent prompts — debugging is prompt editing, not state inspection.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></li>
+      <li><span class="risk-flag flag-high">ops</span> Delegation loops consume tokens with no built-in circuit-breaker; standard Python logging doesn't propagate cleanly inside Task callbacks.<sup><a href="https://particula.tech/blog/langgraph-vs-crewai-vs-openai-agents-sdk-2026">[1]</a></sup></li>
+      <li><span class="risk-flag flag-med">price</span> AMP Suite (enterprise governance) costs $120K/year; open-source lacks SOC 2 and RBAC needed by regulated buyers.<sup><a href="https://madappgang.com/blog/ai-agent-framework-decision-guide-2026/">[5]</a></sup></li>
+      <li><span class="risk-flag flag-med">ops</span> Enterprise deployments report 20-minute delays in "Pending Run" status at peak load.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup></li>
+    </ul>
+  </div>
+
+  <div class="risk-card">
+    <h3><a href="https://openai.github.io/openai-agents-python/">OpenAI Agents SDK</a></h3>
+    <span class="stars-sm">⭐ 26.9k</span>
+    <ul>
+      <li><span class="risk-flag flag-lock">lock-in</span> Hosted tools (Threads, Vector Stores, Code Interpreter) store data on OpenAI's platform — migration is data migration, not just code rewrite.<sup><a href="https://zylos.ai/research/2026-04-05-ai-agent-ecosystem-fragmentation-platform-lock-in-portability">[7]</a></sup></li>
+      <li><span class="risk-flag flag-high">durability</span> No native state persistence — a mid-handoff crash loses all conversation context without custom checkpointing infrastructure.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></li>
+      <li><span class="risk-flag flag-med">platform</span> Python-only as of June 2026; TypeScript support has no committed timeline.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></li>
+      <li><span class="risk-flag flag-med">ops</span> GPT model deprecations force system rewrites; pricing changes are outside your control.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></li>
+    </ul>
+  </div>
+
+  <div class="risk-card">
+    <h3><a href="https://mastra.ai">Mastra</a></h3>
+    <span class="stars-sm">⭐ 24.7k</span>
+    <ul>
+      <li><span class="risk-flag flag-med">ecosystem</span> TypeScript-only — Python-first or data-science teams need a language boundary in their stack.<sup><a href="https://dev.to/gabrielanhaia/mastra-in-2026-what-it-is-when-to-use-it-and-how-it-compares-2go1">[8]</a></sup></li>
+      <li><span class="risk-flag flag-med">maturity</span> Younger ecosystem — fewer copy-paste answers, more first-principles debugging.<sup><a href="https://www.developersdigest.tech/blog/mastra-durable-typescript-agents">[18]</a></sup></li>
+      <li><span class="risk-flag flag-med">deps</span> Peer dependency conflicts with AI SDK versions have caused friction in upgrades.<sup><a href="https://dev.to/gabrielanhaia/mastra-in-2026-what-it-is-when-to-use-it-and-how-it-compares-2go1">[8]</a></sup></li>
+      <li><span class="risk-flag flag-high">cost</span> Naive conversation memory grows linearly — context window overflows silently inflate token costs as sessions lengthen.<sup><a href="https://www.developersdigest.tech/blog/mastra-durable-typescript-agents">[18]</a></sup></li>
+    </ul>
+  </div>
+
+  <div class="risk-card">
+    <h3><a href="https://strandsagents.com">Strands Agents</a></h3>
+    <span class="stars-sm">⭐ 6.0k</span>
+    <ul>
+      <li><span class="risk-flag flag-high">determinism</span> Non-deterministic by design — traditional unit tests are insufficient; continuous LLM-as-judge evaluation and statistical baselines are required.<sup><a href="https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/">[6]</a></sup></li>
+      <li><span class="risk-flag flag-high">architecture</span> Orchestrator agent is a SPOF — one bad routing decision propagates through all downstream specialists with no graph-level guard.<sup><a href="https://gurusup.com/blog/best-multi-agent-frameworks-2026">[16]</a></sup></li>
+      <li><span class="risk-flag flag-med">maturity</span> Launched May 2025; fewer battle-tested patterns than LangGraph or CrewAI at equivalent scale.<sup><a href="https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/">[6]</a></sup></li>
+    </ul>
+  </div>
+
+  <div class="risk-card">
+    <h3><a href="https://cloud.google.com/products/agent-builder">Google ADK</a></h3>
+    <span class="stars-sm">⭐ 20.0k</span>
+    <ul>
+      <li><span class="risk-flag flag-lock">lock-in</span> Apache 2.0 license obscures GCP pull — Gemini-optimized internals and experimental MCP adapter (not native) create friction when running off Google Cloud.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></li>
+      <li><span class="risk-flag flag-med">maturity</span> Visual Builder is experimental; smaller community → fewer battle-tested multi-language patterns.<sup><a href="https://madappgang.com/blog/ai-agent-framework-decision-guide-2026/">[5]</a></sup></li>
+      <li><span class="risk-flag flag-med">ops</span> Go/Java agent support adds operational complexity that Python/TS-only shops often underestimate.<sup><a href="https://futureagi.com/blog/what-is-google-adk-2026">[17]</a></sup></li>
+    </ul>
+  </div>
+
+  <div class="risk-card">
+    <h3><a href="https://github.com/microsoft/agent-framework">MS Agent Framework</a></h3>
+    <span class="stars-sm">⭐ 11.0k</span>
+    <ul>
+      <li><span class="risk-flag flag-high">cost</span> GroupChat pattern generates 20+ LLM calls per interaction through accumulated history — cost balloons in any scenario with extended deliberation.<sup><a href="https://www.morphllm.com/ai-agent-framework">[3]</a></sup></li>
+      <li><span class="risk-flag flag-lock">lock-in</span> Distributed actor model uses Azure Cosmos DB for durability — cross-cloud portability requires rebuilding the state layer.<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></li>
+      <li><span class="risk-flag flag-med">migration</span> Migration from AutoGen/Semantic Kernel creates technical debt; AutoGen entered maintenance mode October 2025.<sup><a href="https://madappgang.com/blog/ai-agent-framework-decision-guide-2026/">[5]</a></sup></li>
+    </ul>
+  </div>
+
+</div>
+
+<h2>Universal Risks (Framework-Agnostic)</h2>
+<ul class="u-risk-list">
+  <li>
+    <strong>The 30-point orchestration gap.</strong> Framework choice alone moves benchmark performance by <span class="stat">up to 30 points</span> on identical models — Claude Opus 4 scored 64.9% vs 57.6% on GAIA across different orchestration scaffolds (Princeton HAL). A generational model upgrade rarely delivers this spread.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup>
+  </li>
+  <li>
+    <strong>Lab-to-production collapse.</strong> The CLEAR framework documents a <span class="stat">37% average gap</span> between lab benchmark scores and production deployment performance. Public leaderboards hide this failure mode entirely — a framework that tops your benchmark suite may behave very differently once real users drive it.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup>
+  </li>
+  <li>
+    <strong>The 5% survival rate.</strong> MIT analysis of 300+ enterprise implementations found only <span class="stat">~5% move from pilot to production</span>. Root causes: absent observability, missing HITL primitives, no cost discipline from day one — not framework choice itself. Any framework picked without these foundations will fail.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup>
+  </li>
+  <li>
+    <strong>State management lock-in.</strong> The hardest lock-in to escape is not code — it's state history. An enterprise that builds six months of customer interaction history on a platform-native stateful runtime cannot migrate to a different model provider without rebuilding the memory layer from scratch.<sup><a href="https://zylos.ai/research/2026-04-05-ai-agent-ecosystem-fragmentation-platform-lock-in-portability">[7]</a></sup>
+  </li>
+  <li>
+    <strong>Token cost multiplication.</strong> LLM API calls are <span class="stat">40–60% of total agent operating costs</span>. A framework adding 40% token overhead doesn't increase costs by 40% — it nearly doubles the largest line item. CrewAI's role-playing overhead (3× vs LangGraph on simple workflows) is the most common surprise in first production invoices.<sup><a href="https://uvik.net/blog/agentic-ai-frameworks/">[4]</a></sup>
+  </li>
+</ul>
+
+<h2>Migration Patterns</h2>
+<table class="mig-table">
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Trigger</th>
+      <th>Effort</th>
+      <th>Key step</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="arrow">CrewAI → LangGraph</span></td>
+      <td>Control-flow ceiling hit in prod; token costs spiking; debugging via prompt editing</td>
+      <td>1–2 weeks (moderate complexity)</td>
+      <td>Map each crew to a node, convert process type to explicit graph edges, move shared context to LangGraph's typed state object<sup><a href="https://particula.tech/blog/langgraph-vs-crewai-vs-openai-agents-sdk-2026">[1]</a></sup></td>
+    </tr>
+    <tr>
+      <td><span class="arrow">OpenAI SDK → LangGraph</span></td>
+      <td>Model flexibility needed; long-horizon state; handoff chain becomes a branching graph</td>
+      <td>1–3 weeks depending on handoff depth</td>
+      <td>Replace handoff objects with graph edges; add checkpoint backend (Postgres/Redis); extract OpenAI-specific tool schemas to model-agnostic format<sup><a href="https://www.codebridge.tech/articles/choosing-a-multi-agent-framework-langgraph-crewai-microsoft-agent-framework-or-openai-agents-sdk">[2]</a></sup></td>
+    </tr>
+    <tr>
+      <td><span class="arrow">AutoGen → MS Agent Framework</span></td>
+      <td>AutoGen maintenance-mode announcement (Oct 2025); Azure ecosystem investment</td>
+      <td>Weeks to months (actor model rewrite)</td>
+      <td>Microsoft provides a migration guide; GroupChat patterns map to distributed actor conversations; existing Semantic Kernel skills plug in directly<sup><a href="https://madappgang.com/blog/ai-agent-framework-decision-guide-2026/">[5]</a></sup></td>
+    </tr>
+    <tr>
+      <td><span class="arrow">Any → Strands/ADK</span></td>
+      <td>AWS or GCP commitment; existing framework too rigid for dynamic requirements</td>
+      <td>Low if on respective cloud; high if off-cloud</td>
+      <td>Port tools as typed functions; replace graph edges with model-driven routing; plan for eval infrastructure from day one<sup><a href="https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/">[6]</a></sup></td>
+    </tr>
+  </tbody>
+</table>
