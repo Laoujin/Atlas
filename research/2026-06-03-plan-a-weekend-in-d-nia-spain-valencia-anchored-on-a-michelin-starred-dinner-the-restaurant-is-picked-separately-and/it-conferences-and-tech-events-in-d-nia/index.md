@@ -11,6 +11,9 @@ summary: "Dénia itself has no standalone IT conference circuit — just a month
 citations: 16
 reading_time_min: 4
 cover: cover.svg
+cost_usd: 1.38
+duration_sec: 437
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** There is no IT conference scene *in* Dénia proper. The town's tech footprint is a monthly WordPress meetup (631 members, 61 events held [[1]](https://wpdenia.com)[[2]](https://www.meetup.com/es-es/wordpress-marina-alta/)) and a freshly-launched annual student hackathon [[3]](https://deniadigital.es/art/22586/el-i-hackathon-intercentros-marina-alta-reune-en-denia-a-alumnado-y-empresas-en-torno-a-retos-reales). For conferences, look 90 km up the coast: Valencia hosts the [Valencia Digital Summit](https://vds.tech) (12,000+ attendees) and [PGConf.EU](https://2026.pgconf.eu) on the same October 20-23 window — both a day-trip or overnight from Dénia.
