@@ -1,0 +1,6 @@
+Iconic must-see sights and viewpoints (Victoria Peak, Star Ferry, Symphony of Lights, Big Buddha / Ngong Ping 360)
+Neighborhoods and markets to wander (Central, Sheung Wan, Mong Kok, Sham Shui Po, Temple Street, PMQ, Tai Kwun)
+Food experiences beyond fine dining (dim sum, cha chaan teng, street food, budget Michelin, wet markets)
+Outdoors and day trips (Dragon's Back hike, outlying islands — Lamma, Lantau, Cheung Chau — beaches)
+Culture, museums, temples, art (M+, Hong Kong Palace Museum, Man Mo Temple, Wong Tai Sin, Tai Kwun art)
+Practical planning (MTR / Octopus / Airport Express, where to stay, June 2026 weather and events, weekend itinerary)
