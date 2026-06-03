@@ -10,6 +10,7 @@ tags: [phuket, thailand, tech-events, conferences, digital-nomad, southeast-asia
 summary: "Phuket has one recurring weekly tech mixer and an annual AI marketing summit; all major IT conferences are in Bangkok, 1–1.5 hrs by flight."
 citations: 18
 reading_time_min: 4
+cover: cover.svg
 cost_usd: 1.28
 duration_sec: 832
 model: "Sonnet 4.6"

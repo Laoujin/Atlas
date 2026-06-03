@@ -10,6 +10,7 @@ tags: [stockholm, sweden, travel, weekend, archipelago, museums]
 summary: "Late-May Stockholm weekend plan: Vasa + one of Skansen/Fotografiska/Moderna, a Djurgården-Söder-Gamla Stan day, a half-day archipelago run to Vaxholm or Fjäderholmarna, plus fika, terraces and 18-hour daylight to use up."
 citations: 78
 reading_time_min: 11
+cover: cover.svg
 cost_usd: 8.34
 duration_sec: 913
 model: "Opus 4.7"
