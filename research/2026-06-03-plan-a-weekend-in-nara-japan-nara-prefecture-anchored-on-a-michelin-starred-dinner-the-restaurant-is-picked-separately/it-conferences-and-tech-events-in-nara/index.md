@@ -11,6 +11,8 @@ summary: "Nara hosts two upcoming academic IT conferences in late 2026 (WSSE in 
 citations: 17
 reading_time_min: 4
 cover: cover.svg
+cost_usd: 1.53
+duration_sec: 441
 ---
 
 > **TL;DR** — Nara's 2026 IT calendar is small but real: two peer-reviewed academic conferences at [Nara Women's University](https://www.nara-wu.ac.jp/index-e.html) in October and December, plus a respected distributed-computing conference that ran in January (now past). If you are a practitioner looking for developer meetups, workshops, or industry expos, Osaka (40 min) and Kyoto (35 min) will serve you better. [[16]](https://japan-dev.com/blog/best-tech-conference-in-japan)
