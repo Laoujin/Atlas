@@ -11,6 +11,9 @@ summary: "GDG Taichung runs free monthly AI workshops and an annual DevFest at F
 citations: 15
 reading_time_min: 4
 cover: cover.svg
+cost_usd: 1.82
+duration_sec: 661
+model: "Sonnet 4.6"
 ---
 
 > **TL;DR** Taichung's dev scene is lean but active. [GDG Taichung](https://gdg.community.dev/gdg-taichung/) anchors it with free monthly **Build with AI** workshops and an annual **DevFest** (~250 attendees, November, Feng Chia University) [[1]](https://gdg.community.dev/gdg-taichung/)[[2]](https://gdg.community.dev/events/details/google-gdg-taichung-presents-devfest-taichung-2025/). Enterprise / industry events are growing fast around the **TICEC** convention center that opened March 2026 [[6]](https://focustaiwan.tw/ad/20260331000001). National marquee events — COMPUTEX, COSCUP — stay in Taipei (50 min by HSR).
