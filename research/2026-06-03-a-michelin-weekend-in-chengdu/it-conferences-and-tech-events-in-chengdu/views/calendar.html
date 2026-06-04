@@ -1,0 +1,651 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences and Tech Events in Chengdu — Calendar"
+---
+
+<style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --surface2: #1c2128;
+    --border:   #30363d;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --faint:    #484f58;
+
+    --clr-security: #ff7b72;
+    --clr-media:    #d2a8ff;
+    --clr-academic: #79c0ff;
+    --clr-expo:     #ffa657;
+    --clr-industry: #3fb950;
+    --clr-community:#7c8898;
+    --clr-peak:     #f78166;
+  }
+
+  .cal-wrap {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    padding: 2rem 1.5rem 3rem;
+    margin: 0;
+    max-width: 1100px;
+  }
+
+  /* ─── HEADER ──────────────────────────────────────────────────── */
+  .cal-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .cal-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 .4rem;
+    letter-spacing: -.02em;
+  }
+  .cal-header .tagline {
+    color: var(--muted);
+    font-size: .88rem;
+    margin: 0 0 .9rem;
+  }
+  .stats-row {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: .25rem .75rem;
+    font-size: .8rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .stat-pill strong { color: var(--text); }
+  .stat-pill.peak { border-color: var(--clr-peak); color: var(--clr-peak); }
+
+  /* ─── LEGEND ──────────────────────────────────────────────────── */
+  .legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+    font-size: .78rem;
+    color: var(--muted);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ─── CALENDAR GRID ───────────────────────────────────────────── */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .75rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .month-cell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .75rem .85rem .8rem;
+    min-height: 90px;
+    position: relative;
+    transition: border-color .15s;
+  }
+  .month-cell.has-events {
+    background: var(--surface2);
+  }
+  .month-cell.is-peak {
+    border-color: var(--clr-peak);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--clr-peak) 20%, transparent);
+  }
+
+  .month-name {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .55rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .peak-badge {
+    background: var(--clr-peak);
+    color: #fff;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    padding: .1rem .4rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .event-pills {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+  .epill {
+    display: flex;
+    align-items: baseline;
+    gap: .4rem;
+    font-size: .72rem;
+    line-height: 1.3;
+  }
+  .epill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .epill-text { color: var(--text); }
+  .epill-date { color: var(--faint); font-size: .65rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .ongoing-pill {
+    font-size: .66rem;
+    color: var(--clr-community);
+    padding: .15rem .5rem;
+    border: 1px solid color-mix(in srgb, var(--clr-community) 40%, transparent);
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: .25rem;
+  }
+
+  .no-events {
+    color: var(--faint);
+    font-size: .7rem;
+    font-style: italic;
+  }
+
+  /* ─── PEAK CALLOUT BAR ────────────────────────────────────────── */
+  .peak-bar {
+    background: color-mix(in srgb, var(--clr-peak) 8%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--clr-peak) 30%, transparent);
+    border-radius: 8px;
+    padding: .85rem 1.1rem;
+    margin-bottom: 2rem;
+    font-size: .85rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .peak-bar .peak-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .peak-bar p { margin: 0; color: var(--muted); }
+  .peak-bar strong { color: var(--clr-peak); }
+
+  /* ─── EVENT CARDS ─────────────────────────────────────────────── */
+  .section-title {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 1rem;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: .85rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .event-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .event-card:hover { border-color: var(--faint); }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+  .card-date {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: .72rem;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: .2rem .5rem;
+    white-space: nowrap;
+  }
+  .type-badge {
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .2rem .55rem;
+    border-radius: 100px;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+  .tb-security { color: var(--clr-security); border-color: color-mix(in srgb, var(--clr-security) 40%, transparent); background: color-mix(in srgb, var(--clr-security) 8%, transparent); }
+  .tb-media    { color: var(--clr-media);    border-color: color-mix(in srgb, var(--clr-media)    40%, transparent); background: color-mix(in srgb, var(--clr-media)    8%, transparent); }
+  .tb-academic { color: var(--clr-academic); border-color: color-mix(in srgb, var(--clr-academic) 40%, transparent); background: color-mix(in srgb, var(--clr-academic) 8%, transparent); }
+  .tb-expo     { color: var(--clr-expo);     border-color: color-mix(in srgb, var(--clr-expo)     40%, transparent); background: color-mix(in srgb, var(--clr-expo)     8%, transparent); }
+  .tb-industry { color: var(--clr-industry); border-color: color-mix(in srgb, var(--clr-industry) 40%, transparent); background: color-mix(in srgb, var(--clr-industry) 8%, transparent); }
+  .tb-community{ color: var(--clr-community);border-color: color-mix(in srgb, var(--clr-community)40%, transparent); background: color-mix(in srgb, var(--clr-community) 8%, transparent); }
+
+  .card-title {
+    font-size: .92rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0;
+  }
+  .card-title a { color: var(--text); text-decoration: none; }
+  .card-title a:hover { color: var(--clr-academic); text-decoration: underline; }
+
+  .card-venue {
+    font-size: .75rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+  }
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+  }
+  .ctag {
+    font-size: .67rem;
+    color: var(--faint);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .1rem .45rem;
+  }
+  .card-note {
+    font-size: .73rem;
+    color: var(--muted);
+    border-left: 2px solid var(--border);
+    padding-left: .6rem;
+    margin-top: .1rem;
+  }
+  .card-note a { color: var(--muted); }
+  .card-note .warn { color: var(--clr-expo); }
+
+  /* ─── CONTEXT ROW ─────────────────────────────────────────────── */
+  .context-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: .75rem;
+    margin-bottom: 1.75rem;
+  }
+  .ctx-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .85rem 1rem;
+  }
+  .ctx-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: -.04em;
+    margin-bottom: .2rem;
+  }
+  .ctx-label {
+    font-size: .72rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* ─── FOOTER ──────────────────────────────────────────────────── */
+  .cal-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+    font-size: .73rem;
+    color: var(--faint);
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .cal-footer a { color: var(--faint); text-decoration: none; }
+  .cal-footer a:hover { color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .cal-grid { grid-template-columns: repeat(2, 1fr); }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="cal-wrap">
+
+  <!-- HEADER -->
+  <div class="cal-header">
+    <h1>Chengdu Tech Events · 2026</h1>
+    <p class="tagline">8 events on the calendar — industry-heavy, Chinese-language by default, with English-friendly IEEE academic tracks</p>
+    <div class="stats-row">
+      <span class="stat-pill peak"><strong>April</strong> — 3-event peak</span>
+      <span class="stat-pill peak"><strong>July</strong> — 2-event peak</span>
+      <span class="stat-pill"><strong>8</strong> scheduled events</span>
+      <span class="stat-pill"><strong>C3 Security</strong> — 8-year streak</span>
+      <span class="stat-pill"><strong>12,000+</strong> Audio-Visual attendees</span>
+      <span class="stat-pill"><strong>80,000</strong> Consumer Electronics visitors</span>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--clr-security)"></div> Security</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--clr-media)"></div> AI / Media</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--clr-academic)"></div> Academic (IEEE)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--clr-expo)"></div> Electronics Expo</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--clr-industry)"></div> Industrial / Mfg</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--clr-community)"></div> Community</div>
+  </div>
+
+  <!-- MONTH GRID -->
+  <div class="cal-grid">
+
+    <!-- January -->
+    <div class="month-cell">
+      <div class="month-name">January</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- February -->
+    <div class="month-cell">
+      <div class="month-name">February</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- March -->
+    <div class="month-cell has-events">
+      <div class="month-name">March</div>
+      <div class="event-pills">
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-industry)"></div>
+          <span class="epill-text">CDIIF Industrial Expo</span>
+          <span class="epill-date">11–13</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- April — PEAK -->
+    <div class="month-cell has-events is-peak">
+      <div class="month-name">April <span class="peak-badge">Peak</span></div>
+      <div class="event-pills">
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-media)"></div>
+          <span class="epill-text">Audio-Visual Conference</span>
+          <span class="epill-date">14–16</span>
+        </div>
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-security)"></div>
+          <span class="epill-text">C3 Security 2026</span>
+          <span class="epill-date">17–18</span>
+        </div>
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-academic)"></div>
+          <span class="epill-text">IEEE ICCCBDA</span>
+          <span class="epill-date">24–26</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- May -->
+    <div class="month-cell">
+      <div class="month-name">May</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- June -->
+    <div class="month-cell has-events">
+      <div class="month-name">June</div>
+      <div class="event-pills">
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-academic)"></div>
+          <span class="epill-text">IEEE ICAICI</span>
+          <span class="epill-date">12–14</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- July — PEAK -->
+    <div class="month-cell has-events is-peak">
+      <div class="month-name">July <span class="peak-badge">Peak</span></div>
+      <div class="event-pills">
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-expo)"></div>
+          <span class="epill-text">Electronic Info Expo</span>
+          <span class="epill-date">8–10 ⚠</span>
+        </div>
+        <div class="epill">
+          <div class="epill-dot" style="background:var(--clr-expo)"></div>
+          <span class="epill-text">Consumer Electronics</span>
+          <span class="epill-date">15–17</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- August -->
+    <div class="month-cell">
+      <div class="month-name">August</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- September -->
+    <div class="month-cell">
+      <div class="month-name">September</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- October -->
+    <div class="month-cell">
+      <div class="month-name">October</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- November -->
+    <div class="month-cell">
+      <div class="month-name">November</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+    <!-- December -->
+    <div class="month-cell">
+      <div class="month-name">December</div>
+      <div class="no-events">No scheduled events</div>
+    </div>
+
+  </div><!-- /cal-grid -->
+
+  <!-- PEAK CALLOUT -->
+  <div class="peak-bar">
+    <div class="peak-icon">📅</div>
+    <p><strong>April</strong> is the highest-density window: three overlapping events in 13 days — a 12,000-person AI-media conference (Apr 14–16), the 8-year-old C3 Security summit (Apr 17–18), and an IEEE academic track (Apr 24–26). <strong>July</strong> brings two large-scale electronics expos at Century City — B2B semiconductors then B2C gadgets. All other months are quiet or carry only community forums.</p>
+  </div>
+
+  <!-- EVENT CARDS -->
+  <div class="section-title">2026 Events — detail</div>
+  <div class="cards-grid">
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Mar 11–13</span>
+        <span class="type-badge tb-industry">Industrial</span>
+      </div>
+      <p class="card-title"><a href="https://www.cdiif.com/">Chengdu Intl Industrial Expo (CDIIF)</a></p>
+      <div class="card-venue">📍 Western China International Expo City, Tianfu New District</div>
+      <div class="card-tags">
+        <span class="ctag">Robotics</span>
+        <span class="ctag">Humanoid bots</span>
+        <span class="ctag">Smart mfg</span>
+        <span class="ctag">Edge IT</span>
+      </div>
+      <div class="card-note">60,000 m² · 800 exhibitors · 60,000 visitors <sup><a href="https://www.cdiif.com/">[2]</a></sup>. "Opening industrial event of Chengdu-Chongqing economic circle."</div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Apr 14–16</span>
+        <span class="type-badge tb-media">AI / Media</span>
+      </div>
+      <p class="card-title"><a href="https://www.nrta.gov.cn/art/2026/4/15/art_112_73087.html">13th China Network Audio-Visual Conference</a></p>
+      <div class="card-venue">📍 Century City International Conference Center, Wuhou District</div>
+      <div class="card-tags">
+        <span class="ctag">AI content gen</span>
+        <span class="ctag">Virtual production</span>
+        <span class="ctag">Micro-drama</span>
+        <span class="ctag">Streaming</span>
+      </div>
+      <div class="card-note">12,000+ attendees · 4,000+ institutions <sup><a href="https://www.nrta.gov.cn/art/2026/4/15/art_112_73087.html">[3]</a></sup>. Chengdu permanent host since 2016 <sup><a href="https://www.eeo.com.cn/2026/0415/838876.shtml">[4]</a></sup>. Organised by China's NRTA. Chinese-language.</div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Apr 17–18</span>
+        <span class="type-badge tb-security">Security</span>
+      </div>
+      <p class="card-title"><a href="https://www.asiainfo.com/en_us/content_5119.html">C3 Security Conference 2026</a></p>
+      <div class="card-venue">📍 Tianfu International Convention Center, Tianfu New District</div>
+      <div class="card-tags">
+        <span class="ctag">AI security</span>
+        <span class="ctag">Internet of Agents</span>
+        <span class="ctag">Telecom sec</span>
+        <span class="ctag">Data governance</span>
+      </div>
+      <div class="card-note">8th edition · Sponsors: Huawei, Alibaba Cloud, Baidu <sup><a href="https://www.asiainfo.com/en_us/content_5119.html">[5]</a></sup>. Theme: "Thriving with AI." Chinese-language industry practitioners.</div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Apr 24–26</span>
+        <span class="type-badge tb-academic">Academic</span>
+      </div>
+      <p class="card-title"><a href="https://icccbda.com/welcome.html">IEEE ICCCBDA 2026</a></p>
+      <div class="card-venue">📍 Tibet Hotel, Chengdu</div>
+      <div class="card-tags">
+        <span class="ctag">Cloud computing</span>
+        <span class="ctag">Big data</span>
+        <span class="ctag">EI Compendex</span>
+        <span class="ctag">Scopus</span>
+      </div>
+      <div class="card-note">11th edition · Co-sponsored by Sichuan Institute of Electronics &amp; IEEE <sup><a href="https://icccbda.com/welcome.html">[6]</a></sup>. <strong>English-friendly.</strong> Proceedings on IEEE Xplore.</div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Jun 12–14</span>
+        <span class="type-badge tb-academic">Academic</span>
+      </div>
+      <p class="card-title"><a href="https://www.researchgate.net/post/CFP_IEEE_2026_International_Conference_on_Artificial_Intelligence_Cyber-Physical_Systems_and_Intelligent_ComputingICAICI_2026">IEEE ICAICI 2026</a></p>
+      <div class="card-venue">📍 Venue TBD, Chengdu</div>
+      <div class="card-tags">
+        <span class="ctag">AI</span>
+        <span class="ctag">Cyber-physical systems</span>
+        <span class="ctag">Intelligent computing</span>
+      </div>
+      <div class="card-note">IEEE proceedings on Xplore <sup><a href="https://www.researchgate.net/post/CFP_IEEE_2026_International_Conference_on_Artificial_Intelligence_Cyber-Physical_Systems_and_Intelligent_ComputingICAICI_2026">[7]</a></sup>. <strong>English-friendly.</strong></div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Jul 8–10</span>
+        <span class="type-badge tb-expo">Expo B2B</span>
+      </div>
+      <p class="card-title"><a href="https://www.globalomp.com/expo/24159">China (Western) Electronic Information Expo</a></p>
+      <div class="card-venue">📍 Century City New International Convention Center, Wuhou</div>
+      <div class="card-tags">
+        <span class="ctag">5G / 6G</span>
+        <span class="ctag">AI chips</span>
+        <span class="ctag">Semiconductors</span>
+        <span class="ctag">IoT</span>
+      </div>
+      <div class="card-note">15th edition · 30,000 m² · Huawei, BOE, DJI, Intel, AMD <sup><a href="https://www.globalomp.com/expo/24159">[9]</a></sup>. <span class="warn">⚠ Conflicting date listings (Jul 8–10 vs Jul 15–17) — confirm before booking.</span></div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Jul 15–17</span>
+        <span class="type-badge tb-expo">Expo B2C</span>
+      </div>
+      <p class="card-title"><a href="https://www.globalomp.com/expo/26212">Chengdu Consumer Electronics Exhibition</a></p>
+      <div class="card-venue">📍 Century City New International Convention Center, Wuhou</div>
+      <div class="card-tags">
+        <span class="ctag">AI gadgets</span>
+        <span class="ctag">Smart home</span>
+        <span class="ctag">New displays</span>
+        <span class="ctag">Health tech</span>
+      </div>
+      <div class="card-note">60,000 m² · 80,000 visitors · 50+ forums <sup><a href="https://www.globalomp.com/expo/26212">[10]</a></sup>. Theme: "Intelligent Connected Everything."</div>
+    </div>
+
+    <div class="event-card">
+      <div class="card-top">
+        <span class="card-date">Year-round</span>
+        <span class="type-badge tb-community">Community</span>
+      </div>
+      <p class="card-title"><a href="https://www.ccf.org.cn/YOCSEF/Branches/Chengdu/">CCF YOCSEF Chengdu Forums</a></p>
+      <div class="card-venue">📍 Various venues, Chengdu</div>
+      <div class="card-tags">
+        <span class="ctag">AI agents</span>
+        <span class="ctag">Cybersecurity</span>
+        <span class="ctag">Low-altitude economy</span>
+        <span class="ctag">AI in education</span>
+      </div>
+      <div class="card-note">Monthly forums <sup><a href="https://www.ccf.org.cn/YOCSEF/Branches/Chengdu/">[11]</a></sup>. Series: 青城问道 (Qingcheng Wendao) &amp; 峨眉论剑 (Emei Lunjian) <sup><a href="https://yocsef.org.cn/YOCSEF/xwdt/qthd/2025-05-20/842347.shtml">[12]</a></sup>. Typically free. Primarily Chinese.</div>
+    </div>
+
+  </div><!-- /cards-grid -->
+
+  <!-- CONTEXT STATS -->
+  <div class="section-title">Why Chengdu</div>
+  <div class="context-strip">
+    <div class="ctx-block">
+      <div class="ctx-number" style="color:var(--clr-security)">8×</div>
+      <div class="ctx-label">C3 Security consecutive Chengdu editions — not rotating</div>
+    </div>
+    <div class="ctx-block">
+      <div class="ctx-number" style="color:var(--clr-media)">2016</div>
+      <div class="ctx-label">Year Chengdu became permanent host of Audio-Visual Conference</div>
+    </div>
+    <div class="ctx-block">
+      <div class="ctx-number" style="color:var(--clr-expo)">70+</div>
+      <div class="ctx-label">firms at <a href="https://m.sohu.com/a/1010049160_116237" style="color:var(--muted)">Tianfu Long Island</a> including Tencent, NetEase, DJI · ~6,000 employees</div>
+    </div>
+    <div class="ctx-block">
+      <div class="ctx-number" style="color:var(--clr-academic)">1.7T¥</div>
+      <div class="ctx-label">Sichuan provincial target for core AI industry output by 2026</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="cal-footer">
+    <span>Dates current as of June 2026 · confirm before travel</span>
+    <span>|</span>
+    <span>Live index: <a href="https://dev.events/AS/CN/tech">dev.events/AS/CN/tech</a></span>
+    <span>|</span>
+    <span>Cursor community events: <a href="https://cursor-insider.com/meetups">cursor-insider.com/meetups</a></span>
+  </div>
+
+</div><!-- /cal-wrap -->
