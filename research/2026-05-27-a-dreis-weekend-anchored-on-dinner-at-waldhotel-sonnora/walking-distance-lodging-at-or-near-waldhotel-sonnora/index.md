@@ -11,6 +11,9 @@ summary: "Only two truly walk-home options exist near the 3-Michelin-star Sonnor
 citations: 18
 reading_time_min: 3
 cover: cover.svg
+cost_usd: 1.75
+duration_sec: 623
+model: "Sonnet 4.6"
 ---
 
 > **Decision:** Stay at [Waldhotel Sonnora](https://hotel-sonnora.de/en/hotel-en/) itself (from €268/night, zero logistics) [[1]](https://hotel-sonnora.de/en/hotel-en/) if budget allows. The only cheaper option you can genuinely walk home from is [Ferienwohnung Bretz](https://www.ferienwohnung-bretz.de/) (~600 m down the hill in Dreis village, €115–178/night) [[6]](https://www.ferienwohnung-bretz.de/). Everything else — [Salmhotel](https://www.salmhotel.de/) and beyond — is 3+ km on unlit country roads; arrange a taxi.
