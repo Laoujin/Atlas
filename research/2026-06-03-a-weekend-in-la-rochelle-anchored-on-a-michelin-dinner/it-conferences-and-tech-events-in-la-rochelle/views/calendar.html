@@ -1,0 +1,844 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in La Rochelle — Calendar"
+---
+<style>
+:root {
+  --bg:        #09111f;
+  --surface:   #0f1e35;
+  --surface2:  #162947;
+  --anchor:    #f97316;
+  --anchor-bg: rgba(249,115,22,.13);
+  --anchor-bd: rgba(249,115,22,.3);
+  --eco:       #22d3ee;
+  --eco-bg:    rgba(34,211,238,.09);
+  --eco-bd:    rgba(34,211,238,.22);
+  --acad:      #c084fc;
+  --acad-bg:   rgba(192,132,252,.11);
+  --acad-bd:   rgba(192,132,252,.28);
+  --start:     #fbbf24;
+  --start-bg:  rgba(251,191,36,.08);
+  --start-bd:  rgba(251,191,36,.25);
+  --gone:      #64748b;
+  --gone-bg:   rgba(100,116,139,.07);
+  --gone-bd:   rgba(100,116,139,.18);
+  --text:      #e2e8f0;
+  --muted:     #94a3b8;
+  --dim:       #475569;
+  --dimmer:    #2d3f57;
+  --gold:      #ffd700;
+  --grid:      rgba(255,255,255,.05);
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cal {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Courier New', 'Consolas', monospace;
+  padding: 2.5rem 1.75rem 5rem;
+}
+
+/* ── HEADER ────────────────────────────────── */
+.cal-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--grid);
+}
+.cal-icon {
+  width: 80px;
+  height: 54px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: .8;
+  margin-top: 2px;
+}
+.cal-title-group { flex: 1; }
+.cal-eyebrow {
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--dim);
+  margin-bottom: .4rem;
+}
+.cal-title-group h1 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  line-height: 1.15;
+}
+.cal-title-group p {
+  font-size: .75rem;
+  color: var(--muted);
+  margin-top: .35rem;
+}
+.cal-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+.stat { text-align: center; }
+.stat-n {
+  display: block;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--eco);
+}
+.stat-n.orange { color: var(--anchor); }
+.stat-n.ghost  { color: var(--gone); }
+.stat-l {
+  display: block;
+  font-size: .58rem;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--dim);
+  margin-top: .2rem;
+  white-space: nowrap;
+}
+
+/* ── LEGEND ────────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 1.4rem;
+  margin-bottom: 2rem;
+}
+.leg {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .65rem;
+  color: var(--dim);
+}
+.leg-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.leg-dot.anchor { background: var(--anchor); }
+.leg-dot.acad   { background: var(--acad); }
+.leg-dot.eco    { background: var(--eco); }
+.leg-dot.start  { background: var(--start); }
+.leg-dot.gone   { background: var(--gone); }
+.leg-bar {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.leg-bar.now { background: var(--gold); }
+
+/* ── CHRONOGRAM TABLE ──────────────────────── */
+.chrono-wrap { overflow-x: auto; margin-bottom: 3rem; }
+
+.chrono {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+}
+
+/* colgroup widths set in HTML */
+
+/* Month header row */
+.chrono thead th {
+  font-size: .6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--dimmer);
+  text-align: center;
+  padding: 0 1px 10px;
+  vertical-align: bottom;
+}
+.chrono thead .lbl-head { /* empty label corner */ }
+.chrono thead th.now-h {
+  color: var(--gold);
+  position: relative;
+}
+.chrono thead th.now-h::after {
+  content: '▼';
+  display: block;
+  font-size: .55rem;
+  color: var(--gold);
+  margin-top: 2px;
+  opacity: .7;
+}
+
+/* Row label cells */
+.chrono .lbl {
+  font-size: .58rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--dim);
+  vertical-align: middle;
+  padding: 0 10px 0 0;
+  white-space: nowrap;
+}
+
+/* Month cells in event rows */
+.chrono .mcell {
+  height: 64px;
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid var(--grid);
+  padding: 3px 2px;
+  position: relative;
+}
+.chrono .mcell.now-c {
+  background: rgba(255,215,0,.035);
+  border-left-color:  rgba(255,215,0,.18);
+  border-right-color: rgba(255,215,0,.18);
+}
+
+/* Event pills inside cells */
+.epill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px 3px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: default;
+}
+.epill.anchor { background: var(--anchor-bg); border: 1px solid var(--anchor-bd); }
+.epill.acad   { background: var(--acad-bg);   border: 1px solid var(--acad-bd); }
+.epill.gone   { background: var(--gone-bg);   border: 1px solid var(--gone-bd); opacity: .5; }
+.epill.start  { background: var(--start-bg);  border: 1px dashed var(--start-bd); }
+
+.epill a.ename, .epill span.ename {
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-decoration: none;
+  display: block;
+}
+.epill.anchor a.ename, .epill.anchor span.ename { color: var(--anchor); }
+.epill.acad   a.ename, .epill.acad   span.ename { color: var(--acad); }
+.epill.gone   a.ename, .epill.gone   span.ename { color: var(--gone); text-decoration: line-through; }
+.epill.start  a.ename, .epill.start  span.ename { color: var(--start); }
+
+.edate {
+  font-size: .52rem;
+  color: var(--dim);
+  display: block;
+  margin-top: 1px;
+}
+
+/* Bar rows (year-round / TBC) */
+.chrono .bar-row .lbl { vertical-align: middle; }
+.bar-cell {
+  vertical-align: middle;
+  padding: 0 14px;
+  height: 38px;
+}
+.eco-bar {
+  background: var(--eco-bg);
+  border: 1px solid var(--eco-bd);
+}
+.eco-bar-b {
+  background: rgba(34,211,238,.05);
+  border: 1px solid var(--eco-bd);
+  border-top: none;
+}
+.start-bar {
+  background: var(--start-bg);
+  border: 1px dashed var(--start-bd);
+}
+.bar-link {
+  font-size: .68rem;
+  text-decoration: none;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.eco-link   { color: var(--eco); }
+.start-link { color: var(--start); }
+
+/* Separator row between sections */
+.sep-row td { height: 8px; border: none; }
+
+/* ── EVENT DETAIL CARDS ────────────────────── */
+.cards { margin-top: .5rem; }
+.cards-heading {
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--dimmer);
+  margin-bottom: 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--grid);
+}
+.card-stack { display: flex; flex-direction: column; gap: .75rem; }
+
+.card {
+  display: flex;
+  gap: 1.25rem;
+  background: var(--surface);
+  border-radius: 7px;
+  padding: 1.1rem 1.4rem;
+  border-left: 3px solid transparent;
+}
+.card.anchor-c { border-left-color: var(--anchor); }
+.card.acad-c   { border-left-color: var(--acad); }
+.card.eco-c    { border-left-color: var(--eco); }
+.card.start-c  { border-left-color: var(--start); }
+
+.card-badge {
+  flex-shrink: 0;
+  text-align: center;
+  padding-top: 2px;
+}
+.badge {
+  display: inline-block;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.badge.anchor-b { background: var(--anchor-bg); color: var(--anchor); border: 1px solid var(--anchor-bd); }
+.badge.acad-b   { background: var(--acad-bg);   color: var(--acad);   border: 1px solid var(--acad-bd); }
+.badge.eco-b    { background: var(--eco-bg);     color: var(--eco);    border: 1px solid var(--eco-bd); }
+.badge.start-b  { background: var(--start-bg);  color: var(--start);  border: 1px solid var(--start-bd); }
+
+.card-body { flex: 1; }
+.card-body h3 {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: .5rem;
+  font-family: system-ui, sans-serif;
+  line-height: 1.3;
+}
+.card-body h3 a { color: inherit; text-decoration: none; }
+.card-body h3 a:hover { text-decoration: underline; }
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-bottom: .65rem;
+}
+.tag {
+  font-size: .62rem;
+  color: var(--muted);
+  background: rgba(255,255,255,.04);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+.tag.a { color: var(--anchor); background: var(--anchor-bg); }
+.tag.e { color: var(--eco);    background: var(--eco-bg); }
+.tag.v { color: var(--acad);   background: var(--acad-bg); }
+.tag.s { color: var(--start);  background: var(--start-bg); }
+
+.card-body p {
+  font-size: .76rem;
+  line-height: 1.65;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+  margin-bottom: .45rem;
+}
+.card-body p a { color: var(--eco); text-decoration: none; }
+.card-body p a:hover { text-decoration: underline; }
+.card-foot {
+  font-size: .68rem;
+  color: var(--dim);
+  font-family: monospace;
+  margin-top: .4rem;
+}
+.card-foot a { color: var(--anchor); text-decoration: none; }
+.card-foot a:hover { text-decoration: underline; }
+
+/* ── DEPARTED ──────────────────────────────── */
+.dep-section {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--gone-bg);
+  border: 1px solid var(--gone-bd);
+  border-radius: 7px;
+}
+.dep-section h2 {
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--gone);
+  margin-bottom: 1rem;
+}
+.dep-list { display: flex; flex-direction: column; gap: .85rem; }
+.dep-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  opacity: .6;
+}
+.dep-month {
+  flex-shrink: 0;
+  font-size: .58rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gone);
+  background: var(--gone-bg);
+  border: 1px solid var(--gone-bd);
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-top: 2px;
+  font-family: monospace;
+}
+.dep-item > div {
+  font-size: .76rem;
+  color: var(--dim);
+  line-height: 1.6;
+  font-family: system-ui, sans-serif;
+}
+.dep-item strong { color: var(--muted); }
+
+/* ── ECOSYSTEM CONTEXT ─────────────────────── */
+.ctx-section {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border-radius: 7px;
+  border-top: 2px solid var(--eco-bd);
+}
+.ctx-stat { text-align: center; min-width: 60px; }
+.ctx-n {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--eco);
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+}
+.ctx-l {
+  display: block;
+  font-size: .55rem;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--dim);
+  margin-top: .2rem;
+}
+.ctx-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--grid);
+  flex-shrink: 0;
+}
+.ctx-text {
+  flex: 1;
+  min-width: 200px;
+  font-size: .73rem;
+  color: var(--dim);
+  line-height: 1.7;
+  font-family: system-ui, sans-serif;
+}
+.ctx-text a { color: var(--eco); text-decoration: none; }
+.ctx-text a:hover { text-decoration: underline; }
+
+/* ── TYPOGRAPHY UTILITIES ──────────────────── */
+sup a {
+  font-size: .65em;
+  color: var(--dimmer);
+  text-decoration: none;
+}
+sup a:hover { color: var(--muted); }
+
+/* ── RESPONSIVE ────────────────────────────── */
+@media (max-width: 640px) {
+  .cal { padding: 1.5rem 1rem 4rem; }
+  .cal-head { flex-direction: column; gap: 1rem; }
+  .cal-stats { align-self: flex-start; }
+  .card { flex-direction: column; gap: .6rem; }
+  .ctx-section { flex-direction: column; }
+  .ctx-divider { display: none; }
+}
+</style>
+
+<div class="cal">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header class="cal-head">
+    <img src="../cover.svg" alt="" class="cal-icon">
+    <div class="cal-title-group">
+      <div class="cal-eyebrow">La Rochelle · Charente-Maritime · France</div>
+      <h1>IT Event Firing Pattern</h1>
+      <p>When tech signals in La Rochelle — annual chronogram, updated June 2026</p>
+    </div>
+    <div class="cal-stats">
+      <div class="stat">
+        <span class="stat-n orange">2</span>
+        <span class="stat-l">anchor events</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n">2</span>
+        <span class="stat-l">ecosystem hubs</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n ghost">2</span>
+        <span class="stat-l">departed</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── LEGEND ─────────────────────────────────────────────── -->
+  <div class="legend">
+    <div class="leg"><span class="leg-dot anchor"></span> Anchor event</div>
+    <div class="leg"><span class="leg-dot acad"></span> Academic</div>
+    <div class="leg"><span class="leg-dot eco"></span> Ecosystem hub (year-round)</div>
+    <div class="leg"><span class="leg-dot start"></span> Startup (date TBC)</div>
+    <div class="leg"><span class="leg-dot gone"></span> Departed from La Rochelle</div>
+    <div class="leg"><span class="leg-bar now"></span> Current month (Jun 2026)</div>
+  </div>
+
+  <!-- ── CHRONOGRAM ─────────────────────────────────────────── -->
+  <div class="chrono-wrap">
+    <table class="chrono">
+      <colgroup>
+        <col style="width:78px">
+        <col><col><col><col><col><col><col><col><col><col><col><col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="lbl-head"></th>
+          <th>Jan</th>
+          <th>Feb</th>
+          <th>Mar</th>
+          <th>Apr</th>
+          <th>May</th>
+          <th class="now-h">Jun</th>
+          <th>Jul</th>
+          <th>Aug</th>
+          <th>Sep</th>
+          <th>Oct</th>
+          <th>Nov</th>
+          <th>Dec</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- Anchor events row -->
+        <tr>
+          <td class="lbl">Anchor</td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell now-c">
+            <div class="epill anchor">
+              <a class="ename" href="https://ia-na.univ-lr.fr/">IA-NA</a>
+              <span class="edate">Jun 3</span>
+            </div>
+          </td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell">
+            <div class="epill anchor">
+              <a class="ename" href="https://digital-benchmark-la-rochelle.ebg.net/">EBG</a>
+              <span class="edate">Oct 7–8</span>
+            </div>
+          </td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+        </tr>
+
+        <!-- Academic row -->
+        <tr>
+          <td class="lbl">Academic</td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell">
+            <div class="epill acad">
+              <span class="ename">IUT AI</span>
+              <span class="edate">Mar 20</span>
+            </div>
+          </td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell now-c"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+        </tr>
+
+        <!-- Technopole ATLAS — year-round -->
+        <tr class="bar-row">
+          <td class="lbl">Ecosystem</td>
+          <td colspan="12" class="bar-cell eco-bar">
+            <a class="bar-link eco-link" href="https://technopole-atlas.fr/agenda">Technopole ATLAS workshops · year-round</a>
+          </td>
+        </tr>
+
+        <!-- Village by CA — year-round -->
+        <tr class="bar-row">
+          <td class="lbl"></td>
+          <td colspan="12" class="bar-cell eco-bar-b">
+            <a class="bar-link eco-link" href="https://cmds.levillagebyca.com/">Village by CA CMDS · year-round</a>
+          </td>
+        </tr>
+
+        <!-- Startup Weekend — TBC -->
+        <tr class="bar-row">
+          <td class="lbl">Startup</td>
+          <td colspan="12" class="bar-cell start-bar">
+            <a class="bar-link start-link" href="https://etudiant.opencampusinnov.fr/evenements-et-serious-games/startup-weekend-la-rochelle/">Startup Weekend La Rochelle · date TBC 2026</a>
+          </td>
+        </tr>
+
+        <!-- Spacer -->
+        <tr class="sep-row"><td colspan="13"></td></tr>
+
+        <!-- Departed events row -->
+        <tr>
+          <td class="lbl">Departed</td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell now-c">
+            <div class="epill gone">
+              <span class="ename">CoTer</span>
+              <span class="edate">last 2024</span>
+            </div>
+          </td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+          <td class="mcell"></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── EVENT CARDS ────────────────────────────────────────── -->
+  <section class="cards">
+    <h2 class="cards-heading">Event Details</h2>
+    <div class="card-stack">
+
+      <!-- IA-NA -->
+      <div class="card anchor-c">
+        <div class="card-badge">
+          <span class="badge anchor-b">Jun</span>
+        </div>
+        <div class="card-body">
+          <h3>
+            <a href="https://ia-na.univ-lr.fr/">IA-NA 2026 — Intelligence Artificielle en Nouvelle-Aquitaine</a>
+            <sup><a href="https://ia-na.univ-lr.fr/">[1]</a></sup>
+          </h3>
+          <div class="tags">
+            <span class="tag">Jun 3, 2026</span>
+            <span class="tag">3rd edition</span>
+            <span class="tag">Centre de Congrès Georges Pernoud</span>
+            <span class="tag a">Anchor event</span>
+          </div>
+          <p>
+            Theme: "Adopte ton IA" — pragmatic AI adoption for organisations.
+            Keynotes · hands-on workshops · roundtables · networking lunch.
+            Audience: business decision-makers, CTOs, developers, researchers in Nouvelle-Aquitaine.
+            Organizers: L3I Lab, La Rochelle Université, Pôle Enter.
+            <sup><a href="https://l3i.univ-larochelle.fr/actualite/ia-na2026-a-la-rochelle-adopte-ton-ia/">[2]</a></sup>
+            <sup><a href="https://pole-enter.org/evenements/ia-na-2026/">[3]</a></sup>
+            Program covers predictive AI, agentic workflows, AI code tooling, digital sobriety.
+            Speakers include reps from Lectra, Norauto, and Thales.
+          </p>
+          <div class="card-foot">
+            Sponsors: Ayaline (Platinum) · MAIF, Scalingo (Gold) · Thales, MTI Engineering
+            &ensp;·&ensp;
+            <a href="https://www.billetweb.fr/ia-na-2026">Register via Billetweb</a>
+            <sup><a href="https://www.billetweb.fr/ia-na-2026">[4]</a></sup>
+          </div>
+        </div>
+      </div>
+
+      <!-- EBG -->
+      <div class="card anchor-c">
+        <div class="card-badge">
+          <span class="badge anchor-b">Oct</span>
+        </div>
+        <div class="card-body">
+          <h3>
+            <a href="https://digital-benchmark-la-rochelle.ebg.net/">EBG Digital Benchmark La Rochelle</a>
+            <sup><a href="https://digital-benchmark-la-rochelle.ebg.net/">[5]</a></sup>
+          </h3>
+          <div class="tags">
+            <span class="tag">Oct 7–8 (2025 · 2026 TBA)</span>
+            <span class="tag">2-day all-inclusive</span>
+            <span class="tag">~300 CMOs &amp; CDOs</span>
+            <span class="tag a">Anchor event</span>
+          </div>
+          <p>
+            25 keynotes + 30 workshops over 2 days.
+            All-inclusive format: transport, hotel, meals, and activities included — a genuine destination event.
+            Topics: Data Marketing, Enterprise Data, AI implementation, E-commerce.
+            Audience: ~300 digital leaders from non-competing major brands.
+            EBG has 660 member companies and 110,000+ professionals.
+            <sup><a href="https://www.ebg.net/eventtheme/d41d99aa-8e2d-eb11-9fb4-0003ff1d3cc2/data">[7]</a></sup>
+            Confirmed for La Rochelle since at least 2023.
+            <sup><a href="https://larochelle-2023.ebg.net/content/general-terms-and-conditions-of-participation">[6]</a></sup>
+            The 2026 La Rochelle edition is not yet officially announced — watch
+            <a href="https://www.ebg.net/eventtheme/d41d99aa-8e2d-eb11-9fb4-0003ff1d3cc2/data">ebg.net</a> for dates.
+          </p>
+        </div>
+      </div>
+
+      <!-- IUT AI Days -->
+      <div class="card acad-c">
+        <div class="card-badge">
+          <span class="badge acad-b">Mar</span>
+        </div>
+        <div class="card-body">
+          <h3>
+            <a href="https://www.iut-larochelle.fr/actualites/journees-ia-2026-info/">IUT La Rochelle — AI Thematic Days</a>
+            <sup><a href="https://www.iut-larochelle.fr/actualites/journees-ia-2026-info/">[11]</a></sup>
+          </h3>
+          <div class="tags">
+            <span class="tag">Mar 20, 2026</span>
+            <span class="tag">Academic audience</span>
+            <span class="tag v">Academic</span>
+          </div>
+          <p>
+            National AI pedagogy day for IUT educators across France.
+            Topics: AI evaluation methods, AI agents in teaching, assessment frameworks.
+            Primarily academic — not a public-facing conference.
+          </p>
+        </div>
+      </div>
+
+      <!-- ATLAS + Village by CA -->
+      <div class="card eco-c">
+        <div class="card-badge">
+          <span class="badge eco-b">All year</span>
+        </div>
+        <div class="card-body">
+          <h3>
+            <a href="https://technopole-atlas.fr/agenda">Technopole ATLAS</a>
+            <sup><a href="https://technopole-atlas.fr/agenda">[8]</a></sup>
+            +
+            <a href="https://cmds.levillagebyca.com/">Village by CA CMDS</a>
+            <sup><a href="https://cmds.levillagebyca.com/">[9]</a></sup>
+          </h3>
+          <div class="tags">
+            <span class="tag">12 Avenue Albert Einstein, Minimes</span>
+            <span class="tag e">Year-round</span>
+          </div>
+          <p>
+            La Rochelle's main innovation campus. Monthly themed sessions: AI/growth workshops,
+            IP &amp; software protection, European funding for startups/SMEs, VR demonstrations at Tribord Sailing Lab.
+            Village by CA CMDS runs its own pitch competitions (Pitch&amp;Invest) and networking afterworks
+            from the same 400 m² auditorium.
+            Cadence: several events per month — all on the <a href="https://technopole-atlas.fr/agenda">ATLAS agenda</a>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Startup Weekend -->
+      <div class="card start-c">
+        <div class="card-badge">
+          <span class="badge start-b">TBC</span>
+        </div>
+        <div class="card-body">
+          <h3>
+            <a href="https://etudiant.opencampusinnov.fr/evenements-et-serious-games/startup-weekend-la-rochelle/">Startup Weekend La Rochelle</a>
+            <sup><a href="https://etudiant.opencampusinnov.fr/evenements-et-serious-games/startup-weekend-la-rochelle/">[10]</a></sup>
+          </h3>
+          <div class="tags">
+            <span class="tag">49 hours</span>
+            <span class="tag">La Rochelle Université Technoforum</span>
+            <span class="tag s">Date TBC 2026</span>
+          </div>
+          <p>
+            49-hour entrepreneurship sprint: pitch ideas, form teams, build MVPs.
+            Backed by the Nouvelle-Aquitaine region via OpenCampusInnov.
+            2026 dates not yet published — check the
+            <a href="https://etudiant.opencampusinnov.fr/evenements-et-serious-games/startup-weekend-la-rochelle/">OpenCampusInnov events page</a>
+            for updates.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- /card-stack -->
+  </section>
+
+  <!-- ── DEPARTED ────────────────────────────────────────────── -->
+  <section class="dep-section">
+    <h2>No Longer in La Rochelle</h2>
+    <div class="dep-list">
+      <div class="dep-item">
+        <span class="dep-month">Jun</span>
+        <div>
+          <strong>CoTer Numérique</strong> — Public-sector IT congress. Last La Rochelle edition: Jun 4–5, 2024 at Espace Encan.
+          <sup><a href="https://events.ovhcloud.com/en/coter-numerique-rochelle-2024-20240406/">[12]</a></sup>
+          The congress rotates cities annually. 2026 edition (35th): Jun 23–24 in Reims.
+          <sup><a href="https://www.axess.fr/blog/actualites-axess/congres-coter-numerique-2026-reims">[13]</a></sup>
+        </div>
+      </div>
+      <div class="dep-item">
+        <span class="dep-month">—</span>
+        <div>
+          <strong>La Rochelle Software Craftsmanship</strong> — Meetup group (211 members), active ~2022. Now defunct.
+          No GDG or DevFest chapter in La Rochelle — the nearest active developer community hub is Bordeaux (180 km).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ECOSYSTEM CONTEXT ──────────────────────────────────── -->
+  <section class="ctx-section">
+    <div class="ctx-stat">
+      <span class="ctx-n">#627</span>
+      <span class="ctx-l">global rank</span>
+    </div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-stat">
+      <span class="ctx-n">5.6%</span>
+      <span class="ctx-l">growth 2025</span>
+    </div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-stat">
+      <span class="ctx-n">16</span>
+      <span class="ctx-l">startups</span>
+    </div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-stat">
+      <span class="ctx-n">$5.3M</span>
+      <span class="ctx-l">total funding</span>
+    </div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-text">
+      Part of <a href="https://www.agglo-larochelle.fr/-/bienvenue-a-french-tech-atlantic-valley-">French Tech Poitou-Charentes</a>
+      (formerly Atlantic Valley), covering Angoulême, La Rochelle, Niort &amp; Poitiers.
+      <sup><a href="https://www.agglo-larochelle.fr/-/bienvenue-a-french-tech-atlantic-valley-">[14]</a></sup>
+      For major developer conferences (DevFest, BDX I/O, Devoxx):
+      nearest hubs are Nantes (120 km) and Bordeaux (180 km).
+      <sup><a href="https://www.startupblink.com/startup-ecosystem/la-rochelle-fr">[15]</a></sup>
+    </div>
+  </section>
+
+</div>
