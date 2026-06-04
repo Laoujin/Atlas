@@ -1,0 +1,838 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Rome 2026 — Calendar"
+---
+
+<style>
+:root {
+  --bg:        #08090d;
+  --surface:   #0f1117;
+  --panel:     #141720;
+  --border:    #1d2235;
+  --muted:     #2a3050;
+  --text:      #bec5d4;
+  --dim:       #515870;
+  --bright:    #e8ecf5;
+
+  --dev:       #4A9EFF;
+  --ai:        #b06bff;
+  --cyber:     #ff4a4a;
+  --maker:     #ff8c42;
+  --cloud:     #42e8c8;
+
+  --today:     #ffe040;
+  --spring-bg: rgba(74, 158, 255, 0.05);
+  --autumn-bg: rgba(255, 140, 66, 0.09);
+
+  --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cr { background: var(--bg); color: var(--text); font-family: var(--mono); padding: 0 0 4rem; }
+
+/* ── HEADER ───────────────────────────────── */
+.cr-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 2.5rem 1.8rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+.cr-header-left { flex: 1; min-width: 220px; }
+.cr-kicker {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 0.6rem;
+}
+.cr-title {
+  font-family: var(--sans); font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800; line-height: 1.05; color: var(--bright);
+  letter-spacing: -0.02em;
+}
+.cr-title span { color: var(--cyber); }
+
+.cr-stats {
+  display: flex; flex-direction: column; gap: 0.55rem;
+  align-items: flex-end; font-size: 11px; color: var(--dim);
+}
+.cr-stat-row { display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: flex-end; }
+.cr-stat {
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.cr-stat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.cr-stat-val { color: var(--bright); font-weight: 600; margin-right: 0.2rem; }
+
+.cr-tldr {
+  margin-top: 1.2rem; padding: 1rem 2.5rem;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+  font-size: 12px; color: var(--dim); line-height: 1.6;
+}
+.cr-tldr strong { color: var(--bright); }
+.cr-tldr a { color: var(--dev); text-decoration: none; }
+.cr-tldr a:hover { text-decoration: underline; }
+
+/* ── CHRONOGRAM ───────────────────────────── */
+.cr-body {
+  padding: 1.8rem 2.5rem 0;
+}
+
+.cr-section-label {
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 1rem;
+}
+
+.track-area {
+  display: flex;
+  gap: 0;
+}
+
+.track-labels {
+  width: 110px;
+  flex-shrink: 0;
+  padding-top: 44px; /* align with ruler */
+}
+
+.track-label-item {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border-right: 1px solid var(--border);
+  padding-right: 10px;
+}
+.track-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+
+.timeline-col {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
+/* RULER */
+.ruler-row {
+  position: relative;
+  height: 44px;
+  border-bottom: 1px solid var(--border);
+  overflow: visible;
+}
+.month-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 6px;
+}
+.month-tick::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 8px;
+  background: var(--muted);
+}
+.month-tick.active { color: var(--bright); }
+.month-tick.active::after { background: var(--bright); }
+
+.today-pin {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+.today-pin-label {
+  font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--today); padding-top: 4px;
+  white-space: nowrap;
+}
+.today-pin-line {
+  width: 1px;
+  /* height extended into tracks via absolute on .timeline-tracks */
+  height: 100%;
+  background: var(--today);
+  opacity: 0.6;
+}
+
+/* TRACKS */
+.timeline-tracks {
+  position: relative;
+  overflow: visible;
+}
+
+.today-full-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--today);
+  opacity: 0.35;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cluster-band {
+  position: absolute;
+  top: 0; bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.band-spring { background: var(--spring-bg); }
+.band-autumn { background: var(--autumn-bg); }
+
+.track-row {
+  position: relative;
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  overflow: visible;
+  z-index: 1;
+}
+.track-wire {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--muted);
+  transform: translateY(-50%);
+}
+
+/* EVENT PULSES */
+.ep {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 26px;
+  border-radius: 3px;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: filter 0.12s;
+}
+.ep:hover { filter: brightness(1.3); z-index: 20; }
+.ep-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  padding: 0 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+.ep.free::after {
+  content: '○';
+  font-size: 7px;
+  position: absolute;
+  bottom: -1px;
+  right: 2px;
+  color: rgba(255,255,255,0.7);
+}
+.ep.paid::after {
+  content: '●';
+  font-size: 7px;
+  position: absolute;
+  bottom: -1px;
+  right: 2px;
+  color: rgba(255,255,255,0.5);
+}
+.ep.postponed {
+  opacity: 0.55;
+  border: 1px dashed currentColor;
+  background: transparent !important;
+}
+.ep.postponed .ep-label { color: var(--dev); }
+.ep.passed { opacity: 0.45; }
+
+/* TOOLTIP */
+.ep-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1e2e;
+  border: 1px solid var(--muted);
+  border-radius: 5px;
+  padding: 9px 12px;
+  font-size: 10.5px;
+  line-height: 1.6;
+  white-space: nowrap;
+  z-index: 100;
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+.ep-tip strong { color: var(--bright); display: block; margin-bottom: 3px; font-size: 11px; }
+.ep-tip .tip-cost { font-weight: 700; }
+.ep-tip .tip-free { color: var(--cloud); }
+.ep-tip .tip-paid { color: var(--maker); }
+.ep-tip .tip-warn { color: var(--today); }
+.ep:hover .ep-tip { display: block; }
+
+/* CLUSTER ANNOTATIONS */
+.cluster-annotations {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0;
+  padding: 0.7rem 0 0 110px;
+  font-size: 10px;
+}
+.ca {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--dim);
+}
+.ca-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* LEGEND */
+.cr-legend {
+  padding: 1.4rem 2.5rem 0;
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  margin-top: 1.2rem;
+}
+.legend-group {
+  display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+}
+.legend-kicker {
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--dim);
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--dim);
+}
+.legend-swatch {
+  width: 18px; height: 10px; border-radius: 2px;
+}
+
+/* ── EVENT DETAILS ─────────────────────────── */
+.cr-events {
+  padding: 2rem 2.5rem 0;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+.cr-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+.ev-card {
+  background: var(--surface);
+  padding: 1rem 1.1rem;
+}
+.ev-card:hover { background: var(--panel); }
+.ev-date {
+  font-size: 10px; color: var(--dim); letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ev-date-track {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+}
+.ev-name {
+  font-size: 12.5px; font-weight: 700; color: var(--bright);
+  margin-bottom: 3px; line-height: 1.3;
+  font-family: var(--sans);
+}
+.ev-name a { color: inherit; text-decoration: none; }
+.ev-name a:hover { text-decoration: underline; }
+.ev-venue {
+  font-size: 10px; color: var(--dim); line-height: 1.4; margin-bottom: 5px;
+}
+.ev-pills {
+  display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+}
+.ev-pill {
+  font-size: 9px; padding: 2px 7px; border-radius: 10px;
+  letter-spacing: 0.06em;
+}
+.pill-free  { background: rgba(66,232,200,0.12); color: var(--cloud); border: 1px solid rgba(66,232,200,0.25); }
+.pill-paid  { background: rgba(255,140,66,0.12); color: var(--maker); border: 1px solid rgba(255,140,66,0.25); }
+.pill-tbd   { background: rgba(255,224,64,0.10); color: var(--today); border: 1px solid rgba(255,224,64,0.2); }
+.pill-track { border: 1px solid; }
+.pill-track.dev   { background: rgba(74,158,255,0.08);  color: var(--dev);   border-color: rgba(74,158,255,0.25); }
+.pill-track.ai    { background: rgba(176,107,255,0.08); color: var(--ai);    border-color: rgba(176,107,255,0.25); }
+.pill-track.cyber { background: rgba(255,74,74,0.08);   color: var(--cyber); border-color: rgba(255,74,74,0.25); }
+.pill-track.maker { background: rgba(255,140,66,0.08);  color: var(--maker); border-color: rgba(255,140,66,0.25); }
+.pill-track.cloud { background: rgba(66,232,200,0.08);  color: var(--cloud); border-color: rgba(66,232,200,0.25); }
+.pill-passed   { background: rgba(255,255,255,0.04); color: var(--dim); border: 1px solid var(--muted); }
+.pill-postponed { background: rgba(255,224,64,0.08); color: var(--today); border: 1px solid rgba(255,224,64,0.2); }
+
+.ev-note {
+  font-size: 10px; color: var(--dim); margin-top: 5px; line-height: 1.5;
+  border-left: 2px solid var(--muted); padding-left: 7px;
+}
+
+/* ── FOOTER ─────────────────────────── */
+.cr-foot {
+  padding: 1.5rem 2.5rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border);
+  font-size: 10px; color: var(--dim); line-height: 1.7;
+}
+.cr-foot a { color: var(--dev); text-decoration: none; }
+.cr-foot a:hover { text-decoration: underline; }
+.cr-foot sup a { color: var(--dim); }
+</style>
+
+<div class="cr">
+
+  <!-- HEADER -->
+  <header class="cr-header">
+    <div class="cr-header-left">
+      <div class="cr-kicker">Event Firing Pattern · Rome 2026</div>
+      <h1 class="cr-title">IT &amp; Tech<br><span>Calendar</span></h1>
+    </div>
+    <div class="cr-stats">
+      <div class="cr-stat-row">
+        <div class="cr-stat"><span class="cr-stat-dot" style="background:var(--dev)"></span><span class="cr-stat-val">10</span> events total</div>
+        <div class="cr-stat"><span class="cr-stat-dot" style="background:var(--cloud)"></span><span class="cr-stat-val">5</span> free admission</div>
+        <div class="cr-stat"><span class="cr-stat-dot" style="background:var(--cyber)"></span><span class="cr-stat-val">4</span> cybersecurity</div>
+      </div>
+      <div class="cr-stat-row">
+        <div class="cr-stat"><span class="cr-stat-dot" style="background:var(--spring-bg);border:1px solid rgba(74,158,255,0.3)"></span><span class="cr-stat-val">spring window</span> Mar–Jun (6 events)</div>
+        <div class="cr-stat"><span class="cr-stat-dot" style="background:var(--autumn-bg);border:1px solid rgba(255,140,66,0.3)"></span><span class="cr-stat-val">october cluster</span> back-to-back (3 events)</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="cr-tldr">
+    <strong>Two trip windows.</strong>
+    <strong>Spring (Mar–Jun):</strong> developer-focused, heavy on free days — <a href="https://makerfairerome.eu/eventi/ai-tech-week-2026/">Codemotion Roma</a> <sup><a href="https://www.innovacamera.it/area_letturaNotizia/633650/pagsistema.html">[6]</a></sup> (Mar 31, from €159), <a href="https://www.cyber40.it/eventi/">Forum Cyber 4.0</a> <sup><a href="https://www.cyber40.it/eventi/">[9]</a></sup> (Jun 3–4, free), <a href="https://azureday.it/azure-day-2026">Azure Day</a> <sup><a href="https://azureday.it/azure-day-2026">[11]</a></sup> (Jun 19, free).
+    <strong>October:</strong> flagship stretch — <a href="https://italy.cybertechconference.com/">Cybertech Europe</a> <sup><a href="https://italy.cybertechconference.com/">[14]</a></sup> (Oct 13–14), Data Science Summit (Oct 19–20), and <a href="https://makerfairerome.eu/en/blog/maker-faire-rome-2026-opens-its-global-call/">Maker Faire Rome</a> <sup><a href="https://makerfairerome.eu/en/blog/maker-faire-rome-2026-opens-its-global-call/">[17]</a></sup> (Oct 23–25) arrive back-to-back.
+  </div>
+
+  <!-- CHRONOGRAM -->
+  <div class="cr-body">
+    <div class="cr-section-label">Signal timeline — Feb → Oct 2026</div>
+
+    <div class="track-area">
+
+      <!-- Left labels -->
+      <div class="track-labels">
+        <div class="track-label-item"><span class="track-dot" style="background:var(--dev)"></span>.NET / Dev</div>
+        <div class="track-label-item"><span class="track-dot" style="background:var(--ai)"></span>AI / ML</div>
+        <div class="track-label-item"><span class="track-dot" style="background:var(--cyber)"></span>Cyber</div>
+        <div class="track-label-item"><span class="track-dot" style="background:var(--maker)"></span>Maker</div>
+        <div class="track-label-item"><span class="track-dot" style="background:var(--cloud)"></span>Cloud</div>
+      </div>
+
+      <!-- Timeline column -->
+      <div class="timeline-col">
+
+        <!-- RULER -->
+        <div class="ruler-row">
+          <!-- Month ticks (% = days-from-Feb-1 / 273) -->
+          <div class="month-tick" style="left:0%">FEB</div>
+          <div class="month-tick" style="left:10.26%">MAR</div>
+          <div class="month-tick" style="left:21.61%">APR</div>
+          <div class="month-tick" style="left:32.60%">MAY</div>
+          <div class="month-tick active" style="left:43.96%">JUN</div>
+          <div class="month-tick" style="left:54.95%">JUL</div>
+          <div class="month-tick" style="left:66.30%">AUG</div>
+          <div class="month-tick" style="left:77.66%">SEP</div>
+          <div class="month-tick" style="left:88.28%">OCT</div>
+          <!-- Today pin -->
+          <div class="today-pin" style="left:44.69%">
+            <div class="today-pin-label">▼ today</div>
+          </div>
+        </div>
+
+        <!-- TRACK ROWS -->
+        <div class="timeline-tracks">
+
+          <!-- Cluster bands (full-height overlays) -->
+          <div class="cluster-band band-spring" style="left:20.51%;width:30.40%"></div>
+          <div class="cluster-band band-autumn" style="left:93.04%;width:4.76%"></div>
+
+          <!-- Today full vertical line -->
+          <div class="today-full-line" style="left:44.69%"></div>
+
+          <!-- ── TRACK 1: .NET / Dev ── -->
+          <div class="track-row">
+            <div class="track-wire"></div>
+            <!-- Rome .NET: Feb 20, day 19/273 = 6.96% -->
+            <div class="ep passed free" style="left:6.96%;width:2%;background:var(--dev)">
+              <span class="ep-label">.NET</span>
+              <div class="ep-tip">
+                <strong>Rome .NET Conference</strong>
+                Feb 20 &nbsp;·&nbsp; <span class="tip-free tip-cost">Free</span><br>
+                Microsoft HQ, Via Avignone 10<br>
+                .NET 10, C# 14, Azure, DevOps<br>
+                <span class="tip-warn">✓ passed</span>
+              </div>
+            </div>
+            <!-- NGRome: Jun 17, day 136/273 = 49.82% (postponed) -->
+            <div class="ep postponed" style="left:49.82%;width:2.2%;color:var(--dev)">
+              <span class="ep-label">NGRome ⚠</span>
+              <div class="ep-tip">
+                <strong>NGRome + JSRome</strong>
+                Jun 17–19 &nbsp;·&nbsp; <span class="tip-warn tip-cost">TBD</span><br>
+                Italy's largest Angular conf · 7th edition<br>
+                600+ attendees · 15+ countries<br>
+                <span class="tip-warn">⚠ postponed — new dates TBD</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── TRACK 2: AI / ML ── -->
+          <div class="track-row">
+            <div class="track-wire"></div>
+            <!-- AI & Tech Week: Mar 28–Apr 1, day 56/273 = 20.51% -->
+            <div class="ep passed" style="left:20.51%;width:2.5%;background:var(--ai)">
+              <span class="ep-label">AI Week</span>
+              <div class="ep-tip">
+                <strong>Rome AI &amp; Tech Week</strong>
+                Mar 28–Apr 1 &nbsp;·&nbsp; <span class="tip-cost"><span class="tip-free">Free</span>–€159</span><br>
+                ROAD Gazometro + Palazzo dei Congressi<br>
+                Hackathon · Summit · Codemotion · Lab<br>
+                3,000+ participants · Anthropic &amp; CERN speakers<br>
+                <span class="tip-warn">✓ passed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── TRACK 3: Cyber ── -->
+          <div class="track-row">
+            <div class="track-wire"></div>
+            <!-- Red Hot Cyber: May 18, day 106/273 = 38.83% -->
+            <div class="ep passed paid" style="left:38.83%;width:2%;background:var(--cyber)">
+              <span class="ep-label">RHC</span>
+              <div class="ep-tip">
+                <strong>Red Hot Cyber Conference</strong>
+                May 18–19 &nbsp;·&nbsp; <span class="tip-paid tip-cost">Paid</span><br>
+                Teatro Italia, Via Bari 18 (800 seats)<br>
+                Ethical hacking · CTF competition · 5th edition<br>
+                Partner: Accenture Italia<br>
+                <span class="tip-warn">✓ passed</span>
+              </div>
+            </div>
+            <!-- Forum Cyber 4.0: Jun 3, day 122/273 = 44.69% -->
+            <div class="ep free" style="left:44.69%;width:2%;background:var(--cyber)">
+              <span class="ep-label">CF4.0</span>
+              <div class="ep-tip">
+                <strong>Forum Cyber 4.0</strong>
+                Jun 3–4 &nbsp;·&nbsp; <span class="tip-free tip-cost">Free</span><br>
+                Luiss Guido Carli Univ., Aula Chiesa<br>
+                Cybersecurity, policy · 4th edition<br>
+                <span style="color:var(--today)">▶ starting today</span>
+              </div>
+            </div>
+            <!-- Cybertech Europe: Oct 13, day 254/273 = 93.04% -->
+            <div class="ep paid" style="left:93.04%;width:2%;background:var(--cyber)">
+              <span class="ep-label">Cybertech</span>
+              <div class="ep-tip">
+                <strong>Cybertech Europe</strong>
+                Oct 13–14 &nbsp;·&nbsp; <span class="tip-paid tip-cost">Paid</span><br>
+                La Nuvola Conv. Ctr, Viale Asia 41<br>
+                Europe's premier cybersecurity gathering<br>
+                Govt officials · CISOs · startup pavilion
+              </div>
+            </div>
+          </div>
+
+          <!-- ── TRACK 4: Maker / Robotics ── -->
+          <div class="track-row">
+            <div class="track-wire"></div>
+            <!-- RomeCup: Apr 28, day 86/273 = 31.50% -->
+            <div class="ep passed free" style="left:31.50%;width:2%;background:var(--maker)">
+              <span class="ep-label">RomeCup</span>
+              <div class="ep-tip">
+                <strong>RomeCup 2026</strong>
+                Apr 28–30 &nbsp;·&nbsp; <span class="tip-free tip-cost">Free</span><br>
+                Sapienza Univ. + Campidoglio<br>
+                Robotics · AI ethics · youth<br>
+                19 intl competitions · Mondo Digitale<br>
+                <span class="tip-warn">✓ passed</span>
+              </div>
+            </div>
+            <!-- Maker Faire: Oct 23, day 264/273 = 96.70% -->
+            <div class="ep paid" style="left:96.70%;width:2.2%;background:var(--maker)">
+              <span class="ep-label">MFR</span>
+              <div class="ep-tip">
+                <strong>Maker Faire Rome</strong>
+                Oct 23–25 &nbsp;·&nbsp; <span class="tip-paid tip-cost">Paid</span><br>
+                Gazometro Ostiense (former gas works)<br>
+                14th edition · robots · AI · sustainability<br>
+                Broadest public audience on the list
+              </div>
+            </div>
+          </div>
+
+          <!-- ── TRACK 5: Cloud / Azure ── -->
+          <div class="track-row">
+            <div class="track-wire"></div>
+            <!-- Azure Day: Jun 19, day 138/273 = 50.55% -->
+            <div class="ep free" style="left:50.55%;width:2%;background:var(--cloud)">
+              <span class="ep-label">Azure</span>
+              <div class="ep-tip">
+                <strong>Azure Day Roma</strong>
+                Jun 19 &nbsp;·&nbsp; <span class="tip-free tip-cost">Free</span> (lunch incl.)<br>
+                Microsoft HQ, Via Avignone 10<br>
+                Intelligent agents · cloud architecture<br>
+                By Community DotNetCode
+              </div>
+            </div>
+            <!-- Data Science Summit: Oct 19, day 260/273 = 95.24% -->
+            <div class="ep paid" style="left:95.24%;width:2%;background:var(--cloud)">
+              <span class="ep-label">DS Summit</span>
+              <div class="ep-tip">
+                <strong>Data Science &amp; Cloud Summit</strong>
+                Oct 19–20 &nbsp;·&nbsp; <span class="tip-paid tip-cost">Paid</span><br>
+                Rome (venue TBC)<br>
+                Data science · cloud computing<br>
+                Bridges Cybertech and Maker Faire
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /timeline-tracks -->
+      </div><!-- /timeline-col -->
+    </div><!-- /track-area -->
+
+    <!-- Cluster annotations -->
+    <div class="cluster-annotations">
+      <div class="ca">
+        <div class="ca-dot" style="background:rgba(74,158,255,0.18);border:1px solid rgba(74,158,255,0.35)"></div>
+        <span><strong style="color:var(--text)">Spring window</strong> Mar–Jun · 6 events · mostly free · developer &amp; cyber focus</span>
+      </div>
+      <div class="ca" style="margin-left:auto">
+        <div class="ca-dot" style="background:rgba(255,140,66,0.22);border:1px solid rgba(255,140,66,0.4)"></div>
+        <span><strong style="color:var(--text)">October cluster</strong> 3 flagship paid events in 12 days</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="cr-legend">
+      <div class="legend-kicker">tracks →</div>
+      <div class="legend-group">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--dev)"></div>.NET / Dev</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--ai)"></div>AI / ML</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--cyber)"></div>Cybersecurity</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--maker)"></div>Maker / Robotics</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--cloud)"></div>Cloud / Azure</div>
+      </div>
+      <div class="legend-kicker" style="margin-left:1.5rem">status →</div>
+      <div class="legend-group">
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,255,255,0.12)"></div>passed</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:transparent;border:1px dashed var(--dev)"></div>postponed ⚠</div>
+        <div class="legend-item" style="gap:3px">
+          <span style="font-size:9px;color:var(--dim)">○</span> free &nbsp;
+          <span style="font-size:9px;color:var(--dim)">●</span> paid
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cr-body -->
+
+  <!-- EVENT DETAIL CARDS -->
+  <div class="cr-events">
+    <div class="cr-section-label">All events — chronological</div>
+    <div class="cr-events-grid">
+
+      <!-- 1. Rome .NET -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--dev)"></span>
+          Feb 20 &nbsp;·&nbsp; ✓ passed
+        </div>
+        <div class="ev-name"><a href="https://dotnetconf.it/">Rome .NET Conference</a> <sup><a href="https://dotnetconf.it/" style="color:var(--dim)">[1]</a></sup></div>
+        <div class="ev-venue">Microsoft Italia, Via Avignone 10</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-free">Free</span>
+          <span class="ev-pill pill-track dev">.NET / Dev</span>
+          <span class="ev-pill pill-passed">✓ passed</span>
+        </div>
+        <div class="ev-note">.NET 10, C# 14, ASP.NET, Azure, DevOps. By DotNetCode Community. Expected to recur annually.</div>
+      </div>
+
+      <!-- 2. AI & Tech Week -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--ai)"></span>
+          Mar 28–Apr 1 &nbsp;·&nbsp; ✓ passed
+        </div>
+        <div class="ev-name"><a href="https://makerfairerome.eu/eventi/ai-tech-week-2026/">Rome AI &amp; Tech Week</a> <sup><a href="https://www.innovacamera.it/area_letturaNotizia/633650/pagsistema.html" style="color:var(--dim)">[6]</a></sup></div>
+        <div class="ev-venue">ROAD Gazometro + Palazzo dei Congressi</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-free">Free–€159</span>
+          <span class="ev-pill pill-track ai">AI / ML</span>
+          <span class="ev-pill pill-passed">✓ passed</span>
+        </div>
+        <div class="ev-note">5-day event: Hackathon (Mar 28–29, free) → Tech Lead Summit → Codemotion Roma (Mar 31) → Builders Lab. 3,000+ participants. <sup><a href="https://www.innovacamera.it/area_letturaNotizia/633650/pagsistema.html" style="color:var(--dim)">[6]</a></sup></div>
+      </div>
+
+      <!-- 3. RomeCup -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--maker)"></span>
+          Apr 28–30 &nbsp;·&nbsp; ✓ passed
+        </div>
+        <div class="ev-name"><a href="https://www.romecup.org/">RomeCup 2026</a> <sup><a href="https://www.romecup.org/" style="color:var(--dim)">[7]</a></sup></div>
+        <div class="ev-venue">Sapienza Univ. (Marco Polo) + Campidoglio</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-free">Free</span>
+          <span class="ev-pill pill-track maker">Maker</span>
+          <span class="ev-pill pill-passed">✓ passed</span>
+        </div>
+        <div class="ev-note">"WHAT'S NEXT?" theme. 19 intl robotics competitions. Teacher AI training. Research Award. Fondazione Mondo Digitale.</div>
+      </div>
+
+      <!-- 4. Red Hot Cyber -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--cyber)"></span>
+          May 18–19 &nbsp;·&nbsp; ✓ passed
+        </div>
+        <div class="ev-name"><a href="https://www.redhotcyber.com/post/red-hot-cyber-conference-2026-la-quinta-edizione-a-roma-18-e-19-maggio/">Red Hot Cyber Conference</a> <sup><a href="https://www.redhotcyber.com/post/red-hot-cyber-conference-2026-la-quinta-edizione-a-roma-18-e-19-maggio/" style="color:var(--dim)">[8]</a></sup></div>
+        <div class="ev-venue">Teatro Italia, Via Bari 18 (800 seats)</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-paid">Paid</span>
+          <span class="ev-pill pill-track cyber">Cyber</span>
+          <span class="ev-pill pill-passed">✓ passed</span>
+        </div>
+        <div class="ev-note">5th edition. Day 1: ethical hacking workshops + CTF launch. Day 2: conference + CTF awards 18:00. Partner: Accenture Italia (3rd year).</div>
+      </div>
+
+      <!-- 5. Forum Cyber 4.0 — LIVE TODAY -->
+      <div class="ev-card" style="border-left: 2px solid var(--today);">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--cyber)"></span>
+          Jun 3–4 &nbsp;·&nbsp; <span style="color:var(--today)">▶ starting today</span>
+        </div>
+        <div class="ev-name"><a href="https://www.cyber40.it/eventi/">Forum Cyber 4.0</a> <sup><a href="https://www.cyber40.it/eventi/" style="color:var(--dim)">[9]</a></sup></div>
+        <div class="ev-venue">Luiss Guido Carli Univ., Aula Chiesa</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-free">Free</span>
+          <span class="ev-pill pill-track cyber">Cyber</span>
+          <span class="ev-pill" style="background:rgba(255,224,64,0.12);color:var(--today);border:1px solid rgba(255,224,64,0.3)">▶ today</span>
+        </div>
+        <div class="ev-note">4th edition. Cybersecurity experts, institutions, and companies examine emerging threats and policy. Two days of panels.</div>
+      </div>
+
+      <!-- 6. NGRome (postponed) -->
+      <div class="ev-card" style="opacity:0.7">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--dev)"></span>
+          Jun 17–19 &nbsp;·&nbsp; <span style="color:var(--today)">⚠ postponed</span>
+        </div>
+        <div class="ev-name"><a href="https://ngrome.io/home">NGRome + JSRome</a> <sup><a href="https://ngrome.io/home" style="color:var(--dim)">[10]</a></sup></div>
+        <div class="ev-venue">TBD (postponed)</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-tbd">TBD</span>
+          <span class="ev-pill pill-track dev">.NET / Dev</span>
+          <span class="ev-pill pill-postponed">⚠ postponed</span>
+        </div>
+        <div class="ev-note">Italy's largest Angular conf · 7 editions · 600+ attendees. 2026 expanded with a JSRome day. Monitor ngrome.io for new dates.</div>
+      </div>
+
+      <!-- 7. Azure Day -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--cloud)"></span>
+          Jun 19 &nbsp;·&nbsp; upcoming
+        </div>
+        <div class="ev-name"><a href="https://azureday.it/azure-day-2026">Azure Day Roma 2026</a> <sup><a href="https://azureday.it/azure-day-2026" style="color:var(--dim)">[11]</a></sup></div>
+        <div class="ev-venue">Microsoft Italia, Via Avignone 10</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-free">Free</span>
+          <span class="ev-pill pill-track cloud">Cloud</span>
+        </div>
+        <div class="ev-note">Hybrid day. Intelligent agents + cloud architecture. Lunch included. Sponsors: Microsoft (Platinum), Relatech, Key2 Next. <a href="https://www.eventbrite.it/e/registrazione-azure-day-roma-2026-1985671434714" style="color:var(--cloud)">Register on Eventbrite</a> <sup><a href="https://www.eventbrite.it/e/registrazione-azure-day-roma-2026-1985671434714" style="color:var(--dim)">[13]</a></sup>.</div>
+      </div>
+
+      <!-- 8. Cybertech Europe -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--cyber)"></span>
+          Oct 13–14
+        </div>
+        <div class="ev-name"><a href="https://italy.cybertechconference.com/">Cybertech Europe</a> <sup><a href="https://italy.cybertechconference.com/" style="color:var(--dim)">[14]</a></sup></div>
+        <div class="ev-venue">La Nuvola Conv. Ctr, Viale Asia 41</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-paid">Paid</span>
+          <span class="ev-pill pill-track cyber">Cyber</span>
+        </div>
+        <div class="ev-note">Europe's premier enterprise cybersecurity event. Govt officials · CISOs · startup pavilion · conference + exhibition format.</div>
+      </div>
+
+      <!-- 9. Data Science Summit -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--cloud)"></span>
+          Oct 19–20
+        </div>
+        <div class="ev-name"><a href="https://dev.events/EU/IT/Rome/tech">Global Summit on Data Science &amp; Cloud</a> <sup><a href="https://dev.events/EU/IT/Rome/tech" style="color:var(--dim)">[16]</a></sup></div>
+        <div class="ev-venue">Rome (venue TBC)</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-paid">Paid</span>
+          <span class="ev-pill pill-track cloud">Cloud</span>
+        </div>
+        <div class="ev-note">Bridges Cybertech and Maker Faire in the October cluster. Check dev.events for venue confirmation.</div>
+      </div>
+
+      <!-- 10. Maker Faire -->
+      <div class="ev-card">
+        <div class="ev-date">
+          <span class="ev-date-track" style="background:var(--maker)"></span>
+          Oct 23–25
+        </div>
+        <div class="ev-name"><a href="https://makerfairerome.eu/en/blog/maker-faire-rome-2026-opens-its-global-call/">Maker Faire Rome</a> <sup><a href="https://makerfairerome.eu/en/blog/maker-faire-rome-2026-opens-its-global-call/" style="color:var(--dim)">[17]</a></sup></div>
+        <div class="ev-venue">Gazometro Ostiense (former gas plant)</div>
+        <div class="ev-pills">
+          <span class="ev-pill pill-paid">Paid</span>
+          <span class="ev-pill pill-track maker">Maker</span>
+        </div>
+        <div class="ev-note">14th edition. Broadest audience on the list: robotics, AI, sustainability, creative tech, public science. Global Call deadline was Jun 15. <sup><a href="https://makezine.com/article/maker-news/calling-all-prototypes-to-maker-faire-rome-2026/" style="color:var(--dim)">[18]</a></sup></div>
+      </div>
+
+    </div><!-- /cr-events-grid -->
+  </div>
+
+  <!-- FOOTER -->
+  <div class="cr-foot">
+    Sources: <a href="https://dotnetconf.it/">[1]</a> dotnetconf.it &nbsp;·&nbsp;
+    <a href="https://makerfairerome.eu/eventi/ai-tech-week-2026/">[3]</a> Maker Faire AI Tech Week &nbsp;·&nbsp;
+    <a href="https://www.romecup.org/">[7]</a> romecup.org &nbsp;·&nbsp;
+    <a href="https://www.redhotcyber.com/post/red-hot-cyber-conference-2026-la-quinta-edizione-a-roma-18-e-19-maggio/">[8]</a> Red Hot Cyber &nbsp;·&nbsp;
+    <a href="https://www.cyber40.it/eventi/">[9]</a> cyber40.it &nbsp;·&nbsp;
+    <a href="https://ngrome.io/home">[10]</a> ngrome.io &nbsp;·&nbsp;
+    <a href="https://azureday.it/azure-day-2026">[11]</a> azureday.it &nbsp;·&nbsp;
+    <a href="https://italy.cybertechconference.com/">[14]</a> Cybertech Europe &nbsp;·&nbsp;
+    <a href="https://dev.events/EU/IT/Rome/tech">[16]</a> dev.events &nbsp;·&nbsp;
+    <a href="https://makerfairerome.eu/en/blog/maker-faire-rome-2026-opens-its-global-call/">[17]</a> Maker Faire Rome
+  </div>
+
+</div>
