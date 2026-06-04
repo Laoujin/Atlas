@@ -1,0 +1,476 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences and Tech Events in Macau — Calendar"
+---
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+.cal{
+  background:#070c16;
+  color:#e2e8f0;
+  min-height:100vh;
+  padding:2rem 2rem 3rem;
+  font-family:'JetBrains Mono','Fira Mono','Courier New',monospace;
+}
+
+/* ── Header ── */
+.cal-eyebrow{
+  font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+  color:#334155;margin-bottom:.4rem;
+}
+.cal-headline{
+  font-size:2.2rem;font-weight:700;letter-spacing:-.02em;
+  color:#f1f5f9;line-height:1.1;
+}
+.cal-subline{
+  font-size:.75rem;color:#475569;margin-top:.3rem;margin-bottom:1.5rem;
+}
+.cal-kpis{
+  display:flex;gap:2.5rem;flex-wrap:wrap;
+  border-bottom:1px solid #1a2a3d;padding-bottom:1.5rem;margin-bottom:2rem;
+}
+.kpi{display:flex;flex-direction:column;gap:.15rem;}
+.kpi-num{
+  font-size:2rem;font-weight:700;line-height:1;
+  color:#f97316;
+}
+.kpi-num.blue{color:#3b82f6;}
+.kpi-num.violet{color:#8b5cf6;}
+.kpi-lbl{
+  font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#475569;
+}
+
+/* ── Section labels ── */
+.sec-lbl{
+  font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;
+  color:#334155;margin-bottom:.6rem;
+}
+
+/* ── Heatmap ── */
+.heatmap{
+  display:grid;grid-template-columns:repeat(12,1fr);gap:3px;
+  height:54px;margin-bottom:2rem;
+}
+.hm-cell{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-between;padding:5px 0 4px;
+  border-radius:3px;
+  background:#0c1420;
+}
+.hm-cell.h1{background:#12253c;}
+.hm-cell.h1-dim{background:#0e1e30;}
+.hm-cell.peak{background:#c2410c;}
+.hm-cell.flagship{background:#1e3a8a;}
+.hm-count{
+  font-size:.7rem;font-weight:700;color:rgba(255,255,255,.55);
+  line-height:1;
+}
+.hm-cell.peak  .hm-count{color:#fff;}
+.hm-cell.flagship .hm-count{color:#93c5fd;}
+.hm-abbr{
+  font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(148,163,184,.4);
+}
+.hm-cell.h1 .hm-abbr,.hm-cell.h1-dim .hm-abbr{color:rgba(148,163,184,.55);}
+.hm-cell.peak .hm-abbr{color:rgba(255,255,255,.85);font-weight:700;}
+.hm-cell.flagship .hm-abbr{color:#93c5fd;}
+
+/* ── Chronogram grid ── */
+.chrono-wrap{
+  border:1px solid #1a2a3d;border-radius:4px;
+  overflow:hidden;margin-bottom:.75rem;
+}
+.chrono-months{
+  display:grid;grid-template-columns:repeat(12,1fr);
+  background:#0b1624;border-bottom:1px solid #1a2a3d;
+}
+.cm{
+  font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;
+  text-align:center;padding:5px 0;color:#263d56;
+  border-right:1px solid #111d2b;
+}
+.cm:last-child{border-right:none;}
+.cm.lit{color:#475569;}
+.cm.peak-m{color:#f97316;font-weight:700;}
+.cm.flagship-m{color:#3b82f6;}
+
+.chrono-rows{position:relative;}
+
+.tl-row{
+  position:relative;height:32px;
+  border-bottom:1px solid #0b1624;
+  display:flex;align-items:center;
+}
+.tl-row:last-child{border-bottom:none;}
+
+/* Month gridlines via background */
+.tl-row::after{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(8.3333% - 1px),
+    #0d1a28 calc(8.3333% - 1px),
+    #0d1a28 8.3333%
+  );
+  pointer-events:none;z-index:0;
+}
+
+/* Highlight May band (cols 5 = 33.33%–41.67%) */
+.tl-row::before{
+  content:'';
+  position:absolute;
+  left:33.33%;width:8.34%;top:0;bottom:0;
+  background:rgba(249,115,22,.04);
+  pointer-events:none;z-index:0;
+}
+
+.ev{
+  position:absolute;z-index:1;
+  height:20px;border-radius:3px;
+  display:flex;align-items:center;padding:0 7px;
+  font-size:.55rem;font-weight:600;letter-spacing:.04em;
+  white-space:nowrap;overflow:hidden;
+}
+
+/* Left edge accent = exact start date position; width is schematic */
+.ev-expo{
+  background:#7c2d12;color:#fed7aa;
+  border-left:3px solid #f97316;
+}
+.ev-academic{
+  background:#1e3a8a;color:#bfdbfe;
+  border-left:3px solid #3b82f6;
+}
+.ev-uni{
+  background:#4c1d95;color:#ede9fe;
+  border-left:3px solid #8b5cf6;
+}
+.ev-outreach{
+  background:#0f172a;color:#475569;
+  border-left:2px solid #1e293b;
+}
+.ev-tbd{
+  color:#6ee7b7;
+  border:1px dashed #10b981;
+  border-left:3px solid #10b981;
+  background:repeating-linear-gradient(
+    -45deg,
+    rgba(16,185,129,.07) 0,rgba(16,185,129,.07) 4px,
+    transparent 4px,transparent 8px
+  );
+}
+
+/* ── Chronogram note ── */
+.chrono-note{
+  font-size:.55rem;color:#263d56;
+  margin-bottom:2rem;
+  letter-spacing:.05em;
+}
+
+/* ── Legend ── */
+.legend{
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+  margin-bottom:2rem;
+}
+.leg{display:flex;align-items:center;gap:5px;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:#334155;}
+.leg-sw{width:14px;height:4px;border-radius:2px;}
+
+/* ── Roster table ── */
+.roster{width:100%;border-collapse:collapse;font-size:.7rem;margin-bottom:2rem;}
+.roster th{
+  text-align:left;padding:5px 10px;font-size:.5rem;letter-spacing:.15em;
+  text-transform:uppercase;color:#263d56;border-bottom:1px solid #1a2a3d;
+}
+.roster td{
+  padding:9px 10px;border-bottom:1px solid #0d1a28;vertical-align:middle;
+  color:#94a3b8;
+}
+.roster tr:last-child td{border-bottom:none;}
+.roster tr:hover td{background:#0b1624;}
+
+.ev-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.dot-expo{background:#f97316;}
+.dot-academic{background:#3b82f6;}
+.dot-uni{background:#8b5cf6;}
+.dot-tbd{background:#10b981;}
+.dot-out{background:#334155;}
+
+.ev-link{color:#cbd5e1;text-decoration:none;font-weight:600;}
+.ev-link:hover{color:#f1f5f9;text-decoration:underline;}
+
+.pill{
+  font-size:.5rem;padding:2px 6px;border-radius:2px;
+  letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.pill-expo{background:rgba(249,115,22,.12);color:#f97316;}
+.pill-academic{background:rgba(59,130,246,.12);color:#60a5fa;}
+.pill-uni{background:rgba(139,92,246,.12);color:#a78bfa;}
+.pill-tbd{background:rgba(16,185,129,.12);color:#34d399;}
+.pill-out{background:rgba(51,65,85,.3);color:#475569;}
+
+.date-col{color:#475569;white-space:nowrap;font-size:.65rem;}
+.scale-col{color:#374151;font-size:.63rem;}
+
+sup a{color:#334155;font-size:.6rem;text-decoration:none;}
+sup a:hover{color:#64748b;}
+
+/* ── Footer ── */
+.cal-footer{
+  border-top:1px solid #1a2a3d;padding-top:1.25rem;
+  font-size:.62rem;color:#1e3050;
+  display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;
+}
+.cal-footer a{color:#263d56;text-decoration:none;}
+.cal-footer a:hover{color:#64748b;}
+
+@media(max-width:640px){
+  .cal{padding:1rem 1rem 2rem;}
+  .cal-headline{font-size:1.5rem;}
+  .kpi-num{font-size:1.5rem;}
+  .tl-row{height:26px;}
+  .ev{font-size:.48rem;height:17px;}
+}
+</style>
+
+<div class="cal">
+
+  <header>
+    <div class="cal-eyebrow">Macau · Tech Events · 2026</div>
+    <div class="cal-headline">Annual Firing Pattern</div>
+    <div class="cal-subline">7 events tracked across 4 tiers — industry expos, IEEE flagship, university symposia, government</div>
+    <div class="cal-kpis">
+      <div class="kpi">
+        <span class="kpi-num">30k+</span>
+        <span class="kpi-lbl">Peak visitors · BEYOND Expo</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num blue">2,900+</span>
+        <span class="kpi-lbl">IEEE papers · Dec flagship</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num violet">3</span>
+        <span class="kpi-lbl">Events fire in May</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num" style="color:#10b981">8</span>
+        <span class="kpi-lbl">Quiet months · Feb–Apr, Jun–Jul, Sep–Nov</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Density heatmap -->
+  <div class="sec-lbl">Event density by month</div>
+  <div class="heatmap">
+    <div class="hm-cell h1">    <span class="hm-count">1</span><span class="hm-abbr">Jan</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Feb</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Mar</span></div>
+    <div class="hm-cell h1-dim"><span class="hm-count" style="opacity:.35">1</span><span class="hm-abbr">Apr</span></div>
+    <div class="hm-cell peak">  <span class="hm-count">3</span><span class="hm-abbr">May</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Jun</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Jul</span></div>
+    <div class="hm-cell h1">    <span class="hm-count">1</span><span class="hm-abbr">Aug</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Sep</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Oct</span></div>
+    <div class="hm-cell">       <span class="hm-count" style="opacity:0">0</span><span class="hm-abbr">Nov</span></div>
+    <div class="hm-cell flagship"><span class="hm-count">1</span><span class="hm-abbr">Dec</span></div>
+  </div>
+
+  <!-- Chronogram -->
+  <div class="sec-lbl">Chronogram · 2026 · left edge = start date</div>
+  <div class="chrono-wrap">
+    <div class="chrono-months">
+      <div class="cm lit">Jan</div>
+      <div class="cm">Feb</div>
+      <div class="cm">Mar</div>
+      <div class="cm lit">Apr</div>
+      <div class="cm peak-m">May</div>
+      <div class="cm">Jun</div>
+      <div class="cm">Jul</div>
+      <div class="cm lit">Aug</div>
+      <div class="cm">Sep</div>
+      <div class="cm">Oct</div>
+      <div class="cm">Nov</div>
+      <div class="cm flagship-m">Dec</div>
+    </div>
+    <div class="chrono-rows">
+
+      <!-- Jan 27: Space & Planetary Forum
+           left = (0 + 26/31 × 1/12) × 100 = 6.99% -->
+      <div class="tl-row">
+        <div class="ev ev-uni" style="left:7.0%;width:9%;">Space &amp; Planetary Forum · Jan 27</div>
+      </div>
+
+      <!-- Apr 27–28: DSEDJ Tech Showcase
+           left = (3/12 + 26/30 × 1/12) × 100 = 32.22% -->
+      <div class="tl-row">
+        <div class="ev ev-outreach" style="left:32.2%;width:9%;">Tech Showcase · Apr 27–28</div>
+      </div>
+
+      <!-- May 8: Smart Tourism Symposium
+           left = (4/12 + 7/31 × 1/12) × 100 = 35.21% -->
+      <div class="tl-row">
+        <div class="ev ev-uni" style="left:35.2%;width:10%;">Smart Tourism Sym. · May 8</div>
+      </div>
+
+      <!-- May 12–14: G2E Asia + Asian IR Expo
+           left = (4/12 + 11/31 × 1/12) × 100 = 36.29% -->
+      <div class="tl-row">
+        <div class="ev ev-expo" style="left:36.3%;width:12%;">G2E Asia + IR Expo · May 12–14</div>
+      </div>
+
+      <!-- May 27–30: BEYOND Expo
+           left = (4/12 + 26/31 × 1/12) × 100 = 40.32% -->
+      <div class="tl-row">
+        <div class="ev ev-expo" style="left:40.3%;width:14%;">BEYOND Expo · May 27–30 · 30,000+ visitors</div>
+      </div>
+
+      <!-- Aug ~15: MCSCT
+           left = (7/12 + 14/31 × 1/12) × 100 = 62.09% -->
+      <div class="tl-row">
+        <div class="ev ev-uni" style="left:62.1%;width:9%;">MCSCT · Aug (annual)</div>
+      </div>
+
+      <!-- H2 2026 TBD: FDCT ×2 conferences
+           Spans full H2 (Jul 1 = 50% → Dec 31 = 100%) -->
+      <div class="tl-row">
+        <div class="ev ev-tbd" style="left:50%;width:49.5%;">FDCT ×2 International Conferences · H2 2026 · dates TBD</div>
+      </div>
+
+      <!-- Dec 7–11: IEEE GLOBECOM 2026
+           left = (11/12 + 6/31 × 1/12) × 100 = 93.28% -->
+      <div class="tl-row">
+        <div class="ev ev-academic" style="left:93.3%;width:6.7%;">IEEE GLOBECOM · Dec 7–11</div>
+      </div>
+
+    </div>
+  </div>
+  <div class="chrono-note">Bar widths are schematic; left edge marks start date. FDCT bar spans full H2 window (dates unannounced as of Jun 2026).</div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="leg"><div class="leg-sw" style="background:#f97316"></div>Industry expo</div>
+    <div class="leg"><div class="leg-sw" style="background:#3b82f6"></div>IEEE / academic</div>
+    <div class="leg"><div class="leg-sw" style="background:#8b5cf6"></div>University-led</div>
+    <div class="leg"><div class="leg-sw" style="background:#10b981;opacity:.7"></div>Govt / FDCT (TBD)</div>
+    <div class="leg"><div class="leg-sw" style="background:#1e293b"></div>Youth outreach</div>
+  </div>
+
+  <!-- Roster -->
+  <div class="sec-lbl">Event roster</div>
+  <table class="roster">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Dates 2026</th>
+        <th>Type</th>
+        <th>Scale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <span class="ev-dot dot-uni"></span>
+          <a class="ev-link" href="https://english.news.cn/20260127/fc0bd749c2c64e0185ef3275733497fb/c.html">Space &amp; Planetary Sciences Forum</a>
+          <sup><a href="https://english.news.cn/20260127/fc0bd749c2c64e0185ef3275733497fb/c.html">[8]</a></sup>
+        </td>
+        <td class="date-col">Jan 27</td>
+        <td><span class="pill pill-uni">University</span></td>
+        <td class="scale-col">300+ scholars · 10+ countries</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-out"></span>
+          <a class="ev-link" href="https://www.macaupostdaily.com/news/28068">DSEDJ × Hangzhou Tech Showcase</a>
+          <sup><a href="https://www.macaupostdaily.com/news/28068">[11]</a></sup>
+        </td>
+        <td class="date-col">Apr 27–28</td>
+        <td><span class="pill pill-out">Outreach</span></td>
+        <td class="scale-col">Youth engagement · AI, humanoid robotics</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-uni"></span>
+          <a class="ev-link" href="https://apaem.um.edu.mo/smart-tourism-symposium-2026-concludes-successfully-attending-widespread-local-media-coverage/">Smart Tourism Symposium (UM)</a>
+          <sup><a href="https://apaem.um.edu.mo/smart-tourism-symposium-2026-concludes-successfully-attending-widespread-local-media-coverage/">[7]</a></sup>
+          <sup><a href="https://www.gov.mo/en/news/399230/">[14]</a></sup>
+        </td>
+        <td class="date-col">May 8</td>
+        <td><span class="pill pill-uni">University</span></td>
+        <td class="scale-col">100+ attendees · all 6 IR C-suites present</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-expo"></span>
+          <a class="ev-link" href="https://www.g2easia.com/">G2E Asia + Asian IR Expo</a>
+          <sup><a href="https://www.g2easia.com/en-gb/media/press-release/g2e-asia-and-asian-ir-expo-return-this-may--driving-digital-inno.html">[5]</a></sup>
+          <sup><a href="https://www.exhibitionshowcase.com/g2e-asia-asian-ir-expo-2026-concludes-in-macau-highlighting-the-future-of-gaming-and-integrated-resorts/">[6]</a></sup>
+        </td>
+        <td class="date-col">May 12–14</td>
+        <td><span class="pill pill-expo">Industry expo</span></td>
+        <td class="scale-col">8,000+ professionals · 150+ brands · 30,000 sqm</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-expo"></span>
+          <a class="ev-link" href="https://www.beyondexpo.com/">BEYOND Expo</a>
+          <sup><a href="https://www.beyondexpo.com/about/">[1]</a></sup>
+          <sup><a href="https://www.prnewswire.com/apac/news-releases/the-6th-beyond-expo-wows-visitors-with-showcase-asias-tech-ai-digital-to-physical-becomes-reality-in-macao-302787296.html">[2]</a></sup>
+        </td>
+        <td class="date-col">May 27–30</td>
+        <td><span class="pill pill-expo">Industry expo</span></td>
+        <td class="scale-col">30,000+ visitors · 800 exhibitors · 400 speakers · 220+ sessions</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-uni"></span>
+          <a class="ev-link" href="https://mcsct.skliotsc.um.edu.mo/mcsct2026/">MCSCT — Smart City Technologies</a>
+          <sup><a href="https://mcsct.skliotsc.um.edu.mo/mcsct2026/">[9]</a></sup>
+        </td>
+        <td class="date-col">Aug (annual)</td>
+        <td><span class="pill pill-uni">University</span></td>
+        <td class="scale-col">100+ scholars · IoT, AI, robotics, urban safety</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-tbd"></span>
+          <a class="ev-link" href="https://www.gcs.gov.mo/detail/en/N26Ac5GJLd">FDCT International Conferences ×2</a>
+          <sup><a href="https://www.gcs.gov.mo/detail/en/N26Ac5GJLd">[10]</a></sup>
+        </td>
+        <td class="date-col">H2 2026 · TBD</td>
+        <td><span class="pill pill-tbd">Govt / FDCT</span></td>
+        <td class="scale-col">Dates unannounced as of Jun 2026</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="ev-dot dot-academic"></span>
+          <a class="ev-link" href="https://globecom2026.ieee-globecom.org/">IEEE GLOBECOM 2026</a>
+          <sup><a href="https://globecom2026.ieee-globecom.org/">[13]</a></sup>
+          <sup><a href="https://www.aconf.org/conf_192351.2026_IEEE_Global_Communications_Conference.html">[4]</a></sup>
+        </td>
+        <td class="date-col">Dec 7–11</td>
+        <td><span class="pill pill-academic">IEEE flagship</span></td>
+        <td class="scale-col">~2,900 papers · 5G/6G · AI networks · satellite comms</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <footer class="cal-footer">
+    <a href="../../">↑ Weekend in Macau</a>
+    <a href="../../things-to-do-in-macau/">Things to do in Macau</a>
+    <a href="../../michelin-2-and-3-star-restaurants-in-macau/">Michelin Restaurants</a>
+    <span style="margin-left:auto;">
+      Sources:
+      <sup><a href="https://www.beyondexpo.com/about/">[1]</a></sup>
+      <sup><a href="https://www.prnewswire.com/apac/news-releases/the-6th-beyond-expo-wows-visitors-with-showcase-asias-tech-ai-digital-to-physical-becomes-reality-in-macao-302787296.html">[2]</a></sup>
+      <sup><a href="https://www.g2easia.com/en-gb/media/press-release/g2e-asia-and-asian-ir-expo-return-this-may--driving-digital-inno.html">[5]</a></sup>
+      <sup><a href="https://globecom2026.ieee-globecom.org/">[13]</a></sup>
+    </span>
+  </footer>
+
+</div>
