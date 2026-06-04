@@ -1,0 +1,554 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Chicago 2026 — Calendar"
+---
+
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #161920;
+    --border:    #252a35;
+    --muted:     #3a3f4e;
+    --text:      #e8eaf0;
+    --dim:       #6b7080;
+    --month-hd:  #f0f2f8;
+
+    --c-dev:     #4f9cf9;
+    --c-sec:     #f95f5f;
+    --c-ai:      #f9a23a;
+    --c-ent:     #53c98e;
+    --c-ind:     #b07ef9;
+    --c-eco:     #7ecff9;
+
+    --past-bg:   #111318;
+    --past-text: #4a4f5e;
+    --past-border:#1e2130;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+
+  .cal-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ── Header ── */
+  .cal-head {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.4rem;
+    margin-bottom: 2rem;
+  }
+  .cal-head .eyebrow {
+    font-size: .68rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: .4rem;
+  }
+  .cal-head h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--month-hd);
+    line-height: 1.2;
+  }
+  .cal-head .sub {
+    margin-top: .45rem;
+    font-size: .78rem;
+    color: var(--dim);
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.2rem;
+    margin-bottom: 2.2rem;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .legend-item { display: flex; align-items: center; gap: .35rem; color: var(--dim); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Month strip ── */
+  .month-block { margin-bottom: 1rem; }
+
+  .month-label {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    align-items: start;
+    gap: 0;
+  }
+
+  .month-name {
+    font-size: .72rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding-top: .9rem;
+    padding-right: .8rem;
+    text-align: right;
+    border-right: 2px solid var(--border);
+    min-height: 100%;
+  }
+  .month-name.active { color: var(--c-ai); border-right-color: var(--c-ai); }
+
+  .events-col {
+    padding: .5rem 0 .5rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+  }
+
+  /* ── Event card ── */
+  .ev {
+    display: grid;
+    grid-template-columns: 4.8rem 1fr auto;
+    align-items: center;
+    gap: .6rem;
+    padding: .55rem .75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s;
+  }
+  .ev:hover { border-color: var(--muted); }
+
+  .ev.past {
+    background: var(--past-bg);
+    border-color: var(--past-border);
+  }
+  .ev.past .ev-date,
+  .ev.past .ev-name,
+  .ev.past .ev-meta { color: var(--past-text); }
+  .ev.past .ev-tag { opacity: .35; }
+
+  .ev-date {
+    font-size: .7rem;
+    color: var(--dim);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .ev.active-soon .ev-date { color: var(--c-ai); font-weight: 600; }
+
+  .ev-body { min-width: 0; }
+  .ev-name {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ev-meta {
+    font-size: .67rem;
+    color: var(--dim);
+    margin-top: .15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ev-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .25rem;
+    flex-shrink: 0;
+  }
+  .ev-tag {
+    font-size: .6rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: .15rem .45rem;
+    border-radius: 2px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .tag-dev  { background: rgba(79,156,249,.15); color: var(--c-dev); }
+  .tag-sec  { background: rgba(249,95,95,.15);  color: var(--c-sec); }
+  .tag-ai   { background: rgba(249,162,58,.15); color: var(--c-ai);  }
+  .tag-ent  { background: rgba(83,201,142,.15); color: var(--c-ent); }
+  .tag-ind  { background: rgba(176,126,249,.15);color: var(--c-ind); }
+  .tag-eco  { background: rgba(126,207,249,.15);color: var(--c-eco); }
+
+  .ev-cost {
+    font-size: .65rem;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  /* ── Scale indicator ── */
+  .scale-pip {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    vertical-align: middle;
+    margin-left: .2rem;
+    opacity: .6;
+  }
+  .scale-pip.xl { background: var(--c-ind); width: 9px; height: 9px; opacity: 1; }
+  .scale-pip.lg { background: var(--c-eco); width: 7px; height: 7px; opacity: .9; }
+
+  /* ── Footer nav ── */
+  .footer-nav {
+    margin-top: 2.8rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem .8rem;
+    font-size: .72rem;
+  }
+  .footer-nav a { color: var(--dim); text-decoration: none; }
+  .footer-nav a:hover { color: var(--text); }
+  .footer-nav .sep { color: var(--muted); }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .ev { grid-template-columns: 3.8rem 1fr; }
+    .ev-right { display: none; }
+    .month-label { grid-template-columns: 3.2rem 1fr; }
+  }
+</style>
+
+<div class="cal-wrap">
+
+  <div class="cal-head">
+    <div class="eyebrow">Chicago · 2026</div>
+    <h1>Tech Conference Calendar</h1>
+    <div class="sub">20 events · Jan – Nov · Survey depth · 20 citations</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="dot" style="background:var(--c-dev)"></div> Developer / OSS</div>
+    <div class="legend-item"><div class="dot" style="background:var(--c-sec)"></div> Cybersecurity</div>
+    <div class="legend-item"><div class="dot" style="background:var(--c-ai)"></div> AI &amp; Data</div>
+    <div class="legend-item"><div class="dot" style="background:var(--c-ent)"></div> Enterprise / Microsoft</div>
+    <div class="legend-item"><div class="dot" style="background:var(--c-ind)"></div> Industrial / Robotics</div>
+    <div class="legend-item"><div class="dot" style="background:var(--c-eco)"></div> Broad Ecosystem</div>
+  </div>
+
+  <!-- ── JAN ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Jan</div>
+      <div class="events-col">
+        <div class="ev past">
+          <div class="ev-date">Jan 29</div>
+          <div class="ev-body">
+            <div class="ev-name">FutureCon Chicago</div>
+            <div class="ev-meta">Marriott Oak Brook · 1 day</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-sec">Security</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAR ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Mar</div>
+      <div class="events-col">
+        <div class="ev past">
+          <div class="ev-date">Mar 3</div>
+          <div class="ev-body">
+            <div class="ev-name">Cybersecurity Summit Chicago</div>
+            <div class="ev-meta">Hyatt Regency Chicago · 1 day</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-sec">Security</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </div>
+        <a class="ev past" href="https://events.drupal.org/chicago2026">
+          <div class="ev-date">Mar 23–26</div>
+          <div class="ev-body">
+            <div class="ev-name">DrupalCon Chicago 2026</div>
+            <div class="ev-meta">Hilton Chicago · 1,300 attendees · 85+ sessions <sup>[17]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── APR ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Apr</div>
+      <div class="events-col">
+        <a class="ev past" href="https://www.analyticsunite.com/">
+          <div class="ev-date">Apr 7–9</div>
+          <div class="ev-body">
+            <div class="ev-name">Analytics Unite 2026</div>
+            <div class="ev-meta">The Drake Hotel · Retail / CG analytics execs <sup>[18]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ai">AI &amp; Data</span>
+            <span class="ev-cost">Invite-only</span>
+          </div>
+        </a>
+        <div class="ev past">
+          <div class="ev-date">Apr 12–14</div>
+          <div class="ev-body">
+            <div class="ev-name">Deep Dish Swift</div>
+            <div class="ev-meta">Loews O'Hare, Rosemont · iOS / Swift / Apple</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAY ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">May</div>
+      <div class="events-col">
+        <a class="ev past" href="https://techspochicago.com/">
+          <div class="ev-date">May 19–20</div>
+          <div class="ev-body">
+            <div class="ev-name">TECHSPO Chicago 2026</div>
+            <div class="ev-meta">Soldier Field · MarTech, SaaS, Internet <sup>[19]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-eco">Ecosystem</span>
+            <span class="ev-cost">Free–Paid</span>
+          </div>
+        </a>
+        <div class="ev past">
+          <div class="ev-date">May 28–29</div>
+          <div class="ev-body">
+            <div class="ev-name">Data Science Conference</div>
+            <div class="ev-meta">Gleacher Center · Vendor-free data science</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ai">AI &amp; Data</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── JUN ── HOTTEST MONTH -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name active">Jun ★</div>
+      <div class="events-col">
+        <a class="ev active-soon" href="https://2026.pg-data.org/">
+          <div class="ev-date">Jun 4–5</div>
+          <div class="ev-body">
+            <div class="ev-name">PG DATA 2026</div>
+            <div class="ev-meta">Loyola Water Tower Campus · PostgreSQL community <sup>[3]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">$50 / $20 student</span>
+          </div>
+        </a>
+        <a class="ev" href="https://www.sans.org/cyber-security-training-events/chicago-2026">
+          <div class="ev-date">Jun 8–13</div>
+          <div class="ev-body">
+            <div class="ev-name">SANS Chicago 2026</div>
+            <div class="ev-meta">Embassy Suites Mag Mile · 16 courses incl. SEC545 AI/LLM <sup>[4]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-sec">Security</span>
+            <span class="ev-cost">~$8,500/course</span>
+          </div>
+        </a>
+        <a class="ev" href="https://techcon365.com/Chicago/">
+          <div class="ev-date">Jun 15–19</div>
+          <div class="ev-body">
+            <div class="ev-name">TechCon 365 Chicago</div>
+            <div class="ev-meta">McCormick Place South · M365, Copilot, Power Platform <sup>[5]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ent">Enterprise</span>
+            <span class="ev-cost">$850–$2,995</span>
+          </div>
+        </a>
+        <a class="ev" href="https://www.automateshow.com/">
+          <div class="ev-date">Jun 22–25</div>
+          <div class="ev-body">
+            <div class="ev-name">Automate 2026<span class="scale-pip xl" title="50,000+ attendees"></span></div>
+            <div class="ev-meta">McCormick Place · 1,000+ exhibitors · Robotics &amp; AI <sup>[7]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ind">Industrial</span>
+            <span class="ev-cost">Free (floor)</span>
+          </div>
+        </a>
+        <a class="ev" href="https://gotochgo.com/accelerate-chicago-2026">
+          <div class="ev-date">Jun 22–24</div>
+          <div class="ev-body">
+            <div class="ev-name">Accelerate Chicago 2026</div>
+            <div class="ev-meta">Chicago · Software dev · AI tooling, agile, cloud <sup>[8]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">From $845</span>
+          </div>
+        </a>
+        <a class="ev" href="https://chicagoaiweek.com/">
+          <div class="ev-date">Jun 24–26</div>
+          <div class="ev-body">
+            <div class="ev-name">Chicago AI Week 2026</div>
+            <div class="ev-meta">Chicago · 300 speakers · Governance, enterprise AI, healthcare <sup>[9]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ai">AI &amp; Data</span>
+            <span class="ev-cost">$499–$1,999</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── JUL ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Jul</div>
+      <div class="events-col">
+        <a class="ev" href="https://gotechchicago.com/week/">
+          <div class="ev-date">Jul 20–26</div>
+          <div class="ev-body">
+            <div class="ev-name">TechChicago Week 2026<span class="scale-pip lg" title="Multi-event umbrella"></span></div>
+            <div class="ev-meta">Various venues · P33 nonprofit · Quantum Forum, Sports Tech, Climate <sup>[11]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-eco">Ecosystem</span>
+            <span class="ev-cost">Free–Paid</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AUG ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Aug</div>
+      <div class="events-col">
+        <a class="ev" href="https://2026.djangocon.us/">
+          <div class="ev-date">Aug 24–28</div>
+          <div class="ev-body">
+            <div class="ev-name">DjangoCon US 2026</div>
+            <div class="ev-meta">voco Chicago Downtown (River North) · Talks + sprints <sup>[12]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">Community</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SEP ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Sep</div>
+      <div class="events-col">
+        <a class="ev" href="https://elixirconf.com/">
+          <div class="ev-date">Sep 10–11</div>
+          <div class="ev-body">
+            <div class="ev-name">ElixirConf US 2026</div>
+            <div class="ev-meta">Chicago · Hybrid · Elixir, Phoenix, Erlang <sup>[13]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">$249 virtual · $579 in-person</span>
+          </div>
+        </a>
+        <a class="ev" href="https://www.imts.com/">
+          <div class="ev-date">Sep 14–19</div>
+          <div class="ev-body">
+            <div class="ev-name">IMTS 2026<span class="scale-pip xl" title="90,000 visitors · Largest in Western Hemisphere"></span></div>
+            <div class="ev-meta">McCormick Place · 90,000 visitors · 2,000+ exhibitors · 1.2M sq ft <sup>[14]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ind">Industrial</span>
+            <span class="ev-cost">Free (floor)</span>
+          </div>
+        </a>
+        <a class="ev" href="https://epochal-intelligence.com/Illinois-Events.html">
+          <div class="ev-date">Sep 15–16</div>
+          <div class="ev-body">
+            <div class="ev-name">Leaders In AI Summit Chicago</div>
+            <div class="ev-meta">Chicago · C-suite · Small-room workshops on enterprise AI <sup>[16]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ai">AI &amp; Data</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </a>
+        <a class="ev" href="https://dev.events/NA/US/IL/Chicago/tech">
+          <div class="ev-date">Sep 30–Oct 1</div>
+          <div class="ev-body">
+            <div class="ev-name">Umbraco US Festival 2026</div>
+            <div class="ev-meta">Chicago · .NET CMS community <sup>[1]</sup></div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-dev">Dev / OSS</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NOV ── -->
+  <div class="month-block">
+    <div class="month-label">
+      <div class="month-name">Nov</div>
+      <div class="events-col">
+        <div class="ev">
+          <div class="ev-date">Nov 3–4</div>
+          <div class="ev-body">
+            <div class="ev-name">Humanoid Robots Summit NA</div>
+            <div class="ev-meta">Chicago · Humanoid robotics</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-tag tag-ind">Industrial</span>
+            <span class="ev-cost">Paid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer nav -->
+  <div class="footer-nav">
+    <a href="../">← Default view</a>
+    <span class="sep">·</span>
+    <a href="../../">A Michelin Weekend in Chicago</a>
+    <span class="sep">·</span>
+    <a href="../../things-to-do-in-chicago/">Things to do in Chicago</a>
+    <span class="sep">·</span>
+    <a href="../../michelin-2-and-3-star-restaurants-in-chicago/">Michelin restaurants</a>
+    <span class="sep">·</span>
+    <a href="/">Atlas</a>
+  </div>
+
+</div>
