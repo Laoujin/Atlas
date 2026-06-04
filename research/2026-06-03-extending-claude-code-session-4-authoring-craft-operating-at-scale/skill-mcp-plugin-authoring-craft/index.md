@@ -12,6 +12,8 @@ citations: 18
 reading_time_min: 9
 cover: cover.svg
 model: "Sonnet 4.6"
+duration_sec: "n/a"
+cost_usd: "n/a"
 ---
 
 > **TL;DR** Write a skill when you own the words (repeated instructions, project workflows); write an MCP server when you own the tools (external APIs, databases, filesystems); wrap both in a plugin when you need to ship. These are three different interface contracts — conflating them is the root cause of most authoring errors.

@@ -11,6 +11,8 @@ citations: 26
 reading_time_min: 19
 updated: 2026-04-29
 model: "Opus 4.7"
+duration_sec: "n/a"
+cost_usd: "n/a"
 ---
 
 > **Update — 2026-04-29.** Eight days later, most of the gaps this survey named are closed in [Scout](https://github.com/Laoujin/Scout) ⭐ 0 (Apr 2026) [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md): disk-persisted `citations.jsonl`, reflect-and-requery, perspective-guided outline (deep tier's "breadth heuristic"), per-source `source_type` taxonomy, GitHub-stars on every link, planner/researcher/writer split for `deep`, post-write reviewer, date-injection before querying, format auto-selection, topic sharpening, multi-angle decomposition, and bespoke per-page HTML "views" via the `scout-view-author` skill [[24]](https://github.com/Laoujin/Scout/blob/main/skills/scout/SKILL.md)[[25]](https://github.com/Laoujin/Scout/blob/main/skills/scout/deep.md). A real head-to-head also ran on issue #7 [[26]](https://github.com/Laoujin/Scout/issues/7) — Scout vs 199-biotech vs Weizhena on the same topic — and the verdict is honest: **Scout wins on density, named picks, paste-ready code, unattended single-shot, and publication; loses on corpus breadth, epistemic honesty (no per-claim confidence, no `[uncertain]`), and re-renderability.** See the [Status of "ideas to steal"](#ideas-to-steal-for-scout-status-apr-2026) and [Head-to-head verified](#head-to-head-verified--scout-vs-199-biotech-vs-weizhena-apr-2026) sections below.

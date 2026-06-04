@@ -12,6 +12,8 @@ citations: 18
 reading_time_min: 9
 cover: cover.svg
 model: "Sonnet 4.6"
+duration_sec: "n/a"
+cost_usd: "n/a"
 ---
 
 > **TL;DR** Skills are the cheap scalable primitive — 30–50 tokens until invoked versus 50k+ for a five-server MCP setup [[4]](https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/). The `description` field in `SKILL.md` is the routing layer, not documentation [[5]](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices). For headless CI use `claude -p --bare`; the Agent SDK brings the same loop into Python/TypeScript [[8]](https://code.claude.com/docs/en/headless) [[9]](https://code.claude.com/docs/en/agent-sdk/overview). Budget ~$150–250/dev/month at enterprise scale and set workspace spend limits before rollout [[2]](https://code.claude.com/docs/en/costs).

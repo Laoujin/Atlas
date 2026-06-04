@@ -12,6 +12,8 @@ citations: 18
 reading_time_min: 8
 cover: cover.svg
 model: "Sonnet 4.6"
+duration_sec: "n/a"
+cost_usd: "n/a"
 ---
 
 > **TL;DR:** The Claude Agent SDK (renamed from Claude Code SDK) gives you Claude's full agentic loop—built-in tools, subagents, hooks, MCP, sessions—as a Python or TypeScript library running in your own process [[1]](https://code.claude.com/docs/en/agent-sdk/overview). Use `claude -p` for one-shot CLI tasks; use `query()` for programmatic control with structured output. Starting June 15, 2026, all headless/SDK usage draws from a separate monthly credit ($20–$200 by plan), separate from interactive limits [[13]](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan).
