@@ -12,6 +12,7 @@ tags: [llm-evals, ai-tooling, devtools, ci-cd, rag, agents, consultancy]
 summary: "Decision-grade 2026 comparison of nine LLM eval tools across license, self-host, CI/CD, judge, agent/RAG, pricing, stars and lock-in — with pick-X-if calls for a client-shipping consultancy."
 citations: 41
 reading_time_min: 9
+cover: cover.svg
 ---
 
 > **Decision (consultancy shipping AI for clients).** No single tool wins — build a **two-layer stack**: a code-first OSS eval *framework* that gates CI, plus an OSS *platform* you can self-host or run as SaaS per client.[[1]](https://www.braintrust.dev/articles/deepeval-alternatives-2026)[[37]](https://mlflow.org/top-5-agent-evaluation-frameworks/)

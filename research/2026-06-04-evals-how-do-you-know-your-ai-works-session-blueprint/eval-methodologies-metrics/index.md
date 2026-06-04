@@ -12,6 +12,7 @@ tags: [llm-eval, llm-as-judge, metrics, calibration, statistics, rubric-grading,
 summary: "A workshop-ready map of LLM eval metric types, the LLM-as-judge bias/calibration trap, and the small-sample statistics most teams get wrong."
 citations: 22
 reading_time_min: 9
+cover: cover.svg
 ---
 
 > **Decision.** Pick the *cheapest metric that still measures the thing*: deterministic checks for anything with a ground truth, LLM-as-judge only for open-ended quality — and never trust a judge you haven't calibrated against humans (target 80–90% agreement [[7]](https://futureagi.com/blog/llm-as-judge-best-practices-2026)). Treat position, verbosity, and self-preference bias as *defaults that are on until you turn them off* [[5]](https://www.adaline.ai/blog/llm-as-a-judge-reliability-bias), and never ship a winner from a small eval set without a confidence interval — below ~a few hundred examples the CLT lies to you [[9]](https://arxiv.org/abs/2503.01747).

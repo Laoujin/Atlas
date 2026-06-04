@@ -12,6 +12,7 @@ tags: [evals, ci-cd, llm, github-actions, promptfoo, braintrust, deepeval, langs
 summary: "How to run LLM eval suites in pipelines in 2026: deterministic-gates-the-judge, statistical regression gates, cost/latency budgets, caching/sampling, and concrete Promptfoo/Braintrust/DeepEval/LangSmith wiring."
 citations: 13
 reading_time_min: 9
+cover: cover.svg
 ---
 
 > **Decision.** Wire evals as a **three-tier cascade** that runs cheapest-first: deterministic checks (schema/regex/exact-match, sub-ms, $0) gate a fine-tuned classifier, which gates a frontier LLM judge that only fires on the residual ambiguous sample [[6]](https://futureagi.com/blog/deterministic-llm-evaluation-metrics-2026/)[[1]](https://futureagi.com/blog/ci-cd-llm-eval-github-actions-2026/). **Block the PR** only on deterministic failures and on statistically-significant judge regressions (delta past a noise floor *and* p < 0.05); **warn** on everything inside the noise band [[1]](https://futureagi.com/blog/ci-cd-llm-eval-github-actions-2026/). Budget cents-per-PR by scoping to changed routes and caching LLM calls; reserve the full multi-thousand-example sweep for a nightly job, because a naive judge-on-everything PR gate can burn **$250–$2,500/run** on a 5k-example set [[14]](https://galileo.ai/blog/best-low-latency-llm-evaluation-tools). Tooling: **Promptfoo** for declarative prompt gates, **DeepEval** for pytest-native unit tests, **Braintrust/LangSmith** for hosted experiment diffs.

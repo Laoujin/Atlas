@@ -12,6 +12,7 @@ tags: [evals, llm, workshop, teaching, deepeval, ci, llm-as-judge]
 summary: "A runnable 2h evals lab on DeepEval — golden set → LLM-judge → CI gate → planted regression — with timing, fixtures, and the workshop-vs-talk call."
 citations: 19
 reading_time_min: 9
+cover: cover.svg
 ---
 
 > **Decision.** Build the workshop as a **runnable lab arc on [DeepEval](https://deepeval.com)** ⭐ 16k [[4]](https://deepeval.com/docs/getting-started) — Python-native, pytest-based, CI-ready — *not* on Promptfoo, which OpenAI acquired in March 2026 and which is now a strategic risk for a vendor-neutral teaching lab [[6]](https://x.com/OpenAI/status/2031052793835106753)[[7]](https://techcrunch.com/2026/03/09/openai-acquires-promptfoo-to-secure-its-ai-agents/). Teach evals the way Hamel Husain & Shreya Shankar do: **error analysis first, judge second, gate third** [[1]](https://www.aakashg.com/ai-evals-masterclass-with-hamel-shreya/). The single best "aha" is the **planted-regression reveal**: a green CI pipeline turns red on a one-line prompt edit the eye would miss. **Run it hands-on if seats ≤ 30 and you can pre-ship a devcontainer; run the talk variant otherwise** — laptop/setup chaos is the dominant failure mode of live labs [[13]](https://www.eventible.com/learning/conference-vs-seminar-vs-workshop/).
