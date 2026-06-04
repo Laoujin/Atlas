@@ -1,0 +1,6 @@
+Iconic town sights and historic landmarks (Vieux Port, La Citadelle, La Ponche, Église Notre-Dame, Place des Lices, Musée de l'Annonciade)
+Beaches and beach clubs (Pampelonne, Plage des Salins, La Bouillabaisse, Club 55, public vs private, getting there)
+Coastal hiking and outdoor/water activities (Sentier du Littoral coastal path, boat trips, kayaking, diving, paddleboard)
+Day trips and nearby hilltop villages plus wine (Ramatuelle, Gassin, Port Grimaud, Côtes de Provence rosé domains, Saint-Tropez peninsula)
+Markets, shopping, and Provençal cafe life (Place des Lices market Tue/Sat, petanque, sandals/tarte tropézienne, Senequier)
+Nightlife and weekend logistics (Les Caves du Roy, getting there/around, parking, best time of year, fitting the Michelin dinner)
