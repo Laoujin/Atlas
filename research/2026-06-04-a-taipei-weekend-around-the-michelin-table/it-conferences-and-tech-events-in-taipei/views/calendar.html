@@ -1,0 +1,738 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Taipei 2026 — Calendar"
+---
+<style>
+:root {
+  --bg:       #040a06;
+  --panel:    #020502;
+  --grid:     #0a1e0d;
+  --grid2:    #122617;
+  --text:     #4ade80;
+  --dim:      #166534;
+  --muted:    #0d3318;
+  --now:      #fbbf24;
+  --lbl-w:    100px;
+  --c-ai:     #22d3ee;
+  --c-start:  #f472b6;
+  --c-sec:    #f87171;
+  --c-semi:   #c084fc;
+  --c-devops: #fb923c;
+  --c-cloud:  #60a5fa;
+  --c-oss:    #4ade80;
+  --c-city:   #2dd4bf;
+}
+
+.cal {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono','Fira Code','Cascadia Code',ui-monospace,monospace;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── MASTHEAD ─────────────────────────────────────────── */
+.mast {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 2rem 2.5rem 1.5rem;
+  border-bottom: 1px solid var(--grid2);
+}
+.mast-title {
+  font-size: clamp(1.5rem,4vw,2.6rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #a7f3d0;
+  margin: 0;
+}
+.mast-title .city { color: var(--c-ai); }
+.mast-sub {
+  font-size: 0.62rem;
+  color: var(--dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0.35rem 0 0;
+}
+.now-chip {
+  display: inline-block;
+  background: var(--now);
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2em 0.65em;
+  border-radius: 2px;
+  margin-top: 0.6rem;
+}
+.mast-stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.stat { text-align: right; }
+.stat-n {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #a7f3d0;
+}
+.stat-l {
+  font-size: 0.55rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.1rem;
+}
+
+/* ── OSCILLOSCOPE ─────────────────────────────────────── */
+.scope-wrap {
+  padding: 1.25rem 2.5rem 1.5rem;
+  border-bottom: 1px solid var(--grid2);
+}
+.scope-cap {
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.scope {
+  display: flex;
+  background: var(--panel);
+  border: 1px solid var(--grid2);
+  border-radius: 3px;
+  overflow: hidden;
+  padding: 6px 0;
+  position: relative;
+}
+/* CRT scan-lines overlay */
+.scope::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.09) 2px,
+    rgba(0,0,0,0.09) 3px
+  );
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Labels column */
+.scope-labels {
+  width: var(--lbl-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.scope-lbl-spacer { height: 20px; }
+.ch-lbl {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-size: 0.52rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--muted);
+}
+
+/* Signal area */
+.scope-sig-area {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+/* Month ruler */
+.scope-ruler {
+  display: flex;
+  height: 20px;
+  align-items: center;
+  border-bottom: 1px solid var(--grid2);
+}
+.scope-ruler > div {
+  text-align: center;
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+.scope-ruler .r-past  { color: var(--muted); }
+.scope-ruler .r-now   { color: var(--now); font-weight: 700; }
+.scope-ruler .r-future{ color: var(--grid2); }
+
+/* Channel signal rows — one per category */
+.ch-sig {
+  position: relative;
+  height: 30px;
+  border-bottom: 1px solid var(--muted);
+  /* month dividers as background vertical rules */
+  background-image:
+    linear-gradient(var(--grid),  var(--grid)),
+    linear-gradient(var(--grid),  var(--grid)),
+    linear-gradient(var(--grid2), var(--grid2)),
+    linear-gradient(var(--grid),  var(--grid)),
+    linear-gradient(var(--grid),  var(--grid)),
+    linear-gradient(var(--grid),  var(--grid));
+  background-size:   1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%;
+  background-position: 14.49% 0, 28.5% 0, 43.0% 0, 57.01% 0, 71.5% 0, 85.98% 0;
+  background-repeat: no-repeat;
+}
+/* baseline */
+.ch-sig::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--muted);
+}
+
+/* Signal block */
+.sig {
+  position: absolute;
+  top: 5px;
+  height: calc(100% - 10px);
+  border-radius: 2px;
+  z-index: 3;
+}
+.sig.past    { opacity: 0.30; }
+.sig.live    { opacity: 1; }
+.sig.tbd     { opacity: 0.22; border: 1px dashed; background: transparent !important; box-shadow: none !important; }
+
+/* NOW line — last child of scope-sig-area so it renders above channels */
+.now-line {
+  position: absolute;
+  left: 44.39%;
+  top: 20px;    /* skip ruler */
+  bottom: 0;
+  width: 2px;
+  background: var(--now);
+  box-shadow: 0 0 10px var(--now), 0 0 3px var(--now);
+  z-index: 15;
+  pointer-events: none;
+}
+.now-line-lbl {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.45rem;
+  color: var(--now);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* ── LEGEND ───────────────────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+  padding: 0.75rem 2.5rem;
+  border-bottom: 1px solid var(--grid2);
+  align-items: center;
+}
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.leg-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.leg-now-bar {
+  width: 2px; height: 12px;
+  background: var(--now);
+  box-shadow: 0 0 4px var(--now);
+}
+.leg-past { opacity: 0.45; }
+
+/* ── MONTH GRID ───────────────────────────────────────── */
+.mgrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--grid2);
+  border-top: 1px solid var(--grid2);
+}
+.mcol {
+  background: var(--bg);
+  padding: 1rem 0.7rem;
+  min-width: 0;
+}
+.mcol-hdr {
+  border-bottom: 1px solid var(--muted);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.mcol-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--muted);
+  display: block;
+}
+.mcol-name {
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 0.1rem;
+}
+.mcol.cur .mcol-num  { color: var(--now); }
+.mcol.cur .mcol-name { color: var(--dim); border-bottom-color: var(--now); }
+.mcol.fut .mcol-num  { color: var(--grid2); }
+
+.mcol-empty {
+  font-size: 0.55rem;
+  color: var(--muted);
+  opacity: 0.4;
+  font-style: italic;
+}
+
+.ecard {
+  margin-bottom: 0.55rem;
+  border-left: 2px solid currentColor;
+  padding: 0.3rem 0.45rem;
+  background: rgba(255,255,255,0.015);
+  font-size: 0.62rem;
+}
+.ecard.past   { opacity: 0.38; }
+.ecard.live   { border-left-width: 3px; }
+
+.ename {
+  font-weight: 700;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  display: block;
+  margin-bottom: 0.18rem;
+  color: inherit;
+}
+.ename a {
+  color: inherit;
+  text-decoration: none;
+}
+.ename a:hover { text-decoration: underline; }
+
+.edates {
+  font-size: 0.54rem;
+  color: var(--dim);
+  display: block;
+  margin-bottom: 0.18rem;
+}
+.emeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
+.badge {
+  font-size: 0.46rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.15em 0.4em;
+  border-radius: 2px;
+  font-weight: 700;
+}
+.b-free   { background: rgba(74,222,128,0.13); color: #4ade80; }
+.b-paid   { background: rgba(251,191,36,0.10); color: #fbbf24; }
+.b-invite { background: rgba(192,132,252,0.12); color: #c084fc; }
+.b-now    { background: var(--now); color: #000; }
+.escale {
+  font-size: 0.5rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 0.15rem;
+  line-height: 1.3;
+}
+
+/* ── NOTES ────────────────────────────────────────────── */
+.notes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 1.5rem 2.5rem;
+  border-top: 1px solid var(--grid2);
+}
+.notes-hdr {
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+.notes ul {
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.notes li {
+  font-size: 0.6rem;
+  color: var(--muted);
+  padding: 0.22rem 0;
+  border-bottom: 1px solid var(--grid);
+  line-height: 1.4;
+}
+.notes li::before { content: '▸ '; color: var(--dim); }
+.notes a { color: var(--dim); text-decoration: none; }
+.notes a:hover { color: var(--text); }
+
+/* ── FOOTER ───────────────────────────────────────────── */
+.cal-foot {
+  padding: 0.75rem 2.5rem;
+  border-top: 1px solid var(--grid2);
+  font-size: 0.5rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cal-foot a { color: var(--grid2); text-decoration: none; }
+.cal-foot a:hover { color: var(--dim); }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .mgrid { grid-template-columns: repeat(4,1fr); }
+  :root  { --lbl-w: 76px; }
+  .ch-lbl { font-size: 0.46rem; }
+  .scope-wrap { padding: 1rem 1.25rem 1.25rem; }
+  .mast  { padding: 1.5rem 1.25rem 1.25rem; }
+  .legend { padding: 0.6rem 1.25rem; }
+  .mgrid  { padding: 0; }
+  .notes  { padding: 1rem 1.25rem; }
+  .cal-foot { padding: 0.75rem 1.25rem; }
+}
+@media (max-width: 640px) {
+  .mgrid { grid-template-columns: repeat(2,1fr); }
+  .notes { grid-template-columns: 1fr; }
+  .mast-stats { gap: 1rem; }
+}
+</style>
+
+<div class="cal">
+
+<!-- ═══ MASTHEAD ═══════════════════════════════════════════ -->
+<header class="mast">
+  <div>
+    <h1 class="mast-title"><span class="city">台北</span> TAIPEI · 2026</h1>
+    <p class="mast-sub">Conference &amp; Event Signal Trace · March → September</p>
+    <span class="now-chip">▶ Signal date: June 4, 2026</span>
+  </div>
+  <div class="mast-stats">
+    <div class="stat"><div class="stat-n">11</div><div class="stat-l">Events</div></div>
+    <div class="stat"><div class="stat-n">4</div><div class="stat-l">Free to attend</div></div>
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Firing now</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Upcoming</div></div>
+  </div>
+</header>
+
+<!-- ═══ OSCILLOSCOPE ════════════════════════════════════════ -->
+<section class="scope-wrap">
+  <p class="scope-cap">8 category channels · 214-day window · March 1 → September 30 · dim = past · glow = live · dashed = TBD</p>
+
+  <div class="scope">
+
+    <!-- Label column -->
+    <div class="scope-labels">
+      <div class="scope-lbl-spacer"></div>
+      <div class="ch-lbl" style="color:var(--c-ai)">AI &amp; Computing</div>
+      <div class="ch-lbl" style="color:var(--c-start)">Startups / VC</div>
+      <div class="ch-lbl" style="color:var(--c-sec)">Security</div>
+      <div class="ch-lbl" style="color:var(--c-semi)">Semiconductor</div>
+      <div class="ch-lbl" style="color:var(--c-devops)">DevOps / SRE</div>
+      <div class="ch-lbl" style="color:var(--c-cloud)">Cloud / Infra</div>
+      <div class="ch-lbl" style="color:var(--c-oss)">Open Source</div>
+      <div class="ch-lbl" style="color:var(--c-city)">Smart City</div>
+    </div>
+
+    <!-- Signal area -->
+    <div class="scope-sig-area">
+
+      <!-- Month ruler (flex: proportional to days in month) -->
+      <div class="scope-ruler">
+        <div class="r-past"  style="flex:31">MAR</div>
+        <div class="r-past"  style="flex:30">APR</div>
+        <div class="r-past"  style="flex:31">MAY</div>
+        <div class="r-now"   style="flex:30">JUN ▶</div>
+        <div class="r-future"style="flex:31">JUL</div>
+        <div class="r-future"style="flex:31">AUG</div>
+        <div class="r-future"style="flex:30">SEP</div>
+      </div>
+
+      <!-- CH 1 · AI & Computing: NVIDIA GTC (June 1-4, day 92) + COMPUTEX (June 2-5, day 93) -->
+      <div class="ch-sig">
+        <div class="sig live" style="left:42.99%;width:max(4px,1.87%);background:var(--c-ai);box-shadow:0 0 10px var(--c-ai)"></div>
+        <div class="sig live" style="left:43.46%;width:max(4px,1.87%);background:var(--c-ai);opacity:0.55;box-shadow:0 0 6px var(--c-ai)"></div>
+      </div>
+
+      <!-- CH 2 · Startups: InnoVEX (June 2-5, same window as COMPUTEX) -->
+      <div class="ch-sig">
+        <div class="sig live" style="left:43.46%;width:max(4px,1.87%);background:var(--c-start);box-shadow:0 0 10px var(--c-start)"></div>
+      </div>
+
+      <!-- CH 3 · Security: CYBERSEC (May 5-7, day 65) -->
+      <div class="ch-sig">
+        <div class="sig past" style="left:30.37%;width:max(4px,1.40%);background:var(--c-sec);box-shadow:0 0 6px var(--c-sec)"></div>
+      </div>
+
+      <!-- CH 4 · Semiconductor: TSMC (May 14, day 74) + SEMICON (Sep 2-4, day 185) -->
+      <div class="ch-sig">
+        <div class="sig past" style="left:34.58%;width:max(4px,0.47%);background:var(--c-semi);box-shadow:0 0 6px var(--c-semi)"></div>
+        <div class="sig"      style="left:86.45%;width:max(4px,1.40%);background:var(--c-semi);box-shadow:0 0 6px var(--c-semi)"></div>
+      </div>
+
+      <!-- CH 5 · DevOps: DevOpsDays (June 25-26, day 116) -->
+      <div class="ch-sig">
+        <div class="sig" style="left:54.21%;width:max(4px,0.93%);background:var(--c-devops);box-shadow:0 0 8px var(--c-devops)"></div>
+      </div>
+
+      <!-- CH 6 · Cloud: iThome (July 1, day 122) + AWS Summit (July 15-16, day 136) -->
+      <div class="ch-sig">
+        <div class="sig" style="left:57.01%;width:max(4px,0.47%);background:var(--c-cloud);box-shadow:0 0 8px var(--c-cloud)"></div>
+        <div class="sig" style="left:63.55%;width:max(4px,0.93%);background:var(--c-cloud);box-shadow:0 0 8px var(--c-cloud)"></div>
+      </div>
+
+      <!-- CH 7 · Open Source: COSCUP (Aug 8-9, day 160) + PyCon TBD (~day 175) -->
+      <div class="ch-sig">
+        <div class="sig"  style="left:74.77%;width:max(4px,0.93%);background:var(--c-oss);box-shadow:0 0 8px var(--c-oss)"></div>
+        <div class="sig tbd" style="left:79.44%;width:max(4px,0.93%);border-color:var(--c-oss);color:var(--c-oss)"></div>
+      </div>
+
+      <!-- CH 8 · Smart City: Smart City Summit (Mar 17, day 16) -->
+      <div class="ch-sig">
+        <div class="sig past" style="left:7.48%;width:max(4px,0.47%);background:var(--c-city);box-shadow:0 0 6px var(--c-city)"></div>
+      </div>
+
+      <!-- NOW line — rendered last so it layers on top -->
+      <div class="now-line">
+        <span class="now-line-lbl">NOW</span>
+      </div>
+
+    </div><!-- /scope-sig-area -->
+  </div><!-- /scope -->
+</section>
+
+<!-- ═══ LEGEND ══════════════════════════════════════════════ -->
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-ai)"></div>AI &amp; Computing</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-start)"></div>Startups / VC</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-sec)"></div>Security</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-semi)"></div>Semiconductor</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-devops)"></div>DevOps / SRE</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-cloud)"></div>Cloud / Infra</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-oss)"></div>Open Source</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-city)"></div>Smart City</div>
+  <div class="leg-item"><div class="leg-now-bar"></div>Today</div>
+  <div class="leg-item leg-past"><div class="leg-dot" style="background:#555"></div>Past</div>
+  <div class="leg-item" style="opacity:0.4"><div class="leg-dot" style="border:1px dashed #4ade80;background:transparent"></div>TBD</div>
+</div>
+
+<!-- ═══ MONTH GRID ══════════════════════════════════════════ -->
+<section class="mgrid">
+
+  <!-- MARCH -->
+  <div class="mcol">
+    <div class="mcol-hdr">
+      <span class="mcol-num">03</span>
+      <span class="mcol-name">March</span>
+    </div>
+    <div class="ecard past" style="color:var(--c-city)">
+      <span class="ename"><a href="https://thetechrevolutionist.com/2026/03/2026-smart-city-summit-and-expo-taiwan-info.html">Smart City Summit &amp; Expo</a></span>
+      <span class="edates">Mar 17 · 1 day · TaiNEX</span>
+      <div class="emeta"><span class="badge b-free">Free</span></div>
+      <span class="escale">53 countries · 174 cities · 250+ startups</span>
+    </div>
+  </div>
+
+  <!-- APRIL -->
+  <div class="mcol">
+    <div class="mcol-hdr">
+      <span class="mcol-num">04</span>
+      <span class="mcol-name">April</span>
+    </div>
+    <div class="mcol-empty">— quiet month —</div>
+  </div>
+
+  <!-- MAY -->
+  <div class="mcol">
+    <div class="mcol-hdr">
+      <span class="mcol-num">05</span>
+      <span class="mcol-name">May</span>
+    </div>
+    <div class="ecard past" style="color:var(--c-sec)">
+      <span class="ename"><a href="https://10times.com/cybersec-expo">CYBERSEC 2026</a></span>
+      <span class="edates">May 5–7 · 3 days · TaiNEX Hall 1</span>
+      <div class="emeta"><span class="badge b-paid">Paid</span></div>
+      <span class="escale">20,000 attendees · 400+ brands · 300+ sessions</span>
+    </div>
+    <div class="ecard past" style="color:var(--c-semi)">
+      <span class="ename"><a href="https://www.taiwannews.com.tw/news/6362137">TSMC Tech Symposium</a></span>
+      <span class="edates">May 14 · 1 day · Hsinchu*</span>
+      <div class="emeta"><span class="badge b-invite">Invite only</span></div>
+      <span class="escale">*70 km south · 1 hr THSR express</span>
+    </div>
+  </div>
+
+  <!-- JUNE — current -->
+  <div class="mcol cur">
+    <div class="mcol-hdr">
+      <span class="mcol-num">06</span>
+      <span class="mcol-name">June ▶ Now</span>
+    </div>
+    <div class="ecard live" style="color:var(--c-ai)">
+      <span class="ename"><a href="https://www.nvidia.com/en-tw/gtc/taipei/computex/">NVIDIA GTC Taipei</a></span>
+      <span class="edates">June 1–4 · TICC (Xinyi)</span>
+      <div class="emeta">
+        <span class="badge b-now">Ending today</span>
+        <span class="badge b-paid">Paid</span>
+      </div>
+      <span class="escale">Agentic AI · RTX Spark · Vera CPU keynote</span>
+    </div>
+    <div class="ecard live" style="color:var(--c-ai)">
+      <span class="ename"><a href="https://www.computextaipei.com.tw/en/index.html">COMPUTEX 2026</a></span>
+      <span class="edates">June 2–5 · TaiNEX 1&amp;2 + TWTC + TICC</span>
+      <div class="emeta">
+        <span class="badge b-now">Live now</span>
+        <span class="badge b-paid">Paid</span>
+      </div>
+      <span class="escale">1,500 exhibitors · 33 countries · 6,000+ booths</span>
+    </div>
+    <div class="ecard live" style="color:var(--c-start)">
+      <span class="ename"><a href="https://www.computextaipei.com.tw/en/news/5745807A54416BE4/info.html">InnoVEX 2026</a></span>
+      <span class="edates">June 2–5 · TaiNEX Hall 2</span>
+      <div class="emeta">
+        <span class="badge b-now">Live now</span>
+        <span class="badge b-paid">Paid</span>
+      </div>
+      <span class="escale">~500 startups · 22 countries · USD 60k prize pool</span>
+    </div>
+    <div class="ecard" style="color:var(--c-devops)">
+      <span class="ename"><a href="https://devopsdays.org/events/2026-taipei">DevOpsDays Taipei</a></span>
+      <span class="edates">June 25–26 · Taipei New Horizon 6F</span>
+      <div class="emeta"><span class="badge b-paid">Paid</span></div>
+      <span class="escale">700+ professionals · DevOps · SRE · CI/CD · AI</span>
+    </div>
+  </div>
+
+  <!-- JULY -->
+  <div class="mcol fut">
+    <div class="mcol-hdr">
+      <span class="mcol-num">07</span>
+      <span class="mcol-name">July</span>
+    </div>
+    <div class="ecard" style="color:var(--c-cloud)">
+      <span class="ename"><a href="https://cloudsummit.ithome.com.tw/2026/">iThome Cloud Summit</a></span>
+      <span class="edates">July 1 · 1 day · TaiNEX Hall 2, 7F</span>
+      <div class="emeta"><span class="badge b-free">Free*</span></div>
+      <span class="escale">*Screened for CIO/CTO/architect seniority · Mandarin-primary</span>
+    </div>
+    <div class="ecard" style="color:var(--c-cloud)">
+      <span class="ename"><a href="https://aws.amazon.com/tw/events/summits/taipei/">AWS Summit Taipei</a></span>
+      <span class="edates">July 15–16 · TICC (Xinyi)</span>
+      <div class="emeta"><span class="badge b-free">Free</span></div>
+      <span class="escale">40+ sessions · Agentic AI · Serverless · AWS Village labs</span>
+    </div>
+  </div>
+
+  <!-- AUGUST -->
+  <div class="mcol fut">
+    <div class="mcol-hdr">
+      <span class="mcol-num">08</span>
+      <span class="mcol-name">August</span>
+    </div>
+    <div class="ecard" style="color:var(--c-oss)">
+      <span class="ename"><a href="https://coscup.org/2026/en/sponsorship/">COSCUP 2026</a></span>
+      <span class="edates">Aug 8–9 · NTUST (Da'an District)</span>
+      <div class="emeta"><span class="badge b-free">Free</span></div>
+      <span class="escale">3,000+ attendees · 20+ tracks · 20th edition · UbuCon Asia co-hosted</span>
+    </div>
+  </div>
+
+  <!-- SEPTEMBER -->
+  <div class="mcol fut">
+    <div class="mcol-hdr">
+      <span class="mcol-num">09</span>
+      <span class="mcol-name">September</span>
+    </div>
+    <div class="ecard" style="color:var(--c-semi)">
+      <span class="ename"><a href="https://expo.semi.org/taiwan2026/Public/enter.aspx">SEMICON Taiwan 2026</a></span>
+      <span class="edates">Sept 2–4 · TaiNEX Hall 1&amp;2</span>
+      <div class="emeta"><span class="badge b-paid">Paid</span></div>
+      <span class="escale">1,200 exhibitors · 4,100+ booths · 20+ international forums</span>
+    </div>
+    <div class="ecard" style="color:var(--c-oss)">
+      <span class="ename"><a href="https://tw.pycon.org/2026/en-us/speaking/cfp">PyCon Taiwan 2026</a></span>
+      <span class="edates">TBD · Taipei (date unannounced)</span>
+      <div class="emeta"><span class="badge b-paid">Paid</span></div>
+      <span class="escale">~500 attendees · Python · AI/ML · Fintech · Semiconductor</span>
+    </div>
+  </div>
+
+</section><!-- /mgrid -->
+
+<!-- ═══ NOTES ════════════════════════════════════════════════ -->
+<section class="notes">
+  <div>
+    <p class="notes-hdr">MRT Access</p>
+    <ul>
+      <li><a href="https://www.computextaipei.com.tw/en/index.html">TaiNEX Nangang</a> — Blue Line, Nangang Exhibition Center stn.</li>
+      <li><a href="https://aws.amazon.com/tw/events/summits/taipei/">TICC Xinyi</a> — Blue/Red Line, Taipei City Hall stn.</li>
+      <li><a href="https://coscup.org/2026/en/sponsorship/">NTUST (COSCUP)</a> — Daan District Office stn.</li>
+      <li><a href="https://devopsdays.org/events/2026-taipei">Taipei New Horizon</a> — Xinyi District, near City Hall.</li>
+    </ul>
+  </div>
+  <div>
+    <p class="notes-hdr">Language &amp; Registration</p>
+    <ul>
+      <li>English-friendly: COMPUTEX · SEMICON · AWS Summit · GTC · COSCUP · DevOpsDays</li>
+      <li>Primarily Mandarin: <a href="https://cloudsummit.ithome.com.tw/2026/">iThome Cloud Summit</a></li>
+      <li>COMPUTEX TICC forum sessions often fully book before the show opens — register early</li>
+      <li>TSMC Symposium is invite-only and held in Hsinchu, not Taipei</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
+<footer class="cal-foot">
+  <div>Sources:
+    <a href="https://www.computextaipei.com.tw/en/index.html">[1]</a>
+    <a href="https://www.nvidia.com/en-tw/gtc/taipei/computex/">[2]</a>
+    <a href="https://www.nvidia.com/en-tw/gtc/taipei/keynote/">[3]</a>
+    <a href="https://www.computextaipei.com.tw/en/news/5745807A54416BE4/info.html">[4]</a>
+    <a href="https://10times.com/cybersec-expo">[5]</a>
+    <a href="https://expo.semi.org/taiwan2026/Public/enter.aspx">[6]</a>
+    <a href="https://coscup.org/2026/en/sponsorship/">[7]</a>
+    <a href="https://devopsdays.org/events/2026-taipei">[8]</a>
+    <a href="https://cloudsummit.ithome.com.tw/2026/">[9]</a>
+    <a href="https://aws.amazon.com/tw/events/summits/taipei/">[10]</a>
+    <a href="https://tw.pycon.org/2026/en-us/speaking/cfp">[11]</a>
+    <a href="https://thetechrevolutionist.com/2026/03/2026-smart-city-summit-and-expo-taiwan-info.html">[12]</a>
+    <a href="https://www.taiwannews.com.tw/news/6362137">[14]</a>
+    <a href="https://www.tweaktown.com/news/111907/nvidia-ceo-jensen-huang-keynote-live-news-blog-from-gtc-taipei-2026/index.html">[15]</a>
+  </div>
+  <div>Signal trace · Taipei 2026 · June 4</div>
+</footer>
+
+</div>
