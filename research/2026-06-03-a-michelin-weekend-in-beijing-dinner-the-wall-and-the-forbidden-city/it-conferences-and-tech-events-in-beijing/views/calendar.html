@@ -1,0 +1,765 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in Beijing 2026 — Calendar"
+---
+
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cal-root {
+  font-family: 'Inter', 'SF Pro Text', system-ui, -apple-system, sans-serif;
+  color: #1A1A1A;
+  background: #F4F3EE;
+  line-height: 1.5;
+}
+
+/* ── Hero ── */
+.cal-hero {
+  background: #0D1117;
+  color: #E6EDF3;
+  padding: 48px 36px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.cal-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 90% at 5% 60%,  rgba(197,34,31,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 90% at 95% 40%, rgba(21,101,192,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 60% at 50% 100%, rgba(230,81,0,.10) 0%, transparent 50%);
+  pointer-events: none;
+}
+.cal-hero-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+.cal-hero h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.cal-hero .ch-sub {
+  color: #8B949E;
+  font-size: .88rem;
+  margin-bottom: 18px;
+}
+.cal-hero .ch-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,208,80,.12);
+  border: 1px solid rgba(255,208,80,.3);
+  color: #FFD050;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.cal-hero .ch-now::before { content: '◉'; }
+
+/* ── Year strip ── */
+.year-strip {
+  background: #161B22;
+  border-bottom: 1px solid #30363D;
+  padding: 18px 36px 22px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.year-strip-inner {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+  min-width: 520px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.ys-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 2px;
+}
+.ys-label {
+  font-size: .64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #484F58;
+}
+.ys-col.active .ys-label   { color: #C9D1D9; }
+.ys-col.is-now .ys-label   { color: #FFD050; }
+.ys-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 16px;
+}
+.ys-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ys-col.is-past .ys-dot { opacity: .35; }
+.ys-now-marker {
+  font-size: 7px;
+  color: #FFD050;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+/* ── Category colours ── */
+.bg-govt      { background: #C62828; }
+.bg-expo      { background: #7B1FA2; }
+.bg-security  { background: #1565C0; }
+.bg-opensource{ background: #2E7D32; }
+.bg-robotics  { background: #BF360C; }
+.bg-digital   { background: #0277BD; }
+.bg-cloud     { background: #00695C; }
+
+.fg-govt      { color: #C62828; border-color: #C62828; }
+.fg-expo      { color: #7B1FA2; border-color: #7B1FA2; }
+.fg-security  { color: #1565C0; border-color: #1565C0; }
+.fg-opensource{ color: #2E7D32; border-color: #2E7D32; }
+.fg-robotics  { color: #BF360C; border-color: #BF360C; }
+.fg-digital   { color: #0277BD; border-color: #0277BD; }
+.fg-cloud     { color: #00695C; border-color: #00695C; }
+
+/* ── Legend ── */
+.legend-bar {
+  background: #EDEDEA;
+  border-bottom: 1px solid #DDD;
+  padding: 10px 36px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .72rem;
+  color: #555;
+  font-weight: 500;
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Timeline ── */
+.timeline {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 8px 28px 64px;
+}
+
+/* ── Month section ── */
+.month-sec { margin-top: 36px; }
+.month-hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid #D0CEC8;
+}
+.month-sec.is-past  .month-hdr { border-bottom-color: #DFDDDA; }
+.month-sec.is-now   .month-hdr { border-bottom-color: #F0C040; }
+.month-name {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: #111;
+}
+.month-sec.is-past  .month-name { color: #A0998E; }
+.month-sec.is-now   .month-name { color: #7D5A00; }
+.status-badge {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 4px;
+}
+.sb-past     { background: #EDEBE8; color: #8A827A; }
+.sb-now      { background: #FFF3CD; color: #7D5A00; }
+.sb-upcoming { background: #D5F0DB; color: #1A5C2A; }
+
+/* ── Event grid ── */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+}
+
+/* ── Event card ── */
+.ev-card {
+  background: #fff;
+  border-radius: 10px;
+  border-left: 4px solid;
+  box-shadow: 0 1px 5px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
+  padding: 15px 16px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  transition: box-shadow .15s;
+}
+.ev-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04); }
+.month-sec.is-past .ev-card {
+  background: #F8F7F4;
+  box-shadow: none;
+}
+.month-sec.is-past .ev-card:hover { box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+
+/* Card with photo */
+.ev-card.has-photo { padding-top: 0; overflow: hidden; }
+.ev-photo {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 2px;
+}
+.ev-photo-credit {
+  font-size: .64rem;
+  color: #999;
+  padding: 0 16px 4px;
+  font-style: italic;
+}
+
+/* Card top row */
+.ev-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.ev-favicon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  object-fit: contain;
+  margin-top: 1px;
+  background: #F0EEE8;
+}
+.ev-name {
+  font-size: .92rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #111;
+  text-decoration: none;
+}
+.ev-name:hover { text-decoration: underline; }
+.month-sec.is-past .ev-name { color: #6A6460; }
+
+/* Meta rows */
+.ev-meta {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 2px 6px;
+  font-size: .76rem;
+  color: #555;
+}
+.ev-meta .ml { color: #AAA8A0; font-size: .72rem; }
+.ev-meta em  { font-style: italic; color: #AAA; }
+
+/* Focus pill */
+.ev-pill {
+  display: inline-block;
+  font-size: .67rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  align-self: flex-start;
+}
+.month-sec.is-past .ev-pill { opacity: .65; }
+
+/* Audience */
+.ev-audience {
+  font-size: .72rem;
+  color: #908880;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+/* ── "Not Beijing" notice ── */
+.not-beijing {
+  margin-top: 40px;
+  background: #FFFBF0;
+  border: 1px solid #E0D4A0;
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+.not-beijing h3 {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #8A7A50;
+  margin-bottom: 10px;
+}
+.not-beijing ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.not-beijing li {
+  font-size: .8rem;
+  color: #665F40;
+  padding-left: 12px;
+  position: relative;
+}
+.not-beijing li::before {
+  content: '↗';
+  position: absolute;
+  left: 0;
+  color: #C0A840;
+}
+
+/* ── Practical notes ── */
+.prac-notes {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 28px 48px;
+}
+.prac-notes h2 {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #A0998E;
+  margin-bottom: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #DDDAD6;
+}
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.note-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: .79rem;
+  color: #444;
+  line-height: 1.55;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.note-card h4 {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #AAA;
+  margin-bottom: 6px;
+}
+
+/* ── Citation superscripts ── */
+sup a {
+  font-size: .65em;
+  color: inherit;
+  opacity: .6;
+  text-decoration: none;
+}
+sup a:hover { opacity: 1; }
+</style>
+
+<div class="cal-root">
+
+  <!-- ── Hero ── -->
+  <div class="cal-hero">
+    <div class="cal-hero-inner">
+      <h1>Beijing Tech Calendar 2026</h1>
+      <div class="ch-sub">11 events &nbsp;·&nbsp; 5 passed &nbsp;·&nbsp; 6 upcoming &nbsp;·&nbsp; survey complete</div>
+      <div class="ch-now">Today: June 4, 2026 — BCS window is now</div>
+    </div>
+  </div>
+
+  <!-- ── Year strip ── -->
+  <div class="year-strip" aria-label="Year at a glance">
+    <div class="year-strip-inner">
+
+      <div class="ys-col">
+        <span class="ys-label">Jan</span>
+        <div class="ys-dots"></div>
+      </div>
+
+      <div class="ys-col">
+        <span class="ys-label">Feb</span>
+        <div class="ys-dots"></div>
+      </div>
+
+      <div class="ys-col active is-past">
+        <span class="ys-label">Mar</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-govt"></div>
+          <div class="ys-dot bg-expo"></div>
+        </div>
+      </div>
+
+      <div class="ys-col active is-past">
+        <span class="ys-label">Apr</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-cloud"></div>
+          <div class="ys-dot bg-expo"></div>
+        </div>
+      </div>
+
+      <div class="ys-col active is-past">
+        <span class="ys-label">May</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-expo"></div>
+        </div>
+      </div>
+
+      <div class="ys-col active is-now">
+        <span class="ys-label">Jun</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-security"></div>
+        </div>
+        <div class="ys-now-marker">▼</div>
+      </div>
+
+      <div class="ys-col active">
+        <span class="ys-label">Jul</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-digital"></div>
+        </div>
+      </div>
+
+      <div class="ys-col active">
+        <span class="ys-label">Aug</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-opensource"></div>
+          <div class="ys-dot bg-security"></div>
+          <div class="ys-dot bg-robotics"></div>
+        </div>
+      </div>
+
+      <div class="ys-col">
+        <span class="ys-label">Sep</span>
+        <div class="ys-dots"></div>
+      </div>
+
+      <div class="ys-col">
+        <span class="ys-label">Oct</span>
+        <div class="ys-dots"></div>
+      </div>
+
+      <div class="ys-col">
+        <span class="ys-label">Nov</span>
+        <div class="ys-dots"></div>
+      </div>
+
+      <div class="ys-col active">
+        <span class="ys-label">Dec</span>
+        <div class="ys-dots">
+          <div class="ys-dot bg-opensource"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Legend ── -->
+  <div class="legend-bar">
+    <div class="legend-item"><div class="legend-dot bg-govt"></div> Gov / Policy</div>
+    <div class="legend-item"><div class="legend-dot bg-expo"></div> Trade Expo</div>
+    <div class="legend-item"><div class="legend-dot bg-security"></div> Cybersecurity</div>
+    <div class="legend-item"><div class="legend-dot bg-opensource"></div> Open Source</div>
+    <div class="legend-item"><div class="legend-dot bg-robotics"></div> Robotics / Hardware</div>
+    <div class="legend-item"><div class="legend-dot bg-digital"></div> Digital Economy</div>
+    <div class="legend-item"><div class="legend-dot bg-cloud"></div> Cloud / Network</div>
+  </div>
+
+  <!-- ── Timeline ── -->
+  <div class="timeline">
+
+    <!-- MARCH -->
+    <div class="month-sec is-past">
+      <div class="month-hdr">
+        <span class="month-name">March</span>
+        <span class="status-badge sb-past">✓ past</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-govt">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=english.beijing.gov.cn&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-govt" href="https://english.beijing.gov.cn/latest/news/202603/t20260319_4561745.html">Zhongguancun Forum 2026</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Mar 25–29</span>
+            <span class="ml">Venue</span><span>ZGC, Haidian</span>
+          </div>
+          <span class="ev-pill fg-govt">Gov / Policy</span>
+          <span class="ev-audience">Min. of Science &amp; Technology · 1,000+ guests from 100+ countries · themes: 6G, BCIs, gene therapy <sup><a href="https://www.globaltimes.cn/page/202603/1357181.shtml">[14]</a></sup></span>
+        </div>
+
+        <div class="ev-card fg-expo">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=english.beijing.gov.cn&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-expo" href="https://english.beijing.gov.cn/latest/news/202603/t20260308_4551646.html">Int'l Sci-Fi &amp; Future Tech Expo</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Mar 27–29</span>
+            <span class="ml">Venue</span><span>Shougang Park, Shijingshan</span>
+          </div>
+          <span class="ev-pill fg-expo">Trade Expo</span>
+          <span class="ev-audience">10,000 sqm · 100+ Chinese &amp; international brands · sci-fi industry chain <sup><a href="https://news.cgtn.com/news/2026-03-28/Beijing-sci-fi-expo-opens-to-public-1LSvUlI5Nfy/p.html">[16]</a></sup></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- APRIL -->
+    <div class="month-sec is-past">
+      <div class="month-hdr">
+        <span class="month-name">April</span>
+        <span class="status-badge sb-past">✓ past</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-cloud">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=infoexevents.com.cn&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-cloud" href="https://www.infoexevents.com.cn/chinasdn/">CICNA 2026</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Apr 15–16</span>
+            <span class="ml">Venue</span><span>Four Points Sheraton, Haidian</span>
+            <span class="ml">Theme</span><span>From Cloud-Native to AI-Native</span>
+          </div>
+          <span class="ev-pill fg-cloud">Cloud / Network</span>
+          <span class="ev-audience">Network architects · AI chip teams · Huawei &amp; ZTE lead sponsors · 15th edition <sup><a href="https://www.infoexevents.com.cn/chinasdn/">[17]</a></sup></span>
+        </div>
+
+        <div class="ev-card fg-expo">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=infocomm-china.com&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-expo" href="https://www.infocomm-china.com/press-releases/20th-beijing-infocomm-china-2026-takes-place-next-week-top-technology-line-up">InfoComm China 2026</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Apr 15–17</span>
+            <span class="ml">Venue</span><span>CNCC, Olympic Green</span>
+            <span class="ml">Theme</span><span>Beyond Connectivity — Strategic Leap 2030</span>
+          </div>
+          <span class="ev-pill fg-expo">Trade Expo</span>
+          <span class="ev-audience">Pro AV · AI workplaces · 400+ brands, 24,000+ visitors · 20th anniversary <sup><a href="https://www.prnewswire.com/apac/news-releases/20th-beijing-infocomm-china-2026-takes-place-next-week-top-technology-line-up-302735552.html">[19]</a></sup></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MAY -->
+    <div class="month-sec is-past">
+      <div class="month-hdr">
+        <span class="month-name">May</span>
+        <span class="status-badge sb-past">✓ past</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-expo">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=english.beijing.gov.cn&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-expo" href="https://english.beijing.gov.cn/whatson/events/exhibition/202601/t20260130_4478731.html">28th CHITEC</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>May 8–10</span>
+            <span class="ml">Venue</span><span>CNCC, Olympic Green</span>
+            <span class="ml">Theme</span><span>Technology Leads the Way, Innovation Shares the Future</span>
+          </div>
+          <span class="ev-pill fg-expo">Trade Expo</span>
+          <span class="ev-audience">AI · autonomy · IoT · 800+ exhibitors · 50,000 sqm · L4 RoboBus &amp; 4D Gaussian Splatting demos <sup><a href="https://www.prnewswire.com/apac/news-releases/the-28th-china-beijing-international-high-tech-expo-grand-opening-soon-302759048.html">[20]</a></sup></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- JUNE (NOW) -->
+    <div class="month-sec is-now">
+      <div class="month-hdr">
+        <span class="month-name">June</span>
+        <span class="status-badge sb-now">◉ now</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-security" style="box-shadow: 0 4px 20px rgba(21,101,192,.14), 0 0 0 1px rgba(21,101,192,.10);">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=bcs.qianxin.com&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-security" href="https://bcs.qianxin.com/en">BCS 2026 — Beijing Cyber Security Conference</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Jun TBC — <em>monitor bcs.qianxin.com</em></span>
+            <span class="ml">Venue</span><span>Beijing (TBC)</span>
+            <span class="ml">Theme</span><span>AI ∞ Cybersecurity</span>
+          </div>
+          <span class="ev-pill fg-security">Cybersecurity</span>
+          <span class="ev-audience">Enterprise security · gov staff · ~500 speakers · 2,000+ participating orgs · QI-ANXIN flagship <sup><a href="https://bcs.qianxin.com/en">[1]</a></sup></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- JULY -->
+    <div class="month-sec">
+      <div class="month-hdr">
+        <span class="month-name">July</span>
+        <span class="status-badge sb-upcoming">↑ upcoming</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-digital">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=gdec.net.cn&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-digital" href="https://www.gdec.net.cn/?lang=en">GDEC 2026 — Global Digital Economy Conference</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Jul 2 (opening) + multi-day forums</span>
+            <span class="ml">Venue</span><span>Beijing National Convention Center</span>
+            <span class="ml">Theme</span><span>Building a Digital-Friendly City — Inclusive Intelligence, Borderless Connectivity</span>
+          </div>
+          <span class="ev-pill fg-digital">Digital Economy</span>
+          <span class="ev-audience">Digital economy execs · gov policy teams · AI product &amp; data · "1+6+N" structure: 1 opening + 6 main forums + ~50 breakouts <sup><a href="https://www.gdec.net.cn/?lang=en">[2]</a></sup></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AUGUST -->
+    <div class="month-sec">
+      <div class="month-hdr">
+        <span class="month-name">August</span>
+        <span class="status-badge sb-upcoming">↑ upcoming</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-opensource">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=asia.communityovercode.org&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-opensource" href="https://asia.communityovercode.org/">Community Over Code Asia 2026</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Aug 7–9</span>
+            <span class="ml">Venue</span><span>ZGC Innovation Center, Haidian</span>
+          </div>
+          <span class="ev-pill fg-opensource">Open Source</span>
+          <span class="ev-audience">Apache committers &amp; contributors · OSS engineering leads · 19 tracks in EN/ZH · vendor-neutral <sup><a href="https://medium.com/@ApacheDolphinScheduler/see-you-in-beijing-this-august-cfp-for-community-over-code-asia-2026-is-now-open-791d66ed5578">[5]</a></sup></span>
+        </div>
+
+        <div class="ev-card fg-security">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=isc.360.com&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-security" href="https://isc.360.com/index.html">ISC.AI 2026 — Internet Security Conference</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Aug TBC — <em>monitor isc.360.com</em></span>
+            <span class="ml">Venue</span><span>Beijing National Convention Center</span>
+            <span class="ml">Theme</span><span>2025 was "All In Agent" — 14th edition in 2026</span>
+          </div>
+          <span class="ev-pill fg-security">Cybersecurity</span>
+          <span class="ev-audience">Security researchers · AI security · red/blue teams · 200,000+ cumulative attendees, 30+ countries <sup><a href="https://isc.360.com/index.html">[7]</a></sup></span>
+        </div>
+
+        <div class="ev-card fg-robotics has-photo">
+          <img class="ev-photo" src="calendar/images/robot-games.gif" alt="Humanoid robots competing at the 2nd World Humanoid Robot Games" loading="lazy">
+          <div class="ev-photo-credit">© CGTN — World Humanoid Robot Games preview, April 2026</div>
+          <div style="padding: 0 16px 13px; display: flex; flex-direction: column; gap: 9px;">
+            <div class="ev-top">
+              <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=news.cgtn.com&sz=128" alt="" loading="lazy">
+              <a class="ev-name fg-robotics" href="https://news.cgtn.com/news/2026-04-22/Beijing-to-host-2nd-World-Humanoid-Robot-Games-in-August-1MxQtTFEhBm/index.html">2nd World Humanoid Robot Games</a>
+            </div>
+            <div class="ev-meta">
+              <span class="ml">Dates</span><span>Aug 22–26</span>
+              <span class="ml">Venue</span><span>National Speed Skating Oval (Ice Ribbon)</span>
+            </div>
+            <span class="ev-pill fg-robotics">Robotics / Hardware</span>
+            <span class="ev-audience">Robotics engineers · embodied-AI researchers · hardware investors · 30+ events across 9 disciplines: football, gymnastics, weightlifting, martial arts, street dance, tug-of-war, pitch-pot <sup><a href="https://www.globaltimes.cn/page/202604/1359427.shtml">[9]</a></sup></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DECEMBER -->
+    <div class="month-sec">
+      <div class="month-hdr">
+        <span class="month-name">December</span>
+        <span class="status-badge sb-upcoming">↑ upcoming</span>
+      </div>
+      <div class="events-grid">
+
+        <div class="ev-card fg-opensource">
+          <div class="ev-top">
+            <img class="ev-favicon" src="https://www.google.com/s2/favicons?domain=opensource.org&sz=128" alt="" loading="lazy">
+            <a class="ev-name fg-opensource" href="https://opensource.org/blog/top-50-open-source-conferences-in-2026">COSCon 2026 — China Open Source Conference</a>
+          </div>
+          <div class="ev-meta">
+            <span class="ml">Dates</span><span>Dec TBC (2025: Dec 6–7)</span>
+            <span class="ml">Venue</span><span>Park Plaza Beijing Science Park</span>
+          </div>
+          <span class="ev-pill fg-opensource">Open Source</span>
+          <span class="ev-audience">OSS developers · maintainers · community organizers · students · Kaiyuanshe flagship · 2025: 1,500+ attendees incl. OSI, OpenChain, OpenUK guests <sup><a href="https://www.chinadaily.com.cn/a/202512/25/WS694d0ab6a310d6866eb3075a.html">[11]</a></sup></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Not in Beijing -->
+    <div class="not-beijing">
+      <h3>Not in Beijing — reachable by high-speed rail</h3>
+      <ul>
+        <li><strong>KubeCon + CloudNativeCon China</strong> — Sep 8–9, Shanghai (5h) <sup><a href="https://events.linuxfoundation.org/kubecon-cloudnativecon-china/">[23]</a></sup></li>
+        <li><strong>WAIC 2026</strong> — July, Shanghai (5h)</li>
+        <li><strong>GAITC 2026</strong> (Global AI Technology Conference) — May 23–24, Hangzhou (5h) <sup><a href="https://www.caai.cn/site/content/7764.html">[24]</a></sup></li>
+      </ul>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- ── Practical notes ── -->
+  <div class="prac-notes">
+    <h2>Practical Notes</h2>
+    <div class="notes-grid">
+
+      <div class="note-card">
+        <h4>Key Venues</h4>
+        <strong>CNCC</strong> (China National Convention Center, Olympic Green) — Chaoyang, Subway Line 8, Olympic Green station.<br><br>
+        <strong>ZGC Innovation Center</strong> — Haidian (Beijing's tech corridor), Line 4.<br><br>
+        <strong>BNCC</strong> (Beijing National Convention Center) — Chaoyang, Line 14 / 15.
+      </div>
+
+      <div class="note-card">
+        <h4>Language</h4>
+        <strong>Bilingual EN/ZH:</strong> GDEC, InfoComm China, CHITEC, ISC.AI.<br><br>
+        <strong>EN submissions accepted:</strong> Community Over Code Asia (explicitly vendor-neutral, EN/ZH parity).<br><br>
+        <strong>Simultaneous interpretation:</strong> ZGC Forum major plenary sessions.
+      </div>
+
+      <div class="note-card">
+        <h4>Dates to Confirm</h4>
+        Three events are TBC as of June 4, 2026:<br><br>
+        • <a href="https://bcs.qianxin.com/en">BCS 2026</a> — watch bcs.qianxin.com<br>
+        • <a href="https://isc.360.com/index.html">ISC.AI 2026</a> — watch isc.360.com<br>
+        • <a href="https://opensource.org/blog/top-50-open-source-conferences-in-2026">COSCon 2026</a> — watch kaiyuanshe.cn
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /cal-root -->
