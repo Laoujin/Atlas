@@ -1,0 +1,1091 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "Extending Claude Code — Session 4: Authoring Craft & Operating at Scale — Blueprint"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+html, body {
+  background: #07111d;
+  color: #c8e0f4;
+}
+
+:root {
+  --bg:       #07111d;
+  --bg-card:  #0c1929;
+  --bg-card2: #0f1f32;
+  --grid:     rgba(56,189,248,.045);
+  --border:   rgba(56,189,248,.22);
+  --bdim:     rgba(56,189,248,.11);
+  --cyan:     #38bdf8;
+  --cyan2:    #7dd3fc;
+  --text:     #c8e0f4;
+  --dim:      rgba(200,224,244,.52);
+  --gold:     #fbbf24;
+  --red:      #f87171;
+  --red-bg:   rgba(248,113,113,.07);
+  --green:    #4ade80;
+  --green-bg: rgba(74,222,128,.06);
+  --purple:   #a78bfa;
+  --purp-bg:  rgba(167,139,250,.07);
+  --orange:   #fb923c;
+  --mono: 'JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', monospace;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.bp {
+  background: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-attachment: local;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.65;
+  padding: 2.5rem 2rem 5rem;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 { font-family: var(--mono); font-weight: 700; margin: 0; }
+h2 { font-size: 1rem; }
+p  { margin: 0; }
+a  { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--mono); font-size: 0.88em; color: var(--cyan2); background: rgba(56,189,248,.08); padding: 1px 4px; border-radius: 3px; }
+sup { font-size: 9px; line-height: 1; vertical-align: super; }
+sup a { color: rgba(200,224,244,.4); font-family: var(--mono); }
+sup a:hover { color: var(--cyan2); }
+
+/* ─── HEADER ─────────────────────────────────────────────────── */
+.bp-header {
+  border-bottom: 1px solid var(--bdim);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: start;
+}
+.bp-header-text {}
+.bp-session-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--cyan);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.6rem;
+}
+.bp-session-tag::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: var(--cyan);
+  flex-shrink: 0;
+}
+.bp-title {
+  font-size: 1.6rem;
+  color: #dff0ff;
+  margin: 0 0 0.6rem;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+.bp-title a { color: inherit; }
+.bp-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.bp-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border: 1px solid var(--bdim);
+  border-radius: 3px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.bp-chip.gold  { border-color: rgba(251,191,36,.3);  color: var(--gold); }
+.bp-chip.cyan  { border-color: rgba(56,189,248,.3);  color: var(--cyan2); }
+.bp-cover-thumb {
+  width: 72px;
+  height: 72px;
+  opacity: 0.3;
+  flex-shrink: 0;
+}
+
+/* ─── SECTION CHROME ─────────────────────────────────────────── */
+.bp-section { margin: 2.5rem 0; }
+.bp-section-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cyan2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+  opacity: 0.75;
+}
+.bp-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bdim);
+}
+
+/* ─── UNIVERSAL CONTRACT ─────────────────────────────────────── */
+.contract-panel {
+  background: rgba(56,189,248,.04);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--cyan);
+  padding: 1.4rem 1.75rem;
+  border-radius: 4px;
+}
+.contract-rule {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #dff0ff;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.6rem;
+  line-height: 1.35;
+}
+.contract-body {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+.contract-sub {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.contract-layer {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 9px;
+  border: 1px solid var(--bdim);
+  border-radius: 3px;
+  color: var(--cyan2);
+  letter-spacing: 0.04em;
+}
+.contract-quote {
+  font-style: italic;
+  color: var(--dim);
+  border-top: 1px solid var(--bdim);
+  padding-top: 0.75rem;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+/* ─── THREE LAYERS GRID ──────────────────────────────────────── */
+.layers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.layer-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bdim);
+  border-radius: 6px;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+.layer-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.layer-skills::before { background: linear-gradient(90deg, var(--cyan), transparent 70%); }
+.layer-mcp::before    { background: linear-gradient(90deg, var(--purple), transparent 70%); }
+.layer-sdk::before    { background: linear-gradient(90deg, var(--green), transparent 70%); }
+
+.layer-num {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+.layer-skills .layer-num { color: var(--cyan2); }
+.layer-mcp    .layer-num { color: var(--purple); }
+.layer-sdk    .layer-num { color: var(--green); }
+
+.layer-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #dff0ff;
+  margin: 0 0 1rem;
+}
+.layer-title a { color: inherit; }
+
+.token-box {
+  background: rgba(0,0,0,.25);
+  border: 1px solid var(--bdim);
+  border-radius: 4px;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 1rem;
+}
+.tok-label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.2rem;
+}
+.tok-value {
+  font-family: var(--mono);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.layer-skills .tok-value { color: var(--cyan); }
+.layer-mcp    .tok-value { color: var(--purple); }
+.layer-sdk    .tok-value { color: var(--green); }
+.tok-note {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
+.layer-rules {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.layer-rules li {
+  font-size: 11.5px;
+  padding-left: 1rem;
+  position: relative;
+  color: var(--text);
+  line-height: 1.5;
+}
+.layer-rules li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--dim);
+}
+
+/* ─── PROGRESSIVE DISCLOSURE ─────────────────────────────────── */
+.disc-spectrum {
+  background: var(--bg-card);
+  border: 1px solid var(--bdim);
+  border-radius: 6px;
+  padding: 1.5rem;
+}
+.disc-axis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.disc-block {
+  padding: 0.75rem 0.6rem;
+  border-radius: 4px;
+  text-align: center;
+}
+.db-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+}
+.db-cost {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  line-height: 1;
+}
+.db-note { font-size: 10px; color: var(--dim); line-height: 1.35; }
+
+.disc-block.always     { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.22); }
+.disc-block.always .db-label { color: var(--red); }
+.disc-block.always .db-cost  { color: var(--red); }
+.disc-block.name-only  { background: rgba(56,189,248,.07); border: 1px solid var(--bdim); }
+.disc-block.name-only .db-label { color: var(--cyan2); }
+.disc-block.name-only .db-cost  { color: var(--cyan); }
+.disc-block.tool-search { background: var(--purp-bg); border: 1px solid rgba(167,139,250,.2); }
+.disc-block.tool-search .db-label { color: var(--purple); }
+.disc-block.tool-search .db-cost  { color: var(--purple); }
+.disc-block.on-demand  { background: var(--green-bg); border: 1px solid rgba(74,222,128,.2); }
+.disc-block.on-demand .db-label { color: var(--green); }
+.disc-block.on-demand .db-cost  { color: var(--green); }
+
+.disc-arrow-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+  border-top: 1px solid var(--bdim);
+  padding-top: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.disc-note {
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.6;
+}
+
+/* ─── SIX PRIMITIVES ─────────────────────────────────────────── */
+.primitives-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.primitives-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--bdim);
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+.primitives-panel.server { border-top: 3px solid var(--cyan); }
+.primitives-panel.client { border-top: 3px solid var(--gold); }
+.panel-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.primitives-panel.server .panel-title { color: var(--cyan); }
+.primitives-panel.client .panel-title { color: var(--gold); }
+
+.primitive-cards { display: flex; flex-direction: column; gap: 0.45rem; }
+.prim-card {
+  background: rgba(0,0,0,.15);
+  border-left: 3px solid;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 3px 3px 0;
+}
+.prim-card.tools      { border-color: var(--cyan); }
+.prim-card.resources  { border-color: var(--cyan2); }
+.prim-card.prompts    { border-color: rgba(56,189,248,.35); }
+.prim-card.sampling   { border-color: var(--gold); }
+.prim-card.elicitation{ border-color: var(--orange); }
+.prim-card.roots      { border-color: rgba(251,191,36,.4); }
+.pc-name { font-family: var(--mono); font-size: 12px; font-weight: 600; color: #dff0ff; line-height: 1; margin-bottom: 3px; }
+.pc-desc { font-size: 11px; color: var(--dim); line-height: 1.45; }
+.pc-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 5px;
+  vertical-align: middle;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.pc-badge.underused   { background: rgba(251,191,36,.12); color: var(--gold); border: 1px solid rgba(251,191,36,.28); }
+.pc-badge.unsupported { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,.28); }
+
+.client-support-note {
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  background: var(--red-bg);
+  border: 1px solid rgba(248,113,113,.22);
+  border-radius: 4px;
+  font-size: 11px;
+}
+.csn-title {
+  font-family: var(--mono);
+  color: var(--red);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.support-matrix { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+.sm-item { font-family: var(--mono); font-size: 11px; }
+.sm-item.supported   .sm-check { color: var(--green); }
+.sm-item.unsupported .sm-check { color: var(--red); }
+.csn-note { color: var(--dim); line-height: 1.5; }
+
+/* ─── SECURITY THREAD ────────────────────────────────────────── */
+.security-panel {
+  background: linear-gradient(160deg, rgba(248,113,113,.04), var(--bg-card) 60%);
+  border: 1px solid rgba(248,113,113,.22);
+  border-left: 4px solid var(--red);
+  border-radius: 6px;
+  padding: 1.5rem;
+}
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.sec-threat-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  background: var(--red-bg);
+  border: 1px solid rgba(248,113,113,.3);
+  border-radius: 3px;
+  color: var(--red);
+  white-space: nowrap;
+}
+.sec-header-note { font-size: 12.5px; color: var(--dim); }
+
+.sec-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.sec-stat {
+  background: rgba(0,0,0,.2);
+  border: 1px solid rgba(248,113,113,.14);
+  border-radius: 4px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+}
+.ss-num {
+  font-family: var(--mono);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.ss-label { font-size: 10.5px; color: var(--dim); line-height: 1.4; }
+
+.attack-chain {
+  background: rgba(0,0,0,.15);
+  border: 1px solid rgba(248,113,113,.14);
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+.chain-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.chain-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+.chain-step {
+  padding: 3px 8px;
+  border: 1px solid rgba(248,113,113,.22);
+  border-radius: 3px;
+  font-size: 11.5px;
+  color: var(--text);
+}
+.chain-arrow { color: var(--red); font-weight: 700; }
+.chain-note  { font-size: 11px; color: var(--dim); line-height: 1.5; margin: 0; }
+
+.defences-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 0.5rem;
+}
+.defences {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+}
+.defence-item {
+  font-size: 11.5px;
+  padding: 0.45rem 0.75rem;
+  background: rgba(74,222,128,.05);
+  border: 1px solid rgba(74,222,128,.14);
+  border-left: 3px solid var(--green);
+  border-radius: 0 3px 3px 0;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+/* ─── COST & BILLING ─────────────────────────────────────────── */
+.cost-grid {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  gap: 1rem;
+}
+.cost-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--bdim);
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+.cost-panel.kpi-panel     { border-top: 3px solid var(--green); }
+.cost-panel.billing-panel { border-top: 3px solid var(--gold); }
+.cost-panel-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.cost-panel.kpi-panel .cost-panel-label     { color: var(--green); }
+.cost-panel.billing-panel .cost-panel-label { color: var(--gold); }
+
+.cost-kpis { display: flex; flex-direction: column; gap: 0; }
+.kpi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--bdim);
+}
+.kpi-row:last-child { border-bottom: none; }
+.kpi-label { font-size: 11px; color: var(--dim); }
+.kpi-val   { font-family: var(--mono); font-size: 1rem; font-weight: 700; color: var(--green); }
+.kpi-val.warn { color: var(--gold); }
+
+.billing-boundary {
+  background: rgba(251,191,36,.05);
+  border: 1px solid rgba(251,191,36,.22);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.85rem;
+}
+.bb-date  { font-family: var(--mono); font-size: 1.15rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 0.25rem; }
+.bb-label { font-size: 11px; color: var(--dim); line-height: 1.5; }
+
+.billing-tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.billing-tier {
+  text-align: center;
+  padding: 0.6rem 0.4rem;
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--bdim);
+  border-radius: 4px;
+}
+.bt-plan   { font-family: var(--mono); font-size: 9.5px; color: var(--dim); letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+.bt-credit { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--gold); line-height: 1; }
+.bt-period { font-size: 10px; color: var(--dim); }
+
+/* ─── OPEN QUESTION ──────────────────────────────────────────── */
+.open-question {
+  background: var(--bg-card);
+  border: 1px solid var(--bdim);
+  border-left: 4px solid var(--purple);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+}
+.oq-body {
+  font-size: 13.5px;
+  color: #dff0ff;
+  line-height: 1.65;
+  margin-bottom: 0.5rem;
+}
+.oq-note { font-size: 12px; color: var(--dim); line-height: 1.55; }
+
+/* ─── SUB-TOPICS ─────────────────────────────────────────────── */
+.subtopics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+.subtopic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bdim);
+  border-radius: 6px;
+  padding: 1.1rem 1.25rem;
+  text-decoration: none;
+  color: var(--text);
+  display: block;
+}
+.subtopic-card:hover { border-color: var(--border); text-decoration: none; }
+.subtopic-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+.subtopic-depth {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(56,189,248,.09);
+  color: var(--cyan2);
+  border: 1px solid var(--bdim);
+}
+.subtopic-stats { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+.subtopic-title {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #dff0ff;
+  margin-bottom: 0.35rem;
+  line-height: 1.4;
+}
+.subtopic-summary { font-size: 11.5px; color: var(--dim); line-height: 1.5; }
+
+/* ─── FOOTER ─────────────────────────────────────────────────── */
+.bp-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--bdim);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.footer-context {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.7;
+}
+.footer-context strong { color: var(--cyan2); }
+.footer-back a {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan2);
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .layers-grid       { grid-template-columns: 1fr; }
+  .primitives-split  { grid-template-columns: 1fr; }
+  .sec-stats         { grid-template-columns: repeat(2, 1fr); }
+  .cost-grid         { grid-template-columns: 1fr; }
+  .subtopics-grid    { grid-template-columns: 1fr; }
+  .disc-axis         { grid-template-columns: repeat(2, 1fr); }
+  .defences          { grid-template-columns: 1fr; }
+  .billing-tiers     { grid-template-columns: repeat(3, 1fr); }
+  .bp-header         { grid-template-columns: 1fr; }
+  .bp-cover-thumb    { display: none; }
+}
+</style>
+
+<div class="bp">
+
+  <!-- ── HEADER ──────────────────────────────────────────────── -->
+  <header class="bp-header">
+    <div class="bp-header-text">
+      <div class="bp-session-tag">Session 4 of 4 &nbsp;·&nbsp; Expert Developer Audience &nbsp;·&nbsp; 1–2h Virtual</div>
+      <h1 class="bp-title">Extending <a href="https://github.com/anthropics/claude-code">Claude Code</a> — Authoring Craft &amp; Operating at Scale</h1>
+      <div class="bp-meta">
+        <span class="bp-chip gold">73 citations</span>
+        <span class="bp-chip">4 research threads</span>
+        <span class="bp-chip">36 min read</span>
+        <span class="bp-chip cyan">expedition</span>
+        <span class="bp-chip">2026-06-03</span>
+      </div>
+    </div>
+    <img src="../cover.svg" alt="" class="bp-cover-thumb" aria-hidden="true">
+  </header>
+
+  <!-- ── § 0 UNIVERSAL CONTRACT ──────────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 0 — The Universal Contract</div>
+    <div class="contract-panel">
+      <div class="contract-rule">THE <code>description</code> FIELD IS THE ROUTING INTERFACE</div>
+      <p class="contract-body">
+        All three extension layers share a single activation mechanism: the <code>description</code> field.
+        It is the activation signal in <code>SKILL.md</code><sup><a href="https://agentskills.io/specification">[1]</a></sup>,
+        the tool-selection mechanism in MCP server schemas<sup><a href="https://modelcontextprotocol.io/specification/2025-11-25">[2]</a></sup>,
+        and the dispatch signal for subagent auto-invocation<sup><a href="https://code.claude.com/docs/en/agent-sdk/subagents">[3]</a></sup>.
+        The session should open here. Make participants write one before the first break.
+      </p>
+      <div class="contract-sub">
+        <span class="contract-layer">Skills — activation signal</span>
+        <span class="contract-layer">MCP — tool selector</span>
+        <span class="contract-layer">Agent SDK — dispatch signal</span>
+      </div>
+      <div class="contract-quote">
+        "Getting a description wrong is not a documentation problem — it is a routing failure that compounds across every session."
+        <br>Craft rules: what + when, max 1024 chars, always third person, must be testable by the writer.<sup><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">[17]</a></sup>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── § 1 THREE EXTENSION LAYERS ──────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 1 — Three Extension Layers</div>
+    <div class="layers-grid">
+
+      <div class="layer-card layer-skills">
+        <div class="layer-num">Layer 1</div>
+        <h2 class="layer-title"><a href="https://code.claude.com/docs/en/skills">Skills</a></h2>
+        <div class="token-box">
+          <div class="tok-label">Startup cost</div>
+          <div class="tok-value">~100</div>
+          <div class="tok-note">tokens at startup (name + desc only)<sup><a href="https://code.claude.com/docs/en/skills">[16]</a></sup></div>
+        </div>
+        <ul class="layer-rules">
+          <li>Body loads on demand — only when skill is relevant</li>
+          <li>30–50 tokens per skill until invoked<sup><a href="https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/">[4]</a></sup></li>
+          <li>Teams run 20–50 skills simultaneously at negligible overhead</li>
+          <li>Non-trigger root cause: almost always the description</li>
+          <li>Scope: project, user, or enterprise level</li>
+          <li><code>disable-model-invocation: true</code> for side-effect workflows</li>
+        </ul>
+      </div>
+
+      <div class="layer-card layer-mcp">
+        <div class="layer-num">Layer 2</div>
+        <h2 class="layer-title"><a href="https://modelcontextprotocol.io/specification/2025-11-25">MCP Servers</a></h2>
+        <div class="token-box">
+          <div class="tok-label">5-server baseline</div>
+          <div class="tok-value">50k–66k</div>
+          <div class="tok-note">tokens before first prompt<sup><a href="https://www.jdhodges.com/blog/claude-code-mcp-server-token-costs/">[6]</a></sup></div>
+        </div>
+        <ul class="layer-rules">
+          <li>Playwright 3,442 tok · Gmail 2,640 · Jira ~17,000 · GitHub 8k–12k</li>
+          <li>MCP Tool Search (Jan 2026): up to 95% reduction<sup><a href="https://www.mindstudio.ai/blog/claude-code-mcp-server-token-overhead">[5]</a></sup></li>
+          <li>Auto-enables when tool defs &gt;10% of context window</li>
+          <li><code>ENABLE_TOOL_SEARCH=auto:5</code> lowers threshold to 5%</li>
+          <li>13,200+ tokens recovered in measured sessions</li>
+          <li>Anti-patterns: god-tools, auth-after-build, over-broad scope</li>
+        </ul>
+      </div>
+
+      <div class="layer-card layer-sdk">
+        <div class="layer-num">Layer 3</div>
+        <h2 class="layer-title"><a href="https://code.claude.com/docs/en/agent-sdk/overview">Agent SDK</a></h2>
+        <div class="token-box">
+          <div class="tok-label">Billing separation</div>
+          <div class="tok-value">Jun 15</div>
+          <div class="tok-note">2026 — SDK credit splits from plan quota<sup><a href="https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan">[13]</a></sup></div>
+        </div>
+        <ul class="layer-rules">
+          <li><code>claude -p --bare</code> for CI — skips all config discovery<sup><a href="https://code.claude.com/docs/en/headless">[12]</a></sup></li>
+          <li><code>--bare</code> becomes default for <code>-p</code> in a future release</li>
+          <li>Subagents: isolated fresh contexts, no nesting<sup><a href="https://code.claude.com/docs/en/agent-sdk/subagents">[3]</a></sup></li>
+          <li>Dynamic workflows: 16 concurrent, 1000 total/run<sup><a href="https://code.claude.com/docs/en/workflows">[24]</a></sup></li>
+          <li>Hook priority: <code>deny › defer › ask › allow</code></li>
+          <li><a href="https://github.com/anthropics/claude-agent-sdk-python">Python</a> ⭐ 7.2k &nbsp;·&nbsp; <a href="https://github.com/anthropics/claude-agent-sdk-typescript">TypeScript</a> ⭐ 1.5k</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── § 2 PROGRESSIVE DISCLOSURE ──────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 2 — Progressive Disclosure Principle</div>
+    <div class="disc-spectrum">
+      <div class="disc-axis">
+        <div class="disc-block always">
+          <div class="db-label">Always Loaded</div>
+          <div class="db-cost">CLAUDE.md</div>
+          <div class="db-note">unconditional · keep under 200 lines · everything else should be a Skill</div>
+        </div>
+        <div class="disc-block name-only">
+          <div class="db-label">Startup (name + desc)</div>
+          <div class="db-cost">~100 tok</div>
+          <div class="db-note">per skill · 20–50 skills · body deferred<sup><a href="https://code.claude.com/docs/en/skills">[16]</a></sup></div>
+        </div>
+        <div class="disc-block tool-search">
+          <div class="db-label">MCP Tool Search</div>
+          <div class="db-cost">95% off</div>
+          <div class="db-note">Jan 2026 · auto at &gt;10% ctx · up to 13k+ tokens saved<sup><a href="https://www.mindstudio.ai/blog/claude-code-mcp-server-token-overhead">[5]</a></sup></div>
+        </div>
+        <div class="disc-block on-demand">
+          <div class="db-label">Demand Loaded</div>
+          <div class="db-cost">skill body</div>
+          <div class="db-note">only when Claude decides the skill is relevant<sup><a href="https://codersera.com/blog/claude-skills-mcp-servers-practitioner-guide-2026/">[4]</a></sup></div>
+        </div>
+      </div>
+      <div class="disc-arrow-row">
+        <span>← ALWAYS IN CONTEXT</span>
+        <span>NEVER UNLESS NEEDED →</span>
+      </div>
+      <p class="disc-note">
+        The pattern is consistent across all three extension layers — treat it as a first-class design principle, not an optimisation tip.
+        Subagent descriptions front-load the routing decision so the spawn prompt never enters context unless the parent decides to dispatch.
+        Corollary: if it can be a Skill, make it one. <code>CLAUDE.md</code> is only for invariants that apply to every interaction.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── § 3 SIX MCP PRIMITIVES ───────────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 3 — Six MCP Primitives<sup><a href="https://workos.com/blog/mcp-features-guide">[19]</a></sup></div>
+    <div class="primitives-split">
+
+      <div class="primitives-panel server">
+        <div class="panel-title">Server-Side (well-known)</div>
+        <div class="primitive-cards">
+          <div class="prim-card tools">
+            <div class="pc-name">Tools</div>
+            <div class="pc-desc">Executable functions the LLM invokes · action enablers · <code>readOnlyHint</code> enables concurrent dispatch at ~2× rate · <code>destructiveHint</code> triggers confirm dialogs</div>
+          </div>
+          <div class="prim-card resources">
+            <div class="pc-name">Resources</div>
+            <div class="pc-desc">Application-controlled context (files, schemas, data) · URI-addressable · <code>list_changed</code> notifications · roots replace allowed-directories<sup><a href="https://modelcontextprotocol.io/docs/learn/architecture">[25]</a></sup></div>
+          </div>
+          <div class="prim-card prompts">
+            <div class="pc-name">Prompts</div>
+            <div class="pc-desc">Server-curated reusable templates · user-invoked · render as slash commands in IDE clients · the most-skipped primitive after resources</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="primitives-panel client">
+        <div class="panel-title">Client-Side <span class="pc-badge underused">builders skip</span></div>
+        <div class="primitive-cards">
+          <div class="prim-card sampling">
+            <div class="pc-name">Sampling <span class="pc-badge unsupported">Claude Code: ✗</span></div>
+            <div class="pc-desc">Nested LLM call inside server feature · 200–800ms latency · fits intent classification &amp; validation, not voice (&lt;300ms) · SEP-2577 proposes deprecation<sup><a href="https://www.channel.tel/blog/mcp-sampling-elicitation-patterns-builders-skip">[7]</a></sup></div>
+          </div>
+          <div class="prim-card elicitation">
+            <div class="pc-name">Elicitation <span class="pc-badge unsupported">Claude Code: ✗</span></div>
+            <div class="pc-desc">Pauses execution → client renders native form → schema-validated JSON back · three outcomes: accept / decline / cancel · never request secrets<sup><a href="https://mcginniscommawill.com/posts/2026-03-25-mcp-sampling-elicitation-guide/">[8]</a></sup></div>
+          </div>
+          <div class="prim-card roots">
+            <div class="pc-name">Roots</div>
+            <div class="pc-desc">Client-declared URIs scoping server operations · informational (not strictly enforced) · <code>roots/list_changed</code> allows scope updates without reconnecting</div>
+          </div>
+        </div>
+        <div class="client-support-note">
+          <div class="csn-title">Support Matrix — June 2026</div>
+          <div class="support-matrix">
+            <span class="sm-item supported"><span class="sm-check">✓</span> VS Code / GitHub Copilot</span>
+            <span class="sm-item unsupported"><span class="sm-check">✗</span> Claude Code</span>
+            <span class="sm-item unsupported"><span class="sm-check">✗</span> Claude Desktop</span>
+          </div>
+          <p class="csn-note">
+            Elicitation shipped in the June 2025 spec; neither sampling nor elicitation available in Claude Code as of June 2026.
+            Check <code>clientCapabilities</code> at runtime — this is a live contradiction worth naming in the session.<sup><a href="https://mcginniscommawill.com/posts/2026-03-25-mcp-sampling-elicitation-guide/">[8]</a></sup>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── § 4 SECURITY THREAD ──────────────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 4 — Security Thread: Tool Poisoning</div>
+    <div class="security-panel">
+      <div class="sec-header">
+        <span class="sec-threat-badge">Live Threat</span>
+        <span class="sec-header-note">The description field is both the routing interface (§0) <em>and</em> the attack surface. Same field. Use this to close the arc from Session 1.</span>
+      </div>
+
+      <div class="sec-stats">
+        <div class="sec-stat">
+          <div class="ss-num">72%</div>
+          <div class="ss-label">Peak attack success rate<br>(MCPTox, 45 live servers)<sup><a href="https://www.mdpi.com/2624-800X/6/3/84">[10]</a></sup></div>
+        </div>
+        <div class="sec-stat">
+          <div class="ss-num">&gt;60%</div>
+          <div class="ss-label">Success rate across<br>popular agents<br>(353 authentic tools tested)</div>
+        </div>
+        <div class="sec-stat">
+          <div class="ss-num">200k</div>
+          <div class="ss-label">Vulnerable MCP instances<br>(2026 disclosure)<sup><a href="https://www.practical-devsecops.com/mcp-security-vulnerabilities/">[11]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="attack-chain">
+        <div class="chain-title">Tool Poisoning Attack Chain</div>
+        <div class="chain-steps">
+          <span class="chain-step">malicious <code>description</code> field</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-step">LLM treats manifest as authoritative</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-step">executes embedded directives</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-step">user sees expected output</span>
+        </div>
+        <p class="chain-note">
+          Rug-pull variant: trusted tool updated post-approval. Manifests are not version-locked at install time.<sup><a href="https://www.practical-devsecops.com/mcp-tool-poisoning/">[9]</a></sup>
+          Session closing provocation: when agents are both MCP clients <em>and</em> servers in the same pipeline, do these defences still compose?
+        </p>
+      </div>
+
+      <div class="defences-label">Defences</div>
+      <div class="defences">
+        <div class="defence-item">Manifest pinning and signing at install</div>
+        <div class="defence-item">Allowlists with explicit version locks</div>
+        <div class="defence-item">Semantic content scanning before consumption</div>
+        <div class="defence-item">Single-purpose servers (reduced blast radius)</div>
+        <div class="defence-item">OAuth 2.1 · scope minimisation per tool</div>
+        <div class="defence-item">Audit log every tool call (CSA guidance)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── § 5 COST & BILLING ────────────────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 5 — Cost &amp; Billing Reference</div>
+    <div class="cost-grid">
+
+      <div class="cost-panel kpi-panel">
+        <div class="cost-panel-label">Enterprise Benchmarks<sup><a href="https://code.claude.com/docs/en/costs">[14]</a></sup></div>
+        <div class="cost-kpis">
+          <div class="kpi-row">
+            <span class="kpi-label">per dev, active day</span>
+            <span class="kpi-val">~$13</span>
+          </div>
+          <div class="kpi-row">
+            <span class="kpi-label">per dev, monthly</span>
+            <span class="kpi-val">$150–$250</span>
+          </div>
+          <div class="kpi-row">
+            <span class="kpi-label">90th pct daily</span>
+            <span class="kpi-val">&lt;$30</span>
+          </div>
+          <div class="kpi-row">
+            <span class="kpi-label">agent teams vs standard</span>
+            <span class="kpi-val warn">7×</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cost-panel billing-panel">
+        <div class="cost-panel-label">June 15, 2026 Billing Separation<sup><a href="https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan">[13]</a></sup></div>
+        <div class="billing-boundary">
+          <div class="bb-date">15 June 2026</div>
+          <div class="bb-label">
+            Agent SDK usage moves to a separate monthly credit. Interactive use is unaffected.<br>
+            Scope: Python SDK · TypeScript SDK · <code>claude -p</code> · GitHub Actions
+          </div>
+        </div>
+        <div class="billing-tiers">
+          <div class="billing-tier">
+            <div class="bt-plan">Pro</div>
+            <div class="bt-credit">$20</div>
+            <div class="bt-period">/ month</div>
+          </div>
+          <div class="billing-tier">
+            <div class="bt-plan">Max 5x</div>
+            <div class="bt-credit">$100</div>
+            <div class="bt-period">/ month</div>
+          </div>
+          <div class="billing-tier">
+            <div class="bt-plan">Max 20x</div>
+            <div class="bt-credit">$200</div>
+            <div class="bt-period">/ month</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── § 6 OPEN QUESTION ─────────────────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 6 — Closing Provocation</div>
+    <div class="open-question">
+      <p class="oq-body">
+        The 2026 MCP roadmap removes stateful session IDs to enable stateless horizontal scaling<sup><a href="https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/">[15]</a></sup>,
+        and the Tasks extension (SEP-1686) enables async agent-to-agent communication via MCP.
+        When agents become both MCP clients <em>and</em> MCP servers in the same pipeline,
+        <strong style="color:var(--purple);">what does the tool-poisoning threat model look like?</strong>
+      </p>
+      <p class="oq-note">
+        The defences developed for human-to-agent flows may not compose cleanly when the "user" approving a manifest is another agent.
+        Leave this open. The session earns the right to not answer it — just to name it.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── § 7 RESEARCH THREADS ──────────────────────────────────── -->
+  <section class="bp-section">
+    <div class="bp-section-label">§ 7 — Four Research Threads</div>
+    <div class="subtopics-grid">
+      <a class="subtopic-card" href="../skill-mcp-plugin-authoring-craft/">
+        <div class="subtopic-meta">
+          <span class="subtopic-depth">survey</span>
+          <span class="subtopic-stats">18 citations · 9 min</span>
+        </div>
+        <div class="subtopic-title">Skill / MCP / Plugin Authoring Craft</div>
+        <div class="subtopic-summary">Format specs, craft rules, security contracts, and the decision matrix between all three extension layers.</div>
+      </a>
+      <a class="subtopic-card" href="../operating-extensions-at-scale/">
+        <div class="subtopic-meta">
+          <span class="subtopic-depth">survey</span>
+          <span class="subtopic-stats">18 citations · 9 min</span>
+        </div>
+        <div class="subtopic-title">Operating Extensions at Scale</div>
+        <div class="subtopic-summary">Token budget maths, skill routing mechanics, headless CI patterns, and team rate-limit tables.</div>
+      </a>
+      <a class="subtopic-card" href="../mcp-beyond-hello-tool/">
+        <div class="subtopic-meta">
+          <span class="subtopic-depth">survey</span>
+          <span class="subtopic-stats">19 citations · 10 min</span>
+        </div>
+        <div class="subtopic-title">MCP Beyond "hello tool"</div>
+        <div class="subtopic-summary">Six primitives, two transports, tool design patterns, tool-poisoning attack chains, and the 2026 production gaps.</div>
+      </a>
+      <a class="subtopic-card" href="../claude-agent-sdk-headless-agents/">
+        <div class="subtopic-meta">
+          <span class="subtopic-depth">survey</span>
+          <span class="subtopic-stats">18 citations · 8 min</span>
+        </div>
+        <div class="subtopic-title">Claude Agent SDK &amp; Headless Agents</div>
+        <div class="subtopic-summary">query() API, claude -p headless mode, subagents, hooks, dynamic workflows, and the June 15 2026 billing separation.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────────────── -->
+  <footer class="bp-footer">
+    <div class="footer-context">
+      <strong>Session 4 · Authoring Craft &amp; Operating at Scale</strong><br>
+      Prior sessions: (1) AI &amp; Security · (2) Context / Compounding / Harness · (3) Extending Claude Code survey
+    </div>
+    <div class="footer-back">
+      <a href="../">← Canonical expedition</a>
+    </div>
+  </footer>
+
+</div>
