@@ -1,0 +1,775 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "NYC Weekend: Michelin Dinner + Activities + Tech Calendar — Calendar"
+---
+
+<style>
+:root {
+  --tech:    #2563eb;
+  --free:    #16a34a;
+  --arts:    #7c3aed;
+  --dining:  #b45309;
+  --busy:    #dc2626;
+  --peak:    #991b1b;
+  --gold:    #d97706;
+  --navy:    #0d1b2a;
+  --muted:   #6b7280;
+  --border:  #e5e7eb;
+  --cream:   #f9f8f4;
+}
+
+.planner {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--cream);
+  color: #1a1a1a;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── HEADER ─────────────────────────────────────── */
+.ph {
+  background: url('../cover.svg') center center / cover no-repeat, #1a0e0e;
+  padding: 3rem 2.5rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.ph::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, rgba(8,12,20,0.92) 50%, rgba(8,12,20,0.55) 100%);
+}
+.ph-inner { position: relative; z-index: 1; }
+.ph-city {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+}
+.ph-month {
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ph-desc {
+  color: rgba(255,255,255,0.65);
+  font-size: 0.88rem;
+  max-width: 500px;
+  line-height: 1.6;
+  margin: 0.6rem 0 1.5rem;
+}
+.ph-stats {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+.ph-stat-n {
+  display: block;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.ph-stat-l {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ─── LEGEND ──────────────────────────────────────── */
+.legend {
+  background: var(--navy);
+  padding: 0.55rem 2.5rem;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.legend-lbl {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-right: 0.3rem;
+}
+
+/* ─── CHIPS ───────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.18rem 0.5rem;
+  border-radius: 3px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: default;
+}
+a.chip { cursor: pointer; }
+a.chip:hover { opacity: 0.82; }
+.chip.tech   { background: #dbeafe; color: var(--tech);  }
+.chip.free   { background: #dcfce7; color: var(--free);  }
+.chip.arts   { background: #ede9fe; color: var(--arts);  }
+.chip.dining { background: #fef3c7; color: var(--dining);}
+.chip.busy   { background: #fee2e2; color: var(--busy);  }
+.chip.note   { background: #f3f4f6; color: #4b5563;      }
+
+/* ─── SECTION CONTAINER ───────────────────────────── */
+.sec {
+  padding: 2rem 2.5rem;
+}
+.sec + .sec { padding-top: 0; }
+.sep { height: 1px; background: var(--border); margin: 0 2.5rem; }
+
+h2.sec-ttl {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── WEEKEND GRID ────────────────────────────────── */
+.wknd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+@media (max-width: 660px) { .wknd-grid { grid-template-columns: 1fr; } }
+
+.wk {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.wk.high     { border-left: 5px solid var(--busy); }
+.wk.moderate { border-left: 5px solid var(--gold); }
+.wk.quiet    { border-left: 5px solid var(--free); }
+.wk.peak     { border-left: 5px solid var(--peak); }
+
+.wk-head {
+  padding: 0.85rem 1.1rem 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f3f4f6;
+}
+.wk-num {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.wk-dates {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111;
+  margin-top: 0.1rem;
+}
+.wk-vibe {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: right;
+  padding-top: 0.15rem;
+}
+.wk-vibe.high     { color: var(--busy); }
+.wk-vibe.moderate { color: var(--gold); }
+.wk-vibe.quiet    { color: var(--free); }
+.wk-vibe.peak     { color: var(--peak); }
+
+.wk-body { padding: 0.8rem 1.1rem; flex: 1; }
+
+.day-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.45rem;
+}
+.day-lbl {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 3.2rem;
+  padding-top: 0.18rem;
+  flex-shrink: 0;
+}
+.day-ev { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+.wk-dinner {
+  padding: 0.75rem 1.1rem;
+  background: #fdf8ef;
+  border-top: 1px solid #f3e8d0;
+}
+.dl { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dining); margin-bottom: 0.2rem; }
+.dp { font-size: 0.88rem; font-weight: 700; color: #111; margin-bottom: 0.2rem; }
+.dp a { color: #111; text-decoration: none; border-bottom: 1px solid #e8c97e; }
+.dp a:hover { border-color: var(--dining); }
+.dn { font-size: 0.74rem; color: #6b5030; line-height: 1.45; }
+
+/* ─── RESTAURANT TABLE ────────────────────────────── */
+.rt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.rt thead th {
+  background: var(--navy);
+  color: rgba(255,255,255,0.82);
+  padding: 0.5rem 0.8rem;
+  text-align: left;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.rt tbody tr:hover td { background: #faf9f6; }
+.rt td {
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid #f0f0ec;
+  vertical-align: top;
+  line-height: 1.4;
+}
+.rt td:first-child { font-weight: 600; }
+.rt td a { color: inherit; text-decoration: none; border-bottom: 1px dotted #aaa; }
+.rt td a:hover { border-bottom-style: solid; }
+.rt .nbhd { font-size: 0.75rem; color: var(--muted); font-weight: 400; display: block; }
+.rt .stars { color: var(--gold); letter-spacing: -1px; white-space: nowrap; }
+.rt .price { font-weight: 700; color: #333; white-space: nowrap; }
+.rt .bl { color: var(--tech); font-weight: 700; text-decoration: none; font-size: 0.78rem; white-space: nowrap; border-bottom: none !important; }
+.rt .bl:hover { text-decoration: underline; }
+.rt .ph-row td {
+  background: #f3f4f6;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.8rem;
+  border-top: 2px solid var(--border);
+}
+.rt .pair { font-size: 0.78rem; color: #555; }
+
+/* ─── BOOKING STEPS ───────────────────────────────── */
+.steps { display: flex; flex-direction: column; gap: 0.9rem; }
+.step  { display: flex; gap: 1rem; align-items: flex-start; }
+.step-n {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+.step-b { flex: 1; }
+.step-ttl { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
+.step-dtl { font-size: 0.81rem; color: #555; line-height: 1.55; }
+.step-dtl a { color: var(--tech); text-decoration: none; }
+.step-dtl a:hover { text-decoration: underline; }
+
+/* ─── COST GRID ───────────────────────────────────── */
+.cost-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 0.75rem;
+}
+.cb {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+.cb-cat { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+.cb-val { font-size: 1.1rem; font-weight: 900; color: #111; line-height: 1.1; }
+.cb-note { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+.cb-note a { color: var(--tech); text-decoration: none; }
+
+/* ─── SUB-TOPIC CARDS ─────────────────────────────── */
+.sub-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.sub-card {
+  flex: 1;
+  min-width: 195px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.sub-card:hover { border-color: #9ca3af; }
+.sub-depth { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.25rem; }
+.sub-ttl { font-weight: 700; font-size: 0.88rem; color: #111; margin-bottom: 0.3rem; }
+.sub-sum { font-size: 0.76rem; color: #555; line-height: 1.45; }
+
+/* ─── FOOTNOTES ───────────────────────────────────── */
+sup a { font-size: 0.72em; color: var(--muted); text-decoration: none; }
+sup a:hover { text-decoration: underline; }
+.src-note { font-size: 0.76rem; color: var(--muted); margin-top: 0.85rem; line-height: 1.55; }
+.src-note a { color: var(--tech); text-decoration: none; }
+.src-note a:hover { text-decoration: underline; }
+</style>
+
+<div class="planner">
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════ -->
+<header class="ph">
+  <div class="ph-inner">
+    <div class="ph-city">New York City</div>
+    <div class="ph-month">June 2026</div>
+    <p class="ph-desc">Lock the Michelin reservation first — then reverse-engineer every other decision around it. Four weekends, four different moods.</p>
+    <div class="ph-stats">
+      <div><span class="ph-stat-n">5</span><span class="ph-stat-l">3-star restaurants</span></div>
+      <div><span class="ph-stat-n">15</span><span class="ph-stat-l">2-star restaurants</span></div>
+      <div><span class="ph-stat-n">4</span><span class="ph-stat-l">June weekends</span></div>
+      <div><span class="ph-stat-n">113</span><span class="ph-stat-l">cited sources</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span class="legend-lbl">Key →</span>
+  <span class="chip tech">Tech event</span>
+  <span class="chip free">Free · Outdoor</span>
+  <span class="chip arts">Arts &amp; Culture</span>
+  <span class="chip busy">High demand</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FOUR WEEKENDS
+════════════════════════════════════════════════ -->
+<div class="sec">
+  <h2 class="sec-ttl">Four weekends — pick your frame</h2>
+  <div class="wknd-grid">
+
+    <!-- WEEKEND 1 -->
+    <div class="wk high">
+      <div class="wk-head">
+        <div>
+          <div class="wk-num">Weekend 1</div>
+          <div class="wk-dates">Jun 5–7</div>
+        </div>
+        <div class="wk-vibe high">High demand</div>
+      </div>
+      <div class="wk-body">
+        <div class="day-row">
+          <span class="day-lbl">Fri 5</span>
+          <div class="day-ev">
+            <a href="https://www.tech-week.com/calendar/nyc" class="chip tech">NYC Tech Week ↗</a>
+            <span class="chip arts">Governors Ball</span>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sat 6</span>
+          <div class="day-ev">
+            <a href="https://www.tech-week.com/calendar/nyc" class="chip tech">NYC Tech Week ↗</a>
+            <span class="chip arts">Governors Ball</span>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sun 7</span>
+          <div class="day-ev">
+            <span class="chip tech">Tech Week ends</span>
+            <span class="chip arts">Governors Ball ends</span>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="wk-dinner">
+        <div class="dl">Dinner pick</div>
+        <div class="dp"><a href="https://www.le-bernardin.com/">Le Bernardin</a> or <a href="https://thomaskeller.com/perseny/">Per Se</a></div>
+        <div class="dn">Both in Midtown — walkable from Tech Week venues. Book late Apr / early May (30–45 days ahead).</div>
+      </div>
+    </div>
+
+    <!-- WEEKEND 2 -->
+    <div class="wk moderate">
+      <div class="wk-head">
+        <div>
+          <div class="wk-num">Weekend 2</div>
+          <div class="wk-dates">Jun 12–14</div>
+        </div>
+        <div class="wk-vibe moderate">Moderate</div>
+      </div>
+      <div class="wk-body">
+        <div class="day-row">
+          <span class="day-lbl">Fri 12</span>
+          <div class="day-ev">
+            <a href="https://cityparksfoundation.org/summerstage/" class="chip free">SummerStage ↗</a>
+            <a href="https://www.timeout.com/newyork/theater/shakespeare-in-the-park" class="chip arts">Shakespeare in Park ↗</a>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sat 13</span>
+          <div class="day-ev">
+            <a href="https://cityparksfoundation.org/summerstage/" class="chip free">SummerStage ↗</a>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+            <a href="https://www.timeout.com/newyork/theater/shakespeare-in-the-park" class="chip arts">Shakespeare in Park ↗</a>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sun 14</span>
+          <div class="day-ev">
+            <span class="chip arts">Puerto Rican Day Parade (5th Ave)</span>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="wk-dinner">
+        <div class="dl">Dinner pick</div>
+        <div class="dp"><a href="https://www.elevenmadisonpark.com/">Eleven Madison Park</a> or <a href="https://www.jungsik.com/">Jungsik</a></div>
+        <div class="dn">Both south of the parade route — Flatiron and Tribeca stay calm. Book now for this frame.</div>
+      </div>
+    </div>
+
+    <!-- WEEKEND 3 — best window -->
+    <div class="wk quiet">
+      <div class="wk-head">
+        <div>
+          <div class="wk-num">Weekend 3 · Best window</div>
+          <div class="wk-dates">Jun 19–21</div>
+        </div>
+        <div class="wk-vibe quiet">Quiet — go here</div>
+      </div>
+      <div class="wk-body">
+        <div class="day-row">
+          <span class="day-lbl">Fri 19</span>
+          <div class="day-ev">
+            <span class="chip note">AWS Summit cleared (was Wed 17)</span>
+            <a href="https://cityparksfoundation.org/summerstage/" class="chip free">SummerStage ↗</a>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sat 20</span>
+          <div class="day-ev">
+            <a href="https://cityparksfoundation.org/summerstage/" class="chip free">SummerStage ↗</a>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+            <a href="https://www.timeout.com/newyork/theater/shakespeare-in-the-park" class="chip arts">Shakespeare in Park ↗</a>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sun 21</span>
+          <div class="day-ev">
+            <span class="chip free">Summer Solstice</span>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="wk-dinner">
+        <div class="dl">Dinner pick</div>
+        <div class="dp"><a href="https://www.exploretock.com/sushi-sho-nyc">Sushi Sho</a> (if booked Apr 1) or <a href="http://www.aquavit.org/">Aquavit</a></div>
+        <div class="dn">Lowest hotel/surge pressure in June. Aquavit (~$175) is the best 2-star value if Sushi Sho is gone.</div>
+      </div>
+    </div>
+
+    <!-- WEEKEND 4 — Pride -->
+    <div class="wk peak">
+      <div class="wk-head">
+        <div>
+          <div class="wk-num">Weekend 4</div>
+          <div class="wk-dates">Jun 26–28</div>
+        </div>
+        <div class="wk-vibe peak">Pride · Peak prices</div>
+      </div>
+      <div class="wk-body">
+        <div class="day-row">
+          <span class="day-lbl">Fri 26</span>
+          <div class="day-ev">
+            <a href="https://cityparksfoundation.org/summerstage/" class="chip free">SummerStage ↗</a>
+            <span class="chip arts">Lincoln Center Summer for the City</span>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sat 27</span>
+          <div class="day-ev">
+            <a href="https://www.nycpride.org/events" class="chip arts">Youth Pride ↗</a>
+            <span class="chip arts">Lincoln Center Summer for the City</span>
+            <a href="https://www.smorgasburg.com/" class="chip free">Smorgasburg ↗</a>
+          </div>
+        </div>
+        <div class="day-row">
+          <span class="day-lbl">Sun 28</span>
+          <div class="day-ev">
+            <a href="https://www.nycpride.org/events" class="chip arts">NYC Pride March noon ↗</a>
+            <span class="chip busy">Hotels peak citywide</span>
+          </div>
+        </div>
+      </div>
+      <div class="wk-dinner">
+        <div class="dl">Dinner pick</div>
+        <div class="dp"><a href="https://www.jungsik.com/">Jungsik</a> (Tribeca, calmer) or <a href="https://www.elevenmadisonpark.com/">Eleven Madison Park</a></div>
+        <div class="dn">Book the Fri dinner to escape the Sun surge — or accept that everything costs more this frame.</div>
+      </div>
+    </div>
+
+  </div><!-- /wknd-grid -->
+</div><!-- /sec -->
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════
+     RESTAURANT → NEIGHBORHOOD PAIRINGS
+════════════════════════════════════════════════ -->
+<div class="sec">
+  <h2 class="sec-ttl">Dinner anchor → neighborhood day</h2>
+  <p style="font-size:0.84rem;color:#555;margin:0 0 1rem;line-height:1.55;">Pick the restaurant first — then spend the day in its neighborhood. All 3-star venues book 30–60 days ahead and slots vanish within hours of opening.<sup><a href="https://blog.resy.com/2025/11/nyc-michelin-2025/">[1]</a></sup></p>
+  <table class="rt">
+    <thead>
+      <tr>
+        <th>Restaurant</th>
+        <th>Stars</th>
+        <th>From&nbsp;$/pp</th>
+        <th>Day cluster</th>
+        <th>Book</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <a href="https://www.le-bernardin.com/">Le Bernardin</a>
+          <span class="nbhd">Theater District · Eric Ripert · French seafood</span>
+        </td>
+        <td class="stars">⭐⭐⭐</td>
+        <td class="price">$218–350</td>
+        <td class="pair">Central Park, Lincoln Center, Top of the Rock</td>
+        <td><a class="bl" href="https://resy.com/cities/new-york-ny/venues/le-bernardin">Resy ↗</a></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://thomaskeller.com/perseny/">Per Se</a>
+          <span class="nbhd">Columbus Circle · Thomas Keller · French</span>
+        </td>
+        <td class="stars">⭐⭐⭐</td>
+        <td class="price">$425</td>
+        <td class="pair">Central Park, AMNH, Upper West Side</td>
+        <td><a class="bl" href="https://www.exploretock.com/perse">Tock ↗</a></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://www.elevenmadisonpark.com/">Eleven Madison Park</a>
+          <span class="nbhd">Flatiron · Daniel Humm · plant-based</span>
+        </td>
+        <td class="stars">⭐⭐⭐</td>
+        <td class="price">$385</td>
+        <td class="pair">High Line, <a href="https://www.chelseamarket.com/">Chelsea Market</a>, Chelsea galleries</td>
+        <td><a class="bl" href="https://resy.com/cities/new-york-ny/venues/eleven-madison-park">Resy ↗</a></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://www.jungsik.com/">Jungsik</a>
+          <span class="nbhd">Tribeca · Yim Jung-sik · Modern Korean</span>
+        </td>
+        <td class="stars">⭐⭐⭐</td>
+        <td class="price">$325</td>
+        <td class="pair">Brooklyn Bridge walk, DUMBO, <a href="https://www.911memorial.org/visit">9/11 Memorial</a></td>
+        <td><a class="bl" href="https://www.exploretock.com/jungsik">Tock ↗</a></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://www.exploretock.com/sushi-sho-nyc">Sushi Sho</a>
+          <span class="nbhd">Midtown East · Keiji Nakazawa · sushi omakase · NEW 2025</span>
+        </td>
+        <td class="stars">⭐⭐⭐</td>
+        <td class="price">$450</td>
+        <td class="pair">Grand Central, Bryant Park, Chrysler Building walk</td>
+        <td><a class="bl" href="https://www.exploretock.com/sushi-sho-nyc">Tock — 1st of month ↗</a></td>
+      </tr>
+      <tr class="ph-row">
+        <td colspan="5">Best 2-star value</td>
+      </tr>
+      <tr>
+        <td>
+          <a href="http://www.aquavit.org/">Aquavit</a>
+          <span class="nbhd">Midtown East · Emma Bengtsson · Modern Nordic</span>
+        </td>
+        <td class="stars">⭐⭐</td>
+        <td class="price">~$175</td>
+        <td class="pair">Same Midtown East cluster as Sushi Sho</td>
+        <td><a class="bl" href="https://www.opentable.com/aquavit">OpenTable ↗</a></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://www.saga-nyc.com/menus">Saga</a>
+          <span class="nbhd">FiDi · 63rd floor panoramic views</span>
+        </td>
+        <td class="stars">⭐⭐</td>
+        <td class="price">$215–315</td>
+        <td class="pair">Brooklyn Bridge, <a href="https://www.911memorial.org/visit">9/11 Memorial</a>, Battery Park, Staten Island Ferry</td>
+        <td><a class="bl" href="https://www.saga-nyc.com/menus">Direct ↗</a></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://www.atomixnyc.com/">Atomix</a>
+          <span class="nbhd">Flatiron · Junghyun Park · Progressive Korean</span>
+        </td>
+        <td class="stars">⭐⭐</td>
+        <td class="price">$285–385</td>
+        <td class="pair">High Line, <a href="https://www.chelseamarket.com/">Chelsea Market</a>; same cluster as EMP</td>
+        <td><a class="bl" href="https://www.exploretock.com/atomixnyc/">Tock ↗</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="src-note">Prices per person, base tasting menu, before tax &amp; beverage. Sources: <a href="https://www.theinfatuation.com/new-york/guides/most-expensive-tasting-menus-nyc">The Infatuation</a><sup>[2]</sup>, restaurant sites.<br>⚠ <strong>Masa</strong> was demoted to 2 stars in Nov 2025 but still charges $950–1,200/pp<sup><a href="https://www.timeout.com/newyork/news/this-nyc-restaurant-just-lost-a-michelin-star-111325">[3]</a></sup> — weigh that before booking.</p>
+</div>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════
+     BOOKING SEQUENCE
+════════════════════════════════════════════════ -->
+<div class="sec">
+  <h2 class="sec-ttl">Book in this order</h2>
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-n">1</div>
+      <div class="step-b">
+        <div class="step-ttl">Lock the restaurant reservation</div>
+        <div class="step-dtl">3-star slots open 30–60 days ahead on <a href="https://resy.com/cities/new-york-ny/venues/le-bernardin">Resy</a> or <a href="https://www.exploretock.com/perse">Tock</a> and fill within hours. Exception: <a href="https://www.exploretock.com/sushi-sho-nyc">Sushi Sho</a> releases seats on the <strong>1st of each month for exactly 2 months out</strong> — set an alarm at 9 am.<sup><a href="https://www.exploretock.com/sushi-sho-nyc">[4]</a></sup> Do not book flights first.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2</div>
+      <div class="step-b">
+        <div class="step-ttl">Book flights + hotel around the reservation date</div>
+        <div class="step-dtl">Let the restaurant neighborhood anchor your hotel. Avoid the Jun 26–28 frame if budget-sensitive — hotel rates peak citywide for Pride. Weekend 3 (Jun 19–21) has the lowest pressure in June.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3</div>
+      <div class="step-b">
+        <div class="step-ttl">Register for a tech event if combining trips</div>
+        <div class="step-dtl"><a href="https://aws.amazon.com/events/summits/new-york/">AWS Summit NYC</a> (Jun 17 Wed, free, 200+ sessions)<sup><a href="https://aws.amazon.com/events/summits/new-york/">[5]</a></sup> pairs well with Weekend 3: do the conference Wed, recover Thu–Fri, clean weekend. <a href="https://www.tech-week.com/calendar/nyc">NYC Tech Week</a> (Jun 1–7, mostly free)<sup><a href="https://www.tech-week.com/calendar/nyc">[6]</a></sup> overlaps Weekend 1 but raises hotel rates.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">4</div>
+      <div class="step-b">
+        <div class="step-ttl">Score Broadway tickets</div>
+        <div class="step-dtl">Digital lottery via Broadway Direct or Telecharge ($40–60). Same-day: <a href="https://www.tdf.org/discount-ticket-programs/tkts-by-tdf/tkts-live/">TKTS</a> at Times Square — up to 50% off, +$7 fee; closed Tuesdays.<sup><a href="https://www.tdf.org/discount-ticket-programs/tkts-by-tdf/tkts-live/">[7]</a></sup> 2026 Tony leaders: <em>The Lost Boys</em>, <em>Cats: The Jellicle Ball</em>, <em>Titanique</em>.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">5</div>
+      <div class="step-b">
+        <div class="step-ttl">Time your museum visits for free windows</div>
+        <div class="step-dtl"><a href="https://visit.moma.org/select/uniqlo">MoMA free Fri 5:30–8:30 pm</a> (NY residents, reserve ahead).<sup><a href="https://visit.moma.org/select/uniqlo">[8]</a></sup> <a href="https://whitney.org/visit/free-admission">Whitney free every Fri 5–10 pm</a>.<sup><a href="https://whitney.org/visit/free-admission">[9]</a></sup> <a href="https://press.moma.org/news/moma-ps1-to-become-new-york-citys-largest-free-museum-in-2026-made-possible-by-gift-from-sonya-yu-celebrating-50th-anniversary/">MoMA PS1 is free for all visitors</a> (since Jan 2026, NYC's largest free museum).<sup><a href="https://press.moma.org/news/moma-ps1-to-become-new-york-citys-largest-free-museum-in-2026-made-possible-by-gift-from-sonya-yu-celebrating-50th-anniversary/">[10]</a></sup></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════
+     COST SNAPSHOT
+════════════════════════════════════════════════ -->
+<div class="sec">
+  <h2 class="sec-ttl">Variable spend at a glance</h2>
+  <div class="cost-grid">
+    <div class="cb">
+      <div class="cb-cat">Dinner · 3-star</div>
+      <div class="cb-val">$325–450</div>
+      <div class="cb-note">per person, before beverage &amp; tip</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Dinner · 2-star value</div>
+      <div class="cb-val">$175–215</div>
+      <div class="cb-note">Aquavit or Saga — same city, far cheaper</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Hotel · Midtown</div>
+      <div class="cb-val">$300–500</div>
+      <div class="cb-note">per night; peaks Jun 26–28 (Pride)</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Subway</div>
+      <div class="cb-val">$3 / ride</div>
+      <div class="cb-note"><a href="https://omny.info/fares">OMNY</a> auto-caps at $35/rolling week</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Broadway</div>
+      <div class="cb-val">$40–200</div>
+      <div class="cb-note">$40–60 rush/lottery · $150–200 rack</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Museums</div>
+      <div class="cb-val">$0–30</div>
+      <div class="cb-note">PS1 free · others $30 · Fri evening free slots</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Food markets</div>
+      <div class="cb-val">$10–25</div>
+      <div class="cb-note">Smorgasburg, Chelsea Market, Eataly</div>
+    </div>
+    <div class="cb">
+      <div class="cb-cat">Tip + tax</div>
+      <div class="cb-val">18–20%</div>
+      <div class="cb-note">dining tip; 8.875% sales tax</div>
+    </div>
+  </div>
+  <p class="src-note">Tip and tax rates: <a href="https://www.nyctourism.com/tipping-sales-tax/">NYC Tourism</a>.<sup>[11]</sup> Two-night variable estimate (dinner only, excl. hotel): $700–1,000 for a 3-star dinner for two + museums + one Broadway rush ticket.</p>
+</div>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════
+     SUB-TOPIC LINKS
+════════════════════════════════════════════════ -->
+<div class="sec">
+  <h2 class="sec-ttl">Deep-dive the three research threads</h2>
+  <div class="sub-row">
+    <a href="../michelin-2-and-3-star-restaurants-in-new-york-city/" class="sub-card">
+      <div class="sub-depth">Survey · 27 citations</div>
+      <div class="sub-ttl">Michelin 2 &amp; 3-Star Restaurants in NYC</div>
+      <div class="sub-sum">All 20 starred restaurants with prices, chefs, neighborhoods, and booking platforms — including the complete 2-star table.</div>
+    </a>
+    <a href="../things-to-do-in-new-york-city/" class="sub-card">
+      <div class="sub-depth">Expedition · 70 citations</div>
+      <div class="sub-ttl">Things to Do in New York City</div>
+      <div class="sub-sum">Skyline decks ranked, free walks, museums with free-hour schedules, Broadway ticket channels, and the June 2026 event calendar.</div>
+    </a>
+    <a href="../it-conferences-and-tech-events-in-new-york-city/" class="sub-card">
+      <div class="sub-depth">Survey · 16 citations</div>
+      <div class="sub-ttl">IT Conferences &amp; Tech Events in NYC 2026</div>
+      <div class="sub-sum">Full 2026 calendar: AWS Summit, NYC Tech Week, DASH, FinovateFall, DevOpsCon, and 10+ more with dates, venues, and cost.</div>
+    </a>
+  </div>
+</div>
+
+</div><!-- /planner -->
