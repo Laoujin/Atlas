@@ -8,6 +8,7 @@ tags: [mcp, model-context-protocol, ai-agents, developer-workshop, typescript]
 summary: "A session blueprint for teaching devs to build an MCP server: a demo-led live build of a zero-auth TypeScript query server, with the protocol, debugging, security, deployment, and the RAG question all scoped in."
 cover: cover.svg
 synthesis: true
+model: "Opus 4.8"
 duration_sec: 495
 cost_usd: "sub"
 children:
