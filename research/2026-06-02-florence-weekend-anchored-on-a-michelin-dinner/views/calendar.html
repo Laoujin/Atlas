@@ -1,0 +1,721 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "Florence weekend anchored on a Michelin dinner — Calendar"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --cream:    #f6f0e4;
+  --cream-dk: #ede4d0;
+  --ink:      #1e1812;
+  --mid:      #5c4e3c;
+  --lt:       #9a8870;
+  --rule:     #d8cdb0;
+  --museum:   #1e5080;
+  --landmark: #994422;
+  --food:     #c45218;
+  --walk:     #3a6b33;
+  --dinner:   #7a0018;
+}
+
+.cal-view {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: var(--ink);
+  padding: 0 0 2rem;
+}
+
+/* ── Booking cascade ── */
+.booking-cascade {
+  background: var(--ink);
+  color: #f0ebe0;
+  padding: 1.1rem 1.25rem 1.25rem;
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+}
+.cascade-label {
+  font-size: 0.68rem;
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #7a6c5a;
+  margin-bottom: 0.7rem;
+}
+.cascade-steps {
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.c-step {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.6rem 0.85rem 0.7rem;
+  background: #2a2218;
+  border-radius: 3px;
+}
+.c-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+.c-step:nth-child(1) .c-n { background: #c45218; color: #fff; }
+.c-step:nth-child(2) .c-n { background: #9b4422; color: #fff; }
+.c-step:nth-child(3) .c-n { background: #1e5080; color: #fff; }
+.c-step:nth-child(4) .c-n { background: #3a6b33; color: #fff; }
+.c-lead {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #f0ebe0;
+  margin-bottom: 0.15rem;
+}
+.c-when {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: #7a6c5a;
+  display: block;
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  gap: 0.75rem 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: 0.78rem;
+  color: var(--mid);
+  align-items: center;
+}
+.sw {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.sw::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.sw.museum::before   { background: var(--museum); }
+.sw.landmark::before { background: var(--landmark); }
+.sw.food::before     { background: var(--food); }
+.sw.walk::before     { background: var(--walk); }
+.sw.dinner::before   { background: var(--dinner); }
+
+/* ── Day sections ── */
+.day-section {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.day-header {
+  background: var(--landmark);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.02em;
+}
+.day-section.day2 .day-header {
+  background: var(--dinner);
+}
+
+/* ── Gantt ── */
+.gantt-scroll {
+  overflow-x: auto;
+  padding: 0.65rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--cream);
+}
+.gantt-container {
+  min-width: 620px;
+  position: relative;
+}
+.time-axis {
+  position: relative;
+  height: 16px;
+  margin-bottom: 5px;
+}
+.time-axis span {
+  position: absolute;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--lt);
+  transform: translateX(-50%);
+}
+.time-axis span.t-last { transform: translateX(-100%); }
+.gantt-row {
+  display: flex;
+  height: 42px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--cream-dk);
+}
+.blk {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  min-width: 0;
+}
+.blk:last-child { border-right: none; }
+.bn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.blk.sp         { background: var(--cream-dk); }
+.blk.museum     { background: var(--museum); }
+.blk.landmark   { background: var(--landmark); }
+.blk.food       { background: var(--food); }
+.blk.walk       { background: var(--walk); }
+.blk.dinner     { background: var(--dinner); }
+.blk.sp .bn     { display: none; }
+.blk.dinner .bn { font-size: 0.73rem; letter-spacing: 0.01em; }
+
+/* ── Detail table ── */
+.detail-wrap { overflow-x: auto; }
+.dtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+.dtable th {
+  background: var(--cream);
+  padding: 0.38rem 0.7rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--mid);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.dtable td {
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  line-height: 1.4;
+}
+.dtable tr:last-child td { border-bottom: none; }
+.dtable tr td:first-child { padding-left: 0.85rem; }
+
+.t-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.77rem;
+  color: var(--mid);
+  white-space: nowrap;
+}
+.t-act a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--rule); }
+.t-act a:hover { border-bottom-color: var(--ink); }
+.t-note {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--lt);
+  margin-top: 0.15rem;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.badge.urgent  { background: #fce8e0; color: #8b2000; }
+.badge.advance { background: #dce8f5; color: #1a3a6b; }
+.badge.walkup  { background: #e0f0de; color: #1e4a1a; }
+.badge.timed   { background: #f8e0e8; color: var(--dinner); }
+.badge.free    { background: #f0f0e8; color: #4a4a30; }
+
+/* row type — left accent border */
+.dtable tr.t-museum   td:first-child { border-left: 3px solid var(--museum);   padding-left: 0.7rem; }
+.dtable tr.t-landmark td:first-child { border-left: 3px solid var(--landmark); padding-left: 0.7rem; }
+.dtable tr.t-food     td:first-child { border-left: 3px solid var(--food);     padding-left: 0.7rem; }
+.dtable tr.t-walk     td:first-child { border-left: 3px solid var(--walk);     padding-left: 0.7rem; }
+.dtable tr.t-dinner   td:first-child { border-left: 3px solid var(--dinner);   padding-left: 0.7rem; }
+.dtable tr.t-dinner td { background: #fff5f6; }
+.dtable tr.t-dinner .t-act { font-weight: 700; color: var(--dinner); }
+
+/* ── Anchor grid ── */
+.anchor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 580px) { .anchor-grid { grid-template-columns: 1fr; } }
+
+.anchor-card {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.anchor-head {
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+}
+.anchor-head img {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.r-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  flex: 1;
+  min-width: 0;
+}
+.r-name a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+.r-name a:hover { border-bottom-color: var(--ink); }
+.r-stars {
+  font-size: 0.78rem;
+  color: var(--food);
+  white-space: nowrap;
+  font-weight: 600;
+}
+.anchor-body {
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+}
+.anchor-body dl {
+  margin: 0 0 0.6rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.65rem;
+}
+.anchor-body dt { font-weight: 600; color: var(--mid); white-space: nowrap; }
+.anchor-body dd { margin: 0; }
+.cluster-note {
+  padding: 0.45rem 0.7rem;
+  background: var(--cream);
+  border-left: 3px solid var(--dinner);
+  font-size: 0.79rem;
+  color: var(--mid);
+  border-radius: 0 3px 3px 0;
+  line-height: 1.45;
+}
+.cluster-note a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--rule); }
+.closed-warn {
+  margin-top: 0.45rem;
+  font-size: 0.76rem;
+  color: #8b2000;
+  font-weight: 600;
+}
+
+/* ── Budget strip ── */
+.budget-strip {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--cream);
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 2rem;
+  align-items: flex-start;
+}
+.b-item { display: flex; flex-direction: column; gap: 0.12rem; }
+.b-label {
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lt);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.b-val { font-weight: 600; font-size: 0.85rem; }
+.b-val.dim { color: var(--dinner); }
+.b-val.save { color: var(--walk); }
+
+sup a { font-size: 0.72em; color: var(--landmark); text-decoration: none; }
+sup a:hover { text-decoration: underline; }
+</style>
+
+<div class="cal-view">
+
+  <!-- ── BOOKING CASCADE ── -->
+  <div class="booking-cascade">
+    <div class="cascade-label">Book in this order — before you arrive</div>
+    <div class="cascade-steps">
+      <div class="c-step">
+        <span class="c-n">1</span>
+        <span class="c-lead">Accademia</span>
+        <span class="c-when">2 months ahead<br>same-day sells out by mid-morning</span>
+      </div>
+      <div class="c-step">
+        <span class="c-n">2</span>
+        <span class="c-lead">Restaurant</span>
+        <span class="c-when">4–6 weeks ahead<br>credit card required to hold</span>
+      </div>
+      <div class="c-step">
+        <span class="c-n">3</span>
+        <span class="c-lead">Uffizi</span>
+        <span class="c-when">~1 month ahead<br>cuts wait from 90 min to 25 min</span>
+      </div>
+      <div class="c-step">
+        <span class="c-n">4</span>
+        <span class="c-lead">Duomo timed slot</span>
+        <span class="c-when">sells out weeks ahead<br>late arrival forfeits the slot</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LEGEND ── -->
+  <div class="legend">
+    <span class="sw museum">Museum / Gallery</span>
+    <span class="sw landmark">Landmark</span>
+    <span class="sw food">Food &amp; Market</span>
+    <span class="sw walk">Walk &amp; Neighbourhood</span>
+    <span class="sw dinner">★ Michelin Dinner</span>
+  </div>
+
+  <!-- ══════════════ DAY 1 ══════════════ -->
+  <div class="day-section">
+    <div class="day-header">Day 1 &mdash; Accademia &bull; San Lorenzo &bull; Oltrarno</div>
+
+    <div class="gantt-scroll">
+      <div class="gantt-container">
+        <!--
+          Time axis: 8:00–23:00 = 15 hours total
+          Each hour label is at (hour–8)/15 × 100%
+        -->
+        <div class="time-axis" aria-hidden="true">
+          <span style="left:0%">8</span>
+          <span style="left:6.67%">9</span>
+          <span style="left:13.33%">10</span>
+          <span style="left:20%">11</span>
+          <span style="left:26.67%">12</span>
+          <span style="left:33.33%">13</span>
+          <span style="left:40%">14</span>
+          <span style="left:46.67%">15</span>
+          <span style="left:53.33%">16</span>
+          <span style="left:60%">17</span>
+          <span style="left:66.67%">18</span>
+          <span style="left:73.33%">19</span>
+          <span style="left:80%">20</span>
+          <span style="left:86.67%">21</span>
+          <span style="left:93.33%">22</span>
+          <span style="left:100%" class="t-last">23</span>
+        </div>
+        <!--
+          Bars: flex values = hours; total = 15
+          0.25 + 1.75 + 1.5 + 1 + 1.5 + 3 + 1.5 + 4.5 = 15
+        -->
+        <div class="gantt-row" role="img" aria-label="Day 1 activity timeline">
+          <div class="blk sp"       style="flex:0.25"></div>
+          <div class="blk museum"   style="flex:1.75" title="Accademia (8:15–10:00)"><span class="bn">Accademia</span></div>
+          <div class="blk food"     style="flex:1.5"  title="Mercato Centrale (10:00–11:30)"><span class="bn">Mercato</span></div>
+          <div class="blk landmark" style="flex:1"    title="Medici Chapels (11:30–12:30)"><span class="bn">Medici</span></div>
+          <div class="blk food"     style="flex:1.5"  title="Lunch + Ponte Vecchio walk (12:30–14:00)"><span class="bn">Lunch</span></div>
+          <div class="blk walk"     style="flex:3"    title="Oltrarno — workshops + Boboli (14:00–17:00)"><span class="bn">Oltrarno</span></div>
+          <div class="blk food"     style="flex:1.5"  title="Aperitivo + wine windows (17:00–18:30)"><span class="bn">Aperitivo</span></div>
+          <div class="blk sp"       style="flex:4.5"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-wrap">
+      <table class="dtable">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Activity</th>
+            <th>Quarter</th>
+            <th>Booking</th>
+            <th>Ticket</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="t-museum">
+            <td class="t-time">08:15</td>
+            <td class="t-act">
+              <a href="https://www.galleriaaccademiafirenze.it/en/">Accademia</a> — David + Prisoners
+              <span class="t-note">75–90 min · 15-min arrival window strictly enforced</span>
+            </td>
+            <td>San Marco</td>
+            <td><span class="badge urgent">2 months</span></td>
+            <td>€20 <sup><a href="https://www.galleriaaccademiafirenze.it/en/">[3]</a></sup></td>
+          </tr>
+          <tr class="t-food">
+            <td class="t-time">10:00</td>
+            <td class="t-act">
+              <a href="https://www.mercatocentrale.com/florence/info/">Mercato Centrale</a> + lampredotto
+              <span class="t-note">Ground floor closes early afternoon · food hall open daily 9:00–23:00</span>
+            </td>
+            <td>San Lorenzo</td>
+            <td><span class="badge walkup">Walk-up</span></td>
+            <td>~€4</td>
+          </tr>
+          <tr class="t-landmark">
+            <td class="t-time">11:30</td>
+            <td class="t-act">
+              <a href="https://www.florence-museum.com/medici-chapels-tickets.php">Medici Chapels</a> — New Sacristy
+              <span class="t-note">Michelangelo's tombs of Lorenzo &amp; Giuliano de' Medici · ~1h</span>
+            </td>
+            <td>San Lorenzo</td>
+            <td><span class="badge walkup">Walk-up</span></td>
+            <td>~€12 <sup><a href="https://www.florence-museum.com/medici-chapels-tickets.php">[9]</a></sup></td>
+          </tr>
+          <tr class="t-food">
+            <td class="t-time">12:30</td>
+            <td class="t-act">
+              Lunch + Ponte Vecchio walk
+              <span class="t-note">Cross to Oltrarno via the bridge · goldsmiths' shops (c.1339, family-run since 1593)</span>
+            </td>
+            <td>Centro → Oltrarno</td>
+            <td><span class="badge free">No booking</span></td>
+            <td>—</td>
+          </tr>
+          <tr class="t-walk">
+            <td class="t-time">14:00</td>
+            <td class="t-act">
+              <a href="https://lovefromtuscany.com/where-to-go/florence/oltrarno/">Oltrarno</a> — artisan studios + <a href="https://scuoladelcuoio.it/en/">Scuola del Cuoio</a> or <a href="https://www.uffizi.it/en/boboli-garden">Boboli Gardens</a>
+              <span class="t-note">50+ workshops · leather school in Santa Croce monastery · Boboli closes 16:30–19:10 seasonal</span>
+            </td>
+            <td>Oltrarno</td>
+            <td><span class="badge walkup">Walk-up</span></td>
+            <td>Free–€13 <sup><a href="https://www.uffizi.it/en/boboli-garden">[10]</a></sup></td>
+          </tr>
+          <tr class="t-food">
+            <td class="t-time">17:00</td>
+            <td class="t-act">
+              Aperitivo + buchette del vino
+              <span class="t-note">Piazza Santo Spirito bars from 19:00 · Babae (Via Santo Spirito 21R) active wine window · Vivoli gelato window</span>
+            </td>
+            <td>Oltrarno</td>
+            <td><span class="badge free">No booking</span></td>
+            <td>~€5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════ DAY 2 ══════════════ -->
+  <div class="day-section day2">
+    <div class="day-header">Day 2 &mdash; Duomo &bull; Uffizi &bull; Michelin Anchor</div>
+
+    <div class="gantt-scroll">
+      <div class="gantt-container">
+        <div class="time-axis" aria-hidden="true">
+          <span style="left:0%">8</span>
+          <span style="left:6.67%">9</span>
+          <span style="left:13.33%">10</span>
+          <span style="left:20%">11</span>
+          <span style="left:26.67%">12</span>
+          <span style="left:33.33%">13</span>
+          <span style="left:40%">14</span>
+          <span style="left:46.67%">15</span>
+          <span style="left:53.33%">16</span>
+          <span style="left:60%">17</span>
+          <span style="left:66.67%">18</span>
+          <span style="left:73.33%">19</span>
+          <span style="left:80%">20</span>
+          <span style="left:86.67%">21</span>
+          <span style="left:93.33%">22</span>
+          <span style="left:100%" class="t-last">23</span>
+        </div>
+        <!--
+          0.25 + 1.75 + 0.5 + 3 + 1 + 2 + 2 + 1 + 3.5 = 15
+        -->
+        <div class="gantt-row" role="img" aria-label="Day 2 activity timeline">
+          <div class="blk sp"       style="flex:0.25"></div>
+          <div class="blk landmark" style="flex:1.75" title="Duomo cupola climb (8:15–10:00)"><span class="bn">Duomo</span></div>
+          <div class="blk sp"       style="flex:0.5"></div>
+          <div class="blk museum"   style="flex:3"    title="Uffizi (10:30–13:30)"><span class="bn">Uffizi</span></div>
+          <div class="blk food"     style="flex:1"    title="Lunch (13:30–14:30)"><span class="bn">Lunch</span></div>
+          <div class="blk landmark" style="flex:2"    title="Palazzo Vecchio (14:30–16:30)"><span class="bn">Pal. Vecchio</span></div>
+          <div class="blk walk"     style="flex:2"    title="San Miniato al Monte — sunset (16:30–18:30)"><span class="bn">San Miniato</span></div>
+          <div class="blk sp"       style="flex:1"></div>
+          <div class="blk dinner"   style="flex:3.5"  title="Santa Elisabetta ★★ (19:30–23:00)"><span class="bn">★★ SANTA ELISABETTA</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-wrap">
+      <table class="dtable">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Activity</th>
+            <th>Quarter</th>
+            <th>Booking</th>
+            <th>Ticket</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="t-landmark">
+            <td class="t-time">08:15</td>
+            <td class="t-act">
+              <a href="https://duomo.firenze.it/en">Brunelleschi's Dome</a> — cupola climb
+              <span class="t-note">463 steps, no lift · late arrival forfeits your slot · Bell Tower optional (414 steps)</span>
+            </td>
+            <td>Duomo</td>
+            <td><span class="badge timed">Timed slot</span></td>
+            <td>€30 Brunelleschi pass <sup><a href="https://tickets.duomo.firenze.it/en/support/prices">[6]</a></sup></td>
+          </tr>
+          <tr class="t-museum">
+            <td class="t-time">10:30</td>
+            <td class="t-act">
+              <a href="https://www.uffizi.it/en">Uffizi Gallery</a> — Botticelli, Leonardo, Caravaggio
+              <span class="t-note">2.5–3h · all visitors enter Door 1 · pre-booking cuts queue from 90 to 25 min</span>
+            </td>
+            <td>Piazza Signoria</td>
+            <td><span class="badge advance">1 month</span></td>
+            <td>€29 <sup><a href="https://www.uffizi.it/en">[4]</a></sup></td>
+          </tr>
+          <tr class="t-food">
+            <td class="t-time">13:30</td>
+            <td class="t-act">
+              Lunch near Piazza della Signoria
+              <span class="t-note">Keep it light — dinner tonight runs 3.5–4.5 hours</span>
+            </td>
+            <td>Piazza Signoria</td>
+            <td><span class="badge free">No booking</span></td>
+            <td>—</td>
+          </tr>
+          <tr class="t-landmark">
+            <td class="t-time">14:30</td>
+            <td class="t-act">
+              <a href="https://www.palazzovecchioflorence.com/tickets">Palazzo Vecchio</a> — Salone dei Cinquecento
+              <span class="t-note">54 × 23 m, floor-to-ceiling Vasari frescoes (1563–65) · Arnolfo Tower adds rooftop view</span>
+            </td>
+            <td>Piazza Signoria</td>
+            <td><span class="badge walkup">Walk-up</span></td>
+            <td>€13.50 <sup><a href="https://www.palazzovecchioflorence.com/tickets">[7]</a></sup></td>
+          </tr>
+          <tr class="t-walk">
+            <td class="t-time">16:30</td>
+            <td class="t-act">
+              San Miniato al Monte — sunset
+              <span class="t-note">Higher and quieter than Piazzale Michelangelo · working Romanesque church from 1018 · local's pick</span>
+            </td>
+            <td>Oltrarno hills</td>
+            <td><span class="badge free">No booking</span></td>
+            <td>Free <sup><a href="https://www.adventurouskate.com/best-views-in-florence/">[22]</a></sup></td>
+          </tr>
+          <tr class="t-dinner">
+            <td class="t-time">19:30</td>
+            <td class="t-act">
+              <a href="https://www.ristorantesantaelisabetta.it">Santa Elisabetta ★★</a>
+              <span class="t-note">7 tables inside the Byzantine Torre della Pagliazza · menus shared by the whole table · credit card required · allow 3.5–4.5h</span>
+            </td>
+            <td>Duomo / Torre della Pagliazza</td>
+            <td><span class="badge urgent">4–6 weeks</span></td>
+            <td>from €235 pp <sup><a href="https://www.tripadvisor.com/Restaurant_Review-g187895-d2335854-Reviews-Ristorante_Santa_Elisabetta-Florence_Tuscany.html">[18]</a></sup></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── RESTAURANT ANCHOR CHOICE ── -->
+  <div class="anchor-grid">
+
+    <div class="anchor-card">
+      <div class="anchor-head">
+        <img src="https://www.google.com/s2/favicons?domain=ristorantesantaelisabetta.it&sz=128" width="24" height="24" alt="">
+        <div class="r-name"><a href="https://www.ristorantesantaelisabetta.it">Santa Elisabetta</a></div>
+        <div class="r-stars">★★ — shown above</div>
+      </div>
+      <div class="anchor-body">
+        <dl>
+          <dt>Address</dt>
+          <dd>Piazza Santa Elisabetta 3, Hotel Brunelleschi <sup><a href="https://www.brunelleschihotelflorence.com/restaurant-santa-elisabetta/">[23]</a></sup></dd>
+          <dt>Service</dt>
+          <dd>Lunch &amp; dinner Tue–Sat · open year-round</dd>
+          <dt>Price</dt>
+          <dd>5-course from ~€235 pp · wine pairing +~€50 <sup><a href="https://www.tripadvisor.com/Restaurant_Review-g187895-d2335854-Reviews-Ristorante_Santa_Elisabetta-Florence_Tuscany.html">[18]</a></sup></dd>
+          <dt>Tables</dt>
+          <dd>7 (circular medieval tower)</dd>
+        </dl>
+        <div class="cluster-note">
+          Day 2 clusters the <strong>Duomo + Uffizi + Piazza Signoria</strong> quarter — restaurant is within 10 minutes of each.
+        </div>
+      </div>
+    </div>
+
+    <div class="anchor-card">
+      <div class="anchor-head">
+        <img src="https://www.google.com/s2/favicons?domain=enotecapinchiorri.com&sz=128" width="24" height="24" alt="">
+        <div class="r-name"><a href="https://enotecapinchiorri.com">Enoteca Pinchiorri</a></div>
+        <div class="r-stars">★★★ — variant</div>
+      </div>
+      <div class="anchor-body">
+        <dl>
+          <dt>Address</dt>
+          <dd>Via Ghibellina 87 — 17th-c. palazzo, Santa Croce quarter <sup><a href="https://www.theworlds50best.com/discovery/Establishments/Italy/Florence/Enoteca-Pinchiorri.html">[17]</a></sup></dd>
+          <dt>Service</dt>
+          <dd>Dinner only, Tue–Sat 19:30 · <strong>closed all August</strong></dd>
+          <dt>Price</dt>
+          <dd>From ~€400 pp · wine pairing €200–500+ <sup><a href="https://www.onceinalifetimejourney.com/reviews/food/enoteca-pinchiorri-review-3-michelin-stars/">[19]</a></sup></dd>
+          <dt>Cellar</dt>
+          <dd>60,000+ bottles · 4,000+ labels</dd>
+        </dl>
+        <div class="cluster-note">
+          Swap Day 2 afternoon: <a href="https://whichmuseum.com/museum/museo-nazionale-del-bargello-florence-5860/tickets-prices">Bargello</a> (5 min away, rarely queues, €12) + <a href="https://www.santacroceopera.it/en/organise-your-visit/">Santa Croce</a> (Michelangelo's tomb, 10 min walk, €10) — instead of Palazzo Vecchio.
+        </div>
+        <div class="closed-warn">⚠ Confirm travel dates — Pinchiorri closes all August <sup><a href="https://www.theworlds50best.com/discovery/Establishments/Italy/Florence/Enoteca-Pinchiorri.html">[17]</a></sup></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── BUDGET STRIP ── -->
+  <div class="budget-strip">
+    <div class="b-item">
+      <span class="b-label">Day 1 tickets</span>
+      <span class="b-val">~€32–45</span>
+    </div>
+    <div class="b-item">
+      <span class="b-label">Day 2 tickets (excl. dinner)</span>
+      <span class="b-val">~€73</span>
+    </div>
+    <div class="b-item">
+      <span class="b-label">Combo: Uffizi + Accademia</span>
+      <span class="b-val save">€26 / 48h from Mar 2026 <sup><a href="https://www.artvisitguide.com/firenze-card-2026-guide/">[24]</a></sup></span>
+    </div>
+    <div class="b-item">
+      <span class="b-label">Dinner — Santa Elisabetta ★★</span>
+      <span class="b-val dim">from €285 pp (incl. wine) <sup><a href="https://www.tripadvisor.com/Restaurant_Review-g187895-d2335854-Reviews-Ristorante_Santa_Elisabetta-Florence_Tuscany.html">[18]</a></sup></span>
+    </div>
+    <div class="b-item">
+      <span class="b-label">Dinner — Enoteca Pinchiorri ★★★</span>
+      <span class="b-val dim">from €600 pp (incl. wine) <sup><a href="https://www.onceinalifetimejourney.com/reviews/food/enoteca-pinchiorri-review-3-michelin-stars/">[19]</a></sup></span>
+    </div>
+    <div class="b-item">
+      <span class="b-label">Best months</span>
+      <span class="b-val">Mar–Apr · late Sep–Oct <sup><a href="https://www.tickets-florence.it/travel-guide/best-time-to-visit/">[20]</a></sup></span>
+    </div>
+  </div>
+
+</div>
