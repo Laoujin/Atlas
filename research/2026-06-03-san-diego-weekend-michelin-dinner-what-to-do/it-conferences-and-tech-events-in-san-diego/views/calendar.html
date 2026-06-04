@@ -1,0 +1,406 @@
+---
+layout: view
+view_name: "Calendar"
+view_of: ../
+title: "IT Conferences & Tech Events in San Diego 2026 — Calendar"
+---
+
+<style>
+:root {
+  --bg: #090b10;
+  --card: #111520;
+  --border: #1c2235;
+  --peak: rgba(255, 183, 3, 0.055);
+  --peak-border: rgba(255, 183, 3, 0.38);
+  --text: #dde1ec;
+  --muted: #56607a;
+  --dim: #252c41;
+  --cyber: #ff4d6d;
+  --ent: #4d9fff;
+  --ai: #9b6dff;
+  --dev: #1ecb8f;
+  --startup: #ffc025;
+  --ux: #ff6e3a;
+  --expo: #7a8cb0;
+}
+
+.cv { font-family: 'SF Mono','Fira Code','Cascadia Code',ui-monospace,monospace; background: var(--bg); color: var(--text); }
+
+/* ── Header ──────────────────────────────────────────────── */
+.cv-head { padding: 2rem 2rem 1.25rem; border-bottom: 1px solid var(--border); }
+.cv-head h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; margin: 0 0 .3rem; }
+.cv-head .sub { font-size: .68rem; color: var(--muted); margin: 0 0 1rem; }
+.verdict { padding: .65rem .9rem; background: var(--card); border-left: 3px solid var(--startup); font-size: .75rem; line-height: 1.55; color: var(--text); }
+.verdict strong { color: var(--startup); }
+
+/* ── Legend ──────────────────────────────────────────────── */
+.legend { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; padding: .8rem 2rem; border-bottom: 1px solid var(--border); font-size: .65rem; color: var(--muted); }
+.legend-item { display: flex; align-items: center; gap: .35rem; }
+.ld { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Year strip ──────────────────────────────────────────── */
+.strip-wrap { padding: 1.25rem 2rem 0; }
+.strip-label { font-size: .6rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: .55rem; }
+.strip-bar { position: relative; height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+.czone { position: absolute; top: 0; bottom: 0; background: rgba(255,183,3,.07); border-left: 2px solid rgba(255,183,3,.35); border-right: 2px solid rgba(255,183,3,.35); }
+.dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; transform: translate(-50%, -50%); top: 50%; }
+.strip-months { display: flex; margin-top: .25rem; font-size: .58rem; color: var(--muted); list-style: none; padding: 0; }
+.strip-months li { flex: 1; text-align: center; letter-spacing: .05em; }
+.strip-months .ev { color: var(--text); font-weight: 600; }
+.strip-months .pk { color: var(--startup); font-weight: 700; }
+
+/* ── Month grid ──────────────────────────────────────────── */
+.mgrid { display: grid; grid-template-columns: repeat(10, 1fr); padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); gap: 0; }
+.mcol { border-right: 1px solid var(--border); padding: 0 .55rem 1rem; min-height: 190px; }
+.mcol:first-child { padding-left: 0; }
+.mcol:last-child { border-right: none; }
+.mcol.pk { background: var(--peak); border-top: 2px solid var(--peak-border); margin-top: -2px; }
+.mcol.quiet .mname { color: var(--dim); }
+.mname { font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: .45rem 0 .35rem; display: flex; align-items: baseline; gap: .25rem; }
+.mcol.pk .mname { color: var(--startup); }
+.mcnt { font-size: .58rem; color: var(--startup); font-weight: 700; }
+.quiet .mcnt { display: none; }
+
+.pill { display: block; margin-bottom: .3rem; padding: .22rem .38rem; border-radius: 3px; font-size: .57rem; line-height: 1.3; border-left: 2px solid; text-decoration: none; }
+.pill:hover { opacity: .85; }
+.pill-n { font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill-d { font-size: .5rem; opacity: .65; display: block; }
+.cy { color: var(--cyber); background: rgba(255,77,109,.1); border-color: var(--cyber); }
+.en { color: var(--ent);   background: rgba(77,159,255,.1); border-color: var(--ent);  }
+.ai { color: var(--ai);    background: rgba(155,109,255,.1); border-color: var(--ai); }
+.dv { color: var(--dev);   background: rgba(30,203,143,.1); border-color: var(--dev); }
+.st { color: var(--startup);background: rgba(255,192,37,.1); border-color: var(--startup); }
+.ux { color: var(--ux);    background: rgba(255,110,58,.1); border-color: var(--ux); }
+.ex { color: var(--expo);  background: rgba(122,140,176,.1); border-color: var(--expo); }
+.mquiet { margin-top: .6rem; height: 2px; background: var(--dim); border-radius: 1px; width: 50%; }
+
+/* ── Cluster callouts ────────────────────────────────────── */
+.clusters { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+.cblk { padding: 1.5rem 2rem; border-right: 1px solid var(--border); }
+.cblk:last-child { border-right: none; }
+.ctag { font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--startup); margin: 0 0 .2rem; }
+.crange { font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0 0 1.1rem; }
+.cev { display: grid; grid-template-columns: 3.5rem 1fr; gap: .5rem; margin-bottom: .9rem; align-items: start; }
+.cdates { font-size: .6rem; color: var(--muted); text-align: right; padding-top: .1rem; line-height: 1.35; white-space: nowrap; }
+.cname { font-size: .8rem; font-weight: 700; color: #fff; text-decoration: none; display: block; line-height: 1.25; }
+.cname:hover { text-decoration: underline; }
+.cdetail { font-size: .62rem; color: var(--muted); margin-top: .15rem; line-height: 1.4; }
+.cprice { font-size: .62rem; color: var(--startup); font-weight: 600; margin-top: .1rem; }
+
+/* ── Meetups ─────────────────────────────────────────────── */
+.meetups { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); }
+.mtitle { font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 .85rem; }
+.mgd { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: .65rem; }
+.mc { background: var(--card); border: 1px solid var(--border); border-radius: 3px; padding: .7rem .75rem; }
+.mc-name { font-size: .72rem; font-weight: 700; color: var(--dev); text-decoration: none; display: block; margin-bottom: .2rem; }
+.mc-name:hover { text-decoration: underline; }
+.mc-plain { font-size: .72rem; font-weight: 700; color: var(--dev); display: block; margin-bottom: .2rem; }
+.mc-cad { font-size: .58rem; color: var(--startup); margin-bottom: .15rem; }
+.mc-desc { font-size: .6rem; color: var(--muted); line-height: 1.4; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.cv-foot { padding: .85rem 2rem; font-size: .6rem; color: var(--dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.cv-foot a { color: inherit; text-decoration: underline; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 920px) {
+  .mgrid { grid-template-columns: repeat(5, 1fr); padding: 1rem; }
+  .clusters { grid-template-columns: 1fr; }
+  .cblk { border-right: none; border-bottom: 1px solid var(--border); }
+}
+@media (max-width: 580px) {
+  .mgrid { grid-template-columns: repeat(3, 1fr); }
+  .cv-head, .legend, .strip-wrap, .meetups { padding-left: 1rem; padding-right: 1rem; }
+}
+</style>
+
+<div class="cv">
+
+  <!-- Header -->
+  <div class="cv-head">
+    <h1>San Diego IT Conference Calendar · 2026</h1>
+    <p class="sub">14 major events · February – November · 2 peak clusters · 5 recurring meetups</p>
+    <div class="verdict">
+      Dense windows: <strong>May 31–Jun 10</strong> (FiRe + DevOpsCon + MLcon + SDIC, five overlapping days) and <strong>Sep 14–17</strong> (VSLive, Gartner Procurement, and DDX in the same week). July–August run completely quiet — no major conferences.
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="legend-item"><span class="ld" style="background:var(--cyber)"></span>Cybersecurity</span>
+    <span class="legend-item"><span class="ld" style="background:var(--ent)"></span>Enterprise / Analyst</span>
+    <span class="legend-item"><span class="ld" style="background:var(--ai)"></span>AI / Innovation</span>
+    <span class="legend-item"><span class="ld" style="background:var(--dev)"></span>Developer Tools</span>
+    <span class="legend-item"><span class="ld" style="background:var(--startup)"></span>Startup / Ecosystem</span>
+    <span class="legend-item"><span class="ld" style="background:var(--ux)"></span>UX / Design</span>
+    <span class="legend-item"><span class="ld" style="background:var(--expo)"></span>Expo / Mixed</span>
+  </div>
+
+  <!-- Year distribution strip -->
+  <div class="strip-wrap">
+    <div class="strip-label">2026 event distribution — Feb → Nov</div>
+    <div class="strip-bar">
+      <!-- Peak cluster zones: May31-Jun10 = days 119-129/303, Sep14-17 = days 225-228/303 -->
+      <div class="czone" style="left:39.3%;width:3.3%"></div>
+      <div class="czone" style="left:74.3%;width:1.0%"></div>
+      <!-- Dots: left = (day from Feb1) / 303 * 100% -->
+      <div class="dot" style="left:1.3%;top:50%;background:var(--cyber)"></div>         <!-- Cyber Summit Feb5 -->
+      <div class="dot" style="left:16.5%;top:50%;background:var(--ent)"></div>          <!-- Gartner DW Mar23 -->
+      <div class="dot" style="left:23.1%;top:50%;background:var(--ai)"></div>           <!-- ASU+GSV Apr12 -->
+      <div class="dot" style="left:35.3%;top:30%;background:var(--cyber)"></div>        <!-- NetDiligence May19 -->
+      <div class="dot" style="left:36.0%;top:70%;background:var(--ai)"></div>           <!-- TechCon May21 -->
+      <div class="dot" style="left:39.3%;top:25%;background:var(--ai)"></div>           <!-- FiRe May31 -->
+      <div class="dot" style="left:39.6%;top:75%;background:var(--dev)"></div>          <!-- DevOpsCon Jun1 -->
+      <div class="dot" style="left:42.6%;top:50%;background:var(--startup)"></div>      <!-- SDIC Jun10 -->
+      <div class="dot" style="left:74.3%;top:20%;background:var(--dev)"></div>          <!-- VSLive Sep14 -->
+      <div class="dot" style="left:74.6%;top:50%;background:var(--ent)"></div>          <!-- Gartner Proc Sep15 -->
+      <div class="dot" style="left:75.2%;top:80%;background:var(--ux)"></div>           <!-- DDX Sep17 -->
+      <div class="dot" style="left:80.9%;top:50%;background:var(--cyber)"></div>        <!-- Offensive AI Oct4 -->
+      <div class="dot" style="left:94.1%;top:30%;background:var(--cyber)"></div>        <!-- CyberCon Nov13 -->
+      <div class="dot" style="left:95.4%;top:70%;background:var(--expo)"></div>         <!-- TECHSPO Nov17 -->
+    </div>
+    <ul class="strip-months">
+      <li class="ev">FEB</li>
+      <li class="ev">MAR</li>
+      <li class="ev">APR</li>
+      <li class="ev">MAY</li>
+      <li class="pk">JUN</li>
+      <li>JUL</li>
+      <li>AUG</li>
+      <li class="pk">SEP</li>
+      <li class="ev">OCT</li>
+      <li class="ev">NOV</li>
+    </ul>
+  </div>
+
+  <!-- Month grid -->
+  <div class="mgrid">
+
+    <!-- FEB -->
+    <div class="mcol">
+      <div class="mname">FEB</div>
+      <a href="https://cybersecuritysummit.com/summit/san-diego/" class="pill cy">
+        <span class="pill-n">CyberSummit</span>
+        <span class="pill-d">Feb 5 · 1 day · $350</span>
+      </a>
+    </div>
+
+    <!-- MAR -->
+    <div class="mcol">
+      <div class="mname">MAR</div>
+      <a href="https://www.reworked.co/events/conference/gartner-digital-workplace-summit-san-diego-2026/" class="pill en">
+        <span class="pill-n">Gartner DW</span>
+        <span class="pill-d">Mar 23–24 · $3k+</span>
+      </a>
+    </div>
+
+    <!-- APR -->
+    <div class="mcol">
+      <div class="mname">APR</div>
+      <a href="https://asugsvsummit.com/" class="pill ai">
+        <span class="pill-n">ASU+GSV</span>
+        <span class="pill-d">Apr 12–15 · $2k+</span>
+      </a>
+    </div>
+
+    <!-- MAY — peak start -->
+    <div class="mcol pk">
+      <div class="mname">MAY <span class="mcnt">3</span></div>
+      <a href="https://haystackid.com/event/2026-netdiligence-cyber-risk-summit-san-diego/" class="pill cy">
+        <span class="pill-n">NetDiligence</span>
+        <span class="pill-d">May 19–20</span>
+      </a>
+      <a href="https://techconglobal.com/techcon-socal-2026/" class="pill ai">
+        <span class="pill-n">TechCon SoCal</span>
+        <span class="pill-d">May 21–23</span>
+      </a>
+      <a href="https://www.futureinreview.com/fire-2026" class="pill ai">
+        <span class="pill-n">FiRe →</span>
+        <span class="pill-d">May 31–Jun 3 · $2.9–4.9k</span>
+      </a>
+    </div>
+
+    <!-- JUN — peak -->
+    <div class="mcol pk">
+      <div class="mname">JUN <span class="mcnt">3</span></div>
+      <a href="https://www.futureinreview.com/fire-2026" class="pill ai">
+        <span class="pill-n">← FiRe</span>
+        <span class="pill-d">ends Jun 3</span>
+      </a>
+      <a href="https://devopscon.io/san-diego/" class="pill dv">
+        <span class="pill-n">DevOpsCon + ML</span>
+        <span class="pill-d">Jun 1–5 · $719/day+</span>
+      </a>
+      <a href="https://sdic.org/showcase-2026/" class="pill st">
+        <span class="pill-n">SDIC Showcase</span>
+        <span class="pill-d">Jun 10 · $65</span>
+      </a>
+    </div>
+
+    <!-- JUL — quiet -->
+    <div class="mcol quiet">
+      <div class="mname">JUL</div>
+      <div class="mquiet"></div>
+    </div>
+
+    <!-- AUG — quiet -->
+    <div class="mcol quiet">
+      <div class="mname">AUG</div>
+      <div class="mquiet"></div>
+    </div>
+
+    <!-- SEP — peak -->
+    <div class="mcol pk">
+      <div class="mname">SEP <span class="mcnt">3</span></div>
+      <a href="https://vslive.com/events/san-diego-2026/home.aspx" class="pill dv">
+        <span class="pill-n">VSLive!</span>
+        <span class="pill-d">Sep 14–18 · 5 days</span>
+      </a>
+      <a href="https://www.gartner.com/en/conferences/na/procurement-us" class="pill en">
+        <span class="pill-n">Gartner Proc.</span>
+        <span class="pill-d">Sep 15–16 · $3k+</span>
+      </a>
+      <a href="https://www.ddxconference.com/sandiego" class="pill ux">
+        <span class="pill-n">DDX</span>
+        <span class="pill-d">Sep 17 · 350 att.</span>
+      </a>
+    </div>
+
+    <!-- OCT -->
+    <div class="mcol">
+      <div class="mname">OCT</div>
+      <a href="https://www.offensiveaicon.com/" class="pill cy">
+        <span class="pill-n">Offensive AI ⚠</span>
+        <span class="pill-d">Oct 4–7 · Oceanside · invite</span>
+      </a>
+    </div>
+
+    <!-- NOV -->
+    <div class="mcol">
+      <div class="mname">NOV</div>
+      <a href="https://sdcybercon.org/" class="pill cy">
+        <span class="pill-n">SD CyberCon</span>
+        <span class="pill-d">Nov 13 · 9 CPE</span>
+      </a>
+      <a href="https://techsposandiego.com/" class="pill ex">
+        <span class="pill-n">TECHSPO</span>
+        <span class="pill-d">Nov 17–18</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Cluster callout sections -->
+  <div class="clusters">
+
+    <div class="cblk">
+      <div class="ctag">Peak cluster ①</div>
+      <div class="crange">May 31 – Jun 10</div>
+
+      <div class="cev">
+        <div class="cdates">May 31<br>– Jun 3</div>
+        <div>
+          <a href="https://www.futureinreview.com/fire-2026" class="cname">Future in Review (FiRe)</a>
+          <div class="cdetail">Advanced AI · climate tech · semiconductors · global economy<br>UC San Diego / Qualcomm Institute</div>
+          <div class="cprice">$2,900–$4,900 · invitation-leaning</div>
+        </div>
+      </div>
+
+      <div class="cev">
+        <div class="cdates">Jun 1<br>– Jun 5</div>
+        <div>
+          <a href="https://devopscon.io/san-diego/" class="cname">DevOpsCon + MLcon</a>
+          <div class="cdetail">DevSecOps · Kubernetes · GenAI agents · MLOps · LLMOps (co-located)<br>Hyatt Regency La Jolla at Aventine · 2,500+ attendees</div>
+          <div class="cprice">$719 / day → $2,339 all-inclusive</div>
+        </div>
+      </div>
+
+      <div class="cev">
+        <div class="cdates">Jun 10</div>
+        <div>
+          <a href="https://sdic.org/showcase-2026/" class="cname">SDIC Showcase (9th annual)</a>
+          <div class="cdetail">Startup pitches: cleantech · biotech · medtech · software<br>San Diego Tech Center, Sorrento Valley</div>
+          <div class="cprice">$65</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cblk">
+      <div class="ctag">Peak cluster ②</div>
+      <div class="crange">Sep 14 – 17</div>
+
+      <div class="cev">
+        <div class="cdates">Sep 14<br>– Sep 18</div>
+        <div>
+          <a href="https://vslive.com/events/san-diego-2026/home.aspx" class="cname">VSLive! San Diego</a>
+          <div class="cdetail">Microsoft .NET · Azure · Blazor · MAUI · GitHub Copilot<br>Bahia Resort Hotel · 5-day training format</div>
+          <div class="cprice">Pricing TBA</div>
+        </div>
+      </div>
+
+      <div class="cev">
+        <div class="cdates">Sep 15<br>– Sep 16</div>
+        <div>
+          <a href="https://www.gartner.com/en/conferences/na/procurement-us" class="cname">Gartner Procurement</a>
+          <div class="cdetail">CPO &amp; sourcing leadership · IT vendor management · direct/indirect<br>Gaylord Pacific Resort &amp; Convention Center</div>
+          <div class="cprice">~$3,000+</div>
+        </div>
+      </div>
+
+      <div class="cev">
+        <div class="cdates">Sep 17</div>
+        <div>
+          <a href="https://www.ddxconference.com/sandiego" class="cname">DDX Innovation &amp; UX</a>
+          <div class="cdetail">UX · product design · AI · digital transformation · 25 speakers · 6 workshops<br>UC San Diego Park &amp; Market, 1100 Market St</div>
+          <div class="cprice">350 attendees</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recurring meetups -->
+  <div class="meetups">
+    <div class="mtitle">Year-round — no conference required</div>
+    <div class="mgd">
+
+      <div class="mc">
+        <a href="https://www.meetup.com/sd-abcdtechtalk/" class="mc-name">SD AI Developers Group</a>
+        <div class="mc-cad">Monthly</div>
+        <div class="mc-desc">GenAI, LLMs, agentic AI · 3,000+ members · hands-on labs &amp; networking</div>
+      </div>
+
+      <div class="mc">
+        <a href="https://san-diego.aitinkerers.org/" class="mc-name">AI Tinkerers San Diego</a>
+        <div class="mc-cad">Recurring</div>
+        <div class="mc-desc">Live technical demos: agentic workflows, inference optimization · builders-focused</div>
+      </div>
+
+      <div class="mc">
+        <span class="mc-plain">San Diego Machine Learning</span>
+        <div class="mc-cad">Monthly</div>
+        <div class="mc-desc">Paper reviews, book clubs, lightning talks</div>
+      </div>
+
+      <div class="mc">
+        <a href="https://sdtechscene.org/" class="mc-name">San Diego Tech Coffee</a>
+        <div class="mc-cad">Tue &amp; Wed weekly</div>
+        <div class="mc-desc">Largest weekly entrepreneur gathering · free · all are welcome</div>
+      </div>
+
+      <div class="mc">
+        <a href="https://sdtechscene.org/" class="mc-name">SDPy Monthly Meetup</a>
+        <div class="mc-cad">Monthly</div>
+        <div class="mc-desc">Python developers · see SD Tech Scene for current schedule</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="cv-foot">
+    <span>14 conferences · 18 sources · <a href="../">full index →</a></span>
+    <span>calendar via <a href="https://sdtechscene.org/">sdtechscene.org</a></span>
+  </div>
+
+</div>
