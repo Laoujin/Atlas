@@ -1,0 +1,989 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "AI-Assisted TDD Workshop Playbook for Expert Developers — Dashboard"
+---
+
+<style>
+/* ── Reset & tokens ── */
+.d*{box-sizing:border-box}
+.d {
+  --bg:     #0d1117;
+  --panel:  #161b22;
+  --panel2: #1c2128;
+  --border: #30363d;
+  --border2:#21262d;
+  --ink:    #e6edf3;
+  --dim:    #8b949e;
+  --dim2:   #6e7681;
+  --green:  #3fb950;
+  --red:    #f85149;
+  --amber:  #d29922;
+  --blue:   #58a6ff;
+  --purple: #bc8cff;
+  --orange: #f0883e;
+  --mono:   "JetBrains Mono","Fira Code","Cascadia Code","Courier New",monospace;
+  --sans:   -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Top bar ── */
+.d-header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.d-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.25rem;
+}
+.d-meta {
+  font-size: 0.73rem;
+  color: var(--dim);
+  font-family: var(--mono);
+  margin: 0;
+}
+.d-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  padding-top: 0.2rem;
+}
+.badge {
+  border-radius: 20px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.72rem;
+  font-family: var(--mono);
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  background: var(--panel2);
+}
+.badge.g { border-color: var(--green);  color: var(--green);  }
+.badge.b { border-color: var(--blue);   color: var(--blue);   }
+.badge.a { border-color: var(--amber);  color: var(--amber);  }
+.badge.r { border-color: var(--red);    color: var(--red);    }
+
+/* ── Section wrapper ── */
+.d-sec {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.sec-label {
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dim2);
+  font-family: var(--mono);
+  font-weight: 600;
+  margin: 0 0 0.7rem;
+}
+
+/* ── Critical constraint ── */
+.critical {
+  background: rgba(248,81,73,0.07);
+  border: 1px solid rgba(248,81,73,0.4);
+  border-left: 4px solid var(--red);
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+.critical-icon { font-size: 1.1rem; flex-shrink: 0; line-height: 1.6; }
+.critical-rule {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--red);
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.critical p {
+  margin: 0;
+  font-size: 0.79rem;
+  color: var(--dim);
+  line-height: 1.5;
+}
+.critical code {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--orange);
+  background: rgba(240,136,62,0.1);
+  padding: 0 3px;
+  border-radius: 2px;
+}
+.critical a { color: var(--dim2); }
+
+/* ── Timeline ── */
+.tl-scroll { overflow-x: auto; }
+.tl-bar {
+  display: flex;
+  gap: 2px;
+  height: 56px;
+  min-width: 560px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tb {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 0.55rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.tb .t { font-size: 0.62rem; font-family: var(--mono); color: rgba(255,255,255,0.4); margin-bottom: 2px; }
+.tb .l { font-size: 0.73rem; font-weight: 600; color: rgba(255,255,255,0.85); }
+.tb.setup  { background: #182a40; flex: 10; }
+.tb.frame  { background: #1d2e45; flex: 10; }
+.tb.ex1    { background: #163324; flex: 35; }
+.tb.brk    { background: #2c2512; flex:  5; min-width: 28px; }
+.tb.ex2    { background: #163324; flex: 30; }
+.tb.debrief{ background: #221a38; flex: 10; }
+.tb.action { background: #221a38; flex: 10; }
+.tl-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.55rem;
+}
+.tl-dot { display: flex; align-items: center; gap: 0.35rem; font-size: 0.73rem; color: var(--dim); }
+.dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Evidence grid ── */
+.ev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ev-item { background: var(--panel2); padding: 0.9rem 1rem; }
+.ev-num {
+  font-family: var(--mono);
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+.ev-num.up   { color: var(--green); }
+.ev-num.down { color: var(--red);   }
+.ev-num.warn { color: var(--amber); }
+.ev-num.info { color: var(--blue);  }
+.ev-label { font-size: 0.76rem; color: var(--dim); line-height: 1.4; }
+.ev-src   { font-size: 0.68rem; color: var(--dim2); margin-top: 0.25rem; }
+.ev-src a { color: inherit; text-decoration: none; }
+.ev-src a:hover { text-decoration: underline; }
+
+/* ── Two-column ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+@media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+.col { background: var(--bg); padding: 1.1rem 1.5rem; }
+
+/* ── Exercise cards ── */
+.ex-list { display: flex; flex-direction: column; gap: 0.45rem; }
+.ex-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 4px;
+  padding: 0.55rem 0.8rem;
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+.ex-card.wu  { border-left-color: var(--blue);   }
+.ex-card.med { border-left-color: var(--green);  }
+.ex-card.mh  { border-left-color: var(--amber);  }
+.ex-card.hrd { border-left-color: var(--amber);  }
+.ex-card.exp { border-left-color: var(--purple); }
+.ex-body { flex: 1; min-width: 0; }
+.ex-name { font-size: 0.85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.ex-name a { color: inherit; text-decoration: none; }
+.ex-name a:hover { color: var(--blue); text-decoration: underline; }
+.ex-type { font-size: 0.71rem; color: var(--dim); margin-top: 1px; }
+.ex-side { text-align: right; flex-shrink: 0; }
+.ex-dur  { font-family: var(--mono); font-size: 0.7rem; color: var(--dim2); }
+.diff {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-top: 3px;
+}
+.diff.wu  { background: rgba(88,166,255,0.13); color: var(--blue);   }
+.diff.med { background: rgba(63,185,80,0.13);  color: var(--green);  }
+.diff.mh  { background: rgba(210,153,34,0.15); color: var(--amber);  }
+.diff.exp { background: rgba(188,140,255,0.13);color: var(--purple); }
+
+.anti-box {
+  margin-top: 0.85rem;
+  background: rgba(248,81,73,0.05);
+  border: 1px solid rgba(248,81,73,0.22);
+  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+}
+.anti-box .alabel {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.3rem;
+}
+.anti-box p { margin: 0; font-size: 0.78rem; color: var(--dim); line-height: 1.5; }
+.anti-box a { color: var(--dim2); }
+
+/* ── Role cards ── */
+.roles { display: flex; flex-direction: column; gap: 0.65rem; }
+.role-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+}
+.role-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.45rem; }
+.role-icon { font-size: 1rem; }
+.role-name { font-family: var(--mono); font-weight: 700; font-size: 0.88rem; color: var(--ink); }
+.rtag {
+  margin-left: auto;
+  font-size: 0.62rem;
+  font-family: var(--mono);
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 5px;
+}
+.rtag.g { background: rgba(63,185,80,0.13);  color: var(--green);  }
+.rtag.b { background: rgba(88,166,255,0.13); color: var(--blue);   }
+.rtag.p { background: rgba(188,140,255,0.13);color: var(--purple); }
+.role-duties { list-style: none; padding: 0; margin: 0; }
+.role-duties li {
+  font-size: 0.77rem;
+  color: var(--dim);
+  line-height: 1.5;
+  padding-left: 0.85rem;
+  position: relative;
+}
+.role-duties li::before { content: "›"; position: absolute; left: 0; color: var(--dim2); }
+
+.dyn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+.dyn-box { border-radius: 4px; padding: 0.55rem 0.7rem; }
+.dyn-box .dlabel {
+  font-size: 0.65rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.3rem;
+}
+.dyn-box ul { list-style: none; padding: 0; margin: 0; }
+.dyn-box ul li { font-size: 0.74rem; color: var(--dim); line-height: 1.5; }
+
+/* ── Logistics checklist ── */
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.65rem;
+}
+.check-tile {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+}
+.check-head { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.5rem; }
+.check-icon {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.check-icon.g { background: rgba(63,185,80,0.15);  color: var(--green);  }
+.check-icon.a { background: rgba(210,153,34,0.15); color: var(--amber);  }
+.check-icon.b { background: rgba(88,166,255,0.15); color: var(--blue);   }
+.check-title  { font-size: 0.84rem; font-weight: 600; color: var(--ink); }
+.check-items  { list-style: none; padding: 0; margin: 0; }
+.check-items li {
+  font-size: 0.76rem;
+  color: var(--dim);
+  line-height: 1.5;
+  padding-left: 1rem;
+  padding-bottom: 0.15rem;
+  position: relative;
+}
+.check-items li::before { content: "☐"; position: absolute; left: 0; color: var(--dim2); font-size: 0.72rem; }
+.check-items code {
+  font-family: var(--mono);
+  font-size: 0.73rem;
+  color: var(--orange);
+  background: rgba(240,136,62,0.1);
+  padding: 0 3px;
+  border-radius: 2px;
+}
+
+/* ── Frameworks ── */
+.fw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media (max-width: 580px) { .fw-grid { grid-template-columns: 1fr; } }
+.fw-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+}
+.fw-box h4 {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.3rem;
+}
+.fw-box p {
+  font-size: 0.78rem;
+  color: var(--dim);
+  margin: 0 0 0.55rem;
+  line-height: 1.5;
+}
+.fw-box p:last-child { margin-bottom: 0; }
+.fw-loop {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--dim);
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  padding: 0.4rem 0.6rem;
+}
+.fw-loop span.hi { color: var(--amber); font-weight: 700; }
+.aut-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.aut-table td { padding: 0.28rem 0.45rem; border-bottom: 1px solid var(--border2); color: var(--dim); }
+.aut-table tr:last-child td { border-bottom: none; }
+.aut-table td:first-child { font-family: var(--mono); font-weight: 700; color: var(--purple); width: 1.4rem; }
+.aut-rec td { color: var(--amber) !important; font-weight: 600; }
+
+/* ── Failure modes ── */
+.fm-table { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
+.fm-table th {
+  text-align: left;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--dim2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+}
+.fm-table td {
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border2);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.fm-table tr:last-child td { border-bottom: none; }
+.fm-table tr:hover td { background: rgba(255,255,255,0.018); }
+.fm-mode  { font-weight: 600; color: var(--ink); display: block; }
+.fm-impact{ font-size: 0.72rem; color: var(--red); opacity: 0.85; margin-top: 1px; }
+.fm-prev  { color: var(--dim); }
+.fm-prev code {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--orange);
+  background: rgba(240,136,62,0.08);
+  padding: 0 3px;
+  border-radius: 2px;
+}
+.fm-prev a { color: var(--dim2); }
+
+/* ── Sub-research tiles ── */
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.65rem;
+}
+.sub-tile {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.sub-tile:hover { border-color: var(--blue); background: var(--panel2); }
+.sub-type    { font-family: var(--mono); font-size: 0.64rem; color: var(--dim2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem; }
+.sub-name    { font-size: 0.85rem; font-weight: 600; color: var(--ink); line-height: 1.3; margin-bottom: 0.35rem; }
+.sub-summary { font-size: 0.75rem; color: var(--dim); line-height: 1.5; }
+.sub-foot    { display: flex; gap: 0.7rem; margin-top: 0.5rem; }
+.sub-stat    { font-family: var(--mono); font-size: 0.68rem; color: var(--dim2); }
+
+/* ── Footer ── */
+.d-footer {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  color: var(--dim2);
+  text-align: right;
+  border-top: 1px solid var(--border2);
+}
+</style>
+
+<div class="d">
+
+  <!-- ── Header ── -->
+  <div class="d-header">
+    <div>
+      <h1 class="d-title">AI-Assisted TDD Workshop Playbook</h1>
+      <p class="d-meta">expedition · 79 citations · Sonnet 4.6 · 2026-06-03 · facilitator ops dashboard</p>
+    </div>
+    <div class="d-badges">
+      <span class="badge g">⏱ 90 min session</span>
+      <span class="badge g">🧪 60–70% hands-on</span>
+      <span class="badge b">👥 3 facilitation roles</span>
+      <span class="badge a">⚡ 4 sub-research areas</span>
+      <span class="badge">📚 79 citations</span>
+    </div>
+  </div>
+
+  <!-- ── Critical Constraint ── -->
+  <div class="d-sec">
+    <div class="sec-label">critical constraint — embed in exercise sheets, .github/copilot-instructions.md, and opening frame</div>
+    <div class="critical">
+      <div class="critical-icon">⛔</div>
+      <div>
+        <code class="critical-rule">"You may not modify the test file."</code>
+        <p>
+          Without this, expert developers find the cheat in under 10 minutes and dismiss the entire loop.
+          It redirects AI optimization from "make it green by any means" to "write a correct implementation."
+          Adding standard TDD procedural instructions <em>without</em> a dependency context map worsened regression rates
+          from 6.08% to 9.94% — worse than no TDD instruction at all.
+          <sup><a href="https://arxiv.org/abs/2603.17973">[6]</a></sup>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Session Timeline ── -->
+  <div class="d-sec">
+    <div class="sec-label">session timeline — 90 minutes</div>
+    <div class="tl-scroll">
+      <div class="tl-bar">
+        <div class="tb setup">
+          <span class="t">00:00</span>
+          <span class="l">Check-in</span>
+        </div>
+        <div class="tb frame">
+          <span class="t">00:10</span>
+          <span class="l">Context Frame</span>
+        </div>
+        <div class="tb ex1">
+          <span class="t">00:20</span>
+          <span class="l">Exercise Block 1 — 35 min</span>
+        </div>
+        <div class="tb brk">
+          <span class="t">00:55</span>
+          <span class="l">⏸</span>
+        </div>
+        <div class="tb ex2">
+          <span class="t">01:00</span>
+          <span class="l">Exercise Block 2 — 30 min</span>
+        </div>
+        <div class="tb debrief">
+          <span class="t">01:30</span>
+          <span class="l">Debrief</span>
+        </div>
+        <div class="tb action">
+          <span class="t">01:40</span>
+          <span class="l">Takeaways</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-legend">
+      <span class="tl-dot"><span class="dot" style="background:#1d2e45"></span>Setup / Frame (20 min)</span>
+      <span class="tl-dot"><span class="dot" style="background:#163324"></span>Hands-on exercises (65 min)</span>
+      <span class="tl-dot"><span class="dot" style="background:#2c2512"></span>Break — non-negotiable</span>
+      <span class="tl-dot"><span class="dot" style="background:#221a38"></span>Synthesis (20 min)</span>
+    </div>
+  </div>
+
+  <!-- ── Evidence Panel ── -->
+  <div class="d-sec">
+    <div class="sec-label">opening frame evidence — name the gap before the first exercise</div>
+    <div class="ev-grid">
+      <div class="ev-item">
+        <div class="ev-num up">+55.8%</div>
+        <div class="ev-label">GitHub Copilot RCT speedup<br>bounded toy task</div>
+        <div class="ev-src"><a href="https://arxiv.org/abs/2302.06590">[1] arxiv · 2023</a></div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-num down">−19%</div>
+        <div class="ev-label">METR RCT: same experienced devs<br>on their <em>own</em> codebases, Cursor Pro</div>
+        <div class="ev-src"><a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/">[2] metr.org · 2025</a></div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-num warn">+20%</div>
+        <div class="ev-label">What those devs <em>estimated</em> —<br>the self-perception gap</div>
+        <div class="ev-src"><a href="https://arxiv.org/abs/2507.09089">[3] arxiv · 2025</a></div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-num down">92%</div>
+        <div class="ev-label">Copilot <code style="font-size:0.95rem;font-family:var(--mono);background:none;color:var(--orange)">/tests</code> failure-or-empty rate<br>with no seed tests</div>
+        <div class="ev-src"><a href="https://testomat.io/blog/ai-unit-testing-a-detailed-guide/">[5] testomat.io · 2025</a></div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-num down">9.94%</div>
+        <div class="ev-label">Regression rate: TDD instructions<br><em>without</em> context map (up from 6.08%)</div>
+        <div class="ev-src"><a href="https://arxiv.org/abs/2603.17973">[6] TDAD · arxiv 2026</a></div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-num up">1.82%</div>
+        <div class="ev-label">Regression rate: TDD instructions<br><em>plus</em> dependency context map</div>
+        <div class="ev-src"><a href="https://arxiv.org/abs/2603.17973">[6] TDAD · arxiv 2026</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Exercises + Roles ── -->
+  <div class="two-col">
+
+    <!-- Left: Exercises -->
+    <div class="col">
+      <div class="sec-label">exercise catalog — warm-up + main exercise</div>
+      <div class="ex-list">
+
+        <div class="ex-card wu">
+          <div class="ex-body">
+            <span class="ex-name"><a href="https://osherove.com/tdd-kata-1">String Calculator</a></span>
+            <div class="ex-type">Greenfield TDD · run twice: baseline then AI to show delta</div>
+          </div>
+          <div class="ex-side">
+            <div class="ex-dur">15–20 min</div>
+            <span class="diff wu">warm-up</span>
+          </div>
+        </div>
+
+        <div class="ex-card med">
+          <div class="ex-body">
+            <span class="ex-name"><a href="https://github.com/eficode/copilot-tdd-exercise">Tetris Skeleton</a></span>
+            <div class="ex-type">Pre-written failing tests · implement with AI</div>
+          </div>
+          <div class="ex-side">
+            <div class="ex-dur">45–60 min</div>
+            <span class="diff med">medium</span>
+          </div>
+        </div>
+
+        <div class="ex-card med">
+          <div class="ex-body">
+            <span class="ex-name"><a href="https://github.com/xpepper/goose-game-ai-driven">Goose Game</a> ⭐ 3</span>
+            <div class="ex-type">Kotlin · prompts/ log → concrete debrief material</div>
+          </div>
+          <div class="ex-side">
+            <div class="ex-dur">45–60 min</div>
+            <span class="diff med">medium</span>
+          </div>
+        </div>
+
+        <div class="ex-card mh">
+          <div class="ex-body">
+            <span class="ex-name"><a href="https://understandlegacycode.com/blog/5-coding-exercises-to-practice-refactoring-legacy-code/">Gilded Rose</a></span>
+            <div class="ex-type">Legacy refactoring · characterization tests before touching logic</div>
+          </div>
+          <div class="ex-side">
+            <div class="ex-dur">40–60 min</div>
+            <span class="diff mh">med-hard</span>
+          </div>
+        </div>
+
+        <div class="ex-card hrd">
+          <div class="ex-body">
+            <span class="ex-name"><a href="https://understandlegacycode.com/blog/5-coding-exercises-to-practice-refactoring-legacy-code/">Trip Service</a></span>
+            <div class="ex-type">Dependency breaking · AI alone cannot reliably solve seam design</div>
+          </div>
+          <div class="ex-side">
+            <div class="ex-dur">45–60 min</div>
+            <span class="diff mh">hard</span>
+          </div>
+        </div>
+
+        <div class="ex-card exp">
+          <div class="ex-body">
+            <span class="ex-name"><a href="https://www.codecentric.de/en/knowledge-hub/blog/exact-coding-with-ai">EXACT Mini-project</a></span>
+            <div class="ex-type">Example Mapping → AI-TDD synthesis · all three autonomy levels</div>
+          </div>
+          <div class="ex-side">
+            <div class="ex-dur">60–90 min</div>
+            <span class="diff exp">expert</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="anti-box">
+        <div class="alabel">⚠ Anti-pattern demo · 10–15 min</div>
+        <p>
+          Vibe-code a feature without tests → add second feature → observe architecture degrade live.
+          AI agents never spontaneously suggest refactoring without test constraints.
+          <sup><a href="https://www.softwareseni.com/understanding-anti-patterns-and-quality-degradation-in-ai-generated-code/">[7]</a></sup>
+          Show the vibe-coded diff alongside a TDD diff. Expert devs internalize it without argument.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Roles + Dynamics -->
+    <div class="col">
+      <div class="sec-label">facilitation roles — never let lead touch zoom controls</div>
+      <div class="roles">
+
+        <div class="role-card">
+          <div class="role-head">
+            <span class="role-icon">🎙</span>
+            <span class="role-name">LEAD</span>
+            <span class="rtag g">required</span>
+          </div>
+          <ul class="role-duties">
+            <li>Delivers content, runs exercises, timeboxes discussions</li>
+            <li>Names AI limits explicitly in context frame</li>
+            <li>Calls the break at 00:55 — hard stop</li>
+            <li>Never also operates Zoom/Meet controls</li>
+          </ul>
+        </div>
+
+        <div class="role-card">
+          <div class="role-head">
+            <span class="role-icon">🎛</span>
+            <span class="role-name">PRODUCER</span>
+            <span class="rtag b">required</span>
+          </div>
+          <ul class="role-duties">
+            <li>Manages polls, breakouts, recordings, visible countdown timer</li>
+            <li>Watches chat; voices questions to Lead without interrupting</li>
+            <li>Posts exercise instructions in chat (verbal-only gets missed)</li>
+            <li>Maintains parking lot board (Miro / FigJam)</li>
+          </ul>
+        </div>
+
+        <div class="role-card">
+          <div class="role-head">
+            <span class="role-icon">🛠</span>
+            <span class="role-name">HELPER(S)</span>
+            <span class="rtag p">1 per room of 4–6</span>
+          </div>
+          <ul class="role-duties">
+            <li>Joins each breakout room first 3 min; confirms exercise loaded</li>
+            <li>Demos on own screen — never takes over participant's keyboard</li>
+            <li>Only needs to know one exercise; comfort beats completeness</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="dyn-grid">
+        <div class="dyn-box" style="background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.18);">
+          <div class="dlabel" style="color:var(--green)">✓ what works</div>
+          <ul>
+            <li>Peer credibility framing</li>
+            <li>Explicit sandbox safety</li>
+            <li>First win in &lt; 5 min</li>
+            <li>Mixed-sceptic rooms</li>
+            <li>Silent brainstorm before open floor</li>
+          </ul>
+        </div>
+        <div class="dyn-box" style="background:rgba(248,81,73,0.05);border:1px solid rgba(248,81,73,0.18);">
+          <div class="dlabel" style="color:var(--red)">✗ what fails</div>
+          <ul>
+            <li>"This is the new standard"</li>
+            <li>Skipping AI limits discussion</li>
+            <li>All-sceptics or all-enthusiasts rooms</li>
+            <li>Lecture-mode &gt; 15 min</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Logistics ── -->
+  <div class="d-sec">
+    <div class="sec-label">pre-workshop logistics — complete before session day</div>
+    <div class="check-grid">
+
+      <div class="check-tile">
+        <div class="check-head">
+          <div class="check-icon g">✓</div>
+          <span class="check-title">Environment — GitHub Codespaces</span>
+        </div>
+        <ul class="check-items">
+          <li>Commit <code>.devcontainer/devcontainer.json</code> with prebuild enabled</li>
+          <li>Language runtime + test framework (e.g. Node 22 + Vitest)</li>
+          <li>AI extension pre-authenticated inside the container</li>
+          <li>Skeleton repo: failing tests present, implementation stubs empty</li>
+          <li>Reference solution on separate branch (unblocks without spoiling)</li>
+          <li>CI on every push — instant green/red signal</li>
+          <li>⚠ Free tier: 60 hrs/month — provide credit vouchers</li>
+        </ul>
+      </div>
+
+      <div class="check-tile">
+        <div class="check-head">
+          <div class="check-icon a">$</div>
+          <span class="check-title">API Keys — Per-Participant</span>
+        </div>
+        <ul class="check-items">
+          <li>Hard budget cap: $2–5 per key</li>
+          <li>Expiry: session day + 24 hrs</li>
+          <li>Model allowlist: workshop model only</li>
+          <li>Email distribution link 48 hrs out with <code>curl</code> test snippet</li>
+          <li>Claims window: opens 1 hr before start</li>
+          <li>Shared key = security risk for &gt;10 participants</li>
+        </ul>
+      </div>
+
+      <div class="check-tile">
+        <div class="check-head">
+          <div class="check-icon b">72h</div>
+          <span class="check-title">Participant Pre-Check (72 hrs out)</span>
+        </div>
+        <ul class="check-items">
+          <li>GitHub account; Codespace opens from workshop link</li>
+          <li>AI extension authenticated; "hello world" generation passes</li>
+          <li>API key claimed; <code>curl</code> snippet returns valid response</li>
+          <li>Zoom desktop client installed (browser breaks breakout screen share)</li>
+          <li>Hard gate — not optional prep</li>
+        </ul>
+      </div>
+
+      <div class="check-tile">
+        <div class="check-head">
+          <div class="check-icon b">🏠</div>
+          <span class="check-title">Breakout Room Setup</span>
+        </div>
+        <ul class="check-items">
+          <li>Pre-assign groups — never random (experts resent the kindergarten feel)</li>
+          <li>2–3 devs per room; 4–5 maximum before collaboration degrades</li>
+          <li>Mix skill levels; moderate cognitive diversity</li>
+          <li>Helper assigned to each room before session starts</li>
+          <li>Brief all three roles together 10 min before session</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Frameworks ── -->
+  <div class="d-sec">
+    <div class="sec-label">frameworks — teach alongside exercises</div>
+    <div class="fw-grid">
+      <div class="fw-box">
+        <h4>TDAID — Test-Driven AI Development</h4>
+        <p>Extends classic red-green-refactor with a <strong>Plan</strong> phase before Red
+        (AI generates implementation roadmap) and a <strong>Validate</strong> phase after Refactor
+        (human reviews the diff to catch "cheat" tests).</p>
+        <div class="fw-loop">Plan → Red → Green → Refactor → <span class="hi">Validate</span></div>
+      </div>
+      <div class="fw-box">
+        <h4>EXACT — Example-guided AI-Collaborative TDD</h4>
+        <p>Prepends <strong>Example Mapping</strong> before the first test. Three autonomy levels — let participants choose and debrief the difference:</p>
+        <table class="aut-table">
+          <tr><td>A</td><td>AI runs until end of feature</td><td>speed mode</td></tr>
+          <tr class="aut-rec"><td>B</td><td>AI runs until end of each RGR cycle</td><td>★ default</td></tr>
+          <tr><td>C</td><td>AI runs until end of each phase</td><td>max oversight</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Failure Modes ── -->
+  <div class="d-sec">
+    <div class="sec-label">failure mode pre-mortem — 10 predictable failures</div>
+    <table class="fm-table">
+      <thead>
+        <tr>
+          <th style="width:34%">Failure mode</th>
+          <th>Prevention</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <span class="fm-mode">⚙ Environment setup in live session</span>
+            <span class="fm-impact">Loses 20–30 min; derails all subsequent timings</span>
+          </td>
+          <td class="fm-prev">
+            Codespaces prebuild + mandatory pre-check 24 hrs before
+            <sup><a href="https://dev.to/bengreenberg/unlocking-github-codespaces-for-workshops-344o">[9]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">🔑 AI API key failure on day</span>
+            <span class="fm-impact">Blocks all exercises; kills workshop credibility</span>
+          </td>
+          <td class="fm-prev">
+            Pre-provision with expiry; day-before <code>curl</code> test required to claim key
+            <sup><a href="https://blog.mehdio.com/p/running-an-ai-workshop-build-a-llm">[10]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">📺 Demo-heavy, hands-on-light</span>
+            <span class="fm-impact">Expert disengagement within 15 min</span>
+          </td>
+          <td class="fm-prev">
+            Hard rule: ≤7 min explanation before participants touch code; 60–70% of session must be hands-on
+            <sup><a href="https://www.nceas.ucsb.edu/news/hands-coding-virtually">[14]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">🗣 Dominant expert hijacking discussion</span>
+            <span class="fm-impact">Others disengage; session follows one rabbit hole</span>
+          </td>
+          <td class="fm-prev">
+            Parking lot + timebox; round-robin debrief format; silent brainstorm before open floor
+            <sup><a href="https://www.parallelhq.com/blog/how-to-facilitate-workshop">[13]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">❓ Exercise too ambiguous</span>
+            <span class="fm-impact">Participants stuck; helpers overwhelmed; pacing collapses</span>
+          </td>
+          <td class="fm-prev">
+            Test every exercise solo end-to-end before the session; embed "if stuck" hints as code comments in repo stub
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">🛠 Tool sprawl</span>
+            <span class="fm-impact">Cognitive overload; participants lose their place</span>
+          </td>
+          <td class="fm-prev">
+            One primary tool per task; introduce tools sequentially; avoid simultaneous Zoom + Miro + Slack + IDE
+            <sup><a href="https://www.nceas.ucsb.edu/news/hands-coding-virtually">[14]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">👤 No helper in breakout rooms</span>
+            <span class="fm-impact">Stuck participants wait silently; frustration builds</span>
+          </td>
+          <td class="fm-prev">
+            1 helper per room of 4–6, briefed on exercise goals, arrives in room for first 3 min
+            <sup><a href="https://www.trainingforchange.org/training_tools/facilitation-and-roles-prep-for-a-large-online-training/">[11]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">🚧 Expert resistance to AI tooling</span>
+            <span class="fm-impact">Overt scepticism infects room culture</span>
+          </td>
+          <td class="fm-prev">
+            Address AI limits explicitly in context frame; peer-champion framing; concrete first win in &lt; 5 min
+            <sup><a href="https://www.faros.ai/blog/ai-adoption-in-senior-software-engineers">[12]</a></sup>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">⏰ Overrun debrief, no synthesis time</span>
+            <span class="fm-impact">Participants leave with open loops</span>
+          </td>
+          <td class="fm-prev">
+            Hard 10-min closing slot in run-of-show; parking lot absorbs overflow; written recap within 24 hrs
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="fm-mode">☕ No break in 90-min session</span>
+            <span class="fm-impact">Focus degrades in last 30 min; diminishing returns</span>
+          </td>
+          <td class="fm-prev">
+            5-min break at 00:55, non-negotiable even under time pressure
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Sub-research ── -->
+  <div class="d-sec">
+    <div class="sec-label">expedition sub-pages</div>
+    <div class="sub-grid">
+
+      <a class="sub-tile" href="../ai-assisted-tdd-techniques-evidence-2026/">
+        <div class="sub-type">survey · 22 citations</div>
+        <div class="sub-name">AI-assisted TDD techniques &amp; evidence (2026)</div>
+        <div class="sub-summary">Productivity paradox, prompt patterns, test quality limits, agentic approaches.</div>
+        <div class="sub-foot">
+          <span class="sub-stat">📖 7 min</span>
+          <span class="sub-stat">22 citations</span>
+        </div>
+      </a>
+
+      <a class="sub-tile" href="../workshop-exercises-scaffolding/">
+        <div class="sub-type">survey · 22 citations</div>
+        <div class="sub-name">Workshop exercises &amp; scaffolding</div>
+        <div class="sub-summary">Curated katas, scaffold patterns, TDAID and EXACT frameworks in detail.</div>
+        <div class="sub-foot">
+          <span class="sub-stat">📖 6 min</span>
+          <span class="sub-stat">22 citations</span>
+        </div>
+      </a>
+
+      <a class="sub-tile" href="../facilitation-logistics-failure-modes/">
+        <div class="sub-type">survey · 15 citations</div>
+        <div class="sub-name">Facilitation, logistics &amp; failure modes</div>
+        <div class="sub-summary">Codespaces setup, API key provisioning, three facilitation roles, full failure-mode table.</div>
+        <div class="sub-foot">
+          <span class="sub-stat">📖 7 min</span>
+          <span class="sub-stat">15 citations</span>
+        </div>
+      </a>
+
+      <a class="sub-tile" href="../tooling-stack-for-the-workshop/">
+        <div class="sub-type">survey · 20 citations</div>
+        <div class="sub-name">Tooling stack for the workshop</div>
+        <div class="sub-summary">AI assistant comparison (Copilot/Cursor/Cline), test frameworks, devcontainer config, copy-paste TDD prompts.</div>
+        <div class="sub-foot">
+          <span class="sub-stat">📖 5 min</span>
+          <span class="sub-stat">20 citations</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="d-footer">expedition · 79 citations · $6.36 · 42 min research · Sonnet 4.6 · 2026-06-03</div>
+
+</div>
