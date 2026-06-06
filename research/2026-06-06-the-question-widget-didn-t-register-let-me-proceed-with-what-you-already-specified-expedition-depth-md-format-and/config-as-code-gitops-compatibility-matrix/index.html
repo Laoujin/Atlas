@@ -1,0 +1,345 @@
+---
+title: "Config-as-code & GitOps compatibility matrix (2026)"
+date: 2026-06-06
+depth: standard
+format: html
+topic: "Config-as-code & gitops compatibility matrix"
+topic_raw: "Config-as-code & gitops compatibility matrix"
+issue: 193
+tags: [gitops, config-as-code, kubernetes, argocd, flux, terraform, crossplane, ansible, pulumi, devops]
+summary: "Compatibility matrix across config formats (Helm, Kustomize, Jsonnet, HCL) and IaC tools (Terraform, Pulumi, Crossplane, Ansible) vs GitOps operators (Argo CD, Flux CD) — what's native, what needs a bridge, and what won't fit."
+citations: 19
+reading_time_min: 5
+cover: cover.svg
+cost_usd: 2.03
+duration_sec: 847
+model: "Sonnet 4.6"
+---
+
+<style>
+table.matrix { width: 100%; border-collapse: collapse; font-size: 0.875em; margin: 1em 0 1.75em; }
+.matrix th { background: #1e293b; color: #f8fafc; padding: 7px 12px; text-align: left; white-space: nowrap; }
+.matrix td { padding: 7px 12px; border: 1px solid #e2e8f0; vertical-align: top; line-height: 1.45; }
+.matrix tr:nth-child(even) td { background: #f8fafc; }
+td.win { color: #15803d; font-weight: 600; }
+td.lose { color: #b91c1c; }
+td.warn { color: #b45309; }
+.tldr { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 18px; margin-bottom: 2em; border-radius: 0 4px 4px 0; }
+.tldr p { margin: 0.4em 0; }
+h2 { margin-top: 2em; font-size: 1.1em; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+.note { font-size: 0.8em; color: #64748b; margin: -0.75em 0 1.5em; }
+code { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+</style>
+
+<div class="tldr">
+  <p><strong>Decision (2026)</strong></p>
+  <p><strong>Application delivery:</strong> <a href="https://argo-cd.readthedocs.io/en/stable/">Argo CD</a> <sup><a href="https://github.com/argoproj/argo-cd">[7]</a></sup> ⭐ 23.1k if you need a visual dashboard and native multi-cluster ApplicationSets; <a href="https://fluxcd.io">Flux CD</a> <sup><a href="https://github.com/fluxcd/flux2">[8]</a></sup> ⭐ 8.2k for CLI-first, lightweight, or edge deployments — Flux uses the native Helm SDK (hooks preserved), ArgoCD renders via <code>helm template</code> (hooks skipped).<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></p>
+  <p><strong>Infrastructure-as-code:</strong> <a href="https://crossplane.io">Crossplane</a> <sup><a href="https://github.com/crossplane/crossplane">[12]</a></sup> ⭐ 11.7k is the only IaC tool with <em>native</em> GitOps fit — K8s CRDs, continuous drift correction in seconds, no bridge needed.<sup><a href="https://lucaberton.com/blog/crossplane-vs-terraform-2026/">[5]</a></sup> Terraform and OpenTofu require Atlantis or tf-controller; Pulumi needs its Kubernetes Operator; Ansible is push-only and requires a CI pipeline.<sup><a href="https://platformengineering.org/blog/terraform-vs-pulumi-vs-crossplane-iac-tool">[4]</a></sup></p>
+</div>
+
+<h2>Config Format → GitOps Operator Compatibility</h2>
+
+<table class="matrix">
+  <thead>
+    <tr>
+      <th>Config format</th>
+      <th>Argo CD 3.3 <sup><a href="https://github.com/argoproj/argo-cd">[7]</a></sup> ⭐ 23.1k</th>
+      <th>Flux CD 2.8 <sup><a href="https://github.com/fluxcd/flux2">[8]</a></sup> ⭐ 8.2k</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Plain YAML / JSON</td>
+      <td class="win">✓ Native</td>
+      <td class="win">✓ Native</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><a href="https://helm.sh">Helm</a> charts <sup><a href="https://github.com/helm/helm">[16]</a></sup> ⭐ 29.8k</td>
+      <td class="warn">⚠ <code>helm template</code> (hooks skipped)</td>
+      <td class="win">✓ Native SDK — Helm v4, hooks preserved<sup><a href="https://scopir.com/posts/best-gitops-tools-2026/">[2]</a></sup></td>
+      <td>ArgoCD renders charts as static YAML; lifecycle hooks (<code>pre-install</code>, <code>post-upgrade</code>) are not executed.<sup><a href="https://scopir.com/posts/best-gitops-tools-2026/">[2]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Kustomize</td>
+      <td class="win">✓ Native</td>
+      <td class="win">✓ Native + post-render</td>
+      <td>Flux uniquely supports Kustomize post-rendering of Helm output — patch Helm release output before applying.<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Jsonnet / Tanka</td>
+      <td class="warn">⚠ Via Config Management Plugin</td>
+      <td class="lose">✗ Pre-render to YAML required</td>
+      <td>ArgoCD's Config Management Plugin (CMP) framework supports Jsonnet; Flux has no built-in Jsonnet support.</td>
+    </tr>
+    <tr>
+      <td>CDK8s (TS / Python → YAML)</td>
+      <td class="warn">⚠ Via CMP plugin</td>
+      <td class="warn">⚠ CI pre-render pipeline</td>
+      <td>Both require a CI step to run <code>cdk8s synth</code> and commit output YAML to Git before the operator syncs.</td>
+    </tr>
+    <tr>
+      <td>OCI registry artifacts</td>
+      <td class="win">✓ v2.4+</td>
+      <td class="win">✓ Native</td>
+      <td>Both support OCI-stored Helm charts and plain manifests.<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>HCL (Terraform / OpenTofu)</td>
+      <td class="lose">✗</td>
+      <td class="warn">⚠ via tf-controller</td>
+      <td><a href="https://github.com/weaveworks/tf-controller">Flux tf-controller</a> ⭐ 1.6k bridges Terraform/OpenTofu into the Flux reconciliation loop.<sup><a href="https://github.com/weaveworks/tf-controller">[15]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Pulumi programs (TS, Python, Go…)</td>
+      <td class="warn">⚠ via PKO Stack CRD</td>
+      <td class="warn">⚠ via PKO + Flux Source</td>
+      <td>Pulumi Kubernetes Operator (PKO) exposes a <code>Stack</code> CRD; ArgoCD manages its lifecycle, Flux can supply source via <code>spec.fluxSource</code>.<sup><a href="https://www.pulumi.com/docs/iac/guides/continuous-delivery/pulumi-kubernetes-operator/">[18]</a></sup></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>IaC Tool GitOps Fitness</h2>
+
+<table class="matrix">
+  <thead>
+    <tr>
+      <th>Tool</th>
+      <th>Config format</th>
+      <th>Pull-based</th>
+      <th>Drift detection</th>
+      <th>Continuous reconcile</th>
+      <th>K8s-native</th>
+      <th>Argo CD</th>
+      <th>Flux CD</th>
+      <th>Bridge / caveat</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://www.terraform.io">Terraform</a> <sup><a href="https://github.com/hashicorp/terraform">[9]</a></sup> ⭐ 48.6k</td>
+      <td>HCL</td>
+      <td class="lose">✗ push</td>
+      <td class="warn">⚠ Manual (<code>plan</code>)</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗ direct</td>
+      <td class="warn">⚠ tf-controller</td>
+      <td>Atlantis, Terraform Cloud, or Spacelift needed for PR-driven GitOps<sup><a href="https://spacelift.io/blog/gitops-tools">[1]</a></sup></td>
+    </tr>
+    <tr>
+      <td><a href="https://opentofu.org">OpenTofu</a> <sup><a href="https://github.com/opentofu/opentofu">[10]</a></sup> ⭐ 29k</td>
+      <td>HCL (Terraform-compatible)</td>
+      <td class="lose">✗ push</td>
+      <td class="warn">⚠ Manual (<code>plan</code>)</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗ direct</td>
+      <td class="warn">⚠ tf-controller</td>
+      <td>Same bridge ecosystem as Terraform; adds built-in state encryption</td>
+    </tr>
+    <tr>
+      <td><a href="https://www.pulumi.com">Pulumi</a> <sup><a href="https://github.com/pulumi/pulumi">[11]</a></sup> ⭐ 25.3k</td>
+      <td>TS / Python / Go / C# / Java</td>
+      <td class="warn">⚠ via PKO (periodic poll)</td>
+      <td class="warn">⚠ via PKO (<code>continueResyncOnCommitMatch</code>)</td>
+      <td class="warn">⚠ Configurable interval</td>
+      <td class="warn">⚠ via PKO</td>
+      <td class="warn">⚠ PKO Stack CRD</td>
+      <td class="warn">⚠ PKO + Flux Source</td>
+      <td><a href="https://github.com/pulumi/pulumi-kubernetes-operator">PKO</a> ⭐ 287 required; adds in-cluster GitOps semantics<sup><a href="https://www.pulumi.com/docs/iac/guides/continuous-delivery/pulumi-kubernetes-operator/">[18]</a></sup></td>
+    </tr>
+    <tr>
+      <td><a href="https://crossplane.io">Crossplane</a> <sup><a href="https://github.com/crossplane/crossplane">[12]</a></sup> ⭐ 11.7k</td>
+      <td>YAML (K8s CRDs)</td>
+      <td class="win">✓ pull</td>
+      <td class="win">✓ Automatic (seconds)</td>
+      <td class="win">✓</td>
+      <td class="win">✓</td>
+      <td class="win">✓ native</td>
+      <td class="win">✓ native</td>
+      <td>No bridge needed — CRDs are standard K8s objects<sup><a href="https://platformengineering.org/blog/terraform-vs-pulumi-vs-crossplane-iac-tool">[4]</a></sup></td>
+    </tr>
+    <tr>
+      <td><a href="https://www.ansible.com">Ansible</a> <sup><a href="https://github.com/ansible/ansible">[13]</a></sup> ⭐ 68.8k</td>
+      <td>YAML playbooks</td>
+      <td class="lose">✗ push</td>
+      <td class="warn">⚠ Scheduled <code>--check</code> mode</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗</td>
+      <td class="lose">✗</td>
+      <td>CI/CD pipeline required; best for VM/bare-metal config outside K8s<sup><a href="https://oneuptime.com/blog/post/2026-02-21-how-to-use-ansible-with-gitops-workflow/view">[6]</a></sup></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">Crossplane v2 (Aug 2025): composite resources now namespaced by default; composition functions replace patch-and-transform; compositions can include any Kubernetes resource — not just Crossplane-managed infra.<sup><a href="https://lucaberton.com/blog/crossplane-vs-terraform-2026/">[5]</a></sup></p>
+
+<h2>Argo CD 3.3 vs Flux CD 2.8</h2>
+
+<table class="matrix">
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Argo CD 3.3 <sup><a href="https://github.com/argoproj/argo-cd">[7]</a></sup> ⭐ 23.1k</th>
+      <th>Flux CD 2.8 <sup><a href="https://github.com/fluxcd/flux2">[8]</a></sup> ⭐ 8.2k</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CNCF status</td>
+      <td class="win">Graduated</td>
+      <td class="win">Graduated</td>
+    </tr>
+    <tr>
+      <td>Architecture</td>
+      <td>Centralized hub-and-spoke</td>
+      <td>Distributed — per-cluster agents</td>
+    </tr>
+    <tr>
+      <td>Web UI</td>
+      <td class="win">✓ Native rich dashboard (SSO, diff viewer, health)</td>
+      <td class="warn">⚠ New Flux Operator web UI (added 2.8)</td>
+    </tr>
+    <tr>
+      <td>Helm rendering</td>
+      <td class="warn"><code>helm template</code> — hooks not executed<sup><a href="https://scopir.com/posts/best-gitops-tools-2026/">[2]</a></sup></td>
+      <td class="win">Native SDK (Helm v4) — hooks preserved<sup><a href="https://scopir.com/posts/best-gitops-tools-2026/">[2]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Kustomize post-render of Helm</td>
+      <td class="lose">✗</td>
+      <td class="win">✓ Patch Helm output via Kustomize<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Multi-cluster</td>
+      <td class="win">✓ Native ApplicationSets — single control plane</td>
+      <td class="win">✓ Via Git repo structure; no single SPOF</td>
+    </tr>
+    <tr>
+      <td>RBAC</td>
+      <td>Custom application-level RBAC + SSO support</td>
+      <td>Kubernetes-native RBAC only (no custom layer)</td>
+    </tr>
+    <tr>
+      <td>Resource footprint</td>
+      <td class="warn">1–4 GB baseline</td>
+      <td class="win">&lt;500 MB</td>
+    </tr>
+    <tr>
+      <td>Security model</td>
+      <td class="warn">Central credentials → ⚠ blast-radius risk</td>
+      <td class="win">Per-cluster credential isolation; no inbound API exposure</td>
+    </tr>
+    <tr>
+      <td>Drift reconciliation latency</td>
+      <td>10–60 s sync cycle</td>
+      <td class="win">Sub-second interruptible reconcile (v2.8 — cancels health check on fix detection)<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Image automation</td>
+      <td class="warn">⚠ Separate add-on (ArgoCD Image Updater)</td>
+      <td class="win">✓ Native image-automation-controller</td>
+    </tr>
+    <tr>
+      <td>OCI artifacts</td>
+      <td class="win">✓ v2.4+</td>
+      <td class="win">✓ Native</td>
+    </tr>
+    <tr>
+      <td>Notable 2026 additions</td>
+      <td>PreDelete hooks, OIDC background token refresh, shallow clone for monorepos<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+      <td>Helm v4 + Server-Side Apply, interruptible reconcile, new Flux Web UI<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Best fit</td>
+      <td>UI-first teams, enterprise multi-cluster, large fleet management, developers who want deployment visibility without CLI</td>
+      <td>CLI-first teams, edge computing, lightweight footprint, tight multi-tenancy, hook-dependent Helm charts</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Bridge Tools for Non-Native GitOps IaC</h2>
+
+<table class="matrix">
+  <thead>
+    <tr>
+      <th>Tool</th>
+      <th>Bridges</th>
+      <th>Model</th>
+      <th>Stars</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://www.runatlantis.io">Atlantis</a> <sup><a href="https://github.com/runatlantis/atlantis">[14]</a></sup></td>
+      <td>Terraform / OpenTofu → PR-driven GitOps</td>
+      <td>PR comments trigger <code>plan</code>; merges trigger <code>apply</code>; self-hosted</td>
+      <td>⭐ 9.1k</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/weaveworks/tf-controller">Flux tf-controller</a> <sup><a href="https://github.com/weaveworks/tf-controller">[15]</a></sup></td>
+      <td>Terraform / OpenTofu → Flux CD</td>
+      <td>In-cluster Flux controller runs TF; periodic reconciliation against Git source</td>
+      <td>⭐ 1.6k</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/pulumi/pulumi-kubernetes-operator">Pulumi Kubernetes Operator</a> <sup><a href="https://github.com/pulumi/pulumi-kubernetes-operator">[19]</a></sup></td>
+      <td>Pulumi programs → K8s GitOps</td>
+      <td>Polls Git or Flux Source; runs <code>pulumi up</code> in-cluster; ArgoCD manages Stack CRD lifecycle</td>
+      <td>⭐ 287</td>
+    </tr>
+    <tr>
+      <td>Terraform Cloud / Spacelift</td>
+      <td>Terraform / OpenTofu → SaaS GitOps</td>
+      <td>VCS-integrated: plan on PR, apply on merge; policy-as-code; commercial</td>
+      <td>Commercial</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Recommended Combinations</h2>
+
+<table class="matrix">
+  <thead>
+    <tr>
+      <th>Use case</th>
+      <th>Stack</th>
+      <th>Why</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>K8s apps — team wants UI</td>
+      <td>Argo CD + Kustomize (or Helm)</td>
+      <td>Visual diff, ApplicationSets for multi-env, SSO, broad plugin ecosystem<sup><a href="https://spacelift.io/blog/gitops-tools">[1]</a></sup></td>
+    </tr>
+    <tr>
+      <td>K8s apps — lightweight / edge</td>
+      <td>Flux + Kustomize</td>
+      <td>&lt;500 MB footprint, per-cluster isolation, native image automation, Helm hooks preserved<sup><a href="https://dev.to/mechcloud_academy/the-gitops-standard-in-2026-a-comparative-research-analysis-of-argocd-and-fluxcd-46d8">[3]</a></sup></td>
+    </tr>
+    <tr>
+      <td>K8s infra + apps, pure GitOps</td>
+      <td>Crossplane + (Argo CD or Flux)</td>
+      <td>Crossplane provisions cloud resources as K8s CRDs; the GitOps operator syncs everything from Git — no bridge tooling needed<sup><a href="https://platformengineering.org/blog/terraform-vs-pulumi-vs-crossplane-iac-tool">[4]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Existing Terraform codebase</td>
+      <td>Terraform + Atlantis + Argo CD for apps</td>
+      <td>Atlantis adds PR-driven plan/apply to Terraform; Argo CD handles the application delivery layer independently<sup><a href="https://spacelift.io/blog/gitops-tools">[1]</a></sup></td>
+    </tr>
+    <tr>
+      <td>VM / bare-metal + K8s hybrid</td>
+      <td>Ansible (CI-triggered) + Flux for K8s</td>
+      <td>Ansible covers what GitOps operators can't (VMs, network switches, bare metal); Flux owns the K8s side<sup><a href="https://oneuptime.com/blog/post/2026-02-21-how-to-use-ansible-with-gitops-workflow/view">[6]</a></sup></td>
+    </tr>
+    <tr>
+      <td>Enterprise full-stack</td>
+      <td>Terraform + Spacelift + Crossplane + Argo CD</td>
+      <td>Terraform for legacy / non-K8s infra (4,000+ providers); Crossplane for K8s-adjacent cloud resources; Argo CD for app delivery and observability across clusters<sup><a href="https://devopstales.com/devops/best-devops-automation-tools-2026/">[17]</a></sup></td>
+    </tr>
+  </tbody>
+</table>
