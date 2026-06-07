@@ -1,0 +1,353 @@
+---
+title: "Tool Feature & Health Comparison Matrix"
+date: 2026-06-07
+depth: standard
+format: html
+topic: "Tool feature & health comparison matrix"
+topic_raw: "Tool feature & health comparison matrix"
+issue: 194
+tags: [developer-tools, evaluation, health-metrics, comparison, open-source]
+summary: "Framework for evaluating software tools on two orthogonal axes — feature completeness and project health — with measurement tooling and a worked AI coding tools example."
+citations: 20
+reading_time_min: 6
+cover: cover.svg
+cost_usd: 1.35
+duration_sec: 644
+model: "Sonnet 4.6"
+---
+
+<style>
+  .tldr {
+    background: #eef2ff;
+    border-left: 4px solid #4f46e5;
+    padding: 0.8rem 1.1rem;
+    margin: 0 0 1.8rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .tldr strong {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #4f46e5;
+    margin-bottom: 0.4rem;
+  }
+  .red-flag {
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    padding: 0.55rem 0.9rem;
+    margin: 0.6rem 0 1.2rem;
+    border-radius: 4px;
+    font-size: 0.88rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0 1.6rem;
+    font-size: 0.86rem;
+  }
+  th {
+    background: #1e2533;
+    color: #e8ecf0;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.42rem 0.75rem;
+    border-bottom: 1px solid #e4e8ec;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f7f9fb; }
+  td.win { color: #15803d; font-weight: 600; }
+  td.lose { color: #b91c1c; }
+  td.mid { color: #92400e; }
+  sup a {
+    color: #4f46e5;
+    text-decoration: none;
+    font-size: 0.78em;
+  }
+  .pick-guide {
+    background: #f0fdf4;
+    border-left: 3px solid #22c55e;
+    padding: 0.6rem 1rem;
+    margin: 0.5rem 0 1.5rem;
+    font-size: 0.9rem;
+  }
+  ol li { margin-bottom: 0.45rem; }
+</style>
+
+<div class="tldr">
+  <strong>TL;DR</strong>
+  Evaluate tools on two orthogonal axes: <strong>Features</strong> (what it does) and <strong>Health</strong> (will it still do it next year). For health on open-source tools, use the CHAOSS four-metric Starter Model plus OpenSSF Scorecard; for commercial tools, proxy health with release cadence, company backing, and pricing stability. Apply a six-dimension weighted feature rubric and enforce a red-flag rule: any critical dimension scoring below 3/5 disqualifies the tool regardless of total score.<sup><a href="https://eidosoft.co/blog/evaluate-developer-tools-production-checklist">[1]</a></sup>
+</div>
+
+<h2>Why Two Dimensions?</h2>
+
+<p>Most comparison tables collapse both axes into a single feature list, hiding the risk dimension. A tool can be feature-rich but abandoned; another can be minimal but rock-solid. Evaluating them on the same axis produces misleading rankings — high star counts are particularly unreliable, since they reflect passive appreciation and are distorted by marketing spikes.<sup><a href="https://blog.tooljet.com/github-stars-guide/">[2]</a></sup> Research in 2026 identified approximately 4.5 million suspected fake stars on GitHub, further undermining stars as a health proxy.<sup><a href="https://dasroot.net/posts/2026/02/github-star-counts-meaning-project-popularity/">[3]</a></sup></p>
+
+<h2>Axis 1 — Health Metrics</h2>
+
+<h3>CHAOSS Starter Model</h3>
+
+<p>The <a href="https://chaoss.community/">CHAOSS project</a><sup><a href="https://www.linuxfoundation.org/blog/blog/chaoss-project-creates-tools-to-analyze-software-development-and-measure-open-source-community-health">[4]</a></sup> (Linux Foundation) publishes implementation-agnostic metrics for measuring open-source community health, maintained in <a href="https://github.com/chaoss/metrics">github.com/chaoss/metrics</a> ⭐ 182.<sup><a href="https://github.com/chaoss/metrics">[5]</a></sup> Its <strong>Starter Project Health</strong> model covers four foundational metrics designed to be quick to collect without specialist tooling:<sup><a href="https://chaoss.community/kb/metrics-model-starter-project-health/">[6]</a></sup></p>
+
+<table>
+  <tr>
+    <th>Metric</th><th>Category</th><th>What It Signals</th><th>Red flag if…</th>
+  </tr>
+  <tr>
+    <td>Time to First Response</td>
+    <td>Responsiveness</td>
+    <td>Median time from issue/PR open to first maintainer reply</td>
+    <td>&gt;14 days median</td>
+  </tr>
+  <tr>
+    <td>Change Request Closure Ratio</td>
+    <td>Efficiency</td>
+    <td>Ratio of closed PRs to total PRs in a rolling 90-day window</td>
+    <td>&lt;50% closed</td>
+  </tr>
+  <tr>
+    <td>Contributor Absence Factor</td>
+    <td>Sustainability</td>
+    <td>Fewest people whose combined commits account for 50% of all commits (bus factor)</td>
+    <td>= 1 (single-author)</td>
+  </tr>
+  <tr>
+    <td>Release Frequency</td>
+    <td>Delivery</td>
+    <td>Cadence of point releases and bug fixes</td>
+    <td>Last release &gt;6 months ago</td>
+  </tr>
+</table>
+
+<p>GitHub's OSPO recommends additionally tracking open vs. closed issue counts and PR merge ratios over time to detect growing maintainer backlog.<sup><a href="https://github.com/github/github-ospo/blob/main/docs/open-source-health-metrics.md">[7]</a></sup></p>
+
+<h3>Security Health: OpenSSF Scorecard &amp; Criticality Score</h3>
+
+<p><a href="https://github.com/ossf/scorecard">OpenSSF Scorecard</a> ⭐ 5.5k runs 20 automated checks scored 0–10, covering: Branch-Protection, CI-Tests, Code-Review, Contributors, Dependency-Update-Tool, Fuzzing, License, Maintained, Pinned-Dependencies, SAST, SBOM, Security-Policy, Signed-Releases, Token-Permissions, and Vulnerabilities.<sup><a href="https://github.com/ossf/scorecard/blob/main/docs/checks.md">[8]</a></sup> Each check has a risk weight; scores below 5/10 aggregate are a yellow flag, below 3 a red flag. A weekly scan of the 1 million most-critical open-source projects is published as a BigQuery public dataset.<sup><a href="https://github.com/ossf/scorecard">[9]</a></sup></p>
+
+<p>The companion <a href="https://github.com/ossf/criticality_score">OpenSSF Criticality Score</a> ⭐ 1.4k rates a project's ecosystem importance on 0→1, factoring in dependent count, commit frequency, and contributor breadth — useful for prioritising which projects to health-check first.<sup><a href="https://github.com/ossf/criticality_score">[10]</a></sup></p>
+
+<h2>Axis 2 — Feature Rubric</h2>
+
+<p>Score each dimension 1–5; multiply by weight before summing. Set weights <em>before</em> scoring to avoid post-hoc rationalisation.<sup><a href="https://userpilot.com/blog/feature-prioritization-matrix/">[11]</a></sup></p>
+
+<table>
+  <tr>
+    <th>Dimension</th><th>Weight</th><th>What to Assess</th>
+  </tr>
+  <tr>
+    <td><strong>Reliability</strong></td>
+    <td class="win">High ×3</td>
+    <td>Published SLA, 12-month uptime history, incident post-mortems, graceful degradation under load</td>
+  </tr>
+  <tr>
+    <td><strong>Security</strong></td>
+    <td class="win">High ×3</td>
+    <td>SOC 2 / ISO 27001 / HIPAA, SSO/MFA, audit logs, encryption standards, data residency controls</td>
+  </tr>
+  <tr>
+    <td><strong>Cost Predictability</strong></td>
+    <td class="win">High ×3</td>
+    <td>Transparent pricing page, overage behaviour, billing alerts, whether the free tier creates expensive habits at scale</td>
+  </tr>
+  <tr>
+    <td><strong>Observability</strong></td>
+    <td>Medium ×2</td>
+    <td>Exposed metrics/health endpoints, actionable error messages, usage dashboards, programmatic API access to operational data</td>
+  </tr>
+  <tr>
+    <td><strong>Lock-in &amp; Exit</strong></td>
+    <td>Medium ×2</td>
+    <td>Data export in standard formats, open API standards, published migration docs, community-maintained alternatives</td>
+  </tr>
+  <tr>
+    <td><strong>Team Fit</strong></td>
+    <td>Medium ×2</td>
+    <td>Onboarding time, documentation quality, community responsiveness, hiring pool alignment, CI/CD and workflow integration</td>
+  </tr>
+</table>
+
+<div class="red-flag">
+  ⚠ <strong>Red-flag rule:</strong> if Reliability, Security, or Cost Predictability scores &lt; 3/5, the tool is disqualified regardless of total weighted score. A tool that scores 5 everywhere but 2 on reliability will hurt you in production.<sup><a href="https://eidosoft.co/blog/evaluate-developer-tools-production-checklist">[1]</a></sup>
+</div>
+
+<p>For AI-era tools, classify candidates as <em>human-facing</em>, <em>agent-facing</em>, or both before scoring — agent-mode tools need an additional eval on task-completion rate, tool-call accuracy, and latency, not just inline-suggestion quality.<sup><a href="https://userpilot.com/blog/feature-prioritization-matrix/">[11]</a></sup></p>
+
+<h2>Health Measurement Tooling (Open Source)</h2>
+
+<table>
+  <tr>
+    <th>Tool</th><th>Type</th><th>Data Sources</th><th>Strength</th><th>Limitation</th>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/chaoss/augur">Augur</a> ⭐ 693<sup><a href="https://github.com/chaoss/augur">[12]</a></sup></td>
+    <td>Python lib + REST API</td>
+    <td>GitHub, GitLab</td>
+    <td>Scales to 10k+ repos; raw SQL for custom research</td>
+    <td>No built-in visualisation; GitHub / GitLab only</td>
+  </tr>
+  <tr>
+    <td><a href="https://chaoss.github.io/grimoirelab/">GrimoireLab</a><sup><a href="https://chaoss.github.io/grimoirelab/">[13]</a></sup></td>
+    <td>Modular self-hosted platform</td>
+    <td>Git, GitHub, GitLab, Gerrit, Slack, IRC, Discourse, JIRA, Redmine, Jenkins, DockerHub</td>
+    <td>Multi-source; best-in-class Kibana visualisations; contributor identity dedup</td>
+    <td>Self-hosted setup complexity</td>
+  </tr>
+  <tr>
+    <td><a href="https://oss-compass.org/">OSS Compass</a><sup><a href="https://oss-compass.org/">[14]</a></sup></td>
+    <td>SaaS (hosted)</td>
+    <td>GitHub, Gitee</td>
+    <td>Zero setup; GrimoireLab backend; CHAOSS-aligned metrics models</td>
+    <td>Hosted in China; Gitee-centric emphasis</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/pingcap/ossinsight">OSSInsight</a> ⭐ 2.4k<sup><a href="https://github.com/pingcap/ossinsight">[15]</a></sup></td>
+    <td>SaaS + natural-language query</td>
+    <td>GitHub (10B+ events)</td>
+    <td>NL queries over GitHub history; rankings; trend charts; no setup</td>
+    <td>GitHub only; no GitLab / Gitee</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/ossf/scorecard">OpenSSF Scorecard</a> ⭐ 5.5k<sup><a href="https://github.com/ossf/scorecard">[9]</a></sup></td>
+    <td>CLI + REST API</td>
+    <td>GitHub</td>
+    <td>Security-focused; 20 automated checks; BigQuery public dataset for top-1M repos</td>
+    <td>Security only — no community or activity metrics</td>
+  </tr>
+</table>
+
+<div class="pick-guide">
+  <strong>Pick guide:</strong> Start with <strong>OpenSSF Scorecard</strong> for a quick security triage on any open-source candidate. Add <strong>OSSInsight</strong> for trend and contributor-growth data. Reach for <strong>GrimoireLab</strong> when you need multi-platform data (Slack, forums, CI). Use <strong>Augur</strong> when you need raw-SQL access for custom analysis at scale.
+</div>
+
+<h2>Applied: AI Coding Tools (June 2026)</h2>
+
+<p>These are commercial tools — CHAOSS metrics don't apply directly. Health is proxied by release cadence, company backing, open-ecosystem signals, and pricing model stability. Six tools compared across the market's most differentiating capabilities.<sup><a href="https://www.sitepoint.com/ai-coding-tools-comparison-2026/">[16]</a></sup></p>
+
+<h3>Feature Matrix</h3>
+
+<table>
+  <tr>
+    <th>Feature</th>
+    <th>Claude Code</th>
+    <th>GitHub Copilot</th>
+    <th>Cursor</th>
+    <th>Kiro (AWS)</th>
+    <th>Google Antigravity</th>
+  </tr>
+  <tr>
+    <td>Agentic / autonomous mode</td>
+    <td class="win">✓</td><td class="win">✓</td><td class="win">✓</td><td class="win">✓</td><td class="win">✓</td>
+  </tr>
+  <tr>
+    <td>Terminal / CLI integration</td>
+    <td class="win">✓ native</td><td class="mid">✓ limited</td><td class="win">✓</td><td class="win">✓</td><td class="win">✓</td>
+  </tr>
+  <tr>
+    <td>Background / parallel agents</td>
+    <td class="win">✓</td><td class="win">✓</td><td class="win">✓</td><td class="lose">✗</td><td class="win">✓ scheduled</td>
+  </tr>
+  <tr>
+    <td>MCP support</td>
+    <td class="win">✓</td><td class="win">✓</td><td class="win">✓</td><td class="mid">partial</td><td class="lose">✗</td>
+  </tr>
+  <tr>
+    <td>Multi-model choice</td>
+    <td class="lose">✗ Anthropic only</td><td class="win">✓ OpenAI/Anthropic/Google/xAI</td><td class="win">✓</td><td class="lose">✗ Amazon only</td><td class="lose">✗ Google only</td>
+  </tr>
+  <tr>
+    <td>Built-in browser</td>
+    <td class="lose">✗</td><td class="lose">✗</td><td class="lose">✗</td><td class="lose">✗</td><td class="win">✓ Chromium</td>
+  </tr>
+  <tr>
+    <td>Spec-driven development</td>
+    <td class="lose">✗</td><td class="lose">✗</td><td class="lose">✗</td><td class="win">✓ first-class</td><td class="lose">✗</td>
+  </tr>
+  <tr>
+    <td>Hooks / event automation</td>
+    <td class="win">✓</td><td class="lose">✗</td><td class="lose">✗</td><td class="win">✓ event-driven</td><td class="win">✓ scheduled</td>
+  </tr>
+  <tr>
+    <td>IDE support breadth</td>
+    <td class="mid">VS Code + JetBrains</td><td class="win">VS Code, JetBrains, Neovim, Xcode, Eclipse, Zed…</td><td class="mid">VS Code fork only</td><td class="mid">VS Code + JetBrains</td><td class="mid">limited</td>
+  </tr>
+  <tr>
+    <td>Security certification</td>
+    <td class="mid">HIPAA-ready</td><td class="win">IP indemnity</td><td class="win">SOC 2 Type 2</td><td class="win">AWS compliance stack</td><td class="mid">Google-backed</td>
+  </tr>
+</table>
+
+<p>Sources: <sup><a href="https://lushbinary.com/blog/ai-coding-agents-comparison-cursor-windsurf-claude-copilot-kiro-2026/">[17]</a></sup><sup><a href="https://www.cosmicjs.com/blog/claude-code-vs-github-copilot-vs-cursor-which-ai-coding-agent-should-you-use-2026">[18]</a></sup></p>
+
+<h3>Health Proxy Matrix</h3>
+
+<table>
+  <tr>
+    <th>Tool</th>
+    <th>Backing</th>
+    <th>Public Repo / Stars</th>
+    <th>Release Cadence</th>
+    <th>Pricing Stability</th>
+    <th>Exit Path</th>
+  </tr>
+  <tr>
+    <td>Claude Code</td>
+    <td>Anthropic</td>
+    <td class="win"><a href="https://github.com/anthropics/claude-code">anthropics/claude-code</a> ⭐ 131k<sup><a href="https://github.com/anthropics/claude-code">[19]</a></sup></td>
+    <td class="win">Weekly</td>
+    <td class="mid">Usage caps; plan tiers volatile</td>
+    <td class="mid">SDK-based; some portability via MCP</td>
+  </tr>
+  <tr>
+    <td>GitHub Copilot</td>
+    <td>Microsoft</td>
+    <td>Proprietary</td>
+    <td class="win">Continuous</td>
+    <td class="win">Flat monthly; free tier stable</td>
+    <td class="win">Multi-IDE; config portable</td>
+  </tr>
+  <tr>
+    <td>Cursor</td>
+    <td>Anysphere</td>
+    <td>Proprietary</td>
+    <td class="win">Bi-weekly</td>
+    <td class="mid">Tiered; historically volatile</td>
+    <td class="lose">IDE fork lock-in</td>
+  </tr>
+  <tr>
+    <td>Kiro</td>
+    <td>Amazon / AWS</td>
+    <td>Proprietary</td>
+    <td class="mid">Monthly</td>
+    <td class="win">AWS enterprise support</td>
+    <td class="mid">Spec files are portable YAML</td>
+  </tr>
+  <tr>
+    <td>Google Antigravity</td>
+    <td>Google DeepMind</td>
+    <td>Proprietary</td>
+    <td class="win">Rapid / continuous</td>
+    <td class="mid">Early-stage; pricing unstable</td>
+    <td class="lose">Deep Google ecosystem coupling</td>
+  </tr>
+</table>
+
+<p>Sources: <sup><a href="https://lushbinary.com/blog/ai-coding-agents-comparison-cursor-windsurf-claude-copilot-kiro-2026/">[17]</a></sup><sup><a href="https://www.cosmicjs.com/blog/claude-code-vs-github-copilot-vs-cursor-which-ai-coding-agent-should-you-use-2026">[18]</a></sup></p>
+
+<h2>Building Your Own Matrix</h2>
+
+<ol>
+  <li><strong>Classify tool type first.</strong> Open-source → run full CHAOSS Starter Model + OpenSSF Scorecard.<sup><a href="https://chaoss.community/kb/metrics-model-starter-project-health/">[6]</a></sup> Commercial → use proxy health table above. Agent tool → add task-completion rate and latency to the feature rubric.<sup><a href="https://userpilot.com/blog/feature-prioritization-matrix/">[11]</a></sup></li>
+  <li><strong>Assign weights before scoring.</strong> High/Medium/Low per feature dimension; locks in priorities before candidates bias your judgement.</li>
+  <li><strong>Apply the red-flag rule before totalling.</strong> A tool that fails a critical dimension (Reliability, Security, Cost Predictability) is disqualified — don't let other high scores rescue it.<sup><a href="https://eidosoft.co/blog/evaluate-developer-tools-production-checklist">[1]</a></sup></li>
+  <li><strong>Run OpenSSF Scorecard</strong> on every open-source candidate. Aggregate score &lt;5/10 is a yellow flag; &lt;3/10 is a red flag.<sup><a href="https://github.com/ossf/scorecard">[9]</a></sup></li>
+  <li><strong>Triangulate health with OSSInsight</strong> for trend data — commit velocity, contributor growth, fork rate — to distinguish an active project from a stale one with legacy stars.<sup><a href="https://github.com/pingcap/ossinsight">[15]</a></sup></li>
+  <li><strong>Check the OpenSSF Criticality Score</strong> for any project you plan to deeply integrate — low-criticality projects (<0.5) have thinner dependency safety nets.<sup><a href="https://github.com/ossf/criticality_score">[10]</a></sup></li>
+  <li><strong>Re-evaluate annually.</strong> Health degrades silently; a once-healthy project can hit bus-factor = 1 within 12 months. Stars don't decay, health metrics do.<sup><a href="https://blog.tooljet.com/github-stars-guide/">[2]</a></sup></li>
+</ol>
+
+<p>Reference: <a href="https://openssf.org/projects/scorecard/">OpenSSF Scorecard project page</a>.<sup><a href="https://openssf.org/projects/scorecard/">[20]</a></sup></p>
