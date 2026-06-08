@@ -1,0 +1,844 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Git-native uptime monitoring for a Docker Compose + Traefik homelab (2026) — Dashboard"
+---
+
+<style>
+  :root {
+    --bg:          #0d1117;
+    --surface:     #161b22;
+    --surface2:    #1c2430;
+    --border:      #21262d;
+    --border2:     #30363d;
+    --green:       #3fb950;
+    --green-glow:  rgba(63, 185, 80, 0.12);
+    --green-dim:   #238636;
+    --red:         #f85149;
+    --red-dim:     rgba(248, 81, 73, 0.12);
+    --amber:       #d29922;
+    --amber-dim:   rgba(210, 153, 34, 0.12);
+    --cyan:        #58a6ff;
+    --muted:       #8b949e;
+    --muted2:      #6e7681;
+    --text:        #c9d1d9;
+    --text-bright: #f0f6fc;
+    --mono:        'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, 'Courier New', monospace;
+  }
+
+  .db {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Top bar ────────────────────────────────────────────────── */
+  .db-topbar {
+    background: #010409;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .db-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .db-logo {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .db-crumb {
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  .db-crumb a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  .db-crumb a:hover { text-decoration: underline; }
+
+  .db-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .db-kpi {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .db-kpi-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+
+  .db-kpi-lbl {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted2);
+  }
+
+  /* ── CVE alert ──────────────────────────────────────────────── */
+  .db-cve {
+    background: var(--red-dim);
+    border-bottom: 1px solid rgba(248, 81, 73, 0.25);
+    padding: 9px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .db-cve-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+    flex-shrink: 0;
+    animation: blink-led 1.2s step-end infinite;
+  }
+
+  @keyframes blink-led {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.15; }
+  }
+
+  .db-cve-tag {
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+
+  .db-cve a {
+    color: var(--red);
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .db-cve a:hover { text-decoration: underline; }
+
+  /* ── Main body ──────────────────────────────────────────────── */
+  .db-body {
+    padding: 28px 28px 48px;
+    max-width: 1140px;
+    margin: 0 auto;
+  }
+
+  /* ── Section heading ────────────────────────────────────────── */
+  .db-sh {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 14px;
+  }
+
+  .db-sh:first-child { margin-top: 0; }
+
+  .db-sh-lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--muted2);
+    white-space: nowrap;
+  }
+
+  .db-sh-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Winner strip ───────────────────────────────────────────── */
+  .db-winner {
+    background: var(--green-glow);
+    border: 1px solid rgba(63, 185, 80, 0.25);
+    border-left: 3px solid var(--green);
+    border-radius: 0 4px 4px 0;
+    padding: 20px 24px;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .db-winner-ident {
+    flex-shrink: 0;
+  }
+
+  .db-winner-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--green);
+    border: 1px solid var(--green-dim);
+    padding: 2px 8px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+
+  .db-winner-name {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .db-winner-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .db-winner-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .db-winner-body {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .db-winner-desc {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.75;
+  }
+
+  .db-winner-desc code {
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--cyan);
+  }
+
+  .db-winner-gap {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── Candidate table ────────────────────────────────────────── */
+  .db-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .db-thead {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) 130px 75px 90px 90px 120px;
+    background: #0a0f16;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted2);
+    gap: 8px;
+  }
+
+  .db-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) 130px 75px 90px 90px 120px;
+    border-bottom: 1px solid var(--border);
+    padding: 11px 16px;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+  }
+
+  .db-row:last-child { border-bottom: none; }
+  .db-row:hover      { background: var(--surface2); }
+
+  .db-row.sel  { border-left: 3px solid var(--green); background: var(--green-glow); }
+  .db-row.rej  { border-left: 3px solid var(--red);   opacity: 0.72; }
+  .db-row.warn { border-left: 3px solid var(--amber);  opacity: 0.80; }
+  .db-row.gray { border-left: 3px solid var(--border2); opacity: 0.55; }
+
+  .db-svc {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .db-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .db-led.g { background: var(--green); box-shadow: 0 0 5px var(--green); }
+  .db-led.r { background: var(--red); }
+  .db-led.a { background: var(--amber); }
+  .db-led.d { background: var(--border2); }
+
+  .db-favicon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.75;
+  }
+
+  .db-svc-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .db-svc-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .db-svc-name a:hover { color: var(--cyan); }
+
+  .db-gi { font-size: 12px; }
+  .db-gi.ok  { color: var(--green); }
+  .db-gi.no  { color: var(--red); }
+  .db-gi.par { color: var(--amber); }
+
+  .db-num {
+    font-size: 12px;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .db-vbadge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .db-vbadge.sel  { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid var(--green-dim); }
+  .db-vbadge.rej  { background: var(--red-dim);       color: var(--red);   border: 1px solid rgba(248,81,73,0.25); }
+  .db-vbadge.warn { background: var(--amber-dim);     color: var(--amber); border: 1px solid rgba(210,153,34,0.25); }
+  .db-vbadge.gray { background: rgba(110,118,129,0.1); color: var(--muted); border: 1px solid var(--border2); }
+
+  /* ── Two-col panels ─────────────────────────────────────────── */
+  .db-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .db-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+  }
+
+  .db-panel-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted2);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Axes list */
+  .db-axes { display: flex; flex-direction: column; gap: 9px; }
+
+  .db-axis {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .db-axis-ic  { flex-shrink: 0; font-size: 13px; width: 16px; }
+  .db-axis-lbl { color: var(--text); }
+  .db-axis-note { font-size: 10px; color: var(--muted2); margin-left: auto; }
+
+  /* Metrics grid */
+  .db-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 14px;
+  }
+
+  .db-metric-val {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .db-metric-val.amber { color: var(--amber); }
+
+  .db-metric-lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted2);
+    margin-top: 4px;
+  }
+
+  .db-metric-sub {
+    font-size: 10px;
+    color: var(--muted2);
+    margin-top: 3px;
+  }
+
+  /* ── Sub-topics grid ────────────────────────────────────────── */
+  .db-subtopics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .db-sub {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.12s, background 0.12s;
+  }
+
+  .db-sub:hover {
+    border-color: var(--cyan);
+    background: var(--surface2);
+  }
+
+  .db-sub-hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .db-depth {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  .db-depth.survey { background: rgba(88,166,255,0.1); color: var(--cyan);  border: 1px solid rgba(88,166,255,0.2); }
+  .db-depth.recon  { background: rgba(110,118,129,0.1); color: var(--muted); border: 1px solid var(--border2); }
+
+  .db-sub-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 6px;
+    line-height: 1.35;
+  }
+
+  .db-sub-sum {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .db-sub-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 10px;
+    color: var(--border2);
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Tags ───────────────────────────────────────────────────── */
+  .db-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .db-tag {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted2);
+    padding: 3px 9px;
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .db-thead,
+    .db-row {
+      grid-template-columns: 1fr auto auto;
+    }
+
+    .db-thead > *:nth-child(2),
+    .db-thead > *:nth-child(3),
+    .db-thead > *:nth-child(4),
+    .db-row   > *:nth-child(2),
+    .db-row   > *:nth-child(3),
+    .db-row   > *:nth-child(4) { display: none; }
+
+    .db-panels    { grid-template-columns: 1fr; }
+    .db-subtopics { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .db-topbar-right { display: none; }
+    .db-subtopics    { grid-template-columns: 1fr; }
+    .db-winner       { flex-direction: column; }
+  }
+</style>
+
+<div class="db">
+
+  <!-- ── Top bar ──────────────────────────────────────────────── -->
+  <div class="db-topbar">
+    <div class="db-topbar-left">
+      <span class="db-logo">HOMELAB_MONITOR</span>
+      <span class="db-crumb">
+        <a href="/">atlas</a> /
+        <a href="../">uptime-eval-2026</a> /
+        dashboard
+      </span>
+    </div>
+    <div class="db-topbar-right">
+      <div class="db-kpi"><span class="db-kpi-val">5</span><span class="db-kpi-lbl">candidates</span></div>
+      <div class="db-kpi"><span class="db-kpi-val" style="color:var(--green)">1</span><span class="db-kpi-lbl">selected</span></div>
+      <div class="db-kpi"><span class="db-kpi-val">6</span><span class="db-kpi-lbl">sub-topics</span></div>
+      <div class="db-kpi"><span class="db-kpi-val">109</span><span class="db-kpi-lbl">citations</span></div>
+      <div class="db-kpi"><span class="db-kpi-val" style="font-size:12px">2026-06-07</span><span class="db-kpi-lbl">assessed</span></div>
+    </div>
+  </div>
+
+  <!-- ── CVE alert ────────────────────────────────────────────── -->
+  <div class="db-cve">
+    <span class="db-cve-dot"></span>
+    <span class="db-cve-tag">CVE</span>
+    <span>
+      <strong style="color:var(--text-bright)">CVE-2026-44774</strong>
+      active — Traefik REST provider allows low-privilege tenant to overwrite live config.
+      Patch to <strong>v2.11.46+ / v3.6.17+ / v3.7.1+</strong>. &nbsp;
+      <a href="https://github.com/traefik/traefik/security/advisories/GHSA-96qj-4jj5-wcjc">Advisory →</a>
+    </span>
+  </div>
+
+  <div class="db-body">
+
+    <!-- ── Verdict ──────────────────────────────────────────────── -->
+    <div class="db-sh"><span class="db-sh-lbl">Verdict</span><span class="db-sh-rule"></span></div>
+
+    <div class="db-winner">
+      <div class="db-winner-ident">
+        <div class="db-winner-badge">✓ SELECTED</div>
+        <div class="db-winner-name"><a href="https://github.com/TwiN/gatus">Gatus</a></div>
+        <div class="db-winner-sub">
+          ⭐ 11.2k &nbsp;·&nbsp; Apache 2.0<br>
+          40 MB RAM &nbsp;·&nbsp; 1 container
+        </div>
+      </div>
+      <div class="db-winner-body">
+        <div class="db-winner-desc">
+          The only candidate where the complete monitor set lives in a committed <code>config.yaml</code> —
+          no GUI clicks, no SQLite state escaping git, no separate database process.
+          Config auto-reloads on file change; rollback is <code>git revert</code>.
+          Every change is a pull request; every state is version-controlled. IaC Level 4.
+        </div>
+        <div class="db-winner-gap">
+          <strong style="color:var(--muted)">What you give up:</strong>
+          No container liveness monitor (workaround: HTTP <code>HEALTHCHECK</code> on each Dockerfile, or point at Traefik <code>/ping</code>).
+          Alert providers drop from Kuma's 90+ to Gatus's 20+ — Discord, ntfy, Telegram, and email cover every realistic homelab path.
+          Uptime history does not transfer; enable <code>storage: type: sqlite</code> to accumulate history across restarts.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Candidate table ────────────────────────────────────── -->
+    <div class="db-sh"><span class="db-sh-lbl">Candidate Assessment</span><span class="db-sh-rule"></span></div>
+
+    <div class="db-table">
+      <div class="db-thead">
+        <div>Service</div>
+        <div>Git-native</div>
+        <div>RAM</div>
+        <div>Containers</div>
+        <div>Stars</div>
+        <div>Verdict</div>
+      </div>
+
+      <!-- Gatus -->
+      <div class="db-row sel">
+        <div class="db-svc">
+          <span class="db-led g"></span>
+          <img class="db-favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+          <span class="db-svc-name"><a href="https://github.com/TwiN/gatus">Gatus</a></span>
+        </div>
+        <div class="db-gi ok">✓ YAML</div>
+        <div class="db-num">40 MB</div>
+        <div class="db-num">1</div>
+        <div class="db-num">⭐ 11.2k</div>
+        <div><span class="db-vbadge sel">✓ SELECTED</span></div>
+      </div>
+
+      <!-- Uptime Kuma -->
+      <div class="db-row rej">
+        <div class="db-svc">
+          <span class="db-led r"></span>
+          <img class="db-favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+          <span class="db-svc-name"><a href="https://github.com/louislam/uptime-kuma">Uptime Kuma</a></span>
+        </div>
+        <div class="db-gi no">✗ SQLite/GUI</div>
+        <div class="db-num">100 MB</div>
+        <div class="db-num">1</div>
+        <div class="db-num">⭐ 87.8k</div>
+        <div><span class="db-vbadge rej">✗ REJECTED</span></div>
+      </div>
+
+      <!-- Healthchecks.io -->
+      <div class="db-row rej">
+        <div class="db-svc">
+          <span class="db-led r"></span>
+          <img class="db-favicon" src="https://www.google.com/s2/favicons?domain=healthchecks.io&sz=32" alt="">
+          <span class="db-svc-name">Healthchecks.io</span>
+        </div>
+        <div class="db-gi no">✗ GUI</div>
+        <div class="db-num">—</div>
+        <div class="db-num">2+</div>
+        <div class="db-num">—</div>
+        <div><span class="db-vbadge rej">✗ REJECTED</span></div>
+      </div>
+
+      <!-- Statping-ng -->
+      <div class="db-row warn">
+        <div class="db-svc">
+          <span class="db-led a"></span>
+          <img class="db-favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="">
+          <span class="db-svc-name">Statping-ng</span>
+        </div>
+        <div class="db-gi par">△ partial</div>
+        <div class="db-num">80 MB</div>
+        <div class="db-num">1</div>
+        <div class="db-num">—</div>
+        <div><span class="db-vbadge warn">⚠ RISKY</span></div>
+      </div>
+
+      <!-- Prometheus + Blackbox -->
+      <div class="db-row gray">
+        <div class="db-svc">
+          <span class="db-led d"></span>
+          <img class="db-favicon" src="https://www.google.com/s2/favicons?domain=prometheus.io&sz=32" alt="">
+          <span class="db-svc-name">Prometheus + Blackbox</span>
+        </div>
+        <div class="db-gi ok">✓ config</div>
+        <div class="db-num">—</div>
+        <div class="db-num">4+</div>
+        <div class="db-num">—</div>
+        <div><span class="db-vbadge gray">○ OVERKILL</span></div>
+      </div>
+    </div>
+
+    <!-- ── Decision axes + metrics ────────────────────────────── -->
+    <div class="db-sh"><span class="db-sh-lbl">Decision Axes &amp; Winner Metrics</span><span class="db-sh-rule"></span></div>
+
+    <div class="db-panels">
+
+      <div class="db-panel">
+        <div class="db-panel-title">Gitops Suitability Checks — Gatus</div>
+        <div class="db-axes">
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--green)">✓</span>
+            <span class="db-axis-lbl">Full monitor config in <code style="background:var(--surface2);padding:1px 4px;border-radius:2px;font-size:11px;color:var(--cyan)">config.yaml</code> — committed to git</span>
+          </div>
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--green)">✓</span>
+            <span class="db-axis-lbl">Auto-reloads on file change — no restart needed</span>
+          </div>
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--green)">✓</span>
+            <span class="db-axis-lbl">Single container — no DB process</span>
+          </div>
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--green)">✓</span>
+            <span class="db-axis-lbl">Secrets injected via env vars — never committed</span>
+          </div>
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--green)">✓</span>
+            <span class="db-axis-lbl">Rollback = <code style="background:var(--surface2);padding:1px 4px;border-radius:2px;font-size:11px;color:var(--cyan)">git revert</code></span>
+          </div>
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--red)">✗</span>
+            <span class="db-axis-lbl">No container liveness monitor</span>
+            <span class="db-axis-note">workaround: /healthcheck or Traefik /ping</span>
+          </div>
+          <div class="db-axis">
+            <span class="db-axis-ic" style="color:var(--amber)">△</span>
+            <span class="db-axis-lbl">Uptime Kuma — star gap reflects GUI-adoption, not gitops fit</span>
+            <span class="db-axis-note">⭐ 87k vs 11k</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="db-panel">
+        <div class="db-panel-title">Gatus — Runtime Metrics</div>
+        <div class="db-metrics">
+          <div>
+            <div class="db-metric-val">40</div>
+            <div class="db-metric-lbl">MB RAM</div>
+            <div class="db-metric-sub">@ 50 endpoints, Raspberry Pi 4</div>
+          </div>
+          <div>
+            <div class="db-metric-val">1</div>
+            <div class="db-metric-lbl">Container</div>
+            <div class="db-metric-sub">no separate DB process</div>
+          </div>
+          <div>
+            <div class="db-metric-val">20+</div>
+            <div class="db-metric-lbl">Alert providers</div>
+            <div class="db-metric-sub">Discord · ntfy · Telegram · email</div>
+          </div>
+          <div>
+            <div class="db-metric-val amber">11.2k</div>
+            <div class="db-metric-lbl">⭐ GitHub stars</div>
+            <div class="db-metric-sub">vs ⭐ 87.8k for Kuma</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Sub-topics ──────────────────────────────────────────── -->
+    <div class="db-sh"><span class="db-sh-lbl">Research Sub-Topics</span><span class="db-sh-rule"></span></div>
+
+    <div class="db-subtopics">
+
+      <a class="db-sub" href="../migration-from-kuma-winner-sample-config/">
+        <div class="db-sub-hd">
+          <span class="db-depth survey">survey</span>
+        </div>
+        <div class="db-sub-title">Migration from Kuma + winner sample config</div>
+        <div class="db-sub-sum">No automated migrator exists — dump Kuma's SQLite or use the Python API, then remap to Gatus endpoint format. Full sample config for HTTP, ICMP, TCP, TLS, DNS, Discord/ntfy alerts, and Homepage widget.</div>
+        <div class="db-sub-meta">
+          <span>16 citations</span>
+          <span>8 min read</span>
+        </div>
+      </a>
+
+      <a class="db-sub" href="../status-page-exposure-via-traefik/">
+        <div class="db-sub-hd">
+          <span class="db-depth recon">recon</span>
+        </div>
+        <div class="db-sub-title">Status page exposure via Traefik</div>
+        <div class="db-sub-sum">Never expose Traefik's API/dashboard publicly without authentication. Default endpoints leak full configuration; use middleware, network isolation, and recent patches (CVE-2026-44774).</div>
+        <div class="db-sub-meta">
+          <span>9 citations</span>
+          <span>3 min read</span>
+        </div>
+      </a>
+
+      <a class="db-sub" href="../config-as-code-completeness/">
+        <div class="db-sub-hd">
+          <span class="db-depth survey">survey</span>
+        </div>
+        <div class="db-sub-title">Config-as-code completeness</div>
+        <div class="db-sub-sum">Most teams reach IaC for compute but leave secrets, policy, database schema, runtime config, and SaaS posture unmanaged. Covering all 8 domains separates Level 3 from Level 5.</div>
+        <div class="db-sub-meta">
+          <span>22 citations</span>
+          <span>8 min read</span>
+        </div>
+      </a>
+
+      <a class="db-sub" href="../project-health-bus-factor/">
+        <div class="db-sub-hd">
+          <span class="db-depth survey">survey</span>
+        </div>
+        <div class="db-sub-title">Project health &amp; bus-factor</div>
+        <div class="db-sub-sum">Measure bus factor from git history, which frameworks track project health, practical strategies to raise a dangerously low number — with lessons from the XZ Utils supply chain attack.</div>
+        <div class="db-sub-meta">
+          <span>20 citations</span>
+          <span>5 min read</span>
+        </div>
+      </a>
+
+      <a class="db-sub" href="../operational-weight-backup-story/">
+        <div class="db-sub-hd">
+          <span class="db-depth survey">survey</span>
+        </div>
+        <div class="db-sub-title">Operational weight &amp; backup story</div>
+        <div class="db-sub-sum">Operational weight is the % of engineering time lost to manual reactive work — target below 50%. 71% of teams do no failover testing. The modern floor is 3-2-1-1-0: one immutable copy required.</div>
+        <div class="db-sub-meta">
+          <span>22 citations</span>
+          <span>9 min read</span>
+        </div>
+      </a>
+
+      <a class="db-sub" href="../feature-coverage-matrix/">
+        <div class="db-sub-hd">
+          <span class="db-depth survey">survey</span>
+        </div>
+        <div class="db-sub-title">Feature coverage matrix</div>
+        <div class="db-sub-sum">A feature coverage matrix maps requirements to test cases — revealing which features have no automated safety net and where defect risk concentrates.</div>
+        <div class="db-sub-meta">
+          <span>20 citations</span>
+          <span>7 min read</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ── Tags ─────────────────────────────────────────────────── -->
+    <div class="db-tags">
+      <span class="db-tag">homelab</span>
+      <span class="db-tag">monitoring</span>
+      <span class="db-tag">gitops</span>
+      <span class="db-tag">gatus</span>
+      <span class="db-tag">uptime-kuma</span>
+      <span class="db-tag">traefik</span>
+      <span class="db-tag">docker-compose</span>
+    </div>
+
+  </div><!-- /db-body -->
+</div><!-- /db -->
