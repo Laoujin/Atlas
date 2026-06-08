@@ -1,0 +1,1047 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Self-Hosted PaaS for Homelab PR Previews: Decision Framework 2026 — Dashboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── base ─────────────────────────────────────────────────────── */
+.db-wrap {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+.db-wrap *, .db-wrap *::before, .db-wrap *::after { box-sizing: border-box; }
+.db-wrap a { color: #58a6ff; text-decoration: none; }
+.db-wrap a:hover { text-decoration: underline; }
+
+/* ── header ───────────────────────────────────────────────────── */
+.db-header {
+  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border-bottom: 1px solid #21262d;
+  padding: 2rem 2rem 1.5rem;
+}
+.db-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #58a6ff;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+.db-title {
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 800;
+  color: #f0f6ff;
+  margin: 0 0 0.25rem;
+  line-height: 1.2;
+}
+.db-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: #8b949e;
+  margin: 0 0 1.25rem;
+}
+.stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.stat-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 0.25rem 0.6rem;
+  color: #8b949e;
+  white-space: nowrap;
+}
+.stat-pill strong { color: #e6edf3; font-weight: 600; }
+
+/* ── verdict banner ───────────────────────────────────────────── */
+.verdict-banner {
+  background: #161b22;
+  border-top: 3px solid #f0c040;
+  border-bottom: 1px solid #21262d;
+  padding: 1rem 2rem;
+  font-size: 0.95rem;
+  color: #c9d1d9;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.verdict-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+.verdict-banner strong { color: #f0c040; font-weight: 700; }
+
+/* ── top picks ────────────────────────────────────────────────── */
+.section-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b949e;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+.top-picks-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #21262d;
+}
+.top-picks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 640px) { .top-picks-grid { grid-template-columns: 1fr; } }
+
+.pick-card {
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #161b22;
+  display: flex;
+  flex-direction: column;
+}
+.pick-card-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  object-position: top left;
+  display: block;
+  border-bottom: 1px solid #30363d;
+}
+.pick-card-body {
+  padding: 1rem 1.1rem 0.9rem;
+  flex: 1;
+}
+.pick-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+.pick-card-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0f6ff;
+  margin: 0;
+}
+.pick-card-stars {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: #8b949e;
+}
+.pick-card-desc {
+  font-size: 0.85rem;
+  color: #8b949e;
+  line-height: 1.55;
+  margin: 0 0 0.8rem;
+}
+.pick-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.pick-meta-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  background: #21262d;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  color: #8b949e;
+  border: 1px solid #30363d;
+}
+.pick-card-gold { border-top: 3px solid #f0c040; }
+.pick-card-gold .pick-card-name { color: #f0c040; }
+.pick-card-blue { border-top: 3px solid #58a6ff; }
+.pick-card-blue .pick-card-name { color: #79c0ff; }
+
+/* ── comparison matrix ────────────────────────────────────────── */
+.matrix-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #21262d;
+}
+.matrix-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.matrix {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 900px;
+  font-size: 0.8rem;
+}
+.matrix th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b949e;
+  background: #161b22;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 2px solid #30363d;
+  border-right: 1px solid #21262d;
+}
+.matrix th:last-child { border-right: none; }
+.matrix td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #21262d;
+  border-right: 1px solid #161b22;
+  vertical-align: top;
+  line-height: 1.4;
+}
+.matrix td:last-child { border-right: none; }
+.matrix tbody tr:hover td { background: #161b22; }
+
+.matrix .opt-col { min-width: 120px; position: sticky; left: 0; z-index: 1; background: #0d1117; border-right: 1px solid #30363d; }
+.matrix tbody .opt-col { background: #0d1117; }
+.matrix tbody tr:hover .opt-col { background: #161b22; }
+
+.opt-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: block;
+  color: #e6edf3;
+}
+.opt-stars {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: #8b949e;
+}
+
+/* row accent borders */
+.row-gold .opt-col { border-left: 3px solid #f0c040; }
+.row-blue .opt-col { border-left: 3px solid #58a6ff; }
+.row-green .opt-col { border-left: 3px solid #3fb950; }
+.row-grey .opt-col { border-left: 3px solid #30363d; }
+
+/* badges */
+.b {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 0.15rem 0.45rem;
+  white-space: nowrap;
+}
+.b-green  { background: #0d2e1a; color: #3fb950; border: 1px solid #1f5c31; }
+.b-blue   { background: #0d1f3a; color: #58a6ff; border: 1px solid #1a4070; }
+.b-amber  { background: #2e1e00; color: #e3b341; border: 1px solid #5c3c00; }
+.b-red    { background: #2e0d0d; color: #f85149; border: 1px solid #5c1a1a; }
+.b-grey   { background: #161b22; color: #8b949e; border: 1px solid #30363d; }
+
+.cell-note {
+  display: block;
+  font-size: 0.67rem;
+  color: #6e7681;
+  margin-top: 0.2rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── decision guide ───────────────────────────────────────────── */
+.decision-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #21262d;
+}
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.decision-card {
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  overflow: hidden;
+}
+.decision-card-header {
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid #21262d;
+}
+.decision-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.decision-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #e6edf3;
+  margin: 0;
+}
+.decision-card-body {
+  padding: 0.75rem 1rem;
+}
+.decision-if {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+.decision-card-body ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.decision-card-body li {
+  font-size: 0.8rem;
+  color: #8b949e;
+  padding: 0.2rem 0;
+  padding-left: 1em;
+  position: relative;
+  line-height: 1.45;
+}
+.decision-card-body li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #30363d;
+  font-size: 0.75rem;
+}
+
+/* ── risk panels ──────────────────────────────────────────────── */
+.risks-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #21262d;
+}
+.risks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.risk-card {
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  padding: 1rem 1.1rem;
+}
+.risk-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.risk-icon { font-size: 1.1rem; }
+.risk-card-body {
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.55;
+  margin: 0;
+}
+.risk-card-body a { color: #58a6ff; }
+.risk-amber { border-left: 3px solid #e3b341; }
+.risk-red   { border-left: 3px solid #f85149; }
+.risk-blue  { border-left: 3px solid #58a6ff; }
+.risk-amber .risk-card-title { color: #e3b341; }
+.risk-red   .risk-card-title { color: #f85149; }
+.risk-blue  .risk-card-title { color: #58a6ff; }
+
+/* ── deep dives ───────────────────────────────────────────────── */
+.deepdives-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #21262d;
+}
+.deepdives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+.dd-card {
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  background: #161b22;
+  padding: 0.75rem 1rem;
+  display: block;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.dd-card:hover { border-color: #58a6ff; text-decoration: none; }
+.dd-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+.dd-card-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e6edf3;
+  line-height: 1.3;
+  flex: 1;
+}
+.dd-depth-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+.dd-expedition { background: #0d2e1a; color: #3fb950; border: 1px solid #1f5c31; }
+.dd-survey     { background: #0d1f3a; color: #58a6ff; border: 1px solid #1a4070; }
+.dd-recon      { background: #161b22; color: #8b949e; border: 1px solid #30363d; }
+.dd-card-summary {
+  font-size: 0.77rem;
+  color: #6e7681;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ── sources ──────────────────────────────────────────────────── */
+.sources-section {
+  padding: 1.5rem 2rem 2rem;
+}
+.sources-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sources-list li {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: #6e7681;
+  padding: 0.25rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.sources-list .src-n {
+  color: #30363d;
+  flex-shrink: 0;
+  min-width: 2em;
+  text-align: right;
+}
+.sources-list a {
+  color: #6e7681;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.sources-list a:hover { color: #58a6ff; }
+
+/* ── footer ───────────────────────────────────────────────────── */
+.db-footer {
+  background: #161b22;
+  border-top: 1px solid #21262d;
+  padding: 0.9rem 2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  color: #6e7681;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+</style>
+
+<div class="db-wrap">
+
+  <!-- ── HEADER ───────────────────────────────────────────────── -->
+  <header class="db-header">
+    <p class="db-eyebrow">Self-Hosted Infrastructure · Homelab · 2026</p>
+    <h1 class="db-title">Self-Hosted PaaS for Homelab PR Previews</h1>
+    <p class="db-subtitle">Decision Framework 2026 · expedition depth · 116 citations</p>
+    <div class="stat-pills">
+      <div class="stat-pill"><strong>6</strong> options evaluated</div>
+      <div class="stat-pill"><strong>10</strong> decision criteria</div>
+      <div class="stat-pill"><strong>2</strong> native preview options</div>
+      <div class="stat-pill"><strong>116</strong> citations</div>
+      <div class="stat-pill">32 min read</div>
+      <div class="stat-pill">2026-06-08</div>
+    </div>
+  </header>
+
+  <!-- ── VERDICT ──────────────────────────────────────────────── -->
+  <div class="verdict-banner">
+    <span class="verdict-icon">⚡</span>
+    <div>
+      Only <strong>Coolify</strong> and <strong>Dokploy</strong> deploy PR previews natively — teardown on PR close, status comments, isolated env vars — without a line of custom shell. All four other options converge on the same GitHub Actions glue pattern, at which point the PaaS layer stops earning its overhead relative to DIY. <sup><a href="https://coolify.io/docs/applications/ci-cd/github/preview-deploy">[1]</a></sup><sup><a href="https://docs.dokploy.com/docs/core/applications/preview-deployments">[2]</a></sup>
+    </div>
+  </div>
+
+  <!-- ── TOP PICKS ────────────────────────────────────────────── -->
+  <section class="top-picks-section">
+    <p class="section-title">Recommended picks with native PR previews</p>
+    <div class="top-picks-grid">
+
+      <div class="pick-card pick-card-gold">
+        <img class="pick-card-img" src="dashboard/images/coolify-og.png" alt="Coolify — self-hosted PaaS">
+        <div class="pick-card-body">
+          <div class="pick-card-header">
+            <h2 class="pick-card-name"><a href="https://coolify.io/docs/applications/ci-cd/github/preview-deploy">Coolify</a></h2>
+            <span class="pick-card-stars">⭐ 57k · 325k users</span>
+          </div>
+          <p class="pick-card-desc">
+            Richest catalog (280+ one-click services), native GitHub App PR previews, encrypted-at-rest secrets + Docker BuildKit, multi-app multi-env support. v4 GA April 2026.<sup><a href="https://temps.sh/blog/coolify-review-2026">[6]</a></sup>
+          </p>
+          <div class="pick-card-meta">
+            <span class="pick-meta-tag">800 MB–1.2 GB idle</span>
+            <span class="pick-meta-tag">4 GB+ KVM VM required</span>
+            <span class="pick-meta-tag">11 CVEs Jan 2026 — patched</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pick-card pick-card-blue">
+        <img class="pick-card-img" src="dashboard/images/dokploy-og.png" alt="Dokploy — open-source PaaS">
+        <div class="pick-card-body">
+          <div class="pick-card-header">
+            <h2 class="pick-card-name"><a href="https://docs.dokploy.com/docs/core/applications/preview-deployments">Dokploy</a></h2>
+            <span class="pick-card-stars">⭐ 35k · Apr 2024</span>
+          </div>
+          <p class="pick-card-desc">
+            Native PR previews with configurable max-preview cap and auto-cleanup on PR close, S3 volume backups + DB restore UI, Swarm-native multi-node, lighter idle RAM than Coolify.<sup><a href="https://getdeploying.com/guides/coolify-vs-dokploy">[8]</a></sup>
+          </p>
+          <div class="pick-card-meta">
+            <span class="pick-meta-tag">~630 MB idle</span>
+            <span class="pick-meta-tag">Memory regression v0.27+</span>
+            <span class="pick-meta-tag">5 git providers</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── COMPARISON MATRIX ────────────────────────────────────── -->
+  <section class="matrix-section">
+    <p class="section-title">Comparison matrix — 6 options × 10 criteria</p>
+    <div class="matrix-scroll">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="opt-col">Option</th>
+            <th>PR Preview trigger</th>
+            <th>Traefik compat</th>
+            <th>GH integration</th>
+            <th>Idle RAM</th>
+            <th>Secrets</th>
+            <th>Backup / state</th>
+            <th>UI / Dashboard</th>
+            <th>Docker Compose</th>
+            <th>Stars</th>
+            <th>Custom glue remaining</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Coolify -->
+          <tr class="row-gold">
+            <td class="opt-col">
+              <span class="opt-name"><a href="https://coolify.io/docs/applications/ci-cd/github/preview-deploy">Coolify</a></span>
+              <span class="opt-stars">v4 GA Apr 2026</span>
+            </td>
+            <td>
+              <span class="b b-green">Native</span>
+              <span class="cell-note">GitHub App<br>PR comments</span>
+            </td>
+            <td>
+              <span class="b b-red">❌ owns 80/443</span>
+              <span class="cell-note">Dedicated VM required</span>
+            </td>
+            <td>
+              <span class="b b-green">Excellent</span>
+              <span class="cell-note">PR comments, auto-teardown</span>
+            </td>
+            <td>
+              <span class="b b-amber">800MB–1.2GB</span>
+            </td>
+            <td>
+              <span class="b b-green">Encrypted+BuildKit</span>
+              <span class="cell-note">Encrypted at rest</span>
+            </td>
+            <td>
+              <span class="b b-amber">Partial</span>
+              <span class="cell-note">DB only — no vol backup</span>
+            </td>
+            <td><span class="b b-green">Full UI</span></td>
+            <td>
+              <span class="b b-green">Full</span>
+              <span class="cell-note">280+ templates</span>
+            </td>
+            <td>⭐ 57k</td>
+            <td>
+              <span class="b b-amber">Minimal</span>
+              <span class="cell-note">DB-per-preview script;<br>TTL/expiry cron</span>
+            </td>
+          </tr>
+
+          <!-- Dokploy -->
+          <tr class="row-blue">
+            <td class="opt-col">
+              <span class="opt-name"><a href="https://docs.dokploy.com/docs/core/applications/preview-deployments">Dokploy</a></span>
+              <span class="opt-stars">Apr 2024 · Swarm</span>
+            </td>
+            <td>
+              <span class="b b-green">Native</span>
+              <span class="cell-note">Webhook / GH App<br>max-preview cap</span>
+            </td>
+            <td>
+              <span class="b b-red">❌ bundles Traefik</span>
+              <span class="cell-note">Dedicated VM required</span>
+            </td>
+            <td>
+              <span class="b b-blue">Good</span>
+              <span class="cell-note">5 git providers</span>
+            </td>
+            <td>
+              <span class="b b-green">~630MB</span>
+              <span class="cell-note">Regression risk v0.27+</span>
+            </td>
+            <td>
+              <span class="b b-amber">Env vars</span>
+              <span class="cell-note">No encrypted store</span>
+            </td>
+            <td>
+              <span class="b b-green">S3 + DB UI</span>
+              <span class="cell-note">Vol backups + restore</span>
+            </td>
+            <td><span class="b b-green">Full UI</span></td>
+            <td>
+              <span class="b b-green">Swarm-native</span>
+            </td>
+            <td>⭐ 35k</td>
+            <td>
+              <span class="b b-green">Minimal</span>
+              <span class="cell-note">Wildcard DNS;<br>max-preview config</span>
+            </td>
+          </tr>
+
+          <!-- DIY bash -->
+          <tr class="row-green">
+            <td class="opt-col">
+              <span class="opt-name">DIY bash/compose</span>
+              <span class="opt-stars">zero platform overhead</span>
+            </td>
+            <td>
+              <span class="b b-amber">GH Actions runner</span>
+              <span class="cell-note">Self-hosted runner</span>
+            </td>
+            <td>
+              <span class="b b-green">✓ labels only</span>
+              <span class="cell-note">Shares host proxy</span>
+            </td>
+            <td>
+              <span class="b b-amber">GH Actions + HMAC</span>
+              <span class="cell-note">Token footgun applies</span>
+            </td>
+            <td>
+              <span class="b b-green">~0MB</span>
+              <span class="cell-note">No platform layer</span>
+            </td>
+            <td>
+              <span class="b b-amber">Manual .env</span>
+              <span class="cell-note">Plaintext on disk</span>
+            </td>
+            <td>
+              <span class="b b-red">Manual cron</span>
+            </td>
+            <td><span class="b b-red">None</span></td>
+            <td>
+              <span class="b b-amber">Labels only</span>
+              <span class="cell-note">Traefik labels in compose</span>
+            </td>
+            <td>—</td>
+            <td>
+              <span class="b b-red">~200 lines</span>
+              <span class="cell-note">deploy + teardown + cron</span>
+            </td>
+          </tr>
+
+          <!-- CapRover -->
+          <tr class="row-grey">
+            <td class="opt-col">
+              <span class="opt-name"><a href="https://caprover.com/docs/deployment-methods.html">CapRover</a></span>
+              <span class="opt-stars">2017 · slow-burn</span>
+            </td>
+            <td>
+              <span class="b b-red">REST API + Actions</span>
+              <span class="cell-note">No native concept</span>
+            </td>
+            <td>
+              <span class="b b-red">❌ owns nginx</span>
+            </td>
+            <td>
+              <span class="b b-amber">Webhook</span>
+              <span class="cell-note">One branch / app</span>
+            </td>
+            <td>
+              <span class="b b-green">~350MB</span>
+            </td>
+            <td>
+              <span class="b b-red">Basic env vars</span>
+              <span class="cell-note">No RBAC</span>
+            </td>
+            <td>
+              <span class="b b-red">Manual</span>
+            </td>
+            <td><span class="b b-blue">UI (nginx)</span></td>
+            <td>
+              <span class="b b-red">Single-container</span>
+              <span class="cell-note">No multi-service compose</span>
+            </td>
+            <td>⭐ 15k</td>
+            <td>
+              <span class="b b-red">~120 lines</span>
+              <span class="cell-note">Full REST lifecycle</span>
+            </td>
+          </tr>
+
+          <!-- Dokku -->
+          <tr class="row-grey">
+            <td class="opt-col">
+              <span class="opt-name">Dokku</span>
+              <span class="opt-stars">2013 · 339 releases</span>
+            </td>
+            <td>
+              <span class="b b-amber">Community plugin</span>
+              <span class="cell-note">Fragile — concurrent push lock</span>
+            </td>
+            <td>
+              <span class="b b-green">✓ nginx compat</span>
+            </td>
+            <td>
+              <span class="b b-amber">Git-push SSH</span>
+              <span class="cell-note">Token footgun applies</span>
+            </td>
+            <td>
+              <span class="b b-green">~95MB</span>
+            </td>
+            <td>
+              <span class="b b-red">Env vars only</span>
+              <span class="cell-note">No RBAC</span>
+            </td>
+            <td>
+              <span class="b b-amber">Plugin-based</span>
+            </td>
+            <td><span class="b b-red">None (CLI)</span></td>
+            <td>
+              <span class="b b-amber">Via plugin</span>
+            </td>
+            <td>⭐ 32k</td>
+            <td>
+              <span class="b b-red">~150 lines</span>
+              <span class="cell-note">SSH wiring + GH Actions</span>
+            </td>
+          </tr>
+
+          <!-- Kamal 2 -->
+          <tr class="row-grey">
+            <td class="opt-col">
+              <span class="opt-name"><a href="https://dev.37signals.com/kamal-2/">Kamal 2</a></span>
+              <span class="opt-stars">37signals · HEY.com</span>
+            </td>
+            <td>
+              <span class="b b-red">Full custom CI</span>
+              <span class="cell-note">No platform awareness</span>
+            </td>
+            <td>
+              <span class="b b-green">✓ kamal-proxy</span>
+            </td>
+            <td>
+              <span class="b b-amber">GH Actions + registry</span>
+              <span class="cell-note">Token footgun applies</span>
+            </td>
+            <td>
+              <span class="b b-green">~0MB</span>
+              <span class="cell-note">No platform layer</span>
+            </td>
+            <td>
+              <span class="b b-amber">.kamal/secrets</span>
+              <span class="cell-note">File on disk</span>
+            </td>
+            <td>
+              <span class="b b-red">None built-in</span>
+            </td>
+            <td><span class="b b-red">None (CLI/YAML)</span></td>
+            <td>
+              <span class="b b-amber">YAML config</span>
+            </td>
+            <td>⭐ 14k</td>
+            <td>
+              <span class="b b-red">Full lifecycle</span>
+              <span class="cell-note">deploy + registry + remove</span>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── DECISION GUIDE ───────────────────────────────────────── -->
+  <section class="decision-section">
+    <p class="section-title">Decision guide — pick this if…</p>
+    <div class="decision-grid">
+
+      <div class="decision-card">
+        <div class="decision-card-header">
+          <div class="decision-card-dot" style="background:#f0c040;"></div>
+          <h3 class="decision-card-title"><a href="https://coolify.io/docs/applications/ci-cd/github/preview-deploy">Coolify</a></h3>
+        </div>
+        <div class="decision-card-body">
+          <span class="decision-if">pick this if</span>
+          <ul>
+            <li>you want the richest PaaS catalog and native PR previews with zero shell</li>
+            <li>you can provision a dedicated 4 GB+ KVM VM</li>
+            <li>you keep it patched to latest release and behind a VPN or Cloudflare tunnel</li>
+            <li>encrypted secrets and 280+ one-click services justify the heavier footprint</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-card-header">
+          <div class="decision-card-dot" style="background:#58a6ff;"></div>
+          <h3 class="decision-card-title"><a href="https://docs.dokploy.com/docs/core/applications/preview-deployments">Dokploy</a></h3>
+        </div>
+        <div class="decision-card-body">
+          <span class="decision-if">pick this if</span>
+          <ul>
+            <li>native PR previews with a max-preview cap and S3 volume backups matter more than catalog depth</li>
+            <li>Coolify's January 2026 CVE disclosure makes you want the less-targeted alternative</li>
+            <li>you verify the v0.27+ memory regression is resolved, or provision 6 GB+ to absorb it safely</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-card-header">
+          <div class="decision-card-dot" style="background:#3fb950;"></div>
+          <h3 class="decision-card-title">DIY bash/compose</h3>
+        </div>
+        <div class="decision-card-body">
+          <span class="decision-if">pick this if</span>
+          <ul>
+            <li>your existing Traefik lives on the shared Docker host and you cannot provision a second VM</li>
+            <li>you want every layer of the preview lifecycle to be code you own and understand</li>
+            <li>you can spend 1–2 days on initial wiring (~200 lines across three files)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-card-header">
+          <div class="decision-card-dot" style="background:#6e7681;"></div>
+          <h3 class="decision-card-title"><a href="https://caprover.com/docs/deployment-methods.html">CapRover</a></h3>
+        </div>
+        <div class="decision-card-body">
+          <span class="decision-if">pick this if</span>
+          <ul>
+            <li>you deploy only single-container apps and need the lowest idle RAM among GUI PaaSes (~350 MB)</li>
+            <li>PR preview is not a primary workflow — the REST lifecycle is functional but fully self-written</li>
+            <li>you prefer the 9-year stability track record over newer alternatives</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-card-header">
+          <div class="decision-card-dot" style="background:#6e7681;"></div>
+          <h3 class="decision-card-title">Dokku</h3>
+        </div>
+        <div class="decision-card-body">
+          <span class="decision-if">pick this if</span>
+          <ul>
+            <li>absolute minimum platform RAM (95 MB) is the hard constraint</li>
+            <li>you have one or two small apps and a CLI-native git-push workflow is sufficient</li>
+            <li>you accept the fragility of the community PR plugin or skip previews entirely</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <div class="decision-card-header">
+          <div class="decision-card-dot" style="background:#6e7681;"></div>
+          <h3 class="decision-card-title"><a href="https://dev.37signals.com/kamal-2/">Kamal 2</a></h3>
+        </div>
+        <div class="decision-card-body">
+          <span class="decision-if">pick this if</span>
+          <ul>
+            <li>you ship pre-built images from a Docker registry and want zero platform RAM overhead</li>
+            <li>you prefer infrastructure-as-code YAML over a dashboard</li>
+            <li>you are comfortable writing the entire PR preview lifecycle in CI — there is no PaaS layer helping you here</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── RISKS ─────────────────────────────────────────────────── -->
+  <section class="risks-section">
+    <p class="section-title">Key risks and cross-cutting constraints</p>
+    <div class="risks-grid">
+
+      <div class="risk-card risk-red">
+        <h3 class="risk-card-title"><span class="risk-icon">🔒</span> Coolify CVE disclosure — Jan 2026</h3>
+        <p class="risk-card-body">
+          11 critical CVEs including RCE-as-root (CVSS 10.0) and SSH key leakage to low-privileged members. Patched in beta.445+ / v4 GA — but a meaningful signal about the platform's security posture. Dashboard must not be internet-exposed without a VPN or Cloudflare tunnel. <sup><a href="https://thehackernews.com/2026/01/coolify-discloses-11-critical-flaws.html">[12]</a></sup><sup><a href="https://censys.com/advisory/cve-2025-64424-cve-2025-64420-cve-2025-64419">[13]</a></sup>
+        </p>
+      </div>
+
+      <div class="risk-card risk-amber">
+        <h3 class="risk-card-title"><span class="risk-icon">⚡</span> Traefik conflict — Coolify &amp; Dokploy</h3>
+        <p class="risk-card-body">
+          Your existing Traefik reverse proxy cannot peacefully coexist with either native-preview option on the same host. Coolify hardcodes a port-80 validation check; Dokploy installs Traefik at setup time. Resolution: a dedicated KVM VM the PaaS fully controls. DIY bash, Dokku, and Kamal compose cleanly with an existing proxy via Docker labels. <sup><a href="https://github.com/coollabsio/coolify/issues/3693">[3]</a></sup>
+        </p>
+      </div>
+
+      <div class="risk-card risk-amber">
+        <h3 class="risk-card-title"><span class="risk-icon">💾</span> Dokploy memory regression — v0.27+</h3>
+        <p class="risk-card-body">
+          Idle RAM doubled in v0.27+; suspected cause identified but the issue was closed without a confirmed fix. This forces a de facto 4 GB minimum on a headroom-constrained Proxmox VM running two apps and five to ten concurrent previews. Verify it is resolved before deploying, or provision 6 GB+ as a buffer. <sup><a href="https://github.com/Dokploy/dokploy/issues/3755">[11]</a></sup>
+        </p>
+      </div>
+
+      <div class="risk-card risk-blue">
+        <h3 class="risk-card-title"><span class="risk-icon">🔑</span> GITHUB_TOKEN footgun — DIY, CapRover, Dokku, Kamal</h3>
+        <p class="risk-card-body">
+          <code>GITHUB_TOKEN</code> cannot trigger downstream GitHub Actions workflows on the same repository. CI jobs that depend on <code>pull_request</code> events emitted from the runner silently never fire. Fix: a GitHub App installation token generated in the workflow. Coolify and Dokploy bypass this entirely via webhook-based GitHub App flows. <sup><a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication">[14]</a></sup>
+        </p>
+      </div>
+
+      <div class="risk-card risk-blue">
+        <h3 class="risk-card-title"><span class="risk-icon">🔐</span> Secrets quality gap — DIY, Dokku, Kamal</h3>
+        <p class="risk-card-body">
+          These three default to plaintext <code>.env</code> files on disk — fine for a solo homelab, a meaningful gap the moment a second person gets shell access. Layering <a href="https://github.com/Infisical/infisical">Infisical</a> on any of them closes the gap but adds operational surface. CapRover and Dokku lack role-based access entirely, so even encrypted env vars are visible to all deployers. <sup><a href="https://coolify.io/docs/knowledge-base/environment-variables">[7]</a></sup>
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── DEEP DIVES ────────────────────────────────────────────── -->
+  <section class="deepdives-section">
+    <p class="section-title">Deep dives — 7 sub-topics</p>
+    <div class="deepdives-grid">
+
+      <a class="dd-card" href="../coolify-on-a-proper-linux-vm/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">Coolify on a proper Linux VM</span>
+          <span class="dd-depth-pill dd-expedition">expedition</span>
+        </div>
+        <p class="dd-card-summary">Install in a dedicated Debian VM, patch the Jan 2026 RCEs first. 47 citations · 9 min read</p>
+      </a>
+
+      <a class="dd-card" href="../roll-your-own-bash-compose-wrapper/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">Roll-your-own bash/compose wrapper</span>
+          <span class="dd-depth-pill dd-survey">survey</span>
+        </div>
+        <p class="dd-card-summary">Triggers, deploy scripts, reverse proxy, cleanup, and when it beats Coolify. 15 citations · 7 min read</p>
+      </a>
+
+      <a class="dd-card" href="../dokploy/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">Dokploy</span>
+          <span class="dd-depth-pill dd-survey">survey</span>
+        </div>
+        <p class="dd-card-summary">Docker-native PaaS (⭐ 34.6k), first-class PR previews, AI-powered CLI/MCP server. 18 citations · 4 min read</p>
+      </a>
+
+      <a class="dd-card" href="../caprover/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">CapRover</span>
+          <span class="dd-depth-pill dd-survey">survey</span>
+        </div>
+        <p class="dd-card-summary">Battle-tested, resource-light, no native PR previews — poor fit for dynamic preview workflows in 2026. 10 citations · 4 min read</p>
+      </a>
+
+      <a class="dd-card" href="../dokku/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">Dokku</span>
+          <span class="dd-depth-pill dd-survey">survey</span>
+        </div>
+        <p class="dd-card-summary">95 MB idle, Heroku-compatible git-push, excellent plugin ecosystem, no native PR preview. 12 citations · 4 min read</p>
+      </a>
+
+      <a class="dd-card" href="../kamal-2/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">Kamal 2</span>
+          <span class="dd-depth-pill dd-recon">recon</span>
+        </div>
+        <p class="dd-card-summary">SSH-based IaC deployment — pick it for simplicity and zero overhead; pick Coolify for a PaaS dashboard. 7 citations · 2 min read</p>
+      </a>
+
+      <a class="dd-card" href="../secrets-and-credential-handling-across-options/">
+        <div class="dd-card-header">
+          <span class="dd-card-title">Secrets and credential handling</span>
+          <span class="dd-depth-pill dd-recon">recon</span>
+        </div>
+        <p class="dd-card-summary">Env vars alone are insufficient for secrets in 2026 — use a secrets manager for sensitive data. 7 citations · 2 min read</p>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── SOURCES ───────────────────────────────────────────────── -->
+  <section class="sources-section">
+    <p class="section-title">Sources</p>
+    <ul class="sources-list">
+      <li><span class="src-n">[1]</span><a href="https://coolify.io/docs/applications/ci-cd/github/preview-deploy">coolify.io — GitHub PR Preview Deploy docs</a></li>
+      <li><span class="src-n">[2]</span><a href="https://docs.dokploy.com/docs/core/applications/preview-deployments">docs.dokploy.com — Preview Deployments</a></li>
+      <li><span class="src-n">[3]</span><a href="https://github.com/coollabsio/coolify/issues/3693">github.com — Coolify issue #3693 existing proxy conflict</a></li>
+      <li><span class="src-n">[4]</span><a href="https://coolify.io/docs/get-started/installation">coolify.io — Installation docs</a></li>
+      <li><span class="src-n">[5]</span><a href="https://coolify.io/docs/applications/build-packs/overview">coolify.io — Build Packs overview (280+ services)</a></li>
+      <li><span class="src-n">[6]</span><a href="https://temps.sh/blog/coolify-review-2026">temps.sh — Coolify review 2026 (⭐ 57k, 325k users)</a></li>
+      <li><span class="src-n">[7]</span><a href="https://coolify.io/docs/knowledge-base/environment-variables">coolify.io — Environment Variables / Secrets</a></li>
+      <li><span class="src-n">[8]</span><a href="https://getdeploying.com/guides/coolify-vs-dokploy">getdeploying.com — Coolify vs Dokploy</a></li>
+      <li><span class="src-n">[9]</span><a href="https://github.com/coollabsio/coolify/issues/9064">github.com — Coolify issue #9064 no per-app TTL</a></li>
+      <li><span class="src-n">[10]</span><a href="https://contabo.com/blog/blog-coolify-vs-dokploy-comparison/">contabo.com — Coolify vs Dokploy idle RAM comparison</a></li>
+      <li><span class="src-n">[11]</span><a href="https://github.com/Dokploy/dokploy/issues/3755">github.com — Dokploy issue #3755 memory regression v0.27+</a></li>
+      <li><span class="src-n">[12]</span><a href="https://thehackernews.com/2026/01/coolify-discloses-11-critical-flaws.html">thehackernews.com — Coolify 11 critical CVEs Jan 2026</a></li>
+      <li><span class="src-n">[13]</span><a href="https://censys.com/advisory/cve-2025-64424-cve-2025-64420-cve-2025-64419">censys.com — Coolify CVE Advisory (RCE-as-root)</a></li>
+      <li><span class="src-n">[14]</span><a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication">docs.github.com — Automatic token authentication</a></li>
+      <li><span class="src-n">[15]</span><a href="https://github.com/Infisical/infisical">github.com — Infisical secrets manager</a></li>
+      <li><span class="src-n">[16]</span><a href="https://www.cherryservers.com/blog/coolify-vs-dokploy">cherryservers.com — Coolify vs Dokploy</a></li>
+      <li><span class="src-n">[17]</span><a href="https://kloudshift.net/blog/comparing-self-hostable-paas-solutions-caprover-coolify-dokploy-reviewed/">kloudshift.net — CapRover, Coolify, Dokploy reviewed</a></li>
+      <li><span class="src-n">[18]</span><a href="https://selfhostable.dev/blog/coolify-vs-caprover-vs-dokku/">selfhostable.dev — Coolify vs CapRover vs Dokku</a></li>
+      <li><span class="src-n">[19]</span><a href="https://billyle.dev/posts/adding-github-pull-request-preview-deployments-with-coolify">billyle.dev — Coolify PR preview TLS wildcard</a></li>
+      <li><span class="src-n">[20]</span><a href="https://oneuptime.com/blog/post/2026-01-30-preview-environments/view">oneuptime.com — PR preview environments 2026</a></li>
+      <li><span class="src-n">[21]</span><a href="https://github.com/adnanh/webhook">github.com — adnanh/webhook</a></li>
+      <li><span class="src-n">[22]</span><a href="https://caprover.com/docs/deployment-methods.html">caprover.com — Deployment Methods docs</a></li>
+      <li><span class="src-n">[23]</span><a href="https://github.com/abulte/dokku-pr-action">github.com — abulte/dokku-pr-action</a></li>
+      <li><span class="src-n">[24]</span><a href="https://dev.37signals.com/kamal-2/">dev.37signals.com — Kamal 2 announcement</a></li>
+      <li><span class="src-n">[25]</span><a href="https://coolify.io/docs/knowledge-base/how-to/backup-restore-coolify">coolify.io — Backup/Restore docs (no vol backup)</a></li>
+      <li><span class="src-n">[26]</span><a href="https://massivegrid.com/blog/dokploy-vs-coolify-vs-caprover/">massivegrid.com — Dokploy vs Coolify vs CapRover (RAM)</a></li>
+    </ul>
+  </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────────────── -->
+  <footer class="db-footer">
+    <span>Self-Hosted PaaS for Homelab PR Previews: Decision Framework 2026</span>
+    <span>116 citations · expedition · 2026-06-08</span>
+  </footer>
+
+</div>
