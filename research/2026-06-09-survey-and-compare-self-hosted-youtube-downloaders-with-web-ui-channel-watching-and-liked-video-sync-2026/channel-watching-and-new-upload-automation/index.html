@@ -1,0 +1,154 @@
+---
+title: "Channel watching & new-upload automation: how self-hosted YouTube tools poll, filter, and catch new videos"
+date: 2026-06-09
+depth: deep
+format: html
+topic: "Channel watching and new-upload automation"
+topic_raw: "Channel watching and new-upload automation"
+issue: 211
+tags: [self-hosted, youtube, yt-dlp, automation, channel-monitoring, pinchflat, tubearchivist]
+summary: "How PinchFlat, TubeArchivist, ytdl-sub, TubeSync and MeTube watch channels for new uploads — scheduling models, download filters, the RSS-vs-yt-dlp detection layer, and 2026 throttle/ban etiquette."
+citations: 41
+reading_time_min: 8
+cover: cover.svg
+cost_usd: 6.76
+duration_sec: 695
+model: "Opus 4.8"
+---
+
+<style>
+  .matrix { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin: 0.4rem 0 0.8rem; }
+  .matrix th, .matrix td { border: 1px solid var(--border, #d8cfc4); padding: 0.42rem 0.55rem; text-align: left; vertical-align: top; }
+  .matrix th { background: rgba(170,90,50,0.10); font-weight: 600; }
+  .matrix td.c { text-align: center; white-space: nowrap; }
+  .matrix tr:nth-child(even), .matrix tbody tr:nth-child(even) { background: rgba(0,0,0,0.018); }
+  .win { color: #2f7d32; font-weight: 600; }
+  .lose { color: #b23b3b; }
+  .warn { color: #b9770e; }
+  .tool { white-space: nowrap; }
+  .cap { font-size: 0.82rem; opacity: 0.72; margin: -0.3rem 0 1.1rem; }
+  .stars { white-space: nowrap; opacity: 0.85; font-size: 0.9em; }
+  sup a { text-decoration: none; }
+</style>
+
+<div class="tldr" style="border-left:4px solid var(--accent,#aa5a32); padding:0.8rem 1rem; background:rgba(170,90,50,0.07); border-radius:0 6px 6px 0;">
+<strong>Decision — which watcher to run:</strong>
+<ul style="margin:0.5rem 0 0; padding-left:1.2rem;">
+<li><strong><a href="https://github.com/kieraneglin/pinchflat">PinchFlat</a></strong> <span class="stars">⭐ 5.0k</span> — best turnkey channel watcher for a media library: per-source <em>interval-after-completion</em> scheduling, the richest new-upload filters (title regex, date cutoff, min/max duration), RSS-by-default detection with optional API-key fast indexing, plus Apprise + SponsorBlock + custom lifecycle scripts.<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup><sup><a href="https://github.com/kieraneglin/pinchflat/blob/master/README.md">[30]</a></sup></li>
+<li><strong><a href="https://docs.tubearchivist.com/">TubeArchivist</a></strong> <span class="stars">⭐ 8.1k</span> — pick it for in-browser playback + full-text search alongside watching, but its cron scheduler has a once-per-hour floor and it has the <em>weakest</em> download filtering (no title/date/duration filters, only per-channel page-size caps).<sup><a href="https://docs.tubearchivist.com/settings/scheduling/">[1]</a></sup><sup><a href="https://docs.tubearchivist.com/channels/">[12]</a></sup></li>
+<li><strong><a href="https://github.com/jmbannon/ytdl-sub">ytdl-sub</a></strong> <span class="stars">⭐ 2.8k</span> — most powerful filtering (date ranges, raw yt-dlp match-filters, rolling retention) for people who live in YAML; no UI and you bring your own cron.<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup><sup><a href="https://ytdl-sub.readthedocs.io/en/latest/guides/getting_started/automating_downloads.html">[5]</a></sup></li>
+<li><strong><a href="https://github.com/meeb/tubesync">TubeSync</a></strong> <span class="stars">⭐ 2.7k</span> — flexible per-source filters and retention, but its tracker carries open reports of stalled and en-masse "skipped" downloads; ⚠ verify before trusting it set-and-forget.<sup><a href="https://github.com/meeb/tubesync/issues/459">[37]</a></sup><sup><a href="https://github.com/meeb/tubesync/issues/201">[38]</a></sup></li>
+</ul>
+<div style="margin-top:0.6rem;">Underneath, every one of these wraps <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a> <span class="stars">⭐ 169k</span><sup><a href="https://github.com/yt-dlp/yt-dlp/">[21]</a></sup>. New-upload detection is either the <strong>15-item YouTube RSS feed</strong><sup><a href="https://www.wprssaggregator.com/youtube-rss-feed/">[15]</a></sup> (cheap, can miss bursts) or a full <code>--flat-playlist</code> index (complete, heavier). Poll <strong>hourly at most</strong> — YouTube's 2026 bot wall punishes aggressive watchers.<sup><a href="https://github.com/yt-dlp/yt-dlp/issues/15865">[24]</a></sup></div>
+</div>
+
+<h2>1. How each tool schedules its watch</h2>
+
+<p>Three distinct scheduling models are in play. The difference matters: a "60-minute" setting means something different in each.</p>
+
+<table class="matrix">
+<thead><tr><th>Tool</th><th>Scheduling model</th><th>Default cadence</th><th class="c">Per&#8209;source?</th><th>Key knob</th></tr></thead>
+<tbody>
+<tr><td class="tool"><a href="https://github.com/kieraneglin/pinchflat">PinchFlat</a> <span class="stars">⭐ 5.0k</span></td><td>Interval-<em>after</em>-completion</td><td>User-set per source</td><td class="c win">✓</td><td>Index Frequency + Fast Indexing<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup></td></tr>
+<tr><td class="tool"><a href="https://docs.tubearchivist.com/">TubeArchivist</a> <span class="stars">⭐ 8.1k</span></td><td>Cron (min/hour/dow), once-per-hour floor</td><td>User-set, ≥1h</td><td class="c lose">✗ global</td><td>Rescan Subscriptions schedule<sup><a href="https://docs.tubearchivist.com/settings/scheduling/">[1]</a></sup></td></tr>
+<tr><td class="tool"><a href="https://github.com/meeb/tubesync">TubeSync</a> <span class="stars">⭐ 2.7k</span></td><td>Per-source interval (Django bg tasks)</td><td>≤ 24h recommended</td><td class="c win">✓</td><td>index frequency<sup><a href="https://github.com/meeb/tubesync">[6]</a></sup></td></tr>
+<tr><td class="tool"><a href="https://github.com/jmbannon/ytdl-sub">ytdl-sub</a> <span class="stars">⭐ 2.8k</span></td><td>External cron (no internal scheduler)</td><td>None (e.g. <code>0 */6 * * *</code>)</td><td class="c">n/a</td><td><code>CRON_SCHEDULE</code> env<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/guides/getting_started/automating_downloads.html">[5]</a></sup></td></tr>
+<tr><td class="tool"><a href="https://github.com/alexta69/metube">MeTube</a> <span class="stars">⭐ 14k</span></td><td>Fixed global interval</td><td>60 min</td><td class="c lose">✗ global</td><td><code>SUBSCRIPTION_DEFAULT_CHECK_INTERVAL</code><sup><a href="https://github.com/alexta69/metube">[2]</a></sup></td></tr>
+<tr><td class="tool"><a href="https://github.com/Tzahi12345/YoutubeDL-Material">YoutubeDL-Material</a> <span class="stars">⭐ 3.2k</span></td><td>Single global cycle interval</td><td>5 min to cycle <em>all</em> subs</td><td class="c lose">✗ global</td><td><code>subscriptions_check_interval</code><sup><a href="https://github.com/Tzahi12345/YoutubeDL-Material/wiki/Configuration">[7]</a></sup></td></tr>
+</tbody>
+</table>
+
+<p>The traps hide in the model, not the number:</p>
+<ul>
+<li><strong>PinchFlat schedules the <em>next</em> run only after the current one finishes</strong> → a 60-min Index Frequency plus a 30-min indexing pass yields a real 90-min cadence. With an optional YouTube Data API key, fast indexing polls ~65 sources at a 10-min interval; RSS fast indexing is the no-key default.<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup><sup><a href="https://forums.unraid.net/topic/159635-support-pinchflat-youtube-media-manager/">[4]</a></sup></li>
+<li><strong>YoutubeDL-Material's interval is the time to cycle <em>through every subscription</em></strong>, not per-channel. 10 subs at a 100-second interval ⇒ one sub checked every 10 seconds; effective per-channel spacing = interval ÷ sub count.<sup><a href="https://github.com/Tzahi12345/YoutubeDL-Material/wiki/Configuration">[7]</a></sup></li>
+<li><strong>TubeArchivist uses real cron</strong> (three fields: minute, hour, day-of-week) but rejects non-standard <code>n/n</code> step syntax in the first field and will not run more than once per hour.<sup><a href="https://docs.tubearchivist.com/settings/scheduling/">[1]</a></sup></li>
+<li><strong>ytdl-sub has no scheduler at all</strong> — its Docker image bolts on optional cron via <code>CRON_SCHEDULE</code>. Avoid <code>CRON_RUN_ON_START</code>: it re-fires on every reboot, <code>dockerd</code> restart, and image pull, which can trigger throttles and bans.<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/guides/getting_started/automating_downloads.html">[5]</a></sup></li>
+</ul>
+
+<h2>2. Which new uploads actually download</h2>
+
+<p>Watching a channel is only half the job — the other half is deciding which of its uploads you keep. This is where the tools diverge most.</p>
+
+<table class="matrix">
+<thead><tr><th>Tool</th><th class="c">Title regex</th><th class="c">Date cutoff</th><th class="c">Min/max duration</th><th class="c">Content-type toggle</th><th class="c">Resolution floor</th><th class="c">Retention / keep-N</th></tr></thead>
+<tbody>
+<tr><td class="tool">PinchFlat</td><td class="c win">✓ match<sup><a href="https://github.com/kieraneglin/pinchflat">[8]</a></sup></td><td class="c win">✓ YYYY-MM-DD<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup></td><td class="c win">✓<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup></td><td class="c win">✓ shorts/live<sup><a href="https://github.com/kieraneglin/pinchflat">[8]</a></sup></td><td class="c">profile</td><td class="c lose">✗</td></tr>
+<tr><td class="tool">ytdl-sub</td><td class="c win">✓ match_filters<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></td><td class="c win">✓ date_range<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></td><td class="c win">✓<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></td><td class="c win">✓ exclude shorts/live<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></td><td class="c">format</td><td class="c win">✓ rolling + keep_max_files<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/prebuilt_presets/common.html">[10]</a></sup></td></tr>
+<tr><td class="tool">TubeSync</td><td class="c win">✓ + invert<sup><a href="https://github.com/meeb/tubesync/blob/main/tubesync/sync/models/source.py">[13]</a></sup></td><td class="c lose">✗</td><td class="c win">✓ filter_seconds<sup><a href="https://github.com/meeb/tubesync/blob/main/tubesync/sync/models/source.py">[13]</a></sup></td><td class="c warn">limited</td><td class="c win">✓ source_resolution<sup><a href="https://github.com/meeb/tubesync/blob/main/tubesync/sync/models/source.py">[13]</a></sup></td><td class="c win">✓ days_to_keep<sup><a href="https://github.com/meeb/tubesync/blob/main/tubesync/sync/models/source.py">[13]</a></sup></td></tr>
+<tr><td class="tool">TubeArchivist</td><td class="c lose">✗<sup><a href="https://docs.tubearchivist.com/channels/">[12]</a></sup></td><td class="c lose">✗</td><td class="c lose">✗</td><td class="c warn">page-size 0<sup><a href="https://docs.tubearchivist.com/settings/application/">[11]</a></sup></td><td class="c">quality<sup><a href="https://docs.tubearchivist.com/settings/application/">[11]</a></sup></td><td class="c warn">auto-delete watched<sup><a href="https://docs.tubearchivist.com/channels/">[12]</a></sup></td></tr>
+<tr><td class="tool">MeTube</td><td class="c lose">✗</td><td class="c lose">✗</td><td class="c lose">✗</td><td class="c lose">✗</td><td class="c">format</td><td class="c lose">✗<sup><a href="https://github.com/alexta69/metube">[2]</a></sup></td></tr>
+</tbody>
+</table>
+<p class="cap">✓ supported · ✗ absent · ⚠ partial. "Content-type toggle" = selectively include/exclude videos vs Shorts vs livestreams.</p>
+
+<ul>
+<li><strong>PinchFlat</strong> exposes per-source <em>Title Filter Regex</em>, a <em>Download Cutoff Date</em>, and min/max duration — and lets you dry-run them: disable "Download Media" and inspect the <em>Pending Media</em> tab to see exactly what the filters and shorts/livestream handling would pull before committing.<sup><a href="https://github.com/kieraneglin/pinchflat">[8]</a></sup></li>
+<li><strong>ytdl-sub</strong> is the power tool: the <code>date_range</code> plugin filters on <code>before</code>/<code>after</code> (upload or release date), and <code>match_filters</code> passes raw yt-dlp expressions like <code>original_url!*=/shorts/ &amp; !is_live</code> to drop Shorts and livestreams. Its <em>Only Recent</em> presets hold a rolling window (default <code>2months</code>) and prune anything older, with <code>keep_max_files</code> for a hard cap.<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup><sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/prebuilt_presets/common.html">[10]</a></sup></li>
+<li><strong>TubeSync</strong> filters at the Source model — <code>filter_text</code> (title regex) with <code>filter_text_invert</code> to <em>reject</em> matches, <code>filter_seconds</code>/<code>filter_seconds_min</code> for min/max duration, <code>source_resolution</code> as a quality floor, and <code>days_to_keep</code>/<code>delete_old_media</code> for retention. These knobs grew out of feature request #266.<sup><a href="https://github.com/meeb/tubesync/blob/main/tubesync/sync/models/source.py">[13]</a></sup><sup><a href="https://github.com/meeb/tubesync/issues/266">[14]</a></sup></li>
+<li><strong>TubeArchivist</strong> has no title/date/duration filter at all. The only lever is per-channel <em>Page Size Overrides</em> — set Live or Shorts page size to <code>0</code> to disable that type for a channel — plus Auto-Delete-Watched for retention.<sup><a href="https://docs.tubearchivist.com/settings/application/">[11]</a></sup><sup><a href="https://docs.tubearchivist.com/channels/">[12]</a></sup></li>
+<li><strong>MeTube</strong>'s new subscriptions auto-queue uploads but offer no title/date/duration/content-type filter beyond yt-dlp's global format options.<sup><a href="https://github.com/alexta69/metube">[2]</a></sup></li>
+</ul>
+
+<h2>3. Under the hood: RSS vs <code>--flat-playlist</code></h2>
+
+<p>Every watcher detects new uploads one of two ways, and the choice is a real trade-off between request cost and completeness.</p>
+
+<h3>The cheap path — YouTube channel RSS</h3>
+<p>Every public channel exposes a free, unauthenticated feed at <code>youtube.com/feeds/videos.xml?channel_id=UC…</code>. It is trivial to poll — but it only ever returns the <strong>15 most recent uploads</strong>, a hard YouTube cap that an entire cottage industry of third-party services exists to work around.<sup><a href="https://www.wprssaggregator.com/youtube-rss-feed/">[15]</a></sup><sup><a href="https://blog.gingerbeardman.com/2023/01/09/working-around-the-youtube-channel-rss-limit/">[16]</a></sup><sup><a href="https://authory.com/blog/create-a-youtube-rss-feed-with-vastly-increased-limits">[17]</a></sup> It also carries propagation latency: a freshly published video can lag up to an hour, and YouTube's WebSub "push" pings are non-spec-compliant — they tell you to re-fetch the feed rather than carrying the new entry.<sup><a href="https://blog.feedmail.org/2023/10/delay-on-youtube-feeds.html">[18]</a></sup></p>
+
+<h3>The complete path — yt-dlp playlist extraction</h3>
+<p>yt-dlp's <code>--flat-playlist</code> enumerates <em>every</em> entry on a channel/uploads playlist (IDs, URLs, metadata) without downloading. No 15-item window, full back-catalog — at the cost of many more requests per poll.<sup><a href="https://manpages.debian.org/testing/yt-dlp/yt-dlp.1.en.html">[19]</a></sup><sup><a href="https://www.ditig.com/yt-dlp-cheat-sheet">[22]</a></sup> This is why PinchFlat distinguishes RSS fast indexing (cheap, default) from API-key indexing (accurate) and why its FAQ warns RSS "can miss videos in some weird edge cases."<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup></p>
+
+<h3>Bookkeeping — not re-downloading what you already have</h3>
+<p>The de-dup layer is yt-dlp's <code>--download-archive FILE</code>, which records downloaded video IDs and skips anything listed. <code>--break-on-existing</code> short-circuits a run at the first already-archived video (so incremental polls stop early), and <code>--break-per-input</code> rescopes that break — plus <code>--max-downloads</code> and match-filters — to each input URL.<sup><a href="https://manpages.debian.org/testing/yt-dlp/yt-dlp.1.en.html">[19]</a></sup> There is a documented quirk: with <code>--break-per-input</code> on, <code>--break-on-existing</code> breaks per input rather than per playlist.<sup><a href="https://github.com/yt-dlp/yt-dlp/issues/5619">[20]</a></sup> The simplest DIY watcher is exactly this: <code>yt-dlp --download-archive watched.txt &lt;channel-URL&gt;</code> on a cron.<sup><a href="https://roundproxies.com/blog/yt-dlp/">[39]</a></sup></p>
+
+<p><strong>How uploads slip through:</strong> RSS-based watchers miss videos when more than 15 drop inside one poll interval, and either method can miss premieres or private-then-public videos that publish with a back-dated timestamp falling below the feed cursor. <a href="https://github.com/derekantrican/subarr">Subarr</a> <span class="stars">⭐ 405</span>, a "Sonarr for YouTube," is refreshingly candid about this: it polls RSS every ~15 minutes but is "limited to the last 15 items in feeds" and "may miss videos if many uploads occur rapidly."<sup><a href="https://github.com/derekantrican/subarr">[35]</a></sup></p>
+
+<h2>4. Watcher etiquette: throttling, the 2026 bot wall, and cookies</h2>
+
+<p>Polling YouTube on a tight loop is the fastest way to get your IP fought back. Every serious tool ships conservative defaults and says so:</p>
+<ul>
+<li><strong>TubeArchivist</strong> advises a ~3-second sleep between requests, spreads metadata refreshes across a 90-day window, and warns that residential IP ranges get throttled — suggesting a shared proxy/VPN IP as mitigation.<sup><a href="https://docs.tubearchivist.com/faq/">[23]</a></sup></li>
+<li><strong>TubeSync</strong> tells you to keep the index frequency "as long as possible, up to 24 hours," because crawling a lot quickly can get your IP "throttled and/or banned."<sup><a href="https://github.com/meeb/tubesync">[6]</a></sup></li>
+<li><strong>PinchFlat</strong> self-throttles via worker concurrency (<code>YT_DLP_WORKER_CONCURRENCY</code>), recommending <code>1</code> when IP-limited.<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[3]</a></sup></li>
+</ul>
+
+<p><strong>The 2026 pressure point</strong> is the bot wall. In February 2026 (yt-dlp 2026.02.04) even public, login-free videos began returning <code>LOGIN_REQUIRED</code> — "Sign in to confirm you're not a bot" — across multiple player clients, with the error itself pointing to cookies, a nightly/master update, or PO tokens.<sup><a href="https://github.com/yt-dlp/yt-dlp/issues/15865">[24]</a></sup> <strong>PO (proof-of-origin) tokens</strong> are minted by BotGuard/DroidGuard/iOSGuard, bound to the video/session, and expire fast; enforcement keeps shifting, so guidance is provisional.<sup><a href="https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide">[25]</a></sup> The practical fix is the <a href="https://github.com/Brainicism/bgutil-ytdlp-pot-provider">bgutil POT provider</a> <span class="stars">⭐ 559</span>, ideally an always-on HTTP server (prebuilt Docker image) that yt-dlp consumes automatically.<sup><a href="https://github.com/Brainicism/bgutil-ytdlp-pot-provider">[26]</a></sup> Crucially, a PO token "does not guarantee bypassing 403 errors or bot checks" — it only makes traffic look more legitimate.<sup><a href="https://pypi.org/project/bgutil-ytdlp-pot-provider/">[27]</a></sup></p>
+
+<p><strong>On cookies:</strong> watching <em>public</em> channels generally needs no cookies. Reaching for them to dodge the bot wall is the risky lever — YouTube rotates and invalidates cookies on continued browser use, so yt-dlp's guide says to export from a fresh incognito window and never reopen it,<sup><a href="https://github.com/yt-dlp/yt-dlp/wiki/Extractors">[28]</a></sup> and users report cookie auth carries account-ban risk.<sup><a href="https://github.com/yt-dlp/yt-dlp/issues/15724">[29]</a></sup> The cat-and-mouse means running yt-dlp nightly/master, not stable, when the wall moves.<sup><a href="https://github.com/yt-dlp/yt-dlp/issues/15865">[24]</a></sup></p>
+
+<h2>5. After the catch: downstream automation</h2>
+
+<p>What fires once a watched channel's new video lands separates a downloader from an automation hub.</p>
+
+<table class="matrix">
+<thead><tr><th>Tool</th><th class="c">Notifications</th><th class="c">SponsorBlock</th><th class="c">Media-server metadata</th><th class="c">Custom hooks</th></tr></thead>
+<tbody>
+<tr><td class="tool">PinchFlat</td><td class="c win">Apprise<sup><a href="https://github.com/kieraneglin/pinchflat/blob/master/README.md">[30]</a></sup></td><td class="c win">✓ <span class="warn">⚠ timing</span><sup><a href="https://github.com/kieraneglin/pinchflat/issues/647">[33]</a></sup></td><td class="c win">Plex/Jellyfin/Kodi<sup><a href="https://github.com/kieraneglin/pinchflat/blob/master/README.md">[30]</a></sup></td><td class="c win">lifecycle scripts<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/%5BAdvanced%5D-Custom-lifecycle-scripts">[31]</a></sup></td></tr>
+<tr><td class="tool">ytdl-sub</td><td class="c lose">—</td><td class="c win">✓ native<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></td><td class="c win">NFO tags (Kodi/JF/Plex)<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></td><td class="c warn">YAML presets</td></tr>
+<tr><td class="tool">TubeArchivist</td><td class="c lose">—</td><td class="c warn">via JF plugin<sup><a href="https://github.com/Atinoda/jellyfin-plugin-tubearchivist-sponsorblock">[32]</a></sup></td><td class="c warn">JF plugin</td><td class="c lose">—</td></tr>
+<tr><td class="tool">TubeSync</td><td class="c lose">—</td><td class="c lose">—</td><td class="c win">Jellyfin/Plex update<sup><a href="https://github.com/meeb/tubesync">[6]</a></sup></td><td class="c lose">—</td></tr>
+</tbody>
+</table>
+
+<ul>
+<li><strong>PinchFlat</strong> is the most automation-rich: Apprise notifications, SponsorBlock, first-class Plex/Jellyfin/Kodi metadata, and podcast RSS feeds out of the box.<sup><a href="https://github.com/kieraneglin/pinchflat/blob/master/README.md">[30]</a></sup> Its standout is a single <em>lifecycle script</em> at <code>&lt;config&gt;/extras/user-scripts/lifecycle</code>, called with an event type plus a JSON payload for <code>app_init</code>, <code>media_pre_download</code>, <code>media_downloaded</code>, and <code>media_deleted</code> — bash or Python 3, with <code>jq</code> bundled — so any webhook or library refresh is a few lines.<sup><a href="https://github.com/kieraneglin/pinchflat/wiki/%5BAdvanced%5D-Custom-lifecycle-scripts">[31]</a></sup> ⚠ One caveat: SponsorBlock segment quality depends on download timing, so users ask for a configurable delay between indexing and download to let crowd-sourced segments aggregate.<sup><a href="https://github.com/kieraneglin/pinchflat/issues/647">[33]</a></sup></li>
+<li><strong>ytdl-sub</strong> handles SponsorBlock natively (<code>sponsorblock_categories</code> to embed segment chapters, <code>remove_sponsorblock_categories</code> to cut them) and writes per-entry <code>nfo_tags</code> / <code>output_directory_nfo_tags</code> for Kodi/Jellyfin/Plex.<sup><a href="https://ytdl-sub.readthedocs.io/en/latest/config_reference/plugins.html">[9]</a></sup></li>
+<li><strong>TubeArchivist</strong> keeps SponsorBlock data internally; surfacing it in Jellyfin needs a <em>separate</em> community plugin mapping it to Jellyfin Media Segments (installed alongside the existing TubeArchivist metadata plugin).<sup><a href="https://github.com/Atinoda/jellyfin-plugin-tubearchivist-sponsorblock">[32]</a></sup></li>
+<li><strong>TubeSync</strong> acts as a Sonarr-style PVR — it fetches metadata and thumbnails and updates an attached Jellyfin or Plex server after download.<sup><a href="https://github.com/meeb/tubesync">[6]</a></sup></li>
+</ul>
+
+<h2>6. Beyond the big tools: purpose-built and DIY watchers</h2>
+
+<p>A whole tier of lighter, watch-first tools exists, plus the always-available cron script:</p>
+<ul>
+<li><strong><a href="https://github.com/DialmasterOrg/Youtarr">Youtarr</a></strong> <span class="stars">⭐ 1.2k (Jun 2026)</span> — a yt-dlp web app that subscribes to channels and auto-downloads new videos, shorts, and streams on a cron schedule with per-tab controls and Plex/Kodi/Jellyfin/Emby integration.<sup><a href="https://github.com/DialmasterOrg/Youtarr">[36]</a></sup></li>
+<li><strong><a href="https://github.com/TheWicklowWolf/ChannelTube">ChannelTube</a></strong> <span class="stars">⭐ 314 (Jun 2026)</span> — a Docker web UI that fetches new channel content on a comma-separated list of hours and can trigger Plex/Jellyfin library scans.<sup><a href="https://github.com/TheWicklowWolf/ChannelTube">[34]</a></sup></li>
+<li><strong><a href="https://github.com/derekantrican/subarr">Subarr</a></strong> <span class="stars">⭐ 405 (Jun 2026)</span> — minimal RSS-polling "Sonarr for YouTube"; useful, but its own README flags the 15-item RSS ceiling and rapid-burst misses.<sup><a href="https://github.com/derekantrican/subarr">[35]</a></sup></li>
+<li><strong>Plain cron + yt-dlp</strong> — <code>yt-dlp --download-archive</code> on a timer is the zero-dependency baseline every other tool is built on top of.<sup><a href="https://roundproxies.com/blog/yt-dlp/">[39]</a></sup> <a href="https://github.com/jmbannon/ytdl-sub">ytdl-sub</a> <span class="stars">⭐ 2.8k</span> is the same idea wrapped in declarative YAML and scheduled via <code>CRON_SCHEDULE</code>.<sup><a href="https://github.com/jmbannon/ytdl-sub">[40]</a></sup></li>
+</ul>
+
+<h2>7. Reliability sentiment</h2>
+
+<p>The recurring community ask is an "*arr-style app I can give a list of channels and have it keep the archive up to date indefinitely" — a 2025 Hacker News thread on exactly this points people to Youtarr and TubeArchivist (praised for Jellyfin integration) and RSS scripts.<sup><a href="https://news.ycombinator.com/item?id=45307384">[41]</a></sup> The trust gap is real on <a href="https://github.com/meeb/tubesync">TubeSync</a>: despite advertised back-off retry logic, its tracker carries open reports of all downloads stalling<sup><a href="https://github.com/meeb/tubesync/issues/459">[37]</a></sup> and large batches of videos marked "skipped" with a standing request for a batch-restart button.<sup><a href="https://github.com/meeb/tubesync/issues/201">[38]</a></sup> The net read for set-and-forget channel watching in 2026: <strong>PinchFlat</strong> for a single-container watcher with the best filters and the API-key accuracy option, <strong>TubeArchivist</strong> when you also want playback and search, and a <strong>cron + yt-dlp + bgutil POT</strong> stack when you want full control over the cat-and-mouse.</p>
