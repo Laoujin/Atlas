@@ -1,0 +1,885 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Evals — Vibes Don't Scale: A Complete Technical Session Blueprint — Dashboard"
+---
+
+<style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --surface2: #1c2330;
+    --border:   #30363d;
+    --border2:  #21262d;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --dim:      #484f58;
+
+    --exp-bg:   #0d1f3c;
+    --exp-bd:   #1f6feb;
+    --exp-txt:  #58a6ff;
+
+    --sur-bg:   #2d1d00;
+    --sur-bd:   #9e6a03;
+    --sur-txt:  #d29922;
+
+    --rec-bg:   #1c1f24;
+    --rec-bd:   #444c56;
+    --rec-txt:  #8b949e;
+
+    --green:    #238636;
+    --green-hl: #3fb950;
+    --red:      #da3633;
+    --red-hl:   #f85149;
+    --cyan:     #0ea5e9;
+    --cyan-hl:  #38bdf8;
+    --purple:   #8957e5;
+  }
+
+  .db-wrap {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ─────────────────────────────────── */
+  .db-header {
+    padding: 2.5rem 2rem 2rem;
+    background: linear-gradient(160deg, #0d1f3c 0%, #0d1117 60%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .db-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(31,111,235,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .db-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .db-eyebrow .pill {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--exp-bd);
+    color: var(--exp-txt);
+    background: var(--exp-bg);
+  }
+  .db-eyebrow .sep { color: var(--dim); }
+  .db-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+  }
+  .db-subtitle {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+  }
+  .db-stats-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .db-stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .db-stat-chip .val { color: var(--cyan-hl); font-size: 16px; font-variant-numeric: tabular-nums; }
+  .db-stat-chip .lbl { color: var(--muted); font-weight: 400; }
+
+  /* ── THESIS ─────────────────────────────────── */
+  .db-thesis {
+    margin: 0;
+    padding: 1.5rem 2rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  @media (max-width: 700px) {
+    .db-thesis { grid-template-columns: 1fr; }
+    .db-thesis-img { display: none; }
+  }
+  .db-thesis-body {}
+  .db-thesis-kicker {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+  .db-thesis-claim {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin: 0 0 0.75rem;
+  }
+  .db-thesis-claim strong { color: var(--cyan-hl); }
+  .db-thesis-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+  .db-thesis-img img {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  /* ── CRITICAL PATH ──────────────────────────── */
+  .db-section {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .db-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1rem;
+  }
+  .db-path {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .db-path-node {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 110px;
+  }
+  .db-path-box {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    min-width: 100px;
+    cursor: default;
+    text-decoration: none;
+    display: block;
+    transition: filter 0.15s;
+  }
+  .db-path-box:hover { filter: brightness(1.2); }
+  .db-path-box.exp { background: var(--exp-bg); border: 1px solid var(--exp-bd); color: var(--exp-txt); }
+  .db-path-box.sur { background: var(--sur-bg); border: 1px solid var(--sur-bd); color: var(--sur-txt); }
+  .db-path-box.rec { background: var(--rec-bg); border: 1px solid var(--rec-bd); color: var(--rec-txt); }
+  .db-path-num {
+    font-size: 9px;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+  .db-path-arrow {
+    flex: 0 0 24px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 16px;
+    padding-bottom: 18px;
+  }
+  .db-path-time {
+    font-size: 9px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+  .db-path-side {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border2);
+  }
+  .db-path-side-label {
+    font-size: 10px;
+    color: var(--dim);
+    align-self: center;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* ── MODULES GRID ───────────────────────────── */
+  .db-modules {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .db-modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .db-module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .db-module-card:hover {
+    border-color: var(--border2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .db-module-card.is-exp { border-top: 3px solid var(--exp-bd); }
+  .db-module-card.is-sur { border-top: 3px solid var(--sur-bd); }
+  .db-module-card.is-rec { border-top: 3px solid var(--rec-bd); }
+
+  .db-module-img {
+    height: 110px;
+    overflow: hidden;
+    background: var(--surface2);
+    position: relative;
+  }
+  .db-module-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0.85;
+  }
+  .db-module-img.grad-blue {
+    background: linear-gradient(135deg, #0d1f3c 0%, #1a3a6c 100%);
+  }
+  .db-module-img.grad-amber {
+    background: linear-gradient(135deg, #2d1d00 0%, #5a3800 100%);
+  }
+  .db-module-img.grad-slate {
+    background: linear-gradient(135deg, #1c1f24 0%, #2d3139 100%);
+  }
+  .db-module-img.grad-green {
+    background: linear-gradient(135deg, #051a0b 0%, #0a3a1a 100%);
+  }
+  .db-module-img.grad-red {
+    background: linear-gradient(135deg, #1a0505 0%, #3a0a0a 100%);
+  }
+  .db-module-glyph {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  .db-module-body {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .db-module-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .db-module-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+    flex: 0 0 auto;
+  }
+  .db-module-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 20px;
+    border: 1px solid;
+    flex: 0 0 auto;
+  }
+  .db-module-badge.exp { border-color: var(--exp-bd); color: var(--exp-txt); background: var(--exp-bg); }
+  .db-module-badge.sur { border-color: var(--sur-bd); color: var(--sur-txt); background: var(--sur-bg); }
+  .db-module-badge.rec { border-color: var(--rec-bd); color: var(--rec-txt); background: var(--rec-bg); }
+
+  .db-module-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    text-decoration: none;
+    display: block;
+  }
+  .db-module-title:hover { color: var(--cyan-hl); }
+
+  .db-module-summary {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .db-module-objective {
+    font-size: 11px;
+    color: var(--green-hl);
+    border-left: 2px solid var(--green);
+    padding-left: 8px;
+    line-height: 1.4;
+    margin-top: 0.25rem;
+  }
+  .db-module-objective::before {
+    content: "✓ ";
+    opacity: 0.7;
+  }
+
+  .db-module-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border2);
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .db-module-footer .cite-ct { color: var(--muted); }
+  .db-module-footer .dot { color: var(--dim); }
+
+  /* ── LEARNING PATHS ─────────────────────────── */
+  .db-paths {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .db-paths-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .db-path-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .db-path-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .db-path-card-time {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .db-path-card-modules {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .db-path-card-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .db-path-card-step .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex: 0 0 6px;
+  }
+  .db-path-card-step .step-dot.exp { background: var(--exp-bd); }
+  .db-path-card-step .step-dot.sur { background: var(--sur-bd); }
+  .db-path-card-step .step-dot.rec { background: var(--rec-bd); }
+  .db-path-card-step a { color: inherit; text-decoration: none; }
+  .db-path-card-step a:hover { color: var(--cyan-hl); }
+  .db-path-icon { font-size: 16px; }
+
+  /* ── KEY NUMBERS ────────────────────────────── */
+  .db-numbers {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .db-numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .db-num-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+  }
+  .db-num-val {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .db-num-val.v-blue { color: var(--exp-txt); }
+  .db-num-val.v-red  { color: var(--red-hl); }
+  .db-num-val.v-amber{ color: var(--sur-txt); }
+  .db-num-val.v-green{ color: var(--green-hl); }
+  .db-num-label {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .db-num-source {
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 0.5rem;
+  }
+  .db-num-source a { color: var(--dim); text-decoration: none; }
+  .db-num-source a:hover { color: var(--muted); }
+
+  /* ── GOVERNANCE ALERT ───────────────────────── */
+  .db-alert {
+    margin: 0;
+    padding: 1rem 2rem;
+    background: #1a0a00;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    font-size: 12px;
+  }
+  .db-alert-icon { font-size: 16px; flex: 0 0 auto; margin-top: 1px; }
+  .db-alert-body { color: var(--muted); line-height: 1.5; }
+  .db-alert-body strong { color: var(--sur-txt); }
+  .db-alert-body a { color: var(--sur-txt); }
+
+  /* ── FOOTER ─────────────────────────────────── */
+  .db-footer {
+    padding: 1rem 2rem;
+    background: var(--surface2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .db-footer a { color: var(--dim); text-decoration: none; }
+  .db-footer a:hover { color: var(--muted); }
+  .db-footer-sources { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.25rem; }
+  .db-footer-src { display: flex; align-items: center; gap: 4px; }
+  .db-footer-src img { width: 14px; height: 14px; border-radius: 2px; }
+</style>
+
+<div class="db-wrap">
+
+  <!-- ── HEADER ── -->
+  <div class="db-header">
+    <div class="db-eyebrow">
+      <span class="pill">expedition</span>
+      <span class="sep">·</span>
+      <span>Session Blueprint</span>
+      <span class="sep">·</span>
+      <span>2026-06-09</span>
+    </div>
+    <h1 class="db-title">Evals — Vibes Don't Scale</h1>
+    <p class="db-subtitle">A Complete Technical Session Blueprint &mdash; 7 modules for expert developers</p>
+    <div class="db-stats-row">
+      <div class="db-stat-chip"><span class="val">7</span><span class="lbl">modules</span></div>
+      <div class="db-stat-chip"><span class="val">192</span><span class="lbl">citations</span></div>
+      <div class="db-stat-chip"><span class="val">42</span><span class="lbl">min total</span></div>
+      <div class="db-stat-chip"><span class="val">~246</span><span class="lbl">golden examples needed</span></div>
+    </div>
+  </div>
+
+  <!-- ── THESIS ── -->
+  <div class="db-thesis">
+    <div class="db-thesis-body">
+      <div class="db-thesis-kicker">Core Thesis</div>
+      <p class="db-thesis-claim">
+        The bottleneck in LLM evaluation is not tooling —<br>
+        it's <strong>validation discipline</strong>.
+      </p>
+      <p class="db-thesis-sub">
+        Any of the eight viable open-source libraries can run your suite.
+        None of them tell you whether the suite is measuring what you think it is.
+        Golden dataset → judge validation → CI gates. That's the strict sequence.
+        <sup><a href="https://hamel.dev/blog/posts/evals/index.html" style="color:var(--dim)">[1]</a></sup>
+      </p>
+    </div>
+    <div class="db-thesis-img">
+      <img src="dashboard/images/hamel-evals-cover.png" alt="Hamel's LLM eval dependency diagram">
+    </div>
+  </div>
+
+  <!-- ── CRITICAL PATH ── -->
+  <div class="db-section">
+    <div class="db-section-title">Dependency Chain — critical path</div>
+    <div class="db-path">
+      <div class="db-path-node">
+        <div class="db-path-num">01</div>
+        <a href="../golden-dataset-construction/" class="db-path-box exp">Golden Dataset<br>Construction</a>
+        <div class="db-path-time">7 min · 37 src</div>
+      </div>
+      <div class="db-path-arrow">→</div>
+      <div class="db-path-node">
+        <div class="db-path-num">02</div>
+        <a href="../llm-as-judge-grader-design/" class="db-path-box exp">LLM-as-Judge<br>Grader Design</a>
+        <div class="db-path-time">9 min · 44 src</div>
+      </div>
+      <div class="db-path-arrow">→</div>
+      <div class="db-path-node">
+        <div class="db-path-num">04</div>
+        <a href="../wiring-evals-into-ci/" class="db-path-box sur">Wiring Evals<br>into CI</a>
+        <div class="db-path-time">7 min · 18 src</div>
+      </div>
+      <div class="db-path-arrow">→</div>
+      <div class="db-path-node">
+        <div class="db-path-num">05</div>
+        <a href="../live-regression-demo-design/" class="db-path-box sur">Live Regression<br>Demo Design</a>
+        <div class="db-path-time">5 min · 15 src</div>
+      </div>
+    </div>
+    <div class="db-path-side">
+      <span class="db-path-side-label">also supports&nbsp;04:</span>
+      <a href="../eval-framework-landscape-2026/" class="db-path-box exp" style="font-size:11px;padding:8px 12px;">
+        03 · Eval Framework Landscape 2026
+      </a>
+      <span class="db-path-side-label" style="margin-left:1rem;">context &amp; prerequisites:</span>
+      <a href="../eval-security-and-data-governance/" class="db-path-box rec" style="font-size:11px;padding:8px 12px;">
+        06 · Security &amp; Governance
+      </a>
+      <a href="../metrics-beyond-accuracy/" class="db-path-box rec" style="font-size:11px;padding:8px 12px;">
+        07 · Metrics Beyond Accuracy
+      </a>
+    </div>
+  </div>
+
+  <!-- ── MODULES GRID ── -->
+  <div class="db-modules">
+    <div class="db-section-title">Seven Modules</div>
+    <div class="db-modules-grid">
+
+      <!-- 01 Golden Dataset -->
+      <div class="db-module-card is-exp">
+        <div class="db-module-img grad-blue">
+          <span class="db-module-glyph">⊞</span>
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 01</span>
+            <span class="db-module-badge exp">expedition</span>
+          </div>
+          <a href="../golden-dataset-construction/" class="db-module-title">Golden Dataset Construction</a>
+          <p class="db-module-summary">Mine real failures via error analysis; seed ~20 cases by hand, grow from production traces and synthetic generation; size for ~250 examples using statistical power math.</p>
+          <div class="db-module-objective">Build a 250+ example golden set from production failures, not generic benchmarks</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">37 citations</span><span class="dot">·</span><span>7 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02 LLM Judge -->
+      <div class="db-module-card is-exp">
+        <div class="db-module-img">
+          <img src="dashboard/images/promptfoo-judge.png" alt="promptfoo LLM-as-judge">
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 02</span>
+            <span class="db-module-badge exp">expedition</span>
+          </div>
+          <a href="../llm-as-judge-grader-design/" class="db-module-title">LLM-as-Judge Grader Design</a>
+          <p class="db-module-summary">Write a binary decomposed rubric; neutralize position bias (20–40% flip rate) and verbosity attacks (91.3% fool rate); validate TPR/TNR against human labels — not accuracy.</p>
+          <div class="db-module-objective">Design a grader with TPR/TNR &gt; 0.85 validated against real human labels</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">44 citations</span><span class="dot">·</span><span>9 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 03 Framework Landscape -->
+      <div class="db-module-card is-exp">
+        <div class="db-module-img grad-blue">
+          <span class="db-module-glyph">⬡</span>
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 03</span>
+            <span class="db-module-badge exp">expedition</span>
+          </div>
+          <a href="../eval-framework-landscape-2026/" class="db-module-title">Eval Framework Landscape 2026</a>
+          <p class="db-module-summary">8 viable OSS libs mapped: DeepEval ⭐16k, Promptfoo ⭐22k (OpenAI-acquired), Inspect AI (UK AISI), Langfuse, Braintrust. Scoring methods, biases, agent/RAG support, CI gating.</p>
+          <div class="db-module-objective">Select a framework with governance clarity; understand each lib's scoring bias trade-offs</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">63 citations</span><span class="dot">·</span><span>10 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 04 Wiring CI -->
+      <div class="db-module-card is-sur">
+        <div class="db-module-img">
+          <img src="dashboard/images/futureagi-ci.webp" alt="CI/CD LLM eval pipeline">
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 04</span>
+            <span class="db-module-badge sur">survey</span>
+          </div>
+          <a href="../wiring-evals-into-ci/" class="db-module-title">Wiring Evals into CI</a>
+          <p class="db-module-summary">Path-scoped triggers, a layered eval pyramid, and statistical delta gates (mean drop + Welch's t + effect size). Gate on delta, not absolute floors — floors let regressions pass undetected.</p>
+          <div class="db-module-objective">Implement path-scoped CI triggers with statistical delta gates that catch real regressions</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">18 citations</span><span class="dot">·</span><span>7 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 05 Live Demo -->
+      <div class="db-module-card is-sur">
+        <div class="db-module-img grad-green">
+          <span class="db-module-glyph">▶</span>
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 05</span>
+            <span class="db-module-badge sur">survey</span>
+          </div>
+          <a href="../live-regression-demo-design/" class="db-module-title">Live Regression Demo Design</a>
+          <p class="db-module-summary">3-act arc: vibe check passes → innocent wording edit → eval catches the regression. Promptfoo with --cache for determinism on conference Wi-Fi. 60-second pre-recorded fallback essential.</p>
+          <div class="db-module-objective">Run a 3-minute demo that converts skeptics via the "I would have done that" test</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">15 citations</span><span class="dot">·</span><span>5 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 06 Security -->
+      <div class="db-module-card is-rec">
+        <div class="db-module-img grad-red">
+          <span class="db-module-glyph">⚑</span>
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 06</span>
+            <span class="db-module-badge rec">recon</span>
+          </div>
+          <a href="../eval-security-and-data-governance/" class="db-module-title">Eval Security &amp; Data Governance</a>
+          <p class="db-module-summary">Eval pipelines are an attack surface: LLM judges susceptible to adversarial inputs, prompt injection, token-level exploits. EU AI Act high-risk provisions take effect August 2026.</p>
+          <div class="db-module-objective">Enumerate your eval attack surface; document data lineage before EU AI Act deadline (Aug 2026)</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">8 citations</span><span class="dot">·</span><span>2 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 07 Metrics -->
+      <div class="db-module-card is-rec">
+        <div class="db-module-img grad-amber">
+          <span class="db-module-glyph">◈</span>
+        </div>
+        <div class="db-module-body">
+          <div class="db-module-top">
+            <span class="db-module-num">MODULE 07</span>
+            <span class="db-module-badge rec">recon</span>
+          </div>
+          <a href="../metrics-beyond-accuracy/" class="db-module-title">Metrics Beyond Accuracy</a>
+          <p class="db-module-summary">Accuracy hides failures on imbalanced data. Precision/Recall for trade-offs; F1 for imbalance; PR-AUC for rare positives. Match the metric to the use case before picking a grader rubric.</p>
+          <div class="db-module-objective">Match metric to use case; understand when accuracy is actively misleading</div>
+          <div class="db-module-footer">
+            <span class="cite-ct">7 citations</span><span class="dot">·</span><span>2 min</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modules-grid -->
+  </div><!-- /modules -->
+
+  <!-- ── LEARNING PATHS ── -->
+  <div class="db-paths">
+    <div class="db-section-title">Learning Paths</div>
+    <div class="db-paths-grid">
+
+      <div class="db-path-card">
+        <div class="db-path-card-name"><span class="db-path-icon">⚡</span> Quick Intel</div>
+        <div class="db-path-card-time">4 min · recon modules only</div>
+        <div class="db-path-card-modules">
+          <div class="db-path-card-step">
+            <div class="step-dot rec"></div>
+            <a href="../metrics-beyond-accuracy/">07 · Metrics Beyond Accuracy</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot rec"></div>
+            <a href="../eval-security-and-data-governance/">06 · Security &amp; Governance</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="db-path-card">
+        <div class="db-path-card-name"><span class="db-path-icon">⚙</span> Core Engineering Track</div>
+        <div class="db-path-card-time">23 min · the strict dependency chain</div>
+        <div class="db-path-card-modules">
+          <div class="db-path-card-step">
+            <div class="step-dot exp"></div>
+            <a href="../golden-dataset-construction/">01 · Golden Dataset Construction</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot exp"></div>
+            <a href="../llm-as-judge-grader-design/">02 · LLM-as-Judge Grader Design</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot sur"></div>
+            <a href="../wiring-evals-into-ci/">04 · Wiring Evals into CI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="db-path-card">
+        <div class="db-path-card-name"><span class="db-path-icon">↗</span> Skeptic's Hook</div>
+        <div class="db-path-card-time">14 min · demo first, then the why</div>
+        <div class="db-path-card-modules">
+          <div class="db-path-card-step">
+            <div class="step-dot sur"></div>
+            <a href="../live-regression-demo-design/">05 · Live Regression Demo Design</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot exp"></div>
+            <a href="../llm-as-judge-grader-design/">02 · LLM-as-Judge Grader Design</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot exp"></div>
+            <a href="../golden-dataset-construction/">01 · Golden Dataset Construction</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="db-path-card">
+        <div class="db-path-card-name"><span class="db-path-icon">◎</span> Full Expedition</div>
+        <div class="db-path-card-time">42 min · all 7 modules in order</div>
+        <div class="db-path-card-modules">
+          <div class="db-path-card-step">
+            <div class="step-dot rec"></div>
+            <a href="../metrics-beyond-accuracy/">07 · Metrics Beyond Accuracy</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot exp"></div>
+            <a href="../golden-dataset-construction/">01 → 02 → 03 (expedition core)</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot sur"></div>
+            <a href="../wiring-evals-into-ci/">04 → 05 (integration + demo)</a>
+          </div>
+          <div class="db-path-card-step">
+            <div class="step-dot rec"></div>
+            <a href="../eval-security-and-data-governance/">06 · Security &amp; Governance</a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /paths-grid -->
+  </div><!-- /paths -->
+
+  <!-- ── KEY NUMBERS ── -->
+  <div class="db-numbers">
+    <div class="db-section-title">Critical Numbers</div>
+    <div class="db-numbers-grid">
+
+      <div class="db-num-card">
+        <div class="db-num-val v-blue">~246</div>
+        <div class="db-num-label">examples needed for 95% confidence at ±5% margin.<br>"20 examples" can't move a launch decision.</div>
+        <div class="db-num-source"><a href="https://dev.to/gabrielanhaia/eval-set-sizing-the-statistical-power-math-behind-llm-ab-tests-4gpc">[2] Statistical power math</a></div>
+      </div>
+
+      <div class="db-num-card">
+        <div class="db-num-val v-red">91.3%</div>
+        <div class="db-num-label">of the time, a verbosity padding attack fooled Claude-v1 and GPT-3.5 — at zero cost to the attacker.</div>
+        <div class="db-num-source"><a href="https://arxiv.org/html/2306.05685v4">[7] arxiv: LLMs are not fair evaluators</a></div>
+      </div>
+
+      <div class="db-num-card">
+        <div class="db-num-val v-amber">20–40%</div>
+        <div class="db-num-label">of close-pair pairwise verdicts flip when the position of candidates is swapped — position bias.</div>
+        <div class="db-num-source"><a href="https://arxiv.org/html/2306.05685v4">[7] arxiv: LLMs are not fair evaluators</a></div>
+      </div>
+
+      <div class="db-num-card">
+        <div class="db-num-val v-green">TPR/TNR</div>
+        <div class="db-num-label">are the metrics that matter for judge validation — not accuracy. A judge predicting "pass" always scores 90% accuracy while catching zero real failures.</div>
+        <div class="db-num-source"><a href="https://hamel.dev/blog/posts/evals-faq/">[3] Hamel's Evals FAQ</a></div>
+      </div>
+
+    </div><!-- /numbers-grid -->
+  </div><!-- /numbers -->
+
+  <!-- ── GOVERNANCE ALERT ── -->
+  <div class="db-alert">
+    <span class="db-alert-icon">⚠</span>
+    <div class="db-alert-body">
+      <strong>Toolchain governance note:</strong>
+      <a href="https://genai.qa/blog/promptfoo-vs-deepeval/">Promptfoo (⭐22k)</a>, the natural CI-gating choice and demo tool, was acquired by OpenAI in March 2026.
+      Teams evaluating Anthropic, Llama, or Gemini models should evaluate vendor alignment.
+      Alternatives: <strong>DeepEval ⭐16k</strong> (Python/pytest) and <strong>Inspect AI</strong> (UK AISI, reproducible safety evals) are mature with independent governance.
+      EU AI Act high-risk provisions take effect <strong>August 2026</strong> — eval data lineage documentation is mandatory.
+      <sup><a href="https://atlan.com/know/data-governance/for-ai/">[11]</a></sup>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="db-footer">
+    <span>192 total citations across 7 modules</span>
+    <span>·</span>
+    <a href="../">← Full canonical</a>
+    <span>·</span>
+    <a href="/">Atlas</a>
+    <div class="db-footer-sources">
+      <span style="color:var(--dim);font-size:10px;letter-spacing:.05em;text-transform:uppercase;margin-right:.5rem;">Key sources:</span>
+      <span class="db-footer-src"><img src="https://www.google.com/s2/favicons?domain=hamel.dev&sz=128" alt=""><a href="https://hamel.dev/blog/posts/evals/index.html">hamel.dev</a></span>
+      <span class="db-footer-src"><img src="https://www.google.com/s2/favicons?domain=promptfoo.dev&sz=128" alt=""><a href="https://www.promptfoo.dev/docs/guides/llm-as-a-judge/">promptfoo.dev</a></span>
+      <span class="db-footer-src"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt=""><a href="https://arxiv.org/html/2306.05685v4">arxiv [7]</a></span>
+      <span class="db-footer-src"><img src="https://www.google.com/s2/favicons?domain=futureagi.com&sz=128" alt=""><a href="https://futureagi.com/blog/ci-cd-llm-eval-github-actions-2026/">futureagi.com</a></span>
+      <span class="db-footer-src"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt=""><a href="https://arxiv.org/abs/2404.12272">EvalGen [14]</a></span>
+    </div>
+  </div>
+
+</div><!-- /db-wrap -->
