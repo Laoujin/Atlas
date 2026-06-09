@@ -1,0 +1,1108 @@
+---
+layout: view
+view_name: "Grounding Pipeline"
+view_of: ../
+title: "Schema Grounding Strategies for Text-to-SQL — Grounding Pipeline"
+---
+
+<style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --surface2: #21262d;
+    --border:   #30363d;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --l1:       #3b82f6;
+    --l2:       #8b5cf6;
+    --l3:       #f59e0b;
+    --l4:       #10b981;
+    --l5:       #f97316;
+    --bad:      #ef4444;
+    --mono:     "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+  }
+
+  .gp-wrap {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 0 80px;
+  }
+
+  /* ── HERO ── */
+  .gp-hero {
+    background: linear-gradient(160deg, #0d1117 0%, #161b22 60%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 40px 44px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .gp-hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .gp-hero-eyebrow a { color: var(--muted); text-decoration: none; }
+  .gp-hero-eyebrow a:hover { color: var(--text); }
+  .gp-hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 14px;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+  }
+  .gp-hero-sub {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+  .gp-hero-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .gp-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .gp-stat-num {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .gp-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .gp-stat-num.bad  { color: var(--bad); }
+  .gp-stat-num.good { color: var(--l4); }
+  .gp-stat-num.warn { color: var(--l3); }
+  .gp-stat-num.info { color: var(--l1); }
+
+  /* ── SHARED CONTENT WRAPPER ── */
+  .gp-content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .gp-section-head {
+    margin: 52px 0 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .gp-section-head h2 {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+    margin: 0;
+    font-weight: 600;
+  }
+  .gp-section-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── PIPELINE DIAGRAM ── */
+  .gp-pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .gp-pipe-stage {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 14px 14px;
+    position: relative;
+  }
+  .gp-pipe-stage + .gp-pipe-stage {
+    margin-left: 8px;
+  }
+  .gp-pipe-stage::before {
+    content: "→";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  .gp-pipe-stage:first-child::before { display: none; }
+  .gp-stage-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .gp-pipe-stage h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    line-height: 1.3;
+  }
+  .gp-pipe-stage .gp-stage-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .gp-pipe-stage .gp-stage-acc {
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .gp-pipe-stage .gp-stage-acc strong { color: var(--l4); }
+
+  /* stage colors */
+  .s-l1 .gp-stage-badge { background: rgba(59,130,246,.15); color: var(--l1); border: 1px solid rgba(59,130,246,.3); }
+  .s-l2 .gp-stage-badge { background: rgba(139,92,246,.15); color: var(--l2); border: 1px solid rgba(139,92,246,.3); }
+  .s-l3 .gp-stage-badge { background: rgba(245,158,11,.15); color: var(--l3); border: 1px solid rgba(245,158,11,.3); }
+  .s-l4 .gp-stage-badge { background: rgba(16,185,129,.15); color: var(--l4); border: 1px solid rgba(16,185,129,.3); }
+  .s-l5 .gp-stage-badge { background: rgba(249,115,22,.15); color: var(--l5); border: 1px solid rgba(249,115,22,.3); }
+
+  .s-l1 { border-top: 2px solid var(--l1); }
+  .s-l2 { border-top: 2px solid var(--l2); }
+  .s-l3 { border-top: 2px solid var(--l3); }
+  .s-l4 { border-top: 2px solid var(--l4); }
+  .s-l5 { border-top: 2px solid var(--l5); }
+
+  /* ── LAYER DETAIL CARDS ── */
+  .gp-layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .gp-layer-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .gp-layer summary { list-style: none; }
+  .gp-layer summary::-webkit-details-marker { display: none; }
+  .gp-layer[open] .gp-layer-header { border-bottom: 1px solid var(--border); }
+  .gp-layer-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: .05em;
+  }
+  .gp-layer-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .gp-layer-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.4;
+  }
+  .gp-layer-meta strong { color: var(--l4); display: block; font-size: 14px; }
+  .gp-layer-body {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    .gp-layer-body { grid-template-columns: 1fr; }
+    .gp-hero-stats { gap: 20px; }
+    .gp-hero { padding: 32px 20px 28px; }
+    .gp-content { padding: 0 20px; }
+    .gp-pipeline { flex-direction: column; }
+    .gp-pipe-stage + .gp-pipe-stage { margin-left: 0; margin-top: 8px; }
+    .gp-pipe-stage::before { display: none; }
+  }
+  .gp-col-head {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .gp-technique-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .gp-technique-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .gp-technique-list li:last-child { border-bottom: none; }
+  .gp-technique-list li a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+  .gp-technique-list li a:hover { color: var(--l1); border-color: var(--l1); }
+  .gp-accuracy-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .gp-accuracy-row:last-child { border-bottom: none; }
+  .gp-accuracy-row .label { color: var(--muted); }
+  .gp-accuracy-row .value { font-family: var(--mono); font-size: 12px; }
+  .gp-accuracy-row .value.up { color: var(--l4); }
+  .gp-accuracy-row .value.down { color: var(--bad); }
+  .gp-accuracy-row .value.neutral { color: var(--l3); }
+
+  /* layer border colors */
+  .layer-l1 .gp-layer-num { background: rgba(59,130,246,.15); color: var(--l1); border: 1px solid rgba(59,130,246,.3); }
+  .layer-l1 > summary .gp-layer-header { border-left: 3px solid var(--l1); }
+  .layer-l2 .gp-layer-num { background: rgba(139,92,246,.15); color: var(--l2); border: 1px solid rgba(139,92,246,.3); }
+  .layer-l2 > summary .gp-layer-header { border-left: 3px solid var(--l2); }
+  .layer-l3 .gp-layer-num { background: rgba(245,158,11,.15); color: var(--l3); border: 1px solid rgba(245,158,11,.3); }
+  .layer-l3 > summary .gp-layer-header { border-left: 3px solid var(--l3); }
+  .layer-l4 .gp-layer-num { background: rgba(16,185,129,.15); color: var(--l4); border: 1px solid rgba(16,185,129,.3); }
+  .layer-l4 > summary .gp-layer-header { border-left: 3px solid var(--l4); }
+  .layer-l5 .gp-layer-num { background: rgba(249,115,22,.15); color: var(--l5); border: 1px solid rgba(249,115,22,.3); }
+  .layer-l5 > summary .gp-layer-header { border-left: 3px solid var(--l5); }
+
+  /* ── CALLOUT ── */
+  .gp-callout {
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 20px 0 0;
+  }
+  .gp-callout.twist {
+    background: rgba(59,130,246,.08);
+    border: 1px solid rgba(59,130,246,.25);
+    border-left: 3px solid var(--l1);
+  }
+  .gp-callout.warning {
+    background: rgba(245,158,11,.08);
+    border: 1px solid rgba(245,158,11,.25);
+    border-left: 3px solid var(--l3);
+  }
+  .gp-callout strong { color: var(--text); }
+  .gp-callout a { color: var(--l1); text-decoration: none; }
+  .gp-callout a:hover { text-decoration: underline; }
+
+  /* ── DECISION GUIDE ── */
+  .gp-recipe {
+    counter-reset: recipe;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .gp-recipe li {
+    counter-increment: recipe;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .gp-recipe li:last-child { border-bottom: none; }
+  .gp-recipe li::before {
+    content: counter(recipe);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .gp-recipe li a { color: var(--l1); text-decoration: none; }
+  .gp-recipe li a:hover { text-decoration: underline; }
+  .gp-recipe li .condition {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+
+  /* ── TOOLS GRID ── */
+  .gp-tools {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 0;
+  }
+  .gp-tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .gp-tool-card:hover { border-color: var(--muted); }
+  .gp-tool-img {
+    height: 100px;
+    overflow: hidden;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gp-tool-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  .gp-tool-img.placeholder {
+    font-family: var(--mono);
+    font-size: 28px;
+    color: var(--border);
+  }
+  .gp-tool-body { padding: 14px; flex: 1; }
+  .gp-tool-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .gp-tool-header img.favicon {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+  }
+  .gp-tool-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .gp-tool-name a { color: var(--text); text-decoration: none; }
+  .gp-tool-name a:hover { color: var(--l1); }
+  .gp-tool-stars {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .gp-tool-approach {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .gp-tool-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* ── BENCHMARKS TABLE ── */
+  .gp-bench-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .gp-bench-table th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .gp-bench-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .gp-bench-table tr:last-child td { border-bottom: none; }
+  .gp-bench-table tr:hover td { background: var(--surface2); }
+  .gp-bench-table .model { font-family: var(--mono); font-size: 11px; }
+  .gp-bench-table .score { font-family: var(--mono); font-weight: 700; font-size: 13px; }
+  .gp-bench-table .rank1 { color: var(--l4); }
+  .gp-bench-table .rank2 { color: #60a5fa; }
+  .gp-bench-table .rank3 { color: var(--l3); }
+  .gp-bench-table .collapse { color: var(--bad); }
+  .gp-bench-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin-top: 3px;
+    overflow: hidden;
+  }
+  .gp-bench-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+  .bar-good  { background: var(--l4); }
+  .bar-mid   { background: var(--l3); }
+  .bar-low   { background: var(--bad); }
+  .gp-bench-note {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* ── FULL-SPAN CALLOUT ── */
+  .gp-full-callout {
+    grid-column: 1 / -1;
+  }
+
+  /* ── SIBLINGS ── */
+  .gp-siblings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 0;
+  }
+  .gp-sib-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+    font-size: 12px;
+  }
+  .gp-sib-card:hover { border-color: var(--muted); }
+  .gp-sib-card.active { border-color: var(--l1); background: rgba(59,130,246,.06); }
+  .gp-sib-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; line-height: 1.3; }
+  .gp-sib-depth {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .gp-sib-summary { color: var(--muted); margin-top: 4px; line-height: 1.4; }
+</style>
+
+<div class="gp-wrap">
+
+  <!-- HERO -->
+  <div class="gp-hero">
+    <div class="gp-hero-eyebrow">
+      <a href="../../">Audit and harden text-to-SQL pipelines (2026)</a>
+      &nbsp;/&nbsp; Schema Grounding Strategies
+    </div>
+    <h1>Schema Grounding is a Stack</h1>
+    <p class="gp-hero-sub">
+      Five layered interventions — linking, representation, retrieval, validation, semantic layer —
+      each catching a failure mode the one before it misses. Build in order.
+    </p>
+    <div class="gp-hero-stats">
+      <div class="gp-stat">
+        <span class="gp-stat-num bad">10.1%</span>
+        <span class="gp-stat-label">GPT-4o on Spider 2.0 <sup><a href="https://spider2-sql.github.io/" style="color:inherit">[13]</a></sup></span>
+      </div>
+      <div class="gp-stat">
+        <span class="gp-stat-num warn">73%</span>
+        <span class="gp-stat-label">Best agent, Spider 2.0-Lite <sup><a href="https://spider2-sql.github.io/" style="color:inherit">[13]</a></sup></span>
+      </div>
+      <div class="gp-stat">
+        <span class="gp-stat-num good">83%</span>
+        <span class="gp-stat-label">With semantic layer <sup><a href="https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026" style="color:inherit">[41]</a></sup></span>
+      </div>
+      <div class="gp-stat">
+        <span class="gp-stat-num info">~40%</span>
+        <span class="gp-stat-label">Raw SQL, undecorated schema <sup><a href="https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026" style="color:inherit">[41]</a></sup></span>
+      </div>
+      <div class="gp-stat">
+        <span class="gp-stat-num" style="color:var(--l2)">42</span>
+        <span class="gp-stat-label">Sources · expedition depth</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gp-content">
+
+    <!-- PIPELINE OVERVIEW -->
+    <div class="gp-section-head"><h2>Pipeline overview</h2></div>
+
+    <div class="gp-pipeline">
+      <div class="gp-pipe-stage s-l1">
+        <span class="gp-stage-badge">L1</span>
+        <h3>Linking &amp; Selection</h3>
+        <p class="gp-stage-sub">Align the question to the tables and columns it actually needs.</p>
+        <div class="gp-stage-acc">String match → neural → <strong>LLM selection</strong></div>
+      </div>
+      <div class="gp-pipe-stage s-l2">
+        <span class="gp-stage-badge">L2</span>
+        <h3>Representation</h3>
+        <p class="gp-stage-sub">Serialize selected schema so the model reads types, keys, and values correctly.</p>
+        <div class="gp-stage-acc">DDL / M-Schema <strong>+2.03%</strong> over raw DDL</div>
+      </div>
+      <div class="gp-pipe-stage s-l3">
+        <span class="gp-stage-badge">L3</span>
+        <h3>Retrieval &amp; Pruning</h3>
+        <p class="gp-stage-sub">Fit large schemas via embedding retrieval and dynamic pruning.</p>
+        <div class="gp-stage-acc">Pruning oracle: <strong>79.3% → 86.3%</strong></div>
+      </div>
+      <div class="gp-pipe-stage s-l4">
+        <span class="gp-stage-badge">L4</span>
+        <h3>Validation &amp; Repair</h3>
+        <p class="gp-stage-sub">Execute, capture errors, loop until the database accepts the query.</p>
+        <div class="gp-stage-acc">DIN-SQL self-correction <strong>+1.73 pts</strong></div>
+      </div>
+      <div class="gp-pipe-stage s-l5">
+        <span class="gp-stage-badge">L5</span>
+        <h3>Semantic Layer</h3>
+        <p class="gp-stage-sub">Define business metrics and domain rules once, outside the prompt.</p>
+        <div class="gp-stage-acc">dbt semantic layer: <strong>83% vs ~40%</strong></div>
+      </div>
+    </div>
+
+    <!-- LAYER DETAILS -->
+    <div class="gp-section-head"><h2>Layer details</h2></div>
+
+    <!-- L1 Linking -->
+    <details class="gp-layer layer-l1" open>
+      <summary>
+        <div class="gp-layer-header">
+          <span class="gp-layer-num">L1</span>
+          <h3 class="gp-layer-title">Schema Linking &amp; Selection</h3>
+          <div class="gp-layer-meta">
+            <strong>94.62%</strong>
+            full-schema EX (strong model)
+          </div>
+        </div>
+      </summary>
+      <div class="gp-layer-body">
+        <div>
+          <p class="gp-col-head">Techniques</p>
+          <ul class="gp-technique-list">
+            <li><a href="https://ar5iv.labs.arxiv.org/html/1911.04942">RAT-SQL</a> — n-gram string matching, subsequence partial match, relation-aware encoder <sup><a href="https://ar5iv.labs.arxiv.org/html/1911.04942">[1]</a></sup></li>
+            <li>Neural alignment — deep models learn question↔schema attention <sup><a href="https://arxiv.org/html/2408.05109v5">[4]</a></sup></li>
+            <li>LLM in-context selection — LLM picks relevant subset before generation <sup><a href="https://arxiv.org/html/2408.05109v5">[4]</a></sup></li>
+            <li><a href="https://arxiv.org/abs/2311.01173">CRUSH4SQL</a> — hallucinate minimal schema, dense-retrieve real match; scales to 17,844 elements <sup><a href="https://arxiv.org/abs/2311.01173">[3]</a></sup></li>
+            <li>Bidirectional retrieval — table-first ∪ column-first to balance recall/FPR <sup><a href="https://arxiv.org/html/2510.14296v2">[2]</a></sup></li>
+          </ul>
+        </div>
+        <div>
+          <p class="gp-col-head">Recall vs. false-positive tradeoff</p>
+          <div class="gp-accuracy-row">
+            <span class="label">CHESS recall</span>
+            <span class="value up">97.12%</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">CHESS FPR</span>
+            <span class="value down">30.57%</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">RSL-SQL recall</span>
+            <span class="value neutral">93.28%</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">RSL-SQL FPR</span>
+            <span class="value down">68.23%</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">Full schema (strong model)</span>
+            <span class="value up">94.62% EX <sup><a href="https://arxiv.org/html/2408.07702v1">[29]</a></sup></span>
+          </div>
+          <div class="gp-callout twist gp-full-callout" style="margin-top:14px;">
+            <strong>The twist.</strong> <a href="https://arxiv.org/html/2408.07702v1">"The Death of Schema Linking?"</a> — strong models like Gemini 1.5 Pro see a <em>net EX reduction</em> when schema linking is applied. Full-schema prompting reaches 94.62% EX. Schema linking is a <strong>context-management tool</strong>, not an accuracy tool. Skip it if your schema fits and your model reasons well. <sup><a href="https://arxiv.org/html/2408.07702v1">[29]</a></sup>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- L2 Representation -->
+    <details class="gp-layer layer-l2">
+      <summary>
+        <div class="gp-layer-header">
+          <span class="gp-layer-num">L2</span>
+          <h3 class="gp-layer-title">Schema Representation</h3>
+          <div class="gp-layer-meta">
+            <strong>+2.03%</strong>
+            M-Schema vs DDL
+          </div>
+        </div>
+      </summary>
+      <div class="gp-layer-body">
+        <div>
+          <p class="gp-col-head">Formats ranked</p>
+          <ul class="gp-technique-list">
+            <li><strong>M-Schema</strong> — name, type, description, PK flag, sample values per column; special tokens for DB/table/FK <sup><a href="https://arxiv.org/html/2411.08599v1">[8]</a></sup></li>
+            <li><strong>Code Representation (DDL)</strong> — <code>CREATE TABLE</code> with types, PK, FK; preferred in DAIL-SQL study <sup><a href="https://arxiv.org/pdf/2308.15363">[6]</a></sup></li>
+            <li>OpenAI Demonstration — second-best in zero-shot evaluation <sup><a href="https://arxiv.org/pdf/2308.15363">[6]</a></sup></li>
+            <li>Sample rows per table — reveals actual values and semantics; truncate long strings <sup><a href="https://arxiv.org/html/2411.00073v2">[12]</a></sup></li>
+            <li>External knowledge / evidence — domain rules the schema can't express <sup><a href="https://bird-bench.github.io/">[10]</a></sup></li>
+          </ul>
+        </div>
+        <div>
+          <p class="gp-col-head">Evidence impact</p>
+          <div class="gp-accuracy-row">
+            <span class="label">ChatGPT, no evidence</span>
+            <span class="value">37.22%</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">ChatGPT, with evidence</span>
+            <span class="value up">42.24% <sup><a href="https://bird-bench.github.io/">[10]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">GPT-4, no evidence</span>
+            <span class="value">46.35%</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">GPT-4, with evidence</span>
+            <span class="value up">49.15% <sup><a href="https://bird-bench.github.io/">[10]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">M-Schema vs raw DDL</span>
+            <span class="value up">+2.03% avg <sup><a href="https://arxiv.org/html/2411.08599v2">[27]</a></sup></span>
+          </div>
+          <div class="gp-callout warning gp-full-callout" style="margin-top:14px;">
+            <strong>Catch.</strong> BIRD's evidence is hand-written per query by domain experts — "not a realistic deployment scenario." <a href="https://beancount.io/bean-labs/research-logs/2026/06/06/bird-benchmark-text-to-sql-real-database-gap">A deployed agent must retrieve or infer domain context itself.</a> This is the gap the semantic layer exists to fill. <sup><a href="https://beancount.io/bean-labs/research-logs/2026/06/06/bird-benchmark-text-to-sql-real-database-gap">[11]</a></sup>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- L3 Retrieval -->
+    <details class="gp-layer layer-l3">
+      <summary>
+        <div class="gp-layer-header">
+          <span class="gp-layer-num">L3</span>
+          <h3 class="gp-layer-title">Retrieval &amp; Pruning at Scale</h3>
+          <div class="gp-layer-meta">
+            <strong>79.3% → 86.3%</strong>
+            oracle pruning gain
+          </div>
+        </div>
+      </summary>
+      <div class="gp-layer-body">
+        <div>
+          <p class="gp-col-head">Systems</p>
+          <ul class="gp-technique-list">
+            <li><a href="https://arxiv.org/html/2510.09014">LitE-SQL</a> — per-column embeddings in ChromaDB, top-25 retrieval, ~25s vs CHESS 84s, 72.1% BIRD <sup><a href="https://arxiv.org/html/2510.09014">[16]</a></sup></li>
+            <li><a href="https://arxiv.org/html/2405.16755v1">CHESS</a> — LSH + vector DB for value/catalog search, adaptive pruning (column filter → table select → final select) <sup><a href="https://arxiv.org/html/2405.16755v1">[5]</a></sup></li>
+            <li><a href="https://arxiv.org/html/2508.12769v1">CRED-SQL</a> — K-means column clustering, inverse-cluster-size weighting; recall 0.09 → 0.40 @1 <sup><a href="https://arxiv.org/html/2508.12769v1">[15]</a></sup></li>
+            <li><a href="https://arxiv.org/html/2503.18596v4">LinkAlign</a> — multi-DB routing: query rewrite → argmax LLM → multi-agent; 33.09% Spider 2.0-Lite <sup><a href="https://arxiv.org/html/2503.18596v4">[14]</a></sup></li>
+            <li>Hierarchical clustering RAG — dynamic schema sizing vs brittle fixed-k <sup><a href="https://www.mdpi.com/2076-3417/16/2/586">[18]</a></sup></li>
+          </ul>
+        </div>
+        <div>
+          <p class="gp-col-head">Pruning numbers</p>
+          <div class="gp-accuracy-row">
+            <span class="label">Full oracle schema</span>
+            <span class="value">79.3% EX</span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">Pruned 71.3% of columns</span>
+            <span class="value up">86.3% EX <sup><a href="https://arxiv.org/html/2407.03227v1">[17]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">CRED-SQL table recall @1</span>
+            <span class="value up">0.40 (vs CRUSH 0.09) <sup><a href="https://arxiv.org/html/2508.12769v1">[15]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">CRED-SQL end-to-end lift</span>
+            <span class="value up">+22 pts over CRUSH <sup><a href="https://arxiv.org/html/2508.12769v1">[15]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">Small models, chunk ≤64 cols</span>
+            <span class="value neutral">value literal retrieval <sup><a href="https://arxiv.org/html/2407.03227v1">[17]</a></sup></span>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- L4 Validation -->
+    <details class="gp-layer layer-l4">
+      <summary>
+        <div class="gp-layer-header">
+          <span class="gp-layer-num">L4</span>
+          <h3 class="gp-layer-title">Validation, Execution Feedback &amp; Self-Correction</h3>
+          <div class="gp-layer-meta">
+            <strong>most reliable lever</strong>
+            grounds against live DB
+          </div>
+        </div>
+      </summary>
+      <div class="gp-layer-body">
+        <div>
+          <p class="gp-col-head">Mechanisms (stack these)</p>
+          <ul class="gp-technique-list">
+            <li><a href="https://arxiv.org/abs/2109.05093">PICARD</a> — grammar decoding: incremental SQL parser rejects invalid tokens during generation; T5-3B 74.4%→79.3% EX <sup><a href="https://github.com/servicenow/picard">[20]</a></sup></li>
+            <li>Execution-guided decoding — conditions on partial execution, prunes error-ing candidates; 83.8% WikiSQL <sup><a href="https://arxiv.org/abs/1807.03100">[25]</a></sup></li>
+            <li><a href="https://arxiv.org/html/2312.11242v2">MAC-SQL Refiner</a> — execute → capture error → re-prompt to fix; 59.59% BIRD test, 86.75% Spider dev <sup><a href="https://arxiv.org/html/2312.11242v2">[23]</a></sup></li>
+            <li><a href="https://arxiv.org/pdf/2304.11015">DIN-SQL</a> self-correction +1.73 pts; <a href="https://arxiv.org/html/2406.12692v1">MAGIC</a> auto-derives guideline from failure analysis → 85.66% <sup><a href="https://arxiv.org/html/2406.12692v1">[22]</a></sup></li>
+            <li><a href="https://arxiv.org/html/2505.13271">CSC-SQL</a> voting — merge-revises top-2 sampled SQLs; 73.67% BIRD private test (32B) <sup><a href="https://arxiv.org/html/2505.13271">[24]</a></sup></li>
+          </ul>
+        </div>
+        <div>
+          <p class="gp-col-head">Accuracy gains</p>
+          <div class="gp-accuracy-row">
+            <span class="label">PICARD: T5-3B Spider dev</span>
+            <span class="value up">74.4% → 79.3% <sup><a href="https://github.com/servicenow/picard">[20]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">DIN-SQL self-correction</span>
+            <span class="value up">78.62% → 80.35% <sup><a href="https://arxiv.org/html/2406.12692v1">[22]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">MAGIC vs manual guideline</span>
+            <span class="value up">85.66% Spider <sup><a href="https://arxiv.org/html/2406.12692v1">[22]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">CHASE-SQL oracle selection</span>
+            <span class="value up">82.79% upper bound <sup><a href="https://arxiv.org/html/2410.01943v1">[28]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">SSEV weighted voting</span>
+            <span class="value up">86.4% Spider test <sup><a href="https://www.arxiv.org/abs/2601.17942">[26]</a></sup></span>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- L5 Semantic Layer -->
+    <details class="gp-layer layer-l5">
+      <summary>
+        <div class="gp-layer-header">
+          <span class="gp-layer-num">L5</span>
+          <h3 class="gp-layer-title">Semantic Layer</h3>
+          <div class="gp-layer-meta">
+            <strong>83% vs ~40%</strong>
+            semantic layer vs raw SQL
+          </div>
+        </div>
+      </summary>
+      <div class="gp-layer-body">
+        <div>
+          <p class="gp-col-head">What it fixes</p>
+          <ul class="gp-technique-list">
+            <li>Raw schemas lack business process definitions, metric handling, synonym resolution <sup><a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst">[39]</a></sup></li>
+            <li>Define "total sales," dimensions, and filters <em>once</em>; reuse rather than re-infer per query <sup><a href="https://medium.com/wrenai/why-the-semantic-layer-is-essential-for-reliable-text-to-sql-and-how-wren-ai-brings-it-to-life-c54cc0e6e4bc">[34]</a></sup></li>
+            <li>BIRD's hand-crafted evidence approximates a semantic layer, but can't scale — this does <sup><a href="https://beancount.io/bean-labs/research-logs/2026/06/06/bird-benchmark-text-to-sql-real-database-gap">[11]</a></sup></li>
+            <li><a href="https://atlan.com/know/best-semantic-layer-tools/">OSI (Jan 2026)</a> — vendor-neutral YAML standard, 40+ partners (Snowflake, dbt, Cube, Databricks) <sup><a href="https://atlan.com/know/best-semantic-layer-tools/">[42]</a></sup></li>
+          </ul>
+        </div>
+        <div>
+          <p class="gp-col-head">Warehouse-native tools</p>
+          <div class="gp-accuracy-row">
+            <span class="label"><a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst" style="color:var(--muted)">Snowflake Cortex Analyst</a></span>
+            <span class="value neutral">YAML semantic model <sup><a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst">[39]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">Databricks Genie</span>
+            <span class="value neutral">Unity Catalog metadata <sup><a href="https://blog.agami.ai/snowflake-cortex-analyst-vs-databricks-genie-vs-bigquery-gemini-warehouse-native-ai-compared/">[40]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label">BigQuery Gemini</span>
+            <span class="value neutral">Dataform views <sup><a href="https://blog.agami.ai/snowflake-cortex-analyst-vs-databricks-genie-vs-bigquery-gemini-warehouse-native-ai-compared/">[40]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label"><a href="https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026" style="color:var(--muted)">dbt Semantic Layer</a></span>
+            <span class="value up">83% vs ~40% <sup><a href="https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026">[41]</a></sup></span>
+          </div>
+          <div class="gp-accuracy-row">
+            <span class="label"><a href="https://github.com/Canner/WrenAI" style="color:var(--muted)">WrenAI MDL</a></span>
+            <span class="value neutral">⭐ 15k open-source <sup><a href="https://github.com/Canner/WrenAI">[33]</a></sup></span>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- DECISION GUIDE -->
+    <div class="gp-section-head"><h2>Grounding recipe</h2></div>
+
+    <ol class="gp-recipe">
+      <li>
+        <div>
+          <span class="condition">Always</span><br>
+          Serialize as DDL or M-Schema with types, PK/FK, column descriptions, and a few sample values.
+          <sup><a href="https://arxiv.org/pdf/2308.15363">[6]</a><a href="https://arxiv.org/html/2411.08599v1">[8]</a></sup>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="condition">Small / medium DB + strong model</span><br>
+          Feed the full schema. Skip explicit linking filters — they can <em>hurt</em> top models.
+          Full-schema prompting reaches 94.62% EX.
+          <sup><a href="https://arxiv.org/html/2408.07702v1">[29]</a></sup>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="condition">Large DB (&gt;~hundreds of columns)</span><br>
+          Embedding retrieval + dynamic (not fixed-k) pruning + literal value retrieval.
+          Static top-k is brittle — too small drops tables, too large injects noise.
+          <sup><a href="https://arxiv.org/html/2510.09014">[16]</a><a href="https://www.mdpi.com/2076-3417/16/2/586">[18]</a><a href="https://arxiv.org/html/2407.03227v1">[17]</a></sup>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="condition">Always</span><br>
+          Execute the candidate, repair on error, and vote across samples.
+          Execution feedback grounds against the actual database, not a representation of it.
+          <sup><a href="https://arxiv.org/html/2312.11242v2">[23]</a><a href="https://arxiv.org/html/2505.13271">[24]</a></sup>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="condition">Enterprise reliability</span><br>
+          Ground on a semantic layer / metadata catalog so domain rules and metric definitions live outside the prompt.
+          <sup><a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst">[39]</a><a href="https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026">[41]</a></sup>
+        </div>
+      </li>
+    </ol>
+
+    <!-- TOOLS -->
+    <div class="gp-section-head"><h2>Open-source tools</h2></div>
+
+    <div class="gp-tools">
+
+      <div class="gp-tool-card">
+        <div class="gp-tool-img">
+          <img src="grounding-pipeline/images/langchain.png" alt="LangChain repository banner">
+        </div>
+        <div class="gp-tool-body">
+          <div class="gp-tool-header">
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="gp-tool-name"><a href="https://github.com/langchain-ai/langchain">LangChain</a></span>
+            <span class="gp-tool-stars">⭐ 139k</span>
+          </div>
+          <p class="gp-tool-approach"><code>SQLDatabase</code> / <code>SQLDatabaseChain</code>. Manual prompt + schema filtering. Requires careful engineering for large DBs. <sup><a href="https://github.com/langchain-ai/langchain">[38]</a></sup></p>
+          <span class="gp-tool-tag">manual filtering</span>
+        </div>
+      </div>
+
+      <div class="gp-tool-card">
+        <div class="gp-tool-img placeholder">∑</div>
+        <div class="gp-tool-body">
+          <div class="gp-tool-header">
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="gp-tool-name"><a href="https://github.com/run-llama/llama_index">LlamaIndex</a></span>
+            <span class="gp-tool-stars">⭐ 50k</span>
+          </div>
+          <p class="gp-tool-approach"><code>NLSQLTableQueryEngine</code> + <code>ObjectIndex</code> — retrieves only relevant tables to avoid context overflow. <sup><a href="https://github.com/run-llama/llama_index">[37]</a></sup></p>
+          <span class="gp-tool-tag">table retrieval</span>
+        </div>
+      </div>
+
+      <div class="gp-tool-card">
+        <div class="gp-tool-img">
+          <img src="grounding-pipeline/images/vanna.png" alt="Vanna AI repository banner">
+        </div>
+        <div class="gp-tool-body">
+          <div class="gp-tool-header">
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="gp-tool-name"><a href="https://github.com/vanna-ai/vanna">Vanna</a></span>
+            <span class="gp-tool-stars">⭐ 24k</span>
+          </div>
+          <p class="gp-tool-approach">RAG model trained on DDL + docs + example SQL; retrieves top-10 per query into the LLM prompt. <sup><a href="https://github.com/vanna-ai/vanna">[31]</a></sup></p>
+          <span class="gp-tool-tag">RAG trained</span>
+        </div>
+      </div>
+
+      <div class="gp-tool-card">
+        <div class="gp-tool-img">
+          <img src="grounding-pipeline/images/wrenai.png" alt="WrenAI repository banner">
+        </div>
+        <div class="gp-tool-body">
+          <div class="gp-tool-header">
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="gp-tool-name"><a href="https://github.com/Canner/WrenAI">WrenAI</a></span>
+            <span class="gp-tool-stars">⭐ 15k</span>
+          </div>
+          <p class="gp-tool-approach">Open context layer. MDL encodes schema, metrics, and relationships. Defines business meaning once; reuses across queries. <sup><a href="https://github.com/Canner/WrenAI">[33]</a></sup></p>
+          <span class="gp-tool-tag">semantic MDL</span>
+        </div>
+      </div>
+
+      <div class="gp-tool-card">
+        <div class="gp-tool-img placeholder" style="background:linear-gradient(135deg,#161b22,#21262d);">⚙</div>
+        <div class="gp-tool-body">
+          <div class="gp-tool-header">
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=dataherald.readthedocs.io&sz=128" alt="">
+            <span class="gp-tool-name"><a href="https://dataherald.readthedocs.io/en/latest/text_to_sql_engine.html">Dataherald</a></span>
+            <span class="gp-tool-stars">⭐ 3.6k</span>
+          </div>
+          <p class="gp-tool-approach">Agentic: schema tools + Context Store + dynamic golden Q/SQL retrieval via <code>GetFewShotExamples</code>. <sup><a href="https://dataherald.readthedocs.io/en/latest/text_to_sql_engine.html">[35]</a></sup></p>
+          <span class="gp-tool-tag">agentic + golden SQL</span>
+        </div>
+      </div>
+
+      <div class="gp-tool-card">
+        <div class="gp-tool-img placeholder" style="background:linear-gradient(135deg,#161b22,#21262d);">⊕</div>
+        <div class="gp-tool-body">
+          <div class="gp-tool-header">
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="gp-tool-name"><a href="https://github.com/BeachWang/DAIL-SQL">DAIL-SQL</a></span>
+            <span class="gp-tool-stars">⭐ 635</span>
+          </div>
+          <p class="gp-tool-approach">Research baseline: Code Representation prompt + similarity-masked demonstrations. 83.5% EX Spider-dev with GPT-4. <sup><a href="https://github.com/BeachWang/DAIL-SQL">[7]</a></sup></p>
+          <span class="gp-tool-tag">research baseline</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BENCHMARK TABLE -->
+    <div class="gp-section-head"><h2>Benchmark landscape</h2></div>
+
+    <table class="gp-bench-table">
+      <thead>
+        <tr>
+          <th>System</th>
+          <th>Benchmark</th>
+          <th>Score</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="model">AskData + GPT-4o <sup><a href="https://bird-bench.github.io/">[10]</a></sup></td>
+          <td>BIRD test</td>
+          <td><span class="score rank1">81.95%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-good" style="width:88%"></div></div></td>
+          <td class="gp-bench-note">oracle evidence</td>
+        </tr>
+        <tr>
+          <td class="model">Human baseline <sup><a href="https://bird-bench.github.io/">[10]</a></sup></td>
+          <td>BIRD test</td>
+          <td><span class="score">92.96%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-good" style="width:100%"></div></div></td>
+          <td class="gp-bench-note">ceiling</td>
+        </tr>
+        <tr>
+          <td class="model">CHASE-SQL <sup><a href="https://arxiv.org/html/2410.01943v1">[28]</a></sup></td>
+          <td>BIRD test</td>
+          <td><span class="score rank2">73.0%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-good" style="width:79%"></div></div></td>
+          <td class="gp-bench-note">oracle upper bound 82.79%</td>
+        </tr>
+        <tr>
+          <td class="model">DAIL-SQL + GPT-4 <sup><a href="https://github.com/BeachWang/DAIL-SQL">[7]</a></sup></td>
+          <td>Spider leaderboard</td>
+          <td><span class="score rank1">86.6%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-good" style="width:93%"></div></div></td>
+          <td class="gp-bench-note">Code Representation prompt</td>
+        </tr>
+        <tr>
+          <td class="model">DivSkill-SQL <sup><a href="https://spider2-sql.github.io/">[13]</a></sup></td>
+          <td>Spider 2.0-Lite</td>
+          <td><span class="score rank2">73.13%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-mid" style="width:79%"></div></div></td>
+          <td class="gp-bench-note">enterprise DBs (&gt;1k cols)</td>
+        </tr>
+        <tr>
+          <td class="model">GPT-4o <sup><a href="https://spider2-sql.github.io/">[13]</a></sup></td>
+          <td>Spider 2.0</td>
+          <td><span class="score collapse">10.1%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-low" style="width:11%"></div></div></td>
+          <td class="gp-bench-note">vs 86.6% on Spider 1.0</td>
+        </tr>
+        <tr>
+          <td class="model">Full-schema prompting <sup><a href="https://arxiv.org/html/2408.07702v1">[29]</a></sup></td>
+          <td>Spider dev</td>
+          <td><span class="score rank1">94.62%</span><div class="gp-bench-bar"><div class="gp-bench-bar-fill bar-good" style="width:100%"></div></div></td>
+          <td class="gp-bench-note">strong model — linking hurts</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- SIBLINGS -->
+    <div class="gp-section-head"><h2>In this expedition</h2></div>
+
+    <div class="gp-siblings">
+      <a class="gp-sib-card" href="../../naive-text-to-sql-failure-modes/">
+        <div class="gp-sib-depth">expedition</div>
+        <div class="gp-sib-title">Naive text-to-SQL failure modes</div>
+        <div class="gp-sib-summary">~97% of wrong SQL executes cleanly and returns a plausible, wrong number.</div>
+      </a>
+      <a class="gp-sib-card active" href="../">
+        <div class="gp-sib-depth">expedition · this page</div>
+        <div class="gp-sib-title">Schema grounding strategies</div>
+        <div class="gp-sib-summary">Layered stack: linking, representation, retrieval, feedback.</div>
+      </a>
+      <a class="gp-sib-card" href="../../read-only-enforcement-and-least-privilege-roles/">
+        <div class="gp-sib-depth">survey</div>
+        <div class="gp-sib-title">Read-only enforcement &amp; least-privilege roles</div>
+        <div class="gp-sib-summary">Purpose-built roles, column/row filtering, read replicas as write boundaries.</div>
+      </a>
+      <a class="gp-sib-card" href="../../query-validation-and-safety-gates/">
+        <div class="gp-sib-depth">survey</div>
+        <div class="gp-sib-title">Query validation &amp; safety gates</div>
+        <div class="gp-sib-summary">Five-layer defense: allowlists, AST checks, schema binding, policy injection.</div>
+      </a>
+      <a class="gp-sib-card" href="../../pgvector-semantic-row-search/">
+        <div class="gp-sib-depth">expedition</div>
+        <div class="gp-sib-title">pgvector semantic row search</div>
+        <div class="gp-sib-summary">Nearest-neighbor row retrieval, indexing, and grounding text-to-SQL.</div>
+      </a>
+      <a class="gp-sib-card" href="../../observability-and-audit-logging/">
+        <div class="gp-sib-depth">recon</div>
+        <div class="gp-sib-title">Observability &amp; audit logging</div>
+        <div class="gp-sib-summary">Debug production, prove compliance and accountability.</div>
+      </a>
+      <a class="gp-sib-card" href="../../multi-tenant-and-row-level-security/">
+        <div class="gp-sib-depth">recon</div>
+        <div class="gp-sib-title">Multi-tenant &amp; row-level security</div>
+        <div class="gp-sib-summary">PostgreSQL RLS — cost-efficient isolation with session variables and non-owner roles.</div>
+      </a>
+    </div>
+
+  </div><!-- /gp-content -->
+
+</div><!-- /gp-wrap -->
