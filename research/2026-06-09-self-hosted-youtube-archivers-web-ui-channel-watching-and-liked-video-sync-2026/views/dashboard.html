@@ -1,0 +1,645 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Self-hosted YouTube archivers: web UI, channel watching, and liked-video sync (2026) — Dashboard"
+---
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0b0f17;
+  --bg-p:     #111720;
+  --bg-el:    #171f2d;
+  --border:   #1d2a3a;
+  --text:     #c8d5e6;
+  --dim:      #55708a;
+  --muted:    #334455;
+  --accent:   #e8a000;
+  --win:      #4ade80;  --win-bg:  rgba(74,222,128,.10);
+  --warn:     #fbbf24;  --warn-bg: rgba(251,191,36,.10);
+  --lose:     #f87171;  --lose-bg: rgba(248,113,113,.10);
+  --info:     #60a5fa;  --info-bg: rgba(96,165,250,.10);
+  --mono: 'JetBrains Mono','Cascadia Code','Fira Code',ui-monospace,monospace;
+  --sans: system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r: 6px;
+}
+
+.db { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.55; }
+
+/* ── HEADER ─────────────────────────────────── */
+.db-hdr {
+  background: var(--bg-p);
+  border-bottom: 1px solid var(--border);
+  padding: .7rem 1.75rem;
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+}
+.hdr-logo { width: 28px; height: 28px; flex-shrink: 0; opacity: .85; }
+.hdr-title {
+  font-family: var(--mono); font-size: .78rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
+}
+.hdr-meta { display: flex; gap: 1.25rem; margin-left: auto; flex-wrap: wrap; }
+.hdr-meta span { font-family: var(--mono); font-size: .7rem; color: var(--dim); }
+.hdr-meta .hi { color: var(--warn); font-weight: 600; }
+
+/* ── SECTIONS ────────────────────────────────── */
+.db-sec { padding: 1.6rem 1.75rem; border-bottom: 1px solid var(--border); }
+.db-sec:last-child { border-bottom: none; }
+.sec-lbl {
+  font-family: var(--mono); font-size: .65rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.1rem;
+}
+
+/* ── VERDICT ─────────────────────────────────── */
+.verdict-q {
+  font-size: .82rem; color: var(--dim); margin-bottom: 1.1rem;
+}
+.verdict-q strong { color: var(--text); }
+
+.verdict-grid {
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr;
+  gap: .75rem;
+  align-items: start;
+}
+.vc {
+  background: var(--bg-p); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 1.3rem 1.4rem;
+}
+.vc.ta { border-top: 3px solid var(--accent); }
+.vc.pf { border-top: 3px solid var(--info); }
+
+.vc-tag {
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim); margin-bottom: .45rem;
+}
+.vc-name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: .2rem; }
+.vc-name a { color: inherit; text-decoration: none; }
+.vc-name a:hover { color: var(--accent); }
+.vc-stars { font-family: var(--mono); font-size: .8rem; color: var(--warn); margin-bottom: .9rem; }
+
+.pills { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .9rem; }
+.pill {
+  font-family: var(--mono); font-size: .68rem; font-weight: 600;
+  padding: .18em .55em; border-radius: 3px;
+}
+.p-g { background: var(--win-bg);  color: var(--win);  }
+.p-r { background: var(--lose-bg); color: var(--lose); }
+.p-a { background: var(--warn-bg); color: var(--warn); }
+.p-i { background: var(--info-bg); color: var(--info); }
+
+.vc-desc { font-size: .8rem; color: var(--dim); line-height: 1.65; }
+.vc-desc a { color: var(--accent); text-decoration: none; }
+.vc-desc a:hover { text-decoration: underline; }
+
+.vs-divider {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: .5rem 0; gap: .5rem; height: 100%;
+}
+.vs-word {
+  font-family: var(--mono); font-size: .95rem; font-weight: 700;
+  color: var(--muted); writing-mode: vertical-rl; letter-spacing: .08em;
+}
+.vs-line { width: 1px; flex: 1; background: var(--border); }
+
+.base-note {
+  margin-top: 1rem; background: var(--bg-el); border: 1px solid var(--border);
+  border-radius: var(--r); padding: .8rem 1.1rem;
+  font-size: .78rem; color: var(--dim); line-height: 1.65;
+}
+.base-note a { color: var(--accent); text-decoration: none; }
+.base-note a:hover { text-decoration: underline; }
+.base-note strong { color: var(--text); }
+.base-note code {
+  font-family: var(--mono); font-size: .82em; background: var(--bg-p);
+  padding: .1em .35em; border-radius: 2px; color: var(--info);
+}
+
+/* ── MATRIX ──────────────────────────────────── */
+.matrix-wrap { overflow-x: auto; }
+
+table.mat { width: 100%; border-collapse: collapse; font-size: .8rem; }
+table.mat th {
+  background: var(--bg-el); color: var(--dim);
+  font-family: var(--mono); font-size: .63rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: .55rem .75rem; text-align: left;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+table.mat td { padding: .55rem .75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.mat tr:last-child td { border-bottom: none; }
+table.mat tr:hover td { background: rgba(255,255,255,.018); }
+
+.tc { white-space: nowrap; }
+.tc-inner { display: flex; align-items: center; gap: .5rem; }
+.tc-ico { width: 16px; height: 16px; border-radius: 2px; flex-shrink: 0; }
+.tc-inner a { font-weight: 700; color: var(--text); text-decoration: none; }
+.tc-inner a:hover { color: var(--accent); }
+.tc-stars { font-family: var(--mono); font-size: .68rem; color: var(--warn); display: block; margin-top: .15em; }
+
+/* type-of-app pill */
+.app-pill {
+  font-family: var(--mono); font-size: .65rem; font-weight: 600;
+  padding: .15em .5em; border-radius: 3px;
+}
+.ap-app  { background: rgba(96,165,250,.12); color: var(--info); }
+.ap-mgr  { background: rgba(52,211,153,.12); color: #34d399; }
+.ap-pvr  { background: rgba(167,139,250,.12); color: #a78bfa; }
+.ap-cli  { background: rgba(251,146,60,.12);  color: #fb923c; }
+.ap-q    { background: rgba(100,116,139,.18); color: #94a3b8; }
+
+/* cell states */
+.cw { background: var(--win-bg);  color: var(--win);  font-weight: 600; }
+.ca { background: var(--warn-bg); color: var(--warn); }
+.cr { background: var(--lose-bg); color: var(--lose); }
+.cn { color: var(--dim); }
+
+.dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; margin-right: .4em; flex-shrink: 0;
+  vertical-align: middle;
+}
+.dot-g { background: var(--win); }
+.dot-a { background: var(--warn); }
+.dot-r { background: var(--lose); }
+
+/* footprint cell */
+.fp { display: flex; flex-direction: column; gap: .2em; }
+.fp-c { font-family: var(--mono); font-size: .72rem; }
+.fp-ram { display: flex; align-items: center; gap: .4rem; margin-top: .15em; }
+.fp-bar { background: var(--bg-el); border-radius: 2px; height: 5px; flex: 1; min-width: 40px; position: relative; }
+.fp-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--lose); }
+.fp-fill.med  { background: var(--warn); }
+.fp-fill.low  { background: var(--win); }
+.fp-lbl { font-family: var(--mono); font-size: .65rem; white-space: nowrap; }
+
+/* ── STARS CHART ─────────────────────────────── */
+.star-rows { display: flex; flex-direction: column; gap: .55rem; }
+.srow { display: grid; grid-template-columns: 150px 1fr 72px; align-items: center; gap: .75rem; }
+.srow-name { font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.srow-name a { color: var(--text); text-decoration: none; }
+.srow-name a:hover { color: var(--accent); }
+.srow-track { background: var(--bg-el); border-radius: 3px; height: 8px; position: relative; overflow: hidden; }
+.srow-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.srow-val { font-family: var(--mono); font-size: .75rem; text-align: right; }
+/* individual tool colors */
+.f-ta { background: linear-gradient(90deg, #e8a000, #fbbf24); }
+.f-pf { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.f-ts { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.f-ys { background: linear-gradient(90deg, #f97316, #fb923c); }
+.f-mt { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.f-wu { background: linear-gradient(90deg, #334455, #64748b); }
+.star-note { margin-top: .9rem; font-size: .75rem; color: var(--dim); line-height: 1.6; }
+.star-note strong { color: var(--text); }
+
+/* ── RISK CARDS ──────────────────────────────── */
+.risk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: .9rem; }
+.rc {
+  background: var(--bg-p); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.1rem 1.2rem;
+}
+.rc.hi { border-left: 3px solid var(--lose); }
+.rc.md { border-left: 3px solid var(--warn); }
+
+.rc-icon { font-size: 1.25rem; margin-bottom: .4rem; }
+.rc-title { font-weight: 700; font-size: .88rem; margin-bottom: .45rem; }
+.rc-body { font-size: .78rem; color: var(--dim); line-height: 1.65; }
+.rc-body a { color: var(--accent); text-decoration: none; }
+.rc-body a:hover { text-decoration: underline; }
+.rc-body strong { color: var(--text); }
+.rc-body code {
+  font-family: var(--mono); font-size: .82em;
+  background: var(--bg-el); padding: .1em .35em; border-radius: 2px; color: var(--info);
+}
+
+/* ── FOOTER ──────────────────────────────────── */
+.db-foot {
+  padding: 1rem 1.75rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+  border-top: 1px solid var(--border);
+}
+.foot-txt { font-family: var(--mono); font-size: .67rem; color: var(--muted); }
+.foot-link a { font-family: var(--mono); font-size: .67rem; color: var(--accent); text-decoration: none; }
+.foot-link a:hover { text-decoration: underline; }
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media (max-width: 680px) {
+  .db-sec { padding: 1.2rem 1rem; }
+  .db-hdr { padding: .6rem 1rem; }
+  .verdict-grid { grid-template-columns: 1fr; }
+  .vs-divider { flex-direction: row; writing-mode: unset; height: auto; padding: .4rem 0; }
+  .vs-word { writing-mode: unset; }
+  .vs-line { height: 1px; width: auto; flex: 1; }
+  .srow { grid-template-columns: 120px 1fr 58px; }
+}
+</style>
+
+<div class="db">
+
+  <!-- ── HEADER ──────────────────────────────── -->
+  <header class="db-hdr">
+    <img class="hdr-logo" src="../cover.svg" alt="">
+    <div class="hdr-title">YouTube Archiver Comparison — 2026</div>
+    <div class="hdr-meta">
+      <span><span class="hi">6</span> tools reviewed</span>
+      <span>core: <a href="https://github.com/yt-dlp/yt-dlp" style="color:var(--warn);text-decoration:none;">yt-dlp</a> <span class="hi">⭐ 169k</span></span>
+      <span><span class="hi">95</span> citations</span>
+      <span>June 2026</span>
+    </div>
+  </header>
+
+  <!-- ── SECTION 1: VERDICT ──────────────────── -->
+  <section class="db-sec">
+    <div class="sec-lbl">Primary Decision</div>
+    <p class="verdict-q">
+      <strong>Do you need in-browser playback and full-text search in one app?</strong>
+      Or are you feeding content into an existing Plex / Jellyfin / Kodi library?
+    </p>
+
+    <div class="verdict-grid">
+
+      <!-- TubeArchivist -->
+      <div class="vc ta">
+        <div class="vc-tag">Standalone watch app · YES path</div>
+        <div class="vc-name"><a href="https://github.com/tubearchivist/tubearchivist">TubeArchivist</a></div>
+        <div class="vc-stars">⭐ 8.1k</div>
+        <div class="pills">
+          <span class="pill p-r">3 containers</span>
+          <span class="pill p-r">~4 GB RAM</span>
+          <span class="pill p-r">Elasticsearch required</span>
+          <span class="pill p-g">Built-in player</span>
+          <span class="pill p-g">Full-text search</span>
+          <span class="pill p-g">Multi-user auth</span>
+          <span class="pill p-g">1-click cookie</span>
+        </div>
+        <p class="vc-desc">
+          The only tool that <em>is</em> a YouTube-at-home app: Elasticsearch indexes titles, descriptions,
+          subtitles, and comments; the in-browser player tracks watched state; multi-user auth (roles, LDAP).
+          The cost is three containers — app + Redis + Elasticsearch 8 — and the
+          <a href="https://docs.tubearchivist.com/installation/docker-compose/">~4 GB RAM floor</a>
+          is the canonical reason people switch away.
+          <sup><a href="https://github.com/tubearchivist/tubearchivist">[2]</a></sup>
+          <sup><a href="https://docs.tubearchivist.com/installation/docker-compose/">[7]</a></sup>
+        </p>
+      </div>
+
+      <!-- VS divider -->
+      <div class="vs-divider">
+        <div class="vs-line"></div>
+        <span class="vs-word">vs</span>
+        <div class="vs-line"></div>
+      </div>
+
+      <!-- PinchFlat -->
+      <div class="vc pf">
+        <div class="vc-tag">Media server feed · NO path</div>
+        <div class="vc-name"><a href="https://github.com/kieraneglin/pinchflat">PinchFlat</a></div>
+        <div class="vc-stars">⭐ 5.0k</div>
+        <div class="pills">
+          <span class="pill p-g">1 container</span>
+          <span class="pill p-g">SQLite only</span>
+          <span class="pill p-g">Richest filter depth</span>
+          <span class="pill p-g">Lifecycle hooks</span>
+          <span class="pill p-i">Jellyfin / Plex / Kodi</span>
+          <span class="pill p-a">No in-app playback</span>
+        </div>
+        <p class="vc-desc">
+          Single-container Elixir app. Best-in-class download filtering: title regex, cutoff date,
+          min/max duration, Shorts/livestream toggles, dry-run preview.
+          <a href="https://github.com/kieraneglin/pinchflat/wiki/%5BAdvanced%5D-Custom-lifecycle-scripts">Lifecycle scripts</a>
+          (bash/Python, <code>jq</code> bundled) fire on every event.
+          Explicitly "not for consuming content in-app" — it feeds your media server.
+          <a href="https://news.ycombinator.com/item?id=43374954">Front-paged on HN</a>
+          as the rising alternative to TubeArchivist's complexity.
+          <sup><a href="https://github.com/kieraneglin/pinchflat">[3]</a></sup>
+          <sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[10]</a></sup>
+        </p>
+      </div>
+
+    </div><!-- /verdict-grid -->
+
+    <div class="base-note">
+      <strong>All six tools are wrappers.</strong>
+      Every candidate wraps <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a> ⭐ 169k — so all break
+      simultaneously when YouTube tightens bot detection. The
+      <a href="https://github.com/yt-dlp/yt-dlp/issues/15865">February 2026 <code>LOGIN_REQUIRED</code> wall</a>
+      hit all of them at once. Plan for monthly yt-dlp updates and, for unattended operation,
+      a co-deployed <a href="https://github.com/Brainicism/bgutil-ytdlp-pot-provider">bgutil POT provider</a> ⭐ 559
+      to mint proof-of-origin tokens on demand.
+    </div>
+  </section>
+
+  <!-- ── SECTION 2: FEATURE MATRIX ───────────── -->
+  <section class="db-sec">
+    <div class="sec-lbl">Feature Matrix</div>
+    <div class="matrix-wrap">
+      <table class="mat">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Type</th>
+            <th>Channel watching</th>
+            <th>Download filters</th>
+            <th>Liked video sync</th>
+            <th>Playback</th>
+            <th>Media server</th>
+            <th>Footprint</th>
+            <th>Health</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td class="tc">
+              <div class="tc-inner">
+                <img class="tc-ico" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+                <div>
+                  <a href="https://github.com/tubearchivist/tubearchivist">TubeArchivist</a>
+                  <span class="tc-stars">⭐ 8.1k</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="app-pill ap-app">Full app</span></td>
+            <td class="cw">✓ once/day cron <sup><a href="https://docs.tubearchivist.com/channels/">[8]</a></sup></td>
+            <td class="cr">Shorts/live toggle only <sup><a href="https://docs.tubearchivist.com/channels/">[8]</a></sup></td>
+            <td class="cw">✓ 1-click extension <sup><a href="https://docs.tubearchivist.com/settings/application/">[9]</a></sup></td>
+            <td class="cw">✓ built-in player</td>
+            <td class="cn">Own + Jellyfin plugin</td>
+            <td>
+              <div class="fp">
+                <span class="fp-c cr" style="font-size:.72rem;font-weight:600;">3 containers</span>
+                <div class="fp-ram">
+                  <div class="fp-bar" style="flex:1;"><div class="fp-fill" style="width:100%;"></div></div>
+                  <span class="fp-lbl cr">~4 GB</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="dot dot-g"></span><span style="color:var(--win);font-weight:600;">Active</span></td>
+          </tr>
+
+          <tr>
+            <td class="tc">
+              <div class="tc-inner">
+                <img class="tc-ico" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+                <div>
+                  <a href="https://github.com/kieraneglin/pinchflat">PinchFlat</a>
+                  <span class="tc-stars">⭐ 5.0k</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="app-pill ap-mgr">Manager</span></td>
+            <td class="cw">✓ interval-based <sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[10]</a></sup></td>
+            <td class="cw">Regex + date + duration <sup><a href="https://github.com/kieraneglin/pinchflat/wiki/Frequently-Asked-Questions">[10]</a></sup></td>
+            <td class="ca">✓ cookies.txt ⚠ ban risk <sup><a href="https://github.com/kieraneglin/pinchflat/wiki/YouTube-Cookies">[11]</a></sup></td>
+            <td class="cr">✗ not for in-app use</td>
+            <td class="cw">Jellyfin / Plex / Kodi <sup><a href="https://www.xda-developers.com/this-app-turned-my-jellyfin-server-into-a-youtube-archive/">[20]</a></sup></td>
+            <td>
+              <div class="fp">
+                <span class="fp-c cw" style="font-size:.72rem;font-weight:600;">1 container</span>
+                <div class="fp-ram">
+                  <div class="fp-bar" style="flex:1;"><div class="fp-fill low" style="width:10%;"></div></div>
+                  <span class="fp-lbl" style="color:var(--win);">SQLite</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="dot dot-g"></span><span style="color:var(--win);font-weight:600;">Active</span></td>
+          </tr>
+
+          <tr>
+            <td class="tc">
+              <div class="tc-inner">
+                <img class="tc-ico" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+                <div>
+                  <a href="https://github.com/meeb/tubesync">TubeSync</a>
+                  <span class="tc-stars">⭐ 2.7k</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="app-pill ap-pvr">PVR-style</span></td>
+            <td class="cw">✓ per-source, ≤24h</td>
+            <td class="ca">Resolution floor only</td>
+            <td class="ca">✓ Netscape cookies, own risk <sup><a href="https://github.com/meeb/tubesync/wiki/using-cookies">[24]</a></sup></td>
+            <td class="cr">✗</td>
+            <td class="cn">Plex / Jellyfin</td>
+            <td>
+              <div class="fp">
+                <span class="fp-c cw" style="font-size:.72rem;font-weight:600;">1 container</span>
+                <div class="fp-ram">
+                  <div class="fp-bar" style="flex:1;"><div class="fp-fill low" style="width:8%;"></div></div>
+                  <span class="fp-lbl" style="color:var(--win);">low</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="dot dot-a"></span><span style="color:var(--warn);">Issues <sup><a href="https://github.com/meeb/tubesync/issues/1310">[16]</a></sup></span></td>
+          </tr>
+
+          <tr>
+            <td class="tc">
+              <div class="tc-inner">
+                <img class="tc-ico" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+                <div>
+                  <a href="https://github.com/jmbannon/ytdl-sub">ytdl-sub</a>
+                  <span class="tc-stars">⭐ 2.8k</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="app-pill ap-cli">CLI / YAML</span></td>
+            <td class="cw">✓ external cron <sup><a href="https://ytdl-sub.readthedocs.io/en/latest/guides/getting_started/automating_downloads.html">[25]</a></sup></td>
+            <td class="cw">Full yt-dlp YAML config</td>
+            <td class="ca">✓ cookiefile, no auto-prune</td>
+            <td class="cr">✗ no playback</td>
+            <td class="cw">NFO presets (Kodi/Jellyfin/Plex)</td>
+            <td>
+              <div class="fp">
+                <span class="fp-c cw" style="font-size:.72rem;font-weight:600;">1 container</span>
+                <div class="fp-ram">
+                  <div class="fp-bar" style="flex:1;"><div class="fp-fill low" style="width:6%;"></div></div>
+                  <span class="fp-lbl" style="color:var(--win);">low</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="dot dot-g"></span><span style="color:var(--win);font-weight:600;">Active</span></td>
+          </tr>
+
+          <tr>
+            <td class="tc">
+              <div class="tc-inner">
+                <img class="tc-ico" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+                <div>
+                  <a href="https://github.com/alexta69/metube">MeTube</a>
+                  <span class="tc-stars">⭐ 13.8k</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="app-pill ap-q">Queue</span></td>
+            <td class="ca">✓ 60-min interval (new 2026) <sup><a href="https://github.com/alexta69/metube">[1]</a></sup></td>
+            <td class="cr">Top-50 items only</td>
+            <td class="ca">✓ cookie upload in UI</td>
+            <td class="cr">✗ download-only</td>
+            <td class="cr">None (stateless)</td>
+            <td>
+              <div class="fp">
+                <span class="fp-c cw" style="font-size:.72rem;font-weight:600;">1 container</span>
+                <div class="fp-ram">
+                  <div class="fp-bar" style="flex:1;"><div class="fp-fill low" style="width:4%;"></div></div>
+                  <span class="fp-lbl" style="color:var(--win);">tiny</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="dot dot-g"></span><span style="color:var(--win);font-weight:600;">Active</span></td>
+          </tr>
+
+          <tr>
+            <td class="tc">
+              <div class="tc-inner">
+                <img class="tc-ico" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+                <div>
+                  <a href="https://github.com/marcopiovanello/yt-dlp-web-ui">yt-dlp-web-ui</a>
+                  <span class="tc-stars">⭐ 2.5k</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="app-pill ap-q">Queue</span></td>
+            <td class="cr">✗ no subscriptions</td>
+            <td class="cr">None</td>
+            <td class="cr">Manual playlist URL only</td>
+            <td class="cr">✗</td>
+            <td class="cr">None</td>
+            <td>
+              <div class="fp">
+                <span class="fp-c cw" style="font-size:.72rem;font-weight:600;">1 container</span>
+                <div class="fp-ram">
+                  <div class="fp-bar" style="flex:1;"><div class="fp-fill low" style="width:4%;"></div></div>
+                  <span class="fp-lbl" style="color:var(--win);">tiny</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="dot dot-g"></span><span style="color:var(--win);font-weight:600;">Active</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: STARS CHART ──────────────── -->
+  <section class="db-sec">
+    <div class="sec-lbl">GitHub Stars — Popularity vs Archiving Fitness</div>
+    <div class="star-rows">
+
+      <div class="srow">
+        <div class="srow-name"><a href="https://github.com/alexta69/metube">MeTube</a></div>
+        <div class="srow-track">
+          <div class="srow-fill f-mt" style="width:100%;"></div>
+        </div>
+        <div class="srow-val" style="color:var(--win);">⭐ 13.8k</div>
+      </div>
+
+      <div class="srow">
+        <div class="srow-name"><a href="https://github.com/tubearchivist/tubearchivist">TubeArchivist</a></div>
+        <div class="srow-track">
+          <div class="srow-fill f-ta" style="width:58%;"></div>
+        </div>
+        <div class="srow-val" style="color:var(--warn);">⭐ 8.1k</div>
+      </div>
+
+      <div class="srow">
+        <div class="srow-name"><a href="https://github.com/kieraneglin/pinchflat">PinchFlat</a></div>
+        <div class="srow-track">
+          <div class="srow-fill f-pf" style="width:36%;"></div>
+        </div>
+        <div class="srow-val" style="color:var(--info);">⭐ 5.0k</div>
+      </div>
+
+      <div class="srow">
+        <div class="srow-name"><a href="https://github.com/jmbannon/ytdl-sub">ytdl-sub</a></div>
+        <div class="srow-track">
+          <div class="srow-fill f-ys" style="width:20.6%;"></div>
+        </div>
+        <div class="srow-val" style="color:#fb923c;">⭐ 2.8k</div>
+      </div>
+
+      <div class="srow">
+        <div class="srow-name"><a href="https://github.com/meeb/tubesync">TubeSync</a></div>
+        <div class="srow-track">
+          <div class="srow-fill f-ts" style="width:19.8%;"></div>
+        </div>
+        <div class="srow-val" style="color:#a78bfa;">⭐ 2.7k</div>
+      </div>
+
+      <div class="srow">
+        <div class="srow-name"><a href="https://github.com/marcopiovanello/yt-dlp-web-ui">yt-dlp-web-ui</a></div>
+        <div class="srow-track">
+          <div class="srow-fill f-wu" style="width:17.8%;"></div>
+        </div>
+        <div class="srow-val" style="color:#94a3b8;">⭐ 2.5k</div>
+      </div>
+
+    </div>
+    <p class="star-note">
+      <strong>Stars ≠ archiving fitness.</strong>
+      MeTube leads by 70% over TubeArchivist, but it's a download queue with no library or watched-state —
+      most of its stars come from one-off video saving, not channel archiving.
+      TubeArchivist and PinchFlat are purpose-built for the channel-watching + metadata use-case.
+    </p>
+  </section>
+
+  <!-- ── SECTION 4: SHARED RISKS ─────────────── -->
+  <section class="db-sec">
+    <div class="sec-lbl">Shared Risks — Regardless of Tool Choice</div>
+    <div class="risk-grid">
+
+      <div class="rc hi">
+        <div class="rc-icon">⚠</div>
+        <div class="rc-title">YouTube bot detection breaks all tools at once</div>
+        <div class="rc-body">
+          All six tools share yt-dlp as the download layer. When YouTube tightens bot detection,
+          every archiver breaks simultaneously — the
+          <a href="https://github.com/yt-dlp/yt-dlp/issues/15865">February 2026 <code>LOGIN_REQUIRED</code> bot wall</a>
+          hit all of them in parallel. Plan for <strong>monthly yt-dlp updates</strong>.
+          For unattended operation, deploy a
+          <a href="https://github.com/Brainicism/bgutil-ytdlp-pot-provider">bgutil POT provider</a> ⭐ 559
+          alongside your archiver — it mints proof-of-origin tokens on demand.
+        </div>
+      </div>
+
+      <div class="rc hi">
+        <div class="rc-icon">🍪</div>
+        <div class="rc-title">Liked-video sync is universally fragile</div>
+        <div class="rc-body">
+          Every tool syncs the private <code>LL</code> playlist by feeding yt-dlp a browser cookie.
+          As of 2026: <strong>Chrome 127+ app-bound encryption blocks all external cookie readers</strong>
+          (<a href="https://dev.to/osovsky/6-ways-to-get-youtube-cookies-for-yt-dlp-in-2026-only-1-works-2cnb">Firefox is the only reliable source</a>);
+          cookies expire in roughly <strong>two weeks</strong> when used outside a browser;
+          a <a href="https://github.com/yt-dlp/yt-dlp/issues/8732">known yt-dlp bug</a>
+          can return only ~11 items from a large liked playlist in one run.
+          Re-exporting Firefox cookies every ~10 days is the irreducible manual step.
+        </div>
+      </div>
+
+      <div class="rc md">
+        <div class="rc-icon">⚖</div>
+        <div class="rc-title">Account risk is real, not theoretical</div>
+        <div class="rc-body">
+          TubeArchivist <a href="https://docs.tubearchivist.com/faq/">explicitly warns</a>:
+          "YouTube has a detection mechanism that will invalidate your cookie if it's used outside of a browser."
+          PinchFlat's wiki notes yt-dlp <a href="https://github.com/kieraneglin/pinchflat/wiki/YouTube-Cookies">no longer recommends</a>
+          YouTube cookies because they can cause <strong>IP bans</strong>.
+          TubeSync's cookie docs state it is <a href="https://github.com/meeb/tubesync/wiki/using-cookies">"entirely at your own risk."</a>
+          Treat the cookie as a Google account credential — not a config value.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FOOTER ───────────────────────────────── -->
+  <footer class="db-foot">
+    <span class="foot-txt">95 citations · expedition depth · model: Sonnet 4.6</span>
+    <span class="foot-link"><a href="../">← Read the full expedition</a></span>
+  </footer>
+
+</div>
