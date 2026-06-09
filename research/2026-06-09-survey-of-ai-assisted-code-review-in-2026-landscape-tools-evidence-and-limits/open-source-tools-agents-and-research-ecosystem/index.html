@@ -1,0 +1,194 @@
+---
+title: "Open-Source AI Code Review in 2026: Tools, Agents, and the Research Ecosystem"
+date: 2026-06-09
+depth: deep
+format: html
+topic: "Open-source tools, agents, and research ecosystem"
+topic_raw: "Open-source tools, agents, and research ecosystem"
+issue: 203
+tags: [ai-code-review, open-source, ai-agents, benchmarks, llm, developer-tools]
+summary: "The open-source side of AI code review — review tools (PR-Agent), autonomous SWE agents, agent frameworks, the open-weight code LLMs underneath, and the benchmark/empirical research showing what actually works."
+citations: 65
+reading_time_min: 12
+cover: cover.svg
+cost_usd: 6.10
+duration_sec: 807
+model: "Opus 4.8"
+---
+
+<style>
+.tldr {
+  background: #1e293b;
+  border-left: 4px solid #f97316;
+  padding: 1rem 1.25rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  font-size: 0.97rem;
+  line-height: 1.65;
+}
+.tldr strong { color: #f97316; }
+.tldr ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+.tldr li { margin: 0.25rem 0; }
+.segment-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 2.5rem 0 0.5rem;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 0.3rem;
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 0.75rem 0 1.25rem; }
+th { background: #0f172a; color: #94a3b8; font-weight: 600; text-align: left; padding: 0.55rem 0.7rem; font-size: 0.77rem; letter-spacing: 0.03em; }
+td { padding: 0.5rem 0.7rem; border-bottom: 1px solid #1e293b; vertical-align: top; }
+tr:hover td { background: #0f172a55; }
+td.win { color: #4ade80; }
+td.lose { color: #f87171; }
+td.neutral { color: #94a3b8; }
+.stars { color: #fbbf24; white-space: nowrap; font-variant-numeric: tabular-nums; }
+sup a { color: #60a5fa; text-decoration: none; font-size: 0.72em; }
+.badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.12rem 0.4rem;
+  border-radius: 3px;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+.badge-oss { background: #064e3b; color: #6ee7b7; }
+.badge-oc { background: #78350f; color: #fcd34d; }
+.badge-prop { background: #7c3aed22; color: #c4b5fd; }
+.badge-dormant { background: #334155; color: #cbd5e1; }
+.statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+.stat { background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; padding: 0.85rem 1rem; }
+.stat .n { font-size: 1.5rem; font-weight: 700; color: #f97316; line-height: 1.1; }
+.stat .l { font-size: 0.76rem; color: #94a3b8; margin-top: 0.3rem; line-height: 1.35; }
+.timeline { list-style: none; padding-left: 0; margin: 1rem 0; }
+.timeline li { padding: 0.4rem 0 0.4rem 5.5rem; position: relative; border-left: 2px solid #334155; margin-left: 4.5rem; }
+.timeline .yr { position: absolute; left: -4.5rem; top: 0.4rem; width: 4rem; text-align: right; color: #f97316; font-weight: 700; font-size: 0.8rem; }
+.note { font-size: 0.85rem; color: #94a3b8; font-style: italic; margin: 0.5rem 0 1.5rem; }
+</style>
+
+<div class="tldr">
+<strong>TL;DR — the open-source half of AI code review in 2026.</strong> The truly self-hostable, OSI-licensed PR reviewer worth running is <a href="https://github.com/The-PR-Agent/pr-agent">PR-Agent</a> <span class="stars">⭐ 12k</span>, now community-owned under Apache 2.0 after Qodo donated it<sup><a href="https://github.com/The-PR-Agent/pr-agent">[1]</a></sup><sup><a href="https://aicoolies.com/reviews/pr-agent-review">[3]</a></sup>. Most other "open-source" review products are open-core (engine is proprietary cloud)<sup><a href="https://github.com/sourcery-ai/sourcery">[4]</a></sup>.
+<ul>
+<li><strong>Want a self-hosted reviewer →</strong> PR-Agent, or <a href="https://github.com/All-Hands-AI/OpenHands">OpenHands</a> <span class="stars">⭐ 76k</span> whose agent both fixes issues and posts PR reviews<sup><a href="https://docs.openhands.dev/sdk/guides/github-workflows/pr-review">[19]</a></sup>.</li>
+<li><strong>Building your own review pipeline →</strong> <a href="https://github.com/langchain-ai/langgraph">LangGraph</a> <span class="stars">⭐ 34k</span> is the production default; CrewAI for quick prototypes<sup><a href="https://pecollective.com/blog/ai-agent-frameworks-compared/">[24]</a></sup><sup><a href="https://alicelabs.ai/en/insights/best-ai-agent-frameworks-2026">[25]</a></sup>.</li>
+<li><strong>The evidence is sobering.</strong> The largest independent benchmark (200k+ real PRs) clusters top tools near ~52% precision / ~51% recall<sup><a href="https://www.codeant.ai/blogs/ai-code-review-benchmark-results-from-200-000-real-pull-requests">[50]</a></sup>; field studies find only 0.9–19.2% of AI comments get acted on vs ~60% for humans<sup><a href="https://arxiv.org/html/2508.18771">[55]</a></sup>. AI review is a useful-but-noisy assistant, not an autopilot<sup><a href="https://arxiv.org/html/2505.20206v1">[52]</a></sup>.</li>
+</ul>
+</div>
+
+<p>This is the open-source companion to the survey's commercial market map. The commercial vendors (CodeRabbit, Graphite, Qodo, Greptile) are covered separately; here the focus is what you can read, fork, self-host, and cite — the OSS review tools, the autonomous agents, the frameworks that build them, the open-weight models underneath, and the benchmark/empirical research that grounds it all.</p>
+
+<div class="segment-header">1 · Open-source PR review tools</div>
+
+<p>The defining 2026 event was Qodo <em>donating</em> PR-Agent to a fully community-owned GitHub org and restoring the Apache-2.0 license<sup><a href="https://github.com/The-PR-Agent/pr-agent">[1]</a></sup>. The community repo ships six tools — Describe, Review, Improve, Ask, Help&nbsp;Docs, Update&nbsp;CHANGELOG — across GitHub, GitLab, Bitbucket, Azure DevOps and Gitea, deployable as a GitHub App/Action, Docker container, pip CLI, or webhook, with bring-your-own LLM keys (OpenAI, Claude, Gemini, local Ollama)<sup><a href="https://aicoolies.com/reviews/pr-agent-review">[3]</a></sup><sup><a href="https://www.augmentcode.com/tools/open-source-ai-code-review-tools-worth-trying">[10]</a></sup>. It is explicitly the community legacy foundation, distinct from the commercial <strong>Qodo Merge</strong>, which keeps the proprietary RAG context engine, embedding models and SOC&nbsp;2 compliance behind the paywall<sup><a href="https://aicoolies.com/reviews/pr-agent-review">[3]</a></sup>. Independent testing on a 450K-file monorepo rated PR-Agent the most capable OSS reviewer but flagged heavy self-host configuration overhead<sup><a href="https://www.augmentcode.com/tools/open-source-ai-code-review-tools-worth-trying">[10]</a></sup>.</p>
+
+<p>The critical caveat: <strong>"open-source AI code review" is mostly open-<em>core</em>.</strong> <a href="https://github.com/sourcery-ai/sourcery">Sourcery</a>'s MIT repo contains only IDE plugins and GitHub-App glue — the actual AI engine is a proprietary cloud backend that cannot be self-hosted<sup><a href="https://github.com/sourcery-ai/sourcery">[4]</a></sup><sup><a href="https://github.com/sourcery-ai/sourcery">[5]</a></sup>. CodeRabbit is fully proprietary SaaS (free only for public repos). The genuinely fork-and-run options are smaller:</p>
+
+<table>
+<thead><tr><th>Tool</th><th>Stars</th><th>License</th><th>Kind</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/The-PR-Agent/pr-agent">PR-Agent</a><span class="badge badge-oss">OSS</span></td><td class="stars">⭐ 12k</td><td>Apache-2.0</td><td class="win">AI, self-host</td><td>Community-owned flagship; 6 tools, 5 forges, BYO-LLM<sup><a href="https://github.com/The-PR-Agent/pr-agent">[1]</a></sup><sup><a href="https://github.com/The-PR-Agent/pr-agent">[2]</a></sup></td></tr>
+<tr><td><a href="https://github.com/anc95/ChatGPT-CodeReview">ChatGPT-CodeReview</a><span class="badge badge-oss">OSS</span></td><td class="stars">⭐ 4.4k</td><td>ISC</td><td class="win">AI, self-host</td><td>Minimal GitHub-App PR reviewer, BYO OpenAI key<sup><a href="https://github.com/anc95/ChatGPT-CodeReview">[7]</a></sup></td></tr>
+<tr><td><a href="https://github.com/danger/danger">Danger</a> / <a href="https://github.com/danger/danger-js">JS</a><span class="badge badge-oss">OSS</span></td><td class="stars">⭐ 5.7k / 5.5k</td><td>MIT</td><td class="neutral">rules, non-AI</td><td>PR-convention enforcement (changelog, size, assignees)<sup><a href="https://github.com/danger/danger">[6]</a></sup></td></tr>
+<tr><td><a href="https://github.com/mattzcarey/shippie">shippie</a><span class="badge badge-oss">OSS</span></td><td class="stars">⭐ 2.4k</td><td>MIT</td><td class="win">AI, self-host</td><td>ex–code-review-gpt; CI-native LLM reviewer<sup><a href="https://github.com/mattzcarey/shippie">[8]</a></sup></td></tr>
+<tr><td><a href="https://github.com/sourcery-ai/sourcery">Sourcery</a><span class="badge badge-oc">open-core</span></td><td class="stars">⭐ 1.8k</td><td>MIT (shell)</td><td class="lose">engine proprietary</td><td>Repo is IDE plugins only; AI runs in Sourcery's cloud<sup><a href="https://github.com/sourcery-ai/sourcery">[4]</a></sup></td></tr>
+<tr><td><a href="https://github.com/villesau/ai-codereviewer">ai-codereviewer</a><span class="badge badge-dormant">dormant</span></td><td class="stars">⭐ 1.0k</td><td>MIT</td><td class="neutral">AI, self-host</td><td>Widely-forked minimal Action; no push since 2024<sup><a href="https://github.com/villesau/ai-codereviewer">[9]</a></sup></td></tr>
+</tbody>
+</table>
+<p class="note">Stars verified via GitHub API where reachable (PR-Agent, Sourcery, Danger) on 2026-06-09; others from researcher capture earlier in the run.</p>
+
+<div class="segment-header">2 · Autonomous SWE agents that review</div>
+
+<p>Open-source coding agents split into two roles: agents built to <em>write</em> code (changes become reviewable as a side effect) and agents that <em>review</em> diffs directly. The academic anchor is <a href="https://github.com/SWE-agent/SWE-agent">SWE-agent</a> <span class="stars">⭐ 19k</span> (Princeton/Stanford) — a minimal agent-computer interface for autonomously resolving GitHub issues<sup><a href="https://github.com/SWE-agent/SWE-agent">[12]</a></sup>. Its production sibling <a href="https://github.com/All-Hands-AI/OpenHands">OpenHands</a> <span class="stars">⭐ 76k</span> (ex-OpenDevin) is the standout that actually <em>reviews</em>: a dedicated PR-review workflow fires on a <code>review-this</code> label or by requesting <code>openhands-agent</code> as reviewer, posting code-quality / security / best-practice feedback in 2–3 minutes<sup><a href="https://docs.openhands.dev/sdk/guides/github-workflows/pr-review">[19]</a></sup>, plus a GitHub Resolver Action that auto-fixes labeled issues and opens PRs<sup><a href="https://www.openhands.dev/blog/open-source-coding-agents-in-your-github-fixing-your-issues">[20]</a></sup>. On SWE-bench Verified with Opus 4.5, OpenHands scores 77.6% vs SWE-agent's 72.0% — "write a paper, use SWE-agent; ship a product, use OpenHands"<sup><a href="https://www.codesota.com/agentic/openhands-vs-swe-agent">[11]</a></sup>.</p>
+
+<table>
+<thead><tr><th>Agent</th><th>Stars</th><th>Role</th><th>Reviews diffs?</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/All-Hands-AI/OpenHands">OpenHands</a></td><td class="stars">⭐ 76k</td><td>write + review</td><td class="win">✓ dedicated PR-review workflow</td><td>Bash/edit/browser/Jupyter tools; GitHub Resolver<sup><a href="https://github.com/All-Hands-AI/OpenHands">[13]</a></sup><sup><a href="https://docs.openhands.dev/sdk/guides/github-workflows/pr-review">[19]</a></sup></td></tr>
+<tr><td><a href="https://github.com/cline/cline">Cline</a></td><td class="stars">⭐ 63k</td><td>write (IDE)</td><td class="neutral">⚠ diff previews, per-step approval</td><td>IDE-native; mandatory human approval each step<sup><a href="https://github.com/cline/cline">[15]</a></sup></td></tr>
+<tr><td><a href="https://github.com/gpt-engineer-org/gpt-engineer">gpt-engineer</a><span class="badge badge-dormant">dormant</span></td><td class="stars">⭐ 55k</td><td>write</td><td class="lose">✗</td><td>Whole-project codegen; Lovable precursor<sup><a href="https://github.com/gpt-engineer-org/gpt-engineer">[17]</a></sup></td></tr>
+<tr><td><a href="https://github.com/Aider-AI/aider">Aider</a></td><td class="stars">⭐ 46k</td><td>write (terminal)</td><td class="neutral">⚠ git-diff + architect mode</td><td>Auto-commits each change; review mode still a feature request<sup><a href="https://github.com/Aider-AI/aider">[14]</a></sup><sup><a href="https://aider.chat/docs/usage/modes.html">[21]</a></sup></td></tr>
+<tr><td><a href="https://github.com/SWE-agent/SWE-agent">SWE-agent</a></td><td class="stars">⭐ 19k</td><td>write (research)</td><td class="lose">✗ (issue-resolution scaffold)</td><td>Canonical academic reference; v1 ~43.2% on Verified<sup><a href="https://github.com/SWE-agent/SWE-agent">[12]</a></sup><sup><a href="https://awesomeagents.ai/leaderboards/swe-bench-coding-agent-leaderboard/">[23]</a></sup></td></tr>
+<tr><td><a href="https://github.com/stitionai/devika">Devika</a><span class="badge badge-dormant">dormant</span></td><td class="stars">⭐ 20k</td><td>write</td><td class="lose">✗</td><td>First OSS "Devin clone"; now stalled<sup><a href="https://github.com/stitionai/devika">[18]</a></sup></td></tr>
+<tr><td><a href="https://github.com/gptme/gptme">gptme</a></td><td class="stars">⭐ 4.3k</td><td>write (terminal/CI)</td><td class="lose">✗</td><td>Provider-agnostic; runs headless in CI<sup><a href="https://github.com/gptme/gptme">[16]</a></sup></td></tr>
+</tbody>
+</table>
+<p>Aider also maintains the <a href="https://agentmarketcap.ai/blog/2026/04/06/aider-polyglot-leaderboard-2026-swe-bench-python-bias">Polyglot Leaderboard</a> as a multi-language counterweight to SWE-bench, which is 100% Python with Django nearly half its cases<sup><a href="https://agentmarketcap.ai/blog/2026/04/06/aider-polyglot-leaderboard-2026-swe-bench-python-bias">[22]</a></sup>. Frontier SWE-bench Verified sat in the high 80s in 2026 — one leaderboard reading puts GPT-5.5 at ~88.7% (May 2026)<sup><a href="https://awesomeagents.ai/leaderboards/swe-bench-coding-agent-leaderboard/">[23]</a></sup>, though other tallies land nearer ~82%<sup><a href="https://www.codeant.ai/blogs/swe-bench-scores">[37]</a></sup>, a spread that underscores how much harness and date move the number — yet the same open scaffold drops to ~43% on a weaker model, so scaffold <em>and</em> model both matter<sup><a href="https://awesomeagents.ai/leaderboards/swe-bench-coding-agent-leaderboard/">[23]</a></sup>.</p>
+
+<div class="segment-header">3 · Frameworks &amp; infra for building review agents</div>
+
+<p>If you build your own planner&nbsp;→&nbsp;diff-analysis&nbsp;→&nbsp;comment-synthesis pipeline, <a href="https://github.com/langchain-ai/langgraph">LangGraph</a> <span class="stars">⭐ 34k</span> is the 2026 production default — repeatedly ranked #1, with the explicit state graph, checkpointing, streaming and human-in-the-loop primitives a multi-stage review bot needs (e.g. security-agent → performance-agent → report-agent)<sup><a href="https://pecollective.com/blog/ai-agent-frameworks-compared/">[24]</a></sup><sup><a href="https://alicelabs.ai/en/insights/best-ai-agent-frameworks-2026">[25]</a></sup>. <a href="https://github.com/crewAIInc/crewAI">CrewAI</a> <span class="stars">⭐ 53k</span> dominates fast role-based prototyping but teams migrate to LangGraph for production state management<sup><a href="https://github.com/crewAIInc/crewAI">[30]</a></sup>. <a href="https://github.com/pydantic/pydantic-ai">Pydantic AI</a> <span class="stars">⭐ 18k</span> emerged as the type-safe, schema-defined alternative with OpenTelemetry instrumentation and agent-delegation<sup><a href="https://github.com/pydantic/pydantic-ai">[31]</a></sup><sup><a href="https://www.zenml.io/blog/pydantic-ai-vs-langgraph">[32]</a></sup>.</p>
+
+<p>The big governance story is on Microsoft's side: <a href="https://github.com/microsoft/autogen">AutoGen</a> <span class="stars">⭐ 59k</span> (still highest star count) and Semantic Kernel both entered maintenance mode, converging into the new <a href="https://github.com/microsoft/agent-framework">Microsoft Agent Framework</a> <span class="stars">⭐ 11k</span> (public preview Oct 2025, 1.0 GA targeted end-Q1 2026)<sup><a href="https://github.com/microsoft/autogen">[26]</a></sup><sup><a href="https://cloudsummit.eu/blog/microsoft-agent-framework-production-ready-convergence-autogen-semantic-kernel">[27]</a></sup><sup><a href="https://github.com/microsoft/agent-framework">[28]</a></sup>. Meanwhile AutoGen's original authors forked it into <a href="https://github.com/ag2ai/ag2">AG2</a> <span class="stars">⭐ 4.7k</span> — Apache-2.0, community-governed, retaining the legacy GroupChat API and the original PyPI packages<sup><a href="https://github.com/ag2ai/ag2">[29]</a></sup>.</p>
+
+<table>
+<thead><tr><th>Framework</th><th>Stars</th><th>Fit for review pipelines</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/microsoft/autogen">AutoGen</a></td><td class="stars">⭐ 59k</td><td>Conversational multi-agent (research-style)</td><td class="lose">maintenance → Agent Framework<sup><a href="https://github.com/microsoft/autogen">[26]</a></sup></td></tr>
+<tr><td><a href="https://github.com/crewAIInc/crewAI">CrewAI</a></td><td class="stars">⭐ 53k</td><td>Role-based crews; fast prototyping</td><td class="win">active<sup><a href="https://github.com/crewAIInc/crewAI">[30]</a></sup></td></tr>
+<tr><td><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></td><td class="stars">⭐ 34k</td><td class="win">State graph + HITL — #1 for production review bots</td><td class="win">active<sup><a href="https://pecollective.com/blog/ai-agent-frameworks-compared/">[24]</a></sup></td></tr>
+<tr><td><a href="https://github.com/pydantic/pydantic-ai">Pydantic AI</a></td><td class="stars">⭐ 18k</td><td>Type-safe, schema-defined; agent delegation</td><td class="win">active<sup><a href="https://github.com/pydantic/pydantic-ai">[31]</a></sup></td></tr>
+<tr><td><a href="https://github.com/microsoft/agent-framework">MS Agent Framework</a></td><td class="stars">⭐ 11k</td><td>AutoGen + Semantic Kernel convergence</td><td class="neutral">preview → GA Q1 2026<sup><a href="https://github.com/microsoft/agent-framework">[28]</a></sup></td></tr>
+<tr><td><a href="https://github.com/ag2ai/ag2">AG2</a></td><td class="stars">⭐ 4.7k</td><td>Legacy AutoGen GroupChat, community-led</td><td class="win">active fork<sup><a href="https://github.com/ag2ai/ag2">[29]</a></sup></td></tr>
+</tbody>
+</table>
+<p>For evaluation, OpenHands ships a published, reproducible SWE-bench harness (<a href="https://github.com/OpenHands/benchmarks">OpenHands/benchmarks</a>) that has become de-facto infrastructure for measuring coding/review agents<sup><a href="https://www.openhands.dev/blog/openhands-index">[33]</a></sup><sup><a href="https://github.com/OpenHands/benchmarks">[34]</a></sup> — and harness choice alone can swing scores 15–20 points across Aider, OpenHands, SWE-Agent and Plandex<sup><a href="https://www.codesota.com/tasks/swe-bench">[35]</a></sup>.</p>
+
+<div class="segment-header">4 · Benchmarks &amp; datasets</div>
+
+<p>The evaluation landscape splits cleanly into <strong>issue-resolution</strong> benchmarks (does the patch pass tests?) and <strong>review-comment-quality</strong> benchmarks (is the comment useful?). Conflating them is the most common analytical error in the space.</p>
+
+<table>
+<thead><tr><th>Benchmark</th><th>Measures</th><th>Scale</th><th>Headline numbers</th></tr></thead>
+<tbody>
+<tr><td><a href="https://www.swebench.com/SWE-bench/">SWE-bench</a> Verified</td><td>Issue resolution (test-passing patch)</td><td>Real GitHub issues</td><td>~82–88% frontier 2026 (harness/date-dependent)<sup><a href="https://www.swebench.com/SWE-bench/">[36]</a></sup><sup><a href="https://www.codeant.ai/blogs/swe-bench-scores">[37]</a></sup></td></tr>
+<tr><td>SWE-bench Multimodal</td><td>Visual/UI issue resolution</td><td>619 tasks, 17 JS repos</td><td class="lose">collapses to ~12% resolve<sup><a href="https://arxiv.org/pdf/2410.03859">[38]</a></sup><sup><a href="https://llm-stats.com/benchmarks/swe-bench-multimodal">[39]</a></sup></td></tr>
+<tr><td><a href="https://arxiv.org/abs/2203.09095">CodeReviewer</a></td><td>Quality est. / comment gen / refinement</td><td>~150k train, 9 langs</td><td>Foundational MSFT dataset (2022)<sup><a href="https://arxiv.org/abs/2203.09095">[40]</a></sup><sup><a href="https://github.com/microsoft/CodeBERT/blob/master/CodeReviewer/README.md">[41]</a></sup></td></tr>
+<tr><td><a href="https://arxiv.org/abs/2409.19801">CRScore</a> (NAACL'25)</td><td>Reference-free review-comment quality</td><td>~2.9k annotated scores</td><td>0.54 Spearman w/ humans — best OSS metric<sup><a href="https://arxiv.org/abs/2409.19801">[42]</a></sup><sup><a href="https://arxiv.org/html/2409.19801">[43]</a></sup></td></tr>
+<tr><td><a href="https://arxiv.org/abs/2503.16167">CodeReviewQA</a> (MSR'25)</td><td>Review comprehension (3 reasoning stages)</td><td>900 curated, 9 langs</td><td>Decontaminated comprehension probe<sup><a href="https://arxiv.org/abs/2503.16167">[44]</a></sup></td></tr>
+<tr><td><a href="https://codereview.withmartian.com/">Martian Code Review Bench</a></td><td>Offline (known issues) + online (accept/reject)</td><td>200k+ PRs, 1.2M+ changes, daily</td><td>Vendor-neutral; the 2026 reference<sup><a href="https://codereview.withmartian.com/">[45]</a></sup><sup><a href="https://quasa.io/media/martian-releases-largest-open-source-benchmark-for-ai-code-review-agents">[46]</a></sup></td></tr>
+<tr><td><a href="https://arxiv.org/abs/2306.03091">RepoBench</a> (ICLR'24)</td><td>Repo-level completion (retrieval/completion/pipeline)</td><td>Python + Java</td><td>Context-length stratified<sup><a href="https://arxiv.org/abs/2306.03091">[49]</a></sup></td></tr>
+</tbody>
+</table>
+
+<p><strong>Beware vendor "#1" claims.</strong> They cite different configs and time windows on the <em>same</em> Martian benchmark: Qodo claims #1 at F1 64.3% (its Extended research-preview config; Standard production is F1 47.9%, #4)<sup><a href="https://www.qodo.ai/blog/qodo-ranked-1-ai-code-review-tool-in-martians-code-review-benchmark/">[47]</a></sup>, while CodeRabbit claims #1 at F1 51.2% on the online benchmark over ~300k PRs<sup><a href="https://www.coderabbit.ai/blog/coderabbit-tops-martian-code-review-benchmark">[48]</a></sup>. Both can be "true" because they rank on different slices.</p>
+
+<div class="segment-header">5 · The evidence — what actually works</div>
+
+<p>Empirical work from 2025–2026 converges on one picture: <strong>useful-but-noisy, never trustworthy enough for full automation.</strong></p>
+
+<div class="statgrid">
+<div class="stat"><div class="n">~52% / 51%</div><div class="l">Top-tool precision / recall across 200k+ real PRs (Martian)<sup><a href="https://www.codeant.ai/blogs/ai-code-review-benchmark-results-from-200-000-real-pull-requests">[50]</a></sup></div></div>
+<div class="stat"><div class="n">0.9–19%</div><div class="l">Valid AI comments that led to a code change vs ~60% for humans<sup><a href="https://arxiv.org/html/2508.18771">[55]</a></sup></div></div>
+<div class="stat"><div class="n">16.6%</div><div class="l">AI-comment adoption rate vs 56.5% human, across 278k conversations<sup><a href="https://arxiv.org/html/2603.15911v1">[56]</a></sup></div></div>
+<div class="stat"><div class="n">64–69%</div><div class="l">Correctness accuracy of GPT-4o / Gemini on review tasks<sup><a href="https://arxiv.org/html/2505.20206v1">[52]</a></sup></div></div>
+</div>
+
+<ul>
+<li><strong>Verbosity &amp; low adoption.</strong> Across 300 OSS projects (278,790 conversations), AI comments were ~7× more verbose than humans (29.6 vs 4.1 tokens/line), &gt;95% concentrated on defect/improvement, and adopted only 16.6% of the time vs 56.5% for humans<sup><a href="https://arxiv.org/html/2603.15911v1">[56]</a></sup>.</li>
+<li><strong>Noise kills trust.</strong> A two-phase field study warns that low-value AI comments make reviewers stop reading — and then miss the real issues<sup><a href="https://arxiv.org/html/2505.16339v1">[51]</a></sup>.</li>
+<li><strong>Hallucination is a supply-chain risk.</strong> "Slopsquatting": 19.7% of sampled recommended packages were non-existent, 58% repeating across queries; standard AI review carries reported 5–15% false-positive rates<sup><a href="https://diffray.ai/blog/llm-hallucinations-code-review/">[57]</a></sup>.</li>
+<li><strong>Security framing is exploitable.</strong> "Bug-free" framing degrades vulnerability detection (confirmation bias); an iterative refinement attack hit 100% success across 17 CVEs in 10 projects<sup><a href="https://arxiv.org/abs/2603.18740">[54]</a></sup>.</li>
+<li><strong>The clear win is narrow.</strong> LLMs used to <em>filter static-analysis alarms</em> cut a 76%+ false-positive baseline by 94–98% at Tencent — review as a triage layer, not an oracle<sup><a href="https://arxiv.org/html/2601.18844v1">[53]</a></sup>.</li>
+</ul>
+<p>The throughline: hunk-level and manually-triggered tools outperform whole-PR auto-runs (12.8% vs 6.8% addressing rate), and human-in-the-loop is the consistent recommendation<sup><a href="https://arxiv.org/html/2508.18771">[55]</a></sup><sup><a href="https://arxiv.org/html/2505.20206v1">[52]</a></sup>.</p>
+
+<div class="segment-header">6 · How we got here — and the open weights underneath</div>
+
+<p>The lineage runs through three architectural eras, then an agentic surge.</p>
+
+<ul class="timeline">
+<li><span class="yr">2020</span><strong>CodeBERT</strong> — first bimodal pre-trained Transformer over code + NL; SOTA code search/documentation. Encoder era<sup><a href="https://arxiv.org/abs/2002.08155">[58]</a></sup>.</li>
+<li><span class="yr">2021</span><strong>CodeT5</strong> — identifier-aware encoder-decoder on 8.35M functions; the seq2seq backbone<sup><a href="https://arxiv.org/abs/2109.00859">[59]</a></sup>.</li>
+<li><span class="yr">2022</span><strong>CodeReviewer</strong> — initialized from CodeT5, pre-trained on real PR data in 9 languages; the pivotal review-specific node<sup><a href="https://arxiv.org/abs/2203.09095">[40]</a></sup>.</li>
+<li><span class="yr">2024</span><strong>Open-weight code LLMs reach parity</strong> — DeepSeek-Coder beats CodeLlama-34B and closed Codex/GPT-3.5<sup><a href="https://arxiv.org/abs/2401.14196">[60]</a></sup>; StarCoder2 trains on The Stack v2 incl. GitHub PRs<sup><a href="https://arxiv.org/abs/2402.19173">[61]</a></sup>; Qwen2.5-Coder-7B beats DeepSeek-Coder-33B, making small self-hostable review viable<sup><a href="https://arxiv.org/abs/2409.12186">[62]</a></sup>; DeepSeek-Coder-V2 brings open MoE<sup><a href="https://arxiv.org/abs/2406.11931">[63]</a></sup>.</li>
+<li><span class="yr">2025</span><strong>Agentic surge</strong> — coding-agent adoption hits 22–29% across 128,018 GitHub projects in H1 (Cursor, Claude Code, Codex)<sup><a href="https://arxiv.org/html/2601.18341v1">[64]</a></sup>.</li>
+<li><span class="yr">2026</span><strong>Open weights chase the frontier</strong> — building on DeepSeek V3 (late 2024), which proved an open-weights lab could match OpenAI/Anthropic on reasoning while releasing weights for free, V4-class MoE models push self-hosted agentic review toward economic viability<sup><a href="https://www.nxcode.io/resources/news/deepseek-v4-release-specs-benchmarks-2026">[65]</a></sup>.</li>
+</ul>
+
+<p><strong>Why open-source review surged now:</strong> open-weight code LLMs closed the capability gap (a 7B model in 2024 matched a 33B from months earlier<sup><a href="https://arxiv.org/abs/2409.12186">[62]</a></sup>), agent scaffolds became reusable infrastructure<sup><a href="https://github.com/All-Hands-AI/OpenHands">[13]</a></sup>, and the PR-Agent donation gave the ecosystem an Apache-2.0 flagship to rally around<sup><a href="https://github.com/The-PR-Agent/pr-agent">[1]</a></sup>. The constraint is no longer the model — it's that, as the evidence section shows, the review-comment-quality problem (precision, noise, trust) remains stubbornly unsolved<sup><a href="https://www.codeant.ai/blogs/ai-code-review-benchmark-results-from-200-000-real-pull-requests">[50]</a></sup>.</p>
