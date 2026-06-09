@@ -1,0 +1,1032 @@
+---
+layout: view
+view_name: "Atlas"
+view_of: ../
+title: "Diffusion Models: From Noise to Image — and Into Midjourney v6 — Atlas"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+.dv-wrap {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #e8e4da;
+  background: #0d0f1c;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+/* ── COVER ──────────────────────────────────────────────────── */
+.dv-cover {
+  background: linear-gradient(155deg, #12152e 0%, #1a1d3a 45%, #0d0f1c 100%);
+  border-bottom: 1px solid #252848;
+  padding: 4rem 3.5rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.dv-cover::before {
+  content: '∇';
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(226,166,64,.035);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dv-cover::after {
+  content: 'log p(x)';
+  position: absolute;
+  right: 3.5rem;
+  bottom: 2.5rem;
+  font-size: 1.05rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(110,231,183,.25);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.dv-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6e6b95;
+  margin-bottom: 1.5rem;
+}
+
+.dv-eyebrow a { color: #6e6b95; text-decoration: none; }
+.dv-eyebrow a:hover { color: #e2a640; }
+.dv-eyebrow span { opacity: .5; margin: 0 .4em; }
+
+.dv-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  font-weight: 900;
+  line-height: 1.04;
+  color: #f0ece2;
+  margin: 0 0 .2rem;
+}
+
+.dv-subtitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.4rem, 2.8vw, 2.4rem);
+  font-weight: 700;
+  font-style: italic;
+  color: #e2a640;
+  margin: 0 0 2.25rem;
+}
+
+.dv-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+
+.dv-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem;
+  padding: .28rem .75rem;
+  border-radius: 3px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.09);
+  color: #9896b4;
+}
+
+.dv-pill.gold {
+  color: #e2a640;
+  background: rgba(226,166,64,.07);
+  border-color: rgba(226,166,64,.28);
+}
+
+/* ── SECTION SHELL ──────────────────────────────────────────── */
+.dv-section {
+  padding: 3rem 3.5rem;
+  border-bottom: 1px solid #191c30;
+}
+
+.dv-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .67rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #6e6b95;
+  margin-bottom: 1.75rem;
+}
+
+/* ── NORTH STAR ─────────────────────────────────────────────── */
+.dv-northstar {
+  background: linear-gradient(140deg, #12152e 0%, #0d0f1c 100%);
+}
+
+.dv-score-eq {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-weight: 700;
+  color: #6ee7b7;
+  border-left: 4px solid #6ee7b7;
+  padding: 1.5rem 2rem;
+  background: rgba(110,231,183,.04);
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+.dv-ns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .dv-ns-grid { grid-template-columns: 1fr; }
+}
+
+.dv-ns-body {
+  font-size: .9rem;
+  color: #b0adc0;
+  line-height: 1.75;
+}
+
+.dv-ns-body strong { color: #e8e4da; }
+.dv-ns-body em { color: #6ee7b7; font-style: normal; }
+.dv-ns-body code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .82em;
+  color: #a78bfa;
+  background: rgba(167,139,250,.1);
+  padding: .1em .35em;
+  border-radius: 3px;
+}
+
+.dv-ns-body a { color: #e2a640; text-decoration: none; }
+.dv-ns-body a:hover { text-decoration: underline; }
+
+.dv-cfg-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid #252848;
+  border-radius: 10px;
+  padding: 1.75rem;
+}
+
+.dv-cfg-eq {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(.78rem, 1.6vw, 1rem);
+  color: #a78bfa;
+  line-height: 1.9;
+  margin-bottom: 1rem;
+}
+
+.dv-cfg-label {
+  font-size: .78rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  margin-bottom: .4rem;
+}
+
+.dv-cfg-note {
+  font-size: .82rem;
+  color: #9896b4;
+  line-height: 1.6;
+}
+
+.dv-cfg-note a { color: #e2a640; text-decoration: none; }
+
+/* ── EXPEDITION MAP ─────────────────────────────────────────── */
+.dv-chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.1rem;
+  margin-top: .25rem;
+}
+
+.dv-chapter {
+  background: #11132b;
+  border: 1px solid #232545;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+  transition: border-color .18s, transform .15s;
+}
+
+.dv-chapter:hover {
+  border-color: #e2a640;
+  transform: translateY(-2px);
+}
+
+.dv-chapter.d-expedition { border-top: 3px solid #8b5cf6; }
+.dv-chapter.d-survey     { border-top: 3px solid #3b82f6; }
+.dv-chapter.d-recon      { border-top: 3px solid #10b981; }
+
+.dv-ch-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .63rem;
+  color: #4a4868;
+  letter-spacing: .08em;
+  margin-bottom: .4rem;
+}
+
+.dv-ch-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0ece2;
+  line-height: 1.3;
+  margin-bottom: .7rem;
+}
+
+.dv-ch-summary {
+  font-size: .81rem;
+  color: #9896b4;
+  line-height: 1.65;
+  margin-bottom: 1rem;
+}
+
+.dv-ch-meta {
+  display: flex;
+  gap: .45rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dv-depth {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .63rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: .18rem .5rem;
+  border-radius: 3px;
+}
+
+.dv-depth.expedition { color: #a78bfa; background: rgba(139,92,246,.13); border: 1px solid rgba(139,92,246,.28); }
+.dv-depth.survey     { color: #60a5fa; background: rgba(59,130,246,.13); border: 1px solid rgba(59,130,246,.28); }
+.dv-depth.recon      { color: #34d399; background: rgba(16,185,129,.13); border: 1px solid rgba(16,185,129,.28); }
+
+.dv-ch-stat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  color: #6e6b95;
+}
+
+/* ── ARCHITECTURE TIMELINE ──────────────────────────────────── */
+.dv-arch {
+  background: linear-gradient(140deg, #0d0f1c 0%, #11132b 100%);
+}
+
+.dv-timeline {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  position: relative;
+  padding: 1.25rem 0 .5rem;
+}
+
+.dv-timeline::before {
+  content: '';
+  position: absolute;
+  left: calc(100% / 12);
+  right: calc(100% / 12);
+  top: 3.4rem;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e2a640 15%, #e2a640 85%, transparent);
+}
+
+@media (max-width: 800px) {
+  .dv-timeline { grid-template-columns: repeat(3, 1fr); padding-top: 0; }
+  .dv-timeline::before { display: none; }
+}
+
+@media (max-width: 480px) {
+  .dv-timeline { grid-template-columns: repeat(2, 1fr); }
+}
+
+.dv-tn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 .5rem;
+}
+
+.dv-tn-year {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .63rem;
+  color: #e2a640;
+  height: 1.5rem;
+  line-height: 1.5rem;
+}
+
+.dv-tn-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2a640;
+  border: 2px solid #0d0f1c;
+  box-shadow: 0 0 0 2px #e2a640;
+  flex-shrink: 0;
+  margin: .35rem 0 .75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.dv-tn-name {
+  font-size: .82rem;
+  font-weight: 600;
+  color: #f0ece2;
+  margin-bottom: .3rem;
+  line-height: 1.2;
+}
+
+.dv-tn-note {
+  font-size: .68rem;
+  color: #6e6b95;
+  line-height: 1.45;
+  max-width: 110px;
+}
+
+/* ── FIELD NOTES ────────────────────────────────────────────── */
+.dv-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.dv-note {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 560px) {
+  .dv-note { grid-template-columns: 1fr; gap: .75rem; }
+  .dv-note-num { display: none; }
+}
+
+.dv-note-num {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(226,166,64,.12);
+  line-height: 1;
+  text-align: right;
+}
+
+.dv-note-inner {
+  border-left: 2px solid #e2a640;
+  padding-left: 1.4rem;
+}
+
+.dv-note-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f0ece2;
+  margin-bottom: .6rem;
+  line-height: 1.35;
+}
+
+.dv-note-text {
+  font-size: .86rem;
+  color: #a8a5b8;
+  line-height: 1.75;
+}
+
+.dv-note-text a { color: #e2a640; text-decoration: none; }
+.dv-note-text a:hover { text-decoration: underline; }
+.dv-note-text em { color: #e8e4da; font-style: italic; }
+.dv-note-text strong { color: #e8e4da; }
+.dv-note-text sup a {
+  font-size: .72em;
+  color: #7370a0;
+  margin-left: .1em;
+}
+
+/* ── MIDJOURNEY DECK ────────────────────────────────────────── */
+.dv-mj {
+  background: linear-gradient(140deg, #0d0f1c 0%, #110d1f 100%);
+}
+
+.dv-params {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.dv-param {
+  background: #110e24;
+  border: 1px solid #241e45;
+  border-radius: 9px;
+  padding: 1.25rem;
+}
+
+.dv-param-flag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: .28rem;
+}
+
+.dv-param-range {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  color: #6e6b95;
+  margin-bottom: .65rem;
+}
+
+.dv-param-note {
+  font-size: .8rem;
+  color: #a8a5b8;
+  line-height: 1.55;
+}
+
+.dv-mj-principle {
+  background: rgba(226,166,64,.05);
+  border: 1px solid rgba(226,166,64,.2);
+  border-radius: 10px;
+  padding: 1.75rem;
+}
+
+.dv-mj-ptitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e2a640;
+  margin-bottom: .65rem;
+}
+
+.dv-mj-ptext {
+  font-size: .85rem;
+  color: #a8a5b8;
+  line-height: 1.75;
+}
+
+.dv-mj-ptext em { color: #f0ece2; font-style: italic; }
+.dv-mj-ptext a { color: #e2a640; text-decoration: none; }
+.dv-mj-ptext a:hover { text-decoration: underline; }
+.dv-mj-ptext sup a { font-size: .75em; color: #7370a0; }
+
+/* ── GITHUB SHOWCASES ───────────────────────────────────────── */
+.dv-gh-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.dv-gh-card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #232545;
+  text-decoration: none;
+  display: block;
+  transition: transform .15s, border-color .18s;
+}
+
+.dv-gh-card:hover {
+  transform: translateY(-2px);
+  border-color: #e2a640;
+}
+
+.dv-gh-card img {
+  width: 100%;
+  height: 156px;
+  object-fit: cover;
+  display: block;
+}
+
+.dv-gh-body {
+  background: #11132b;
+  padding: .9rem 1.1rem;
+}
+
+.dv-gh-name {
+  font-size: .88rem;
+  font-weight: 600;
+  color: #e8e4da;
+  margin-bottom: .2rem;
+}
+
+.dv-gh-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  color: #6e6b95;
+}
+
+/* ── LANDMARK SOURCES ───────────────────────────────────────── */
+.dv-sources {
+  background: #0a0c18;
+}
+
+.dv-src-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.dv-src-card {
+  display: flex;
+  gap: .9rem;
+  align-items: flex-start;
+  background: #11132b;
+  border: 1px solid #232545;
+  border-radius: 9px;
+  padding: 1rem 1.15rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .18s;
+}
+
+.dv-src-card:hover { border-color: #e2a640; }
+
+.dv-src-fav {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  object-fit: cover;
+}
+
+.dv-src-title {
+  font-size: .83rem;
+  font-weight: 600;
+  color: #e8e4da;
+  line-height: 1.3;
+  margin-bottom: .25rem;
+}
+
+.dv-src-claim {
+  font-size: .73rem;
+  color: #6e6b95;
+  line-height: 1.5;
+}
+
+.dv-src-type {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .62rem;
+  color: #4a4868;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-top: .3rem;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.dv-footer {
+  background: #070912;
+  border-top: 1px solid #191c30;
+  padding: 2rem 3.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dv-footer-brand {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: .92rem;
+  font-style: italic;
+  color: #6e6b95;
+}
+
+.dv-footer-stats {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  color: #4a4868;
+}
+
+/* ── RESPONSIVE PADDING ─────────────────────────────────────── */
+@media (max-width: 600px) {
+  .dv-cover,
+  .dv-section,
+  .dv-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+</style>
+
+<div class="dv-wrap">
+
+  <!-- ══ COVER ═══════════════════════════════════════════════════ -->
+  <header class="dv-cover">
+    <div class="dv-eyebrow">
+      <a href="/">Atlas</a><span>›</span>Expedition
+    </div>
+    <h1 class="dv-title">Diffusion Models:<br>From Noise to Image</h1>
+    <div class="dv-subtitle">— and Into Midjourney v6</div>
+    <div class="dv-pills">
+      <span class="dv-pill gold">7 regions</span>
+      <span class="dv-pill gold">158 citations</span>
+      <span class="dv-pill gold">40 min journey</span>
+      <span class="dv-pill">expedition depth</span>
+      <span class="dv-pill">ε-pred · v-pred · rectified flow</span>
+      <span class="dv-pill">June 2026</span>
+    </div>
+  </header>
+
+  <!-- ══ NORTH STAR ══════════════════════════════════════════════ -->
+  <section class="dv-section dv-northstar">
+    <div class="dv-section-label">The Unifying Object</div>
+    <div class="dv-score-eq">∇<sub>x</sub>&nbsp;log&nbsp;p(x)</div>
+    <div class="dv-ns-grid">
+      <div class="dv-ns-body">
+        <p style="margin:0 0 1rem">
+          Every architecture surveyed — U-Net, DiT, MMDiT, FLUX — is a different box for computing this single object: the <strong>score function</strong>, the gradient of the log data density. Forward diffusion destroys information by following a noise schedule; reverse diffusion reconstructs by following <em>the score back toward data</em>.
+          <sup><a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/">[1]</a></sup>
+          <sup><a href="https://yang-song.net/blog/2021/score/">[2]</a></sup>
+        </p>
+        <p style="margin:0">
+          Every training objective — ε-prediction, x₀-prediction, v-prediction, rectified flow — is a <strong>reparametrisation of the same score</strong>.
+          <sup><a href="https://arxiv.org/abs/2206.00364">[EDM]</a></sup>
+          When you dial Midjourney's <code>--stylize</code> up, you are amplifying the conditional score gap relative to the unconditional one. The craft is craft; the substrate is differential geometry.
+        </p>
+      </div>
+      <div class="dv-cfg-card">
+        <div class="dv-cfg-eq">ε̂ = ε(x,∅) + w·(ε(x,c) − ε(x,∅))</div>
+        <div class="dv-cfg-label">Classifier-Free Guidance</div>
+        <div class="dv-cfg-note">
+          The formula behind every <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#a78bfa">guidance_scale</code> and <code style="font-family:'JetBrains Mono',monospace;font-size:.8em;color:#a78bfa">--stylize</code> parameter.
+          <em>w</em> amplifies the conditional-vs-unconditional gap, steering the denoising trajectory in latent space.
+          <a href="https://arxiv.org/abs/2206.00364">[EDM, Karras 2022]</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ EXPEDITION MAP ══════════════════════════════════════════ -->
+  <section class="dv-section">
+    <div class="dv-section-label">The Territory — Seven Regions</div>
+    <div class="dv-chapters">
+
+      <a href="../forward-diffusion-and-noise-schedules/" class="dv-chapter d-survey">
+        <div class="dv-ch-num">REGION 01</div>
+        <div class="dv-ch-title">Forward Diffusion and Noise Schedules</div>
+        <div class="dv-ch-summary">How the forward process works mathematically, and how the choice of noise schedule — linear, cosine, EDM σ, or Laplace — shapes training quality, resolution behaviour, and what not to get wrong.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth survey">survey</span>
+          <span class="dv-ch-stat">16 citations</span>
+          <span class="dv-ch-stat">6 min</span>
+        </div>
+      </a>
+
+      <a href="../reverse-denoising-architectures-and-the-score-network/" class="dv-chapter d-expedition">
+        <div class="dv-ch-num">REGION 02</div>
+        <div class="dv-ch-title">Reverse Denoising: Architectures and the Score Network</div>
+        <div class="dv-ch-summary">How the denoiser that drives reverse diffusion is really a score network, and how its backbone evolved from U-Net to the transformers behind FLUX, SD3 and Sora.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth expedition">expedition</span>
+          <span class="dv-ch-stat">52 citations</span>
+          <span class="dv-ch-stat">9 min</span>
+        </div>
+      </a>
+
+      <a href="../text-conditioning-via-clip-and-beyond/" class="dv-chapter d-survey">
+        <div class="dv-ch-num">REGION 03</div>
+        <div class="dv-ch-title">Text Conditioning via CLIP (and Beyond)</div>
+        <div class="dv-ch-summary">How CLIP's shared text/image embedding space powers diffusion model conditioning — and why modern models stack T5-XXL, dual CLIPs, and even full LLMs on top.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth survey">survey</span>
+          <span class="dv-ch-stat">20 citations</span>
+          <span class="dv-ch-stat">6 min</span>
+        </div>
+      </a>
+
+      <a href="../why-hands-broke-and-what-fixed-it/" class="dv-chapter d-survey">
+        <div class="dv-ch-num">REGION 04</div>
+        <div class="dv-ch-title">Why Hands Broke — and What Fixed It</div>
+        <div class="dv-ch-summary">A technical post-mortem: sparse training data, CLIP counting blindness, VAE resolution limits, U-Net locality, and mode-interpolation — plus the layered fixes that pushed success rates from ~30% to ~90% by 2025.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth survey">survey</span>
+          <span class="dv-ch-stat">21 citations</span>
+          <span class="dv-ch-stat">7 min</span>
+        </div>
+      </a>
+
+      <a href="../midjourney-v6-prompt-craft/" class="dv-chapter d-expedition">
+        <div class="dv-ch-num">REGION 05</div>
+        <div class="dv-ch-title">Midjourney v6 Prompt Craft</div>
+        <div class="dv-ch-summary">How to prompt Midjourney v6: drop the v5 keyword soup, write natural-language scenes, and use weights, references and parameters deliberately.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth expedition">expedition</span>
+          <span class="dv-ch-stat">40 citations</span>
+          <span class="dv-ch-stat">8 min</span>
+        </div>
+      </a>
+
+      <a href="../latent-space-and-vae/" class="dv-chapter d-recon">
+        <div class="dv-ch-num">REGION 06</div>
+        <div class="dv-ch-title">Latent Space and VAE</div>
+        <div class="dv-ch-summary">VAEs encode data as probability distributions in latent space, enabling smooth interpolation and generative capabilities beyond standard autoencoders.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth recon">recon</span>
+          <span class="dv-ch-stat">5 citations</span>
+          <span class="dv-ch-stat">2 min</span>
+        </div>
+      </a>
+
+      <a href="../controlnet-and-structural-conditioning/" class="dv-chapter d-recon">
+        <div class="dv-ch-num">REGION 07</div>
+        <div class="dv-ch-title">ControlNet and Structural Conditioning</div>
+        <div class="dv-ch-summary">ControlNet adds spatial control to image generation by training a parallel network branch to inject structural guidance without disrupting the base model.</div>
+        <div class="dv-ch-meta">
+          <span class="dv-depth recon">recon</span>
+          <span class="dv-ch-stat">4 citations</span>
+          <span class="dv-ch-stat">2 min</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ══ ARCHITECTURE TIMELINE ══════════════════════════════════ -->
+  <section class="dv-section dv-arch">
+    <div class="dv-section-label">Architecture Evolution — 2020 → 2024</div>
+    <div class="dv-timeline">
+
+      <div class="dv-tn">
+        <div class="dv-tn-year">2020</div>
+        <div class="dv-tn-dot"></div>
+        <div class="dv-tn-name">U-Net DDPM</div>
+        <div class="dv-tn-note">Convolutional backbone; local context; skip connections</div>
+      </div>
+
+      <div class="dv-tn">
+        <div class="dv-tn-year">2021</div>
+        <div class="dv-tn-dot"></div>
+        <div class="dv-tn-name">ADM</div>
+        <div class="dv-tn-note">Beats GANs; multi-head attention at coarser resolutions</div>
+      </div>
+
+      <div class="dv-tn">
+        <div class="dv-tn-year">2022</div>
+        <div class="dv-tn-dot"></div>
+        <div class="dv-tn-name">LDM / SD</div>
+        <div class="dv-tn-note">Latent space + cross-attention; text conditioning</div>
+      </div>
+
+      <div class="dv-tn">
+        <div class="dv-tn-year">2023</div>
+        <div class="dv-tn-dot"></div>
+        <div class="dv-tn-name">DiT</div>
+        <div class="dv-tn-note">Full transformer on patches; monotonic Gflops→FID scaling</div>
+      </div>
+
+      <div class="dv-tn">
+        <div class="dv-tn-year">2024</div>
+        <div class="dv-tn-dot"></div>
+        <div class="dv-tn-name">MMDiT / SD3</div>
+        <div class="dv-tn-note">Joint text-image attention streams; rectified flow</div>
+      </div>
+
+      <div class="dv-tn">
+        <div class="dv-tn-year">2024</div>
+        <div class="dv-tn-dot" style="background:#e2a640;box-shadow:0 0 0 3px rgba(226,166,64,.3)"></div>
+        <div class="dv-tn-name" style="color:#e2a640">FLUX.1</div>
+        <div class="dv-tn-note">12B MMDiT; correct fingers without anatomical training data</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ FIELD NOTES ═════════════════════════════════════════════ -->
+  <section class="dv-section">
+    <div class="dv-section-label">Five Field Notes from the Expedition</div>
+    <div class="dv-notes">
+
+      <div class="dv-note">
+        <div class="dv-note-num">01</div>
+        <div class="dv-note-inner">
+          <div class="dv-note-title">Architecture and anatomy are causally linked</div>
+          <div class="dv-note-text">
+            U-Net's convolutional locality meant fingers were processed without global palm context — the network learned fingers as local textures, not as a kinematically constrained structure. DiT and MMDiT replace this with full-sequence self-attention: every finger token attends to every palm token in every layer. <a href="https://www.wpeebles.com/DiT">[DiT]</a>
+            FLUX.1's 12B-parameter MMDiT achieved "correct finger count in the vast majority of generations" <a href="https://www.ikomia.ai/blog/best-ai-diffusion-models-comparison-guide">[Ikomia]</a> not from anatomical training data, but because global attention enforces global consistency as an architectural side-effect. The scaling law DiT demonstrated — <em>more compute → lower FID monotonically</em> — is the same reason FLUX outperforms SDXL on anatomy at matched prompt complexity.
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-note">
+        <div class="dv-note-num">02</div>
+        <div class="dv-note-inner">
+          <div class="dv-note-title">The text encoder stack is the hidden variable behind prompt strategy</div>
+          <div class="dv-note-text">
+            CLIP's 77-token hard limit and visual-contrastive training bias made keyword-front-loading rational in SD 1.x: token 78 onward was invisible, so packing the most important terms early was load-bearing engineering, not stylistic preference. <a href="https://arxiv.org/abs/2103.00020">[CLIP]</a>
+            Imagen's demonstration that a <strong>frozen T5-XXL outperforms CLIP</strong> on compositional prompts <a href="https://imagen.research.google/paper.pdf">[Imagen]</a> — and SD3/FLUX's stacking of dual CLIPs with T5 — is what legitimises Midjourney v6's "write a natural scene description" instruction. By 2026, <a href="https://arxiv.org/abs/2505.22705">HiDream-I1</a> uses a full Llama-3.1-8B encoder — prompt writing and LLM prompting converge completely.
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-note">
+        <div class="dv-note-num">03</div>
+        <div class="dv-note-inner">
+          <div class="dv-note-title">Resolution and the VAE interact in ways the surface-level pipeline hides</div>
+          <div class="dv-note-text">
+            The VAE's 8× spatial compression means a full-frame hand at 512px collapses to 5–8 latent pixels per finger — the decoder is asked to reconstruct detail it never saw encoded. <a href="https://www.makeuseof.com/ai-image-generators-hands-issue/">[MakeUseOf]</a> SDXL's move to 1024px native resolution tripled the effective latent resolution for fine anatomy. ControlNet's depth-map injection acts as a structural bypass: it supplies the spatial constraints the latent bottleneck loses, explicitly conditioning the score network on 3D structure rather than asking it to infer depth from pixel patterns alone.
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-note">
+        <div class="dv-note-num">04</div>
+        <div class="dv-note-inner">
+          <div class="dv-note-title">The noise schedule's effect on practitioners is underappreciated</div>
+          <div class="dv-note-text">
+            The EDM finding that <strong>zero terminal SNR must be enforced</strong> <a href="https://arxiv.org/abs/2305.08891">[Lin 2023]</a> is directly observable in generation: models trained with the common cosine schedule produce slightly hazy darks and cannot generate pure-black backgrounds. Every sampler tuning — DDIM vs DPM-Solver vs Euler, step counts, sigma schedule — changes which part of the SNR curve gets the most compute. The practitioner proxy: when a model refuses high-contrast results, non-zero terminal SNR is leaking into inference.
+          </div>
+        </div>
+      </div>
+
+      <div class="dv-note">
+        <div class="dv-note-num">05</div>
+        <div class="dv-note-inner">
+          <div class="dv-note-title">Open question: does rectified flow change prompt-engineering intuitions?</div>
+          <div class="dv-note-text">
+            FLUX and SD3 use rectified flow — learning <em>straight transport paths</em> rather than curved SDE trajectories. <a href="https://arxiv.org/abs/2209.03003">[Liu 2022]</a> Empirically this makes fewer steps viable, but whether it changes which prompt tokens govern which spatial regions in cross-attention, and therefore whether front-loading rules still apply, <strong>is not yet settled in the literature</strong>. The shift in transport geometry may have entirely different implications for prompt token weighting than the DDPM-style score matching that the existing craft guidance was built on.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ MIDJOURNEY DECK ═════════════════════════════════════════ -->
+  <section class="dv-section dv-mj">
+    <div class="dv-section-label">Midjourney v6 Parameter Deck</div>
+    <div class="dv-params">
+
+      <div class="dv-param">
+        <div class="dv-param-flag">--stylize / --s</div>
+        <div class="dv-param-range">0 – 1000 · default 100</div>
+        <div class="dv-param-note">Amplifies the conditional score gap (CFG-equivalent). High values give Midjourney creative latitude and may stray from the prompt; 0–50 for strict literal output.</div>
+      </div>
+
+      <div class="dv-param">
+        <div class="dv-param-flag">--chaos / --c</div>
+        <div class="dv-param-range">0 – 100 · default 0</div>
+        <div class="dv-param-note">Increases variance across the four-image grid. High values mean images can be quite different and may not stick closely to the prompt.</div>
+      </div>
+
+      <div class="dv-param">
+        <div class="dv-param-flag">--weird / --w</div>
+        <div class="dv-param-range">0 – 3000 · default 0</div>
+        <div class="dv-param-note">Adds experimental, unconventional qualities. Experimental feature — not fully compatible with seeds. Use sparingly.</div>
+      </div>
+
+      <div class="dv-param">
+        <div class="dv-param-flag">--style raw</div>
+        <div class="dv-param-range">toggle · default off</div>
+        <div class="dv-param-note">Disables Midjourney's auto-styling. More literal, photo-like results. Recommended for in-image text generation with quoted text.</div>
+      </div>
+
+      <div class="dv-param">
+        <div class="dv-param-flag">--no</div>
+        <div class="dv-param-range">= X :: -0.5 weight</div>
+        <div class="dv-param-note">Negative prompt shorthand. Equivalent to a −0.5 multi-prompt weight. Total weights must remain positive or it errors.</div>
+      </div>
+
+      <div class="dv-param">
+        <div class="dv-param-flag">--seed</div>
+        <div class="dv-param-range">0 – 4,294,967,295 · random</div>
+        <div class="dv-param-note">Sets starting noise for reproducibility. Turbo mode breaks reliable seed locking — avoid combining them.</div>
+      </div>
+
+    </div>
+
+    <div class="dv-mj-principle">
+      <div class="dv-mj-ptitle">The v6 Paradigm Shift</div>
+      <div class="dv-mj-ptext">
+        <strong style="color:#e8e4da">Drop the keyword soup.</strong> v5's front-loaded token strategy was load-bearing engineering for CLIP's 77-token limit and visual-contrastive bias. v6's T5-based conditioning understands grammar, syntax, and spatial relations. Write a natural-language scene description as you would brief a photographer: <em>subject → medium → lighting → colour → composition → mood → parameters</em>. Strip quality tokens (8k, photorealistic, award-winning) entirely — <a href="https://venturebeat.com/ai/midjourney-v6-is-here-with-in-image-text-and-completely-overhauled-prompting">v6 penalises vague filler</a> and rewards explicit scene description.
+        <sup><a href="https://docs.midjourney.com/hc/en-us/articles/32023408776205-Prompt-Basics">[official docs]</a></sup>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ GITHUB SHOWCASES ════════════════════════════════════════ -->
+  <section class="dv-section">
+    <div class="dv-section-label">Key Open-Source Infrastructure</div>
+    <div class="dv-gh-grid">
+
+      <a href="https://github.com/CompVis/stable-diffusion" class="dv-gh-card">
+        <img src="atlas/images/stable-diffusion-github.jpg" alt="CompVis/stable-diffusion on GitHub">
+        <div class="dv-gh-body">
+          <div class="dv-gh-name">CompVis / stable-diffusion</div>
+          <div class="dv-gh-meta">⭐ 73k · Latent text-to-image diffusion U-Net reference impl</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/huggingface/diffusers" class="dv-gh-card">
+        <img src="atlas/images/diffusers-github.jpg" alt="HuggingFace diffusers on GitHub">
+        <div class="dv-gh-body">
+          <div class="dv-gh-name">HuggingFace / diffusers</div>
+          <div class="dv-gh-meta">⭐ 33.8k · UNet2DConditionModel + all schedulers including EDM</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/lllyasviel/controlnet" class="dv-gh-card">
+        <img src="atlas/images/controlnet-github.jpg" alt="lllyasviel/ControlNet on GitHub">
+        <div class="dv-gh-body">
+          <div class="dv-gh-name">lllyasviel / ControlNet</div>
+          <div class="dv-gh-meta">⭐ 33.9k · Spatial conditioning via zero convolutions</div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ══ LANDMARK SOURCES ════════════════════════════════════════ -->
+  <section class="dv-section dv-sources">
+    <div class="dv-section-label">Landmark Papers and Resources</div>
+    <div class="dv-src-grid">
+
+      <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=lilianweng.github.io&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">What are Diffusion Models? — Lilian Weng</div>
+          <div class="dv-src-claim">Canonical explainer unifying DDPM, score matching, and SDE frameworks with clear derivations</div>
+          <div class="dv-src-type">survey blog</div>
+        </div>
+      </a>
+
+      <a href="https://yang-song.net/blog/2021/score/" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=yang-song.net&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">Generative Modeling by Estimating Gradients</div>
+          <div class="dv-src-claim">Score-based generative modeling from the author; visual derivation of the Fisher-divergence objective</div>
+          <div class="dv-src-type">author blog</div>
+        </div>
+      </a>
+
+      <a href="https://arxiv.org/abs/2006.11239" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">DDPM — Ho et al. (2020)</div>
+          <div class="dv-src-claim">Denoising Diffusion Probabilistic Models; closed-form marginal and the ε-prediction objective</div>
+          <div class="dv-src-type">peer-reviewed · NeurIPS 2020</div>
+        </div>
+      </a>
+
+      <a href="https://arxiv.org/abs/2206.00364" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">EDM — Karras et al. (2022)</div>
+          <div class="dv-src-claim">Elucidating the Design Space; σ-schedule, preconditioning coefficients, FID 1.79 on CIFAR-10</div>
+          <div class="dv-src-type">peer-reviewed · NeurIPS 2022</div>
+        </div>
+      </a>
+
+      <a href="https://www.wpeebles.com/DiT" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=wpeebles.com&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">DiT — Peebles &amp; Xie (2023)</div>
+          <div class="dv-src-claim">Scalable Diffusion Models with Transformers; FID 2.27; monotonic Gflops → FID scaling law</div>
+          <div class="dv-src-type">peer-reviewed · ICCV 2023</div>
+        </div>
+      </a>
+
+      <a href="https://imagen.research.google/paper.pdf" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=imagen.research.google&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">Imagen — Saharia et al. (2022)</div>
+          <div class="dv-src-claim">Frozen T5-XXL outperforms CLIP on compositional prompts; scaling the text encoder &gt; scaling the UNet</div>
+          <div class="dv-src-type">peer-reviewed · Google Research</div>
+        </div>
+      </a>
+
+      <a href="https://docs.midjourney.com/hc/en-us/articles/32023408776205-Prompt-Basics" class="dv-src-card">
+        <img class="dv-src-fav" src="https://www.google.com/s2/favicons?domain=docs.midjourney.com&sz=128" alt="">
+        <div>
+          <div class="dv-src-title">Midjourney v6 Prompt Basics</div>
+          <div class="dv-src-claim">Official framework: subject · medium · environment · lighting · color · mood · composition</div>
+          <div class="dv-src-type">official docs</div>
+        </div>
+      </a>
+
+      <a href="https://huggingface.co/docs/diffusers/en/api/schedulers/edm_euler" class="dv-src-card">
+        <img src="atlas/images/hf-diffusers-docs.png" class="dv-src-fav" alt="HuggingFace Diffusers" style="object-fit:cover">
+        <div>
+          <div class="dv-src-title">HF Diffusers: EDM Euler Scheduler</div>
+          <div class="dv-src-claim">sigma_min=0.002, sigma_max=80, rho=7.0 — Karras 2022 reference implementation</div>
+          <div class="dv-src-type">official docs</div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══════════════════════════════════════════════════ -->
+  <footer class="dv-footer">
+    <div class="dv-footer-brand">The Diffusion Atlas — Scout Expedition, June 2026</div>
+    <div class="dv-footer-stats">7 regions · 158 citations · ε-pred · v-pred · x₀-pred · rectified flow</div>
+  </footer>
+
+</div>
