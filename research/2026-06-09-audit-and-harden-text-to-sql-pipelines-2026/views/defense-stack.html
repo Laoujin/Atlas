@@ -1,0 +1,1035 @@
+---
+layout: view
+view_name: "Defense Stack"
+view_of: ../
+title: "Audit and harden text-to-SQL pipelines (2026) — Defense Stack"
+---
+
+<style>
+  /* ─────────────────────────────────────────────
+     Defense Stack view — dark security-ops theme
+     ───────────────────────────────────────────── */
+
+  .ds {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #21262d;
+    --border:    #30363d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --dim:       #6e7681;
+
+    /* layer accent colors */
+    --c1: #388bfd;   /* schema grounding  — blue */
+    --c2: #a371f7;   /* query validation  — purple */
+    --c3: #3fb950;   /* read-only         — green */
+    --c4: #f0883e;   /* rls / column      — orange */
+    --c5: #d29922;   /* observability     — amber */
+    --c-pgv: #58a6ff; /* pgvector          — sky */
+    --c-bad: #da3633; /* residual risk     — red */
+
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── HERO ── */
+  .ds-hero {
+    background: linear-gradient(135deg, #1a0e0e 0%, #2d1208 40%, #1a1030 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: center;
+  }
+  .ds-hero-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+  }
+  .ds-hero-h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.75rem;
+    line-height: 1.3;
+  }
+  .ds-hero-summary {
+    color: var(--muted);
+    font-size: 0.875rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+  .ds-hero-stat {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(240,136,62,0.35);
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .ds-hero-stat-n {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: #f0883e;
+    display: block;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .ds-hero-stat-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 0.4rem;
+    max-width: 14ch;
+  }
+
+  /* ── META BAR ── */
+  .ds-meta {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.65rem 2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--dim);
+    flex-wrap: wrap;
+  }
+  .ds-meta strong { color: var(--muted); font-weight: 600; }
+
+  /* ── SECTION LABEL ── */
+  .ds-section-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 1.5rem 2rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+  }
+  .ds-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── PIPELINE BANNER (top / bottom) ── */
+  .ds-pipe-banner {
+    margin: 0 2rem;
+    padding: 0.65rem 1.2rem;
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Mono', monospace;
+    font-size: 0.78rem;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .ds-pipe-banner.input {
+    background: rgba(48,54,61,0.4);
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .ds-pipe-banner.database {
+    background: rgba(63,185,80,0.07);
+    border-color: rgba(63,185,80,0.28);
+    color: #3fb950;
+  }
+
+  /* ── CONNECTOR ARROW ── */
+  .ds-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 2rem 0 3rem;
+    height: 22px;
+    color: var(--dim);
+    font-size: 1rem;
+    line-height: 22px;
+    user-select: none;
+  }
+
+  /* ── STACK ── */
+  .ds-stack {
+    padding: 0 2rem 2rem;
+  }
+
+  /* ── LAYER CARD ── */
+  .ds-layer {
+    --lc: var(--c1);
+    border-left: 5px solid var(--lc);
+    background: var(--surface);
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 2px;
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 0 1.25rem;
+    align-items: start;
+    position: relative;
+    transition: background 0.12s;
+  }
+  .ds-layer:first-of-type { border-radius: 4px 4px 0 0; }
+  .ds-layer:last-of-type  { border-radius: 0 0 4px 4px; margin-bottom: 0; }
+  .ds-layer:hover         { background: var(--surface2); }
+
+  .ds-layer-tag {
+    padding-top: 0.15rem;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--lc);
+    font-weight: 700;
+    white-space: nowrap;
+    font-family: 'SF Mono', monospace;
+  }
+
+  .ds-layer-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  .ds-badge {
+    font-size: 0.58rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.13em 0.5em;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .ds-badge-expedition { background: rgba(240,136,62,0.13); color: #f0883e; border: 1px solid rgba(240,136,62,0.28); }
+  .ds-badge-survey     { background: rgba(56,139,253,0.13); color: #388bfd; border: 1px solid rgba(56,139,253,0.28); }
+  .ds-badge-recon      { background: rgba(110,118,129,0.13); color: var(--muted); border: 1px solid rgba(110,118,129,0.28); }
+  .ds-badge-det        { background: rgba(63,185,80,0.10); color: #3fb950; border: 1px solid rgba(63,185,80,0.25); }
+  .ds-badge-prob       { background: rgba(163,113,247,0.10); color: #a371f7; border: 1px solid rgba(163,113,247,0.25); }
+  .ds-badge-phys       { background: rgba(63,185,80,0.20); color: #3fb950; border: 1px solid rgba(63,185,80,0.4); font-weight: 800; }
+  .ds-badge-detect     { background: rgba(210,153,34,0.12); color: #d29922; border: 1px solid rgba(210,153,34,0.28); }
+  .ds-badge-aug        { background: rgba(88,166,255,0.10); color: #58a6ff; border: 1px solid rgba(88,166,255,0.25); }
+
+  .ds-layer-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .ds-layer-row {
+    display: flex;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    align-items: baseline;
+  }
+  .ds-row-key {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: 52px;
+    font-weight: 600;
+  }
+  .ds-row-val {
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .ds-row-val a {
+    color: var(--lc);
+    text-decoration: none;
+  }
+  .ds-row-val a:hover { text-decoration: underline; }
+  .ds-row-val code {
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.06);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    color: var(--text);
+  }
+  .ds-row-val sup a {
+    color: var(--dim);
+    font-size: 0.68rem;
+    text-decoration: none;
+  }
+  .ds-row-val sup a:hover { color: var(--lc); }
+
+  /* ── LAYER STAT BOX ── */
+  .ds-stat {
+    align-self: center;
+    text-align: center;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    min-width: 110px;
+    max-width: 130px;
+  }
+  .ds-stat strong {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--lc);
+    line-height: 1.1;
+  }
+  .ds-stat-label {
+    font-size: 0.63rem;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .ds-stat cite {
+    display: block;
+    font-style: normal;
+    font-size: 0.6rem;
+    color: var(--dim);
+    margin-top: 0.25rem;
+  }
+  .ds-stat cite a {
+    color: var(--dim);
+    text-decoration: none;
+  }
+  .ds-stat cite a:hover { color: var(--lc); }
+
+  /* ── THREAT MATRIX ── */
+  .ds-matrix-wrap {
+    padding: 0 2rem 2rem;
+    overflow-x: auto;
+  }
+  .ds-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+  .ds-matrix th {
+    padding: 0.55rem 0.8rem;
+    background: var(--surface2);
+    color: var(--muted);
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .ds-matrix th:first-child {
+    text-align: left;
+    min-width: 200px;
+  }
+  .ds-matrix td {
+    padding: 0.4rem 0.8rem;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    border-right: 1px solid rgba(48,54,61,0.35);
+    text-align: center;
+    vertical-align: middle;
+  }
+  .ds-matrix td:first-child { text-align: left; color: var(--text); font-size: 0.78rem; }
+  .ds-matrix tr:hover td    { background: rgba(255,255,255,0.018); }
+  .ds-ch { color: #3fb950; }
+  .ds-pa { color: #d29922; }
+  .ds-fa { color: #da3633; }
+  .ds-na { color: var(--dim); font-size: 0.7rem; }
+  .ds-matrix th.l1 { border-top: 3px solid var(--c1); }
+  .ds-matrix th.l2 { border-top: 3px solid var(--c2); }
+  .ds-matrix th.l3 { border-top: 3px solid var(--c3); }
+  .ds-matrix th.l4 { border-top: 3px solid var(--c4); }
+  .ds-matrix th.l5 { border-top: 3px solid var(--c5); }
+
+  /* ── RESIDUAL RISK ── */
+  .ds-residual {
+    margin: 0 2rem 2rem;
+    padding: 1.25rem 1.4rem;
+    background: rgba(218,54,51,0.06);
+    border: 1px solid rgba(218,54,51,0.28);
+    border-left: 5px solid var(--c-bad);
+    border-radius: 0 5px 5px 0;
+  }
+  .ds-residual-head {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-bad);
+    font-weight: 700;
+    margin-bottom: 0.55rem;
+  }
+  .ds-residual p {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .ds-residual p:last-child { margin: 0; }
+  .ds-residual strong { color: var(--text); }
+  .ds-residual sup a { color: var(--dim); text-decoration: none; font-size: 0.7rem; }
+  .ds-residual sup a:hover { color: var(--c-bad); }
+
+  /* ── TOOL CARDS ── */
+  .ds-tools {
+    padding: 0 2rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .ds-tool {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .ds-tool-img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    display: block;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .ds-tool-body { padding: 0.75rem 1rem; }
+  .ds-tool-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .ds-tool-name:hover { color: #58a6ff; }
+  .ds-tool-stars { font-size: 0.7rem; color: var(--dim); font-weight: 400; }
+  .ds-tool-desc { font-size: 0.75rem; color: var(--muted); margin: 0; line-height: 1.45; }
+
+  /* ── pgvector SECTION ── */
+  .ds-pgvec {
+    margin: 0 2rem 2rem;
+    border: 1px solid rgba(88,166,255,0.25);
+    border-left: 5px solid var(--c-pgv);
+    border-radius: 0 6px 6px 0;
+    background: rgba(88,166,255,0.04);
+    padding: 1.1rem 1.4rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 1.5rem;
+    align-items: center;
+  }
+  .ds-pgvec-head {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-pgv);
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .ds-pgvec-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .ds-pgvec-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .ds-pgvec-stat {
+    text-align: center;
+    padding: 0.65rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(88,166,255,0.2);
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .ds-pgvec-stat strong {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--c-pgv);
+    line-height: 1.1;
+  }
+  .ds-pgvec-stat-label {
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+  .ds-pgvec-stat cite {
+    display: block;
+    font-style: normal;
+    font-size: 0.59rem;
+    color: var(--dim);
+    margin-top: 0.2rem;
+  }
+  .ds-pgvec-stat cite a { color: var(--dim); text-decoration: none; }
+  .ds-pgvec-stat cite a:hover { color: var(--c-pgv); }
+
+  /* ── SUBTOPICS ── */
+  .ds-subtopics {
+    padding: 0 2rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 0.65rem;
+  }
+  .ds-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ds-card:hover { border-color: #388bfd; background: var(--surface2); }
+  .ds-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+  }
+  .ds-card-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+  }
+  .ds-card-summary { font-size: 0.74rem; color: var(--muted); margin: 0; line-height: 1.45; }
+  .ds-card-foot {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.55rem;
+    font-size: 0.65rem;
+    color: var(--dim);
+  }
+
+  /* ── FOOTER ── */
+  .ds-footer {
+    padding: 1rem 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ds-footer a { color: var(--muted); text-decoration: none; }
+  .ds-footer a:hover { text-decoration: underline; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .ds-hero { grid-template-columns: 1fr; }
+    .ds-hero-stat { text-align: left; width: fit-content; }
+    .ds-layer { grid-template-columns: 44px 1fr; }
+    .ds-stat { display: none; }
+    .ds-tools { grid-template-columns: 1fr; }
+    .ds-matrix-wrap { display: none; }
+    .ds-pgvec { grid-template-columns: 1fr; }
+    .ds-pgvec-stat { display: none; }
+  }
+</style>
+
+<div class="ds">
+
+  <!-- ── HERO ── -->
+  <div class="ds-hero">
+    <div>
+      <p class="ds-hero-eyebrow">Text-to-SQL · Security Architecture</p>
+      <h1 class="ds-hero-h1">Audit and Harden Text-to-SQL Pipelines</h1>
+      <p class="ds-hero-summary">
+        Defense-in-depth guide: schema grounding, query validation, read-only enforcement,
+        row-level security, and observability. 180 citations across 7 sub-topics.
+        The threat model is not crashes — it's silent plausible wrong answers.
+      </p>
+    </div>
+    <div class="ds-hero-stat">
+      <strong class="ds-hero-stat-n">97%</strong>
+      <span class="ds-hero-stat-label">of wrong queries<br>execute cleanly</span>
+    </div>
+  </div>
+
+  <!-- ── META ── -->
+  <div class="ds-meta">
+    <span><strong>180</strong> citations</span>
+    <span><strong>7</strong> sub-topics</span>
+    <span><strong>48 min</strong> read</span>
+    <span>expedition depth</span>
+    <span>Sonnet 4.6 · 2026-06-09</span>
+    <span>cost: $19.69</span>
+  </div>
+
+  <!-- ── THE STACK ── -->
+  <p class="ds-section-label">Defense Stack — Pipeline Order</p>
+
+  <div class="ds-stack">
+
+    <!-- NL INPUT -->
+    <div class="ds-pipe-banner input">
+      <span style="color:var(--dim)">▶ NL INPUT &nbsp;</span>
+      "Show total revenue by customer for Q1 of last year"
+    </div>
+    <div class="ds-arrow">↓</div>
+
+    <!-- Layer 1: Schema Grounding -->
+    <div class="ds-layer" style="--lc: var(--c1);">
+      <div class="ds-layer-tag">L1</div>
+      <div>
+        <h3 class="ds-layer-name">
+          Schema Grounding
+          <span class="ds-badge ds-badge-expedition">expedition</span>
+          <span class="ds-badge ds-badge-prob">probabilistic</span>
+        </h3>
+        <div class="ds-layer-rows">
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Stops</span>
+            <span class="ds-row-val">Hallucinated tables, columns, and foreign-key joins</span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">How</span>
+            <span class="ds-row-val">
+              RAG over schema embeddings ·
+              <a href="https://arxiv.org/html/2405.16755v1">CHESS</a> adaptive column pruning ·
+              function-call schema injection ·
+              LLM self-reflection correction pass
+            </span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Finding</span>
+            <span class="ds-row-val">
+              Providing the LLM with the full schema adds noise and hallucinations;
+              selective retrieval is crucial.
+              <sup><a href="https://arxiv.org/html/2405.16755v1">[16]</a></sup>
+              Schema linking is even more critical in the LLM era due to input-length limits.
+              <sup><a href="https://arxiv.org/html/2408.05109v5">[–]</a></sup>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ds-stat" style="--lc: var(--c1);">
+        <strong>97.12%</strong>
+        <span class="ds-stat-label">CHESS schema<br>recall rate</span>
+        <cite>30.57% FPR <sup><a href="https://arxiv.org/html/2510.14296v2">[2]</a></sup></cite>
+      </div>
+    </div>
+
+    <div class="ds-arrow">↓</div>
+
+    <!-- Layer 2: Query Validation -->
+    <div class="ds-layer" style="--lc: var(--c2);">
+      <div class="ds-layer-tag">L2</div>
+      <div>
+        <h3 class="ds-layer-name">
+          Query Validation
+          <span class="ds-badge ds-badge-survey">survey</span>
+          <span class="ds-badge ds-badge-det">deterministic</span>
+        </h3>
+        <div class="ds-layer-rows">
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Stops</span>
+            <span class="ds-row-val">DDL, disallowed statement types, unbound references, structural attacks</span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">How</span>
+            <span class="ds-row-val">
+              Parse to AST (not regex) ·
+              SELECT-only allowlist ·
+              schema-binding gate ·
+              <a href="https://github.com/tobymao/sqlglot">sqlglot</a> ⭐ 9.3k (31 dialects) ·
+              evidence log with signed timestamps
+              <sup><a href="https://queryshield.dev/aeo/guides/prevent-sql-injection-llm-queries">[5]</a></sup>
+            </span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Warning</span>
+            <span class="ds-row-val">
+              Classical SQL injection WAFs degrade from 98% to 60% accuracy against LLM-generated queries.
+              <sup><a href="https://arxiv.org/html/2503.05445v1">[1]</a></sup>
+              Rule must be code-based, not another LLM call.
+              <sup><a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">[18]</a></sup>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ds-stat" style="--lc: var(--c2);">
+        <strong>60%</strong>
+        <span class="ds-stat-label">WAF accuracy vs.<br>LLM-generated SQL</span>
+        <cite>down from 98% <sup><a href="https://arxiv.org/html/2503.05445v1">[1]</a></sup></cite>
+      </div>
+    </div>
+
+    <div class="ds-arrow">↓</div>
+
+    <!-- Layer 3: Read-Only Enforcement -->
+    <div class="ds-layer" style="--lc: var(--c3);">
+      <div class="ds-layer-tag">L3</div>
+      <div>
+        <h3 class="ds-layer-name">
+          Read-Only Enforcement
+          <span class="ds-badge ds-badge-survey">survey</span>
+          <span class="ds-badge ds-badge-phys">physical</span>
+        </h3>
+        <div class="ds-layer-rows">
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Stops</span>
+            <span class="ds-row-val">All writes, DDL, DROP, DELETE, INSERT — regardless of query content or injection</span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">How</span>
+            <span class="ds-row-val">
+              <a href="https://www.postgresql.org/docs/current/predefined-roles.html"><code>pg_read_all_data</code></a> role (PG 14+) ·
+              <a href="https://rietta.com/blog/ai-sql-database-data-protection-read-replica/">read replica</a> as physical barrier ·
+              schema pruning (omit sensitive columns from LLM prompt)
+            </span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Caution</span>
+            <span class="ds-row-val">
+              <code>default_transaction_read_only</code> can be overridden in-session — role-level GRANT is the only true enforcement.
+              <sup><a href="https://jkatz05.com/post/postgres/postgres-read-only/">[7]</a></sup>
+              Deploy first: cheapest, most reliable boundary.
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ds-stat" style="--lc: var(--c3);">
+        <strong>0</strong>
+        <span class="ds-stat-label">writes possible on<br>read replica</span>
+        <cite>structural impossibility <sup><a href="https://rietta.com/blog/ai-sql-database-data-protection-read-replica/">[12]</a></sup></cite>
+      </div>
+    </div>
+
+    <div class="ds-arrow">↓</div>
+
+    <!-- Layer 4: Row-Level Security -->
+    <div class="ds-layer" style="--lc: var(--c4);">
+      <div class="ds-layer-tag">L4</div>
+      <div>
+        <h3 class="ds-layer-name">
+          Row-Level Security + Column Masking
+          <span class="ds-badge ds-badge-recon">recon</span>
+          <span class="ds-badge ds-badge-det">deterministic</span>
+        </h3>
+        <div class="ds-layer-rows">
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Stops</span>
+            <span class="ds-row-val">Cross-tenant row reads, PII column exposure, WHERE-clause bypass attempts</span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">How</span>
+            <span class="ds-row-val">
+              PostgreSQL <code>ALTER TABLE … ENABLE ROW SECURITY</code> ·
+              session variable policies ·
+              column-level <code>GRANT SELECT (col)</code> (revoke table-level first)
+            </span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Gaps</span>
+            <span class="ds-row-val">
+              CVE-2024-10976 (RLS bypass below subqueries) ·
+              CVE-2025-8713 (statistics leaking RLS-hidden rows).
+              <sup><a href="https://medium.com/@instatunnel/multi-tenant-leakage-when-row-level-security-fails-in-saas-da25f40c788c">[13]</a></sup>
+              Non-owner roles and rigorous testing required.
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ds-stat" style="--lc: var(--c4);">
+        <strong>2</strong>
+        <span class="ds-stat-label">active CVEs in<br>PostgreSQL RLS</span>
+        <cite>as of 2025 <sup><a href="https://medium.com/@instatunnel/multi-tenant-leakage-when-row-level-security-fails-in-saas-da25f40c788c">[13]</a></sup></cite>
+      </div>
+    </div>
+
+    <div class="ds-arrow">↓</div>
+
+    <!-- Layer 5: Observability -->
+    <div class="ds-layer" style="--lc: var(--c5);">
+      <div class="ds-layer-tag">L5</div>
+      <div>
+        <h3 class="ds-layer-name">
+          Observability &amp; Audit Logging
+          <span class="ds-badge ds-badge-recon">recon</span>
+          <span class="ds-badge ds-badge-detect">detective</span>
+        </h3>
+        <div class="ds-layer-rows">
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Role</span>
+            <span class="ds-row-val">Only mechanism to detect silent correctness failures in production; proves compliance</span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">How</span>
+            <span class="ds-row-val">
+              Structured query logs with NL question + generated SQL + result hash ·
+              signed-timestamp evidence records
+              <sup><a href="https://queryshield.dev/aeo/guides/prevent-sql-injection-llm-queries">[5]</a></sup> ·
+              anomaly detection over query patterns
+            </span>
+          </div>
+          <div class="ds-layer-row">
+            <span class="ds-row-key">Gap</span>
+            <span class="ds-row-val">
+              Researched at recon depth only (7 citations, 2 min read) — dedicated expedition run recommended,
+              especially for structured logging schemas and RLS policy testing frameworks.
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ds-stat" style="--lc: var(--c5);">
+        <strong>7</strong>
+        <span class="ds-stat-label">citations gathered<br>depth: recon</span>
+        <cite>⚠ needs deeper run</cite>
+      </div>
+    </div>
+
+    <div class="ds-arrow">↓</div>
+
+    <!-- DATABASE -->
+    <div class="ds-pipe-banner database">
+      <span style="color:#3fb950">⬛ DATABASE &nbsp;</span>
+      PostgreSQL — read-only role active · RLS policies enforced · audit log streaming
+    </div>
+
+  </div><!-- /ds-stack -->
+
+  <!-- ── THREAT × LAYER MATRIX ── -->
+  <p class="ds-section-label">Threat ✕ Layer Coverage</p>
+  <div class="ds-matrix-wrap">
+    <table class="ds-matrix">
+      <thead>
+        <tr>
+          <th>Attack / Failure Mode</th>
+          <th class="l1">Schema<br>Grounding</th>
+          <th class="l2">Query<br>Validation</th>
+          <th class="l3">Read-Only<br>Role</th>
+          <th class="l4">RLS /<br>Column</th>
+          <th class="l5">Observ-<br>ability</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Hallucinated table or column</td>
+          <td><span class="ds-ch">✓ stops</span></td>
+          <td><span class="ds-pa">⚠ partial</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-pa">⚠ detects</span></td>
+        </tr>
+        <tr>
+          <td>DDL (DROP / ALTER / TRUNCATE)</td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-ch">✓ blocks</span></td>
+          <td><span class="ds-ch">✓ blocks</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-na">—</span></td>
+        </tr>
+        <tr>
+          <td>SQL injection via NL input</td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-pa">⚠ partial</span></td>
+          <td><span class="ds-ch">✓ limits</span></td>
+          <td><span class="ds-ch">✓ limits</span></td>
+          <td><span class="ds-pa">⚠ detects</span></td>
+        </tr>
+        <tr>
+          <td>Prompt injection (embedded SQL fragments)</td>
+          <td><span class="ds-fa">✗ passes</span></td>
+          <td><span class="ds-pa">⚠ partial</span></td>
+          <td><span class="ds-ch">✓ limits</span></td>
+          <td><span class="ds-ch">✓ limits</span></td>
+          <td><span class="ds-pa">⚠ detects</span></td>
+        </tr>
+        <tr>
+          <td>ToxicSQL backdoor (training poison) <sup><a href="https://arxiv.org/abs/2503.05445">[14]</a></sup></td>
+          <td><span class="ds-fa">✗ passes</span></td>
+          <td><span class="ds-pa">⚠ partial</span></td>
+          <td><span class="ds-ch">✓ limits</span></td>
+          <td><span class="ds-ch">✓ limits</span></td>
+          <td><span class="ds-pa">⚠ detects</span></td>
+        </tr>
+        <tr>
+          <td>Cross-tenant row read</td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-ch">✓ blocks</span></td>
+          <td><span class="ds-pa">⚠ detects</span></td>
+        </tr>
+        <tr>
+          <td>Silent semantic correctness error</td>
+          <td><span class="ds-fa">✗ passes</span></td>
+          <td><span class="ds-fa">✗ passes</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-na">—</span></td>
+          <td><span class="ds-pa">⚠ detects</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── RESIDUAL RISK ── -->
+  <p class="ds-section-label">Residual Risk — What Survives All Layers</p>
+  <div class="ds-residual">
+    <div class="ds-residual-head">⚠ Unverifiable: Semantic Correctness</div>
+    <p>
+      A well-grounded, structurally valid query can silently aggregate on the wrong time window,
+      join on the wrong key, or misinterpret an ambiguous column name. Crashes are not the threat model.
+      <sup><a href="https://www.usedatabrain.com/blog/llm-sql-evaluation">[15]</a></sup>
+    </p>
+    <p>
+      The NL2SQL-Bugs benchmark found <strong>75.16%</strong> average LLM detection accuracy across a
+      9-category semantic error taxonomy — and <strong>6.91%</strong> of BIRD's own gold-standard benchmark
+      contains previously undetected semantic errors.
+      <sup><a href="https://nl2sql-bugs.github.io/">[3]</a></sup>
+      Whether LLM self-grading of result plausibility is reliable enough for production quality gates
+      remains the most consequential unresolved question in the text-to-SQL safety literature.
+    </p>
+  </div>
+
+  <!-- ── KEY TOOLS ── -->
+  <p class="ds-section-label">Key Tools &amp; Libraries</p>
+  <div class="ds-tools">
+    <div class="ds-tool">
+      <img class="ds-tool-img" src="defense-stack/images/sqlglot.png" alt="sqlglot on GitHub">
+      <div class="ds-tool-body">
+        <a class="ds-tool-name" href="https://github.com/tobymao/sqlglot">sqlglot <span class="ds-tool-stars">⭐ 9.3k</span></a>
+        <p class="ds-tool-desc">Python SQL parser supporting 31 dialects with full AST traversal, transformation, and type inference. Recommended engine for query validation.</p>
+      </div>
+    </div>
+    <div class="ds-tool">
+      <img class="ds-tool-img" src="defense-stack/images/pgvector.png" alt="pgvector on GitHub">
+      <div class="ds-tool-body">
+        <a class="ds-tool-name" href="https://github.com/pgvector/pgvector">pgvector <span class="ds-tool-stars">⭐ 21k</span></a>
+        <p class="ds-tool-desc">PostgreSQL vector extension for ANN search. Supports HNSW and IVFFlat, 16k-dim vectors via halfvec, hybrid SQL+vector with WHERE filtering.</p>
+      </div>
+    </div>
+    <div class="ds-tool">
+      <img class="ds-tool-img" src="defense-stack/images/vanna.png" alt="Vanna.AI on GitHub">
+      <div class="ds-tool-body">
+        <a class="ds-tool-name" href="https://github.com/vanna-ai/vanna">Vanna.AI <span class="ds-tool-stars">⭐ 23.5k</span></a>
+        <p class="ds-tool-desc">RAG text-to-SQL framework that embeds DDL, documentation, and example SQL queries, retrieving the 10 most relevant pieces per query for grounded prompts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── pgvector ── -->
+  <p class="ds-section-label">Semantic Search Augmentation</p>
+  <div class="ds-pgvec">
+    <div>
+      <p class="ds-pgvec-head">Augments the pipeline · Does not replace SQL</p>
+      <h3 class="ds-pgvec-name">
+        <a href="https://github.com/pgvector/pgvector" style="color:inherit;text-decoration:none">pgvector</a> Semantic Row Search
+        <span class="ds-badge ds-badge-expedition">expedition</span>
+        <span class="ds-badge ds-badge-aug">augments</span>
+      </h3>
+      <div class="ds-layer-rows">
+        <div class="ds-layer-row">
+          <span class="ds-row-key" style="color:var(--dim)">Role</span>
+          <span class="ds-row-val">Grounds filter values and answers questions SQL cannot express compactly — extends, not replaces, structured queries</span>
+        </div>
+        <div class="ds-layer-row">
+          <span class="ds-row-key" style="color:var(--dim)">Pattern</span>
+          <span class="ds-row-val">
+            Hybrid SQL + ANN: <code>WHERE category = $1 ORDER BY embedding &lt;=&gt; $2 LIMIT k</code> ·
+            HNSW index with RRF fusion for keyword+semantic merging ·
+            iterative scans (pgvector 0.8+) prevent overfiltering
+          </span>
+        </div>
+        <div class="ds-layer-row">
+          <span class="ds-row-key" style="color:var(--dim)">Tuning</span>
+          <span class="ds-row-val">
+            <code>ef_construction ≥ 2×m</code>, <code>ef_search ≥ k</code> — defaults are rarely appropriate at scale.
+            HNSW needs to fit in RAM; above 5–10M vectors use DiskANN.
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="ds-pgvec-stat">
+      <strong>3×</strong>
+      <span class="ds-pgvec-stat-label">HNSW vs IVFFlat<br>at 0.99 accuracy</span>
+      <cite>Supabase bench <sup><a href="https://supabase.com/blog/increase-performance-pgvector-hnsw">[6]</a></sup></cite>
+    </div>
+  </div>
+
+  <!-- ── SUB-TOPICS ── -->
+  <p class="ds-section-label">Sub-Research Topics — 7 Pages · 180 Citations</p>
+  <div class="ds-subtopics">
+    <a class="ds-card" href="../naive-text-to-sql-failure-modes/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">Naive Text-to-SQL Failure Modes</span>
+        <span class="ds-badge ds-badge-expedition">expedition</span>
+      </div>
+      <p class="ds-card-summary">~97% of wrong SQL executes cleanly. A field guide to the failure modes and the hardening stack that contains them.</p>
+      <div class="ds-card-foot"><span>41 citations</span><span>8 min</span></div>
+    </a>
+    <a class="ds-card" href="../schema-grounding-strategies/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">Schema Grounding Strategies</span>
+        <span class="ds-badge ds-badge-expedition">expedition</span>
+      </div>
+      <p class="ds-card-summary">The layered stack of schema linking, representation, retrieval, and execution feedback that grounds text-to-SQL in a real database.</p>
+      <div class="ds-card-foot"><span>42 citations</span><span>11 min</span></div>
+    </a>
+    <a class="ds-card" href="../read-only-enforcement-and-least-privilege-roles/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">Read-Only Enforcement</span>
+        <span class="ds-badge ds-badge-survey">survey</span>
+      </div>
+      <p class="ds-card-summary">Purpose-built read-only roles, column/row filtering, read replicas as physical write boundaries for LLM-generated SQL.</p>
+      <div class="ds-card-foot"><span>25 citations</span><span>8 min</span></div>
+    </a>
+    <a class="ds-card" href="../query-validation-and-safety-gates/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">Query Validation &amp; Safety Gates</span>
+        <span class="ds-badge ds-badge-survey">survey</span>
+      </div>
+      <p class="ds-card-summary">Five-layer pipeline: allowlists, AST structural checks, semantic schema binding, policy injection, and DB-level enforcement with evidence logging.</p>
+      <div class="ds-card-foot"><span>20 citations</span><span>8 min</span></div>
+    </a>
+    <a class="ds-card" href="../pgvector-semantic-row-search/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">pgvector Semantic Row Search</span>
+        <span class="ds-badge ds-badge-expedition">expedition</span>
+      </div>
+      <p class="ds-card-summary">Nearest-neighbor row retrieval, index parameter tuning without wrecking recall, and grounding a text-to-SQL pipeline with hybrid search.</p>
+      <div class="ds-card-foot"><span>40 citations</span><span>8 min</span></div>
+    </a>
+    <a class="ds-card" href="../observability-and-audit-logging/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">Observability &amp; Audit Logging</span>
+        <span class="ds-badge ds-badge-recon">recon</span>
+      </div>
+      <p class="ds-card-summary">Observability helps teams debug production; audit logging proves compliance and accountability.</p>
+      <div class="ds-card-foot"><span>7 citations</span><span>2 min</span></div>
+    </a>
+    <a class="ds-card" href="../multi-tenant-and-row-level-security/">
+      <div class="ds-card-head">
+        <span class="ds-card-title">Multi-tenant &amp; Row-Level Security</span>
+        <span class="ds-badge ds-badge-recon">recon</span>
+      </div>
+      <p class="ds-card-summary">PostgreSQL RLS is the most cost-efficient multi-tenant isolation pattern, but requires non-owner roles and rigorous testing to prevent data leaks.</p>
+      <div class="ds-card-foot"><span>5 citations</span><span>3 min</span></div>
+    </a>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="ds-footer">
+    <span>
+      <a href="../">Audit and harden text-to-SQL pipelines (2026)</a> ·
+      <a href="/">Atlas</a>
+    </span>
+    <span>180 citations · Sonnet 4.6 · 2026-06-09 · $19.69</span>
+  </div>
+
+</div>

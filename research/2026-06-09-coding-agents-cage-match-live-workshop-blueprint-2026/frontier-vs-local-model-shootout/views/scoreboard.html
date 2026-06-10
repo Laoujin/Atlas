@@ -1,0 +1,893 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Frontier vs Local Model Shootout (June 2026) — Scoreboard"
+---
+
+<style>
+  /* ── Arena root ── */
+  .arena {
+    background: #0d0f1a;
+    color: #e2e8f0;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 0 3rem;
+  }
+
+  /* ── Utility ── */
+  .arena a { color: inherit; text-decoration: none; }
+  .arena a:hover { text-decoration: underline; opacity: 0.85; }
+  sup a { color: #94a3b8; font-size: 0.7em; }
+
+  /* ── Header ── */
+  .arena-header {
+    background: linear-gradient(160deg, #0f1a2e 0%, #0d0f1a 60%);
+    border-bottom: 2px solid #1e3a5f;
+    padding: 2.5rem 2rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 0.5rem 1.5rem;
+    align-items: start;
+  }
+  .arena-header h1 {
+    margin: 0;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #f8fafc;
+    text-transform: uppercase;
+  }
+  .arena-header h1 span {
+    color: #4f9eff;
+  }
+  .arena-header .meta {
+    grid-column: 1;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.25rem;
+  }
+  .arena-header .meta span { color: #94a3b8; }
+  .arena-header .cover-img {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    width: 140px;
+    height: 94px;
+    object-fit: cover;
+    border-radius: 6px;
+    opacity: 0.85;
+    align-self: center;
+  }
+  .decision-pill {
+    grid-column: 1 / 3;
+    background: linear-gradient(90deg, #1a2744 0%, #112211 100%);
+    border: 1px solid #2a4a2a;
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #a7f3a0;
+    margin-top: 0.5rem;
+  }
+  .decision-pill strong { color: #22c55e; }
+
+  /* ── Section wrappers ── */
+  .arena-section {
+    padding: 2rem 2rem 0.5rem;
+  }
+  .arena-section h2 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 1.25rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  /* ── Fight grid: two leaderboards side by side ── */
+  .fight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    padding: 1.5rem 2rem 0.5rem;
+  }
+  @media (max-width: 700px) {
+    .fight-grid { grid-template-columns: 1fr; }
+  }
+
+  .tier-header {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.9rem;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 0;
+  }
+  .tier-header.frontier {
+    background: #1a2e4a;
+    color: #4f9eff;
+    border-bottom: 2px solid #2a4f7a;
+  }
+  .tier-header.open-weight {
+    background: #0e2218;
+    color: #22c55e;
+    border-bottom: 2px solid #1a4a28;
+  }
+
+  /* ── Model cards ── */
+  .model-card {
+    background: #141824;
+    border: 1px solid #1e293b;
+    border-top: none;
+    padding: 0.8rem 0.9rem;
+    display: grid;
+    grid-template-columns: 2.4rem 1fr auto;
+    gap: 0 0.65rem;
+    align-items: start;
+  }
+  .model-card:last-child { border-radius: 0 0 6px 6px; }
+  .model-card + .model-card { border-top: none; }
+
+  .rank-badge {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .rank-1 .rank-badge { background: linear-gradient(135deg, #b8922a, #f5c518); color: #0d0f1a; }
+  .rank-2 .rank-badge { background: linear-gradient(135deg, #6b7280, #9ca3af); color: #0d0f1a; }
+  .rank-3 .rank-badge { background: linear-gradient(135deg, #92400e, #d97706); color: #0d0f1a; }
+  .rank-4 .rank-badge { background: #1e293b; color: #64748b; }
+  .rank-5 .rank-badge { background: #1e293b; color: #64748b; }
+  .rank-6 .rank-badge { background: #1e293b; color: #64748b; }
+  .rank-7 .rank-badge { background: #1e293b; color: #64748b; }
+  .rank-8 .rank-badge { background: #1e293b; color: #64748b; }
+
+  .model-info { min-width: 0; }
+  .model-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #f1f5f9;
+    margin: 0 0 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .model-name a { color: #f1f5f9; }
+  .model-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.45rem;
+  }
+  .tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .tag-mit { background: #1a3a1a; color: #4ade80; }
+  .tag-apache { background: #1a2e3a; color: #38bdf8; }
+  .tag-llama { background: #2a1a0a; color: #fb923c; }
+  .tag-proprietary { background: #1a1a3a; color: #a78bfa; }
+  .tag-moe { background: #1e293b; color: #94a3b8; }
+  .tag-dense { background: #1e293b; color: #94a3b8; }
+
+  /* Score bar */
+  .score-bar-wrap { margin-top: 0.3rem; }
+  .score-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-bottom: 0.2rem;
+  }
+  .score-bar-label strong { color: #94a3b8; }
+  .score-bar-track {
+    height: 5px;
+    background: #1e293b;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0s;
+  }
+  .bar-frontier { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+  .bar-open { background: linear-gradient(90deg, #16a34a, #4ade80); }
+
+  /* Price column */
+  .model-price {
+    text-align: right;
+    flex-shrink: 0;
+    min-width: 5.5rem;
+  }
+  .price-val {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fbbf24;
+    white-space: nowrap;
+  }
+  .price-label {
+    font-size: 0.6rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .price-swe {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+    white-space: nowrap;
+  }
+  .price-swe .swe-val { color: #e2e8f0; font-weight: 700; }
+
+  /* ── Contamination warning ── */
+  .contam-warning {
+    margin: 1rem 2rem 0;
+    background: #1c120a;
+    border: 1px solid #7c3a0a;
+    border-left: 4px solid #f97316;
+    border-radius: 0 6px 6px 0;
+    padding: 0.7rem 1rem;
+    font-size: 0.82rem;
+    color: #fdba74;
+    line-height: 1.55;
+  }
+  .contam-warning strong { color: #fb923c; }
+
+  /* ── Gap matrix ── */
+  .gap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .gap-table th {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    border-bottom: 1px solid #1e293b;
+    white-space: nowrap;
+  }
+  .gap-table td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid #1a2030;
+    vertical-align: top;
+  }
+  .gap-table tr:last-child td { border-bottom: none; }
+  .gap-table .benchmark-name { font-weight: 600; color: #f1f5f9; }
+  .gap-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .gap-tiny { background: #0f2918; color: #4ade80; }
+  .gap-small { background: #1a2e1a; color: #86efac; }
+  .gap-medium { background: #2a2010; color: #fbbf24; }
+  .gap-wide { background: #2a1010; color: #f87171; }
+  .trend-up::before { content: "↑ "; }
+  .trend-down::before { content: "↓ "; }
+
+  /* ── Gap chart image ── */
+  .gap-chart-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .gap-chart-img {
+    width: 280px;
+    border-radius: 8px;
+    border: 1px solid #1e293b;
+    opacity: 0.9;
+    flex-shrink: 0;
+  }
+  @media (max-width: 760px) {
+    .gap-chart-row { grid-template-columns: 1fr; }
+    .gap-chart-img { width: 100%; }
+  }
+
+  /* ── Hardware tiles ── */
+  .hw-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 700px) {
+    .hw-tiles { grid-template-columns: repeat(2, 1fr); }
+  }
+  .hw-tile {
+    background: #141824;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .hw-tile-size {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #60a5fa;
+    line-height: 1;
+  }
+  .hw-tile-vram {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+  .hw-tile-hw {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    line-height: 1.4;
+  }
+  .hw-tile-speed {
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-top: 0.2rem;
+  }
+
+  /* ── Cost crossover banner ── */
+  .cost-banner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+  }
+  @media (max-width: 700px) {
+    .cost-banner { grid-template-columns: 1fr; }
+  }
+  .cost-tile {
+    background: #141824;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+  }
+  .cost-tile-num {
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .cost-tile-label {
+    font-size: 0.72rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.5rem;
+  }
+  .cost-tile-desc {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+  .cost-green .cost-tile-num { color: #22c55e; }
+  .cost-yellow .cost-tile-num { color: #fbbf24; }
+  .cost-red .cost-tile-num { color: #ef4444; }
+
+  /* ── Decision table ── */
+  .decision-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .decision-table th {
+    text-align: left;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    border-bottom: 1px solid #1e293b;
+  }
+  .decision-table td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid #1a2030;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .decision-table tr:last-child td { border-bottom: none; }
+  .decision-table .factor-col { color: #f1f5f9; font-weight: 700; font-size: 0.78rem; }
+  .decision-table .local-col { color: #4ade80; }
+  .decision-table .frontier-col { color: #60a5fa; }
+
+  /* ── Aider chart ── */
+  .aider-chart-wrap {
+    margin-top: 0.75rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+  }
+  .aider-chart-wrap img { width: 100%; display: block; opacity: 0.88; }
+  .aider-caption {
+    background: #141824;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+
+  /* ── Verdict footer ── */
+  .verdict-footer {
+    margin: 2rem 2rem 0;
+    background: linear-gradient(135deg, #0e2218, #1a1a3a);
+    border: 1px solid #2a4a2a;
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem 1.5rem;
+    align-items: center;
+  }
+  .verdict-icon {
+    font-size: 3rem;
+    line-height: 1;
+  }
+  .verdict-text h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #22c55e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .verdict-text p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  .verdict-text p strong { color: #e2e8f0; }
+
+  /* ── Siblings strip ── */
+  .siblings-strip {
+    margin: 1.5rem 2rem 0;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .sibling-chip {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    background: #141824;
+    border: 1px solid #1e293b;
+    color: #94a3b8;
+    transition: border-color 0.15s;
+  }
+  .sibling-chip:hover { border-color: #4f9eff; color: #e2e8f0; }
+  .sibling-chip .depth-badge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-left: 0.3rem;
+    opacity: 0.65;
+  }
+</style>
+
+<div class="arena">
+
+  <!-- HEADER -->
+  <header class="arena-header">
+    <h1>Frontier vs Local<br><span>Model Shootout</span></h1>
+    <div class="meta">
+      <span>June 2026</span>
+      <span>50 sources</span>
+      <span>expedition</span>
+    </div>
+    <img src="../cover.svg" alt="Cover" class="cover-img">
+    <div class="decision-pill">
+      <strong>Default:</strong> frontier API (Claude Opus 4.8, GPT-5.5, Gemini 3.1 Pro) for hard coding &amp; agents.
+      <strong>Local</strong> when privacy/compliance forces it or volume ≥ 500K tokens/day.
+      <strong>Hybrid</strong> (60-80% local, 20-40% frontier escalation) for production.
+      <sup><a href="https://dev.to/danishashko/the-best-llms-for-agentic-coding-in-2026-real-world-not-just-benchmarks-96n">[43]</a></sup>
+    </div>
+  </header>
+
+  <!-- THE FIGHT -->
+  <div class="fight-grid">
+
+    <!-- FRONTIER COLUMN -->
+    <div>
+      <div class="tier-header frontier">⚡ Frontier (Closed)</div>
+
+      <div class="model-card rank-1">
+        <div class="rank-badge">1</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude Opus 4.8</a></div>
+          <div class="model-tags">
+            <span class="tag tag-proprietary">Proprietary</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>AA Intelligence</span><strong>61.4</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-frontier" style="width:94.5%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val">$5 / $25</div>
+          <div class="price-label">in / out / MTok</div>
+          <div class="price-swe"><span class="swe-val">88.6%</span> SWE-V <sup><a href="https://www.marc0.dev/en/leaderboard">[8]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="model-card rank-2">
+        <div class="rank-badge">2</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://openrouter.ai/openai/gpt-5.5">GPT-5.5</a></div>
+          <div class="model-tags">
+            <span class="tag tag-proprietary">Proprietary</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>AA Intelligence</span><strong>60.2</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-frontier" style="width:92.6%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val">$5 / $30</div>
+          <div class="price-label">in / out / MTok</div>
+          <div class="price-swe" style="color:#64748b">SWE-V: —</div>
+        </div>
+      </div>
+
+      <div class="model-card rank-3">
+        <div class="rank-badge">3</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://www.aimagicx.com/blog/claude-opus-4-6-vs-gpt-5-4-vs-gemini-3-1-benchmark-comparison-april-2026">Gemini 3.1 Pro</a></div>
+          <div class="model-tags">
+            <span class="tag tag-proprietary">Proprietary</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>AA Intelligence</span><strong>57</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-frontier" style="width:87.7%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val">$2 / $12</div>
+          <div class="price-label">in / out / MTok</div>
+          <div class="price-swe" style="color:#4ade80;font-size:0.65rem">cheapest Pro tier</div>
+        </div>
+      </div>
+
+      <div class="model-card rank-4">
+        <div class="rank-badge">4</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://artificialanalysis.ai/models/grok-4-3">Grok 4.3</a></div>
+          <div class="model-tags">
+            <span class="tag tag-proprietary">Proprietary</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>AA Intelligence</span><strong>53</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-frontier" style="width:81.5%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val">$1.25 / $2.50</div>
+          <div class="price-label">in / out / MTok</div>
+          <div class="price-swe"><span class="swe-val">~74%</span> SWE-V <sup><a href="https://artificialanalysis.ai/articles/xai-launches-grok-4-3-with-improved-agentic-performance-and-lower-pricing">[15]</a></sup></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPEN-WEIGHT COLUMN -->
+    <div>
+      <div class="tier-header open-weight">🔓 Open-Weight</div>
+
+      <div class="model-card rank-1">
+        <div class="rank-badge">1</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://www.aimadetools.com/blog/deepseek-v4-pro-complete-guide/">DeepSeek V4 Pro</a></div>
+          <div class="model-tags">
+            <span class="tag tag-mit">MIT</span>
+            <span class="tag tag-moe">1.6T / 49B MoE</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>benchlm.ai score</span><strong>87</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-open" style="width:96.7%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val" style="color:#94a3b8">API vary</div>
+          <div class="price-label">datacenter only</div>
+          <div class="price-swe"><span class="swe-val">80.6%</span> SWE-V <sup><a href="https://www.aimadetools.com/blog/deepseek-v4-pro-complete-guide/">[18]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="model-card rank-2">
+        <div class="rank-badge">2</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://huggingface.co/moonshotai/Kimi-K2.6">Kimi K2.6</a></div>
+          <div class="model-tags">
+            <span class="tag tag-mit">mod. MIT</span>
+            <span class="tag tag-moe">1T / 32B MoE</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>benchlm.ai score</span><strong>84</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-open" style="width:93.3%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val" style="color:#94a3b8">API vary</div>
+          <div class="price-label">datacenter only</div>
+          <div class="price-swe"><span class="swe-val">80.2%</span> SWE-V <sup><a href="https://huggingface.co/moonshotai/Kimi-K2.6">[19]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="model-card rank-3">
+        <div class="rank-badge">3</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://glm5.net/">GLM-5.1</a></div>
+          <div class="model-tags">
+            <span class="tag tag-mit">MIT</span>
+            <span class="tag tag-moe">744B / 44B MoE</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>benchlm.ai score</span><strong>83</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-open" style="width:92.2%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val" style="color:#94a3b8">API vary</div>
+          <div class="price-label">multi-GPU</div>
+          <div class="price-swe" style="color:#94a3b8;font-size:0.65rem">Ascend silicon</div>
+        </div>
+      </div>
+
+      <div class="model-card rank-4">
+        <div class="rank-badge">4</div>
+        <div class="model-info">
+          <div class="model-name"><a href="https://github.com/QwenLM/Qwen3-Coder">Qwen3-Coder</a> ⭐ 16.6k</div>
+          <div class="model-tags">
+            <span class="tag tag-apache">Apache-2.0</span>
+            <span class="tag tag-moe">480B-A35B or 30B-A3B</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>≈ Claude Sonnet</span><strong>coding</strong></div>
+            <div class="score-bar-track"><div class="score-bar-fill bar-open" style="width:87.8%"></div></div>
+          </div>
+        </div>
+        <div class="model-price">
+          <div class="price-val" style="color:#4ade80">1 GPU</div>
+          <div class="price-label">30B on 24GB</div>
+          <div class="price-swe" style="color:#4ade80;font-size:0.65rem">runnable local</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAMINATION WARNING -->
+  <div class="contam-warning">
+    <strong>⚠ SWE-bench Verified is inflated.</strong>
+    Claude Opus 4.5: <strong>80.9%</strong> on Verified → <strong>45.9%</strong> on the cleaner SWE-bench Pro — a 35-point gap from training-data contamination.
+    Cross-vendor uncontaminated ceiling sits around <strong>69%</strong>.
+    <sup><a href="https://www.codeant.ai/blogs/swe-bench-scores">[9]</a></sup>
+    LiveCodeBench (contamination-free) shows a much smaller gap. <sup><a href="https://livecodebench.github.io/leaderboard.html">[33]</a></sup>
+  </div>
+
+  <!-- THE GAP MATRIX -->
+  <div class="arena-section">
+    <h2>The Gap Matrix — How Wide is it Really?</h2>
+    <div class="gap-chart-row">
+      <table class="gap-table">
+        <thead>
+          <tr>
+            <th>Benchmark</th>
+            <th>Frontier leader</th>
+            <th>Best open</th>
+            <th>Gap</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="benchmark-name">Epoch ECI (time)</td>
+            <td>closed frontier</td>
+            <td>~4 months behind <sup><a href="https://epoch.ai/data-insights/open-closed-eci-gap">[28]</a></sup></td>
+            <td><span class="gap-cell gap-medium trend-up">widening</span></td>
+          </tr>
+          <tr>
+            <td class="benchmark-name">AA Intelligence Index</td>
+            <td>61.4 (Opus 4.8) <sup><a href="https://lmcouncil.ai/benchmarks">[7]</a></sup></td>
+            <td>51 (GLM-5.1) <sup><a href="https://smartchunks.com/artificial-analysis-intelligence-index-april-2026-explained/">[31]</a></sup></td>
+            <td><span class="gap-cell gap-medium">6 pts</span></td>
+          </tr>
+          <tr>
+            <td class="benchmark-name">LMArena Elo</td>
+            <td>1506 (GPT-5.5-high) <sup><a href="https://openlm.ai/chatbot-arena/">[32]</a></sup></td>
+            <td>1467 (GLM-5.1 / DSV4-Pro) <sup><a href="https://openlm.ai/chatbot-arena/">[32]</a></sup></td>
+            <td><span class="gap-cell gap-small">39 Elo</span></td>
+          </tr>
+          <tr>
+            <td class="benchmark-name">SWE-bench Verified</td>
+            <td>88.6% (Opus 4.8) <sup><a href="https://www.marc0.dev/en/leaderboard">[8]</a></sup></td>
+            <td>60.5% (Nemotron 3 120B) <sup><a href="https://www.digitalapplied.com/blog/open-weight-vs-closed-source-ai-models-q2-2026">[29]</a></sup></td>
+            <td><span class="gap-cell gap-wide">~27 pts ⚠</span></td>
+          </tr>
+          <tr>
+            <td class="benchmark-name">Reasoning benches (avg)</td>
+            <td>frontier</td>
+            <td>open</td>
+            <td><span class="gap-cell gap-small trend-down">3–8 pts ↓</span></td>
+          </tr>
+          <tr>
+            <td class="benchmark-name">LiveCodeBench</td>
+            <td>&gt;85% (GPT-5.2 / Opus 4.5) <sup><a href="https://livecodebench.github.io/leaderboard.html">[33]</a></sup></td>
+            <td>GLM-4.7 Thinking <sup><a href="https://livecodebench.github.io/leaderboard.html">[33]</a></sup></td>
+            <td><span class="gap-cell gap-small">small</span></td>
+          </tr>
+          <tr>
+            <td class="benchmark-name">Aider polyglot</td>
+            <td>GPT-5 ~0.880 / Opus 4.6 82.1% <sup><a href="https://aider.chat/docs/leaderboards/">[34]</a></sup></td>
+            <td>open — trails Go/Rust/Java <sup><a href="https://aider.chat/docs/leaderboards/">[34]</a></sup></td>
+            <td><span class="gap-cell gap-medium">lang-dependent</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <img src="scoreboard/images/epoch-eci-gap.png" alt="Epoch AI open vs closed ECI gap chart" class="gap-chart-img">
+    </div>
+  </div>
+
+  <!-- AIDER POLYGLOT CHART -->
+  <div class="arena-section">
+    <h2>Aider Polyglot Leaderboard — Multi-Language Coding</h2>
+    <div class="aider-chart-wrap">
+      <img src="scoreboard/images/aider-leaderboard.jpg" alt="Aider polyglot coding benchmark leaderboard">
+      <div class="aider-caption">
+        Aider polyglot: 225 Exercism exercises across C++, Go, Java, JavaScript, Python, Rust.
+        Open models trail more on Go/Rust/Java than Python-heavy SWE-bench.
+        <sup><a href="https://aider.chat/docs/leaderboards/">[34]</a></sup>
+      </div>
+    </div>
+  </div>
+
+  <!-- HARDWARE REALITY -->
+  <div class="arena-section">
+    <h2>Hardware Reality — Q4_K_M Quant Sweet Spot (~3-5% quality loss)</h2>
+    <div class="hw-tiles">
+      <div class="hw-tile">
+        <div class="hw-tile-size">8B</div>
+        <div class="hw-tile-vram">~4–7 GB VRAM <sup><a href="https://localllm.in/blog/ollama-vram-requirements-for-local-llms">[36]</a></sup></div>
+        <div class="hw-tile-hw">Any 8GB+ GPU<br>RTX 3060, M1, etc.</div>
+        <div class="hw-tile-speed">Very fast throughput</div>
+      </div>
+      <div class="hw-tile">
+        <div class="hw-tile-size">32B</div>
+        <div class="hw-tile-vram">~22–24 GB VRAM <sup><a href="https://localllm.in/blog/ollama-vram-requirements-for-local-llms">[36]</a></sup></div>
+        <div class="hw-tile-hw">Single RTX 4090 (24GB)<br>Qwen3-Coder 30B fits here</div>
+        <div class="hw-tile-speed">~650 tok/s (4090) · ~1,100 tok/s (5090) <sup><a href="https://www.spheron.network/blog/rtx-5090-vs-rtx-4090/">[37]</a></sup></div>
+      </div>
+      <div class="hw-tile">
+        <div class="hw-tile-size">70B</div>
+        <div class="hw-tile-vram">~45 GB VRAM <sup><a href="https://insiderllm.com/guides/running-70b-models-locally-vram-guide/">[35]</a></sup></div>
+        <div class="hw-tile-hw">Dual 3090/4090 (48GB)<br>or Apple M2/M3 Ultra</div>
+        <div class="hw-tile-speed">16–25 tok/s dual-GPU · ~41 tok/s M3 Ultra <sup><a href="https://insiderllm.com/guides/m4-max-ultra-local-llms-apple-silicon/">[38]</a></sup></div>
+      </div>
+      <div class="hw-tile">
+        <div class="hw-tile-size">1T+</div>
+        <div class="hw-tile-vram">Datacenter only</div>
+        <div class="hw-tile-hw">DeepSeek V4 Pro, Kimi K2.6<br>Multi-H100/H200 rack</div>
+        <div class="hw-tile-speed">No consumer path</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COST CROSSOVER -->
+  <div class="arena-section">
+    <h2>Cost Crossover — Utilization is Everything</h2>
+    <div class="cost-banner">
+      <div class="cost-tile cost-green">
+        <div class="cost-tile-num">500K</div>
+        <div class="cost-tile-label">tokens / day threshold</div>
+        <div class="cost-tile-desc">Self-hosting typically breaks even above ~500K sustained tokens/day at ≥70% GPU utilization. <sup><a href="https://www.sitepoint.com/local-llms-vs-cloud-api-cost-analysis-2026/">[41]</a></sup></div>
+      </div>
+      <div class="cost-tile cost-red">
+        <div class="cost-tile-num">10×</div>
+        <div class="cost-tile-label">penalty at 10% utilization</div>
+        <div class="cost-tile-desc">An idle GPU bills the same as a busy one. At 10% utilization, real cost-per-token is 10× the headline rate. <sup><a href="https://www.spheron.network/blog/llm-inference-on-premise-vs-cloud/">[42]</a></sup></div>
+      </div>
+      <div class="cost-tile cost-yellow">
+        <div class="cost-tile-num">$5.4K</div>
+        <div class="cost-tile-label">saved / month (real case)</div>
+        <div class="cost-tile-desc">Mar 2026 batch deployment: $1,280/mo on owned hardware vs prior $6,700/mo cloud API bill. <sup><a href="https://www.sitepoint.com/the-2026-definitive-guide-to-running-local-llms-in-production/">[50]</a></sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHEN TO PICK WHICH -->
+  <div class="arena-section">
+    <h2>When to Pick Which</h2>
+    <table class="decision-table">
+      <thead>
+        <tr>
+          <th style="width:16%">Factor</th>
+          <th style="width:42%">Local wins when…</th>
+          <th style="width:42%">Frontier wins when…</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="factor-col">Cost</td>
+          <td class="local-col">Sustained ≥500K tok/day at ≥70% GPU util <sup><a href="https://www.sitepoint.com/local-llms-vs-cloud-api-cost-analysis-2026/">[41]</a><a href="https://www.spheron.network/blog/llm-inference-on-premise-vs-cloud/">[42]</a></sup></td>
+          <td class="frontier-col">Spiky or low volume; idle time is free <sup><a href="https://www.digitalapplied.com/blog/self-hosting-open-weight-llms-2026-deployment-decision-guide">[2]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="factor-col">Privacy</td>
+          <td class="local-col">PHI, GDPR, air-gapped — VPC self-host is clean <sup><a href="https://petronellatech.com/blog/hipaa-compliant-private-llms-5-architectures-2026/">[3]</a><a href="https://www.truefoundry.com/blog/llm-deployment-in-regulated-industries-hipaa-soc2-and-gdpr-playbook-for-2026">[5]</a></sup></td>
+          <td class="frontier-col">Data permitted to leave org; BAA in place</td>
+        </tr>
+        <tr>
+          <td class="factor-col">Capability</td>
+          <td class="local-col">"Good enough" tier — most day-to-day tasks <sup><a href="https://www.digitalapplied.com/blog/open-weight-vs-closed-source-ai-models-q2-2026">[29]</a></sup></td>
+          <td class="frontier-col">Hard refactors, intensive reasoning, long-horizon agents <sup><a href="https://www.promptquorum.com/local-llms/local-llm-limitations">[44]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="factor-col">Latency</td>
+          <td class="local-col">Agentic loops (10–30 API calls × round-trips compound) <sup><a href="https://pendium.ai/edgee/2026-llm-latency-benchmarks-analyzing-production-performance-across-200-models">[6]</a></sup></td>
+          <td class="frontier-col">Single-shot tasks; no local hardware available</td>
+        </tr>
+        <tr>
+          <td class="factor-col">Fine-tuning</td>
+          <td class="local-col">Need full SFT / LoRA / custom RLHF <sup><a href="https://medium.com/@paryemalanianuj/frontier-llm-vs-open-source-how-do-you-actually-decide-f675570a8f87">[4]</a></sup></td>
+          <td class="frontier-col">Prompt-engineering is sufficient</td>
+        </tr>
+        <tr>
+          <td class="factor-col">Lock-in</td>
+          <td class="local-col">Want portability; vendors swing latency 42% mid-quarter <sup><a href="https://pendium.ai/edgee/2026-llm-latency-benchmarks-analyzing-production-performance-across-200-models">[6]</a></sup></td>
+          <td class="frontier-col">Managed-vendor dependency is acceptable <sup><a href="https://medium.com/@paryemalanianuj/frontier-llm-vs-open-source-how-do-you-actually-decide-f675570a8f87">[4]</a></sup></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="verdict-footer">
+    <div class="verdict-icon">⚖</div>
+    <div class="verdict-text">
+      <h3>2026 Practitioner Verdict: Tiered Hybrid</h3>
+      <p>
+        Route <strong>60–80%</strong> of agent traffic to self-hosted <strong>Qwen3-Coder</strong> or <strong>Kimi K2.6</strong>.
+        Escalate the hardest <strong>20–40%</strong> to <strong>Claude Opus 4.8</strong> or <strong>Gemini 3.1 Pro</strong>.
+        <sup><a href="https://dev.to/danishashko/the-best-llms-for-agentic-coding-in-2026-real-world-not-just-benchmarks-96n">[43]</a></sup>
+        The open-frontier gap has narrowed from 30+ pts in 2024 to 3–8 pts on reasoning — but the model you can fit on <em>one GPU</em> still trails on hard refactors and non-Python languages.
+        <sup><a href="https://www.digitalapplied.com/blog/open-weight-vs-closed-source-ai-models-q2-2026">[29]</a></sup>
+        The 2026 bottleneck shifted: it's no longer generation speed — it's <strong>verification capacity</strong>.
+        <sup><a href="https://www.developersdigest.tech/blog/what-hacker-news-gets-right-about-ai-coding-agents-2026">[45]</a></sup>
+      </p>
+    </div>
+  </div>
+
+  <!-- SIBLINGS STRIP -->
+  <div class="siblings-strip">
+    <a href="../../" class="sibling-chip">↑ Cage Match Blueprint</a>
+    <a href="../../tool-capabilities-and-2026-state-of-the-art/" class="sibling-chip">Tool Capabilities <span class="depth-badge">survey</span></a>
+    <a href="../../task-design-and-success-criteria/" class="sibling-chip">Task Design &amp; Scoring <span class="depth-badge">survey</span></a>
+    <a href="../../live-workshop-logistics-and-team-setup/" class="sibling-chip">Workshop Logistics <span class="depth-badge">survey</span></a>
+    <a href="../../debrief-and-scoring-synthesis/" class="sibling-chip">Debrief &amp; Synthesis <span class="depth-badge">recon</span></a>
+  </div>
+
+</div>

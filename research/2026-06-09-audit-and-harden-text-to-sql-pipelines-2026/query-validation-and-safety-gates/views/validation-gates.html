@@ -1,0 +1,530 @@
+---
+layout: view
+view_name: "Validation Gates"
+view_of: ../
+title: "Query Validation and Safety Gates for Text-to-SQL Pipelines — Validation Gates"
+---
+
+<style>
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --amber: #f59e0b;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --mono: 'SF Mono','Fira Code','Cascadia Code','Courier New',monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.vg { background: var(--bg); color: var(--text); font-family: system-ui,-apple-system,sans-serif; font-size: 15px; line-height: 1.6; padding: 2rem 1rem; }
+.vg-inner { max-width: 900px; margin: 0 auto; }
+
+/* hero */
+.vg-hero { border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem; }
+.crumb { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 1rem; }
+.crumb a { color: var(--blue); text-decoration: none; }
+.vg-title { font-size: clamp(1.6rem,4vw,2.4rem); font-weight: 700; line-height: 1.2; letter-spacing: -.02em; margin-bottom: .5rem; }
+.vg-title .accent { color: var(--amber); }
+.vg-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 1.25rem; }
+.verdict { background: #0f2818; border: 1px solid #166534; border-left: 4px solid var(--green); padding: 1rem 1.25rem; border-radius: 4px; font-size: 13.5px; line-height: 1.65; color: #bbf7d0; }
+.verdict strong { color: var(--green); font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: .5rem; }
+
+/* section head */
+.sh { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: .5rem; margin-bottom: 1.5rem; }
+
+/* stat grid */
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2.5rem; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; text-align: center; }
+.stat-n { font-family: var(--mono); font-size: 2.2rem; font-weight: 700; line-height: 1; margin-bottom: .4rem; }
+.stat-l { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.stat-s { font-size: 10px; color: var(--muted); margin-top: .25rem; opacity: .7; }
+
+/* pipeline */
+.pipeline { position: relative; margin-bottom: 3rem; }
+.pipeline::before { content: ''; position: absolute; left: 20px; top: 26px; bottom: 26px; width: 2px; background: linear-gradient(to bottom,var(--purple),var(--red),var(--amber),var(--amber),var(--blue),var(--green)); opacity: .25; }
+.gate { display: flex; gap: 1.25rem; margin-bottom: 1rem; position: relative; }
+.badge { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 700; font-size: 14px; border: 2px solid; background: var(--bg); z-index: 1; margin-top: 4px; }
+.g0 .badge { border-color: var(--purple); color: var(--purple); }
+.g1 .badge { border-color: var(--red); color: var(--red); }
+.g2 .badge { border-color: var(--amber); color: var(--amber); }
+.g3 .badge { border-color: var(--amber); color: var(--amber); }
+.g4 .badge { border-color: var(--blue); color: var(--blue); }
+.g5 .badge { border-color: var(--green); color: var(--green); }
+
+.gbody { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.25rem; }
+.ghead { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin-bottom: .5rem; flex-wrap: wrap; }
+.gname { font-weight: 600; font-size: 15px; }
+.gtag { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .1em; padding: 2px 8px; border-radius: 100px; flex-shrink: 0; }
+.t-pre  { background: #2d1f4e; color: var(--purple); border: 1px solid #4c1d95; }
+.t-deny { background: #2d1111; color: var(--red);    border: 1px solid #7f1d1d; }
+.t-ast  { background: #2d2006; color: var(--amber);  border: 1px solid #78350f; }
+.t-sem  { background: #2d2006; color: var(--amber);  border: 1px solid #78350f; }
+.t-inj  { background: #0c1e3d; color: var(--blue);   border: 1px solid #1e3a5f; }
+.t-enf  { background: #0f2818; color: var(--green);  border: 1px solid #166534; }
+
+.gdesc { font-size: 13.5px; color: var(--muted); margin-bottom: .75rem; line-height: 1.5; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; }
+.blk { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 3px; background: #1a0c0c; color: #fca5a5; border: 1px solid #450a0a; }
+.alw { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 3px; background: #0f2818; color: #86efac; border: 1px solid #166534; }
+.gtool { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.tbadge { font-family: var(--mono); font-size: 11px; color: var(--blue); background: #0c1e3d; border: 1px solid #1e3a5f; padding: 2px 8px; border-radius: 3px; text-decoration: none; }
+.tbadge:hover { background: #1e3a5f; }
+.gstat { font-family: var(--mono); font-size: 11px; color: var(--muted); font-style: italic; }
+
+/* failure matrix */
+.ftable { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 2.5rem; }
+.ftable th { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.ftable td { padding: 8px 12px; border-bottom: 1px solid #21262d; vertical-align: middle; }
+.ftable tr:last-child td { border-bottom: none; }
+.ftable tr:hover td { background: var(--bg-card); }
+.ec { font-family: var(--mono); font-size: 11px; color: #f97316; white-space: nowrap; }
+.lr { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.r0 { background: #2d1f4e; color: var(--purple); }
+.r1 { background: #2d1111; color: var(--red); }
+.r2 { background: #2d2006; color: var(--amber); }
+.r3 { background: #2d2006; color: var(--amber); }
+.r4 { background: #0c1e3d; color: var(--blue); }
+.r5 { background: #0f2818; color: var(--green); }
+
+/* code */
+.code { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: 12px; line-height: 1.65; color: #e6edf3; overflow-x: auto; margin-bottom: 2rem; white-space: pre; }
+.kw { color: #ff7b72; }
+.st { color: #a5d6ff; }
+.cm { color: #8b949e; }
+.fn { color: #d2a8ff; }
+.id { color: #ffa657; }
+
+/* threats */
+.threats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; }
+.threat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; }
+.threat-hd { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; flex-wrap: wrap; }
+.tname { font-weight: 600; font-size: 14px; }
+.ttag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 100px; }
+.tc { border-top: 2px solid var(--red); }
+.tm { border-top: 2px solid var(--amber); }
+.tc .ttag { background: #2d1111; color: var(--red); border: 1px solid #7f1d1d; }
+.tm .ttag { background: #2d2006; color: var(--amber); border: 1px solid #78350f; }
+.tstat { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; margin: .5rem 0; }
+.tc .tstat { color: var(--red); }
+.tm .tstat { color: var(--amber); }
+.tbody { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+/* phases */
+.phases { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.25rem; }
+.phase { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; }
+.plabel { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; margin-bottom: .75rem; }
+.pc .plabel { color: var(--green); }
+.pw .plabel { color: var(--amber); }
+.pr .plabel { color: var(--blue); }
+.pitems { list-style: none; font-size: 13px; color: var(--muted); line-height: 1.7; }
+.pitems li::before { content: '→ '; opacity: .5; }
+
+/* tools table */
+.ttable { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 2.5rem; }
+.ttable th { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.ttable td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: middle; }
+.ttable tr:last-child td { border-bottom: none; }
+.tn { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--blue); text-decoration: none; }
+.stars { font-family: var(--mono); font-size: 11px; color: var(--amber); white-space: nowrap; }
+.ok { color: var(--green); }
+.pt { color: var(--amber); }
+.no { color: #374151; }
+
+/* siblings */
+.siblings { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+.sgrid { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; }
+.sib { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: .875rem 1rem; text-decoration: none; display: block; color: var(--text); }
+.sib:hover { border-color: var(--blue); }
+.sdepth { font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .25rem; }
+.d-exp { color: var(--blue); }
+.d-sur { color: var(--amber); }
+.d-rec { color: #6b7280; }
+.stitle { font-size: 13px; font-weight: 500; margin-bottom: .25rem; }
+.ssum { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+
+/* footnotes */
+.notes { border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 2rem; }
+.notes-h { font-family: var(--mono); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+.nlist { columns: 2; column-gap: 2rem; list-style: none; }
+.nlist li { font-size: 11px; color: var(--muted); margin-bottom: .3rem; break-inside: avoid; }
+.nlist a { color: var(--blue); text-decoration: none; }
+.nlist a:hover { text-decoration: underline; }
+
+sup a { color: var(--blue); font-size: .75em; text-decoration: none; }
+sup a:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .stats,.threats,.phases,.sgrid { grid-template-columns: 1fr; }
+  .nlist { columns: 1; }
+}
+</style>
+
+<div class="vg">
+<div class="vg-inner">
+
+<header class="vg-hero">
+  <p class="crumb"><a href="/">Atlas</a> / <a href="../../">Text-to-SQL Hardening</a> / Query Validation</p>
+  <h1 class="vg-title"><span class="accent">Five-Layer</span> SQL Validation Pipeline</h1>
+  <p class="vg-sub">survey · 20 citations · 8 min read</p>
+  <div class="verdict">
+    <strong>// TL;DR</strong>
+    Regex blocklists drop from 98% to <strong>60% accuracy</strong> against LLM-generated queries. Intent errors masquerade as working code — most broken queries execute cleanly and return plausible wrong data. Chain five deterministic layers: statement-type allowlist → AST structural check → semantic schema binding → policy injection → read-only DB connection. All validation must run <em>after</em> LLM generation, in code — never delegated to a second LLM call. <sup><a href="https://arxiv.org/html/2503.05445v1">[1]</a></sup><sup><a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">[3]</a></sup>
+  </div>
+</header>
+
+<p class="sh">Why Single-Layer Validation Fails</p>
+<div class="stats">
+  <div class="stat">
+    <div class="stat-n" style="color:var(--red)">60%</div>
+    <div class="stat-l">regex detection accuracy against LLM-generated queries — down from 98%</div>
+    <div class="stat-s"><sup><a href="https://arxiv.org/html/2503.05445v1">[1]</a></sup></div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:var(--amber)">50K+</div>
+    <div class="stat-l">production queries studied — most broken ones execute cleanly and return plausible wrong data</div>
+    <div class="stat-s"><sup><a href="https://www.usedatabrain.com/blog/llm-sql-evaluation">[2]</a></sup></div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:var(--purple)">6</div>
+    <div class="stat-l">distinct failure classes — each requires a different layer to catch it</div>
+    <div class="stat-s"><sup><a href="https://www.usedatabrain.com/blog/llm-sql-evaluation">[2]</a></sup></div>
+  </div>
+</div>
+
+<p class="sh">The Validation Pipeline</p>
+<div class="pipeline">
+
+  <div class="gate g0">
+    <div class="badge">0</div>
+    <div class="gbody">
+      <div class="ghead"><span class="gname">Intent Classification</span><span class="gtag t-pre">PRE-SQL</span></div>
+      <p class="gdesc">Before generating SQL, classify whether the user's message warrants a database query. Off-topic, ambiguous, or schema-mismatched inputs refused early — before any SQL tokens are emitted. <sup><a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">[3]</a></sup></p>
+      <div class="chips">
+        <span class="blk">off-topic queries</span>
+        <span class="blk">schema-mismatched inputs</span>
+        <span class="blk">ambiguous intent</span>
+      </div>
+      <div class="gtool">
+        <span class="gstat">LatentRefusal: hidden-activation probe, 88.5% F1, ~2ms overhead <sup><a href="https://arxiv.org/abs/2601.10398">[4]</a></sup> · "Query Carefully" parse-time unanswerable detection <sup><a href="https://arxiv.org/abs/2512.21345">[18]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gate g1">
+    <div class="badge">1</div>
+    <div class="gbody">
+      <div class="ghead"><span class="gname">Statement-Type Allowlist</span><span class="gtag t-deny">DEFAULT DENY</span></div>
+      <p class="gdesc">Parse the generated SQL and enforce a default-deny policy on statement types. Regex is insufficient — use a real AST parser. <sup><a href="https://queryshield.dev/aeo/guides/prevent-sql-injection-llm-queries">[5]</a></sup></p>
+      <div class="chips">
+        <span class="blk">DROP</span><span class="blk">TRUNCATE</span><span class="blk">ALTER</span>
+        <span class="blk">GRANT / REVOKE</span><span class="blk">INSERT / UPDATE / DELETE</span>
+        <span class="blk">multi-statement (;)</span><span class="blk">EXEC / dynamic SQL</span>
+        <span class="alw">SELECT ✓</span>
+      </div>
+      <div class="gtool">
+        <a class="tbadge" href="https://github.com/tobymao/sqlglot">sqlglot</a>
+        <span class="gstat">⭐ 9.3k · 31 dialects · AST top-level statement type check <sup><a href="https://github.com/tobymao/sqlglot">[6]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gate g2">
+    <div class="badge">2</div>
+    <div class="gbody">
+      <div class="ghead"><span class="gname">AST Structural Validation</span><span class="gtag t-ast">AST PARSE</span></div>
+      <p class="gdesc">Traverse the parse tree against what this user's role is authorized to see. Covers SELECT, WHERE, JOIN ON, subqueries, and CTEs — catches hallucinated fields immediately. <sup><a href="https://lotuslabs.medium.com/text-to-sql-a-privacy-nightmare-how-to-architect-secure-enterprise-grade-text-to-sql-256615d1b59f">[7]</a></sup></p>
+      <div class="chips">
+        <span class="blk">unauthorized tables</span><span class="blk">hallucinated columns</span>
+        <span class="blk">PII in projections / CTEs</span><span class="blk">financial column exposure</span>
+      </div>
+      <div class="gtool">
+        <a class="tbadge" href="https://github.com/tobymao/sqlglot">sqlglot</a>
+        <a class="tbadge" href="https://github.com/andialbrecht/sqlparse">sqlparse</a>
+        <a class="tbadge" href="https://pypi.org/project/pg_query/">pg_query</a>
+        <span class="gstat"> sqlparse is non-validating — will miss edge-case constructs <sup><a href="https://github.com/andialbrecht/sqlparse">[9]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gate g3">
+    <div class="badge">3</div>
+    <div class="gbody">
+      <div class="ghead"><span class="gname">Semantic Schema Binding + Compile Gate</span><span class="gtag t-sem">SEMANTIC</span></div>
+      <p class="gdesc">Catalog-aware validator resolves every reference against live DB metadata. Engine-native dry-run (PARSEONLY / EXPLAIN) catches dialect-specific syntax, permission grants, and insane cost estimates. <sup><a href="https://www.dpriver.com/blog/sql-semantic-validation-for-llm-generated-queries/">[10]</a></sup></p>
+      <div class="chips">
+        <span class="blk">UNKNOWN_COLUMN</span><span class="blk">AMBIGUOUS_COLUMN</span>
+        <span class="blk">TYPE_MISMATCH</span><span class="blk">MISSING_REQUIRED_FILTER</span>
+        <span class="blk">CARTESIAN_JOIN</span><span class="blk">RESTRICTED_COLUMN</span>
+      </div>
+      <div class="gtool">
+        <span class="tbadge">SET PARSEONLY ON</span>
+        <span class="tbadge">EXPLAIN</span>
+        <span class="gstat"> returns allow / deny / warn / repair codes with structured error info <sup><a href="https://www.sqlshack.com/the-parseonly-sql-command-overview-and-examples/">[11]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gate g4">
+    <div class="badge">4</div>
+    <div class="gbody">
+      <div class="ghead"><span class="gname">Policy Injection</span><span class="gtag t-inj">AST REWRITE</span></div>
+      <p class="gdesc">Do not trust the LLM to consistently include required filters. Mechanically rewrite the parsed AST — policies evaluated against the <em>AST</em>, never raw prompt text. A regex-matched <code style="font-family:var(--mono);font-size:11px">tenant_id</code> in the user message is not an enforced predicate. <sup><a href="https://lotuslabs.medium.com/text-to-sql-a-privacy-nightmare-how-to-architect-secure-enterprise-grade-text-to-sql-256615d1b59f">[7]</a></sup></p>
+      <div class="chips">
+        <span class="blk">missing tenant_id filter</span><span class="blk">unbounded time windows</span><span class="blk">missing status='active'</span>
+      </div>
+      <div class="chips" style="margin-top:.25rem">
+        <span class="alw">WHERE tenant_id = :ctx.tenant ✓</span>
+        <span class="alw">AND created_at &gt;= :ctx.start_date ✓</span>
+      </div>
+      <div class="gtool" style="margin-top:.5rem">
+        <a class="tbadge" href="https://github.com/tobymao/sqlglot">sqlglot transform()</a>
+        <span class="gstat"> survives alias and CTE resolution <sup><a href="https://github.com/tobymao/sqlglot">[6]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gate g5">
+    <div class="badge">5</div>
+    <div class="gbody">
+      <div class="ghead"><span class="gname">Database-Level Enforcement</span><span class="gtag t-enf">DB BACKSTOP</span></div>
+      <p class="gdesc">Backstop if any prior layer has a bug. Physical write isolation — not a policy setting. Cannot be bypassed by application code. <sup><a href="https://dev.to/kowshik_jallipalli_a7e0a5/safe-text-to-sql-giving-an-agent-database-access-without-dropping-tables-or-leaking-pii-i47">[12]</a></sup></p>
+      <div class="chips">
+        <span class="alw">GRANT SELECT only ✓ <sup><a href="https://dev.to/kowshik_jallipalli_a7e0a5/safe-text-to-sql-giving-an-agent-database-access-without-dropping-tables-or-leaking-pii-i47">[12]</a></sup></span>
+        <span class="alw">PostgreSQL / SQL Server RLS ✓ <sup><a href="https://querio.ai/articles/row-level-security-multi-tenant-saas-analytics">[17]</a></sup></span>
+        <span class="alw">read replica (physical isolation) ✓ <sup><a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">[3]</a></sup></span>
+        <span class="alw">LIMIT 1000 result cap ✓ <sup><a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">[3]</a></sup></span>
+      </div>
+      <div class="gtool" style="margin-top:.5rem">
+        <span class="gstat">⚠ RLS has exploitable CVEs: CVE-2024-10976 (bypass below subqueries), CVE-2025-8713 (statistics leakage) — defense-in-depth, not primary control <sup><a href="https://medium.com/@instatunnel/multi-tenant-leakage-when-row-level-security-fails-in-saas-da25f40c788c">[13]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="sh">Failure Mode → Layer Matrix</p>
+<table class="ftable">
+  <thead>
+    <tr><th>Failure Class</th><th>Error Code</th><th>Caught By</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Schema hallucination (column/table not in DB)</td><td><span class="ec">UNKNOWN_COLUMN</span></td><td><span class="lr r3">Layer 3 — Semantic</span></td></tr>
+    <tr><td>Wrong join path (fabricated FK relationships)</td><td><span class="ec">CARTESIAN_JOIN</span></td><td><span class="lr r3">Layer 3 — Semantic</span></td></tr>
+    <tr><td>Missing required filter (tenant_id, date range)</td><td><span class="ec">MISSING_REQUIRED_FILTER</span></td><td><span class="lr r3">Layer 3 — Semantic</span> + <span class="lr r4">Layer 4 — Policy</span></td></tr>
+    <tr><td>Wrong table selection (payments vs revenue_recognition)</td><td><span class="ec">WRONG_SCHEMA_OBJECT</span></td><td><span class="lr r3">Layer 3 — Semantic</span></td></tr>
+    <tr><td>Unsafe statement type (DELETE / DROP from ambiguous intent)</td><td><span class="ec">FORBIDDEN_STMT_TYPE</span></td><td><span class="lr r1">Layer 1 — Allowlist</span></td></tr>
+    <tr><td>Syntax errors (unbalanced parens, invalid keywords)</td><td><span class="ec">PARSE_ERROR</span></td><td><span class="lr r2">Layer 2 — AST</span> + <span class="lr r3">Layer 3 — Compile Gate</span></td></tr>
+    <tr><td>PII column in SELECT, WHERE, CTE projection</td><td><span class="ec">RESTRICTED_COLUMN</span></td><td><span class="lr r2">Layer 2 — AST</span></td></tr>
+    <tr><td>Off-topic / schema-mismatched user input</td><td><span class="ec">INTENT_MISMATCH</span></td><td><span class="lr r0">Layer 0 — Intent</span></td></tr>
+  </tbody>
+</table>
+
+<p class="sh">Implementation Reference — Layers 1 &amp; 2 (sqlglot)</p>
+<div class="code"><span class="kw">import</span> sqlglot
+
+ALLOWED_TABLES = {<span class="st">"orders"</span>, <span class="st">"products"</span>, <span class="st">"customers"</span>}
+FORBIDDEN_TYPES = {
+    sqlglot.exp.Drop, sqlglot.exp.Delete,
+    sqlglot.exp.Update, sqlglot.exp.Insert,
+}
+
+<span class="kw">def</span> <span class="fn">validate</span>(sql: <span class="id">str</span>) -&gt; <span class="id">tuple</span>[<span class="id">bool</span>, <span class="id">str</span>]:
+    parsed = sqlglot.<span class="fn">parse_one</span>(sql)
+    <span class="kw">if</span> <span class="fn">type</span>(parsed) <span class="kw">in</span> FORBIDDEN_TYPES:
+        <span class="kw">return</span> <span class="kw">False</span>, <span class="st">f"Forbidden: {type(parsed).__name__}"</span>
+    tables = {t.name.<span class="fn">lower</span>() <span class="kw">for</span> t <span class="kw">in</span> parsed.<span class="fn">find_all</span>(sqlglot.exp.Table)}
+    <span class="kw">if not</span> tables.issubset(ALLOWED_TABLES):
+        blocked = tables - ALLOWED_TABLES
+        <span class="kw">return</span> <span class="kw">False</span>, <span class="st">f"Unauthorized tables: {blocked}"</span>
+    <span class="kw">return</span> <span class="kw">True</span>, <span class="st">"ok"</span>
+
+<span class="cm"># Layer 3 — Semantic dry-run (engine-native)</span>
+<span class="cm"># PostgreSQL:  EXPLAIN SELECT ...        → validates column refs, plans cost  [10]</span>
+<span class="cm"># SQL Server:  SET PARSEONLY ON; SELECT  → parse phase only, no execution     [11]</span>
+<span class="cm"># Both catch dialect-specific errors and permission gaps custom parsers miss.</span></div>
+
+<p class="sh">Tools</p>
+<div style="margin-bottom:1.5rem">
+  <img src="validation-gates/images/sqlglot-github.png" alt="sqlglot GitHub repository" style="width:100%;border-radius:6px;border:1px solid var(--border);display:block">
+  <p style="font-size:11px;color:var(--muted);margin-top:.5rem;text-align:center;font-family:var(--mono)">
+    <a href="https://github.com/tobymao/sqlglot" style="color:var(--blue)">github.com/tobymao/sqlglot</a> — 31-dialect AST parser, mutation API, type inference · ⭐ 9.3k <sup><a href="https://github.com/tobymao/sqlglot">[6]</a></sup>
+  </p>
+</div>
+<table class="ttable">
+  <thead>
+    <tr><th>Library</th><th>AST</th><th>Dialects</th><th>Stars</th><th>Best For</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a class="tn" href="https://github.com/tobymao/sqlglot">sqlglot</a></td>
+      <td><span class="ok">Full</span></td><td>31</td>
+      <td><span class="stars">⭐ 9.3k</span></td>
+      <td style="font-size:12px;color:var(--muted)">Traversal, mutation, type inference — layers 1–4 <sup><a href="https://github.com/tobymao/sqlglot">[6]</a></sup></td>
+    </tr>
+    <tr>
+      <td><a class="tn" href="https://github.com/andialbrecht/sqlparse">sqlparse</a></td>
+      <td><span class="pt">Partial</span></td><td>DB-agnostic</td>
+      <td><span class="stars">⭐ 3.9k</span></td>
+      <td style="font-size:12px;color:var(--muted)">Lightweight tokenization; non-validating <sup><a href="https://github.com/andialbrecht/sqlparse">[9]</a></sup></td>
+    </tr>
+    <tr>
+      <td><a class="tn" href="https://pypi.org/project/pg_query/">pg_query</a></td>
+      <td><span class="ok">Full (PG)</span></td><td>PostgreSQL</td>
+      <td><span class="no">—</span></td>
+      <td style="font-size:12px;color:var(--muted)">Exact PG parse tree via libpg_query <sup><a href="https://pypi.org/project/pg_query/">[19]</a></sup></td>
+    </tr>
+    <tr>
+      <td><span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted)">sqlfluff</span></td>
+      <td><span class="no">No</span></td><td>Linting only</td>
+      <td><span class="no">—</span></td>
+      <td style="font-size:12px;color:var(--muted)">SQL style / dialect linting, not safety gates</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="sh">Emerging Threats</p>
+<div class="threats">
+  <div class="threat tc">
+    <div class="threat-hd">
+      <span style="font-size:1.1rem">⚠</span>
+      <span class="tname">ToxicSQL Backdoor</span>
+      <span class="ttag">CRITICAL</span>
+    </div>
+    <div class="tstat">79.41%</div>
+    <div class="tbody">
+      attack success rate from poisoning just <strong>0.44%</strong> of training data. Stealthy semantic + character-level triggers generate predefined malicious SQL on target inputs while behaving normally on clean queries. <sup><a href="https://arxiv.org/abs/2503.05445">[14]</a></sup> Published at SIGMOD 2026. <sup><a href="https://dl.acm.org/doi/abs/10.1145/3769762">[15]</a></sup>
+      <br><br>
+      <strong style="color:var(--red)">Implication:</strong> fine-tuned models are not inherently safer. Application-layer validation remains mandatory regardless of model provenance or fine-tuning source.
+    </div>
+  </div>
+  <div class="threat tm">
+    <div class="threat-hd">
+      <span style="font-size:1.1rem">↺</span>
+      <span class="tname">Repair Loop Escape</span>
+      <span class="ttag">MODERATE</span>
+    </div>
+    <div class="tstat">2–3 max</div>
+    <div class="tbody">
+      repair attempts before escalating to human review. Returning validation errors to the LLM can produce queries that <em>remove</em> safety filters to avoid the error. <sup><a href="https://www.dpriver.com/blog/text-to-sql-security-10-risks-before-production-deployment/">[8]</a></sup>
+      <br><br>
+      Re-validate every repaired query with <em>identical</em> strictness. Treat policy violations as separate error class — return to <em>application logic</em>, not to the LLM.
+    </div>
+  </div>
+</div>
+
+<p class="sh">Evidence Logging (SOC 2 / HIPAA)</p>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1.25rem;margin-bottom:2.5rem;font-size:13.5px;color:var(--muted);line-height:1.8">
+  Every validation decision — accepted or rejected — must produce a cryptographically-signed, timestamped record. Log the LLM prompt alongside the SQL so backdoor attacks can be traced to their trigger inputs. <sup><a href="https://queryshield.dev/aeo/guides/prevent-sql-injection-llm-queries">[5]</a></sup><sup><a href="https://medium.com/@sirigineediaditi/when-prompt-injections-meet-sql-injection-why-guardrails-are-the-prepared-statements-of-ai-260932bfb29d">[16]</a></sup>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem 1.5rem;margin-top:.875rem;font-family:var(--mono);font-size:11px">
+    <span>→ user identity + role context</span>
+    <span>→ natural language input</span>
+    <span>→ generated SQL (pre-injection)</span>
+    <span>→ policy decisions + violation codes</span>
+    <span>→ final executed SQL</span>
+    <span>→ result row count + latency</span>
+    <span>→ which layers accepted / rejected</span>
+    <span>→ repair attempt history</span>
+  </div>
+</div>
+
+<p class="sh">Implementation Ladder</p>
+<div class="phases">
+  <div class="phase pc">
+    <div class="plabel">▶ Crawl</div>
+    <ul class="pitems">
+      <li>Expose 2–3 specific business queries</li>
+      <li>Hard-code allowed tables/columns</li>
+      <li>Manually review SQL in staging for 2 weeks</li>
+    </ul>
+  </div>
+  <div class="phase pw">
+    <div class="plabel">▶▶ Walk</div>
+    <ul class="pitems">
+      <li>Role-scoped schema subset</li>
+      <li>Automated AST validation</li>
+      <li>Semantic binding enabled</li>
+      <li>Audit logging active</li>
+    </ul>
+  </div>
+  <div class="phase pr">
+    <div class="plabel">▶▶▶ Run</div>
+    <ul class="pitems">
+      <li>Roll out across all roles</li>
+      <li>SQL Compile Gate added</li>
+      <li>Anomaly alerts on audit stream</li>
+    </ul>
+  </div>
+</div>
+<div style="background:#0f2818;border:1px solid #166534;border-radius:4px;padding:.875rem 1rem;font-size:13px;color:#bbf7d0;margin-bottom:2.5rem">
+  <strong style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase">Do not skip Crawl.</strong> A narrow, manually-reviewed allow-set is far safer than a broad schema with "should-be-fine" LLM constraints. The use cases you don't anticipate are the ones that will expose you. <sup><a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">[3]</a></sup><sup><a href="https://www.oligo.security/academy/owasp-top-10-llm-updated-2025-examples-and-mitigation-strategies">[20]</a></sup>
+</div>
+
+<div class="siblings">
+  <p class="sh">In This Expedition</p>
+  <div class="sgrid">
+    <a class="sib" href="../../naive-text-to-sql-failure-modes/">
+      <div class="sdepth d-exp">expedition</div>
+      <div class="stitle">Naive text-to-SQL failure modes</div>
+      <div class="ssum">~97% of wrong LLM-generated SQL executes cleanly. A field guide to failure modes and the hardening stack.</div>
+    </a>
+    <a class="sib" href="../../schema-grounding-strategies/">
+      <div class="sdepth d-exp">expedition</div>
+      <div class="stitle">Schema grounding strategies</div>
+      <div class="ssum">Stop an LLM from hallucinating columns: schema linking, retrieval, execution feedback.</div>
+    </a>
+    <a class="sib" href="../../read-only-enforcement-and-least-privilege-roles/">
+      <div class="sdepth d-sur">survey</div>
+      <div class="stitle">Read-only enforcement and least-privilege roles</div>
+      <div class="ssum">Purpose-built read-only roles, column/row filtering, read replicas as physical write boundaries.</div>
+    </a>
+    <a class="sib" href="../../pgvector-semantic-row-search/">
+      <div class="sdepth d-exp">expedition</div>
+      <div class="stitle">pgvector semantic row search</div>
+      <div class="ssum">Nearest-neighbor row retrieval, HNSW/IVFFlat indexing, hybrid SQL+vector queries.</div>
+    </a>
+    <a class="sib" href="../../observability-and-audit-logging/">
+      <div class="sdepth d-rec">recon</div>
+      <div class="stitle">Observability and audit logging</div>
+      <div class="ssum">Debug production; prove compliance and accountability.</div>
+    </a>
+    <a class="sib" href="../../multi-tenant-and-row-level-security/">
+      <div class="sdepth d-rec">recon</div>
+      <div class="stitle">Multi-tenant and row-level security</div>
+      <div class="ssum">PostgreSQL RLS: cost-efficient isolation, session variables, policy testing.</div>
+    </a>
+  </div>
+</div>
+
+<div class="notes">
+  <p class="notes-h">Sources</p>
+  <ol class="nlist">
+    <li>[1] <a href="https://arxiv.org/html/2503.05445v1">arxiv.org — SQL injection detection degrades to 60% against LLM queries</a></li>
+    <li>[2] <a href="https://www.usedatabrain.com/blog/llm-sql-evaluation">usedatabrain.com — 50K production query LLM SQL evaluation</a></li>
+    <li>[3] <a href="https://timdietrich.me/blog/sql-agent-safety-architecture/">timdietrich.me — SQL Agent Safety Architecture</a></li>
+    <li>[4] <a href="https://arxiv.org/abs/2601.10398">arxiv.org — LatentRefusal: pre-generation safety via hidden activations</a></li>
+    <li>[5] <a href="https://queryshield.dev/aeo/guides/prevent-sql-injection-llm-queries">queryshield.dev — Prevent SQL Injection in LLM Queries</a></li>
+    <li>[6] <a href="https://github.com/tobymao/sqlglot">github.com/tobymao/sqlglot — Python SQL parser, 31 dialects</a></li>
+    <li>[7] <a href="https://lotuslabs.medium.com/text-to-sql-a-privacy-nightmare-how-to-architect-secure-enterprise-grade-text-to-sql-256615d1b59f">lotuslabs — Enterprise text-to-SQL privacy architecture</a></li>
+    <li>[8] <a href="https://www.dpriver.com/blog/text-to-sql-security-10-risks-before-production-deployment/">dpriver.com — 10 text-to-SQL production risks</a></li>
+    <li>[9] <a href="https://github.com/andialbrecht/sqlparse">github.com/andialbrecht/sqlparse — non-validating SQL tokenizer</a></li>
+    <li>[10] <a href="https://www.dpriver.com/blog/sql-semantic-validation-for-llm-generated-queries/">dpriver.com — SQL semantic validation for LLM queries</a></li>
+    <li>[11] <a href="https://www.sqlshack.com/the-parseonly-sql-command-overview-and-examples/">sqlshack.com — SET PARSEONLY ON overview</a></li>
+    <li>[12] <a href="https://dev.to/kowshik_jallipalli_a7e0a5/safe-text-to-sql-giving-an-agent-database-access-without-dropping-tables-or-leaking-pii-i47">dev.to — Safe Text-to-SQL: read-only DB access</a></li>
+    <li>[13] <a href="https://medium.com/@instatunnel/multi-tenant-leakage-when-row-level-security-fails-in-saas-da25f40c788c">medium.com — When RLS fails in SaaS: CVE-2024-10976, CVE-2025-8713</a></li>
+    <li>[14] <a href="https://arxiv.org/abs/2503.05445">arxiv.org — ToxicSQL backdoor attacks in text-to-SQL</a></li>
+    <li>[15] <a href="https://dl.acm.org/doi/abs/10.1145/3769762">dl.acm.org — ToxicSQL @ SIGMOD 2026</a></li>
+    <li>[16] <a href="https://medium.com/@sirigineediaditi/when-prompt-injections-meet-sql-injection-why-guardrails-are-the-prepared-statements-of-ai-260932bfb29d">medium.com — Prompt injection meets SQL injection</a></li>
+    <li>[17] <a href="https://querio.ai/articles/row-level-security-multi-tenant-saas-analytics">querio.ai — RLS in multi-tenant SaaS analytics</a></li>
+    <li>[18] <a href="https://arxiv.org/abs/2512.21345">arxiv.org — Query Carefully: detecting unanswerable text-to-SQL</a></li>
+    <li>[19] <a href="https://pypi.org/project/pg_query/">pypi.org — pg_query: Python wrapper for libpg_query</a></li>
+    <li>[20] <a href="https://www.oligo.security/academy/owasp-top-10-llm-updated-2025-examples-and-mitigation-strategies">oligo.security — OWASP LLM Top 10 (2025)</a></li>
+  </ol>
+</div>
+
+</div>
+</div>

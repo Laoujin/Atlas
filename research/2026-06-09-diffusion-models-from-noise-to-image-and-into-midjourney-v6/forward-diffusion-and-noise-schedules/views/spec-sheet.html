@@ -1,0 +1,1133 @@
+---
+layout: view
+view_name: "Spec Sheet"
+view_of: ../
+title: "Forward Diffusion and Noise Schedules — Spec Sheet"
+---
+
+<style>
+  :root {
+    --bg:         #0b0e14;
+    --bg2:        #111620;
+    --bg3:        #161c2a;
+    --border:     #1e2a3a;
+    --border2:    #2a3a52;
+    --text:       #d4dce8;
+    --text-dim:   #6b7a8f;
+    --text-code:  #7dd3fc;
+    --accent:     #00d4aa;
+    --accent2:    #3b82f6;
+    --warn-bg:    #200e0e;
+    --warn-border:#6b1a1a;
+    --warn-text:  #ff6b6b;
+    --good:       #10b981;
+    --amber:      #f59e0b;
+    --red:        #ef4444;
+    --laplace:    #a78bfa;
+    --edm:        #38bdf8;
+    --cosine:     #34d399;
+    --sigmoid:    #60a5fa;
+    --linear:     #9ca3af;
+  }
+
+  .spec-root {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 0 3rem;
+  }
+
+  /* ── HEADER ──────────────────────────────────── */
+  .spec-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border2);
+    padding: 2.5rem 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .spec-header::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 45%;
+    background:
+      repeating-linear-gradient(90deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px),
+      repeating-linear-gradient(180deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  .spec-header-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .spec-header h1 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .spec-header h1 span { color: var(--accent); }
+  .spec-header-meta {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+  }
+
+  /* TL;DR verdict bar */
+  .verdict-bar {
+    background: #051a14;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 0.9rem 1.2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.8rem;
+    align-items: start;
+    max-width: 700px;
+  }
+  .verdict-bar-label {
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding-top: 1px;
+    white-space: nowrap;
+  }
+  .verdict-bar-text {
+    color: #c8f7ed;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .verdict-bar-text strong { color: #fff; }
+
+  /* ── SECTION HEADINGS ────────────────────────── */
+  .section {
+    padding: 2rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── COMPARISON MATRIX ───────────────────────── */
+  .matrix-wrap {
+    overflow-x: auto;
+  }
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .matrix th, .matrix td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.7rem;
+    vertical-align: top;
+    text-align: left;
+  }
+  .matrix thead th {
+    background: var(--bg3);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.7rem 0.8rem;
+    white-space: nowrap;
+  }
+  .matrix thead th.col-prop {
+    text-align: left;
+    color: var(--text-dim);
+    background: var(--bg2);
+    width: 130px;
+  }
+  .matrix tbody tr:nth-child(even) td {
+    background: rgba(255,255,255,0.015);
+  }
+  .matrix tbody tr:hover td {
+    background: rgba(255,255,255,0.04);
+  }
+  .matrix td.prop-name {
+    color: var(--text-dim);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--bg2) !important;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .matrix td.val {
+    text-align: center;
+    color: var(--text);
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+  /* column accent headers */
+  .col-linear { color: var(--linear); }
+  .col-cosine  { color: var(--cosine); }
+  .col-sigmoid { color: var(--sigmoid); }
+  .col-edm     { color: var(--edm); }
+  .col-laplace { color: var(--laplace); }
+
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge-good    { background: #042d1e; color: var(--good);   border: 1px solid #0a5a3a; }
+  .badge-warn    { background: #2d1e04; color: var(--amber);  border: 1px solid #5a4000; }
+  .badge-bad     { background: #2d0404; color: var(--red);    border: 1px solid #5a0a0a; }
+  .badge-neutral { background: #1a1f2a; color: var(--text-dim); border: 1px solid var(--border); }
+  .badge-star    { background: #1c0a2d; color: var(--laplace); border: 1px solid #4a1a6a; }
+
+  code {
+    background: #0c1521;
+    color: var(--text-code);
+    padding: 0 4px;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+
+  /* ── TWO-COLUMN SPLIT ────────────────────────── */
+  .split2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 700px) { .split2 { grid-template-columns: 1fr; } }
+  .split3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media (max-width: 800px) { .split3 { grid-template-columns: 1fr; } }
+
+  /* ── CRITICAL FLAW BOX ───────────────────────── */
+  .flaw-box {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-left: 3px solid var(--warn-text);
+    border-radius: 4px;
+    padding: 1.2rem 1.4rem;
+  }
+  .flaw-box-title {
+    color: var(--warn-text);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+  }
+  .flaw-box p {
+    color: #c8a0a0;
+    font-size: 12px;
+    margin: 0 0 0.7rem;
+    line-height: 1.6;
+  }
+  .flaw-box ul {
+    margin: 0;
+    padding-left: 1.2em;
+    color: #c8a0a0;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .flaw-box li { margin-bottom: 0.25rem; }
+  .flaw-fix {
+    background: #041a0e;
+    border: 1px solid #0a3a1a;
+    border-radius: 3px;
+    padding: 0.8rem 1rem;
+    margin-top: 0.8rem;
+  }
+  .flaw-fix-title {
+    color: var(--good);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .flaw-fix ol {
+    margin: 0;
+    padding-left: 1.4em;
+    color: #a0c8b0;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  /* ── DECISION GUIDE ──────────────────────────── */
+  .decision-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1.2rem 1.4rem;
+    height: 100%;
+    box-sizing: border-box;
+  }
+  .decision-box-title {
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .decision-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.5rem 0.8rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .decision-row:last-child { border-bottom: none; }
+  .decision-condition {
+    color: var(--text-dim);
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .decision-arrow { color: var(--border2); }
+  .decision-target { color: #fff; font-weight: 600; text-align: right; white-space: nowrap; }
+
+  /* ── FORMULAS ────────────────────────────────── */
+  .formula-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 650px) { .formula-grid { grid-template-columns: 1fr; } }
+  .formula-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .formula-card-header {
+    padding: 0.5rem 0.9rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .formula-card-body {
+    padding: 0.8rem 0.9rem;
+  }
+  .formula-card-body pre {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--text-code);
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+  .formula-note {
+    margin-top: 0.5rem;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── SDE PANEL ───────────────────────────────── */
+  .sde-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media (max-width: 600px) { .sde-grid { grid-template-columns: 1fr; } }
+  .sde-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .sde-card-header {
+    padding: 0.55rem 1rem;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sde-vp-header { background: #041d12; border-bottom: 1px solid #0a3820; color: var(--good); }
+  .sde-ve-header { background: #04101d; border-bottom: 1px solid #0a2038; color: var(--edm); }
+  .sde-card-body { padding: 0.8rem 1rem; }
+  .sde-card-body pre {
+    margin: 0 0 0.5rem;
+    font-size: 11px;
+    color: var(--text-code);
+    line-height: 1.7;
+  }
+  .sde-card-body p {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .sde-schedules {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  /* ── EDM IMAGE ───────────────────────────────── */
+  .edm-image-wrap {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--bg2);
+  }
+  .edm-image-wrap img {
+    width: 100%;
+    display: block;
+    max-height: 240px;
+    object-fit: cover;
+    object-position: top;
+  }
+  .edm-image-caption {
+    padding: 0.45rem 0.8rem;
+    font-size: 10.5px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── INSIGHT PILL ────────────────────────────── */
+  .insight {
+    background: #0c0d1f;
+    border: 1px solid #2a2a5a;
+    border-left: 3px solid var(--laplace);
+    border-radius: 4px;
+    padding: 0.9rem 1.1rem;
+    font-size: 12px;
+    color: #c0b8d8;
+    line-height: 1.6;
+    margin-top: 1rem;
+  }
+  .insight strong { color: var(--laplace); }
+
+  /* ── SYMBOL TABLE ────────────────────────────── */
+  .sym-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .sym-table th {
+    text-align: left;
+    padding: 0.4rem 0.8rem;
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border2);
+  }
+  .sym-table td {
+    padding: 0.45rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .sym-table td:first-child { color: var(--text-code); font-weight: 700; width: 130px; }
+  .sym-table td:nth-child(2) { color: var(--text-dim); }
+  .sym-table td:last-child { color: var(--text); }
+
+  /* ── SOURCES ────────────────────────────────── */
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.7rem;
+  }
+  .source-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .source-card:hover { border-color: var(--accent2); }
+  .source-card img { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
+  .source-card-body { min-width: 0; }
+  .source-card-n {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 1px;
+  }
+  .source-card-title {
+    font-size: 11.5px;
+    color: var(--text);
+    line-height: 1.4;
+    overflow-wrap: break-word;
+  }
+  .source-card-type {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── SIBLING NAV ─────────────────────────────── */
+  .sibling-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .sibling-row {
+    display: grid;
+    grid-template-columns: 50px 1fr auto;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: border-color 0.15s;
+    font-size: 12px;
+  }
+  .sibling-row:hover { border-color: var(--accent2); }
+  .sibling-depth {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 2px 5px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+  .depth-recon     { color: #6b7a8f; border-color: #2a3040; background: #10141c; }
+  .depth-survey    { color: var(--cosine); border-color: #0a3020; background: #061510; }
+  .depth-expedition { color: var(--laplace); border-color: #2a1a5a; background: #0c081a; }
+  .sibling-title { color: var(--text); }
+  .sibling-arrow { color: var(--border2); font-size: 14px; }
+
+  /* ── PRACTICAL GUIDANCE ──────────────────────── */
+  .guidance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .guidance-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 0.7rem;
+    align-items: start;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .guidance-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .guidance-text { color: var(--text); }
+  .guidance-text strong { color: #fff; }
+
+  /* sup citation links */
+  sup a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 9px;
+  }
+  sup a:hover { color: var(--accent); }
+</style>
+
+<div class="spec-root">
+
+  <!-- ── HEADER ── -->
+  <header class="spec-header">
+    <div class="spec-header-label">diffusion models · forward process · reference sheet</div>
+    <h1>Forward Diffusion <span>//</span> Noise Schedules</h1>
+    <div class="spec-header-meta">16 sources · survey depth · 2020–2024 literature</div>
+    <div class="verdict-bar">
+      <div class="verdict-bar-label">TL;DR</div>
+      <div class="verdict-bar-text">
+        Use <strong>cosine</strong> for ≤256px. Use <strong>EDM σ</strong> or <strong>Laplace</strong> for new training runs — Laplace nets a free +26.6% FID.<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup>
+        <strong>Always enforce zero terminal SNR</strong> — no off-the-shelf schedule does this by default.<sup><a href="https://arxiv.org/abs/2305.08891">[5]</a></sup>
+        Scale the input, not the schedule, when resolution grows past 256px.<sup><a href="https://arxiv.org/abs/2301.10972">[4]</a></sup>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── COMPARISON MATRIX ── -->
+  <section class="section">
+    <div class="section-label">Schedule comparison matrix</div>
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="col-prop">Property</th>
+            <th class="col-linear">Linear<br><small>Ho 2020</small></th>
+            <th class="col-cosine">Cosine<br><small>Nichol 2021</small></th>
+            <th class="col-sigmoid">Sigmoid<br><small>2022</small></th>
+            <th class="col-edm">EDM σ<br><small>Karras 2022</small></th>
+            <th class="col-laplace">Laplace<br><small>Hang 2024</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="prop-name">SDE family</td>
+            <td class="val"><span class="badge badge-neutral">VP</span></td>
+            <td class="val"><span class="badge badge-neutral">VP</span></td>
+            <td class="val"><span class="badge badge-neutral">VP</span></td>
+            <td class="val"><span class="badge badge-neutral">VE</span></td>
+            <td class="val"><span class="badge badge-neutral">VP</span></td>
+          </tr>
+          <tr>
+            <td class="prop-name">Param axis</td>
+            <td class="val"><code>β_t</code> linear</td>
+            <td class="val"><code>ᾱ_t</code> cosine²</td>
+            <td class="val"><code>ᾱ_t</code> sigmoid</td>
+            <td class="val"><code>σ</code> lognormal</td>
+            <td class="val">log-SNR Laplace</td>
+          </tr>
+          <tr>
+            <td class="prop-name">Train distribution</td>
+            <td class="val">Uniform over T=1000 steps</td>
+            <td class="val">Uniform over T steps</td>
+            <td class="val">Uniform over T steps</td>
+            <td class="val">LogNormal<br>(μ=−1.2, σ=1.2)</td>
+            <td class="val">Laplace<br>concentrated at log-SNR≈0</td>
+          </tr>
+          <tr>
+            <td class="prop-name">Terminal SNR=0</td>
+            <td class="val"><span class="badge badge-bad">✗ no</span></td>
+            <td class="val"><span class="badge badge-bad">✗ no</span></td>
+            <td class="val"><span class="badge badge-bad">✗ no</span></td>
+            <td class="val"><span class="badge badge-good">≈ yes</span></td>
+            <td class="val"><span class="badge badge-bad">✗ no</span></td>
+          </tr>
+          <tr>
+            <td class="prop-name">≤64px</td>
+            <td class="val"><span class="badge badge-bad">too fast</span></td>
+            <td class="val"><span class="badge badge-good">good</span></td>
+            <td class="val"><span class="badge badge-neutral">fine</span></td>
+            <td class="val"><span class="badge badge-good">good</span></td>
+            <td class="val"><span class="badge badge-good">good</span></td>
+          </tr>
+          <tr>
+            <td class="prop-name">256px</td>
+            <td class="val"><span class="badge badge-warn">suboptimal</span></td>
+            <td class="val"><span class="badge badge-good">optimal</span></td>
+            <td class="val"><span class="badge badge-good">good</span></td>
+            <td class="val"><span class="badge badge-good">optimal</span></td>
+            <td class="val"><span class="badge badge-good">optimal</span></td>
+          </tr>
+          <tr>
+            <td class="prop-name">1024px+</td>
+            <td class="val"><span class="badge badge-bad">under-noises</span></td>
+            <td class="val"><span class="badge badge-bad">under-noises</span></td>
+            <td class="val"><span class="badge badge-good">stable</span></td>
+            <td class="val"><span class="badge badge-good">scale σ_max</span></td>
+            <td class="val"><span class="badge badge-good">robust</span></td>
+          </tr>
+          <tr>
+            <td class="prop-name">FID CIFAR-10</td>
+            <td class="val">~3.2 (DDPM baseline)<sup><a href="https://arxiv.org/abs/2006.11239">[1]</a></sup></td>
+            <td class="val">~2.9 (Improved DDPM)<sup><a href="https://arxiv.org/abs/2102.09672">[2]</a></sup></td>
+            <td class="val">—</td>
+            <td class="val"><strong>1.79</strong> (35 NFE)<sup><a href="https://arxiv.org/abs/2206.00364">[6]</a></sup></td>
+            <td class="val">see ImageNet-256</td>
+          </tr>
+          <tr>
+            <td class="prop-name">FID ImageNet-256</td>
+            <td class="val">—</td>
+            <td class="val">10.85 (baseline)<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup></td>
+            <td class="val">—</td>
+            <td class="val">—</td>
+            <td class="val"><strong>7.96</strong> (−26.6%)<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup></td>
+          </tr>
+          <tr>
+            <td class="prop-name">Adoption</td>
+            <td class="val"><span class="badge badge-neutral">legacy</span></td>
+            <td class="val"><span class="badge badge-good">widespread</span></td>
+            <td class="val"><span class="badge badge-warn">niche</span></td>
+            <td class="val"><span class="badge badge-good">SOTA baseline</span></td>
+            <td class="val"><span class="badge badge-warn">emerging</span></td>
+          </tr>
+          <tr>
+            <td class="prop-name">Verdict</td>
+            <td class="val"><span class="badge badge-bad">avoid</span></td>
+            <td class="val"><span class="badge badge-good">use ≤256px</span></td>
+            <td class="val"><span class="badge badge-neutral">high-res only</span></td>
+            <td class="val"><span class="badge badge-good">new training</span></td>
+            <td class="val"><span class="badge badge-star">★ best FID</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── FLAW + DECISION ── -->
+  <section class="section">
+    <div class="section-label">Critical flaw & decision guide</div>
+    <div class="split2">
+
+      <div class="flaw-box">
+        <div class="flaw-box-title">⚠ Critical flaw: non-zero terminal SNR</div>
+        <p>
+          No standard schedule enforces <code>SNR(T) = 0</code>. At the final timestep, the noised sample still
+          carries residual signal. Inference starts from pure Gaussian noise — a condition the model was never
+          trained on.<sup><a href="https://arxiv.org/abs/2305.08891">[5]</a></sup><sup><a href="https://openaccess.thecvf.com/content/WACV2024/html/Lin_Common_Diffusion_Noise_Schedules_and_Sample_Steps_Are_Flawed_WACV_2024_paper.html">[15]</a></sup>
+        </p>
+        <ul>
+          <li>Stable Diffusion cannot generate very bright or very dark images — locked to medium brightness</li>
+          <li>Training/inference mismatch degrades sample quality at all resolutions</li>
+        </ul>
+        <div class="flaw-fix">
+          <div class="flaw-fix-title">Fixes (apply all four)</div>
+          <ol>
+            <li>Rescale β to enforce <code>SNR(T) = 0</code> exactly</li>
+            <li>Switch ε-prediction → <strong>v-prediction</strong></li>
+            <li>Always initiate sampler from the true final timestep</li>
+            <li>Rescale classifier-free guidance to prevent overexposure in early steps</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="decision-box">
+        <div class="decision-box-title">Resolution decision guide</div>
+        <div class="decision-row">
+          <span class="decision-condition">≤ 64px</span>
+          <span class="decision-arrow">→</span>
+          <span class="decision-target" style="color: var(--cosine)">cosine</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-condition">≤ 256px</span>
+          <span class="decision-arrow">→</span>
+          <span class="decision-target" style="color: var(--cosine)">cosine (default)</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-condition">256–512px</span>
+          <span class="decision-arrow">→</span>
+          <span class="decision-target" style="color: var(--edm)">EDM σ or scale input</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-condition">512–1024px</span>
+          <span class="decision-arrow">→</span>
+          <span class="decision-target" style="color: var(--sigmoid)">sigmoid or scale input ×b</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-condition">new training run</span>
+          <span class="decision-arrow">→</span>
+          <span class="decision-target" style="color: var(--laplace)">laplace / EDM</span>
+        </div>
+        <div class="decision-row">
+          <span class="decision-condition">debugging quality</span>
+          <span class="decision-arrow">→</span>
+          <span class="decision-target" style="color: var(--edm)">track log-SNR, not t</span>
+        </div>
+
+        <div class="insight">
+          <strong>Key insight:</strong> importance sampling of log-SNR is mathematically equivalent to changing the
+          schedule.<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup>
+          The critical region is <code>log-SNR ≈ 0</code> — concentrate training mass there.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── KEY FORMULAS ── -->
+  <section class="section">
+    <div class="section-label">Key formulas</div>
+    <div class="formula-grid">
+
+      <div class="formula-card">
+        <div class="formula-card-header" style="color: var(--text-dim);">Forward marginal (any schedule)</div>
+        <div class="formula-card-body">
+          <pre>q(x_t | x_0) = N(x_t ; √ᾱ_t · x_0, (1-ᾱ_t) I)
+
+x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
+      ε ~ N(0, I)</pre>
+          <div class="formula-note">Closed form — sample any x_t from x_0 directly, without simulating intermediate steps.<sup><a href="https://arxiv.org/abs/2006.11239">[1]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="formula-card">
+        <div class="formula-card-header" style="color: var(--cosine);">Cosine schedule (Nichol 2021)</div>
+        <div class="formula-card-body">
+          <pre>f(t) = cos²( π/2 · (t/T + s) / (1+s) )
+ᾱ_t  = f(t) / f(0)
+β_t  = 1 - ᾱ_t / ᾱ_{t-1},  clip ≤ 0.999
+
+s = 0.008  ← keeps √β_t &lt; 1/127.5</pre>
+          <div class="formula-note">Offset s prevents information loss from overlapping noise intervals.<sup><a href="https://www.zainnasir.com/blog/cosine-beta-schedule-for-denoising-diffusion-models/">[9]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="formula-card">
+        <div class="formula-card-header" style="color: var(--edm);">EDM σ-schedule (Karras 2022)</div>
+        <div class="formula-card-body">
+          <pre>σ_i = ( σ_max^(1/ρ)
+      + (i/(T-1)) · (σ_min^(1/ρ) - σ_max^(1/ρ)) )^ρ
+
+σ_min=0.002  σ_max=80  ρ=7
+
+Train: P(σ) = LogNormal(μ=-1.2, σ=1.2)</pre>
+          <div class="formula-note">Decouples network preconditioning from schedule. VE regime.<sup><a href="https://arxiv.org/abs/2206.00364">[6]</a></sup> <sup><a href="https://huggingface.co/docs/diffusers/en/api/schedulers/edm_euler">[13]</a></sup></div>
+        </div>
+      </div>
+
+      <div class="formula-card">
+        <div class="formula-card-header" style="color: var(--laplace);">Laplace log-SNR schedule (Hang 2024)</div>
+        <div class="formula-card-body">
+          <pre>p(λ) = exp(-|λ - μ| / b) / (2b)
+         λ = log-SNR
+
+Cauchy variant:
+p(λ) = γ / (π · ((λ-μ)² + γ²))</pre>
+          <div class="formula-note">Sharp peak at log-SNR≈0. Cauchy has heavier tails for broader coverage.<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── SNR SYMBOLS ── -->
+  <section class="section">
+    <div class="section-label">Key quantities</div>
+    <table class="sym-table">
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Definition</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>β_t</td>
+          <td>noise variance at step t</td>
+          <td>Schedule parameter — the thing you actually design</td>
+        </tr>
+        <tr>
+          <td>ᾱ_t = ∏ α_s</td>
+          <td>cumulative signal weight</td>
+          <td>Governs q(x_t|x_0); the forward marginal depends only on this<sup><a href="https://arxiv.org/abs/2006.11239">[1]</a></sup></td>
+        </tr>
+        <tr>
+          <td>SNR(t)</td>
+          <td>ᾱ_t / (1−ᾱ_t)</td>
+          <td>Natural timescale; decreases monotonically T→0. Optimal schedule = SNR curve shape<sup><a href="https://arxiv.org/abs/2301.10972">[4]</a></sup></td>
+        </tr>
+        <tr>
+          <td>log-SNR(t)</td>
+          <td>log(ᾱ_t / (1−ᾱ_t))</td>
+          <td>Training distribution axis; concentrate mass near 0 for best efficiency<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup></td>
+        </tr>
+        <tr>
+          <td>σ (EDM)</td>
+          <td>noise standard deviation</td>
+          <td>EDM works in σ-space directly; avoids ᾱ discretisation entirely<sup><a href="https://arxiv.org/abs/2206.00364">[6]</a></sup></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── SDE CLASSIFICATION ── -->
+  <section class="section">
+    <div class="section-label">SDE classification: VP vs VE</div>
+    <div class="sde-grid">
+      <div class="sde-card">
+        <div class="sde-card-header sde-vp-header">
+          Variance Preserving (VP-SDE)
+          <span style="font-size:10px;opacity:0.7;">DDPM's continuous limit</span>
+        </div>
+        <div class="sde-card-body">
+          <pre>dx = -½β(t) x dt + √β(t) dw</pre>
+          <p>The drift term prevents variance from exploding. All ᾱ_t-based schedules belong to this family. Bounded variance throughout the forward process.<sup><a href="https://arxiv.org/abs/2011.13456">[3]</a></sup></p>
+          <div class="sde-schedules">
+            <span class="badge" style="color:var(--linear);border-color:var(--linear);background:#111">Linear</span>
+            <span class="badge" style="color:var(--cosine);border-color:var(--cosine);background:#111">Cosine</span>
+            <span class="badge" style="color:var(--sigmoid);border-color:var(--sigmoid);background:#111">Sigmoid</span>
+            <span class="badge" style="color:var(--laplace);border-color:var(--laplace);background:#111">Laplace</span>
+          </div>
+        </div>
+      </div>
+      <div class="sde-card">
+        <div class="sde-card-header sde-ve-header">
+          Variance Exploding (VE-SDE)
+          <span style="font-size:10px;opacity:0.7;">SMLD's continuous limit</span>
+        </div>
+        <div class="sde-card-body">
+          <pre>dx = √(dσ²(t)/dt) dw</pre>
+          <p>No drift; variance grows to infinity. EDM's σ_max=80 approximates this regime — distribution at max noise is effectively Gaussian.<sup><a href="https://arxiv.org/abs/2206.00364">[6]</a></sup><sup><a href="https://fanpu.io/blog/2023/score-based-diffusion-models/">[12]</a></sup></p>
+          <div class="sde-schedules">
+            <span class="badge" style="color:var(--edm);border-color:var(--edm);background:#111">EDM σ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="margin: 1rem 0 0; font-size: 12px; color: var(--text-dim); line-height: 1.6;">
+      Both families admit a <strong style="color:var(--text)">reverse-time SDE</strong> solvable with the score function
+      <code>∇_x log p(x_t)</code> — a unified generative mechanism.<sup><a href="https://arxiv.org/abs/2011.13456">[3]</a></sup>
+      Flow matching (SD3, FLUX) sidesteps schedules entirely by learning a velocity field — defaults to a
+      uniform log-SNR distribution equivalent to a specific schedule choice.<sup><a href="https://metricgate.com/blogs/flow-matching-vs-diffusion-models/">[16]</a></sup>
+    </p>
+  </section>
+
+  <!-- ── EDM HF IMAGE ── -->
+  <section class="section">
+    <div class="section-label">EDM Euler scheduler — parameter surface</div>
+    <div class="split2" style="align-items: start;">
+      <div class="edm-image-wrap">
+        <img src="spec-sheet/images/edm-euler-hf.png" alt="HuggingFace Diffusers EDM Euler scheduler documentation">
+        <div class="edm-image-caption">
+          <a href="https://huggingface.co/docs/diffusers/en/api/schedulers/edm_euler" style="color:var(--accent2);text-decoration:none;">HuggingFace Diffusers: EDM Euler Scheduler</a> — σ_min=0.002, σ_max=80, σ_data=0.5, ρ=7.<sup><a href="https://huggingface.co/docs/diffusers/en/api/schedulers/edm_euler">[13]</a></sup>
+        </div>
+      </div>
+      <div>
+        <div class="decision-box" style="height: auto;">
+          <div class="decision-box-title">EDM key properties</div>
+          <div class="decision-row">
+            <span class="decision-condition">σ_min</span>
+            <span class="decision-arrow">→</span>
+            <span class="decision-target"><code>0.002</code></span>
+          </div>
+          <div class="decision-row">
+            <span class="decision-condition">σ_max</span>
+            <span class="decision-arrow">→</span>
+            <span class="decision-target"><code>80.0</code></span>
+          </div>
+          <div class="decision-row">
+            <span class="decision-condition">ρ</span>
+            <span class="decision-arrow">→</span>
+            <span class="decision-target"><code>7</code></span>
+          </div>
+          <div class="decision-row">
+            <span class="decision-condition">P_mean (train)</span>
+            <span class="decision-arrow">→</span>
+            <span class="decision-target"><code>−1.2</code></span>
+          </div>
+          <div class="decision-row">
+            <span class="decision-condition">P_std (train)</span>
+            <span class="decision-arrow">→</span>
+            <span class="decision-target"><code>1.2</code></span>
+          </div>
+          <div class="decision-row">
+            <span class="decision-condition">CIFAR-10 FID</span>
+            <span class="decision-arrow">→</span>
+            <span class="decision-target"><strong style="color:var(--edm)">1.79</strong> (35 NFE)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRACTICAL GUIDANCE ── -->
+  <section class="section">
+    <div class="section-label">Practical guidance</div>
+    <div class="guidance-list">
+      <div class="guidance-item">
+        <div class="guidance-num">1</div>
+        <div class="guidance-text"><strong>Start with cosine</strong> for ≤256px tasks. Linear is strictly worse at identical compute — it wastes ~40% of training on near-trivial high-noise denoising.<sup><a href="https://arxiv.org/abs/2102.09672">[2]</a></sup></div>
+      </div>
+      <div class="guidance-item">
+        <div class="guidance-num">2</div>
+        <div class="guidance-text"><strong>Enforce zero terminal SNR</strong> on any new training run. It is a free correctness fix: rescale the β schedule, switch to v-prediction, and fix the sampler start.<sup><a href="https://arxiv.org/abs/2305.08891">[5]</a></sup></div>
+      </div>
+      <div class="guidance-item">
+        <div class="guidance-num">3</div>
+        <div class="guidance-text"><strong>Use EDM or Laplace</strong> when designing training from scratch. Laplace's 26.6% FID gain on ImageNet-256 costs only a different schedule function — same architecture and compute.<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup></div>
+      </div>
+      <div class="guidance-item">
+        <div class="guidance-num">4</div>
+        <div class="guidance-text"><strong>Scale the input, not the schedule</strong> when increasing resolution. The b-scaling trick shifts the log-SNR curve uniformly downward — a one-line change sufficient up to 1024×1024.<sup><a href="https://arxiv.org/abs/2301.10972">[4]</a></sup></div>
+      </div>
+      <div class="guidance-item">
+        <div class="guidance-num">5</div>
+        <div class="guidance-text"><strong>Track log-SNR, not t</strong> when debugging. The nominal timestep is an arbitrary proxy; the actual quantity controlling learning difficulty is the signal-to-noise ratio.<sup><a href="https://arxiv.org/abs/2407.03297">[7]</a></sup></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SOURCES ── -->
+  <section class="section">
+    <div class="section-label">Sources (16)</div>
+    <div class="source-grid">
+      <a class="source-card" href="https://arxiv.org/abs/2006.11239">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[1]</div>
+          <div class="source-card-title">DDPM — Ho et al. 2020</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2102.09672">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[2]</div>
+          <div class="source-card-title">Improved DDPM — Nichol & Dhariwal 2021</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2011.13456">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[3]</div>
+          <div class="source-card-title">Score-Based SDEs — Song et al. 2021</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2301.10972">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[4]</div>
+          <div class="source-card-title">Resolution-dependent schedules — Chen 2023</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2305.08891">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[5]</div>
+          <div class="source-card-title">Zero terminal SNR — Lin et al. 2023</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2206.00364">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[6]</div>
+          <div class="source-card-title">EDM — Karras et al. NeurIPS 2022</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2407.03297">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[7]</div>
+          <div class="source-card-title">Laplace Schedule — Hang et al. 2024</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://arxiv.org/abs/2502.04669">
+        <img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[8]</div>
+          <div class="source-card-title">Sigmoid schedule stability — 2025</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://huggingface.co/docs/diffusers/en/api/schedulers/edm_euler">
+        <img src="https://www.google.com/s2/favicons?domain=huggingface.co&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[13]</div>
+          <div class="source-card-title">HuggingFace Diffusers: EDM Euler scheduler</div>
+          <div class="source-card-type">official</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://openaccess.thecvf.com/content/WACV2024/html/Lin_Common_Diffusion_Noise_Schedules_and_Sample_Steps_Are_Flawed_WACV_2024_paper.html">
+        <img src="https://www.google.com/s2/favicons?domain=thecvf.com&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[15]</div>
+          <div class="source-card-title">Flawed noise schedules — WACV 2024</div>
+          <div class="source-card-type">peer-reviewed</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://www.zainnasir.com/blog/cosine-beta-schedule-for-denoising-diffusion-models/">
+        <img src="https://www.google.com/s2/favicons?domain=zainnasir.com&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[9]</div>
+          <div class="source-card-title">Cosine β-schedule derivation</div>
+          <div class="source-card-type">vendor-blog</div>
+        </div>
+      </a>
+      <a class="source-card" href="https://metricgate.com/blogs/flow-matching-vs-diffusion-models/">
+        <img src="https://www.google.com/s2/favicons?domain=metricgate.com&sz=128" alt="">
+        <div class="source-card-body">
+          <div class="source-card-n">[16]</div>
+          <div class="source-card-title">Flow matching vs diffusion models</div>
+          <div class="source-card-type">vendor-blog</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── RELATED PAGES ── -->
+  <section class="section" style="border-bottom: none;">
+    <div class="section-label">Related — <a href="../../" style="color:var(--accent2);text-decoration:none;">Diffusion Models: From Noise to Image</a></div>
+    <div class="sibling-list">
+      <a class="sibling-row" href="../../reverse-denoising-architectures-and-the-score-network/">
+        <span class="sibling-depth depth-expedition">expedition</span>
+        <span class="sibling-title">Reverse denoising: architectures and the score network</span>
+        <span class="sibling-arrow">›</span>
+      </a>
+      <a class="sibling-row" href="../../text-conditioning-via-clip-and-beyond/">
+        <span class="sibling-depth depth-survey">survey</span>
+        <span class="sibling-title">Text conditioning via CLIP (and beyond)</span>
+        <span class="sibling-arrow">›</span>
+      </a>
+      <a class="sibling-row" href="../../why-hands-broke-and-what-fixed-it/">
+        <span class="sibling-depth depth-survey">survey</span>
+        <span class="sibling-title">Why hands broke — and what fixed it</span>
+        <span class="sibling-arrow">›</span>
+      </a>
+      <a class="sibling-row" href="../../midjourney-v6-prompt-craft/">
+        <span class="sibling-depth depth-expedition">expedition</span>
+        <span class="sibling-title">Midjourney v6 prompt craft</span>
+        <span class="sibling-arrow">›</span>
+      </a>
+      <a class="sibling-row" href="../../latent-space-and-vae/">
+        <span class="sibling-depth depth-recon">recon</span>
+        <span class="sibling-title">Latent space and VAE</span>
+        <span class="sibling-arrow">›</span>
+      </a>
+      <a class="sibling-row" href="../../controlnet-and-structural-conditioning/">
+        <span class="sibling-depth depth-recon">recon</span>
+        <span class="sibling-title">ControlNet and structural conditioning</span>
+        <span class="sibling-arrow">›</span>
+      </a>
+    </div>
+  </section>
+
+</div>

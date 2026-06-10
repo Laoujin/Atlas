@@ -1,0 +1,947 @@
+---
+layout: view
+view_name: "Timeline"
+view_of: ../
+title: "Why AI hands broke — and what fixed them — Timeline"
+---
+
+<style>
+.pm-root {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* HEADER */
+.pm-header {
+  border-bottom: 1px solid #21262d;
+  padding: 3rem 2rem 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 3rem;
+  align-items: center;
+}
+.pm-incident-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(224, 92, 92, 0.1);
+  border: 1px solid rgba(224, 92, 92, 0.3);
+  color: #e05c5c;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-radius: 3px;
+  margin-bottom: 1.2rem;
+}
+.pm-incident-badge::before { content: '⬤'; font-size: 0.45rem; }
+.pm-title {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.05;
+  color: #e6edf3;
+  margin: 0 0 0.8rem;
+  letter-spacing: -0.03em;
+}
+.pm-subtitle {
+  font-size: 0.95rem;
+  color: #8b949e;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  max-width: 540px;
+}
+.pm-fault-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.8rem;
+}
+.pm-fault-tag {
+  background: rgba(224, 92, 92, 0.1);
+  border: 1px solid rgba(224, 92, 92, 0.22);
+  color: #e05c5c;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2px;
+}
+.pm-stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.pm-stat { display: flex; flex-direction: column; }
+.pm-stat-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #e6edf3;
+  line-height: 1;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+}
+.pm-stat-label {
+  font-size: 0.6rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6e7681;
+  margin-top: 0.25rem;
+}
+.pm-hero-image {
+  width: 100%;
+  height: 290px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #21262d;
+  display: block;
+}
+
+/* GENERIC SECTION */
+.pm-section {
+  padding: 2.5rem 2rem;
+  border-bottom: 1px solid #21262d;
+}
+.pm-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.8rem;
+}
+.pm-section-title {
+  font-size: 0.62rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #8b949e;
+  border-left: 2px solid #388bfd;
+  padding-left: 0.6rem;
+}
+.pm-section-count {
+  font-size: 0.58rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  color: #6e7681;
+  background: #161b22;
+  border: 1px solid #30363d;
+  padding: 0.12rem 0.4rem;
+  border-radius: 2px;
+}
+
+/* RCA CARDS */
+.rca-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1rem;
+}
+.rca-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.rca-card.critical { border-top: 2px solid #e05c5c; }
+.rca-card.high     { border-top: 2px solid #d29922; }
+.rca-card.medium   { border-top: 2px solid #388bfd; }
+.rca-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rca-icon { font-size: 1.1rem; line-height: 1; }
+.rca-severity {
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.42rem;
+  border-radius: 2px;
+  font-weight: 700;
+}
+.sev-critical { background: rgba(224,92,92,.18); color:#e05c5c; border:1px solid rgba(224,92,92,.28); }
+.sev-high     { background: rgba(210,153,34,.18); color:#d29922; border:1px solid rgba(210,153,34,.28); }
+.sev-medium   { background: rgba(56,139,253,.18); color:#388bfd; border:1px solid rgba(56,139,253,.28); }
+.rca-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e6edf3;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  letter-spacing: 0.01em;
+}
+.rca-desc {
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.55;
+  flex: 1;
+}
+.rca-desc a { color: #6e7681; }
+.rca-resolved {
+  font-size: 0.67rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  color: #3fb950;
+  padding-top: 0.55rem;
+  border-top: 1px solid #21262d;
+}
+.rca-resolved::before { content: '✓ RESOLVED: '; }
+
+/* TIMELINE */
+.tl-list { position: relative; }
+.tl-list::before {
+  content: '';
+  position: absolute;
+  left: 110px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(180deg,
+    #e05c5c 0%, #e05c5c 10%,
+    #d29922 30%,
+    #f0883e 48%,
+    #58a6ff 62%,
+    #3fb950 78%,
+    #bc8cff 100%);
+}
+.tl-entry {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  margin-bottom: 2.2rem;
+  position: relative;
+}
+.tl-entry:last-child { margin-bottom: 0; }
+.tl-date {
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.65rem;
+  color: #6e7681;
+  padding-right: 1.5rem;
+  padding-top: 0.18rem;
+  text-align: right;
+  line-height: 1.4;
+}
+.tl-node {
+  position: absolute;
+  left: 103px;
+  top: 0.18rem;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid #0d1117;
+}
+.node-baseline    { background: #6e7681; }
+.node-data        { background: #d29922; }
+.node-resolution  { background: #f0883e; }
+.node-retrain     { background: #58a6ff; }
+.node-transformer { background: #3fb950; }
+.node-arch        { background: #bc8cff; }
+.tl-content { padding-left: 2.2rem; }
+.tl-model {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.35rem;
+}
+.tl-change-type {
+  display: inline-block;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.4rem;
+  border-radius: 2px;
+  margin-bottom: 0.55rem;
+}
+.ct-baseline    { background:rgba(110,118,129,.15); color:#6e7681;  border:1px solid rgba(110,118,129,.25); }
+.ct-data        { background:rgba(210,153,34,.15);  color:#d29922;  border:1px solid rgba(210,153,34,.25); }
+.ct-resolution  { background:rgba(240,136,62,.15);  color:#f0883e;  border:1px solid rgba(240,136,62,.25); }
+.ct-retrain     { background:rgba(88,166,255,.15);  color:#58a6ff;  border:1px solid rgba(88,166,255,.25); }
+.ct-transformer { background:rgba(63,185,80,.15);   color:#3fb950;  border:1px solid rgba(63,185,80,.25); }
+.ct-arch        { background:rgba(188,140,255,.15); color:#bc8cff;  border:1px solid rgba(188,140,255,.25); }
+.tl-desc {
+  font-size: 0.81rem;
+  color: #8b949e;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+}
+.tl-desc a  { color: #6e7681; }
+.tl-desc sup a { color: #484f58; }
+.tl-progress { display: flex; align-items: center; gap: 0.8rem; }
+.tl-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: #21262d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.tl-bar { height: 100%; border-radius: 3px; }
+.tl-rate {
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 4rem;
+  text-align: right;
+}
+
+/* CONTROLNET CALLOUT */
+.controlnet-callout {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-left: 3px solid #58a6ff;
+  border-radius: 6px;
+  padding: 1.6rem;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 2rem;
+  align-items: start;
+}
+.callout-label {
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #58a6ff;
+  margin-bottom: 0.55rem;
+}
+.callout-heading {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.7rem;
+}
+.callout-heading a { color: #e6edf3; text-decoration: none; }
+.callout-body { font-size: 0.81rem; color: #8b949e; line-height: 1.65; }
+.callout-body a { color: #58a6ff; }
+.callout-body sup a { color: #484f58; }
+.callout-metrics { display: flex; flex-direction: column; gap: 0.7rem; }
+.callout-metric {
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  padding: 0.7rem 0.8rem;
+}
+.callout-metric-val {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #e6edf3;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  line-height: 1.1;
+}
+.callout-metric-lbl {
+  font-size: 0.58rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6e7681;
+  margin-top: 0.2rem;
+}
+
+/* OPEN ISSUES */
+.issues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.issue-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-left: 2px solid #e05c5c;
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+}
+.issue-tag {
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e05c5c;
+  margin-bottom: 0.35rem;
+}
+.issue-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.3rem;
+}
+.issue-desc { font-size: 0.74rem; color: #8b949e; line-height: 1.4; }
+.issue-desc a { color: #484f58; }
+.recommend-box {
+  padding: 0.9rem 1rem;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-left: 2px solid #3fb950;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.55;
+}
+.recommend-box strong { color: #3fb950; }
+.recommend-box a { color: #58a6ff; }
+
+/* CURRENT STATUS SPLIT */
+.status-split {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+.status-img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #21262d;
+  display: block;
+}
+
+/* ANATOMY ASIDE */
+.anatomy-split {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+.anatomy-img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #21262d;
+  display: block;
+}
+.anatomy-text { font-size: 0.83rem; color: #8b949e; line-height: 1.65; }
+.anatomy-text a { color: #484f58; }
+.anatomy-text em { color: #c9d1d9; font-style: italic; }
+.anatomy-quote {
+  margin: 0.8rem 0 0;
+  padding-left: 0.8rem;
+  border-left: 2px solid #30363d;
+  font-size: 0.82rem;
+  color: #8b949e;
+}
+
+/* SIBLINGS */
+.sibling-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.7rem;
+}
+.sibling-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 0.9rem;
+  text-decoration: none;
+  display: block;
+}
+.sibling-card:hover { border-color: #388bfd; }
+.sibling-depth {
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6e7681;
+  margin-bottom: 0.3rem;
+}
+.sibling-title { font-size: 0.8rem; font-weight: 600; color: #c9d1d9; line-height: 1.35; }
+
+/* FOOTER */
+.pm-footer {
+  padding: 1.4rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-top: 1px solid #21262d;
+}
+.pm-footer-text {
+  font-size: 0.65rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  color: #484f58;
+}
+.pm-footer-link {
+  font-size: 0.65rem;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  color: #388bfd;
+  text-decoration: none;
+}
+
+/* RESPONSIVE */
+@media (max-width: 820px) {
+  .pm-header          { grid-template-columns: 1fr; }
+  .pm-hero-image      { height: 210px; }
+  .tl-list::before    { left: 75px; }
+  .tl-entry           { grid-template-columns: 75px 1fr; }
+  .tl-node            { left: 68px; }
+  .tl-content         { padding-left: 1.6rem; }
+  .controlnet-callout { grid-template-columns: 1fr; }
+  .status-split       { grid-template-columns: 1fr; }
+  .anatomy-split      { grid-template-columns: 1fr; }
+  .pm-stats           { gap: 1.2rem; }
+}
+</style>
+
+<div class="pm-root">
+
+  <!-- ─── INCIDENT HEADER ─── -->
+  <div class="pm-header">
+    <div>
+      <div class="pm-incident-badge">Incident Report · AI Systems · 2022–2025</div>
+      <h1 class="pm-title">Why Hands Broke</h1>
+      <p class="pm-subtitle">
+        Five compounding failures drove diffusion model hand generation to a ~30% success rate.
+        Recovery took 30 months and four distinct architectural interventions,
+        reaching ~90% by 2025.
+        <sup><a href="https://vertu.com/ai-tools/the-2025-reality-check-on-ai-generated-hands-and-fingers/" style="color:#484f58">[18]</a></sup>
+      </p>
+      <div class="pm-fault-tags">
+        <span class="pm-fault-tag">Sparse Training Data</span>
+        <span class="pm-fault-tag">CLIP Counting Blindness</span>
+        <span class="pm-fault-tag">VAE Resolution</span>
+        <span class="pm-fault-tag">U-Net Locality</span>
+        <span class="pm-fault-tag">Mode Interpolation</span>
+      </div>
+      <div class="pm-stats">
+        <div class="pm-stat">
+          <span class="pm-stat-value" style="color:#e05c5c">30%</span>
+          <span class="pm-stat-label">2022 baseline</span>
+        </div>
+        <div class="pm-stat">
+          <span class="pm-stat-value" style="color:#3fb950">~90%</span>
+          <span class="pm-stat-label">2025 success rate</span>
+        </div>
+        <div class="pm-stat">
+          <span class="pm-stat-value">5</span>
+          <span class="pm-stat-label">root causes</span>
+        </div>
+        <div class="pm-stat">
+          <span class="pm-stat-value">6</span>
+          <span class="pm-stat-label">milestones</span>
+        </div>
+        <div class="pm-stat">
+          <span class="pm-stat-value">21</span>
+          <span class="pm-stat-label">sources</span>
+        </div>
+      </div>
+    </div>
+    <img class="pm-hero-image"
+         src="timeline/images/petapixel-hands.jpg"
+         alt="AI-generated malformed hands — the inciting problem. Source: PetaPixel">
+  </div>
+
+  <!-- ─── ROOT CAUSE ANALYSIS ─── -->
+  <div class="pm-section">
+    <div class="pm-section-header">
+      <span class="pm-section-title">Root Cause Analysis</span>
+      <span class="pm-section-count">5 causes · all compounding</span>
+    </div>
+    <div class="rca-grid">
+
+      <div class="rca-card critical">
+        <div class="rca-header">
+          <span class="rca-icon">📊</span>
+          <span class="rca-severity sev-critical">Critical</span>
+        </div>
+        <div class="rca-title">Sparse Training Data</div>
+        <div class="rca-desc">
+          Faces dominate internet photos — hands are small, peripheral, or obscured.
+          LAION-5B captions almost never describe hand anatomy.
+          "Man smiling in park" gives zero signal about finger count or pose.
+          <sup><a href="https://petapixel.com/2023/03/02/why-ai-image-generators-cant-get-hands-right/">[1]</a></sup>
+          <sup><a href="https://decrypt.co/125865/generative-ai-art-images-hands-fingers-teeth">[4]</a></sup>
+        </div>
+        <div class="rca-resolved">MJ v5 hand-prioritized data + DALL-E 3 recaptioning (2023)</div>
+      </div>
+
+      <div class="rca-card high">
+        <div class="rca-header">
+          <span class="rca-icon">🔢</span>
+          <span class="rca-severity sev-high">High</span>
+        </div>
+        <div class="rca-title">CLIP Counting Blindness</div>
+        <div class="rca-desc">
+          CLIP operates on continuous embeddings — no discrete cardinality mechanism.
+          "Five fingers" produces a fuzzy vector, not a countable constraint.
+          Early SD routinely generated ≥6 fingers.
+          <sup><a href="https://arxiv.org/html/2510.13080v1">[7]</a></sup>
+          <sup><a href="https://arxiv.org/html/2408.15461v2">[8]</a></sup>
+        </div>
+        <div class="rca-resolved">Hand1000 gesture fusion, richer caption alignment (2024)</div>
+      </div>
+
+      <div class="rca-card high">
+        <div class="rca-header">
+          <span class="rca-icon">🔬</span>
+          <span class="rca-severity sev-high">High</span>
+        </div>
+        <div class="rca-title">VAE Resolution Bottleneck</div>
+        <div class="rca-desc">
+          512×512 compressed 8× to a 64×64 latent. Four fingers
+          fit into ~5–8 latent pixels. The VAE decoder cannot reconstruct
+          what was never encoded — fused blobs are the direct output.
+          <sup><a href="https://www.makeuseof.com/ai-image-generators-hands-issue/">[15]</a></sup>
+        </div>
+        <div class="rca-resolved">SDXL 1024×1024 native: ~40–60 pixels per finger (Oct 2023)</div>
+      </div>
+
+      <div class="rca-card high">
+        <div class="rca-header">
+          <span class="rca-icon">🏗️</span>
+          <span class="rca-severity sev-high">High</span>
+        </div>
+        <div class="rca-title">U-Net Locality</div>
+        <div class="rca-desc">
+          U-Net's limited receptive field treats each finger region independently.
+          Global constraints — all fingers attach to the same palm — are lost
+          across successive downsampling layers.
+          <sup><a href="https://zsky.ai/blog/flux-vs-sdxl-comparison">[12]</a></sup>
+        </div>
+        <div class="rca-resolved">FLUX.1 MMDiT: full global attention every layer (Aug 2024)</div>
+      </div>
+
+      <div class="rca-card medium">
+        <div class="rca-header">
+          <span class="rca-icon">🌀</span>
+          <span class="rca-severity sev-medium">Medium</span>
+        </div>
+        <div class="rca-title">Mode Interpolation</div>
+        <div class="rca-desc">
+          Reverse diffusion interpolates between incompatible hand-pose modes,
+          producing impossible joints. Counterintuitively, increasing sampling steps
+          25→100 <em>worsens</em> counting accuracy — more refinement amplifies, not corrects.
+          <sup><a href="https://arxiv.org/html/2510.13080v1">[7]</a></sup>
+        </div>
+        <div class="rca-resolved">Pixel-level segmentation masks: −23% hallucination rate (2024)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── REMEDIATION TIMELINE ─── -->
+  <div class="pm-section">
+    <div class="pm-section-header">
+      <span class="pm-section-title">Remediation Timeline</span>
+      <span class="pm-section-count">6 milestones · 30 months</span>
+    </div>
+
+    <div class="tl-list">
+
+      <!-- 2022: Baseline -->
+      <div class="tl-entry">
+        <div class="tl-date">2022<br>Baseline</div>
+        <div class="tl-node node-baseline"></div>
+        <div class="tl-content">
+          <div class="tl-model">SD 1.4/1.5 · Midjourney v3/v4</div>
+          <span class="tl-change-type ct-baseline">Baseline</span>
+          <div class="tl-desc">
+            All five failure modes active simultaneously. 512×512 resolution, U-Net backbone,
+            LAION-5B captions with near-zero hand annotation.
+            Malformed hands are the norm — six fingers, merged digits,
+            backwards joints appear in the majority of outputs.
+            <sup><a href="https://petapixel.com/2023/03/02/why-ai-image-generators-cant-get-hands-right/">[1]</a></sup>
+            <sup><a href="https://www.buzzfeednews.com/article/pranavdixit/ai-generated-art-hands-fingers-messed-up">[2]</a></sup>
+          </div>
+          <div class="tl-progress">
+            <div class="tl-bar-wrap">
+              <div class="tl-bar" style="width:30%;background:linear-gradient(90deg,#e05c5c,#c73e3e)"></div>
+            </div>
+            <span class="tl-rate" style="color:#e05c5c">~30%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mar 2023: MJ v5 -->
+      <div class="tl-entry">
+        <div class="tl-date">Mar<br>2023</div>
+        <div class="tl-node node-data"></div>
+        <div class="tl-content">
+          <div class="tl-model">Midjourney v5</div>
+          <span class="tl-change-type ct-data">Data Curation</span>
+          <div class="tl-desc">
+            Explicitly prioritized training images with clearly visible hands;
+            deprioritized obscured or peripheral examples.
+            New neural architecture trained on Google Cloud's AI supercluster for ~5 months.
+            <strong style="color:#c9d1d9">The most impactful single step</strong> —
+            nearly doubling the acceptable-generation rate.
+            <sup><a href="https://www.britannica.com/topic/Why-does-AI-art-screw-up-hands-and-fingers-2230501">[14]</a></sup>
+            <sup><a href="https://deep-image.ai/blog/midjourney-v5-is-now-available-check-out-the-changes-from-v4/">[19]</a></sup>
+          </div>
+          <div class="tl-progress">
+            <div class="tl-bar-wrap">
+              <div class="tl-bar" style="width:65%;background:linear-gradient(90deg,#d29922,#b08000)"></div>
+            </div>
+            <span class="tl-rate" style="color:#d29922">~65%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Oct 2023: SDXL -->
+      <div class="tl-entry">
+        <div class="tl-date">Oct<br>2023</div>
+        <div class="tl-node node-resolution"></div>
+        <div class="tl-content">
+          <div class="tl-model">Stable Diffusion XL 1.0</div>
+          <span class="tl-change-type ct-resolution">Resolution + Dual Encoders</span>
+          <div class="tl-desc">
+            Native 1024×1024 (4× the pixel count of SD 1.5). At this scale, each finger
+            gets ~40–60 latent pixels — enough for the VAE to encode and recover distinct digits.
+            Dual text encoders (OpenCLIP ViT-bigG + CLIP ViT-L in parallel).
+            U-Net grew 860M → 2.6B parameters.
+            <sup><a href="https://magai.co/stable-diffusion-xl-1-0/">[11]</a></sup>
+            <sup><a href="https://d-central.tech/ai/model/stable-diffusion-xl/">[20]</a></sup>
+          </div>
+          <div class="tl-progress">
+            <div class="tl-bar-wrap">
+              <div class="tl-bar" style="width:70%;background:linear-gradient(90deg,#f0883e,#d07028)"></div>
+            </div>
+            <span class="tl-rate" style="color:#f0883e">~70%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dec 2023: MJ v6 + DALL-E 3 -->
+      <div class="tl-entry">
+        <div class="tl-date">Dec<br>2023</div>
+        <div class="tl-node node-retrain"></div>
+        <div class="tl-content">
+          <div class="tl-model">Midjourney v6 · DALL-E 3</div>
+          <span class="tl-change-type ct-retrain">Full Retrains + Caption Quality</span>
+          <div class="tl-desc">
+            MJ v6: trained from scratch over nine months — not a fine-tune of v5.
+            DALL-E 3 attacked captions directly: a specialized captioner generated
+            long, highly-descriptive synthetic captions (95% GPT-4, 5% human)
+            covering body-part details previously absent from LAION.
+            <sup><a href="https://en.wikipedia.org/wiki/Midjourney">[16]</a></sup>
+            <sup><a href="https://shreyansh26.github.io/post/2024-02-18_dalle3_image_recaptioner/">[10]</a></sup>
+          </div>
+          <div class="tl-progress">
+            <div class="tl-bar-wrap">
+              <div class="tl-bar" style="width:78%;background:linear-gradient(90deg,#58a6ff,#3b8ee6)"></div>
+            </div>
+            <span class="tl-rate" style="color:#58a6ff">~75–80%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aug 2024: FLUX.1 -->
+      <div class="tl-entry">
+        <div class="tl-date">Aug<br>2024</div>
+        <div class="tl-node node-transformer"></div>
+        <div class="tl-content">
+          <div class="tl-model">FLUX.1 [dev] — Black Forest Labs</div>
+          <span class="tl-change-type ct-transformer">Transformer Architecture</span>
+          <div class="tl-desc">
+            Replaced U-Net with a <strong style="color:#c9d1d9">Multimodal Diffusion Transformer (MMDiT)</strong>.
+            Transformers compute attention across the <em>entire</em> image in every layer —
+            a finger at position A is explicitly related to the palm and every other finger simultaneously.
+            The architectural fix most directly targeting U-Net locality.
+            "The most anatomically correct humans, correct finger count in the vast majority of generations."
+            <sup><a href="https://zsky.ai/blog/flux-vs-sdxl-comparison">[12]</a></sup>
+            <sup><a href="https://www.ikomia.ai/blog/best-ai-diffusion-models-comparison-guide">[13]</a></sup>
+          </div>
+          <div class="tl-progress">
+            <div class="tl-bar-wrap">
+              <div class="tl-bar" style="width:85%;background:linear-gradient(90deg,#3fb950,#2a9a3a)"></div>
+            </div>
+            <span class="tl-rate" style="color:#3fb950">~85%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apr 2025: MJ v7 -->
+      <div class="tl-entry">
+        <div class="tl-date">Apr<br>2025</div>
+        <div class="tl-node node-arch"></div>
+        <div class="tl-content">
+          <div class="tl-model">Midjourney v7</div>
+          <span class="tl-change-type ct-arch">Ground-Up Rebuild</span>
+          <div class="tl-desc">
+            CEO David Holz: "a totally different architecture" from v6.
+            Third-party analysis: ~40% reduction in anatomical errors.
+            Six-fingered hands moved from "common" to "occasional."
+            <sup><a href="https://theaitrack.com/midjourney-v7-launch/">[21]</a></sup>
+            <sup><a href="https://mpgone.com/midjourney-v7-redefining-ai-image-generation-with-personalized-realism/">[17]</a></sup>
+            <sup><a href="https://vertu.com/ai-tools/the-2025-reality-check-on-ai-generated-hands-and-fingers/">[18]</a></sup>
+          </div>
+          <div class="tl-progress">
+            <div class="tl-bar-wrap">
+              <div class="tl-bar" style="width:88%;background:linear-gradient(90deg,#bc8cff,#9a6de0)"></div>
+            </div>
+            <span class="tl-rate" style="color:#bc8cff">~85–90%</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tl-list -->
+  </div>
+
+  <!-- ─── COMMUNITY PARALLEL TRACK ─── -->
+  <div class="pm-section">
+    <div class="pm-section-header">
+      <span class="pm-section-title">Community Parallel Track</span>
+      <span class="pm-section-count">No model update required</span>
+    </div>
+    <div class="controlnet-callout">
+      <div>
+        <div class="callout-label">HandRefiner · ControlNet-based pipeline</div>
+        <div class="callout-heading">
+          <a href="https://github.com/lllyasviel/controlnet">ControlNet</a> ⭐ 33.9k — depth-conditioned inpainting
+          <sup><a href="https://github.com/lllyasviel/controlnet" style="color:#484f58">[9]</a></sup>
+        </div>
+        <div class="callout-body">
+          While model teams rebuilt architectures, the community built a parallel fix.
+          <a href="https://github.com/lllyasviel/controlnet">ControlNet</a> adds structural control signals — depth maps,
+          pose maps, edge maps — without retraining the base model.
+          HandRefiner extends this: Mesh Graphormer reconstructs 3D hand geometry,
+          renders a depth map, then depth-conditioned ControlNet inpaints only the hand region.
+          <sup><a href="https://arxiv.org/html/2311.17957v2">[5]</a></sup>
+          <br><br>
+          Key discovery: control strength <strong style="color:#c9d1d9">~0.55 is a "phase transition" point</strong> —
+          below it, the signal adjusts structure; above it, texture degrades.
+          This enabled training on synthetic depth data without texture artifacts.
+          Segmentation-mask constraints (Joint Diffusion Model) brought a further
+          ~23% reduction in counting hallucinations and ~84% drop in non-counting failures.
+          <sup><a href="https://arxiv.org/html/2510.13080v1">[7]</a></sup>
+          <sup><a href="https://arxiv.org/html/2311.17957v2">[5]</a></sup>
+        </div>
+      </div>
+      <div class="callout-metrics">
+        <div class="callout-metric">
+          <div class="callout-metric-val">70%</div>
+          <div class="callout-metric-lbl">user preference in blind survey · 50 participants</div>
+        </div>
+        <div class="callout-metric">
+          <div class="callout-metric-val">+10 FID</div>
+          <div class="callout-metric-lbl">improvement on hand-only evaluation</div>
+        </div>
+        <div class="callout-metric">
+          <div class="callout-metric-val">0.55</div>
+          <div class="callout-metric-lbl">optimal control strength — phase transition point</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CURRENT STATUS ─── -->
+  <div class="pm-section">
+    <div class="pm-section-header">
+      <span class="pm-section-title">Status 2025–2026</span>
+      <span class="pm-section-count">4 open · 5 resolved</span>
+    </div>
+    <div class="status-split">
+      <div>
+        <div style="margin-bottom:0.9rem;font-size:0.62rem;font-family:'SF Mono',Consolas,monospace;letter-spacing:0.1em;text-transform:uppercase;color:#6e7681;">Remaining Open Issues</div>
+        <div class="issues-grid">
+          <div class="issue-card">
+            <div class="issue-tag">Open · Hard</div>
+            <div class="issue-title">Hand-Object Interactions</div>
+            <div class="issue-desc">Gripping a textured object requires physical-contact reasoning beyond 2D statistics.
+              <sup><a href="https://arxiv.org/html/2403.10731">[6]</a></sup>
+            </div>
+          </div>
+          <div class="issue-card">
+            <div class="issue-tag">Open · Hard</div>
+            <div class="issue-title">Multi-Hand Scenes</div>
+            <div class="issue-desc">Two hands interacting multiply the 3D projection-ambiguity problem. No reliable solution yet.</div>
+          </div>
+          <div class="issue-card">
+            <div class="issue-tag">Open · Moderate</div>
+            <div class="issue-title">Unusual Pose Angles</div>
+            <div class="issue-desc">Wide-spread fingers from a low angle, or partial fists, hit the edges of training distribution.</div>
+          </div>
+          <div class="issue-card">
+            <div class="issue-tag">Open · Moderate</div>
+            <div class="issue-title">In-Context Data Mismatch</div>
+            <div class="issue-desc">Isolated-hand datasets don't generalize when hands hold objects in natural environments.
+              <sup><a href="https://arxiv.org/html/2403.10731">[6]</a></sup>
+            </div>
+          </div>
+        </div>
+        <div class="recommend-box">
+          <strong>Practical recommendation:</strong>
+          Simple natural poses now generate reliably on FLUX.1 and MJ v7.
+          For complex grip shots or multi-hand compositions,
+          <a href="https://github.com/lllyasviel/controlnet">ControlNet</a> conditioning or iterative inpainting
+          remains the most reliable path until the next architectural leap.
+        </div>
+      </div>
+      <img class="status-img"
+           src="timeline/images/vertu-hands.png"
+           alt="2025 state of AI-generated hands — before/after comparison. Source: Vertu">
+    </div>
+  </div>
+
+  <!-- ─── WHY HANDS SPECIFICALLY ─── -->
+  <div class="pm-section">
+    <div class="pm-section-header">
+      <span class="pm-section-title">Why Hands Specifically</span>
+    </div>
+    <div class="anatomy-split">
+      <img class="anatomy-img"
+           src="timeline/images/decrypt-hands.png"
+           alt="Why generative AI gets hands, fingers, and teeth wrong — Decrypt">
+      <div>
+        <div class="anatomy-text">
+          Hands aren't merely difficult — they expose <em>every</em> diffusion failure mode simultaneously.
+          27 degrees of freedom across 16 joints
+          <sup><a href="https://arxiv.org/html/2311.17957v2">[5]</a></sup>
+          make any finger-angle error immediately obvious. Constant occlusion in training images
+          teaches the model "thumbs are sometimes absent" rather than "thumbs are hidden."
+          <sup><a href="https://www.buzzfeednews.com/article/pranavdixit/ai-generated-art-hands-fingers-messed-up">[2]</a></sup>
+          And the uncanny valley effect means we notice instantly — we evolved to read hands for social signaling.
+          <sup><a href="https://decrypt.co/125865/generative-ai-art-images-hands-fingers-teeth">[4]</a></sup>
+        </div>
+        <blockquote class="anatomy-quote">
+          "These are 2D image generators that have absolutely no concept of the three-dimensional geometry
+          of something like a hand." — Prof. Peter Bentley, UCL
+          <sup><a href="https://www.sciencefocus.com/future-technology/why-ai-generated-hands-are-the-stuff-of-nightmares-explained-by-a-scientist">[3]</a></sup>
+        </blockquote>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── RELATED RESEARCH ─── -->
+  <div class="pm-section">
+    <div class="pm-section-header">
+      <span class="pm-section-title">Related Research</span>
+      <span class="pm-section-count">from <a href="../../" style="color:#388bfd;text-decoration:none">Diffusion Models: From Noise to Image</a></span>
+    </div>
+    <div class="sibling-grid">
+      <a href="../../reverse-denoising-architectures-and-the-score-network/" class="sibling-card">
+        <div class="sibling-depth">expedition</div>
+        <div class="sibling-title">Reverse denoising: architectures and the score network</div>
+      </a>
+      <a href="../../text-conditioning-via-clip-and-beyond/" class="sibling-card">
+        <div class="sibling-depth">survey</div>
+        <div class="sibling-title">Text conditioning via CLIP (and beyond)</div>
+      </a>
+      <a href="../../latent-space-and-vae/" class="sibling-card">
+        <div class="sibling-depth">recon</div>
+        <div class="sibling-title">Latent space and VAE</div>
+      </a>
+      <a href="../../controlnet-and-structural-conditioning/" class="sibling-card">
+        <div class="sibling-depth">recon</div>
+        <div class="sibling-title">ControlNet and structural conditioning</div>
+      </a>
+      <a href="../../forward-diffusion-and-noise-schedules/" class="sibling-card">
+        <div class="sibling-depth">survey</div>
+        <div class="sibling-title">Forward diffusion and noise schedules</div>
+      </a>
+      <a href="../../midjourney-v6-prompt-craft/" class="sibling-card">
+        <div class="sibling-depth">expedition</div>
+        <div class="sibling-title">Midjourney v6 prompt craft</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="pm-footer">
+    <span class="pm-footer-text">21 sources · survey depth · 2026-06-09</span>
+    <a href="../../" class="pm-footer-link">↑ Diffusion Models: From Noise to Image</a>
+  </div>
+
+</div>

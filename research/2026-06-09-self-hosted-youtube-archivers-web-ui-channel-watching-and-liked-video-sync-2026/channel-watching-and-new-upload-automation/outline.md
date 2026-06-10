@@ -1,0 +1,6 @@
+How does each major self-hosted tool (TubeArchivist, PinchFlat, ytdl-sub, TubeSync, MeTube, YoutubeDL-Material) detect new channel uploads — cron vs fixed interval vs interval-after-completion, default frequencies, and the exact configuration knobs?
+What filtering controls decide which new uploads actually download — regex title filters, date cutoffs, min/max duration, content-type (videos/shorts/live), resolution/quality cutoff, keep-N-latest — compared across tools?
+What are the underlying YouTube watch primitives — yt-dlp channel/playlist extraction vs YouTube channel RSS feeds (entry limits, latency), and download-archive / break-on-existing bookkeeping that prevents re-downloads and missed uploads?
+How do tools avoid throttling and IP bans while polling — YouTube rate limiting / 403 bot-checks in 2026, recommended minimum intervals, concurrency self-throttling, PO tokens, and cookie risk for channel watching?
+What downstream automation fires on a new upload — webhooks/Apprise notifications, SponsorBlock integration, media-server (Jellyfin/Plex/Kodi) library refresh, NFO/episode metadata, *arr-style behavior?
+What alternative and DIY channel-watch approaches exist in 2026 — ChannelTube, cron+yt-dlp scripts, RSS-to-yt-dlp, the *arr ecosystem, and community sentiment on channel-watch reliability?

@@ -1,0 +1,853 @@
+---
+layout: view
+view_name: "Catalog"
+view_of: ../
+title: "Reverse Denoising: Architectures and the Score Network — Catalog"
+---
+
+<style>
+/* ===== CATALOG: Score Network Architecture Timeline ===== */
+:root {
+  --bg:          #0d1117;
+  --surface:     #161b22;
+  --surface-2:   #1c2433;
+  --border:      #30363d;
+  --border-hi:   #454d57;
+  --amber:       #f59e0b;
+  --amber-dim:   rgba(245,158,11,0.15);
+  --blue:        #58a6ff;
+  --purple:      #a78bfa;
+  --green:       #3fb950;
+  --red:         #f85149;
+  --text:        #e6edf3;
+  --text-2:      #8b949e;
+  --text-3:      #484f58;
+  --mono:        'Courier New','SFMono-Regular',Consolas,monospace;
+}
+
+.cat-wrap {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  padding-bottom: 80px;
+}
+
+/* ── HEADER ── */
+.cat-header {
+  padding: 48px 40px 32px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.cat-header::before {
+  content: '∇log p';
+  position: absolute;
+  right: -10px;
+  top: -8px;
+  font-family: var(--mono);
+  font-size: 130px;
+  color: rgba(245,158,11,0.04);
+  letter-spacing: -4px;
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+}
+.cat-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-family: var(--mono);
+  margin-bottom: 14px;
+}
+.cat-title {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  letter-spacing: -.5px;
+}
+.cat-subtitle {
+  font-size: 15px;
+  color: var(--text-2);
+  max-width: 580px;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+.cat-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-3);
+}
+
+/* ── SCORE IDENTITY BOX ── */
+.score-box {
+  margin: 28px 40px;
+  border: 1px solid rgba(245,158,11,.28);
+  background: rgba(245,158,11,.03);
+  border-radius: 8px;
+  padding: 24px 28px;
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+.score-formula {
+  font-family: var(--mono);
+  font-size: 28px;
+  color: var(--amber);
+  white-space: nowrap;
+  letter-spacing: -.5px;
+  flex-shrink: 0;
+}
+.score-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+.score-body strong { color: var(--text); }
+.score-body code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── ERA DIVIDER ── */
+.era-div {
+  margin: 8px 40px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0 12px;
+}
+.era-div::before, .era-div::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,transparent,var(--border),transparent);
+}
+.era-text {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+/* ── TIMELINE ── */
+.timeline {
+  margin: 0 40px;
+  position: relative;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 47px;
+  top: 0;
+  bottom: 40px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(245,158,11,.7) 0%, rgba(245,158,11,.15) 100%);
+}
+
+.tl-entry {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.tl-yr {
+  width: 96px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 22px;
+}
+.tl-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--amber);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 2px var(--amber);
+  z-index: 1;
+  flex-shrink: 0;
+}
+.tl-yrn {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--amber);
+  margin-top: 6px;
+}
+
+/* ── CARD ── */
+.tl-card {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.tl-card:hover { border-color: var(--border-hi); }
+.tl-card.f-unet        { border-top: 3px solid var(--blue); }
+.tl-card.f-transformer { border-top: 3px solid var(--amber); }
+.tl-card.f-hybrid      { border-top: 3px solid var(--purple); }
+
+.card-banner {
+  height: 130px;
+  overflow: hidden;
+  position: relative;
+}
+.card-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+.card-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,rgba(13,17,23,.1) 0%,rgba(13,17,23,.55) 100%);
+  pointer-events: none;
+}
+
+.g-unet     { background: linear-gradient(135deg,#0c1a4a,#1a3a6e,#0f2954); display:flex;align-items:center;justify-content:center; }
+.g-adm      { background: linear-gradient(135deg,#1a0a0a,#3d1212,#1f0f0f); display:flex;align-items:center;justify-content:center; }
+.g-sit      { background: linear-gradient(135deg,#0f0a1e,#2d1b4e,#1a1030); display:flex;align-items:center;justify-content:center; }
+.g-mmdit    { background: linear-gradient(135deg,#0a1a15,#0e3a2a,#07231a); display:flex;align-items:center;justify-content:center; }
+.g-ideogram { background: linear-gradient(135deg,#0a0f1e,#1a2040,#0d1530); display:flex;align-items:center;justify-content:center; }
+.banner-glyph { font-size: 56px; opacity: .18; user-select: none; }
+
+.card-body   { padding: 18px 22px; }
+.card-name   { font-size: 19px; font-weight: 700; color: var(--text); line-height: 1.2; margin-bottom: 10px; }
+.card-name a { color: inherit; text-decoration: none; }
+.card-name a:hover { color: var(--blue); }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.badge {
+  font-size: 10px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.b-unet  { background:rgba(88,166,255,.1); color:var(--blue);   border:1px solid rgba(88,166,255,.22); }
+.b-xfmr  { background:rgba(245,158,11,.1); color:var(--amber);  border:1px solid rgba(245,158,11,.22); }
+.b-hyb   { background:rgba(167,139,250,.1);color:var(--purple); border:1px solid rgba(167,139,250,.22); }
+.b-stars { background:rgba(63,185,80,.1);  color:var(--green);  border:1px solid rgba(63,185,80,.2); }
+.b-fid   { background:rgba(248,81,73,.1);  color:var(--red);    border:1px solid rgba(248,81,73,.2); }
+.b-meta  { background:rgba(139,148,158,.1);color:var(--text-2); border:1px solid rgba(139,148,158,.18); }
+
+.innov {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.innov li {
+  font-size: 13px;
+  color: var(--text-2);
+  padding: 8px 12px 8px 28px;
+  position: relative;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--surface-2);
+}
+.innov li:last-child { border-bottom: none; }
+.innov li::before {
+  content: '▸';
+  position: absolute;
+  left: 10px;
+  color: var(--text-3);
+  font-size: 10px;
+  top: 10px;
+}
+.innov code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  background: var(--surface-2);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.card-foot {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── SECTIONS ── */
+.cat-sec { margin: 8px 40px 36px; }
+.cat-sec h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── TABLES ── */
+.cat-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cat-tbl th {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-family: var(--mono);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.cat-tbl td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--surface-2);
+  color: var(--text-2);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.cat-tbl td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+.cat-tbl code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  background: var(--surface-2);
+  padding: 2px 5px;
+  border-radius: 2px;
+}
+.cat-tbl sup a { color: var(--text-3); font-size: 10px; font-family: var(--mono); text-decoration: none; }
+.cat-tbl sup a:hover { color: var(--amber); }
+.tr-current { background: rgba(245,158,11,.03); }
+.tr-closed  { background: rgba(248,81,73,.02); }
+
+/* ── CONDITIONING GRID ── */
+.cond-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.cond-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.cond-tile h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--mono);
+  margin: 0 0 8px;
+  letter-spacing: .5px;
+}
+.cond-tile p { font-size: 13px; color: var(--text-2); line-height: 1.6; margin: 0; }
+.cond-tile code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  background: var(--surface-2);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+.cond-tile sup a { color: var(--text-3); font-size: 10px; font-family: var(--mono); text-decoration: none; }
+
+/* ── ECOSYSTEM STRIP ── */
+.eco-strip {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 22px;
+  overflow: hidden;
+  margin: 8px 40px 28px;
+}
+.eco-img {
+  flex-shrink: 0;
+  width: 180px;
+  height: 110px;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.eco-img img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.eco-eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-3); font-family: var(--mono); margin-bottom: 6px; }
+.eco-name { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.eco-name a { color: var(--text); text-decoration: none; }
+.eco-name a:hover { color: var(--blue); }
+.eco-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.eco-desc code { font-family: var(--mono); font-size: 11px; color: var(--text); background: var(--surface-2); padding: 1px 4px; border-radius: 2px; }
+.eco-desc sup a { color: var(--text-3); font-size: 10px; font-family: var(--mono); text-decoration: none; }
+
+/* ── FOOTER NOTE ── */
+.cat-foot {
+  margin: 8px 40px 0;
+  padding: 18px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+.cat-foot strong { color: var(--text); }
+.cat-foot sup a { color: var(--text-3); font-size: 10px; font-family: var(--mono); text-decoration: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .cat-header, .score-box, .era-div,
+  .timeline, .cat-sec, .eco-strip, .cat-foot { margin-left: 16px; margin-right: 16px; }
+  .timeline::before { left: 23px; }
+  .tl-yr { width: 50px; }
+  .score-box { flex-direction: column; gap: 14px; }
+  .score-formula { font-size: 22px; }
+  .cond-grid { grid-template-columns: 1fr; }
+  .eco-strip { flex-direction: column; }
+  .eco-img { width: 100%; height: 140px; }
+}
+</style>
+
+<div class="cat-wrap">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="cat-header">
+    <div class="cat-eyebrow">Reverse Diffusion · Architecture Catalog</div>
+    <h1 class="cat-title">Score Network Architectures</h1>
+    <p class="cat-subtitle">The backbone evolution of reverse diffusion — from convolutional U-Net through DiT to hybrid rectified-flow transformers — annotated with metrics, code, and 52 citations.</p>
+    <div class="cat-meta">
+      <span>52 sources</span>
+      <span>9 min read</span>
+      <span>expedition depth</span>
+      <span>Jun 2026</span>
+    </div>
+  </header>
+
+  <!-- ═══ SCORE IDENTITY ═══ -->
+  <div class="score-box">
+    <div class="score-formula">s<sub>θ</sub>(x) ≈ ∇<sub>x</sub> log p(x)</div>
+    <div class="score-body">
+      The single object every denoiser estimates — the <strong>score function</strong>, gradient of the log-data density. Regardless of whether the network predicts noise <code>ε</code>, clean image <code>x₀</code>, velocity <code>v</code>, or flow drift, it's the same target reparametrised. For Gaussian perturbations: <code>s<sub>θ</sub> = −ε<sub>θ</sub>/σ</code>.
+      <sup><a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/">[5]</a></sup>
+      <sup><a href="https://yang-song.net/blog/2021/score/">[1]</a></sup>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ERA 1: CONVOLUTIONAL                       -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="era-div"><span class="era-text">Convolutional Era · U-Net Family</span></div>
+
+  <div class="timeline">
+
+    <!-- U-Net origin -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2015</div>
+      </div>
+      <div class="tl-card f-unet">
+        <div class="card-banner g-unet">
+          <span class="banner-glyph">⊡</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">U-Net</div>
+          <div class="badges">
+            <span class="badge b-unet">U-Net family</span>
+            <span class="badge b-meta">Encoder-decoder + skip connections</span>
+          </div>
+          <ul class="innov">
+            <li>Contracting path: two 3×3 convs + ReLU + 2× max-pool per stage; expanding path mirrors with up-convolutions</li>
+            <li><strong>Skip connections</strong> concatenate encoder feature maps into the matching decoder stage — the spatial-detail preservation mechanism diffusion inherited</li>
+            <li>Outputs same spatial size as input: natural noise-prediction network — no architectural modification needed to produce <code>ε_θ(xₜ, t)</code></li>
+            <li>Origin: biomedical image segmentation (Ronneberger et al., 2015); every diffusion U-Net borrows this skeleton verbatim</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://arxiv.org/abs/1505.04597" class="badge b-meta">arXiv 1505.04597 [8]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADM -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2021</div>
+      </div>
+      <div class="tl-card f-unet">
+        <div class="card-banner g-adm">
+          <span class="banner-glyph">⚙</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">ADM — Ablated Diffusion Model</div>
+          <div class="badges">
+            <span class="badge b-unet">U-Net family</span>
+            <span class="badge b-fid">FID 2.97 · ImageNet 128²</span>
+          </div>
+          <ul class="innov">
+            <li>Dhariwal &amp; Nichol ran systematic ablations to turn U-Net into a class-conditional diffusion backbone that beat every GAN on ImageNet</li>
+            <li>More depth over width; multi-head self-attention (64 ch/head) at 32², 16², and 8² resolutions — coarse features get global context</li>
+            <li>BigGAN residual blocks for up/downsampling; residual connections rescaled by <code>1/√2</code> for training stability</li>
+            <li><code>AdaGN(h,y) = y_s · GroupNorm(h) + y_b</code> — sinusoidal timestep embedding + class label injected into every residual block</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://arxiv.org/abs/2105.05233" class="badge b-meta">arXiv 2105.05233 [10]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latent Diffusion / Stable Diffusion 1.x -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2022</div>
+      </div>
+      <div class="tl-card f-unet">
+        <div class="card-banner">
+          <img src="catalog/images/CompVis-stable-diffusion.jpg" alt="CompVis/stable-diffusion GitHub repository">
+        </div>
+        <div class="card-body">
+          <div class="card-name"><a href="https://github.com/CompVis/stable-diffusion">Latent Diffusion / Stable Diffusion</a></div>
+          <div class="badges">
+            <span class="badge b-unet">U-Net family</span>
+            <span class="badge b-stars">⭐ 73k (CompVis/stable-diffusion)</span>
+            <span class="badge b-meta">860M params</span>
+          </div>
+          <ul class="innov">
+            <li><strong>Key insight:</strong> run the U-Net in a compressed VAE latent space (8× spatial reduction) — slashes compute versus pixel-space diffusion without losing perceptual quality</li>
+            <li>Augments U-Net with <strong>cross-attention layers</strong>: text encoder embeddings become keys/values, latent spatial features become queries — the mechanism behind text-to-image control</li>
+            <li>SD 1.x U-Net: 4 stages, channels <code>{320, 640, 1280, 1280}</code>, 2-3 ResNet blocks per stage + 8-head self-attn + 8-head cross-attn to CLIP-ViT/L (77-token limit)</li>
+            <li>SDXL (2023) peaked the U-Net lineage at 2.57B params with 1024px native resolution; <a href="https://github.com/CompVis/latent-diffusion">latent-diffusion</a> ⭐ 14k and <a href="https://github.com/huggingface/diffusers">huggingface/diffusers</a> ⭐ 33.8k consolidated the ecosystem</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://arxiv.org/abs/2112.10752" class="badge b-meta">arXiv 2112.10752 [12]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline unet era -->
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ERA 2: TRANSFORMERS                        -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="era-div"><span class="era-text">Transformer Era · DiT Family</span></div>
+
+  <div class="timeline">
+
+    <!-- DiT -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2022</div>
+      </div>
+      <div class="tl-card f-transformer">
+        <div class="card-banner">
+          <img src="catalog/images/facebookresearch-DiT.jpg" alt="facebookresearch/DiT GitHub repository">
+        </div>
+        <div class="card-body">
+          <div class="card-name"><a href="https://github.com/facebookresearch/DiT">DiT — Diffusion Transformer</a></div>
+          <div class="badges">
+            <span class="badge b-xfmr">Transformer</span>
+            <span class="badge b-fid">FID 2.27 · ImageNet 256²</span>
+            <span class="badge b-stars">⭐ 8.6k</span>
+          </div>
+          <ul class="innov">
+            <li>Discards the U-Net entirely. VAE latent (32×32×4) patchified into <code>p×p</code> patches → <code>T = (32/p)²</code> tokens → standard ViT transformer stack</li>
+            <li>Halving patch size quadruples token count and Gflops; <strong>clean monotonic scaling law</strong>: higher-Gflops DiTs always achieve lower FID</li>
+            <li><strong>adaLN-zero</strong>: timestep + class embedding regressed into per-block scale/shift; MLP initialised to output zero so every block starts as the identity function</li>
+            <li>Beats cross-attention and in-context conditioning in FID and compute; established the template every subsequent DiT variant builds on</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://ar5iv.labs.arxiv.org/html/2212.09748" class="badge b-meta">arXiv 2212.09748 [18]</a>
+            <a href="https://www.wpeebles.com/DiT" class="badge b-meta">Project page [19]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SiT -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2024</div>
+      </div>
+      <div class="tl-card f-transformer">
+        <div class="card-banner g-sit">
+          <span class="banner-glyph">∿</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name"><a href="https://github.com/willisma/SiT">SiT — Scalable Interpolant Transformers</a></div>
+          <div class="badges">
+            <span class="badge b-xfmr">Transformer</span>
+            <span class="badge b-fid">FID 2.06 · ImageNet 256²</span>
+            <span class="badge b-stars">⭐ 1.2k</span>
+          </div>
+          <ul class="innov">
+            <li>Architecture is the DiT backbone verbatim — this paper isolates the <em>formulation</em> variable from the <em>architecture</em> variable</li>
+            <li>Swaps DDPM diffusion for a <strong>stochastic interpolant / flow framework</strong> that connects two distributions more flexibly than a fixed SDE</li>
+            <li>Decouples four design axes independently: discrete vs. continuous time · prediction target · interpolant shape · sampler stochasticity</li>
+            <li>SiT-XL/2 outperforms DiT-XL/2 at every model size at matched compute — because the sampler's diffusion coefficient can be tuned separately from the training objective</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://arxiv.org/abs/2401.08740" class="badge b-meta">arXiv 2401.08740 · ECCV 2024 [51]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MMDiT / SD3 -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2024</div>
+      </div>
+      <div class="tl-card f-transformer">
+        <div class="card-banner g-mmdit">
+          <span class="banner-glyph">⊞</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">MMDiT / Stable Diffusion 3</div>
+          <div class="badges">
+            <span class="badge b-xfmr">Transformer</span>
+            <span class="badge b-meta">450M – 8B params</span>
+          </div>
+          <ul class="innov">
+            <li><strong>Separate weight sets</strong> per modality (image, text) but sequences are <em>joined</em> for a single shared attention operation — maximum cross-modal interaction without forcing shared weights</li>
+            <li>Trained under <strong>reweighted Rectified Flow</strong>: straight ODE transport paths, fewer steps viable at inference</li>
+            <li>Three text encoders: OpenCLIP-ViT/G + CLIP-ViT/L + T5-xxl — escapes CLIP's 77-token limit and visual-contrastive bias</li>
+            <li>Scales cleanly from 15 blocks/450M to 38 blocks/8B without saturation — empirical proof that attention scales more smoothly than convolution</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://arxiv.org/abs/2403.03206" class="badge b-meta">arXiv 2403.03206 [21]</a>
+            <a href="https://huggingface.co/stabilityai/stable-diffusion-3-medium" class="badge b-meta">HF model card [41]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLUX.1 -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2024</div>
+      </div>
+      <div class="tl-card f-hybrid">
+        <div class="card-banner">
+          <img src="catalog/images/black-forest-labs-flux.jpg" alt="black-forest-labs/flux GitHub repository">
+        </div>
+        <div class="card-body">
+          <div class="card-name"><a href="https://github.com/black-forest-labs/flux">FLUX.1</a></div>
+          <div class="badges">
+            <span class="badge b-hyb">Hybrid MMDiT + parallel DiT</span>
+            <span class="badge b-meta">12B params</span>
+            <span class="badge b-stars">⭐ 25.6k</span>
+          </div>
+          <ul class="innov">
+            <li><strong>"Double-stream" MMDiT blocks</strong>: text + image tokens jointly attended with separate weight sets per modality — deep cross-modal reasoning at every layer</li>
+            <li><strong>"Single-stream" parallel DiT blocks</strong>: unified token sequence with parallel self-attention and FFN pathways for efficient high-capacity processing</li>
+            <li>Text conditioning via <strong>T5-XXL + CLIP</strong>: richer language grounding than CLIP-only predecessors, compositional prompts work reliably</li>
+            <li>12B rectified-flow transformer; FLUX.1 Krea (Jul 2025) explicitly targets photorealism — "overcomes the oversaturated AI look to achieve new levels of photorealism"</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://huggingface.co/black-forest-labs/FLUX.1-dev" class="badge b-meta">HF model card [23]</a>
+            <a href="https://bfl.ai/blog/flux-1-krea-dev" class="badge b-meta">FLUX.1 Krea [42]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ideogram 4.0 -->
+    <div class="tl-entry">
+      <div class="tl-yr">
+        <div class="tl-dot"></div>
+        <div class="tl-yrn">2026</div>
+      </div>
+      <div class="tl-card f-transformer">
+        <div class="card-banner g-ideogram">
+          <span class="banner-glyph">𝔸</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name"><a href="https://ideogram.ai/blog/ideogram-4.0/">Ideogram 4.0</a></div>
+          <div class="badges">
+            <span class="badge b-xfmr">Single-stream DiT · 34 layers</span>
+            <span class="badge b-meta">9.3B params</span>
+          </div>
+          <ul class="innov">
+            <li>Text and image tokens <strong>concatenated into one unified sequence</strong> across all 34 layers — no double-stream split, no modality boundary</li>
+            <li>Uses <strong>Qwen3-VL-8B-Instruct</strong> as text encoder: brings reasoning and instruction-following into the text understanding pipeline</li>
+            <li>Best-in-class in-image text rendering — full-sequence single-stream attention means every character token attends to every image region from layer one</li>
+            <li>Architectural contrast with FLUX.1: Ideogram goes single-stream throughout; FLUX uses double-stream (separate weights) then collapses to single-stream</li>
+          </ul>
+          <div class="card-foot">
+            <a href="https://ideogram.ai/blog/ideogram-4.0/" class="badge b-meta">ideogram.ai [49]</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline transformer era -->
+
+  <!-- ═══ ECOSYSTEM STRIP ═══ -->
+  <div class="eco-strip">
+    <div class="eco-img">
+      <img src="catalog/images/huggingface-diffusers.jpg" alt="huggingface/diffusers GitHub repository">
+    </div>
+    <div>
+      <div class="eco-eyebrow">Ecosystem</div>
+      <div class="eco-name"><a href="https://github.com/huggingface/diffusers">huggingface/diffusers</a> <span style="color:var(--green);font-size:13px;">⭐ 33.8k</span></div>
+      <div class="eco-desc">The library that packages both eras — <code>UNet2DConditionModel</code> for SD 1.x/SDXL pipelines and <code>Transformer2DModel</code> for DiT-based pipelines — behind a unified <code>DiffusionPipeline</code> interface. The abstraction that made architecture experimentation accessible without hand-wiring every backbone variant. <sup><a href="https://github.com/huggingface/diffusers">[17]</a></sup></div>
+    </div>
+  </div>
+
+  <!-- ═══ PREDICTION TARGETS ═══ -->
+  <div class="cat-sec">
+    <h2>Prediction Targets — Four Parametrisations of the Same Score</h2>
+    <table class="cat-tbl">
+      <thead>
+        <tr>
+          <th>Parametrisation</th>
+          <th>Network outputs</th>
+          <th>Score identity</th>
+          <th>Training notes</th>
+          <th>Src</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>ε-prediction</code></td>
+          <td>Added noise <code>ε</code></td>
+          <td><code>s_θ = −ε_θ / √(1−ᾱₜ)</code></td>
+          <td>DDPM default; simplified loss <code>E‖ε − ε_θ‖²</code>; constant timestep weight ≡ constant SNR weighting</td>
+          <td><sup><a href="https://ar5iv.labs.arxiv.org/html/2006.11239">[7]</a></sup> <sup><a href="https://hal.cse.msu.edu/teaching/2024-spring-deep-learning/21-diffusion-models/">[36]</a></sup></td>
+        </tr>
+        <tr>
+          <td><code>x₀-prediction</code></td>
+          <td>Clean signal <code>x₀</code></td>
+          <td><code>s_θ = (xₜ − x₀_θ) / σ²</code></td>
+          <td>Better behaved at high noise; loss weighting proportional to SNR</td>
+          <td><sup><a href="https://apxml.com/courses/advanced-diffusion-architectures/chapter-4-advanced-diffusion-training/advanced-loss-functions">[37]</a></sup></td>
+        </tr>
+        <tr>
+          <td><code>v-prediction</code></td>
+          <td>Velocity <code>v = αₜ·ε − σₜ·x₀</code></td>
+          <td>Interpolates ε and x₀ representations</td>
+          <td>~Constant-variance target across all <em>t</em>; standard for distillation; Min-SNR weight = SNR / (SNR+1)</td>
+          <td><sup><a href="https://arxiv.org/abs/2202.00512">[30]</a></sup> <sup><a href="https://arxiv.org/html/2303.09556v3">[34]</a></sup></td>
+        </tr>
+        <tr>
+          <td><code>Rectified flow</code></td>
+          <td>Drift <code>v = X₁ − X₀</code></td>
+          <td>Straight ODE paths; equals v-pred up to weighting</td>
+          <td><code>Xₜ = t·X₁ + (1−t)·X₀</code>; straighter paths → fewer viable sampling steps; used in SD3, FLUX.1</td>
+          <td><sup><a href="https://arxiv.org/abs/2209.03003">[35]</a></sup></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--text-3);margin:8px 0 0;font-family:var(--mono);">
+      EDM (Karras et al.) unifies all four: D_θ = c_skip·x + c_out·F_θ(c_in·x; c_noise), selecting coefficients for unit-variance targets at every σ level. <sup><a href="https://arxiv.org/abs/2206.00364" style="color:var(--text-3);font-family:var(--mono);font-size:10px;">[31]</a></sup>
+    </p>
+  </div>
+
+  <!-- ═══ CONDITIONING ═══ -->
+  <div class="cat-sec">
+    <h2>Conditioning the Score Network</h2>
+    <div class="cond-grid">
+      <div class="cond-tile">
+        <h3>Cross-attention injection</h3>
+        <p>Text encoder embeddings become keys/values; latent spatial features become queries. Introduced by Latent Diffusion, used by SD 1.x and PixArt-α. Imagen showed frozen T5-XXL outperforms CLIP on compositional prompts. <sup><a href="https://arxiv.org/abs/2112.10752">[12]</a></sup><sup><a href="https://arxiv.org/pdf/2205.11487">[40]</a></sup></p>
+      </div>
+      <div class="cond-tile">
+        <h3>adaLN-zero</h3>
+        <p>Scale/shift parameters regressed from summed timestep + class/text embedding; residual modulation zero-initialised. DiT found this beats cross-attention and in-context conditioning at matched compute. Dominant in all MMDiT-lineage models. <sup><a href="https://apxml.com/courses/advanced-diffusion-architectures/chapter-3-transformer-diffusion-models/dit-conditioning">[20]</a></sup></p>
+      </div>
+      <div class="cond-tile">
+        <h3>Classifier-free guidance</h3>
+        <p>Jointly train conditional + unconditional model. Combine score estimates at inference: <code>ε̂ = ε(x,∅) + w·(ε(x,text) − ε(x,∅))</code>. The <code>guidance_scale</code> knob literally scales how hard the conditional score gradient pulls the sample toward the prompt. <sup><a href="https://arxiv.org/abs/2207.12598">[38]</a></sup></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CURRENT SOTA ═══ -->
+  <div class="cat-sec">
+    <h2>Current Systems (2026)</h2>
+    <table class="cat-tbl">
+      <thead>
+        <tr>
+          <th>System</th>
+          <th>Backbone</th>
+          <th>Target</th>
+          <th>Text encoders</th>
+          <th>Src</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SD 1.x</td>
+          <td>U-Net + cross-attn</td>
+          <td>ε-prediction</td>
+          <td>CLIP-ViT/L (77 tok)</td>
+          <td><sup><a href="https://medium.com/@spoorthisetty99/conditioning-in-diffusion-models-a-deep-dive-into-ldms-dits-and-vanilla-u-nets-610262d3fe71">[14]</a></sup></td>
+        </tr>
+        <tr>
+          <td>SD3.5</td>
+          <td>MMDiT + adaLN + QK-norm</td>
+          <td>Rectified flow</td>
+          <td>OpenCLIP-ViT/G + CLIP-ViT/L + T5-XXL</td>
+          <td><sup><a href="https://learnopencv.com/stable-diffusion-3/">[43]</a></sup> <sup><a href="https://stability.ai/news/introducing-stable-diffusion-3-5">[44]</a></sup></td>
+        </tr>
+        <tr class="tr-current">
+          <td><a href="https://github.com/black-forest-labs/flux">FLUX.1</a> (12B)</td>
+          <td>Hybrid MMDiT + parallel DiT</td>
+          <td>Rectified flow</td>
+          <td>T5-XXL + CLIP</td>
+          <td><sup><a href="https://huggingface.co/black-forest-labs/FLUX.1-dev">[23]</a></sup> <sup><a href="https://arxiv.org/html/2507.09595v1">[24]</a></sup></td>
+        </tr>
+        <tr>
+          <td><a href="https://ideogram.ai/blog/ideogram-4.0/">Ideogram 4.0</a> (9.3B)</td>
+          <td>Single-stream DiT, 34 layers</td>
+          <td>—</td>
+          <td>Qwen3-VL-8B-Instruct</td>
+          <td><sup><a href="https://ideogram.ai/blog/ideogram-4.0/">[49]</a></sup></td>
+        </tr>
+        <tr>
+          <td>Sora (OpenAI)</td>
+          <td>DiT over spacetime patches</td>
+          <td>—</td>
+          <td>Undisclosed</td>
+          <td><sup><a href="https://openai.com/index/video-generation-models-as-world-simulators/">[25]</a></sup></td>
+        </tr>
+        <tr class="tr-closed">
+          <td>Midjourney</td>
+          <td>Closed / undisclosed</td>
+          <td>Undisclosed</td>
+          <td>Undisclosed</td>
+          <td><sup><a href="https://ucstrategies.com/news/midjourney-v6-photorealism-specs-pricing-discord-workflow-2026/">[48]</a></sup></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ FOOTER NOTE ═══ -->
+  <div class="cat-foot">
+    <strong>Efficiency frontier:</strong> Distillation (knowledge, progressive, consistency, score, adversarial) collapses sampling to 1–4 steps using these same backbones — LCM in latent space, SDXL-Turbo in one adversarial step, SDXL-Lightning via progressive adversarial distillation.
+    <sup><a href="https://arxiv.org/html/2510.08431v1">[46]</a></sup>
+    The forward edge beyond that is <strong>hybrid AR+diffusion transformers</strong> — GPT Image, HunyuanImage 3.0, Transfusion — blending sequence modeling and diffusion objectives into unified multimodal generation pipelines.
+    <sup><a href="https://arxiv.org/pdf/2506.07999">[50]</a></sup>
+  </div>
+
+</div>

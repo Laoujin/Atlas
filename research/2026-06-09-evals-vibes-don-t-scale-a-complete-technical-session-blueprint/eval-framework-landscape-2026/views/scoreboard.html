@@ -1,0 +1,915 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Eval Framework Landscape 2026: Vibes Don't Scale — Scoreboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #06090f;
+  --surf:      #0d1117;
+  --surf2:     #161b22;
+  --border:    #21262d;
+  --border2:   #30363d;
+  --text:      #e2e8f0;
+  --dim:       #8b949e;
+  --dimmer:    #484f58;
+  --gold:      #e6a817;
+  --gold-bg:   rgba(230,168,23,0.1);
+  --cyan:      #39d0e8;
+  --cyan-bg:   rgba(57,208,232,0.08);
+  --green:     #3fb950;
+  --green-bg:  rgba(63,185,80,0.1);
+  --amber:     #d29922;
+  --amber-bg:  rgba(210,153,34,0.1);
+  --red:       #f85149;
+  --red-bg:    rgba(248,81,73,0.1);
+  --purple:    #a371f7;
+  --purple-bg: rgba(163,113,247,0.1);
+  --sans:  'Inter', system-ui, -apple-system, sans-serif;
+  --mono:  'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, monospace;
+}
+
+.sb { font-family: var(--sans); background: var(--bg); color: var(--text); }
+.sb a { color: var(--cyan); text-decoration: none; }
+.sb a:hover { text-decoration: underline; }
+.sb sup a { color: var(--dimmer); font-size: 0.65em; }
+.sb sup a:hover { color: var(--dim); }
+code { font-family: var(--mono); font-size: 0.8em; background: var(--surf2); padding: 0.1em 0.35em; border-radius: 3px; color: var(--amber); }
+
+/* ── TICKER STRIP ── */
+.sb-ticker {
+  background: var(--gold);
+  color: #000;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 2rem;
+  display: flex;
+  gap: 3rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.sb-ticker span { opacity: 0.7; }
+
+/* ── HEADER ── */
+.sb-hdr {
+  background: var(--surf);
+  border-bottom: 3px solid var(--border);
+  padding: 2rem 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: start;
+}
+.sb-hdr-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.live-pip {
+  width: 7px; height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  display: inline-block;
+  animation: blink 1.8s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.sb-hdr-title {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+.sb-hdr-sub {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--dim);
+  line-height: 1.6;
+}
+.sb-kpis {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 0.3rem;
+}
+.kpi {
+  text-align: right;
+}
+.kpi-val {
+  display: block;
+  font-family: var(--mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold);
+}
+.kpi-lbl {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+}
+
+/* ── VERDICT BANNER ── */
+.sb-verdict {
+  margin: 2rem 2.5rem;
+  background: linear-gradient(135deg, #071628, #0d1a2e);
+  border: 1px solid var(--cyan);
+  border-left: 4px solid var(--cyan);
+  border-radius: 6px;
+  padding: 1.5rem 2rem;
+}
+.verdict-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 0.6rem;
+}
+.verdict-rule {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 1.2rem;
+}
+.verdict-rule strong { color: var(--cyan); }
+.verdict-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.verdict-col {
+  background: var(--surf2);
+  border-radius: 5px;
+  padding: 1rem 1.2rem;
+  border-top: 3px solid;
+}
+.verdict-col.lib { border-color: var(--green); }
+.verdict-col.plat { border-color: var(--purple); }
+.verdict-col-lbl {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.8rem;
+}
+.verdict-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.verdict-pick:last-child { margin-bottom: 0; }
+.verdict-pick img { width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; margin-top: 1px; }
+.vpn { font-weight: 700; color: var(--text); }
+.vpm { font-family: var(--mono); font-size: 0.7rem; color: var(--dim); }
+.vpm a { color: var(--dim); }
+
+/* ── SECTION ── */
+.sb-sec {
+  margin: 0 2.5rem 2.5rem;
+}
+.sb-sec-hdr {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.sec-num {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--dimmer);
+}
+.sec-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* ── STANDINGS TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  padding: 0.45rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.tbl td {
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+.tbl tr.is-pick td { background: rgba(63,185,80,0.03); }
+.tbl tr.is-pick td:first-child { border-left: 3px solid var(--green); }
+.tbl tr.is-dead td { opacity: 0.5; }
+.tbl tr:hover td { background: rgba(255,255,255,0.018); }
+.tbl tr.is-pick:hover td { background: rgba(63,185,80,0.06); }
+
+.c-rank {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  width: 2.8rem;
+  letter-spacing: -0.03em;
+}
+.r1 { color: var(--gold); }
+.r2 { color: #b0b8c2; }
+.r3 { color: #a07840; }
+.rn { color: var(--dimmer); }
+.rx { color: var(--red); font-size: 0.85rem; }
+
+.c-tool { min-width: 150px; }
+.tool-row { display: flex; align-items: center; gap: 0.5rem; }
+.tool-row img { width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; }
+.tool-row a { font-weight: 600; color: var(--text); }
+.tool-row a:hover { color: var(--cyan); }
+.tool-warn {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--amber);
+  margin-top: 0.25rem;
+  padding-left: 0.2rem;
+}
+
+.c-stars { font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; }
+
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.13rem 0.45rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+.b-pick  { background: var(--green-bg);  color: var(--green);  border: 1px solid rgba(63,185,80,0.3); }
+.b-use   { background: var(--amber-bg);  color: var(--amber);  border: 1px solid rgba(210,153,34,0.3); }
+.b-stall { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(248,81,73,0.25); }
+.b-dead  { background: transparent; color: var(--dimmer); border: 1px solid var(--border2); }
+.b-oss   { background: var(--cyan-bg);   color: var(--cyan);   border: 1px solid rgba(57,208,232,0.25); }
+.b-prop  { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(163,113,247,0.25); }
+.b-lang  { background: var(--surf2); color: var(--dim); border: 1px solid var(--border2); }
+
+.c-best { font-size: 0.78rem; color: var(--dim); max-width: 220px; line-height: 1.45; }
+
+/* ── SCORING SPECTRUM ── */
+.spectrum {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.sp-item { padding: 1.2rem 1rem; border-right: 1px solid var(--border); }
+.sp-item:last-child { border-right: none; }
+.sp-item:nth-child(1) { background: rgba(63,185,80,0.04); }
+.sp-item:nth-child(2) { background: rgba(57,208,232,0.04); }
+.sp-item:nth-child(3) { background: rgba(210,153,34,0.04); }
+.sp-item:nth-child(4) { background: rgba(248,81,73,0.04); }
+.sp-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.sp-item:nth-child(1) .sp-label { color: var(--green); }
+.sp-item:nth-child(2) .sp-label { color: var(--cyan); }
+.sp-item:nth-child(3) .sp-label { color: var(--amber); }
+.sp-item:nth-child(4) .sp-label { color: var(--red); }
+.sp-method { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem; color: var(--text); }
+.sp-cost {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--dim);
+  margin-bottom: 0.6rem;
+}
+.sp-desc { font-size: 0.75rem; color: var(--dim); line-height: 1.5; }
+
+/* ── BIAS FLAGS ── */
+.bias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.bias-card {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  border-left: 4px solid var(--red);
+}
+.bias-card.amber { border-left-color: var(--amber); }
+.bias-name { font-weight: 700; font-size: 0.85rem; color: var(--text); margin-bottom: 0.35rem; }
+.bias-stat {
+  font-family: var(--mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.bias-card:not(.amber) .bias-stat { color: var(--red); }
+.bias-card.amber .bias-stat { color: var(--amber); }
+.bias-desc { font-size: 0.74rem; color: var(--dim); line-height: 1.5; }
+
+/* ── CI GRID ── */
+.ci-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.ci-card {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+}
+.ci-tool { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.875rem; margin-bottom: 0.5rem; }
+.ci-tool img { width: 20px; height: 20px; border-radius: 3px; }
+.ci-tool a { color: var(--text); }
+.ci-tool a:hover { color: var(--cyan); }
+.ci-mode {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+.mode-block  { color: var(--red); }
+.mode-inform { color: var(--amber); }
+.ci-desc { font-size: 0.75rem; color: var(--dim); line-height: 1.5; }
+
+/* ── ERA TIMELINE ── */
+.era-row { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.era { padding: 1.2rem 1.2rem; border-right: 1px solid var(--border); }
+.era:last-child { border-right: none; }
+.era-yr {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-bottom: 0.3rem;
+}
+.era-title { font-weight: 700; font-size: 0.88rem; color: var(--text); margin-bottom: 0.45rem; }
+.era-desc { font-size: 0.76rem; color: var(--dim); line-height: 1.55; }
+
+/* ── FOOTER ── */
+.sb-foot {
+  margin: 1.5rem 2.5rem 3rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--dimmer);
+  line-height: 2;
+}
+.sb-foot a { color: var(--dimmer); }
+.sb-foot a:hover { color: var(--dim); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 750px) {
+  .sb-hdr, .sb-verdict, .sb-sec, .sb-foot { margin-left: 1rem; margin-right: 1rem; }
+  .sb-hdr { grid-template-columns: 1fr; }
+  .sb-kpis { flex-direction: row; flex-wrap: wrap; gap: 1rem; }
+  .kpi { text-align: left; }
+  .verdict-cols { grid-template-columns: 1fr; }
+  .spectrum { grid-template-columns: 1fr 1fr; }
+  .era-row { grid-template-columns: 1fr; }
+  .era { border-right: none; border-bottom: 1px solid var(--border); }
+  .era:last-child { border-bottom: none; }
+  .tbl { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 480px) {
+  .spectrum { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="sb">
+
+  <!-- TICKER -->
+  <div class="sb-ticker">
+    <span>2026 LLM EVAL LANDSCAPE</span>
+    <span>$2.69B MARKET</span>
+    <span>36.3% CAGR</span>
+    <span>63 SOURCES</span>
+    <span>8 OSS LIBRARIES</span>
+    <span>6 ACTIVE PLATFORMS</span>
+    <span>1 DEAD PLATFORM</span>
+    <span>5 DOCUMENTED JUDGE BIASES</span>
+  </div>
+
+  <!-- HEADER -->
+  <div class="sb-hdr">
+    <div>
+      <div class="sb-hdr-eyebrow">
+        <span class="live-pip"></span>
+        Eval Standings Board · 2026
+      </div>
+      <div class="sb-hdr-title">LLM Eval<br>Framework Landscape</div>
+      <div class="sb-hdr-sub">
+        Open-source libraries · hosted platforms · scoring methods · judge biases<br>
+        expedition depth · 63 citations · 10 min read
+      </div>
+    </div>
+    <div class="sb-kpis">
+      <div class="kpi">
+        <span class="kpi-val">$2.69B</span>
+        <span class="kpi-lbl">market 2026 <sup><a href="https://www.researchandmarkets.com/reports/6215671/large-language-model-llm-observability">[62]</a></sup></span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-val">36.3%</span>
+        <span class="kpi-lbl">CAGR</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-val">~2yr</span>
+        <span class="kpi-lbl">benchmark lifespan</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="sb-verdict">
+    <div class="verdict-eyebrow">▶ CHAMPIONSHIP VERDICT — DEFAULT STACK 2026</div>
+    <div class="verdict-rule">
+      Pick <strong>one CI-gating library</strong> + <strong>one tracing platform</strong>. <sup><a href="https://genai.qa/blog/promptfoo-vs-deepeval/">[16]</a></sup>
+      The hard part isn't the tool — it's building the golden dataset and validating that your LLM judge agrees with humans.
+    </div>
+    <div class="verdict-cols">
+      <div class="verdict-col lib">
+        <div class="verdict-col-lbl">CI Library — pick one</div>
+        <div class="verdict-pick">
+          <img src="https://www.google.com/s2/favicons?domain=promptfoo.dev&sz=64" alt="Promptfoo">
+          <div>
+            <span class="vpn"><a href="https://api.github.com/repos/promptfoo/promptfoo">Promptfoo</a> ⭐ 22k</span><br>
+            <span class="vpm">CLI/YAML + 40+ red-team categories <sup><a href="https://api.github.com/repos/promptfoo/promptfoo">[1]</a></sup></span>
+          </div>
+        </div>
+        <div class="verdict-pick">
+          <img src="https://www.google.com/s2/favicons?domain=deepeval.com&sz=64" alt="DeepEval">
+          <div>
+            <span class="vpn"><a href="https://github.com/confident-ai/deepeval">DeepEval</a> ⭐ 16k</span><br>
+            <span class="vpm">if your team thinks in pytest <sup><a href="https://api.github.com/repos/confident-ai/deepeval">[2]</a></sup></span>
+          </div>
+        </div>
+      </div>
+      <div class="verdict-col plat">
+        <div class="verdict-col-lbl">Tracing Platform — pick one</div>
+        <div class="verdict-pick">
+          <img src="https://www.google.com/s2/favicons?domain=langfuse.com&sz=64" alt="Langfuse">
+          <div>
+            <span class="vpn"><a href="https://langfuse.com/pricing">Langfuse</a> ⭐ 29k</span><br>
+            <span class="vpm">open-source + self-host <sup><a href="https://api.github.com/repos/langfuse/langfuse">[9]</a></sup></span>
+          </div>
+        </div>
+        <div class="verdict-pick">
+          <img src="https://www.google.com/s2/favicons?domain=braintrust.dev&sz=64" alt="Braintrust">
+          <div>
+            <span class="vpn"><a href="https://coverge.ai/blog/braintrust-pricing">Braintrust</a></span><br>
+            <span class="vpm">eval-first SaaS, no per-seat <sup><a href="https://coverge.ai/blog/braintrust-pricing">[22]</a></sup></span>
+          </div>
+        </div>
+        <div class="verdict-pick">
+          <img src="https://www.google.com/s2/favicons?domain=langchain.com&sz=64" alt="LangSmith">
+          <div>
+            <span class="vpn"><a href="https://latitude.so/blog/best-llm-observability-tools-agents-latitude-vs-langfuse-langsmith">LangSmith</a></span><br>
+            <span class="vpm">if you already live in LangGraph <sup><a href="https://latitude.so/blog/best-llm-observability-tools-agents-latitude-vs-langfuse-langsmith">[17]</a></sup></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 01: LIBRARY STANDINGS -->
+  <div class="sb-sec">
+    <div class="sb-sec-hdr">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Open-Source Library Standings — sorted by stars</span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Library</th>
+          <th>Stars</th>
+          <th>Lang · License</th>
+          <th>Status</th>
+          <th>Best for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="is-pick">
+          <td class="c-rank r1">1</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=promptfoo.dev&sz=64" alt="">
+              <a href="https://api.github.com/repos/promptfoo/promptfoo">Promptfoo</a>
+            </div>
+            <div class="tool-warn">⚠ Acquired by OpenAI Mar 2026</div>
+          </td>
+          <td class="c-stars">⭐ 22k</td>
+          <td><span class="badge b-lang">TypeScript</span> <span class="badge b-lang">MIT</span></td>
+          <td><span class="badge b-pick">PICK</span></td>
+          <td class="c-best">CLI/YAML; 50+ assertions, 40+ red-team categories; used by OpenAI &amp; Anthropic <sup><a href="https://genai.qa/blog/promptfoo-vs-deepeval-vs-ragas/">[11]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">2</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="">
+              <a href="https://api.github.com/repos/openai/evals">OpenAI Evals</a>
+            </div>
+          </td>
+          <td class="c-stars">⭐ 19k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-use">custom</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">Benchmark registry; last push Apr 2026, slow cadence <sup><a href="https://api.github.com/repos/openai/evals">[4]</a></sup></td>
+        </tr>
+        <tr class="is-pick">
+          <td class="c-rank r2">3</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=deepeval.com&sz=64" alt="">
+              <a href="https://github.com/confident-ai/deepeval">DeepEval</a>
+            </div>
+          </td>
+          <td class="c-stars">⭐ 16k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-lang">Apache-2.0</span></td>
+          <td><span class="badge b-pick">PICK</span></td>
+          <td class="c-best">pytest-style; 14+ metrics incl. G-Eval, faithfulness, bias, toxicity, tool-correctness <sup><a href="https://deepeval.com/docs/metrics-introduction">[12]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">4</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=docs.ragas.io&sz=64" alt="">
+              <a href="https://docs.ragas.io/en/v0.1.21/concepts/metrics/">Ragas</a>
+            </div>
+            <div class="tool-warn">Repo moved; last push Feb 2026</div>
+          </td>
+          <td class="c-stars">⭐ 14k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-lang">Apache-2.0</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">RAG eval leader: faithfulness, answer relevancy, context precision &amp; recall <sup><a href="https://docs.ragas.io/en/v0.1.21/concepts/metrics/">[45]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">5</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="">
+              <a href="https://api.github.com/repos/EleutherAI/lm-evaluation-harness">lm-eval-harness</a>
+            </div>
+          </td>
+          <td class="c-stars">⭐ 13k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-lang">MIT</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">Academic few-shot benchmarking; not for product-level evals <sup><a href="https://api.github.com/repos/EleutherAI/lm-evaluation-harness">[6]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">6</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=trulens.org&sz=64" alt="">
+              <a href="https://api.github.com/repos/truera/trulens">TruLens</a>
+            </div>
+          </td>
+          <td class="c-stars">⭐ 3.4k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-lang">MIT</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">RAG Triad (groundedness / answer rel. / context rel.) + experiment tracking <sup><a href="https://atlan.com/know/llm-evaluation-frameworks-compared/">[55]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rx">✕</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="">
+              <a href="https://api.github.com/repos/uptrain-ai/uptrain">UpTrain</a>
+            </div>
+          </td>
+          <td class="c-stars">⭐ 2.4k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-lang">Apache-2.0</span></td>
+          <td><span class="badge b-stall">STALLED</span></td>
+          <td class="c-best">20+ preconfigured checks; ⚠ last push Aug 2024 — effectively abandoned <sup><a href="https://api.github.com/repos/uptrain-ai/uptrain">[8]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">7</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=inspect.aisi.org.uk&sz=64" alt="">
+              <a href="https://inspect.aisi.org.uk/tasks.html">Inspect (UK AISI)</a>
+            </div>
+          </td>
+          <td class="c-stars">⭐ 2.2k</td>
+          <td><span class="badge b-lang">Python</span> <span class="badge b-lang">MIT</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">Reproducible safety + agent evals; Tasks/Datasets/Solvers/Scorers architecture; first-class sandboxing <sup><a href="https://inspect.aisi.org.uk/tasks.html">[14]</a></sup></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 02: PLATFORM STANDINGS -->
+  <div class="sb-sec">
+    <div class="sb-sec-hdr">
+      <span class="sec-num">02</span>
+      <span class="sec-title">Eval &amp; Observability Platform Standings</span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Platform</th>
+          <th>OSS Core</th>
+          <th>Price Floor</th>
+          <th>Status</th>
+          <th>Standout</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="is-pick">
+          <td class="c-rank r1">1</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=langfuse.com&sz=64" alt="">
+              <a href="https://langfuse.com/pricing">Langfuse</a>
+            </div>
+            <div class="tool-warn">Acquired by ClickHouse Jan 2026 — stays MIT</div>
+          </td>
+          <td><span class="badge b-oss">MIT ✓</span></td>
+          <td><span class="badge b-lang">Free → $29/mo</span></td>
+          <td><span class="badge b-pick">PICK</span></td>
+          <td class="c-best">⭐ 29k; OSS leader; all cloud features opened Jun 2025; self-host free, no event limit <sup><a href="https://clickhouse.com/blog/clickhouse-raises-400-million-series-d-acquires-langfuse-launches-postgres">[20]</a></sup></td>
+        </tr>
+        <tr class="is-pick">
+          <td class="c-rank r2">2</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=braintrust.dev&sz=64" alt="">
+              <a href="https://coverge.ai/blog/braintrust-pricing">Braintrust</a>
+            </div>
+            <div class="tool-warn">a16z + ICONIQ backed · $80M Series B</div>
+          </td>
+          <td><span class="badge b-prop">Proprietary</span></td>
+          <td><span class="badge b-lang">Free → $249/mo flat</span></td>
+          <td><span class="badge b-pick">PICK</span></td>
+          <td class="c-best">Eval-first SaaS; no per-seat tax; blocks sub-threshold PRs via native Action <sup><a href="https://coverge.ai/blog/braintrust-pricing">[22]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank r3">3</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=langchain.com&sz=64" alt="">
+              <a href="https://latitude.so/blog/best-llm-observability-tools-agents-latitude-vs-langfuse-langsmith">LangSmith</a>
+            </div>
+          </td>
+          <td><span class="badge b-prop">Proprietary</span></td>
+          <td><span class="badge b-lang">Free → $39/seat</span></td>
+          <td><span class="badge b-use">USE IF LANGCHAIN</span></td>
+          <td class="c-best">Default for LangChain/LangGraph; informs rather than auto-blocks <sup><a href="https://latitude.so/blog/best-llm-observability-tools-agents-latitude-vs-langfuse-langsmith">[17]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">4</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=arize.com&sz=64" alt="">
+              <a href="https://github.com/arize-ai/phoenix">Arize Phoenix</a>
+            </div>
+          </td>
+          <td><span class="badge b-oss">Elastic-2.0 ✓</span></td>
+          <td><span class="badge b-lang">Free self-host</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">⭐ 10k; OpenTelemetry-native; trajectory-span analysis for agent loops <sup><a href="https://github.com/arize-ai/phoenix">[23]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">5</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=comet.com&sz=64" alt="">
+              <a href="https://www.comet.com/site/products/opik/">Comet Opik</a>
+            </div>
+          </td>
+          <td><span class="badge b-oss">True OSS ✓</span></td>
+          <td><span class="badge b-lang">Free self-host</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">~⭐ 20k; fully open-source; free cloud tier + enterprise hosted <sup><a href="https://www.comet.com/site/products/opik/">[26]</a></sup></td>
+        </tr>
+        <tr>
+          <td class="c-rank rn">6</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=wandb.ai&sz=64" alt="">
+              <a href="https://www.coreweave.com/blog/coreweave-completes-acquisition-of-weights-biases">W&amp;B Weave</a>
+            </div>
+            <div class="tool-warn">CoreWeave acquired W&amp;B ~$1.7B, closed May 2025</div>
+          </td>
+          <td><span class="badge b-prop">Proprietary</span></td>
+          <td><span class="badge b-lang">W&amp;B plan bundled</span></td>
+          <td><span class="badge b-use">USE</span></td>
+          <td class="c-best">Strong eval harness; <code>@weave.op()</code> decorator is one of the simplest integrations <sup><a href="https://laminar.sh/article/2026-04-23-top-6-agent-observability-platforms">[24]</a></sup></td>
+        </tr>
+        <tr class="is-dead">
+          <td class="c-rank rx">✕</td>
+          <td class="c-tool">
+            <div class="tool-row">
+              <img src="https://www.google.com/s2/favicons?domain=humanloop.com&sz=64" alt="">
+              Humanloop
+            </div>
+            <div class="tool-warn">Shut down Sep 2025 · founders → Anthropic</div>
+          </td>
+          <td><span class="badge b-dead">—</span></td>
+          <td><span class="badge b-dead">—</span></td>
+          <td><span class="badge b-dead">DEAD</span></td>
+          <td class="c-best">Cautionary tale: closed vendor → acqui-hire → platform gone, no IP transfer <sup><a href="https://techcrunch.com/2025/08/13/anthropic-nabs-humanloop-team-as-competition-for-enterprise-ai-talent-heats-up/">[25]</a></sup></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 03: SCORING METHODS -->
+  <div class="sb-sec">
+    <div class="sb-sec-hdr">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Scoring Method Spectrum — cheap &amp; fast → expensive &amp; trusted</span>
+    </div>
+    <div class="spectrum">
+      <div class="sp-item">
+        <div class="sp-label">Cheapest</div>
+        <div class="sp-method">Programmatic Asserts</div>
+        <div class="sp-cost">~$0 · &lt;1ms · deterministic</div>
+        <div class="sp-desc">Regex, JSON schema, substring, exact-match checks. No model cost. Only works for structured or templated outputs.</div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-label">Default</div>
+        <div class="sp-method">LLM-as-Judge / G-Eval</div>
+        <div class="sp-cost">~$150–500/mo @ 10k evals/day <sup><a href="https://genai.qa/blog/promptfoo-vs-deepeval/">[16]</a></sup></div>
+        <div class="sp-desc">CoT-generated rubric steps + log-prob-weighted scoring. G-Eval reaches Spearman 0.514 on SummEval. Carries documented biases — see §04. <sup><a href="https://www.confident-ai.com/blog/g-eval-the-definitive-guide">[39]</a></sup></div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-label">Preferred</div>
+        <div class="sp-method">Pairwise Ranking</div>
+        <div class="sp-cost">2× judge calls per comparison</div>
+        <div class="sp-desc">Present both outputs; run both orders; count only consistent wins. Preferred over direct scoring — calibration alone can't fix direct-score misalignment. <sup><a href="https://arxiv.org/pdf/2403.16950">[43]</a></sup></div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-label">Ground Truth</div>
+        <div class="sp-method">Human Review</div>
+        <div class="sp-cost">Days–weeks · required for judge validation</div>
+        <div class="sp-desc">Use binary pass/fail (not Likert scales). Track TPR/TNR, not accuracy. ~246 examples for 95% CI at ±5%. Without this, no judge is validated. <sup><a href="https://hamel.dev/blog/posts/evals/index.html">[38]</a></sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 04: JUDGE BIAS REPORT -->
+  <div class="sb-sec">
+    <div class="sb-sec-hdr">
+      <span class="sec-num">04</span>
+      <span class="sec-title">Judge Reliability Report — Five Documented Biases</span>
+    </div>
+    <div class="bias-grid">
+      <div class="bias-card">
+        <div class="bias-name">Self-Preference Bias</div>
+        <div class="bias-stat">~0.520 self-preference</div>
+        <div class="bias-desc">GPT-4 on Chatbot Arena. Never use the model under test as its own judge — same-model judging adds 10–25% uniform win-rate inflation. <sup><a href="https://arxiv.org/html/2410.21819v2">[40]</a></sup></div>
+      </div>
+      <div class="bias-card">
+        <div class="bias-name">Self-Enhancement Win Rate</div>
+        <div class="bias-stat">+25% own win rate</div>
+        <div class="bias-desc">GPT-4 inflates its own win rate +10%; Claude-v1 +25%. Mitigation: judge with a <em>different</em> model family than the one under test. <sup><a href="https://eugeneyan.com/writing/llm-evaluators/">[42]</a></sup></div>
+      </div>
+      <div class="bias-card">
+        <div class="bias-name">Position Bias</div>
+        <div class="bias-stat">70% first-position</div>
+        <div class="bias-desc">Claude-v1 favored the first answer 70% of the time in pairwise comparisons. Run both orders and count only consistent wins. <sup><a href="https://eugeneyan.com/writing/llm-evaluators/">[42]</a></sup></div>
+      </div>
+      <div class="bias-card">
+        <div class="bias-name">Verbosity Bias</div>
+        <div class="bias-stat">&gt;90% prefers longer</div>
+        <div class="bias-desc">Strong preference for longer responses regardless of quality. A padding attack fooled Claude-v1 and GPT-3.5 <strong>91.3%</strong> of the time. <sup><a href="https://eugeneyan.com/writing/llm-evaluators/">[42]</a></sup></div>
+      </div>
+      <div class="bias-card amber">
+        <div class="bias-name">Formatting Fragility</div>
+        <div class="bias-stat">&gt;50% error on bias benchmarks</div>
+        <div class="bias-desc">Consistency collapses on format/paraphrase changes. ~80% human agreement and &gt;50% bias-benchmark error coexist without contradicting each other. <sup><a href="https://www.adaline.ai/blog/llm-as-a-judge-reliability-bias">[41]</a></sup></div>
+      </div>
+      <div class="bias-card amber">
+        <div class="bias-name">Confidence Band Risk</div>
+        <div class="bias-stat">0.41–0.60 = unreliable</div>
+        <div class="bias-desc">Don't gate inside the "moderate" confidence band. Use pass <em>bands</em> not single thresholds. Recalibrate when judge/human divergence exceeds ~20–25%. <sup><a href="https://www.digitalapplied.com/blog/ai-agent-evaluation-pipeline-2026-testing-methodology">[36]</a></sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 05: CI GATE MODES -->
+  <div class="sb-sec">
+    <div class="sb-sec-hdr">
+      <span class="sec-num">05</span>
+      <span class="sec-title">CI Gate Modes — how each tool handles a failing eval</span>
+    </div>
+    <div class="ci-grid">
+      <div class="ci-card">
+        <div class="ci-tool">
+          <img src="https://www.google.com/s2/favicons?domain=promptfoo.dev&sz=64" alt="">
+          <a href="https://www.promptfoo.dev/docs/integrations/github-action/">Promptfoo</a>
+        </div>
+        <div class="ci-mode mode-block">● BLOCK — score gate</div>
+        <div class="ci-desc">GitHub Action; before-vs-after on every prompt-touching PR; cached LLM calls; interactive viewer comment. Common gate: <code>minPassRate 0.95</code>, <code>maxRegressions 0</code>. <sup><a href="https://www.promptfoo.dev/docs/integrations/github-action/">[29]</a></sup></div>
+      </div>
+      <div class="ci-card">
+        <div class="ci-tool">
+          <img src="https://www.google.com/s2/favicons?domain=deepeval.com&sz=64" alt="">
+          <a href="https://deepeval.com/docs/evaluation-unit-testing-in-ci-cd">DeepEval</a>
+        </div>
+        <div class="ci-mode mode-block">● BLOCK — pytest raises</div>
+        <div class="ci-desc"><code>assert_test()</code> raises when metric falls below threshold; <code>deepeval test run</code> adds async/repeats on top of pytest as a shell step in any CI system. <sup><a href="https://deepeval.com/docs/evaluation-unit-testing-in-ci-cd">[31]</a></sup></div>
+      </div>
+      <div class="ci-card">
+        <div class="ci-tool">
+          <img src="https://www.google.com/s2/favicons?domain=braintrust.dev&sz=64" alt="">
+          <a href="https://www.braintrust.dev/articles/langsmith-vs-braintrust">Braintrust</a>
+        </div>
+        <div class="ci-mode mode-block">● BLOCK — native Action</div>
+        <div class="ci-desc">Native GitHub Action blocks sub-threshold merges. Eval-first philosophy: evals are the working spec and scores are the shipping oracle. <sup><a href="https://www.braintrust.dev/articles/langsmith-vs-braintrust">[34]</a></sup></div>
+      </div>
+      <div class="ci-card">
+        <div class="ci-tool">
+          <img src="https://www.google.com/s2/favicons?domain=langchain.com&sz=64" alt="">
+          <a href="https://latitude.so/blog/best-llm-observability-tools-agents-latitude-vs-langfuse-langsmith">LangSmith</a>
+        </div>
+        <div class="ci-mode mode-inform">◎ INFORM — does not auto-block</div>
+        <div class="ci-desc">Integrates with pytest/Vitest/GitHub but <em>informs</em> rather than auto-blocks sub-threshold changes. Teams must wire the block themselves. <sup><a href="https://www.braintrust.dev/articles/langsmith-vs-braintrust">[34]</a></sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 06: ERA TIMELINE -->
+  <div class="sb-sec">
+    <div class="sb-sec-hdr">
+      <span class="sec-num">06</span>
+      <span class="sec-title">How We Got Here — Three Eras</span>
+    </div>
+    <div class="era-row">
+      <div class="era">
+        <div class="era-yr">2020 – 2022</div>
+        <div class="era-title">Academic Benchmark Era</div>
+        <div class="era-desc">MMLU (57 subjects), BIG-bench, Stanford HELM, EleutherAI harness. Static public leaderboards. Successor chains emerged as ceilings were hit: GLUE → SuperGLUE → MMLU → MMLU-Pro. <sup><a href="https://www.evidentlyai.com/llm-guide/llm-benchmarks">[56]</a></sup></div>
+      </div>
+      <div class="era">
+        <div class="era-yr">2023</div>
+        <div class="era-title">Framework Era</div>
+        <div class="era-desc">OpenAI open-sourced Evals alongside GPT-4 in March 2023, dangling GPT-4 access for high-quality benchmark contributions. First wave of community-built eval frameworks. <sup><a href="https://techcrunch.com/2023/03/14/with-evals-openai-hopes-to-crowdsource-ai-model-testing/">[57]</a></sup></div>
+      </div>
+      <div class="era">
+        <div class="era-yr">2024 – 2026</div>
+        <div class="era-title">Platform Era + Benchmark Decay</div>
+        <div class="era-desc">Commercial tooling layered on top. Static benchmarks now have a median lifespan under 2 years; HumanEval and GPQA Diamond already saturated. Three structural failure modes — saturation, contamination, gameability — push every serious team off leaderboards onto their own gold sets. <sup><a href="https://www.confident-ai.com/knowledge-base/compare/best-llm-evaluation-tools">[60]</a></sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="sb-foot">
+    63 citations · expedition depth · $4.93 · 530s · Opus 4.8 · 2026-06-09 ·
+    <a href="../">full canonical</a> ·
+    <a href="../../">parent expedition</a>
+  </div>
+
+</div>
