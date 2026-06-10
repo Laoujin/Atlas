@@ -10,6 +10,9 @@ summary: "Getting into KL from Belgium, getting around the city, and the eight d
 citations: 28
 reading_time_min: 6
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 226
 ---
 
 > **TL;DR:** Fly Brussels→KLIA via Amsterdam (no direct; ~12h in the air, ~€450–650 economy return) [[1]](https://www.skyscanner.net/routes/ams/kulm/amsterdam-schiphol-to-kuala-lumpur.html)[[3]](https://www.trip.com/hot/flight-time-from-kuala-lumpur-to-brussels/), then the **KLIA Ekspres** train to the city (28 min, ~€8.70) [[5]](https://www.kliaekspres.com/products-fares/klia-ekspres/). In town, ride the **MRT/LRT/Monorail** on one tap-and-go **Touch 'n Go** card and use **Grab** off-peak only [[12]](https://kualalumpurcity.my/using-lrt-mrt-monorail-kuala-lumpur/)[[13]](https://kualalumpurinsider.com/guide-to-paying-for-public-transport-in-kl/). Best months are **June–August** (driest); skip Nov [[27]](https://forevervacation.com/the-vacationer/best-time-to-visit-kuala-lumpur). Top day-trips: **Batu Caves** (30 min by train, ~€0.60, do it first) [[14]](https://www.klsentral.info/kuala-lumpur-batu-caves-travel/), **Putrajaya** (garden-city architecture + boat) [[16]](https://www.timetravelturtle.com/malaysia/things-to-do-in-putrajaya/), and **Kuala Selangor** (fireflies + Sky Mirror, an evening trip) [[17]](https://skymirrortour.com/product/fireflies-tour/). Treat **Melaka** as a 1–2 night base, not a day-trip [[11]](https://www.tripadvisor.com.my/ShowTopic-g298570-i7008-k3642321-Day_Trip_to_Melaka_Malacca_from_KL_worth_it-Kuala_Lumpur_Wilayah_Persekutuan.html).

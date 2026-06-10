@@ -11,6 +11,8 @@ citations: 66
 reading_time_min: 8
 model: "Opus 4.8"
 cover: cover.svg
+cost_usd: "sub"
+duration_sec: 512
 ---
 
 > **TL;DR:** Do **Jalan Alor** once for the open-air spectacle (Bukit Bintang, touristy but essential — go ~6pm) [[1]](https://www.tripadvisor.com/Attraction_Review-g298570-d1943478-Reviews-Jalan_Alor-Kuala_Lumpur_Wilayah_Persekutuan.html)[[2]](https://malaysiataste.com/jalan-alor-street-food/), but spend your real appetite on **Malay-soul nasi lemak** at Kampung Baru's Nasi Lemak Wanjo [[3]](https://lepakmou.com/my/food-and-drink/best-nasi-lemak-in-kl/), the **Klang bak kut teh** day-trip (or Ah Hei in town) [[4]](https://thesmartlocal.my/bak-kut-teh-in-kl/)[[5]](https://guide.michelin.com/us/en/kuala-lumpur-region/kuala-lumpur/restaurant/ah-hei-bak-kut-teh), and a heritage lunch at 1948 Cantonese institution **Sek Yuen** [[6]](https://guide.michelin.com/sg/en/kuala-lumpur-region/kuala-lumpur/restaurant/sek-yuen) or 1928 Hainanese kopitiam **Yut Kee** [[7]](https://www.freemalaysiatoday.com/category/leisure/2020/09/16/yut-kee-serving-traditional-hainanese-food-since-1928). Crack the hawker code early with a guided food walk (Sambal Streets, 15+ tastings) [[8]](https://www.getyourguide.com/kuala-lumpur-l171/kuala-lumpur-sambal-streets-food-tour-with-15-tastings-t203827/).

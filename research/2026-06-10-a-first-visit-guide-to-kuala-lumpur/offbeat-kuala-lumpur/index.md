@@ -10,6 +10,9 @@ summary: "Twenty-odd quirky, eerie and unexpected KL finds first-timers miss —
 citations: 48
 reading_time_min: 9
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 477
 ---
 
 > **TL;DR — the five strangest things to do in KL:**

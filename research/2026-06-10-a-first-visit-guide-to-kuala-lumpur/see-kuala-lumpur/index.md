@@ -10,6 +10,9 @@ summary: "What a first-timer must see in KL — icons, temples, colonial core an
 citations: 49
 reading_time_min: 8
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 656
 ---
 
 > **TL;DR:** Five unmissable for a first KL visit: the **Petronas Twin Towers** + KLCC Park fountain show [[1]](https://www.petronastwintowers.com.my/plan-your-visit/admission-ticketing/)[[6]](https://www.suriaklcc.com.my/attractions/esplanade-lake-symphony/), the **Batu Caves** rainbow staircase and 42 m gold Murugan statue [[18]](https://www.wegowithanuar.com/destinations-in-malaysia/batu-caves/opening-hours/), the colonial **Merdeka Square** + Sultan Abdul Samad Building [[23]](https://forevervacation.com/kuala-lumpur/dataran-merdeka)[[25]](https://www.tripadvisor.com/Attraction_Review-g298570-d456562-Reviews-Sultan_Abdul_Samad_Building-Kuala_Lumpur_Wilayah_Persekutuan.html), **Chinatown's** Petaling Street + Sri Maha Mariamman temple [[29]](https://www.malaysia-traveller.com/Petaling-Street.html)[[32]](https://www.trip.com/travel-guide/attraction/kuala-lumpur/sri-maha-mariamman-temple-10355295/), and a half-day to **Putrajaya's** Pink Mosque [[39]](https://www.trip.com/travel-guide/attraction/putrajaya/putra-mosque-98287). Book Petronas Skybridge tickets days ahead — they sell out on a timed-entry system [[4]](https://eticket.petronastwintowers.com.my/). **KL has no UNESCO site of its own** — for World Heritage, day-trip to Melaka, ~2 h south [[44]](https://whc.unesco.org/en/list/1223/).
