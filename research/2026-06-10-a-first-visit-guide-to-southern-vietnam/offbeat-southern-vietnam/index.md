@@ -10,7 +10,7 @@ summary: "A spread of genuinely odd finds across HCMC, the Mekong Delta, Nha Tra
 citations: 43
 reading_time_min: 8
 cost_usd: "sub"
-duration_sec: 0
+duration_sec: 381
 model: "Opus 4.8"
 cover: cover.svg
 ---
