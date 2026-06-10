@@ -10,6 +10,9 @@ summary: "What to actually see across HCMC, the Mekong Delta, Nha Trang/Mui Ne a
 citations: 49
 reading_time_min: 9
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 354
 ---
 
 > **TL;DR:** On a first trip, the genuine must-sees are the **War Remnants Museum** + **Reunification Palace** (HCMC's war-history pair), the **Cu Chi tunnels** (go to Ben Duoc for fewer crowds), the **Cai Rang floating market** at dawn (overnight in Can Tho — a day trip won't catch it), and **Po Nagar** + an island boat day in Nha Trang. The **Cao Dai noon ceremony** at Tay Ninh is the south's most singular sight. **Phu Quoc** is for beaches, not culture. Note two things: there is **no UNESCO World Heritage Site in the deep south** [[41]](https://en.wikipedia.org/wiki/List_of_World_Heritage_Sites_in_Vietnam) (they're all central/north), and your **2026-06-10 timing is wet season** — fine for HCMC mornings and great for Nha Trang, but bad for Phu Quoc sea trips [[30]](https://ahoyvietnam.com/best-time-to-visit-vietnam/)[[32]](https://vinpearl.com/en/phu-quoc-weather-the-best-time-to-visit).

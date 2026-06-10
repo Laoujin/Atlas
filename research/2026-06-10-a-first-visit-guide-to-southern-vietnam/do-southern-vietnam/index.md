@@ -10,6 +10,9 @@ summary: "Difficulty, guide-need, half/full-day and EUR-cost rundown of accessib
 citations: 48
 reading_time_min: 9
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 421
 ---
 
 > **TL;DR:** For a comfortable, semi-adventurous first trip you can do everything here without ropes or vertical risk. **Timing matters most:** your 10 June window is the southern *wet season* — Phu Quoc has rough seas and poor underwater visibility [[1]](https://vinpearl.com/en/phu-quoc-weather-in-june-how-to-plan-your-stay-accordingly), and the whole south gets short, heavy afternoon downpours [[2]](https://vinwonders.com/en/wonderpedia/news/vietnam-weather-a-detailed-guide-to-time-your-perfect-trip/). **Nha Trang is the exception** — driest coast in the country, calm 28–29 °C sea in June [[3]](https://www.tnktravel.com/blogs/vietnam-weather-in-june-your-complete-planning-guide/), so make it your snorkel/dive hub instead of Phu Quoc. Best all-weather bets: Cu Chi tunnels + a Mekong canal day, Mui Ne dunes (kite season is Nov–Apr though), and Nha Trang island-hopping/diving.

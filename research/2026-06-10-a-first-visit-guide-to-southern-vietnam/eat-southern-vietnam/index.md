@@ -10,6 +10,9 @@ summary: "Where to eat for the story in Ho Chi Minh City, the Mekong Delta, Nha 
 citations: 58
 reading_time_min: 10
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 542
 ---
 
 > **TL;DR:** Eat for the story, not the stars. In **Ho Chi Minh City**: charcoal pork chops at [Cơm Tấm Ba Ghiền](https://guide.michelin.com/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/com-tam-ba-ghien) (Michelin's only broken-rice pick in Vietnam) [[6]](https://guide.michelin.com/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/com-tam-ba-ghien), a daily-rotating bowl at Anthony Bourdain's [Lunch Lady](https://thelunchlady.com/) [[12]](https://guide.michelin.com/us/en/article/features/michelin-guide-restaurants-vietnamese-lunch-lady-anthony-bourdain), and a midnight snail-crawl on Vĩnh Khánh street [[15]](https://vinwonders.com/en/wonderpedia/news/vinh-khanh-food-street/). In the **Mekong Delta**: breakfast slurped from a sampan at the Cái Răng floating market [[39]](https://www.cantho.gov.vn/wps/portal/home/en/detail/cuisines/eating-places/breakfast+with+hu+tieu+noodle+soup+and+bun+rieu+cua+crab+paste+vermicelli+on+cai+rang+floating+market). In **Nha Trang**: jellyfish noodle soup (bún sứa) and lemongrass-skewered nem nướng [[53]](https://revitrip.com/blog/bun-sua-nha-trang-jellyfish-noodle-soup-from-the-sea/). On **Phu Quoc**: grilled flower crab at Hàm Ninh's over-water stilt shacks [[47]](https://vietnamtourism.gov.vn/en/post/13572). ⚠ Seasonal: June–Oct is Mekong fruit peak [[57]](https://vietnammarveltravel.com/vietnam-weather-in-june/) but Phu Quoc's monsoon brings rough seas [[58]](https://www.climatestotravel.com/climate/vietnam/phu-quoc).

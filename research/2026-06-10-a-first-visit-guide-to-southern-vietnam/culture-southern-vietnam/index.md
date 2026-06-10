@@ -11,6 +11,8 @@ citations: 48
 reading_time_min: 9
 model: "Opus 4.8"
 cover: cover.svg
+cost_usd: "sub"
+duration_sec: 466
 ---
 
 > **TL;DR:** In Ho Chi Minh City, do three things: the [War Remnants Museum](https://baotangchungtichchientranh.vn/en) (~€1.40, sobering, essential) [[1]](https://baotangchungtichchientranh.vn/en/visit)[[2]](https://forevervacation.com/ho-chi-minh-city/war-remnants-museum), the [A O Show](https://www.luneproduction.com/ao-show) at the colonial Opera House (Vietnam's bamboo-circus answer to Cirque du Soleil, from ~€29) [[3]](https://www.luneproduction.com/ao-show)[[4]](https://www.viator.com/tours/Ho-Chi-Minh-City/A-O-Show-in-Ho-Chi-Minh-City/d352-6460SGNAOSHOW), and a dawn boat to the [Cai Rang floating market](https://en.wikipedia.org/wiki/C%C3%A1i_R%C4%83ng_Floating_Market) near Can Tho [[8]](https://en.wikipedia.org/wiki/C%C3%A1i_R%C4%83ng_Floating_Market)[[9]](https://www.klook.com/en-US/destination/p50337905-cai-rang-floating-market/). If your dates touch **mid-Feb (Tết)** or **late Sep (Mid-Autumn / whale festival)**, build the trip around them. Southern Vietnam is light on "must-see" art museums but heavy on living culture: markets, Cham temples, Khmer pagodas, lacquer and coconut-candy workshops.

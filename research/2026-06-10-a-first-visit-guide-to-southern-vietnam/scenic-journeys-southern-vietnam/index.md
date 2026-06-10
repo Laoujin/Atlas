@@ -10,6 +10,9 @@ summary: "How to turn the hops between Ho Chi Minh City, Mui Ne, Nha Trang, the 
 citations: 27
 reading_time_min: 6
 cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 312
 ---
 
 > **TL;DR:** For a first Vietnam trip, make the *transport* part of the holiday. Take the **daytime Saigon→Phan Thiet train** for the dragon-fruit-and-coast run [[5]](https://blog.vexere.com/en/train-schedule-ho-chi-minh-city-to-phan-thiet-holiday-april-30-may-1-2026/), the **overnight soft-sleeper to Nha Trang** to save a hotel night and wake to Cam Ranh Bay [[4]](https://www.getyourguide.com/explorer/vietnam-ttd169193/train-journeys-in-vietnam/), a **sunrise sampan at Cai Rang floating market** in the Mekong [[22]](https://www.getyourguide.com/can-tho-l164341/can-tho-cai-rang-floating-market-sunrise-tour-t860401/), and the **Hon Thom cable car** on Phu Quoc — a 7.9 km Guinness-record ride over the sea [[16]](https://rootytrip.com/en/hon-thom-cable-car/). Fly the long Phu Quoc hop (~€23–65, 55 min) unless you actively want the boat [[12]](https://north-vietnam.com/how-to-get-from-ho-chi-minh-city-to-phu-quoc/). Prices EUR, ~27,500 VND/€, June 2026.
