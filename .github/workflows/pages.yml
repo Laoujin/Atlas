@@ -1,0 +1,60 @@
+name: Build and deploy Atlas to Pages
+
+# Replaces the classic "Deploy from a branch" build so we control the Jekyll
+# version (4.3, vs Pages' legacy 3.x) and cache gems + the Markdown render cache.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; let an in-flight run finish rather than cancelling it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive   # the compass theme (layouts/includes) is a submodule
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true     # caches installed gems, keyed on Gemfile.lock
+
+      - uses: actions/configure-pages@v5
+
+      # .jekyll-cache holds the kramdown -> HTML render cache. A unique key always
+      # saves a fresh cache; restore-keys pulls the most recent one back so each
+      # build re-renders only changed Markdown.
+      - name: Cache Jekyll render cache
+        uses: actions/cache@v4
+        with:
+          path: .jekyll-cache
+          key: jekyll-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: jekyll-cache-${{ runner.os }}-
+
+      - name: Build
+        run: bundle exec jekyll build --trace
+        env:
+          JEKYLL_ENV: production
+
+      - uses: actions/upload-pages-artifact@v3   # uploads ./_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
