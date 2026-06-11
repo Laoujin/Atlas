@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.16
 duration_sec: 59
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Evaluate RAG systems in two stages—retrieval quality (precision@k, recall@k, nDCG) and generation quality (faithfulness, relevance, hallucination rate)—since they fail independently. [[1]](https://futureagi.com/blog/rag-evaluation-metrics-2025/) RAGAS and ARES are the reference frameworks; DeepEval, TruLens, and RAGChecker handle production integration. [[2]](https://deepchecks.com/best-rag-evaluation-tools/)

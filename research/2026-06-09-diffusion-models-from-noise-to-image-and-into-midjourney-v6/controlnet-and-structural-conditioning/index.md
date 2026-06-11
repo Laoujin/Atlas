@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.17
 duration_sec: 61
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** ControlNet adds spatial control to diffusion models by attaching a trainable copy of the model that processes control signals (edges, poses, depth) via zero-initialized convolutions, preserving the original model's knowledge while enabling precise image generation guidance [[1]](https://arxiv.org/pdf/2302.05543).

@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.19
 duration_sec: 64
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Kamal 2 is 37signals' zero-overhead deployment tool for Docker containers on any server. Use it if you prefer CLI + YAML over dashboards; it trades convenience (no web UI, minimal built-in services) for simplicity and resource efficiency. For a self-hosted Vercel alternative, pick Coolify instead.

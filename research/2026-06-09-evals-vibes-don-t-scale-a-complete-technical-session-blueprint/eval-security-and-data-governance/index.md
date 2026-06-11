@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.35
 duration_sec: 78
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Evaluation pipelines must protect against prompt injection attacks on judge models, prevent privacy leakage from training/eval datasets through membership inference, and implement data governance frameworks ahead of regulatory deadlines. No evaluation system is secure by default.

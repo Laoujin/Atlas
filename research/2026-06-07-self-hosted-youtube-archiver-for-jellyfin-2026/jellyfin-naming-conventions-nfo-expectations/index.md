@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.20
 duration_sec: 66
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Follow `Movie Name (Year)/Movie Name (Year).mkv` for movies [[1]](https://jellyfin.org/docs/general/server/media/movies/) and `Show Name/Season 01/Show Name - S01E01.mkv` for TV. Use NFO sidecar files (movie.nfo, tvshow.nfo, etc.) to override or supplement remote metadata; they're XML-based and take priority over online providers [[2]](https://jellyfin.org/docs/general/server/metadata/nfo/).

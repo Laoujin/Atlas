@@ -15,6 +15,7 @@ cost_usd: "sub"
 cost_usd: 1.42
 duration_sec: 538
 model: "Sonnet 4.6"
+cover: cover.svg
 ---
 
 > **Decision** Use [promptfoo](https://www.promptfoo.dev) ⭐ 22k [[4]](https://github.com/promptfoo/promptfoo) with `--cache` enabled. One scenario: a support-agent prompt edit that silently collapses refusal behavior — invisible to eyeballing, visible in the eval table. Three acts: manual "looks good" → quiet prompt edit → eval catches it. Record a 60-second fallback video before you go on stage. [[8]](https://dev.to/measuredco/how-to-do-great-live-demos-and-why-theyre-important-to-get-right-24lc)

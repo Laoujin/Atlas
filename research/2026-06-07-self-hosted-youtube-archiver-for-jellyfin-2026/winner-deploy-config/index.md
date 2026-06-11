@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.40
 duration_sec: 86
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Winner Design network deployment requires a dedicated server with 1 Gbit/s bandwidth, wired network only, and UNC file paths. Optionally configure a centralized render server to offload CPU-intensive rendering tasks from workstations.

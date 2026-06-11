@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.18
 duration_sec: 57
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Plain environment variables are [[1]](https://www.doppler.com/blog/environment-variable-secrets-2026) **not safe for secrets in 2026**. Coolify offers encrypted storage and Docker Build Secrets to prevent leakage; other platforms like Railway require third-party integrations; dedicated tools like [[2]](https://github.com/Infisical/infisical) Infisical, [[3]](https://infisical.com/blog/best-secret-management-tools) Vault, or cloud vaults provide audit trails and rotation. Pick Coolify's built-in features for simple deployments, or layer Infisical for enterprise-grade management.

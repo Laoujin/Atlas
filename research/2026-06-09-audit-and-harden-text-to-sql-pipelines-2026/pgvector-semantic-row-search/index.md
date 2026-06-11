@@ -13,6 +13,7 @@ reading_time_min: 8
 cost_usd: 5.06
 duration_sec: 692
 model: "Opus 4.8"
+cover: cover.svg
 ---
 
 > **Decision.** Use [pgvector](https://github.com/pgvector/pgvector) ⭐ 21.7k (Jun 2026) [[2]](https://api.github.com/repos/pgvector/pgvector) for semantic row search whenever your rows already live in Postgres [[1]](https://github.com/pgvector/pgvector) — co-locating embeddings with relational data is the whole point, since similarity search then composes with `WHERE`, `JOIN`, and full-text in one transactionally-consistent query [[23]](https://supabase.com/docs/guides/ai/vector-columns). Default to an **HNSW** index [[6]](https://supabase.com/blog/increase-performance-pgvector-hnsw), upgrade to **pgvector ≥ 0.8.0** so filtered searches don't silently under-return [[10]](https://www.postgresql.org/about/news/pgvector-080-released-2952/), and reach for a dedicated store (Qdrant, Pinecone, Milvus) or [pgvectorscale](https://github.com/timescale/pgvectorscale) ⭐ 3.0k only past ~5–10M vectors [[25]](https://www.kalviumlabs.ai/blog/vector-databases-compared-pgvector-pinecone-qdrant-weaviate/)[[9]](https://www.instaclustr.com/education/vector-database/pgvector-performance-benchmark-results-and-5-ways-to-boost-performance/). **For text-to-SQL specifically, the killer use is value linking**: embed a column's distinct values and semantic-search the user's entity against them so the LLM filters on a real stored value instead of a hallucinated one [[15]](https://arxiv.org/pdf/2510.17586).

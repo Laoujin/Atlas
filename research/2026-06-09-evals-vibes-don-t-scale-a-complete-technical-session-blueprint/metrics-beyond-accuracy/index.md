@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.16
 duration_sec: 62
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Accuracy is dangerous for imbalanced data and masks failures on subpopulations. For classification, use Precision if false positives are costly, Recall if false negatives are critical, F1 when classes are imbalanced, and PR-AUC instead of ROC-AUC for rare positive cases. For AI agents, measure Task Completion Rate, Recovery Rate, and Cost per Task alongside accuracy. Always choose metrics based on the business cost of errors, not aggregated performance.

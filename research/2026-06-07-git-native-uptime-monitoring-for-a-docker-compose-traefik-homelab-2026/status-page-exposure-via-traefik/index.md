@@ -13,6 +13,7 @@ reading_time_min: 3
 cost_usd: 0.27
 duration_sec: 81
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **Decision:** Traefik's `api@internal` service and status endpoints expose sensitive configuration details (routers, services, middleware, raw config) and should never be accessible without authentication and network isolation. Even `/ping` health-check endpoints bypass auth by design. In shared environments (e.g., Kubernetes Gateway API), verify your version is patched against CVE-2026-44774 (affects v2.11 <2.11.46, v3.6 <3.6.17, v3.7 <3.7.1).

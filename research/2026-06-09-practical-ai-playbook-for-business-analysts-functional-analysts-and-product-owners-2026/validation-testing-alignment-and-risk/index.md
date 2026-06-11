@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.17
 duration_sec: 62
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **Decision**: Test what can break your business, not what inflates test counts. Validation (building the right product) must run continuously alongside verification (building it right) to catch costly misalignment early. Make testing a strategic risk-management function, not a late-stage quality gate.

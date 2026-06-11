@@ -13,6 +13,7 @@ reading_time_min: 3
 cost_usd: 0.18
 duration_sec: 66
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** The 2026 tooling landscape revolves around three pillars: enterprise integration platforms connecting AI agents to business systems; AI-native analytics tools reducing time-to-insight for analysts; and no-code automation platforms democratizing workflow design. Business analysts, functional analysts, and product owners should layer these tools—not pick one—based on reproducibility, governance, and role-specific needs.

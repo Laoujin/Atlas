@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.27
 duration_sec: 88
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR**  

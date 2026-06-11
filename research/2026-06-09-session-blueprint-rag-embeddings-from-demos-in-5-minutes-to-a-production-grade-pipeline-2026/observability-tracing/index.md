@@ -13,6 +13,7 @@ reading_time_min: 3
 cost_usd: 0.19
 duration_sec: 68
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR:** Observability enables understanding systems through external signals without knowing internals. The three pillars—traces, metrics, and logs—work together to diagnose performance and failures. Distributed tracing maps request journeys across microservices, and [[1]](https://opentelemetry.io/) OpenTelemetry provides the vendor-neutral API standard backed by CNCF. Choose between open-source backends (Jaeger, Zipkin) and commercial platforms (Datadog, New Relic), or combine both for a hybrid approach.

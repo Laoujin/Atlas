@@ -13,6 +13,7 @@ reading_time_min: 2
 cost_usd: 0.19
 duration_sec: 58
 model: "Haiku 4.5"
+cover: cover.svg
 ---
 
 > **TL;DR**: Web push notifications let websites deliver real-time alerts to opted-in users even when the browser is closed, using service workers as background handlers. Requires HTTPS, user permission, and a push service provider. A new Declarative Web Push standard (W3C Working Draft 2026) simplifies implementation by removing the need for service worker code.
