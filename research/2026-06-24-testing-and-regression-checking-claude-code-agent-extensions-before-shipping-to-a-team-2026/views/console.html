@@ -1,0 +1,424 @@
+---
+layout: view
+view_name: "Console"
+view_of: ../
+title: "Testing & regression-checking Claude Code agent extensions before you ship them — Console"
+---
+
+<style>
+  .con {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #11161d;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --dim: #6e7681;
+    --green: #3fb950;
+    --amber: #d29922;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", "Cascadia Code", Menlo, Consolas, monospace;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 0 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  .con * { box-sizing: border-box; }
+  .con a { color: var(--blue); text-decoration: none; }
+  .con a:hover { text-decoration: underline; }
+  .con sup a { color: var(--dim); font-size: .68em; }
+  .con .wrap { max-width: 1120px; margin: 0 auto; padding: 0 1.4rem; }
+
+  /* topbar */
+  .con .topbar {
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0f141b, #0d1117);
+    padding: .8rem 0;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .con .topbar .wrap { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .con .crumb { color: var(--muted); font-size: 12.5px; letter-spacing: .02em; }
+  .con .crumb b { color: var(--text); }
+  .con .crumb .sep { color: var(--dim); }
+  .con .pill {
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    padding: .22rem .5rem; border-radius: 4px; border: 1px solid var(--border);
+    display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap;
+  }
+  .con .pill.fail { color: var(--amber); border-color: #4d3a17; background: #1e1709; }
+  .con .pill.muted { color: var(--muted); }
+  .con .spacer { flex: 1 1 auto; }
+  .con .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .con .dot.g { background: var(--green); } .con .dot.a { background: var(--amber); } .con .dot.r { background: var(--red); }
+
+  /* hero / build summary */
+  .con .hero { padding: 2.4rem 0 1.6rem; border-bottom: 1px solid var(--border); }
+  .con h1 {
+    font-family: var(--mono); font-weight: 700; font-size: clamp(1.7rem, 4vw, 2.6rem);
+    line-height: 1.12; margin: 0 0 .5rem; color: #f0f6fc; letter-spacing: -.01em;
+  }
+  .con h1 .blink { color: var(--green); font-weight: 400; }
+  .con .sub { color: var(--muted); max-width: 70ch; font-size: 14px; }
+  .con .banner {
+    margin-top: 1.5rem; border: 1px solid var(--border); border-left: 3px solid var(--green);
+    background: var(--panel); border-radius: 6px; padding: 1rem 1.2rem; font-size: 14px;
+  }
+  .con .banner .lead { color: var(--text); }
+  .con .banner code, .con code.k {
+    background: #1c2430; color: #79c0ff; padding: .08rem .35rem; border-radius: 4px; font-size: .9em;
+  }
+  .con .runmeta { color: var(--dim); font-size: 12px; margin-top: .7rem; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+
+  /* section heads */
+  .con .sec { padding: 2.6rem 0 .4rem; }
+  .con .sechead { display: flex; align-items: baseline; gap: .7rem; margin-bottom: .3rem; }
+  .con .sechead .hash { color: var(--green); font-weight: 700; }
+  .con .sechead h2 { font-size: 1.15rem; margin: 0; color: #f0f6fc; font-weight: 700; letter-spacing: .01em; }
+  .con .sechead .note { color: var(--dim); font-size: 12px; margin-left: auto; }
+  .con .lede { color: var(--muted); font-size: 14px; max-width: 80ch; margin: .2rem 0 1.3rem; }
+
+  /* gradient status board */
+  .con .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 820px) { .con .board { grid-template-columns: 1fr; } }
+  .con .lane {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .con .lane .head { padding: .85rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .6rem; }
+  .con .lane .head .lvl { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+  .con .lane.g { border-top: 3px solid var(--green); }
+  .con .lane.a { border-top: 3px solid var(--amber); }
+  .con .lane.r { border-top: 3px solid var(--red); }
+  .con .lane.g .lvl { color: var(--green); } .con .lane.a .lvl { color: var(--amber); } .con .lane.r .lvl { color: var(--red); }
+  .con .lane .body { padding: 1rem; display: flex; flex-direction: column; gap: .85rem; flex: 1; }
+  .con .lane .who { font-size: 1.05rem; color: #f0f6fc; font-weight: 700; }
+  .con .lane .verdict { font-size: 12.5px; color: var(--muted); }
+  .con .kv { font-size: 12.5px; line-height: 1.5; }
+  .con .kv .key { color: var(--dim); text-transform: uppercase; letter-spacing: .07em; font-size: 10.5px; display: block; margin-bottom: .1rem; }
+  .con .kv .val { color: var(--text); }
+  .con .ceil { margin-top: auto; font-size: 12px; padding: .6rem .7rem; border-radius: 6px; background: var(--panel2); border: 1px dashed var(--border); color: var(--muted); }
+  .con .ceil b { color: var(--text); }
+  .con .meter { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--amber), var(--red)); margin: 1.4rem 0 0; position: relative; }
+  .con .meter .labs { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin-top: .35rem; letter-spacing: .03em; }
+
+  /* description-is-the-test callout */
+  .con .callout {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    padding: 1.2rem 1.3rem; margin-top: 1rem;
+  }
+  .con .callout .tag { color: var(--amber); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+  .con .callout p { margin: .55rem 0 0; font-size: 14px; color: var(--text); }
+  .con .codeblock {
+    background: #0a0e14; border: 1px solid var(--border); border-radius: 6px; padding: .9rem 1rem;
+    margin-top: 1rem; font-size: 12.5px; color: var(--muted); white-space: pre-wrap; line-height: 1.7;
+  }
+  .con .codeblock .c { color: var(--dim); } .con .codeblock .ok { color: var(--green); } .con .codeblock .bad { color: var(--red); }
+  .con .codeblock .key2 { color: #79c0ff; }
+
+  /* two regression panels */
+  .con .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .con .split { grid-template-columns: 1fr; } }
+  .con .alert { border: 1px solid var(--border); border-radius: 8px; background: var(--panel); padding: 1.1rem 1.2rem; }
+  .con .alert.diff { border-left: 3px solid var(--amber); }
+  .con .alert.sec { border-left: 3px solid var(--red); }
+  .con .alert .atag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; display: flex; align-items: center; gap: .4rem; }
+  .con .alert.diff .atag { color: var(--amber); } .con .alert.sec .atag { color: var(--red); }
+  .con .alert h3 { margin: .5rem 0 .4rem; font-size: 1rem; color: #f0f6fc; }
+  .con .alert p { margin: 0 0 .7rem; font-size: 13px; color: var(--muted); }
+  .con .alert .fix { font-size: 12.5px; color: var(--text); border-top: 1px solid var(--border); padding-top: .7rem; }
+  .con .alert .fix .key { color: var(--dim); text-transform: uppercase; font-size: 10px; letter-spacing: .07em; }
+
+  /* pipeline */
+  .con .pipe { border: 1px solid var(--border); border-radius: 8px; background: var(--panel); overflow: hidden; }
+  .con .pipe .row { display: grid; grid-template-columns: 26px 1fr auto; gap: .9rem; align-items: center; padding: .85rem 1.1rem; border-bottom: 1px solid var(--border); }
+  .con .pipe .row:last-child { border-bottom: 0; }
+  .con .pipe .ic { font-size: 15px; text-align: center; }
+  .con .pipe .ic.g { color: var(--green); } .con .pipe .ic.a { color: var(--amber); } .con .pipe .ic.r { color: var(--red); }
+  .con .pipe .step .name { color: var(--text); font-size: 13.5px; }
+  .con .pipe .step .cmd { color: var(--dim); font-size: 12px; margin-top: .15rem; }
+  .con .pipe .step .cmd code { color: #79c0ff; }
+  .con .pipe .gate { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; padding: .2rem .45rem; border-radius: 4px; border: 1px solid var(--border); white-space: nowrap; }
+  .con .pipe .gate.det { color: var(--green); border-color: #1f3d28; }
+  .con .pipe .gate.cheap { color: var(--amber); border-color: #4d3a17; }
+  .con .pipe .gate.none { color: var(--red); border-color: #4d1f1f; }
+
+  /* incidents log */
+  .con .log { background: #0a0e14; border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; line-height: 1.75; padding: 1rem 1.2rem; }
+  .con .log .ln { display: flex; gap: .7rem; }
+  .con .log .ts { color: var(--dim); white-space: nowrap; }
+  .con .log .lv { font-weight: 700; white-space: nowrap; }
+  .con .log .lv.warn { color: var(--amber); } .con .log .lv.err { color: var(--red); } .con .log .lv.info { color: var(--blue); }
+  .con .log .msg { color: var(--muted); }
+  .con .log .msg b { color: var(--text); }
+
+  /* child jobs */
+  .con .jobs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  @media (max-width: 720px) { .con .jobs { grid-template-columns: 1fr; } }
+  .con .job {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    padding: 1.05rem 1.2rem; display: block; transition: border-color .12s, background .12s;
+  }
+  .con .job:hover { border-color: var(--blue); background: #131a23; text-decoration: none; }
+  .con .job .jtop { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+  .con .job .jstatus { font-size: 11px; color: var(--green); display: inline-flex; align-items: center; gap: .35rem; }
+  .con .job .depth { margin-left: auto; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); padding: .15rem .45rem; border-radius: 4px; }
+  .con .job .jname { color: #f0f6fc; font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+  .con .job .jsum { color: var(--muted); font-size: 12.5px; margin-top: .45rem; }
+  .con .job .jmeta { color: var(--dim); font-size: 11px; margin-top: .6rem; display: flex; gap: 1rem; }
+
+  /* sources */
+  .con .srcgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+  @media (max-width: 720px) { .con .srcgrid { grid-template-columns: 1fr; } }
+  .con .src { display: flex; gap: .65rem; align-items: flex-start; border: 1px solid var(--border); border-radius: 6px; background: var(--panel2); padding: .6rem .75rem; }
+  .con .src:hover { border-color: var(--border); background: var(--panel); }
+  .con .src img { width: 18px; height: 18px; border-radius: 3px; margin-top: .15rem; flex: 0 0 auto; }
+  .con .src .n { color: var(--dim); font-size: 11px; margin-top: .15rem; }
+  .con .src .meta { min-width: 0; }
+  .con .src .t { font-size: 12.5px; color: var(--text); }
+  .con .src .u { font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+  .con .foot { margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1.2rem; color: var(--dim); font-size: 12px; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+</style>
+
+<div class="con">
+
+  <div class="topbar">
+    <div class="wrap">
+      <span class="crumb"><a href="/">atlas</a> <span class="sep">/</span> research <span class="sep">/</span> <b>agent-extension-testing</b></span>
+      <span class="spacer"></span>
+      <span class="pill fail"><span class="dot a"></span> build: partial</span>
+      <span class="pill muted">94 citations</span>
+      <span class="pill muted">5 jobs</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="wrap">
+      <h1>Can you prove the extension works<br>before the team installs it?<span class="blink">_</span></h1>
+      <p class="sub">A test-readiness console for the five Claude Code extension types — skills, subagents, hooks, plugins, MCP servers. Each one sits at a different point on a determinism gradient, and the gradient decides what kind of test you're even allowed to write.</p>
+
+      <div class="banner">
+        <span class="lead">Extension testability is a <b>gradient, not a checkbox.</b> <code>Hooks</code> take fully-deterministic CI <sup><a href="https://code.claude.com/docs/en/hooks">[1]</a></sup>. <code>Skills</code> &amp; <code>subagents</code> are model-in-the-loop — their <code>description</code> field <em>is</em> the unit under test, gated on hit-rate, never one green run <sup><a href="https://www.promptfoo.dev/docs/guides/test-agent-skills/">[2]</a></sup>. <code>MCP</code> &amp; <code>plugins</code> add a supply chain you don't author that can rug-pull after install <sup><a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[3]</a></sup>. No purpose-built harness exists yet — the working stack is improvised from <code class="k">claude -p</code>, Promptfoo, snapshot tests, and JSON-schema linters.</span>
+        <div class="runmeta">
+          <span>topic: extension-artifact testing</span>
+          <span>date: 2026-06-24</span>
+          <span>depth: expedition</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- determinism gradient -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>The determinism gradient</h2><span class="note">green → amber → red = less testable</span></div>
+      <p class="lede">Three lanes. The further right, the less a single green run means — and the more of the risk lives outside your own diff.</p>
+
+      <div class="board">
+        <div class="lane g">
+          <div class="head"><span class="dot g"></span><span class="lvl">Deterministic</span></div>
+          <div class="body">
+            <div class="who">Hooks</div>
+            <div class="verdict">Plain scripts with a fixed stdin / exit-code / JSON contract. The one extension you can test like any other CLI.</div>
+            <div class="kv"><span class="key">Unit under test</span><span class="val">stdout / exit code / JSON on stdin</span></div>
+            <div class="kv"><span class="key">Harness</span><span class="val">bats · pytest · any CI <sup><a href="https://code.claude.com/docs/en/hooks">[1]</a></sup></span></div>
+            <div class="ceil"><b>Ceiling:</b> none worth noting — green means green. This is the only lane where CI is the whole answer.</div>
+          </div>
+        </div>
+
+        <div class="lane a">
+          <div class="head"><span class="dot a"></span><span class="lvl">Model-in-the-loop</span></div>
+          <div class="body">
+            <div class="who">Skills &amp; Subagents</div>
+            <div class="verdict">Claude fuzzy-matches the <code class="k">description</code> against the prompt to decide whether to fire <sup><a href="https://code.claude.com/docs/en/sub-agents">[4]</a></sup>. The description is the test.</div>
+            <div class="kv"><span class="key">Unit under test</span><span class="val">the <code class="k">description</code> field — does it trigger?</span></div>
+            <div class="kv"><span class="key">Harness</span><span class="val"><a href="https://www.promptfoo.dev/docs/guides/test-agent-skills/">Promptfoo</a> <code class="k">skill-used</code> assertions <sup><a href="https://www.promptfoo.dev/docs/guides/test-agent-skills/">[2]</a></sup> · <a href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills">skill-creator</a> eval loop <sup><a href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills">[6]</a></sup></span></div>
+            <div class="ceil"><b>Ceiling:</b> autonomous triggering is only ~50% reliable — must-fire workflows fall back to a deterministic hook calling <code class="k">Use Skill()</code> explicitly <sup><a href="https://dev.to/lizechengnet/why-claude-code-skills-dont-trigger-and-how-to-fix-them-in-2026-o7h">[7]</a></sup>.</div>
+          </div>
+        </div>
+
+        <div class="lane r">
+          <div class="head"><span class="dot r"></span><span class="lvl">Supply-chain</span></div>
+          <div class="body">
+            <div class="who">MCP &amp; Plugins</div>
+            <div class="verdict">A third axis you don't author. The code can change <em>after</em> you approve it — and MCP has no native re-approval when a tool mutates <sup><a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[3]</a></sup>.</div>
+            <div class="kv"><span class="key">Unit under test</span><span class="val">schema/contract drift + dependency provenance</span></div>
+            <div class="kv"><span class="key">Harness</span><span class="val"><a href="https://github.com/dotsetlabs/bellwether">Bellwether</a> <sup><a href="https://github.com/dotsetlabs/bellwether">[8]</a></sup> · <a href="https://github.com/snyk/agent-scan">agent-scan</a> <sup><a href="https://github.com/snyk/agent-scan">[12]</a></sup> · <a href="https://github.com/safedep/pinner-mcp">pinner-mcp</a> <sup><a href="https://github.com/safedep/pinner-mcp">[13]</a></sup></span></div>
+            <div class="ceil"><b>Ceiling:</b> the malicious change lands after install, in someone else's repo — there is <b>no per-PR answer</b> here.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meter"></div>
+      <div class="meter labs"><span>hooks · deterministic CI</span><span>skills/subagents · hit-rate</span><span>mcp/plugins · provenance</span></div>
+    </section>
+
+    <!-- description is the test -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>One test, written twice</h2></div>
+      <p class="lede">"Does my skill trigger?" and "does the parent route to my subagent?" are the <em>same</em> test <sup><a href="https://mcp.directory/blog/why-your-claude-skill-isnt-activating-2026-fixes">[5]</a></sup> — positive prompts that must hit, plus near-miss prompts that must route to a sibling instead.</p>
+
+      <div class="callout">
+        <span class="tag">assertion · trigger classifier</span>
+        <p><a href="https://www.promptfoo.dev/docs/guides/test-agent-skills/">Promptfoo</a> expresses this directly with <code class="k">skill-used</code> / <code class="k">not-skill-used</code> assertions <sup><a href="https://www.promptfoo.dev/docs/guides/test-agent-skills/">[2]</a></sup>. Anthropic's <a href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills">skill-creator</a> upgrade (shipped <b>3 March 2026</b>) treats triggering as a false-positive / false-negative classifier and auto-tunes the description against sample prompts <sup><a href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills">[6]</a></sup>.</p>
+        <div class="codeblock"><span class="c"># tests/skill_trigger.yaml — gate on hit-rate, not a single run</span>
+<span class="key2">prompts</span>:  must-fire set (N) + near-miss set (M)
+<span class="key2">assert</span>:
+  - <span class="ok">skill-used</span>      → expected on every must-fire prompt
+  - <span class="bad">not-skill-used</span>  → expected on every near-miss prompt
+<span class="c"># PASS = hit-rate over threshold across the whole set</span></div>
+      </div>
+    </section>
+
+    <!-- two regression problems -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>Two regressions hide under one word</h2></div>
+      <p class="lede">Opposite failures, opposite defenses. Conflating them is how teams test the one they can see and miss the one that ships the breach.</p>
+
+      <div class="split">
+        <div class="alert diff">
+          <div class="atag"><span class="dot a"></span>functional drift · your own artifact</div>
+          <h3>The schema changed under you</h3>
+          <p>Your tool's contract shifts between versions. Caught by snapshotting <code class="k">tools/list</code> and failing CI on a schema diff.</p>
+          <div class="fix"><span class="key">defense</span><br><a href="https://github.com/dotsetlabs/bellwether">Bellwether</a> <sup><a href="https://github.com/dotsetlabs/bellwether">[8]</a></sup>, the official <a href="https://github.com/modelcontextprotocol/conformance">MCP conformance suite</a> <sup><a href="https://github.com/modelcontextprotocol/conformance">[9]</a></sup>, or <a href="https://gofastmcp.com/development/tests">FastMCP</a> in-memory client tests <sup><a href="https://gofastmcp.com/development/tests">[10]</a></sup>.</div>
+        </div>
+
+        <div class="alert sec">
+          <div class="atag"><span class="dot r"></span>rug-pull · a dependency you trusted</div>
+          <h3>Identical for 15 versions, then a backdoor</h3>
+          <p><code class="k">postmark-mcp</code> behaved identically for 15 releases, then shipped a BCC email-harvesting backdoor in <b>v1.0.16</b> <sup><a href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">[11]</a></sup>.</p>
+          <div class="fix"><span class="key">defense</span><br>Hash-pin tool descriptions &amp; alert on change (<a href="https://github.com/snyk/agent-scan">agent-scan</a> <sup><a href="https://github.com/snyk/agent-scan">[12]</a></sup>), pin servers to a <code class="k">sha256</code> digest (<a href="https://github.com/safedep/pinner-mcp">pinner-mcp</a> <sup><a href="https://github.com/safedep/pinner-mcp">[13]</a></sup>). Provenance is no silver bullet — 633 malicious npm versions passed Sigstore with stolen certs in <b>May 2026</b> <sup><a href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">[14]</a></sup>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- per-PR pipeline -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>The realistic per-PR floor</h2><span class="note">deterministic first · one cheap model call second</span></div>
+      <p class="lede">What a small team can actually gate on every pull request. The first three steps need zero model calls; the fourth is one cheap headless run; the fifth has no per-PR answer at all.</p>
+
+      <div class="pipe">
+        <div class="row">
+          <div class="ic g">●</div>
+          <div class="step"><div class="name">Validate plugin manifest, strict mode</div><div class="cmd"><code>claude plugin validate --strict</code> — warnings become errors <sup><a href="https://code.claude.com/docs/en/plugins-reference">[15]</a></sup></div></div>
+          <div class="gate det">deterministic</div>
+        </div>
+        <div class="row">
+          <div class="ic g">●</div>
+          <div class="step"><div class="name">JSON-schema check plugin.json / marketplace.json</div><div class="cmd">schemas now official on <a href="https://github.com/hesreallyhim/claude-code-json-schema">SchemaStore</a> <sup><a href="https://github.com/hesreallyhim/claude-code-json-schema">[16]</a></sup></div></div>
+          <div class="gate det">deterministic</div>
+        </div>
+        <div class="row">
+          <div class="ic g">●</div>
+          <div class="step"><div class="name">Lint frontmatter &amp; SKILL.md</div><div class="cmd"><a href="https://github.com/TheStack-ai/pulser">pulser</a> <sup><a href="https://github.com/TheStack-ai/pulser">[18]</a></sup> · <a href="https://github.com/agent-ecosystem/skill-validator">skill-validator</a> <sup><a href="https://github.com/agent-ecosystem/skill-validator">[19]</a></sup> — tiny, single-maintainer</div></div>
+          <div class="gate det">deterministic</div>
+        </div>
+        <div class="row">
+          <div class="ic a">●</div>
+          <div class="step"><div class="name">"Does it load" smoke test</div><div class="cmd"><code>claude -p --output-format stream-json</code> → read <code>plugin_errors</code> on the <code>system/init</code> event <sup><a href="https://code.claude.com/docs/en/headless">[17]</a></sup></div></div>
+          <div class="gate cheap">one cheap call</div>
+        </div>
+        <div class="row">
+          <div class="ic r">○</div>
+          <div class="step"><div class="name">Catch a rug-pull</div><div class="cmd">the malicious change lands after install, in someone else's repo, long after your diff was green <sup><a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[3]</a></sup></div></div>
+          <div class="gate none">no per-PR answer</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- unstable surface / incidents -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>The surface itself is unstable</h2><span class="note">2026 broke working assertions</span></div>
+      <div class="log">
+        <div class="ln"><span class="ts">2026-01-12</span><span class="lv err">ERR </span><span class="msg"><b>#17591</b> open — <code class="k">TaskOutput</code> returns raw JSONL instead of the subagent summary, breaking transcript-based dispatch checks <sup><a href="https://github.com/anthropics/claude-code/issues/17591">[20]</a></sup></span></div>
+        <div class="ln"><span class="ts">2026-01-12</span><span class="lv warn">WARN</span><span class="msg"><code class="k">Task</code> → <code class="k">Agent</code> tool rename — transcript matchers must now accept both strings <sup><a href="https://github.com/anthropics/claude-code/issues/17591">[20]</a></sup></span></div>
+        <div class="ln"><span class="ts">2026-03-03</span><span class="lv info">INFO</span><span class="msg"><a href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills">skill-creator</a> ships description auto-tuning as a FP/FN classifier <sup><a href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills">[6]</a></sup></span></div>
+        <div class="ln"><span class="ts">2026-05-xx</span><span class="lv err">ERR </span><span class="msg">633 malicious npm versions pass Sigstore provenance with stolen certificates <sup><a href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">[14]</a></sup></span></div>
+        <div class="ln"><span class="ts">consensus</span><span class="lv warn">WARN</span><span class="msg">consolidation signal is schemas landing on SchemaStore <sup><a href="https://github.com/hesreallyhim/claude-code-json-schema">[16]</a></sup> — <b>not</b> a dominant tool. This space is still emerging.</span></div>
+      </div>
+    </section>
+
+    <!-- child jobs -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>Drill into a job</h2><span class="note">5 child runs · all green</span></div>
+      <p class="lede">Each extension type gets its own deep-dive. Start with hooks (the easy win) and the per-PR floor; escalate into the MCP/plugin expedition for the supply-chain surface.</p>
+
+      <div class="jobs">
+        <a class="job" href="../testing-hooks/">
+          <div class="jtop"><span class="jstatus"><span class="dot g"></span>passed</span><span class="depth">recon</span></div>
+          <div class="jname">Testing Claude Code Hooks before shipping</div>
+          <div class="jsum">Hooks are plain scripts with a documented stdin/exit-code/JSON contract — the one extension you can test with fully-deterministic CI.</div>
+          <div class="jmeta"><span>6 citations</span><span>~3 min</span></div>
+        </a>
+
+        <a class="job" href="../testing-an-authored-skill/">
+          <div class="jtop"><span class="jstatus"><span class="dot g"></span>passed</span><span class="depth">survey</span></div>
+          <div class="jname">Testing an authored Skill before you ship it</div>
+          <div class="jsum">Two separable tests — does the description trigger, does the body behave — over the skill-creator eval loop plus a with/without baseline. Everything else is thin.</div>
+          <div class="jmeta"><span>11 citations</span><span>~6 min</span></div>
+        </a>
+
+        <a class="job" href="../smoke-testing-subagent-routing/">
+          <div class="jtop"><span class="jstatus"><span class="dot g"></span>passed</span><span class="depth">survey</span></div>
+          <div class="jname">Smoke-testing a subagent's routing</div>
+          <div class="jsum">Promptfoo's claude-agent-sdk provider plus headless stream-json are the only real ways to assert routing. The description is the trigger; parent_tool_use_id is the proof.</div>
+          <div class="jmeta"><span>11 citations</span><span>~8 min</span></div>
+        </a>
+
+        <a class="job" href="../the-lightweight-per-pr-floor-and-concrete-ci-recipes-and-tools/">
+          <div class="jtop"><span class="jstatus"><span class="dot g"></span>passed</span><span class="depth">survey</span></div>
+          <div class="jname">The lightweight per-PR floor + CI recipes</div>
+          <div class="jsum">A small team's realistic floor: deterministic schema and frontmatter linting first, one cheap headless model check second.</div>
+          <div class="jmeta"><span>17 citations</span><span>~8 min</span></div>
+        </a>
+
+        <a class="job" href="../regression-testing-plugins-and-mcp-servers-plus-catching-rug-pulls/">
+          <div class="jtop"><span class="jstatus"><span class="dot g"></span>passed</span><span class="depth">expedition</span></div>
+          <div class="jname">Regression-testing plugins &amp; MCP servers + rug-pulls</div>
+          <div class="jsum">Two surfaces — functional schema/contract drift and supply-chain rug-pulls — the 2026 tooling that catches each, and an honest map of where the defenses are still missing.</div>
+          <div class="jmeta"><span>49 citations</span><span>~18 min</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- sources -->
+    <section class="sec">
+      <div class="sechead"><span class="hash">##</span><h2>Sources</h2><span class="note">20 cited in this synthesis</span></div>
+      <div class="srcgrid">
+        <a class="src" href="https://code.claude.com/docs/en/hooks"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><span class="meta"><span class="t">Claude Code — Hooks reference</span><span class="u">code.claude.com</span></span></a>
+        <a class="src" href="https://www.promptfoo.dev/docs/guides/test-agent-skills/"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=promptfoo.dev&sz=128" alt=""><span class="meta"><span class="t">Promptfoo — Test agent skills</span><span class="u">promptfoo.dev</span></span></a>
+        <a class="src" href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=invariantlabs.ai&sz=128" alt=""><span class="meta"><span class="t">Invariant Labs — MCP tool-poisoning</span><span class="u">invariantlabs.ai</span></span></a>
+        <a class="src" href="https://code.claude.com/docs/en/sub-agents"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><span class="meta"><span class="t">Claude Code — Subagents reference</span><span class="u">code.claude.com</span></span></a>
+        <a class="src" href="https://mcp.directory/blog/why-your-claude-skill-isnt-activating-2026-fixes"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=mcp.directory&sz=128" alt=""><span class="meta"><span class="t">Why your Claude skill isn't activating</span><span class="u">mcp.directory</span></span></a>
+        <a class="src" href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=128" alt=""><span class="meta"><span class="t">Anthropic — Improving skill-creator</span><span class="u">claude.com</span></span></a>
+        <a class="src" href="https://dev.to/lizechengnet/why-claude-code-skills-dont-trigger-and-how-to-fix-them-in-2026-o7h"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><span class="meta"><span class="t">Why Claude Code skills don't trigger</span><span class="u">dev.to</span></span></a>
+        <a class="src" href="https://github.com/dotsetlabs/bellwether"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">Bellwether — tools/list snapshots</span><span class="u">github.com/dotsetlabs/bellwether</span></span></a>
+        <a class="src" href="https://github.com/modelcontextprotocol/conformance"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">MCP conformance suite</span><span class="u">github.com/modelcontextprotocol</span></span></a>
+        <a class="src" href="https://gofastmcp.com/development/tests"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=gofastmcp.com&sz=128" alt=""><span class="meta"><span class="t">FastMCP — testing</span><span class="u">gofastmcp.com</span></span></a>
+        <a class="src" href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=snyk.io&sz=128" alt=""><span class="meta"><span class="t">Snyk — malicious postmark-mcp</span><span class="u">snyk.io</span></span></a>
+        <a class="src" href="https://github.com/snyk/agent-scan"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">Snyk agent-scan</span><span class="u">github.com/snyk/agent-scan</span></span></a>
+        <a class="src" href="https://github.com/safedep/pinner-mcp"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">pinner-mcp — sha256 digest pinning</span><span class="u">github.com/safedep/pinner-mcp</span></span></a>
+        <a class="src" href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=venturebeat.com&sz=128" alt=""><span class="meta"><span class="t">VentureBeat — npm Sigstore bypass</span><span class="u">venturebeat.com</span></span></a>
+        <a class="src" href="https://code.claude.com/docs/en/plugins-reference"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><span class="meta"><span class="t">Claude Code — Plugins reference</span><span class="u">code.claude.com</span></span></a>
+        <a class="src" href="https://github.com/hesreallyhim/claude-code-json-schema"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">claude-code-json-schema (SchemaStore)</span><span class="u">github.com/hesreallyhim</span></span></a>
+        <a class="src" href="https://code.claude.com/docs/en/headless"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><span class="meta"><span class="t">Claude Code — Headless mode</span><span class="u">code.claude.com</span></span></a>
+        <a class="src" href="https://github.com/TheStack-ai/pulser"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">pulser — CI-native linter</span><span class="u">github.com/TheStack-ai/pulser</span></span></a>
+        <a class="src" href="https://github.com/agent-ecosystem/skill-validator"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">skill-validator — frontmatter lint</span><span class="u">github.com/agent-ecosystem</span></span></a>
+        <a class="src" href="https://github.com/anthropics/claude-code/issues/17591"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="meta"><span class="t">claude-code issue #17591</span><span class="u">github.com/anthropics/claude-code</span></span></a>
+      </div>
+    </section>
+
+    <div class="foot">
+      <span>view: console · CI-dashboard register</span>
+      <span><a href="../">← back to canonical</a></span>
+      <span>atlas / scout expedition · 2026-06-24</span>
+    </div>
+
+  </div>
+</div>

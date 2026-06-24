@@ -1,0 +1,527 @@
+---
+layout: view
+view_name: "Threat Board"
+view_of: ../
+title: "Regression-testing Claude Code plugins & MCP servers, and catching rug-pulls — Threat Board"
+---
+
+<style>
+  :root {
+    --bg:#080b11; --panel:#0e131c; --panel2:#121925; --line:#1d2735;
+    --ink:#c9d3e0; --dim:#6c7889; --faint:#444f60;
+    --crit:#ff3b30; --high:#ff8a1f; --med:#ffd23f; --info:#34c9d8;
+    --def:#37d67a; --def-dim:#1e6b43;
+    --mono: ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  .tb { background:var(--bg); color:var(--ink); font-family:var(--mono);
+        font-size:15px; line-height:1.55; margin:0; padding:0 0 80px;
+        background-image:
+          repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 4px),
+          radial-gradient(1100px 500px at 80% -10%, rgba(52,201,216,.06), transparent 60%); }
+  .tb * { box-sizing:border-box; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 26px; }
+  .tb a { color:var(--info); text-decoration:none; border-bottom:1px solid rgba(52,201,216,.28); }
+  .tb a:hover { border-bottom-color:var(--info); }
+  sup a { border:none; }
+  sup { font-size:10px; }
+  .cite { color:var(--faint); font-weight:700; padding:0 1px; }
+  .cite:hover { color:var(--info); }
+
+  /* ===== masthead ===== */
+  .top { border-bottom:1px solid var(--line); background:linear-gradient(180deg,#0b1018,#080b11);
+         position:relative; overflow:hidden; }
+  .top::before { content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(135deg, rgba(255,59,48,.05) 0 14px, transparent 14px 28px);
+    pointer-events:none; }
+  .topbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+            padding:14px 0; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--crit);
+         box-shadow:0 0 0 3px rgba(255,59,48,.18); display:inline-block; }
+  .topbar .sep { color:var(--faint); }
+  .breadcrumb { margin-left:auto; }
+  .masthead { padding:30px 0 36px; position:relative; z-index:1; }
+  .kicker { color:var(--crit); font-weight:700; letter-spacing:.26em; text-transform:uppercase;
+            font-size:12px; margin-bottom:14px; }
+  .masthead h1 { font-family:var(--sans); font-weight:850; font-size:clamp(30px,5.4vw,58px);
+                 line-height:1.02; letter-spacing:-.02em; margin:0 0 16px; color:#f1f5fb; }
+  .standfirst { max-width:760px; color:var(--dim); font-size:15px; }
+  .standfirst b { color:var(--ink); }
+  .meta-strip { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+  .chip { border:1px solid var(--line); background:var(--panel); color:var(--dim);
+          padding:5px 11px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; border-radius:3px; }
+  .chip b { color:var(--ink); }
+
+  /* ===== verdict ===== */
+  .verdict { margin:38px 0; border:1px solid var(--def-dim); border-left:4px solid var(--def);
+             background:linear-gradient(180deg,rgba(55,214,122,.06),rgba(55,214,122,.01)); border-radius:6px; padding:22px 26px; }
+  .verdict .lbl { color:var(--def); font-weight:700; letter-spacing:.2em; text-transform:uppercase; font-size:12px; margin-bottom:10px; }
+  .verdict p { margin:0; font-family:var(--sans); font-size:clamp(17px,2.3vw,23px); line-height:1.45; color:#eaf1f8; font-weight:600; }
+  .verdict .ops { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; font-family:var(--mono); }
+  .verdict .op { font-size:12px; color:var(--def); border:1px solid var(--def-dim); border-radius:3px; padding:4px 9px; background:rgba(55,214,122,.05); }
+
+  /* ===== section heads ===== */
+  .sec { margin:54px 0 0; }
+  .sechead { display:flex; align-items:baseline; gap:14px; margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:12px; }
+  .sechead .num { color:var(--crit); font-weight:700; font-size:13px; letter-spacing:.1em; }
+  .sechead h2 { font-family:var(--sans); font-size:22px; font-weight:800; letter-spacing:-.01em; margin:0; color:#eef3f9; }
+  .sechead .note { margin-left:auto; color:var(--faint); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+
+  /* ===== threat-model split ===== */
+  .split { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .tm { border:1px solid var(--line); border-radius:6px; padding:18px 20px; background:var(--panel); }
+  .tm.func { border-top:3px solid var(--info); }
+  .tm.supply { border-top:3px solid var(--crit); }
+  .tm h3 { margin:0 0 6px; font-size:13px; letter-spacing:.16em; text-transform:uppercase; }
+  .tm.func h3 { color:var(--info); }
+  .tm.supply h3 { color:var(--crit); }
+  .tm p { margin:0; color:var(--dim); font-size:14px; }
+  .tm .who { margin-top:12px; font-size:11px; color:var(--faint); letter-spacing:.1em; text-transform:uppercase; }
+
+  /* ===== attack -> defense board ===== */
+  .board { display:flex; flex-direction:column; gap:14px; }
+  .row { display:grid; grid-template-columns:1fr 34px 1fr; gap:0; align-items:stretch;
+         border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--panel); }
+  .attack { padding:16px 18px; background:linear-gradient(180deg,rgba(255,59,48,.07),rgba(255,59,48,.015)); border-right:1px solid var(--line); }
+  .defense { padding:16px 18px; background:linear-gradient(180deg,rgba(55,214,122,.06),rgba(55,214,122,.012)); }
+  .arrow { display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:18px;
+           background:var(--panel2); border-right:1px solid var(--line); }
+  .rowhead { display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+  .sev { font-size:10px; font-weight:800; letter-spacing:.1em; padding:3px 7px; border-radius:3px; color:#0a0d12; }
+  .sev.crit { background:var(--crit); } .sev.high { background:var(--high); }
+  .sev.med { background:var(--med); } .sev.info { background:var(--info); }
+  .atk-name { font-weight:700; color:#ffd9d4; font-size:15px; }
+  .def-name { font-weight:700; color:#d4f6e2; font-size:15px; }
+  .row p { margin:0; font-size:13px; color:var(--dim); }
+  .row .native { margin-top:9px; font-size:11px; letter-spacing:.06em; }
+  .native .ok { color:var(--def); } .native .no { color:var(--crit); }
+  .tools { margin-top:9px; display:flex; gap:6px; flex-wrap:wrap; }
+  .tool { font-size:11px; border:1px solid var(--def-dim); background:rgba(55,214,122,.06); color:#bdf0d2; padding:2px 7px; border-radius:3px; }
+  .tool a { color:#bdf0d2; border:none; }
+  .star { color:var(--med); font-size:10px; }
+
+  /* ===== timeline ===== */
+  .tl { border-left:2px solid var(--line); margin-left:8px; padding-left:0; }
+  .tle { position:relative; padding:0 0 22px 30px; }
+  .tle::before { content:""; position:absolute; left:-7px; top:4px; width:12px; height:12px; border-radius:50%;
+                 background:var(--bg); border:2px solid var(--crit); }
+  .tle.warn::before { border-color:var(--high); } .tle.med::before { border-color:var(--med); }
+  .tle .date { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:4px; }
+  .tle .inc { font-weight:700; color:#f0f4fa; font-size:15px; }
+  .tle .inc .sev { vertical-align:middle; margin-left:8px; }
+  .tle .mech { color:var(--dim); font-size:13px; margin-top:3px; }
+  .tle .refs { margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
+  .cve { font-size:10px; font-family:var(--mono); color:var(--high); border:1px solid rgba(255,138,31,.35);
+         background:rgba(255,138,31,.07); padding:2px 7px; border-radius:3px; letter-spacing:.06em; }
+
+  /* ===== defense-depth strip ===== */
+  .depth { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .layer { border:1px solid var(--line); border-radius:6px; padding:16px; background:var(--panel);
+           border-bottom:3px solid var(--def-dim); }
+  .layer .n { color:var(--def); font-weight:800; font-size:13px; letter-spacing:.1em; }
+  .layer h4 { margin:8px 0 6px; font-size:14px; color:#eaf1f8; font-family:var(--sans); }
+  .layer p { margin:0; font-size:12px; color:var(--dim); }
+
+  /* ===== missing panel ===== */
+  .missing { margin-top:18px; border:1px solid var(--crit); border-radius:8px;
+             background:linear-gradient(180deg,rgba(255,59,48,.10),rgba(255,59,48,.02)); padding:24px 26px;
+             position:relative; overflow:hidden; }
+  .missing::before { content:"⚠"; position:absolute; right:18px; top:8px; font-size:120px; color:rgba(255,59,48,.07); line-height:1; }
+  .missing h2 { font-family:var(--sans); color:#ffd9d4; font-size:22px; margin:0 0 6px; font-weight:850; }
+  .missing .sub { color:var(--high); font-size:12px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:18px; }
+  .gaps { display:grid; grid-template-columns:1fr 1fr; gap:14px; position:relative; z-index:1; }
+  .gap { border-left:3px solid var(--crit); padding:4px 0 4px 14px; }
+  .gap b { color:#ffe5e1; display:block; margin-bottom:3px; font-size:14px; }
+  .gap span { color:var(--dim); font-size:13px; }
+
+  /* ===== sources ===== */
+  .srcgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px; }
+  .src { display:flex; gap:11px; align-items:flex-start; border:1px solid var(--line); border-radius:6px;
+         padding:11px 13px; background:var(--panel); }
+  .src img { width:22px; height:22px; border-radius:4px; flex:0 0 auto; margin-top:2px; background:#1a2230; }
+  .src .st { font-size:13px; line-height:1.35; }
+  .src .st a { color:var(--ink); border:none; font-weight:600; }
+  .src .st a:hover { color:var(--info); }
+  .src .kind { color:var(--faint); font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-top:3px; }
+
+  /* ===== nav ===== */
+  .nav { margin-top:54px; border-top:1px solid var(--line); padding-top:26px; }
+  .nav .pl { color:var(--dim); font-size:11px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:14px; }
+  .sibs { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:12px; }
+  .sib { border:1px solid var(--line); border-radius:6px; padding:14px 16px; background:var(--panel); display:block; border-bottom:none; }
+  .sib:hover { border-color:var(--info); }
+  .sib .d { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--info); margin-bottom:6px; }
+  .sib .t { color:#eaf1f8; font-weight:600; font-size:14px; margin-bottom:5px; }
+  .sib .s { color:var(--dim); font-size:12px; }
+  .foot { margin-top:30px; display:flex; gap:18px; flex-wrap:wrap; color:var(--faint); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+
+  @media (max-width:720px) {
+    .split, .gaps { grid-template-columns:1fr; }
+    .depth { grid-template-columns:1fr 1fr; }
+    .row { grid-template-columns:1fr; }
+    .arrow { height:26px; border-right:none; border-top:1px solid var(--line); border-bottom:1px solid var(--line); transform:rotate(90deg); }
+    .attack { border-right:none; border-bottom:1px solid var(--line); }
+  }
+</style>
+
+<div class="tb">
+
+  <div class="top">
+    <div class="wrap">
+      <div class="topbar">
+        <span class="dot"></span> Threat Board
+        <span class="sep">//</span> Claude Code Extension Supply Chain
+        <span class="sep">//</span> SOC Register
+        <span class="breadcrumb"><a href="../../">↑ Testing &amp; regression-checking agent extensions</a></span>
+      </div>
+      <div class="masthead">
+        <div class="kicker">Attack Class → Defense · 2026 Threat Intelligence</div>
+        <h1>Regression-testing plugins &amp; MCP servers, and catching rug-pulls</h1>
+        <p class="standfirst">An extension you author has <b>two regressable surfaces</b>: a <b>functional contract</b> that drifts under your own refactors, and a <b>supply chain</b> that can rug-pull after you've already approved it. This board maps each attack class to the 2026 tooling that catches it — and marks, in red, the defenses that genuinely do not exist yet.</p>
+        <div class="meta-strip">
+          <span class="chip">Depth <b>expedition</b></span>
+          <span class="chip">Sources <b>49</b></span>
+          <span class="chip">Read <b>18 min</b></span>
+          <span class="chip">Updated <b>2026-06-24</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="verdict">
+      <div class="lbl">▣ Defensible Posture</div>
+      <p>No single layer is sufficient — and the cryptographic layer (signing) is the weakest link precisely where people assume it's strongest.<sup><a class="cite" href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">[31]</a></sup> The posture isn't a product; it's a discipline.</p>
+      <div class="ops">
+        <span class="op">snapshot the contract</span>
+        <span class="op">pin to content, not the reference</span>
+        <span class="op">re-hash on every update</span>
+        <span class="op">never trust an install-time approval to hold</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sechead"><span class="num">01</span><h2>Two threat models, two test rigs</h2><span class="note">one word, two failure classes</span></div>
+      <div class="split">
+        <div class="tm func">
+          <h3>◧ Functional regression</h3>
+          <p>Tool schema or behaviour drifts → the agent calls it wrong and <em>nothing throws</em>. Triggered by <b>your</b> refactor, an SDK bump, or a Claude Code version.<sup><a class="cite" href="https://github.com/dotsetlabs/bellwether">[6]</a></sup></p>
+          <div class="who">caught by · snapshot · conformance · behavioural tests</div>
+        </div>
+        <div class="tm supply">
+          <h3>◨ Rug-pull / supply-chain</h3>
+          <p>A definition or bundled code silently changes <em>after</em> you approved it — trust accrues across versions, malice ships in one.<sup><a class="cite" href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">[17]</a></sup> MCP has <b>no native re-approval</b> on tool-definition change.<sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[12]</a></sup></p>
+          <div class="who">caught by · hash-diff · pinning · provenance · scanners</div>
+        </div>
+      </div>
+      <p style="margin-top:16px;color:var(--dim);font-size:13px">The two intersect: <b style="color:var(--ink)">a rug-pull is a malicious functional regression</b>. The same <code style="color:var(--info)">tools/list</code> snapshot that catches your accidental param rename also catches an upstream description mutation — the single highest-leverage control here.<sup><a class="cite" href="https://owasp.org/www-project-mcp-top-10/">[24]</a></sup></p>
+    </div>
+
+    <div class="sec">
+      <div class="sechead"><span class="num">02</span><h2>The board — attack class → defense</h2><span class="note">left: vector · right: 2026 control</span></div>
+      <div class="board">
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev crit">CRITICAL</span><span class="atk-name">Post-approval mutation (rug-pull)</span></div>
+            <p>A server ships benign tools to earn one approval, then silently changes a tool's description, params, or behaviour.<sup><a class="cite" href="https://modelcontextprotocol-security.io/ttps/tool-poisoning/tool-mutation/">[14]</a></sup><sup><a class="cite" href="https://policylayer.com/attacks/mcp-rug-pull">[15]</a></sup></p>
+            <div class="native">native MCP support: <span class="no">✗ none — no re-approval on change</span><sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[12]</a></sup></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Tool-description hashing + diff on every update</span></div>
+            <p>Hash the whole tool object and track hashes over time; alert on any change.<sup><a class="cite" href="https://mcpplaygroundonline.com/blog/mcp-security-tool-poisoning-owasp-top-10-mcp-scan">[51]</a></sup> Scan-mode <em>detects</em> — only a gateway/proxy <em>prevents</em> in real time.</p>
+            <div class="tools"><span class="tool"><a href="https://github.com/snyk/agent-scan">mcp-scan / Snyk agent-scan</a> <span class="star">★ 2.6k</span></span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev crit">CRITICAL</span><span class="atk-name">Tool poisoning</span></div>
+            <p>Malicious instructions hidden in a tool description (often <code>&lt;IMPORTANT&gt;</code> tags) — visible to the model, not the user; demoed making an <code>add</code> tool exfiltrate SSH keys.<sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[12]</a></sup></p>
+            <div class="native">PoCs: <a href="https://github.com/invariantlabs-ai/mcp-injection-experiments">mcp-injection-experiments</a> <span class="star">★ 197</span><sup><a class="cite" href="https://github.com/invariantlabs-ai/mcp-injection-experiments">[22]</a></sup></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Snapshot the whole tool object — descriptions included</span></div>
+            <p>The description is part of the prompt the model reads, so a description change is a behavioural change even when the JSON Schema is byte-identical. OWASP folds this under Tool Poisoning (MCP01–10).<sup><a class="cite" href="https://owasp.org/www-project-mcp-top-10/">[24]</a></sup></p>
+            <div class="tools"><span class="tool"><a href="https://gofastmcp.com/development/tests">FastMCP inline-snapshot</a></span><span class="tool"><a href="https://github.com/snyk/agent-scan">mcp-scan tool pinning</a></span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev high">HIGH</span><span class="atk-name">Tool shadowing</span></div>
+            <p>A poisoned tool rewrites the agent's behaviour toward <em>another</em> trusted server — e.g. forcing an email tool to BCC the attacker.<sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[12]</a></sup></p>
+            <div class="native">cross-server contamination</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Scanner across the whole config + least privilege</span></div>
+            <p>mcp-scan inspects installed tools across Claude Code, Cursor, Gemini CLI, Windsurf.<sup><a class="cite" href="https://mcpplaygroundonline.com/blog/mcp-security-tool-poisoning-owasp-top-10-mcp-scan">[51]</a></sup> Pair with scoped tokens so one tool can't reach another's blast radius.<sup><a class="cite" href="https://code.claude.com/docs/en/security">[43]</a></sup></p>
+            <div class="tools"><span class="tool"><a href="https://github.com/snyk/agent-scan">mcp-scan</a> <span class="star">★ 2.6k</span></span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev info">MEDIUM</span><span class="atk-name">Schema / description drift (your own server)</span></div>
+            <p>"A parameter renamed, a type modified, a tool removed — AI agents break silently."<sup><a class="cite" href="https://github.com/dotsetlabs/bellwether">[6]</a></sup> The contract is whatever <code>tools/list</code> + <code>resources/list</code> + <code>prompts/list</code> return.</p>
+            <div class="native">native MCP support: <span class="ok">✓ tools.listChanged — a hint, not a gate</span><sup><a class="cite" href="https://modelcontextprotocol.io/specification/2025-11-25/changelog">[10]</a></sup></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Golden snapshot of the manifest, diffed in CI</span></div>
+            <p>Connect, call <code>tools/list</code>, assert the exact schema against a stored fixture; fail the build on any add/remove/type/description change. Update only via a reviewed baseline bump.<sup><a class="cite" href="https://dev.to/aws-heroes/testing-mcp-servers-the-five-gates-between-demo-and-production-2inf">[9]</a></sup></p>
+            <div class="tools">
+              <span class="tool"><a href="https://github.com/dotsetlabs/bellwether">Bellwether</a> <span class="star">★ 1</span></span>
+              <span class="tool"><a href="https://gofastmcp.com/development/tests">FastMCP</a></span>
+              <span class="tool"><a href="https://github.com/modelcontextprotocol/inspector">MCP Inspector</a> <span class="star">★ 10k</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev info">MEDIUM</span><span class="atk-name">Behaviour drift — "the tool now returns wrong data"</span></div>
+            <p>Schema tests catch shape, not behaviour. Chat-window "vibe-testing" proves nothing reproducible.<sup><a class="cite" href="https://jlowin.dev/blog/stop-vibe-testing-mcp-servers">[5]</a></sup></p>
+            <div class="native">shape ≠ correctness</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Behavioural tests through an in-memory client</span></div>
+            <p>Exercise the real MCP serialization/dispatch layer with <code>Client(mcp)</code> — atomic, contract-focused, no network flake.<sup><a class="cite" href="https://jlowin.dev/blog/stop-vibe-testing-mcp-servers">[5]</a></sup> Plus the official conformance gate.<sup><a class="cite" href="https://github.com/modelcontextprotocol/conformance">[3]</a></sup></p>
+            <div class="tools">
+              <span class="tool"><a href="https://gofastmcp.com/development/tests">FastMCP in-memory Client</a></span>
+              <span class="tool"><a href="https://github.com/modelcontextprotocol/conformance">conformance</a> <span class="star">★ 73</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev high">HIGH</span><span class="atk-name">Surprise upstream update · tag re-push</span></div>
+            <p>A version moves under you, or a tag is re-pushed to point at different bytes. Pinning the <em>reference</em> doesn't pin the <em>content</em>.<sup><a class="cite" href="https://edu.chainguard.dev/chainguard/chainguard-images/how-to-use/container-image-digests/">[40]</a></sup></p>
+            <div class="native">version ≠ content</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Digest pinning (<code>image@sha256:…</code>) + lockfile hashes</span></div>
+            <p>Immutable: content changes → hash changes. Pin every bundled dependency; add a <code>SessionStart</code> manifest-diff hook for plugins.<sup><a class="cite" href="https://code.claude.com/docs/en/plugins-reference">[41]</a></sup></p>
+            <div class="tools">
+              <span class="tool"><a href="https://github.com/safedep/pinner-mcp">pinner-mcp</a> <span class="star">★ 12</span></span>
+              <span class="tool"><a href="https://github.com/azu/dockerfile-pin">dockerfile-pin</a> <span class="star">★ 69</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev med">MEDIUM</span><span class="atk-name">Name-squatting / impersonation</span></div>
+            <p>A look-alike server name harvests installs intended for the real one.</p>
+            <div class="native">trust the name?</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Registry namespace verification</span></div>
+            <p>Reverse-DNS names (<code>io.github.user/server</code>) tied to verified GitHub / DNS / HTTP challenge.<sup><a class="cite" href="https://glama.ai/blog/2026-01-24-official-mcp-registry-serverjson-requirements">[35]</a></sup> Verifies ownership of the <em>name</em>, not intent of the <em>code</em>.</p>
+            <div class="tools">
+              <span class="tool"><a href="https://github.com/modelcontextprotocol/registry">MCP Registry</a> <span class="star">★ 6.9k</span></span>
+              <span class="tool"><a href="https://docs.docker.com/ai/mcp-catalog-and-toolkit/">Docker MCP Catalog</a></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev crit">CRITICAL</span><span class="atk-name">Hook RCE via project files</span></div>
+            <p>Malicious project files define hooks / <code>settings.json</code> that auto-run when Claude loads an untrusted repo.<sup><a class="cite" href="https://research.checkpoint.com/2026/rce-and-api-token-exfiltration-through-claude-code-project-files-cve-2025-59536/">[45]</a></sup></p>
+            <div class="native"><span class="cve">CVE-2025-59536</span> <span class="cve">CVE-2026-21852</span></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Directory-trust boundary — and validate before publish</span></div>
+            <p>The directory-trust dialog is the boundary; Claude Code does <em>not</em> security-audit plugins or MCP servers.<sup><a class="cite" href="https://code.claude.com/docs/en/security">[43]</a></sup> Gate your own with <code>claude plugin validate --strict</code>.<sup><a class="cite" href="https://code.claude.com/docs/en/plugins-reference">[41]</a></sup></p>
+            <div class="tools"><span class="tool"><a href="https://github.com/anthropics/claude-code">plugin-validator (claude-code)</a> <span class="star">★ 134k</span></span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="attack">
+            <div class="rowhead"><span class="sev high">HIGH</span><span class="atk-name">Prompt-injection exfil via legitimate tools</span></div>
+            <p>A malicious GitHub issue hijacks the agent and drains private repos through the <em>legitimate</em> GitHub MCP tools — broad PATs were the root cause.<sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-github-vulnerability">[20]</a></sup><sup><a class="cite" href="https://simonwillison.net/2025/May/26/github-mcp-exploited/">[21]</a></sup></p>
+            <div class="native">the lethal trifecta</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="defense">
+            <div class="rowhead"><span class="def-name">Least privilege + runtime isolation</span></div>
+            <p>Scoped tokens, one-repo-per-session, dev containers — so a hijack can't turn a legit tool into an exfil channel.<sup><a class="cite" href="https://code.claude.com/docs/en/security">[43]</a></sup></p>
+            <div class="tools"><span class="tool">scoped PAT · session isolation</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sechead"><span class="num">03</span><h2>Incident &amp; CVE timeline</h2><span class="note">this is not theoretical</span></div>
+      <div class="tl">
+        <div class="tle warn">
+          <div class="date">May 2025</div>
+          <div class="inc">GitHub MCP prompt-injection heist <span class="sev high">HIGH</span></div>
+          <div class="mech">A malicious issue hijacks the agent and exfiltrates private-repo data via legitimate GitHub MCP tools.<sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-github-vulnerability">[20]</a></sup><sup><a class="cite" href="https://simonwillison.net/2025/May/26/github-mcp-exploited/">[21]</a></sup></div>
+        </div>
+        <div class="tle">
+          <div class="date">Jul 2025</div>
+          <div class="inc"><code>mcp-remote</code> OAuth proxy <span class="sev crit">CRITICAL</span></div>
+          <div class="mech">OS command injection via a crafted <code>authorization_endpoint</code>; 437,000+ downloads affected.<sup><a class="cite" href="https://authzed.com/blog/timeline-mcp-breaches">[23]</a></sup></div>
+          <div class="refs"><span class="cve">CVE-2025-6514</span></div>
+        </div>
+        <div class="tle">
+          <div class="date">Sep 2025</div>
+          <div class="inc">postmark-mcp — the canonical rug-pull <span class="sev crit">CRITICAL</span></div>
+          <div class="mech">Benign for 15 versions (1.0.0–1.0.15), then v1.0.16 BCC'd every email to the attacker; ~1,500 weekly installs. Trust accrues across versions, malice ships in one.<sup><a class="cite" href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">[17]</a></sup><sup><a class="cite" href="https://thehackernews.com/2025/09/first-malicious-mcp-server-found.html">[18]</a></sup><sup><a class="cite" href="https://www.theregister.com/2025/09/29/postmark_mcp_server_code_hijacked/">[19]</a></sup></div>
+        </div>
+        <div class="tle">
+          <div class="date">Oct 2025</div>
+          <div class="inc">Smithery hosting path-traversal <span class="sev high">HIGH</span></div>
+          <div class="mech">Leaked the builder's Docker config + Fly.io token across 3,000+ apps.<sup><a class="cite" href="https://authzed.com/blog/timeline-mcp-breaches">[23]</a></sup></div>
+          <div class="refs"><span class="cve">CVE-2025-53967</span></div>
+        </div>
+        <div class="tle">
+          <div class="date">Feb 2026</div>
+          <div class="inc">ToxicSkills / ClawHub audit <span class="sev crit">CRITICAL</span></div>
+          <div class="mech">3,984 agent skills audited: 36% had a vuln, 534 critical, 76 confirmed malicious payloads — 100% of malicious skills combined a code layer with a natural-language instruction layer.<sup><a class="cite" href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">[26]</a></sup></div>
+        </div>
+        <div class="tle">
+          <div class="date">Feb 2026</div>
+          <div class="inc">Claude Code hook RCE <span class="sev crit">CRITICAL</span></div>
+          <div class="mech">Malicious project files define hooks / <code>settings.json</code> that auto-run on repo open.<sup><a class="cite" href="https://research.checkpoint.com/2026/rce-and-api-token-exfiltration-through-claude-code-project-files-cve-2025-59536/">[45]</a></sup></div>
+          <div class="refs"><span class="cve">CVE-2025-59536</span> <span class="cve">CVE-2026-21852</span></div>
+        </div>
+        <div class="tle med">
+          <div class="date">2026</div>
+          <div class="inc">Hookify — official-marketplace plugin <span class="sev med">MEDIUM</span></div>
+          <div class="mech">Reads repo rule files into the hook system's <em>trusted</em> system-message channel; 5/5 payloads leaked env vars against Opus 4.6. Anthropic closed it "working as designed" — the directory-trust dialog is the boundary.<sup><a class="cite" href="https://pluto.security/blog/claude-extension-ecosystem-security-practitioner-guide/">[44]</a></sup></div>
+        </div>
+        <div class="tle">
+          <div class="date">May 2026</div>
+          <div class="inc">Sigstore provenance bypass <span class="sev crit">CRITICAL</span></div>
+          <div class="mech">633 malicious npm versions passed Sigstore verification using valid certs from a compromised maintainer account. Signing proves build provenance, not publish authorization.<sup><a class="cite" href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">[31]</a></sup> npm tightened trusted publishing in response.<sup><a class="cite" href="https://docs.npmjs.com/trusted-publishers/">[32]</a></sup></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sechead"><span class="num">04</span><h2>Defense-in-depth — the four-layer floor</h2><span class="note">no single layer is sufficient</span></div>
+      <div class="depth">
+        <div class="layer">
+          <div class="n">01</div>
+          <h4>Pin to digest</h4>
+          <p><code>image@sha256:…</code> and lockfile hashes for every bundled dependency — content changes → hash changes.<sup><a class="cite" href="https://edu.chainguard.dev/chainguard/chainguard-images/how-to-use/container-image-digests/">[40]</a></sup></p>
+        </div>
+        <div class="layer">
+          <div class="n">02</div>
+          <h4>Hash-diff on update</h4>
+          <p>Run <a href="https://github.com/snyk/agent-scan">mcp-scan</a> against your config in CI and, ideally, as a runtime gateway.<sup><a class="cite" href="https://invariantlabs.ai/blog/introducing-mcp-scan">[13]</a></sup></p>
+        </div>
+        <div class="layer">
+          <div class="n">03</div>
+          <h4>Snapshot the contract</h4>
+          <p>Golden <code>tools/list</code> fixture, descriptions included, diffed in CI; update via reviewed baseline only.<sup><a class="cite" href="https://gofastmcp.com/development/tests">[4]</a></sup></p>
+        </div>
+        <div class="layer">
+          <div class="n">04</div>
+          <h4>Prefer signed sources</h4>
+          <p>Registry-namespaced + signed images — but assume signing can be bypassed and keep the hash-diff regardless.<sup><a class="cite" href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">[31]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="missing">
+        <h2>Genuinely missing defenses</h2>
+        <div class="sub">⚠ where the 2026 tooling runs out</div>
+        <div class="gaps">
+          <div class="gap">
+            <b>No re-approval on tool mutation</b>
+            <span>Neither the MCP spec nor Claude Code forces re-consent when a tool's definition changes after approval — detection is bolt-on, not built-in.<sup><a class="cite" href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">[12]</a></sup></span>
+          </div>
+          <div class="gap">
+            <b>No cross-version test-matrix runner</b>
+            <span>There is no public "test this plugin against three Claude Code versions" runner — you DIY it with a GitHub Actions matrix invoking <code>claude plugin validate</code>.<sup><a class="cite" href="https://code.claude.com/docs/en/plugins-reference">[41]</a></sup></span>
+          </div>
+          <div class="gap">
+            <b>Signing ≠ authorization</b>
+            <span>Sigstore/provenance was bypassed at scale in May 2026 — it proves where a build came from, not that the publish was authorized.<sup><a class="cite" href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">[31]</a></sup></span>
+          </div>
+          <div class="gap">
+            <b>Detection tools are young / thin</b>
+            <span>Bellwether is days old (★ 1); mcp-scan's hashing internals are under-documented; the skills supply chain is an active-attack frontier with no mature gatekeeper.<sup><a class="cite" href="https://github.com/dotsetlabs/bellwether">[6]</a></sup><sup><a class="cite" href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/">[26]</a></sup></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sechead"><span class="num">05</span><h2>Source intel</h2><span class="note">primary feeds · 49 cited</span></div>
+      <div class="srcgrid">
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=invariantlabs.ai&sz=128" alt="">
+          <div class="st"><a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">Tool poisoning, shadowing &amp; rug-pulls — the taxonomy</a><div class="kind">vendor-blog · Invariant Labs · [12]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=snyk.io&sz=128" alt="">
+          <div class="st"><a href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">postmark-mcp harvests emails — the canonical rug-pull</a><div class="kind">vendor-blog · Snyk · [17]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=venturebeat.com&sz=128" alt="">
+          <div class="st"><a href="https://venturebeat.com/security/npm-sigstore-provenance-stolen-identity-audit-grid-2026">633 malicious npm versions passed Sigstore verification</a><div class="kind">news · VentureBeat · [31]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=research.checkpoint.com&sz=128" alt="">
+          <div class="st"><a href="https://research.checkpoint.com/2026/rce-and-api-token-exfiltration-through-claude-code-project-files-cve-2025-59536/">RCE &amp; token exfil through Claude Code project files</a><div class="kind">vendor-blog · Check Point · [45]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <div class="st"><a href="https://github.com/snyk/agent-scan">mcp-scan / Snyk agent-scan — tool pinning</a><div class="kind">official · ★ 2.6k · [28]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <div class="st"><a href="https://github.com/dotsetlabs/bellwether">Bellwether — schema drift vs committed baseline</a><div class="kind">official · ★ 1 · [6]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=gofastmcp.com&sz=128" alt="">
+          <div class="st"><a href="https://gofastmcp.com/development/tests">FastMCP — in-memory Client &amp; inline-snapshot</a><div class="kind">official · [4]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <div class="st"><a href="https://github.com/modelcontextprotocol/conformance">Official MCP conformance suite + GitHub Action</a><div class="kind">official · ★ 73 · [3]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=owasp.org&sz=128" alt="">
+          <div class="st"><a href="https://owasp.org/www-project-mcp-top-10/">OWASP MCP Top 10 — description drift flagged</a><div class="kind">official · OWASP · [24]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt="">
+          <div class="st"><a href="https://code.claude.com/docs/en/plugins-reference">Claude Code plugins — <code>validate --strict</code>, version footguns</a><div class="kind">official · [41]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=modelcontextprotocol.io&sz=128" alt="">
+          <div class="st"><a href="https://modelcontextprotocol.io/specification/2025-11-25/changelog">MCP 2025-11-25 changelog — JSON Schema 2020-12 default</a><div class="kind">official · [10]</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=authzed.com&sz=128" alt="">
+          <div class="st"><a href="https://authzed.com/blog/timeline-mcp-breaches">Timeline of MCP breaches — mcp-remote, Smithery CVEs</a><div class="kind">vendor-blog · AuthZed · [23]</div></div></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="pl">Adjacent sectors · <a href="../../">Testing &amp; regression-checking agent extensions</a></div>
+      <div class="sibs">
+        <a class="sib" href="../../testing-an-authored-skill/">
+          <div class="d">survey</div>
+          <div class="t">Testing an authored Claude Code Skill</div>
+          <div class="s">Does the description trigger, and does the body behave — the skill-creator eval loop plus a with/without baseline.</div>
+        </a>
+        <a class="sib" href="../../smoke-testing-subagent-routing/">
+          <div class="d">survey</div>
+          <div class="t">Smoke-testing a subagent's routing</div>
+          <div class="s">Promptfoo's claude-agent-sdk provider plus headless stream-json are the only real ways to assert routing in 2026.</div>
+        </a>
+        <a class="sib" href="../../the-lightweight-per-pr-floor-and-concrete-ci-recipes-and-tools/">
+          <div class="d">survey</div>
+          <div class="t">The lightweight per-PR floor</div>
+          <div class="s">Deterministic schema and frontmatter linting first, one cheap headless model check second.</div>
+        </a>
+        <a class="sib" href="../../testing-hooks/">
+          <div class="d">recon</div>
+          <div class="t">Testing Claude Code Hooks</div>
+          <div class="s">Plain scripts with a fixed stdin/exit-code/JSON contract — the one extension with fully-deterministic CI.</div>
+        </a>
+      </div>
+      <div class="foot">
+        <span><a href="../">▣ Read the full briefing</a></span>
+        <span><a href="/">Atlas</a></span>
+        <span>Expedition · 49 sources · 2026-06-24</span>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,559 @@
+---
+layout: view
+view_name: "Pipeline"
+view_of: ../
+title: "The lightweight per-PR floor for testing Claude Code agent extensions — Pipeline"
+---
+
+<style>
+  .pl {
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#30363d;
+    --ink:#c9d1d9; --mut:#8b949e; --dim:#6e7681;
+    --pass:#3fb950; --passdim:#238636; --opt:#d29922; --warn:#f85149;
+    --link:#58a6ff; --cyan:#39c5cf;
+    --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    margin:0; padding:0; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .pl * { box-sizing:border-box; }
+  .pl a { color:var(--link); text-decoration:none; }
+  .pl a:hover { text-decoration:underline; }
+  .pl sup { font-size:.62em; }
+  .pl sup a { color:var(--cyan); }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 24px; }
+
+  /* ---- masthead ---- */
+  .mast {
+    border-bottom:1px solid var(--line);
+    background:
+      repeating-linear-gradient(90deg,transparent 0 39px,rgba(255,255,255,.018) 39px 40px),
+      var(--bg);
+    padding:46px 0 30px;
+  }
+  .crumb { font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.02em; margin-bottom:22px; }
+  .crumb a { color:var(--mut); }
+  .crumb a:hover { color:var(--link); }
+  .runline {
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; color:var(--dim); margin-bottom:18px;
+  }
+  .pulse { width:9px; height:9px; border-radius:50%; background:var(--pass); box-shadow:0 0 0 0 rgba(63,185,80,.5); }
+  .runline .ok { color:var(--pass); }
+  .mast h1 {
+    font-family:var(--mono); font-weight:700; letter-spacing:-.01em;
+    font-size:clamp(30px,5.4vw,52px); line-height:1.04; margin:0 0 16px;
+  }
+  .mast h1 .gt { color:var(--pass); }
+  .lede { max-width:760px; color:var(--mut); font-size:16.5px; margin:0; }
+  .chips { display:flex; gap:7px; flex-wrap:wrap; margin-top:22px; }
+  .chip {
+    font-family:var(--mono); font-size:11px; color:var(--mut);
+    border:1px solid var(--line); border-radius:20px; padding:4px 11px; background:var(--panel);
+  }
+
+  /* ---- verdict ---- */
+  .verdict {
+    margin:32px 0; border:1px solid var(--line); border-left:3px solid var(--pass);
+    border-radius:8px; background:linear-gradient(180deg,var(--panel2),var(--panel));
+    padding:24px 26px;
+  }
+  .verdict .tag { font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--pass); text-transform:uppercase; }
+  .verdict p { margin:10px 0 0; font-size:17px; color:#dbe2ea; }
+  .verdict strong { color:#fff; }
+
+  /* ---- section heads ---- */
+  .shead { display:flex; align-items:baseline; gap:14px; margin:54px 0 6px; }
+  .shead h2 { font-family:var(--mono); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin:0; }
+  .shead .rule { flex:1; height:1px; background:var(--line); }
+  .shead .n { font-family:var(--mono); font-size:12px; color:var(--dim); }
+  .ssub { color:var(--mut); font-size:14.5px; margin:8px 0 22px; max-width:820px; }
+
+  /* ---- trigger bar ---- */
+  .trigger {
+    border:1px dashed var(--line); border-radius:8px; background:var(--panel);
+    padding:14px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:13px;
+  }
+  .trigger .label { color:var(--opt); letter-spacing:.08em; font-size:11px; }
+  .trigger code { color:var(--cyan); }
+  .trigger .arr { color:var(--dim); }
+
+  /* ---- pipeline lanes ---- */
+  .pipe { display:flex; gap:0; overflow-x:auto; padding:24px 2px 8px; }
+  .lane { flex:0 0 300px; min-width:300px; }
+  .conn { flex:0 0 44px; display:flex; align-items:center; justify-content:center; color:var(--dim); }
+  .conn svg { width:30px; height:30px; }
+  .stage {
+    height:100%; border:1px solid var(--line); border-radius:10px; background:var(--panel);
+    overflow:hidden; display:flex; flex-direction:column;
+    border-top:3px solid var(--pass);
+  }
+  .stage.opt { border-top-color:var(--opt); }
+  .stage-h { padding:15px 16px 12px; border-bottom:1px solid var(--line); }
+  .stage-h .row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .stage-no { font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.1em; }
+  .glyph { font-size:17px; line-height:1; }
+  .glyph.ok { color:var(--pass); }
+  .glyph.gate { color:var(--opt); }
+  .stage-h h3 { font-size:16px; margin:9px 0 3px; color:#e9eef4; }
+  .stage-h p { margin:0; font-size:12.5px; color:var(--mut); }
+  .badge {
+    display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.06em;
+    padding:3px 8px; border-radius:5px; margin-top:11px; text-transform:uppercase;
+    background:rgba(63,185,80,.12); color:var(--pass); border:1px solid rgba(63,185,80,.3);
+  }
+  .badge.opt { background:rgba(210,153,34,.12); color:var(--opt); border-color:rgba(210,153,34,.32); }
+  .stage-b { padding:14px 16px; flex:1; display:flex; flex-direction:column; gap:12px; }
+  .cmd {
+    font-family:var(--mono); font-size:11.5px; line-height:1.55; color:#c9d1d9;
+    background:#0a0d12; border:1px solid var(--line); border-radius:7px; padding:11px 12px;
+    overflow-x:auto; white-space:pre; margin:0;
+  }
+  .cmd .fl { color:var(--opt); }
+  .cmd .ev { color:var(--cyan); }
+  .cmd .cm { color:var(--dim); }
+  .cmd .pr { color:var(--pass); }
+  .runby { font-family:var(--mono); font-size:11.5px; color:var(--mut); }
+  .runby b { color:var(--ink); font-weight:600; }
+  .catch { font-size:12.5px; color:var(--mut); margin:0; }
+  .catch b { color:var(--ink); }
+
+  /* ---- security band ---- */
+  .sec {
+    margin:22px 0 0; border:1px solid rgba(248,81,73,.35); border-left:3px solid var(--warn);
+    border-radius:8px; background:rgba(248,81,73,.06); padding:16px 20px;
+  }
+  .sec .tag { font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--warn); text-transform:uppercase; }
+  .sec p { margin:8px 0 0; font-size:14px; color:#e8d5d4; }
+  .sec p b { color:#fff; }
+
+  /* ---- tool spec grid ---- */
+  .tools { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px; margin-top:6px; }
+  .tool {
+    border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:16px 17px;
+    display:flex; flex-direction:column; gap:11px;
+  }
+  .tool.pick { border-color:rgba(63,185,80,.45); box-shadow:inset 0 0 0 1px rgba(63,185,80,.12); }
+  .tool .top { display:flex; align-items:center; gap:11px; }
+  .tool .fav { width:22px; height:22px; border-radius:5px; flex:0 0 22px; background:#0a0d12; }
+  .tool .nm { font-family:var(--mono); font-size:14.5px; font-weight:600; color:#e9eef4; flex:1; }
+  .tool .nm a { color:#e9eef4; }
+  .star { font-family:var(--mono); font-size:12px; color:var(--opt); white-space:nowrap; }
+  .star.none { color:var(--dim); }
+  .tool .what { font-size:13px; color:var(--mut); margin:0; flex:1; }
+  .tool .what b { color:var(--ink); }
+  .meta { display:flex; flex-wrap:wrap; gap:6px; }
+  .pill {
+    font-family:var(--mono); font-size:10.5px; color:var(--mut);
+    border:1px solid var(--line); border-radius:5px; padding:3px 8px; background:var(--panel2);
+  }
+  .pill.go { color:var(--pass); border-color:rgba(63,185,80,.3); }
+  .pill.arch { color:var(--warn); border-color:rgba(248,81,73,.3); }
+  .recnote { font-family:var(--mono); font-size:12px; color:var(--pass); margin-top:7px; }
+
+  /* ---- stat strip ---- */
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-top:6px; }
+  .stat { border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:20px; }
+  .stat .big { font-family:var(--mono); font-weight:700; font-size:38px; color:#fff; line-height:1; }
+  .stat .big.g { color:var(--pass); } .stat .big.a { color:var(--opt); }
+  .stat .lbl { font-size:13px; color:var(--mut); margin-top:9px; }
+
+  /* ---- precedent strip ---- */
+  .prec { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:6px; }
+  .pcard { border:1px solid var(--line); border-radius:9px; background:var(--panel); padding:14px 15px; display:flex; gap:11px; align-items:flex-start; }
+  .pcard .fav { width:20px; height:20px; border-radius:4px; flex:0 0 20px; margin-top:2px; background:#0a0d12; }
+  .pcard .nm { font-family:var(--mono); font-size:13px; color:#e9eef4; }
+  .pcard .nm a { color:#e9eef4; }
+  .pcard .st { font-family:var(--mono); font-size:11px; color:var(--opt); }
+  .pcard p { margin:5px 0 0; font-size:12px; color:var(--mut); }
+
+  /* ---- floor ladder ---- */
+  .ladder { border:1px solid var(--line); border-radius:10px; background:var(--panel); overflow:hidden; margin-top:6px; }
+  .step { display:flex; gap:14px; padding:15px 18px; border-bottom:1px solid var(--line); align-items:baseline; }
+  .step:last-child { border-bottom:0; }
+  .step.last { background:rgba(210,153,34,.05); }
+  .step .ix { font-family:var(--mono); font-size:13px; color:var(--pass); flex:0 0 26px; }
+  .step.last .ix { color:var(--opt); }
+  .step .txt { font-size:14.5px; color:var(--ink); }
+  .step .txt b { color:#fff; }
+  .step .cost { margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--dim); white-space:nowrap; padding-left:12px; }
+
+  /* ---- nav / siblings ---- */
+  .nav { margin:56px 0 10px; }
+  .navgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin-top:14px; }
+  .sib { border:1px solid var(--line); border-radius:9px; background:var(--panel); padding:15px 16px; display:block; }
+  .sib:hover { border-color:var(--link); text-decoration:none; }
+  .sib .dep { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--cyan); }
+  .sib .ti { font-size:14.5px; color:#e9eef4; margin:7px 0 6px; font-weight:600; }
+  .sib .su { font-size:12.5px; color:var(--mut); margin:0; }
+  .backrow { display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; font-family:var(--mono); font-size:13px; }
+  .backrow a { border:1px solid var(--line); border-radius:7px; padding:9px 14px; background:var(--panel); }
+
+  /* ---- sources ---- */
+  .srcs { columns:2; column-gap:24px; margin-top:14px; }
+  .src { break-inside:avoid; display:flex; gap:9px; align-items:flex-start; padding:7px 0; font-size:12.5px; }
+  .src .fav { width:16px; height:16px; border-radius:3px; flex:0 0 16px; margin-top:2px; background:#0a0d12; }
+  .src .n { font-family:var(--mono); color:var(--dim); flex:0 0 26px; }
+  .src .bd a { color:var(--ink); }
+  .src .bd a:hover { color:var(--link); }
+  .colophon { font-family:var(--mono); font-size:11.5px; color:var(--dim); margin:46px 0 60px; padding-top:18px; border-top:1px solid var(--line); }
+  @media (max-width:640px){ .srcs{columns:1;} }
+</style>
+
+<div class="pl">
+
+  <header class="mast">
+    <div class="wrap">
+      <div class="crumb">
+        <a href="../../">expedition: testing agent extensions</a> / <a href="../">the lightweight per-PR floor</a> / <span>pipeline</span>
+      </div>
+      <div class="runline">
+        <span class="pulse"></span>
+        <span>workflow</span><span>·</span>
+        <span class="ev">on: pull_request</span><span>·</span>
+        <span class="ok">5 deterministic gates</span><span>·</span>
+        <span class="opt" style="color:var(--opt)">1 optional model check</span><span>·</span>
+        <span>survey · 17 sources</span>
+      </div>
+      <h1>The per-PR floor,<br><span class="gt">$</span> rendered as a pipeline</h1>
+      <p class="lede">What a 3-person team can run on every <code style="font-family:var(--mono);color:var(--cyan)">.claude/**</code> change <em>without</em> standing up an eval platform — deterministic gates first, one cheap headless model check last. Each stage below is a real command and the tool that runs it.</p>
+      <div class="chips">
+        <span class="chip">claude-code</span><span class="chip">ci</span><span class="chip">testing</span>
+        <span class="chip">plugins</span><span class="chip">skills</span><span class="chip">mcp</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="verdict">
+      <span class="tag">▮ decision</span>
+      <p>For a small team the realistic floor is <strong>deterministic, no-model-call checks gated on <code style="font-family:var(--mono)">.claude/**</code> paths</strong>: <code style="font-family:var(--mono)">plugin validate --strict</code>, JSON-schema validation against the official SchemaStore schemas, one sub-second frontmatter linter, and a "does it load" smoke test. Add <strong>at most one</strong> headless <code style="font-family:var(--mono)">claude -p</code> review — only after the deterministic layer is green. A full eval platform is overkill here, and honestly <strong>little is standardized yet</strong>. <sup><a href="https://code.claude.com/docs/en/plugins-reference">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/headless">[1]</a></sup></p>
+    </div>
+
+    <!-- ===== PIPELINE ===== -->
+    <div class="shead">
+      <span class="n">//</span>
+      <h2>The pipeline</h2>
+      <span class="rule"></span>
+    </div>
+    <p class="ssub">Left to right: each gate must pass before the next runs. The first three lanes never call a model — they finish in seconds, cost nothing, and can't flake. The fourth lane is optional, spends tokens, and is advisory only.</p>
+
+    <div class="trigger">
+      <span class="label">▸ TRIGGER</span>
+      <code>on: pull_request — paths: ['.claude/**', '.claude-plugin/**', '.mcp.json']</code>
+      <span class="arr">— the cost-control lever: gates run only when extension files change <sup><a href="https://dev.to/thestack_ai/testing-claude-code-skills-in-ci-pulser-eval-github-action-3na9">[6]</a></sup></span>
+    </div>
+
+    <div class="pipe">
+
+      <!-- stage 1 -->
+      <div class="lane">
+        <div class="stage">
+          <div class="stage-h">
+            <div class="row"><span class="stage-no">STAGE 01</span><span class="glyph ok">✓</span></div>
+            <h3>Deterministic lint</h3>
+            <p>Manifest structure + SKILL.md frontmatter</p>
+            <span class="badge">No model call</span>
+          </div>
+          <div class="stage-b">
+<pre class="cmd"><span class="pr">claude</span> plugin validate . <span class="fl">--strict</span>
+<span class="cm"># then one frontmatter linter:</span>
+<span class="pr">npx</span> pulser eval</pre>
+            <p class="runby">runs: <b><a href="https://code.claude.com/docs/en/plugins-reference">claude plugin validate</a></b> (built-in) + <b><a href="https://github.com/TheStack-ai/pulser">pulser</a></b> ⭐ 17</p>
+            <p class="catch"><b>Catches:</b> misspelled / leftover manifest fields (<code style="font-family:var(--mono)">--strict</code> = warnings-as-errors), unparseable YAML, missing <code style="font-family:var(--mono)">description</code>, the 1,536-char listing cap. <sup><a href="https://code.claude.com/docs/en/plugins-reference">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/skills">[3]</a></sup></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h16M14 6l6 6-6 6"/></svg></div>
+
+      <!-- stage 2 -->
+      <div class="lane">
+        <div class="stage">
+          <div class="stage-h">
+            <div class="row"><span class="stage-no">STAGE 02</span><span class="glyph ok">✓</span></div>
+            <h3>Schema validate</h3>
+            <p>Manifests + MCP defs vs SchemaStore</p>
+            <span class="badge">No model call</span>
+          </div>
+          <div class="stage-b">
+<pre class="cmd"><span class="pr">npx</span> ajv-cli validate \
+  <span class="fl">-s</span> https://json.schemastore.org/\
+claude-code-plugin-manifest.json \
+  <span class="fl">-d</span> ".claude-plugin/plugin.json"</pre>
+            <p class="runby">runs: <b>ajv-cli</b> / <b>check-jsonschema</b> → official <a href="https://code.claude.com/docs/en/plugins-reference">SchemaStore</a> schema</p>
+            <p class="catch"><b>Catches:</b> structurally invalid <code style="font-family:var(--mono)">plugin.json</code>/<code style="font-family:var(--mono)">marketplace.json</code>/<code style="font-family:var(--mono)">.mcp.json</code>. The community schema repo is now <b>archived</b> because Anthropic's schemas shipped to SchemaStore — use the official path. <sup><a href="https://code.claude.com/docs/en/plugins-reference">[2]</a></sup><sup><a href="https://github.com/hesreallyhim/claude-code-json-schema">[8]</a></sup></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h16M14 6l6 6-6 6"/></svg></div>
+
+      <!-- stage 3 -->
+      <div class="lane">
+        <div class="stage">
+          <div class="stage-h">
+            <div class="row"><span class="stage-no">STAGE 03</span><span class="glyph ok">✓</span></div>
+            <h3>Load smoke test</h3>
+            <p>"Does it actually load?"</p>
+            <span class="badge">One trivial run</span>
+          </div>
+          <div class="stage-b">
+<pre class="cmd"><span class="pr">claude</span> <span class="fl">--bare</span> <span class="fl">-p</span> "ok" <span class="fl">--plugin-dir</span> ./plug \
+  <span class="fl">--output-format</span> stream-json <span class="fl">--verbose</span> \
+| <span class="pr">jq</span> <span class="fl">-e</span> '<span class="ev">.plugin_errors</span> | length == 0'</pre>
+            <p class="runby">runs: <b><a href="https://code.claude.com/docs/en/headless">claude -p</a></b> headless → parse <code style="font-family:var(--mono)">system/init</code></p>
+            <p class="catch"><b>Catches:</b> plugins that fail to load. Docs say outright: <i>"use the plugin fields to fail CI when a plugin did not load."</i> <code style="font-family:var(--mono)">--bare</code> = same result on every machine; for MCP add <code style="font-family:var(--mono)">--strict-mcp-config</code> (⚠ doesn't override <code style="font-family:var(--mono)">disabledMcpServers</code> — pin a clean <code style="font-family:var(--mono)">HOME</code>). <sup><a href="https://code.claude.com/docs/en/headless">[1]</a></sup><sup><a href="https://github.com/anthropics/claude-code/issues/14490">[4]</a></sup></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h12" stroke-dasharray="3 3"/><path d="M10 6l6 6-6 6"/></svg></div>
+
+      <!-- stage 4 -->
+      <div class="lane">
+        <div class="stage opt">
+          <div class="stage-h">
+            <div class="row"><span class="stage-no">STAGE 04 · GATE</span><span class="glyph gate">◇</span></div>
+            <h3>Headless model check</h3>
+            <p>Optional · advisory · spends tokens</p>
+            <span class="badge opt">Optional · 1 model call</span>
+          </div>
+          <div class="stage-b">
+<pre class="cmd"><span class="pr">git</span> diff origin/main | <span class="pr">claude</span> <span class="fl">--bare</span> <span class="fl">-p</span> \
+  <span class="fl">--append-system-prompt</span> "review CC skills…" \
+  <span class="fl">--output-format</span> json \
+  <span class="fl">--json-schema</span> '{…"issues":[…]}' \
+| <span class="pr">jq</span> <span class="fl">-e</span> '<span class="ev">.structured_output.issues</span>|length==0'</pre>
+            <p class="runby">runs: <b><a href="https://code.claude.com/docs/en/headless">claude -p</a></b> · or <b><a href="https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md">claude-code-action</a></b> ⭐ 8.1k</p>
+            <p class="catch"><b>Catches:</b> descriptions that won't trigger, references to missing files. Schema-conforming output lands in <code style="font-family:var(--mono)">structured_output</code>; payload carries <code style="font-family:var(--mono)">total_cost_usd</code> to budget. Keep it a single <b>advisory</b> check, not a hard gate. <sup><a href="https://code.claude.com/docs/en/headless">[1]</a></sup></p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pipe -->
+
+    <div class="sec">
+      <span class="tag">⚠ security caveat — stage 04 only</span>
+      <p>Any PR-triggered model run is a prompt-injection surface. A June 2026 disclosure showed a flaw where <b>one malicious issue could hijack repositories</b> through the Claude Code GitHub Action. Pin action versions, scope <code style="font-family:var(--mono)">--allowedTools</code> tightly (or <code style="font-family:var(--mono)">--permission-mode dontAsk</code>), and never grant write/secrets to fork-triggered runs. <sup><a href="https://thehackernews.com/2026/06/claude-code-github-action-flaw-let-one.html">[14]</a></sup></p>
+    </div>
+
+    <!-- ===== TOOL SPEC GRID ===== -->
+    <div class="shead">
+      <span class="n">//</span>
+      <h2>Stage-01 linters — pick exactly one</h2>
+      <span class="rule"></span>
+    </div>
+    <p class="ssub">They overlap heavily; running more than one just duplicates findings. Stars are a triage signal — most are weeks-to-months old and single-maintainer. <b>skill-validator</b> is the most feature-complete (and the only one with built-in CI annotations); <b>pulser</b> is the fastest zero-dep option.</p>
+
+    <div class="tools">
+
+      <div class="tool">
+        <div class="top">
+          <img class="fav" src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt="">
+          <span class="nm"><a href="https://code.claude.com/docs/en/plugins-reference">claude plugin validate</a></span>
+          <span class="star none">built-in</span>
+        </div>
+        <p class="what">Validates <b>plugin.json / marketplace.json</b> structure. <code style="font-family:var(--mono)">--strict</code> = warnings-as-errors; wrong-typed fields fail even without it.</p>
+        <div class="meta"><span class="pill go">CLI · instant</span><span class="pill">no deps</span><span class="pill">manifests</span></div>
+      </div>
+
+      <div class="tool pick">
+        <div class="top">
+          <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <span class="nm"><a href="https://github.com/agent-ecosystem/skill-validator">skill-validator</a></span>
+          <span class="star">⭐ 174</span>
+        </div>
+        <p class="what">Spec compliance, <b>token counts</b> (o200k_base), link resolution (HEAD), file hygiene, unclosed code fences. Optional LLM-judge <code style="font-family:var(--mono)">score evaluate</code> mode.</p>
+        <div class="meta"><span class="pill go">Go CLI</span><span class="pill">pre-commit</span><span class="pill">Actions · --emit-annotations</span><span class="pill">--strict</span></div>
+        <div class="recnote">★ most feature-complete · only one with CI annotations</div>
+      </div>
+
+      <div class="tool pick">
+        <div class="top">
+          <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <span class="nm"><a href="https://github.com/TheStack-ai/pulser">pulser</a></span>
+          <span class="star">⭐ 17</span>
+        </div>
+        <p class="what">5 checks: YAML parse, required fields, description quality, file structure, cross-refs. <b>~200ms / 40 skills, zero deps.</b></p>
+        <div class="meta"><span class="pill go">CLI · npx</span><span class="pill">Action · pulserin/pulser@v1</span><span class="pill">exit 0/1/2</span></div>
+        <div class="recnote">★ fastest, zero-dependency option</div>
+      </div>
+
+      <div class="tool">
+        <div class="top">
+          <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <span class="nm"><a href="https://github.com/swarmclawai/agent-skills-lint">agent-skills-lint</a></span>
+          <span class="star">⭐ 1</span>
+        </div>
+        <p class="what">Cross-agent skill schema (Claude / Codex / Cursor / …). name + description core plus per-flavor rules — keeps a skill portable.</p>
+        <div class="meta"><span class="pill">npx @swarmclawai/agent-skills-lint</span><span class="pill">cross-agent</span></div>
+      </div>
+
+      <div class="tool">
+        <div class="top">
+          <img class="fav" src="https://www.google.com/s2/favicons?domain=getskillcheck.com&sz=128" alt="">
+          <span class="nm"><a href="https://www.getskillcheck.com/">SkillCheck</a></span>
+          <span class="star none">hosted</span>
+        </div>
+        <p class="what">Validates against the <b>Agent Skills</b> open standard (free). Pro adds anti-slop, WCAG, and security scanning.</p>
+        <div class="meta"><span class="pill">hosted / web</span><span class="pill">not a CI gate</span></div>
+      </div>
+
+      <div class="tool">
+        <div class="top">
+          <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+          <span class="nm"><a href="https://github.com/hesreallyhim/claude-code-json-schema">claude-code-json-schema</a></span>
+          <span class="star">⭐ 6</span>
+        </div>
+        <p class="what">Pioneered JSON-schema for manifests — now <b>archived</b>, superseded by the official SchemaStore schemas. Use stage 02 instead.</p>
+        <div class="meta"><span class="pill arch">archived</span><span class="pill">→ use SchemaStore</span></div>
+      </div>
+
+    </div>
+
+    <!-- ===== STATE OF PLAY ===== -->
+    <div class="shead">
+      <span class="n">//</span>
+      <h2>Why the cheap layer is where the value is</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="big a">73%</div>
+        <div class="lbl">of 214 audited skills had silent structural defects in one community audit — treat the exact number as marketing, the direction as real: nobody is linting these files. <sup><a href="https://dev.to/thestack_ai/i-audited-214-claude-code-skills-73-were-silently-broken-2m9a">[15]</a></sup></div>
+      </div>
+      <div class="stat">
+        <div class="big g">~15s</div>
+        <div class="lbl">added to the pipeline when skill linting is gated on <code style="font-family:var(--mono)">.claude/**</code> — paths filter keeps it off every other PR. <sup><a href="https://dev.to/thestack_ai/testing-claude-code-skills-in-ci-pulser-eval-github-action-3na9">[6]</a></sup></div>
+      </div>
+      <div class="stat">
+        <div class="big g">$0</div>
+        <div class="lbl">cost of stages 01–03 — deterministic, non-flaky, no model calls. The whole floor before you ever spend a token. <sup><a href="https://code.claude.com/docs/en/headless">[1]</a></sup></div>
+      </div>
+      <div class="stat">
+        <div class="big">1</div>
+        <div class="lbl">built-in validator Anthropic ships (<code style="font-family:var(--mono)">claude plugin validate</code>); it's intentionally lenient, so deterministic community checks have a high catch rate. <sup><a href="https://code.claude.com/docs/en/plugins-reference">[2]</a></sup></div>
+      </div>
+    </div>
+
+    <!-- ===== PRECEDENT ===== -->
+    <div class="shead">
+      <span class="n">//</span>
+      <h2>Marketplace-scale precedent &amp; test corpora</h2>
+      <span class="rule"></span>
+    </div>
+    <p class="ssub">Large marketplaces already gate manifests exactly this way — and these repos double as fixtures to test your own tooling against.</p>
+    <div class="prec">
+      <div class="pcard">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div>
+          <div class="nm"><a href="https://github.com/jeremylongshore/claude-code-plugins-plus-skills">jeremylongshore/claude-code-plugins-plus-skills</a> <span class="st">⭐ 2.4k</span></div>
+          <p>Runs <code style="font-family:var(--mono)">claude plugin validate</code> over <code style="font-family:var(--mono)">marketplace.json</code> + every <code style="font-family:var(--mono)">plugin.json</code> in CI so invalid manifests can't merge. <sup><a href="https://github.com/jeremylongshore/claude-code-plugins-plus-skills">[17]</a></sup></p>
+        </div>
+      </div>
+      <div class="pcard">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div>
+          <div class="nm"><a href="https://github.com/anthropics/claude-plugins-official">anthropics/claude-plugins-official</a> <span class="st">⭐ 31k</span></div>
+          <p>The reference <code style="font-family:var(--mono)">marketplace.json</code> to diff your schema against. <sup><a href="https://github.com/anthropics/claude-plugins-official">[18]</a></sup></p>
+        </div>
+      </div>
+      <div class="pcard">
+        <img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div>
+          <div class="nm"><a href="https://github.com/glebis/claude-skills">glebis/claude-skills</a> <span class="st">⭐ 286</span></div>
+          <p>A clean small skill collection — a starting corpus to test tooling against. <sup><a href="https://github.com/glebis/claude-skills">[19]</a></sup></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== THE FLOOR LADDER ===== -->
+    <div class="shead">
+      <span class="n">//</span>
+      <h2>The minimum bar, in priority order</h2>
+      <span class="rule"></span>
+    </div>
+    <p class="ssub">Stop wherever the budget for <em>maintaining</em> checks runs out. Steps 1–5 are the floor and they're enough.</p>
+    <div class="ladder">
+      <div class="step"><span class="ix">1</span><span class="txt"><b>CI path filter</b> on <code style="font-family:var(--mono)">.claude/**</code> + manifests so checks run only on extension changes. <sup><a href="https://dev.to/thestack_ai/testing-claude-code-skills-in-ci-pulser-eval-github-action-3na9">[6]</a></sup></span><span class="cost">5 min</span></div>
+      <div class="step"><span class="ix">2</span><span class="txt"><b><a href="https://code.claude.com/docs/en/plugins-reference">claude plugin validate --strict</a></b> on every manifest. <sup><a href="https://code.claude.com/docs/en/plugins-reference">[2]</a></sup></span><span class="cost">built-in · free</span></div>
+      <div class="step"><span class="ix">3</span><span class="txt"><b>One frontmatter linter</b> — <a href="https://github.com/TheStack-ai/pulser">pulser</a> or <a href="https://github.com/agent-ecosystem/skill-validator">skill-validator</a> — as a required check. <sup><a href="https://github.com/TheStack-ai/pulser">[5]</a></sup><sup><a href="https://github.com/agent-ecosystem/skill-validator">[7]</a></sup></span><span class="cost">free · sub-second</span></div>
+      <div class="step"><span class="ix">4</span><span class="txt"><b>JSON-schema validate</b> manifests/MCP defs against SchemaStore. <sup><a href="https://code.claude.com/docs/en/plugins-reference">[2]</a></sup></span><span class="cost">free</span></div>
+      <div class="step"><span class="ix">5</span><span class="txt"><b>"Does it load" smoke test</b> via <code style="font-family:var(--mono)">claude -p --output-format stream-json</code> → assert empty <code style="font-family:var(--mono)">plugin_errors</code>. <sup><a href="https://code.claude.com/docs/en/headless">[1]</a></sup></span><span class="cost">one trivial run</span></div>
+      <div class="step last"><span class="ix">6</span><span class="txt"><b>Optional, last:</b> one headless <code style="font-family:var(--mono)">claude -p</code> model review of the diff with <code style="font-family:var(--mono)">--json-schema</code>, behind the security guardrails. <sup><a href="https://code.claude.com/docs/en/headless">[1]</a></sup><sup><a href="https://thehackernews.com/2026/06/claude-code-github-action-flaw-let-one.html">[14]</a></sup></span><span class="cost">spends tokens</span></div>
+    </div>
+    <p class="ssub" style="margin-top:16px">Anything beyond this — golden datasets, LLM-as-judge rubrics, statistical delta gates — is the eval-platform territory this brief deliberately leaves out. A local <code style="font-family:var(--mono)">claude doctor</code> belongs in the contributor checklist, not the gate. <sup><a href="https://blog.vincentqiao.com/en/posts/claude-code-doctor/">[13]</a></sup></p>
+
+    <!-- ===== NAV ===== -->
+    <div class="nav">
+      <div class="shead">
+        <span class="n">//</span>
+        <h2>Sibling pages in this expedition</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="navgrid">
+        <a class="sib" href="../../testing-an-authored-skill/">
+          <span class="dep">survey</span>
+          <div class="ti">Testing an authored Skill before you ship it</div>
+          <p class="su">Does the description trigger, and does the body behave — skill-creator's eval loop plus a with/without baseline.</p>
+        </a>
+        <a class="sib" href="../../smoke-testing-subagent-routing/">
+          <span class="dep">survey</span>
+          <div class="ti">Smoke-testing a subagent's routing</div>
+          <p class="su">Promptfoo's claude-agent-sdk provider + headless stream-json; the description is the trigger, parent_tool_use_id is the proof.</p>
+        </a>
+        <a class="sib" href="../../regression-testing-plugins-and-mcp-servers-plus-catching-rug-pulls/">
+          <span class="dep">expedition</span>
+          <div class="ti">Regression-testing plugins &amp; MCP, catching rug-pulls</div>
+          <p class="su">Functional schema/contract drift and supply-chain rug-pulls — the 2026 tooling for each, and where defenses are still missing.</p>
+        </a>
+        <a class="sib" href="../../testing-hooks/">
+          <span class="dep">recon</span>
+          <div class="ti">Testing Hooks before shipping to a team</div>
+          <p class="su">Plain scripts with a documented stdin/exit-code/JSON contract — the one extension you can test with fully-deterministic CI.</p>
+        </a>
+      </div>
+      <div class="backrow">
+        <a href="../">↑ canonical: the full per-PR floor brief</a>
+        <a href="../../">↑ expedition synthesis</a>
+        <a href="/">Atlas home</a>
+      </div>
+    </div>
+
+    <!-- ===== SOURCES ===== -->
+    <div class="shead">
+      <span class="n">//</span>
+      <h2>Sources</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="srcs">
+      <div class="src"><span class="n">[1]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=64" alt=""><span class="bd"><a href="https://code.claude.com/docs/en/headless">Claude Code headless mode — docs</a></span></div>
+      <div class="src"><span class="n">[2]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=64" alt=""><span class="bd"><a href="https://code.claude.com/docs/en/plugins-reference">Plugins reference — docs</a></span></div>
+      <div class="src"><span class="n">[3]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=64" alt=""><span class="bd"><a href="https://code.claude.com/docs/en/skills">Skills reference — docs</a></span></div>
+      <div class="src"><span class="n">[4]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/anthropics/claude-code/issues/14490">claude-code #14490 — --strict-mcp-config</a></span></div>
+      <div class="src"><span class="n">[5]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/TheStack-ai/pulser">TheStack-ai/pulser ⭐ 17</a></span></div>
+      <div class="src"><span class="n">[6]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=dev.to&sz=64" alt=""><span class="bd"><a href="https://dev.to/thestack_ai/testing-claude-code-skills-in-ci-pulser-eval-github-action-3na9">pulser eval GitHub Action recipe</a></span></div>
+      <div class="src"><span class="n">[7]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/agent-ecosystem/skill-validator">agent-ecosystem/skill-validator ⭐ 174</a></span></div>
+      <div class="src"><span class="n">[8]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/hesreallyhim/claude-code-json-schema">claude-code-json-schema ⭐ 6 (archived)</a></span></div>
+      <div class="src"><span class="n">[9]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/swarmclawai/agent-skills-lint">swarmclawai/agent-skills-lint ⭐ 1</a></span></div>
+      <div class="src"><span class="n">[11]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md">claude-code-action usage ⭐ 8.1k</a></span></div>
+      <div class="src"><span class="n">[13]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=blog.vincentqiao.com&sz=64" alt=""><span class="bd"><a href="https://blog.vincentqiao.com/en/posts/claude-code-doctor/">claude doctor diagnostics</a></span></div>
+      <div class="src"><span class="n">[14]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=thehackernews.com&sz=64" alt=""><span class="bd"><a href="https://thehackernews.com/2026/06/claude-code-github-action-flaw-let-one.html">GitHub Action flaw — The Hacker News</a></span></div>
+      <div class="src"><span class="n">[15]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=dev.to&sz=64" alt=""><span class="bd"><a href="https://dev.to/thestack_ai/i-audited-214-claude-code-skills-73-were-silently-broken-2m9a">214 skills audited — 73% broken</a></span></div>
+      <div class="src"><span class="n">[16]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=getskillcheck.com&sz=64" alt=""><span class="bd"><a href="https://www.getskillcheck.com/">SkillCheck</a></span></div>
+      <div class="src"><span class="n">[17]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/jeremylongshore/claude-code-plugins-plus-skills">claude-code-plugins-plus-skills ⭐ 2.4k</a></span></div>
+      <div class="src"><span class="n">[18]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/anthropics/claude-plugins-official">anthropics/claude-plugins-official ⭐ 31k</a></span></div>
+      <div class="src"><span class="n">[19]</span><img class="fav" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="bd"><a href="https://github.com/glebis/claude-skills">glebis/claude-skills ⭐ 286</a></span></div>
+    </div>
+
+    <div class="colophon">
+      // view: pipeline · canonical: <a href="../">the lightweight per-PR floor</a> · expedition: <a href="../../">testing &amp; regression-checking Claude Code agent extensions</a><br>
+      // stages 01–03 are the floor — deterministic, free, non-flaky. stage 04 is the only place you spend a token.
+    </div>
+
+  </div><!-- /wrap -->
+</div><!-- /pl -->
