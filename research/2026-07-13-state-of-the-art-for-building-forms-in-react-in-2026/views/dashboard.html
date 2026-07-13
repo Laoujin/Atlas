@@ -1,0 +1,952 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Building forms in React in 2026 — Dashboard"
+---
+
+<style>
+.fsc {
+  --bg:        #0a0e13;
+  --panel:     #10161e;
+  --panel-2:   #151d27;
+  --line:      #1f2b38;
+  --line-hi:   #2c3d4f;
+  --ink:       #e6edf3;
+  --ink-2:     #9fb0c0;
+  --ink-3:     #64758a;
+  --ok:        #34d399;
+  --warn:      #fbbf24;
+  --bad:       #f87171;
+  --info:      #22d3ee;
+  --mag:       #e879f9;
+  --mono: ui-monospace, "JetBrains Mono", "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
+
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.55;
+  background-image:
+    radial-gradient(900px 400px at 12% -5%, rgba(34,211,238,.07), transparent 70%),
+    radial-gradient(700px 380px at 92% 4%, rgba(232,121,249,.06), transparent 70%);
+}
+.fsc *, .fsc *::before, .fsc *::after { box-sizing: border-box; }
+.fsc a { color: inherit; }
+.fsc .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ── status bar ───────────────────────────────── */
+.fsc .statusbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(10,14,19,.93);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .04em;
+}
+.fsc .statusbar .wrap {
+  display: flex; align-items: center; gap: .55rem;
+  flex-wrap: wrap;
+  padding-top: .6rem; padding-bottom: .6rem;
+}
+.fsc .live { color: var(--ok); font-weight: 700; }
+.fsc .live::before { content: "●"; margin-right: .35rem; }
+.fsc .sb-title { color: var(--ink); font-weight: 700; letter-spacing: .12em; }
+.fsc .sb-spacer { flex: 1 1 auto; }
+.fsc .pill {
+  border: 1px solid var(--line-hi);
+  border-radius: 999px;
+  padding: .18rem .55rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.fsc .pill b { color: var(--ink); font-weight: 700; }
+.fsc .pill.err { border-color: rgba(248,113,113,.45); color: var(--bad); }
+.fsc .pill.err b { color: var(--bad); }
+
+/* ── section scaffolding ──────────────────────── */
+.fsc section { margin-top: 3.2rem; }
+.fsc .legend {
+  display: flex; align-items: baseline; gap: .8rem;
+  font-family: var(--mono); font-size: .74rem;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 1rem;
+}
+.fsc .legend::after {
+  content: ""; flex: 1 1 auto; height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
+}
+.fsc .legend b { color: var(--info); font-weight: 700; }
+
+/* ── hero ─────────────────────────────────────── */
+.fsc .hero { padding-top: 3.4rem; }
+.fsc .eyebrow {
+  font-family: var(--mono); font-size: .72rem;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.fsc h1 {
+  font-size: clamp(2rem, 5.2vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -.025em;
+  margin: .7rem 0 .9rem;
+  font-weight: 800;
+}
+.fsc h1 em { font-style: normal; color: var(--info); }
+.fsc .standfirst {
+  color: var(--ink-2);
+  font-size: 1.05rem;
+  max-width: 62ch;
+  margin: 0 0 2rem;
+}
+
+/* ── the stack "form" ─────────────────────────── */
+.fsc .stackform {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel), #0d131a);
+  overflow: hidden;
+}
+.fsc .stackform > header {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .7rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  font-family: var(--mono); font-size: .76rem;
+  color: var(--ink-2);
+}
+.fsc .stackform > header code { color: var(--mag); }
+.fsc .frow {
+  display: grid;
+  grid-template-columns: 190px 1fr 150px;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.05rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+}
+.fsc .frow:last-child { border-bottom: 0; }
+.fsc .flabel {
+  font-family: var(--mono); font-size: .74rem;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.fsc .flabel small {
+  display: block; text-transform: none; letter-spacing: 0;
+  color: #4d5c6e; margin-top: .2rem;
+}
+.fsc .finput {
+  border: 1px solid var(--line-hi);
+  border-left: 3px solid var(--ok);
+  border-radius: 8px;
+  background: #0b1119;
+  padding: .6rem .8rem;
+}
+.fsc .finput.warn { border-left-color: var(--warn); }
+.fsc .finput.opt  { border-left-color: var(--ink-3); }
+.fsc .fval {
+  font-family: var(--mono);
+  font-size: 1.15rem; font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+.fsc .fval a { text-decoration: none; border-bottom: 1px solid rgba(52,211,153,.45); }
+.fsc .fval a:hover { color: var(--ok); }
+.fsc .fhint {
+  font-size: .82rem; color: var(--ink-3);
+  margin-top: .25rem;
+}
+.fsc .chip {
+  justify-self: start;
+  font-family: var(--mono); font-size: .68rem; font-weight: 700;
+  letter-spacing: .1em;
+  padding: .28rem .6rem; border-radius: 5px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.fsc .chip.ok   { color: var(--ok);   border-color: rgba(52,211,153,.4);  background: rgba(52,211,153,.08); }
+.fsc .chip.warn { color: var(--warn); border-color: rgba(251,191,36,.4);  background: rgba(251,191,36,.08); }
+.fsc .chip.bad  { color: var(--bad);  border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); }
+.fsc .chip.mut  { color: var(--ink-3);border-color: var(--line-hi);       background: transparent; }
+.fsc .chip.info { color: var(--info); border-color: rgba(34,211,238,.4);  background: rgba(34,211,238,.08); }
+
+/* ── kpi tiles ────────────────────────────────── */
+.fsc .kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.fsc .kpi { background: var(--panel); padding: 1.3rem 1.15rem; }
+.fsc .kpi .n {
+  font-family: var(--mono);
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 800; line-height: 1;
+  letter-spacing: -.03em;
+  color: var(--info);
+}
+.fsc .kpi.z .n { color: var(--bad); }
+.fsc .kpi.y .n { color: var(--warn); }
+.fsc .kpi.m .n { color: var(--mag); }
+.fsc .kpi .k {
+  font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-3); margin-top: .6rem;
+}
+.fsc .kpi .d { font-size: .84rem; color: var(--ink-2); margin-top: .3rem; }
+
+/* ── central readout: where do values live ────── */
+.fsc .readout {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.fsc .readout > header { padding: 1.4rem 1.4rem 1.1rem; border-bottom: 1px solid var(--line); }
+.fsc .readout h2 {
+  margin: 0; font-size: clamp(1.35rem, 3vw, 2rem);
+  letter-spacing: -.02em; font-weight: 800;
+}
+.fsc .readout h2 code {
+  font-family: var(--mono); color: var(--mag);
+  font-size: .92em;
+}
+.fsc .readout > header p { margin: .5rem 0 0; color: var(--ink-2); font-size: .93rem; max-width: 74ch; }
+.fsc .cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--line);
+}
+.fsc .col { background: var(--panel); padding: 1.3rem 1.2rem; }
+.fsc .col .glyph {
+  font-family: var(--mono);
+  font-size: 2.6rem; line-height: 1;
+  color: var(--line-hi);
+  float: right;
+}
+.fsc .col .who {
+  font-family: var(--mono); font-size: .78rem;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.fsc .col .who a { text-decoration: none; }
+.fsc .col .who a:hover { color: var(--info); }
+.fsc .col .where {
+  font-size: 1.45rem; font-weight: 800;
+  letter-spacing: -.02em;
+  margin: .25rem 0 1rem;
+  line-height: 1.15;
+}
+.fsc .col.rhf   .where { color: var(--ok); }
+.fsc .col.tsf   .where { color: var(--warn); }
+.fsc .col.cfm   .where { color: var(--info); }
+.fsc .col dl { margin: 0; font-size: .86rem; }
+.fsc .col dt {
+  font-family: var(--mono); font-size: .66rem;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: #4d5c6e;
+  margin-top: .85rem;
+}
+.fsc .col dd { margin: .2rem 0 0; color: var(--ink-2); }
+.fsc .col dd b { color: var(--ink); font-weight: 600; }
+.fsc .readout > footer {
+  padding: 1.05rem 1.4rem;
+  border-top: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink-2);
+  font-size: .9rem;
+}
+.fsc .readout > footer b { color: var(--ink); }
+
+/* ── downstream chain ─────────────────────────── */
+.fsc .chain {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  margin-top: 1rem;
+  font-family: var(--mono); font-size: .74rem;
+}
+.fsc .chain span {
+  border: 1px dashed var(--line-hi);
+  border-radius: 6px;
+  padding: .3rem .55rem;
+  color: var(--ink-2);
+}
+
+/* ── error summary ────────────────────────────── */
+.fsc .errsum {
+  border: 1px solid rgba(248,113,113,.35);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(248,113,113,.06), transparent 55%), var(--panel);
+  overflow: hidden;
+}
+.fsc .errsum > header {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid rgba(248,113,113,.25);
+  font-family: var(--mono); font-size: .78rem;
+  letter-spacing: .08em;
+  color: var(--bad);
+}
+.fsc .err {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+.fsc .err:last-child { border-bottom: 0; }
+.fsc .err .mark { font-size: 1.2rem; color: var(--bad); line-height: 1.3; }
+.fsc .err .path {
+  font-family: var(--mono); font-size: .78rem;
+  color: var(--mag); margin-bottom: .25rem;
+}
+.fsc .err .msg { font-weight: 700; margin-bottom: .3rem; }
+.fsc .err .fix { color: var(--ink-2); font-size: .9rem; }
+.fsc .err .fix b { color: var(--ink); }
+
+/* ── disabled fieldset: react primitives ──────── */
+.fsc .primitives {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.fsc .pane { background: var(--panel); padding: 1.5rem 1.4rem; }
+.fsc .pane.art { padding: 0; display: flex; flex-direction: column; }
+.fsc .pane.art img { width: 100%; height: 220px; object-fit: cover; display: block; border-bottom: 1px solid var(--line); }
+.fsc .pane.art .cap { padding: 1.1rem 1.3rem; font-size: .88rem; color: var(--ink-2); }
+.fsc .pane.art .cap code { font-family: var(--mono); color: var(--info); }
+.fsc .pane h3 {
+  margin: 0 0 .3rem;
+  font-size: 1.25rem; letter-spacing: -.015em;
+}
+.fsc .pane .sub { color: var(--ink-3); font-size: .88rem; margin: 0 0 1.2rem; }
+.fsc .owns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.fsc .owns h4 {
+  font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .12em; text-transform: uppercase;
+  margin: 0 0 .6rem;
+}
+.fsc .owns .yes h4 { color: var(--ok); }
+.fsc .owns .no h4  { color: var(--ink-3); }
+.fsc .owns ul { list-style: none; margin: 0; padding: 0; font-family: var(--mono); font-size: .82rem; }
+.fsc .owns li { padding: .3rem 0; border-bottom: 1px dashed var(--line); }
+.fsc .owns .yes li { color: var(--ink); }
+.fsc .owns .yes li::before { content: "✓ "; color: var(--ok); }
+.fsc .owns .no li { color: #4d5c6e; text-decoration: line-through; }
+.fsc .owns .no li::before { content: "✗ "; color: #3d4a5a; text-decoration: none; display: inline-block; }
+
+/* ── submit path constraints ──────────────────── */
+.fsc .constraints {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1px; background: var(--line);
+  border: 1px solid var(--line); border-radius: 12px;
+  overflow: hidden;
+}
+.fsc .cst { background: var(--panel); padding: 1.2rem 1.15rem; }
+.fsc .cst .cap {
+  font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: .45rem;
+}
+.fsc .cst .rule { font-family: var(--mono); font-weight: 700; color: var(--warn); font-size: .95rem; }
+.fsc .cst p { margin: .4rem 0 0; font-size: .86rem; color: var(--ink-2); }
+
+/* ── angle status strip ───────────────────────── */
+.fsc .angles { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.fsc .angle {
+  display: grid;
+  grid-template-columns: 26px 1fr 108px 76px;
+  gap: 1rem; align-items: center;
+  padding: 1.1rem 1.2rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  transition: background .12s ease;
+}
+.fsc .angle:last-child { border-bottom: 0; }
+.fsc .angle:hover { background: var(--panel-2); }
+.fsc .angle .dot {
+  font-family: var(--mono); font-size: .95rem;
+  color: var(--ok); text-align: center;
+}
+.fsc .angle.deep .dot { color: var(--mag); }
+.fsc .angle.thin .dot { color: var(--ink-3); }
+.fsc .angle .t { font-weight: 700; letter-spacing: -.01em; }
+.fsc .angle .s { color: var(--ink-2); font-size: .87rem; margin-top: .25rem; }
+.fsc .angle .depth {
+  font-family: var(--mono); font-size: .66rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-3);
+  border: 1px solid var(--line-hi);
+  border-radius: 5px; padding: .22rem .45rem;
+  text-align: center;
+}
+.fsc .angle.deep .depth { color: var(--mag); border-color: rgba(232,121,249,.35); }
+.fsc .angle .meta {
+  font-family: var(--mono); font-size: .74rem;
+  color: var(--ink-3); text-align: right;
+}
+.fsc .angle .meta b { color: var(--ink); display: block; font-size: .95rem; }
+
+/* ── registry grid ────────────────────────────── */
+.fsc .registry {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+}
+.fsc .pkg {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.fsc .pkg img {
+  width: 100%; aspect-ratio: 1200 / 630;
+  object-fit: cover; display: block;
+  border-bottom: 1px solid var(--line);
+  background: #0b1119;
+}
+.fsc .pkg .body { padding: .85rem .95rem 1rem; flex: 1 1 auto; }
+.fsc .pkg .nm {
+  font-weight: 700; font-size: .98rem;
+  letter-spacing: -.01em;
+}
+.fsc .pkg .nm a { text-decoration: none; border-bottom: 1px solid var(--line-hi); }
+.fsc .pkg .nm a:hover { color: var(--info); }
+.fsc .pkg .vs {
+  font-family: var(--mono); font-size: .72rem;
+  color: var(--ink-3); margin-top: .25rem;
+}
+.fsc .pkg .note { font-size: .82rem; color: var(--ink-2); margin-top: .5rem; }
+.fsc .pkg .verdict {
+  margin-top: .75rem;
+  display: inline-block;
+  font-family: var(--mono); font-size: .64rem; font-weight: 700;
+  letter-spacing: .12em;
+  padding: .25rem .5rem; border-radius: 4px;
+  border: 1px solid;
+}
+.fsc .pkg .verdict.ok   { color: var(--ok);   border-color: rgba(52,211,153,.4);  background: rgba(52,211,153,.08); }
+.fsc .pkg .verdict.warn { color: var(--warn); border-color: rgba(251,191,36,.4);  background: rgba(251,191,36,.08); }
+.fsc .pkg .verdict.bad  { color: var(--bad);  border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); }
+.fsc .pkg .verdict.info { color: var(--info); border-color: rgba(34,211,238,.4);  background: rgba(34,211,238,.08); }
+.fsc .pkg .verdict.mut  { color: var(--ink-3);border-color: var(--line-hi); }
+
+/* ── colophon ─────────────────────────────────── */
+.fsc .colophon {
+  margin-top: 3.5rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.4rem;
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  align-items: baseline; justify-content: space-between;
+  font-family: var(--mono); font-size: .76rem;
+  color: var(--ink-3);
+}
+.fsc .colophon a { color: var(--info); text-decoration: none; }
+.fsc .colophon a:hover { text-decoration: underline; }
+
+.fsc sup a {
+  font-family: var(--mono); font-size: .62em;
+  color: var(--ink-3); text-decoration: none;
+  padding: 0 .1em;
+}
+.fsc sup a:hover { color: var(--info); }
+
+@media (max-width: 900px) {
+  .fsc .frow { grid-template-columns: 1fr; gap: .55rem; }
+  .fsc .cols { grid-template-columns: 1fr; }
+  .fsc .primitives { grid-template-columns: 1fr; }
+  .fsc .angle { grid-template-columns: 22px 1fr; }
+  .fsc .angle .depth, .fsc .angle .meta { grid-column: 2; text-align: left; justify-self: start; }
+  .fsc .owns { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="fsc">
+
+<div class="statusbar">
+  <div class="wrap">
+    <span class="live">FORM STATE</span>
+    <span class="sb-title">REACT · 2026</span>
+    <span class="sb-spacer"></span>
+    <span class="pill">angles <b>7</b></span>
+    <span class="pill">citations <b>280</b></span>
+    <span class="pill">react <b>19.2.7</b></span>
+    <span class="pill">isDirty <b>false</b></span>
+    <span class="pill err">errors <b>3</b></span>
+  </div>
+</div>
+
+<header class="hero wrap">
+  <div class="eyebrow">Decision console · 2026-07-13 · expedition synthesis</div>
+  <h1>The library owns the client.<br>The Action is <em>just the wire</em>.</h1>
+  <p class="standfirst">Seven angles on the 2026 React form stack, resolved into one readout. React Hook Form still wins. React's own primitives are a submission layer, not a form layer. Standard Schema made the validator swappable. And every hard pattern collapses into a single question — <em>where do the field values live?</em></p>
+
+  <div class="stackform">
+    <header><code>defaultStack.getValues()</code> <span style="color:var(--ink-3)">— new React app, 2026</span></header>
+
+    <div class="frow">
+      <div class="flabel">engine<small>the form layer</small></div>
+      <div class="finput">
+        <div class="fval"><a href="https://react-hook-form.com">React Hook Form</a> 7.81<sup><a href="https://registry.npmjs.org/react-hook-form">[1]</a></sup></div>
+        <div class="fhint">⭐ 44.8k · 58M downloads/week · 3 open issues<sup><a href="https://api.npmjs.org/downloads/point/last-week/react-hook-form">[38]</a></sup></div>
+      </div>
+      <div class="chip ok">DEFAULT</div>
+    </div>
+
+    <div class="frow">
+      <div class="flabel">schema<small>the validator</small></div>
+      <div class="finput">
+        <div class="fval"><a href="https://zod.dev">Zod</a> 4<sup><a href="https://www.npmjs.com/package/zod">[2]</a></sup></div>
+        <div class="fhint">≈224M downloads/week — more than React itself. Swappable at the form boundary, not at the ORM/RPC boundary.</div>
+      </div>
+      <div class="chip ok">DEFAULT</div>
+    </div>
+
+    <div class="frow">
+      <div class="flabel">field ui<small>layout + a11y</small></div>
+      <div class="finput">
+        <div class="fval">your kit's <a href="https://ui.shadcn.com/docs/forms">&lt;Field&gt;</a> primitives<sup><a href="https://ui.shadcn.com/docs/forms">[3]</a></sup></div>
+        <div class="fhint">Engine-agnostic in every kit now. You still hand-write the <code>Controller</code>/<code>field.state</code> bridge per component.</div>
+      </div>
+      <div class="chip info">BYO ENGINE</div>
+    </div>
+
+    <div class="frow">
+      <div class="flabel">submit<small>the network boundary</small></div>
+      <div class="finput warn">
+        <div class="fval"><a href="https://react.dev/reference/react/useActionState">useActionState()</a><sup><a href="https://react.dev/reference/react/useActionState">[4]</a></sup></div>
+        <div class="fhint">Owns the round-trip only. Pairing it with RHF in the App Router still needs a timestamp-field hack to force state through.<sup><a href="https://markus.oberlehner.net/blog/using-react-hook-form-with-react-19-use-action-state-and-next-js-15-app-router">[10]</a></sup></div>
+      </div>
+      <div class="chip warn">WIRE ONLY</div>
+    </div>
+
+    <div class="frow">
+      <div class="flabel">swap if…<small>escape hatches</small></div>
+      <div class="finput opt">
+        <div class="fval"><a href="https://tanstack.com/form">TanStack Form</a> · <a href="https://conform.guide/">Conform</a></div>
+        <div class="fhint">One form core across frameworks or genuinely deep typed paths<sup><a href="https://tanstack.com/blog/announcing-tanstack-form-v1">[5]</a></sup> → TanStack. Must work before hydration<sup><a href="https://conform.guide/">[6]</a></sup> → Conform.</div>
+      </div>
+      <div class="chip mut">CONDITIONAL</div>
+    </div>
+  </div>
+</header>
+
+<section class="wrap">
+  <div class="legend"><b>01</b> Telemetry</div>
+  <div class="kpis">
+    <div class="kpi">
+      <div class="n">58M</div>
+      <div class="k">RHF / week</div>
+      <div class="d">Week of 2026-07-05. v7.81.0 stable, 8.0.0-beta.3 in flight.<sup><a href="https://registry.npmjs.org/react-hook-form">[1]</a></sup></div>
+    </div>
+    <div class="kpi m">
+      <div class="n">224M</div>
+      <div class="k">Zod / week</div>
+      <div class="d">More weekly downloads than React.<sup><a href="https://www.npmjs.com/package/zod">[2]</a></sup></div>
+    </div>
+    <div class="kpi z">
+      <div class="n">0</div>
+      <div class="k">form APIs since 19.0</div>
+      <div class="d">Everything shipped Dec 2024. 19.1 and 19.2 added nothing.<sup><a href="https://react.dev/blog/2025/10/01/react-19-2">[8]</a></sup></div>
+    </div>
+    <div class="kpi y">
+      <div class="n">62 kB</div>
+      <div class="k">Zod vs 12.87 kB RHF</div>
+      <div class="d">The validator dwarfs the form library. "RHF is tiny" quotes 2022 versions — RHF 12.87 vs Formik 13.12 kB.<sup><a href="https://bundlephobia.com/api/size?package=react-hook-form@7.81.0">[17]</a></sup></div>
+    </div>
+    <div class="kpi">
+      <div class="n">69M</div>
+      <div class="k">@standard-schema/spec</div>
+      <div class="d">v1.1.0 (Dec 2025). Every validator now speaks one <code>~standard</code> interface.<sup><a href="https://www.npmjs.com/package/@standard-schema/spec">[52]</a></sup></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="legend"><b>02</b> Central readout</div>
+  <div class="readout">
+    <header>
+      <h2>Where do the field values live? <code>// the one question</code></h2>
+      <p>Across the two hardest angles, one design choice generates all the others. Conditional fields, wizards, field arrays, the re-render budget and even file uploads are downstream of a single decision each library made about value storage.</p>
+    </header>
+
+    <div class="cols">
+      <div class="col rhf">
+        <div class="glyph">⧉</div>
+        <div class="who"><a href="https://react-hook-form.com">React Hook Form</a></div>
+        <div class="where">a mutable ref,<br>outside React</div>
+        <dl>
+          <dt>On unmount</dt>
+          <dd><b>Value kept.</b> A hidden step in a wizard still holds its data.</dd>
+          <dt>Array rows</dt>
+          <dd>Keyed by the generated <b>field.id</b> — <code>key={index}</code> is the bug.<sup><a href="https://react-hook-form.com/docs/usefieldarray">[39]</a></sup></dd>
+          <dt>Best at</dt>
+          <dd>Big flat forms. The refs are why the render budget stays flat.</dd>
+        </dl>
+      </div>
+
+      <div class="col tsf">
+        <div class="glyph">◈</div>
+        <div class="who"><a href="https://tanstack.com/form">TanStack Form</a></div>
+        <div class="where">an external<br>store</div>
+        <dl>
+          <dt>On unmount</dt>
+          <dd><b>Value kept — and so are stale errors</b>, which silently block submit.<sup><a href="https://github.com/TanStack/form/issues/1133">[18]</a></sup></dd>
+          <dt>Array rows</dt>
+          <dd>The official guide keys by index<sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/arrays">[41]</a></sup> — removing item 2 from <code>[1,2,3,4]</code> yields <code>[1,3,4,4]</code>.<sup><a href="https://github.com/TanStack/form/issues/957">[40]</a></sup></dd>
+          <dt>Best at</dt>
+          <dd>Deeply dynamic, deeply typed paths. One core across frameworks.</dd>
+        </dl>
+      </div>
+
+      <div class="col cfm">
+        <div class="glyph">⌸</div>
+        <div class="who"><a href="https://conform.guide/">Conform</a></div>
+        <div class="where">the DOM<br>itself</div>
+        <dl>
+          <dt>On unmount</dt>
+          <dd><b>Field deleted.</b> Unmounted means gone — unless wrapped in <code>PreserveBoundary</code>.<sup><a href="https://conform.guide/api/react/future/PreserveBoundary">[19]</a></sup></dd>
+          <dt>Array rows</dt>
+          <dd>Each row gets a <b>task.key</b> from field metadata.<sup><a href="https://conform.guide/complex-structures">[43]</a></sup></dd>
+          <dt>Best at</dt>
+          <dd>Progressive enhancement. The form works before hydration; the server is the validator.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <footer>
+      <b>Downstream of this one choice:</b>
+      <div class="chain">
+        <span>conditional fields</span><span>→ wizards</span><span>→ field arrays</span><span>→ re-render budget</span><span>→ dirty tracking</span><span>→ file uploads</span>
+      </div>
+      Uploads land here too: a <code>File</code> never deep-equals itself, so the field must hold the upload <b>key</b>, not the <code>File</code>, or dirty-tracking goes insane.<sup><a href="https://react-hook-form.com/docs/useform/formstate">[20]</a></sup>
+    </footer>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="legend"><b>03</b> Error summary — 3 unresolved</div>
+  <div class="errsum">
+    <header>⚠ formState.errors — open risks that survive the 2026 stack</header>
+
+    <div class="err">
+      <div class="mark">⨯</div>
+      <div>
+        <div class="path">engine.reactCompiler</div>
+        <div class="msg">RHF v7 is structurally incompatible with the React Compiler.</div>
+        <div class="fix">v8-beta's headline feature is fixing exactly that<sup><a href="https://react-hook-form.com/migrate-v7-to-v8">[23]</a></sup> — so <b>the safe default sits on a beta migration path</b>. Budget for the v7→v8 move rather than pretending it isn't coming.</div>
+      </div>
+    </div>
+
+    <div class="err">
+      <div class="mark">⨯</div>
+      <div>
+        <div class="path">router.unsavedChangesGuard</div>
+        <div class="msg">The Next.js App Router still has no first-party navigation guard.</div>
+        <div class="fix">Requested since March 2023, still open.<sup><a href="https://github.com/vercel/next.js/discussions/47020">[24]</a></sup> <a href="https://reactrouter.com/how-to/navigation-blocking">React Router 7</a><sup><a href="https://reactrouter.com/how-to/navigation-blocking">[25]</a></sup> and <a href="https://tanstack.com/router/v1/docs/framework/react/guide/navigation-blocking">TanStack Router</a><sup><a href="https://tanstack.com/router/v1/docs/framework/react/guide/navigation-blocking">[51]</a></sup> both solved it. <b>If you are choosing a router for a form-heavy app, that gap is a real input to the decision.</b></div>
+      </div>
+    </div>
+
+    <div class="err">
+      <div class="mark">⨯</div>
+      <div>
+        <div class="path">form.action → uncontrolled fields</div>
+        <div class="msg">An uncontrolled form is auto-cleared after a form action — even when the action returns a validation error.</div>
+        <div class="fix">The tracking issue was <b>closed as not planned</b>.<sup><a href="https://github.com/facebook/react/issues/31649">[9]</a></sup> Meanwhile RHF's maintainers have taken no official position on Server Actions at all.<sup><a href="https://github.com/orgs/react-hook-form/discussions/11832">[11]</a></sup> The seam between library and Action is <b>unowned by both sides</b>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="legend"><b>04</b> <code>&lt;fieldset disabled&gt;</code> — React's own primitives</div>
+  <div class="primitives">
+    <div class="pane">
+      <h3>A complete submission layer. An empty form layer.</h3>
+      <p class="sub">React 19.0, Dec 2024 — and nothing since.<sup><a href="https://react.dev/blog/2024/12/05/react-19">[7]</a></sup> React 19.2.7 is current; there is no React 20.<sup><a href="https://react.dev/versions">[53]</a></sup></p>
+      <div class="owns">
+        <div class="yes">
+          <h4>Owns — the network boundary</h4>
+          <ul>
+            <li>&lt;form action&gt;</li>
+            <li>useActionState — pending, result</li>
+            <li>useFormStatus</li>
+            <li>useOptimistic</li>
+          </ul>
+        </div>
+        <div class="no">
+          <h4>Owns nothing — the fields</h4>
+          <ul>
+            <li>field-level validation</li>
+            <li>dirty / touched tracking</li>
+            <li>field arrays</li>
+            <li>error focus management</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="pane art">
+      <img src="dashboard/images/react.webp" alt="React">
+      <div class="cap">The 2026 shape: <code>library owns the client, Action owns the wire</code>. The seam between them is not well supported — and both sides have declined to own it.</div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="legend"><b>05</b> Submit-path constraints — the bytes never travel through the form</div>
+  <div class="constraints">
+    <div class="cst">
+      <div class="cap">Server Action body</div>
+      <div class="rule">1 MB cap</div>
+      <p>Next.js default limit on Server Action request bodies.<sup><a href="https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions">[21]</a></sup> Presign, PUT direct to storage, and let the field carry the object key.</p>
+    </div>
+    <div class="cst">
+      <div class="cap">Upload progress</div>
+      <div class="rule">fetch → ✗ · XHR → ✓</div>
+      <p><code>fetch</code> cannot report upload progress, by design.<sup><a href="https://jakearchibald.com/2025/fetch-streams-not-for-progress/">[22]</a></sup> A progress bar in 2026 still means <code>XMLHttpRequest</code>.</p>
+    </div>
+    <div class="cst">
+      <div class="cap">Single presigned PUT</div>
+      <div class="rule">≈100 MiB ceiling</div>
+      <p>Above that it becomes abusive<sup><a href="https://uppy.io/docs/aws-s3/">[49]</a></sup> — go multipart, or <a href="https://tus.io/protocols/resumable-upload">tus</a> for resumable, unbounded uploads.<sup><a href="https://tus.io/protocols/resumable-upload">[50]</a></sup></p>
+    </div>
+    <div class="cst">
+      <div class="cap">Autosave</div>
+      <div class="rule">debounce + If-Match</div>
+      <p>Autosave is a debounce plus an ETag precondition, not a merge algorithm.<sup><a href="https://learn.microsoft.com/en-us/azure/storage/blobs/concurrency-manage">[54]</a></sup></p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="legend"><b>06</b> Sub-angle status — 7/7 resolved</div>
+  <div class="angles">
+    <a class="angle deep" href="../form-library-landscape-2026/">
+      <div class="dot">◉</div>
+      <div>
+        <div class="t">The form-library landscape</div>
+        <div class="s">RHF (7.81.0, 58M/week, v8 in beta) remains the default; TanStack Form 1.33.2 is the credible challenger with a framework-agnostic core, better path types and self-admitted verbosity; Conform owns progressive enhancement; Formik is a zombie and React Final Form is in maintenance limbo.</div>
+      </div>
+      <div class="depth">expedition</div>
+      <div class="meta"><b>109</b>cites · 18m</div>
+    </a>
+
+    <a class="angle" href="../react-native-form-primitives/">
+      <div class="dot">◉</div>
+      <div>
+        <div class="t">React's native form primitives</div>
+        <div class="s">Froze at 19.0. A submission layer, not a form layer — they own pending / error / optimistic state across the network boundary, and own nothing about the fields.</div>
+      </div>
+      <div class="depth">survey</div>
+      <div class="meta"><b>25</b>cites · 9m</div>
+    </a>
+
+    <a class="angle" href="../validation-and-schema-layer/">
+      <div class="dot">◉</div>
+      <div>
+        <div class="t">The validation &amp; schema layer</div>
+        <div class="s">Standard Schema v1 turned the validator into a swappable dependency. Zod 4 stays the default, Valibot wins the client bundle, ArkType wins raw throughput — and only one of them can own your shared client/server schema.</div>
+      </div>
+      <div class="depth">survey</div>
+      <div class="meta"><b>33</b>cites · 11m</div>
+    </a>
+
+    <a class="angle" href="../hard-forms-arrays-wizards-conditionals-performance/">
+      <div class="dot">◉</div>
+      <div>
+        <div class="t">The hard parts: arrays, conditionals, wizards, render budget</div>
+        <div class="s">Where the three mainstream libraries actually break — with the API-level specifics that decide it. This is the angle that produced the central readout above.</div>
+      </div>
+      <div class="depth">survey</div>
+      <div class="meta"><b>34</b>cites · 12m</div>
+    </a>
+
+    <a class="angle" href="../testing-forms/">
+      <div class="dot">◉</div>
+      <div>
+        <div class="t">Testing forms: which tier catches what</div>
+        <div class="s">Vitest + schema unit tests + jsdom component tests, with Browser Mode as the real middle tier and Playwright reserved for the three or four flows that actually touch the network.</div>
+      </div>
+      <div class="depth">survey</div>
+      <div class="meta"><b>32</b>cites · 11m</div>
+    </a>
+
+    <a class="angle" href="../uploads-autosave-and-unsaved-changes/">
+      <div class="dot">◉</div>
+      <div>
+        <div class="t">Uploads, autosave, unsaved-changes guards</div>
+        <div class="s">Bytes bypass your form: the browser presigns and uploads direct-to-storage while the form only carries a key — and progress still means XHR, not fetch.</div>
+      </div>
+      <div class="depth">survey</div>
+      <div class="meta"><b>36</b>cites · 12m</div>
+    </a>
+
+    <a class="angle thin" href="../ui-kit-integration/">
+      <div class="dot">○</div>
+      <div>
+        <div class="t">Wiring form engines into UI kits</div>
+        <div class="s">The kits stopped picking an engine for you: shadcn's Field, Base UI's Field and React Aria are all engine-agnostic layout/a11y primitives — the real cost is the per-component bridge you still hand-write.</div>
+      </div>
+      <div class="depth">recon</div>
+      <div class="meta"><b>11</b>cites · 4m</div>
+    </a>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="legend"><b>07</b> Package registry — resolved dependencies</div>
+  <div class="registry">
+
+    <div class="pkg">
+      <img src="dashboard/images/react-hook-form.webp" alt="React Hook Form">
+      <div class="body">
+        <div class="nm"><a href="https://react-hook-form.com">React Hook Form</a></div>
+        <div class="vs">7.81.0 · ⭐ 44.8k · v8-beta.3</div>
+        <div class="note">Values in mutable refs. 3 open issues.<sup><a href="https://github.com/react-hook-form/react-hook-form">[35]</a></sup></div>
+        <div class="verdict ok">DEFAULT</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/tanstack-form.webp" alt="TanStack Form">
+      <div class="body">
+        <div class="nm"><a href="https://tanstack.com/form">TanStack Form</a></div>
+        <div class="vs">1.33.2 · ⭐ 6.6k</div>
+        <div class="note">Framework-agnostic core, deep typed paths, self-admitted verbosity.<sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-composition">[42]</a></sup></div>
+        <div class="verdict info">CHALLENGER</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/conform.webp" alt="Conform">
+      <div class="body">
+        <div class="nm"><a href="https://conform.guide/">Conform</a></div>
+        <div class="vs">1.19.4 · ⭐ 2.6k</div>
+        <div class="note">FormData-first. The only one that works before hydration.<sup><a href="https://github.com/edmundhung/conform">[37]</a></sup></div>
+        <div class="verdict info">PRE-HYDRATION</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/formik.webp" alt="Formik">
+      <div class="body">
+        <div class="nm"><a href="https://formik.org">Formik</a></div>
+        <div class="vs">2.4.9 · ⭐ 34.3k</div>
+        <div class="note">Zero commits in six months, 704 open issues<sup><a href="https://github.com/jaredpalmer/formik">[32]</a></sup>; the author says on the record he stopped in 2020.<sup><a href="https://x.com/jaredpalmer/status/1986851141645443151">[33]</a></sup></div>
+        <div class="verdict bad">ZOMBIE</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/final-form.webp" alt="React Final Form">
+      <div class="body">
+        <div class="nm"><a href="https://final-form.org">React Final Form</a></div>
+        <div class="vs">⭐ 7.4k</div>
+        <div class="note">One bug-fix burst a year, no modern-React story.<sup><a href="https://final-form.org">[34]</a></sup></div>
+        <div class="verdict bad">LIMBO</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/zod.webp" alt="Zod">
+      <div class="body">
+        <div class="nm"><a href="https://zod.dev">Zod</a></div>
+        <div class="vs">4.4.3 · ~62 kB gzip</div>
+        <div class="note">The only one that can own the shared client/server schema.<sup><a href="https://bundlephobia.com/api/size?package=zod@latest">[16]</a></sup></div>
+        <div class="verdict ok">DEFAULT SCHEMA</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/valibot.webp" alt="Valibot">
+      <div class="body">
+        <div class="nm"><a href="https://valibot.dev">Valibot</a></div>
+        <div class="vs">1.4.2 · ⭐ 8.8k</div>
+        <div class="note">1.37 kB vs Zod's 17.7 kB for a login schema.<sup><a href="https://valibot.dev/guides/comparison/">[55]</a></sup></div>
+        <div class="verdict info">BUNDLE WINNER</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/arktype.webp" alt="ArkType">
+      <div class="body">
+        <div class="nm"><a href="https://arktype.io/">ArkType</a></div>
+        <div class="vs">2.2.3 · ⭐ 7.8k</div>
+        <div class="note">≈4× Zod v4 validation throughput; schemas in TS syntax.<sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[56]</a></sup></div>
+        <div class="verdict info">THROUGHPUT</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/standard-schema.webp" alt="Standard Schema">
+      <div class="body">
+        <div class="nm"><a href="https://standardschema.dev/">Standard Schema</a></div>
+        <div class="vs">v1.1 · ⭐ 3.6k</div>
+        <div class="note">TanStack consumes it natively<sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">[13]</a></sup>; RHF via <code>standardSchemaResolver</code><sup><a href="https://github.com/react-hook-form/resolvers">[14]</a></sup>; even <a href="https://github.com/jquense/yup">Yup</a> 1.7 implements it.<sup><a href="https://github.com/jquense/yup">[15]</a></sup></div>
+        <div class="verdict mut">THE INTERFACE</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/shadcn.webp" alt="shadcn/ui">
+      <div class="body">
+        <div class="nm"><a href="https://ui.shadcn.com/docs/forms">shadcn/ui — Field</a></div>
+        <div class="vs">engine-agnostic</div>
+        <div class="note">Replaced the RHF-only <code>&lt;Form&gt;</code>; documents RHF, TanStack Form and Formisch side by side.<sup><a href="https://ui.shadcn.com/docs/forms/tanstack-form">[58]</a></sup></div>
+        <div class="verdict mut">BYO ENGINE</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/base-ui.webp" alt="Base UI">
+      <div class="body">
+        <div class="nm"><a href="https://base-ui.com/react/handbook/forms">Base UI — Field</a></div>
+        <div class="vs">native constraint validation</div>
+        <div class="note">Pairs with <a href="https://react-aria.adobe.com/forms">React Aria</a>, which does the a11y work without an engine.<sup><a href="https://react-aria.adobe.com/forms">[47]</a></sup> <a href="https://mantine.dev/form/use-form/">Mantine</a> is the last kit still shipping its own engine.<sup><a href="https://mantine.dev/form/use-form/">[48]</a></sup></div>
+        <div class="verdict mut">BYO ENGINE</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/vitest.webp" alt="Vitest">
+      <div class="body">
+        <div class="nm"><a href="https://vitest.dev/guide/browser/">Vitest — Browser Mode</a></div>
+        <div class="vs">stable since v4 · ⭐ 17k</div>
+        <div class="note">The real middle tier: real events, real focus, real constraint validation.<sup><a href="https://vitest.dev/guide/browser/">[44]</a></sup></div>
+        <div class="verdict ok">TEST TIER 2</div>
+      </div>
+    </div>
+
+    <div class="pkg">
+      <img src="dashboard/images/playwright.webp" alt="Playwright">
+      <div class="body">
+        <div class="nm"><a href="https://playwright.dev">Playwright</a></div>
+        <div class="vs">⭐ 93k</div>
+        <div class="note">Reserved for the three or four flows that actually touch the network.<sup><a href="https://playwright.dev">[45]</a></sup></div>
+        <div class="verdict warn">TEST TIER 3</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="colophon">
+    <span>7 angles · 280 citations · resolved 2026-07-13</span>
+    <span><a href="../">Read the full expedition →</a> · <a href="/">Atlas</a></span>
+  </div>
+</div>
+
+</div>

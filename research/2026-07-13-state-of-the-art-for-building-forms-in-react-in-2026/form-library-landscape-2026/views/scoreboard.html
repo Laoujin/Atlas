@@ -1,0 +1,1130 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "The React form-library landscape in 2026: RHF still wins, TanStack Form is the real challenger, Formik is a zombie — Scoreboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap');
+
+.sb {
+  --night: #05080d;
+  --pitch: #08120e;
+  --panel: #0d151f;
+  --panel2: #111b27;
+  --line: #1d2a38;
+  --line2: #2a3b4d;
+  --chalk: #e9eff4;
+  --mute: #7d90a3;
+  --dim: #4e6072;
+  --led: #ffb703;
+  --led2: #ffd166;
+  --win: #35d07f;
+  --draw: #8b9dad;
+  --loss: #ff4d4d;
+  --var: #ffe14d;
+  --turf: #1f8a4c;
+
+  margin: 0;
+  padding: 0;
+  background: var(--night);
+  color: var(--chalk);
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.sb * { box-sizing: border-box; }
+.sb a { color: inherit; }
+
+.sb__wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ---------- shared type ---------- */
+.sb .led {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  color: var(--led);
+  text-shadow: 0 0 12px rgba(255,183,3,.45);
+  font-variant-numeric: tabular-nums;
+}
+.sb .kicker {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  font-size: .78rem;
+  color: var(--mute);
+}
+.sb h2 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  margin: .2rem 0 .35rem;
+  line-height: 1.05;
+}
+.sb .sechead { margin: 0 0 1.75rem; border-bottom: 2px solid var(--line); padding-bottom: 1rem; }
+.sb .sechead p { color: var(--mute); margin: .4rem 0 0; max-width: 62ch; font-size: .95rem; }
+.sb section { padding: 3.5rem 0; }
+.sb cite, .sb .cit { font-style: normal; }
+.sb sup a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .62em;
+  font-weight: 700;
+  color: var(--dim);
+  text-decoration: none;
+  padding: 0 .05em;
+}
+.sb sup a:hover { color: var(--led); }
+.sb .star { font-family: 'JetBrains Mono', monospace; font-size: .78em; color: var(--led2); white-space: nowrap; }
+
+/* scanline texture for board panels */
+.sb .board {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 3px),
+    var(--panel);
+  border: 1px solid var(--line2);
+}
+
+/* ---------- HERO / FIXTURE ---------- */
+.sb__hero { position: relative; min-height: 78vh; display: flex; align-items: flex-end; overflow: hidden; border-bottom: 3px solid var(--led); }
+.sb__hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.75) contrast(1.05); }
+.sb__hero::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(to top, var(--night) 4%, rgba(5,8,13,.86) 34%, rgba(5,8,13,.42) 70%, rgba(5,8,13,.65) 100%),
+    radial-gradient(120% 80% at 50% 0%, rgba(255,183,3,.10), transparent 60%);
+}
+.sb__hero .sb__wrap { position: relative; z-index: 2; padding-top: 5rem; padding-bottom: 3rem; width: 100%; }
+
+.sb__comp {
+  display: inline-flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .2em; font-size: .8rem; color: var(--led2);
+  border: 1px solid rgba(255,183,3,.35); background: rgba(5,8,13,.6);
+  padding: .5rem 1rem; margin-bottom: 1.4rem;
+}
+.sb__comp span { color: var(--mute); }
+
+.sb__hero h1 {
+  font-family: 'Archivo', sans-serif; font-weight: 900;
+  font-size: clamp(2.6rem, 8.5vw, 6.2rem);
+  line-height: .92; letter-spacing: -.035em; text-transform: uppercase;
+  margin: 0 0 1.1rem; max-width: 16ch;
+  text-shadow: 0 6px 40px rgba(0,0,0,.7);
+}
+.sb__hero h1 em { font-style: normal; color: var(--led); text-shadow: 0 0 30px rgba(255,183,3,.35); }
+.sb__deck { font-size: clamp(1rem, 1.5vw, 1.18rem); color: #c3d0da; max-width: 60ch; margin: 0 0 2rem; }
+
+/* full-time slab */
+.sb__ft { display: grid; grid-template-columns: auto 1fr; gap: 0; max-width: 760px; }
+.sb__ft-tag {
+  background: var(--led); color: #101010;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .18em; font-size: .8rem;
+  display: flex; align-items: center; justify-content: center; padding: 0 1.1rem;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+}
+.sb__ft-body { padding: 1.3rem 1.5rem; }
+.sb__ft-body .who { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(1.3rem, 3vw, 1.9rem); text-transform: uppercase; letter-spacing: -.01em; margin-bottom: .1rem; }
+.sb__ft-body .who a { text-decoration: none; border-bottom: 2px solid rgba(255,183,3,.4); }
+.sb__ft-body .who a:hover { border-color: var(--led); }
+.sb__ft-row { display: flex; flex-wrap: wrap; gap: .3rem 1.6rem; margin-top: .7rem; }
+.sb__ft-row div { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--mute); font-family: 'Barlow Condensed', sans-serif; font-weight: 600; }
+.sb__ft-row div b { display: block; font-size: 1.5rem; letter-spacing: 0; margin-bottom: -.15rem; }
+
+/* ---------- STANDINGS ---------- */
+.sb__tablewrap { overflow-x: auto; border: 1px solid var(--line2); background: var(--panel); }
+.sb table.standings { width: 100%; border-collapse: collapse; min-width: 960px; }
+.sb table.standings thead th {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .12em; font-size: .72rem; color: var(--mute);
+  text-align: right; padding: .85rem .6rem; border-bottom: 2px solid var(--line2);
+  background: #0a121b; white-space: nowrap;
+}
+.sb table.standings thead th.l { text-align: left; }
+.sb table.standings tbody td { padding: .95rem .6rem; border-bottom: 1px solid var(--line); text-align: right; vertical-align: middle; white-space: nowrap; }
+.sb table.standings tbody tr:hover { background: #101c28; }
+.sb table.standings tbody tr:last-child td { border-bottom: none; }
+
+.sb .pos { width: 46px; text-align: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+.sb .pos span {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .85rem;
+  color: #08110a;
+}
+.sb tr.z-champ  .pos span { background: var(--win); }
+.sb tr.z-chall  .pos span { background: #4fc3f7; }
+.sb tr.z-spec   .pos span { background: var(--led); }
+.sb tr.z-rel    .pos span { background: var(--loss); color: #170404; }
+.sb tr.z-champ  td:first-child { box-shadow: inset 4px 0 0 var(--win); }
+.sb tr.z-chall  td:first-child { box-shadow: inset 4px 0 0 #4fc3f7; }
+.sb tr.z-spec   td:first-child { box-shadow: inset 4px 0 0 var(--led); }
+.sb tr.z-rel    td:first-child { box-shadow: inset 4px 0 0 var(--loss); }
+
+.sb .club { text-align: left !important; }
+.sb .club-inner { display: flex; align-items: center; gap: .7rem; }
+.sb .crest { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 3px; background: #fff; padding: 2px; }
+.sb .club-name { font-weight: 800; font-size: 1rem; letter-spacing: -.01em; }
+.sb .club-name a { text-decoration: none; }
+.sb .club-name a:hover { color: var(--led); }
+.sb .club-sub { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--dim); font-weight: 400; }
+
+.sb td.num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-variant-numeric: tabular-nums; font-size: .92rem; }
+.sb td.num.big { color: var(--led); text-shadow: 0 0 10px rgba(255,183,3,.3); }
+.sb td.num.bad { color: var(--loss); }
+.sb td.num.good { color: var(--win); }
+.sb td.date { font-family: 'JetBrains Mono', monospace; font-size: .76rem; color: var(--mute); }
+.sb td.date.stale { color: var(--loss); }
+
+.sb .form { text-align: left !important; }
+.sb .form-strip { display: inline-flex; gap: 3px; }
+.sb .form-strip i {
+  font-style: normal; width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .64rem; border-radius: 2px; color: #08110a;
+}
+.sb .form-strip i.w { background: var(--win); }
+.sb .form-strip i.d { background: var(--draw); }
+.sb .form-strip i.l { background: var(--loss); color: #fff; }
+.sb .form-strip i.n { background: transparent; border: 1px dashed var(--line2); color: var(--dim); }
+
+.sb td.verdict { text-align: left !important; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .82rem; }
+.sb .v-champ { color: var(--win); }
+.sb .v-chall { color: #4fc3f7; }
+.sb .v-spec  { color: var(--led); }
+.sb .v-rel   { color: var(--loss); }
+
+.sb__legend { display: flex; flex-wrap: wrap; gap: 1.4rem; margin-top: 1.1rem; }
+.sb__legend div { display: flex; align-items: center; gap: .5rem; font-size: .78rem; color: var(--mute); font-family: 'Barlow Condensed', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.sb__legend i { width: 12px; height: 12px; display: block; }
+.sb__note { margin-top: 1rem; font-size: .8rem; color: var(--dim); max-width: 78ch; }
+.sb__note b { color: var(--mute); }
+
+/* ---------- ATTENDANCE PANEL ---------- */
+.sb__att { display: grid; grid-template-columns: 1.05fr .95fr; gap: 0; border: 1px solid var(--line2); }
+.sb__att-img { position: relative; min-height: 300px; overflow: hidden; background: #000; }
+.sb__att-img img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.28) brightness(.62) contrast(1.15) hue-rotate(-8deg); }
+.sb__att-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(5,8,13,.55), rgba(255,183,3,.10)); }
+.sb__att-body { padding: 2.4rem; background: var(--panel); }
+.sb__att-body h3 { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 1.5rem; text-transform: uppercase; margin: .4rem 0 1rem; line-height: 1.1; }
+.sb__att-body p { color: #b7c4cf; font-size: .95rem; margin: 0 0 1rem; }
+.sb__gate { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+.sb__gate div span { display: block; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .12em; font-size: .68rem; color: var(--mute); }
+.sb__gate div b { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.7rem; }
+
+/* ---------- RENDER BUDGET ---------- */
+.sb__concede { display: grid; gap: .55rem; }
+.sb__crow { display: grid; grid-template-columns: 210px 150px 1fr; gap: 1rem; align-items: center; padding: 1rem 1.2rem; background: var(--panel); border-left: 3px solid var(--line2); }
+.sb__crow.clean { border-left-color: var(--win); }
+.sb__crow.one { border-left-color: var(--led); }
+.sb__crow.many { border-left-color: var(--loss); }
+.sb__crow .cname { font-weight: 800; font-size: .95rem; }
+.sb__crow .cname small { display: block; font-family: 'JetBrains Mono', monospace; font-weight: 400; font-size: .66rem; color: var(--dim); text-transform: none; letter-spacing: 0; }
+.sb__pips { display: flex; align-items: center; gap: .45rem; }
+.sb__pips b { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.5rem; min-width: 2.1ch; }
+.sb__pips .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.sb__pips .dot.on { background: var(--loss); box-shadow: 0 0 8px rgba(255,77,77,.6); }
+.sb__pips .dot.off { border: 1px solid var(--line2); }
+.sb__crow.clean .sb__pips b { color: var(--win); }
+.sb__crow.one .sb__pips b { color: var(--led); }
+.sb__crow.many .sb__pips b { color: var(--loss); }
+.sb__crow .cwhy { font-size: .84rem; color: var(--mute); }
+
+/* ---------- callouts ---------- */
+.sb__var {
+  border: 2px solid var(--var); background: rgba(255,225,77,.05);
+  padding: 1.6rem 1.8rem; margin-top: 2rem;
+}
+.sb__var .tag {
+  display: inline-block; background: var(--var); color: #1a1500;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .18em;
+  font-size: .72rem; padding: .18rem .7rem; margin-bottom: .8rem;
+}
+.sb__var p { margin: 0; font-size: .95rem; color: #dde5ec; }
+.sb__var p + p { margin-top: .7rem; }
+
+.sb__whistle {
+  border-left: 3px solid var(--loss); background: rgba(255,77,77,.06);
+  padding: 1.4rem 1.6rem; margin-top: 2rem;
+}
+.sb__whistle .tag { color: var(--loss); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; display: block; margin-bottom: .5rem; }
+.sb__whistle p { margin: 0; font-size: .95rem; color: #dde5ec; }
+
+/* ---------- weigh-in bars ---------- */
+.sb__weigh { display: grid; gap: .5rem; }
+.sb__wrow { display: grid; grid-template-columns: 200px 1fr auto; gap: 1rem; align-items: center; }
+.sb__wrow .wl { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: #c9d5df; }
+.sb__wbar { height: 26px; background: #0b1420; border: 1px solid var(--line); position: relative; }
+.sb__wbar i { display: block; height: 100%; background: linear-gradient(90deg, rgba(255,183,3,.25), var(--led)); }
+.sb__wrow.dead .sb__wbar i { background: linear-gradient(90deg, rgba(255,77,77,.2), var(--loss)); }
+.sb__wrow.small .sb__wbar i { background: linear-gradient(90deg, rgba(53,208,127,.2), var(--win)); }
+.sb__wrow .wv { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .9rem; min-width: 12ch; text-align: right; }
+
+/* ---------- chalked-off goals ---------- */
+.sb__goals { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.sb__goal { background: var(--panel); border: 1px solid var(--line2); padding: 1.5rem; position: relative; overflow: hidden; }
+.sb__goal::before {
+  content: "NO GOAL"; position: absolute; top: 14px; right: -34px;
+  background: var(--loss); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .66rem; letter-spacing: .16em; padding: .2rem 2.6rem; transform: rotate(38deg);
+}
+.sb__goal .claim { font-size: 1.02rem; font-weight: 700; color: var(--mute); text-decoration: line-through; text-decoration-color: var(--loss); text-decoration-thickness: 2px; margin: 0 0 .9rem; padding-right: 2.5rem; }
+.sb__goal .truth { font-size: .88rem; color: #cfdae3; margin: 0; }
+.sb__goal .truth b { color: var(--chalk); }
+
+/* ---------- technical rating ---------- */
+.sb__rate { display: grid; gap: .55rem; }
+.sb__rrow { display: grid; grid-template-columns: 190px 130px 1fr; gap: 1rem; align-items: center; padding: 1rem 1.2rem; background: var(--panel); border: 1px solid var(--line); }
+.sb__rrow .rname { font-weight: 800; font-size: .95rem; }
+.sb__stars { font-family: 'JetBrains Mono', monospace; letter-spacing: .12em; font-size: .95rem; }
+.sb__stars .f { color: var(--led); }
+.sb__stars .e { color: var(--line2); }
+.sb__rrow .rwhy { font-size: .84rem; color: var(--mute); }
+.sb__rrow .rwhy code { font-family: 'JetBrains Mono', monospace; font-size: .78em; background: #0a121b; padding: .08em .35em; border: 1px solid var(--line); color: #d8e2ea; }
+
+/* ---------- transfers ---------- */
+.sb__transfers { display: grid; gap: .6rem; }
+.sb__tx { display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: start; background: var(--panel); border: 1px solid var(--line); padding: 1.3rem 1.5rem; }
+.sb__tx.hot { border-color: var(--led); background: rgba(255,183,3,.05); }
+.sb__tx .route { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1rem; margin-bottom: .35rem; }
+.sb__tx .route span { color: var(--led); margin: 0 .3rem; }
+.sb__tx .breaks { font-size: .85rem; color: var(--mute); }
+.sb__tx .breaks code { font-family: 'JetBrains Mono', monospace; font-size: .8em; background: #0a121b; padding: .08em .35em; border: 1px solid var(--line); color: #d8e2ea; }
+.sb__fee { text-align: right; white-space: nowrap; }
+.sb__fee b { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .95rem; }
+.sb__fee small { font-family: 'JetBrains Mono', monospace; font-size: .66rem; color: var(--dim); }
+.sb__fee .f-small { color: var(--win); }
+.sb__fee .f-mid { color: var(--led); }
+.sb__fee .f-big { color: var(--loss); }
+
+/* ---------- pundits ---------- */
+.sb__pundits { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+.sb__quote { background: var(--panel); border-top: 3px solid var(--line2); padding: 1.6rem; }
+.sb__quote.red { border-top-color: var(--loss); }
+.sb__quote.amber { border-top-color: var(--led); }
+.sb__quote.green { border-top-color: var(--win); }
+.sb__quote blockquote { margin: 0 0 .9rem; font-size: 1rem; line-height: 1.5; color: #dfe7ee; font-weight: 600; }
+.sb__quote .src { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; color: var(--mute); font-weight: 600; }
+
+/* ---------- team talk ---------- */
+.sb__signings { display: grid; gap: .6rem; }
+.sb__sign { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; background: var(--panel); border-left: 3px solid var(--line2); padding: 1.5rem; }
+.sb__sign.yes { border-left-color: var(--win); }
+.sb__sign.cond { border-left-color: var(--led); }
+.sb__sign.no { border-left-color: var(--loss); }
+.sb__sign .sname { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 1.15rem; text-transform: uppercase; letter-spacing: -.01em; }
+.sb__sign .sname a { text-decoration: none; }
+.sb__sign .sname a:hover { color: var(--led); }
+.sb__sign .stag { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; font-size: .7rem; margin-top: .3rem; display: block; }
+.sb__sign.yes .stag { color: var(--win); }
+.sb__sign.cond .stag { color: var(--led); }
+.sb__sign.no .stag { color: var(--loss); }
+.sb__sign .sbody { font-size: .92rem; color: #c2cfd9; }
+.sb__sign .sbody p { margin: 0 0 .6rem; }
+.sb__sign .sbody p:last-child { margin-bottom: 0; }
+.sb__sign .sbody .warn { color: var(--led2); }
+
+/* ---------- fixtures / siblings ---------- */
+.sb__fixtures { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: .6rem; }
+.sb__fix { display: block; text-decoration: none; background: var(--panel); border: 1px solid var(--line); padding: 1.2rem 1.3rem; transition: border-color .15s, background .15s; }
+.sb__fix:hover { border-color: var(--led); background: var(--panel2); }
+.sb__fix .fdepth { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .16em; font-size: .66rem; color: var(--led); font-weight: 700; }
+.sb__fix .ftitle { font-weight: 700; font-size: .95rem; margin-top: .3rem; line-height: 1.35; }
+
+/* ---------- official record ---------- */
+.sb__record { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: .5rem; }
+.sb__rec { display: flex; align-items: center; gap: .6rem; text-decoration: none; background: var(--panel); border: 1px solid var(--line); padding: .7rem .8rem; }
+.sb__rec:hover { border-color: var(--led); }
+.sb__rec img { width: 18px; height: 18px; flex: 0 0 18px; border-radius: 2px; background: #fff; }
+.sb__rec span { font-family: 'JetBrains Mono', monospace; font-size: .72rem; color: #b8c5d0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sb__colophon { border-top: 2px solid var(--line2); padding: 2rem 0 4rem; font-size: .8rem; color: var(--dim); }
+.sb__colophon b { color: var(--mute); }
+
+@media (max-width: 860px) {
+  .sb__att { grid-template-columns: 1fr; }
+  .sb__att-img { min-height: 200px; }
+  .sb__crow { grid-template-columns: 1fr; gap: .5rem; }
+  .sb__wrow { grid-template-columns: 1fr; gap: .3rem; }
+  .sb__wrow .wv { text-align: left; }
+  .sb__rrow { grid-template-columns: 1fr; gap: .5rem; }
+  .sb__tx { grid-template-columns: 1fr; }
+  .sb__fee { text-align: left; }
+  .sb__sign { grid-template-columns: 1fr; gap: .8rem; }
+  .sb__ft { grid-template-columns: 1fr; }
+  .sb__ft-tag { writing-mode: horizontal-tb; transform: none; padding: .35rem 1rem; }
+}
+</style>
+
+<div class="sb">
+
+<!-- ============ FIXTURE / HERO ============ -->
+<header class="sb__hero">
+  <img src="scoreboard/images/pitch-night.webp" alt="A floodlit football stadium at night, full stands, seen from behind the terrace steps">
+  <div class="sb__wrap">
+    <div class="sb__comp">
+      React Forms League <span>·</span> Season 2026 <span>·</span> Table correct as of 13 July
+    </div>
+    <h1>The <em>Form</em> Table</h1>
+    <p class="sb__deck">Seven clubs. Every figure below was pulled from the npm registry and the GitHub API on <strong>2026-07-13</strong> — no vendor blogs, no survey percentages, no vibes. One champion, one genuine title challenger, and a side pulling 4.3 million a week that hasn't kicked a ball since 2020.</p>
+
+    <div class="sb__ft board">
+      <div class="sb__ft-tag">Full time</div>
+      <div class="sb__ft-body">
+        <div class="who"><a href="https://react-hook-form.com">React Hook Form</a> — Champions</div>
+        <div class="kicker">Retains the title. Burden of proof is on anything else.</div>
+        <div class="sb__ft-row">
+          <div><b class="led">58.0M</b> gate / week <sup><a href="https://api.npmjs.org/downloads/point/last-week/react-hook-form">[2]</a></sup></div>
+          <div><b class="led">44.8k</b> stars <sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup></div>
+          <div><b class="led">3</b> open issues <sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup></div>
+          <div><b class="led">175</b> commits / 6mo <sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup></div>
+          <div><b class="led">v8</b> in beta <sup><a href="https://react-hook-form.com/migrate-v7-to-v8">[5]</a></sup></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ STANDINGS ============ -->
+<section id="table">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Matchday 13 · July 2026</div>
+      <h2>League Table</h2>
+      <p>Ordered by verdict, not by gate receipts — because the two disagree violently, and that disagreement is the whole story.</p>
+    </div>
+
+    <div class="sb__tablewrap">
+      <table class="standings">
+        <thead>
+          <tr>
+            <th class="pos">#</th>
+            <th class="l">Club</th>
+            <th>Gate / wk</th>
+            <th>★</th>
+            <th>kB</th>
+            <th>Iss</th>
+            <th>PR</th>
+            <th>Com 6mo</th>
+            <th>Last ball kicked</th>
+            <th class="l">Form</th>
+            <th class="l">Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="z-champ">
+            <td class="pos"><span>1</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://react-hook-form.com">React Hook Form</a></div>
+                  <div class="club-sub">7.81.0 · 8.0.0-beta.3 <sup><a href="https://registry.npmjs.org/react-hook-form">[1]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num big">58.0M<sup><a href="https://api.npmjs.org/downloads/point/last-week/react-hook-form">[2]</a></sup></td>
+            <td class="num">44.8k<sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup></td>
+            <td class="num">12.87<sup><a href="https://bundlephobia.com/api/size?package=react-hook-form@7.81.0">[29]</a></sup></td>
+            <td class="num good">3</td>
+            <td class="num">42</td>
+            <td class="num good">175<sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup></td>
+            <td class="date">2026-07-05</td>
+            <td class="form"><span class="form-strip"><i class="w">W</i><i class="w">W</i><i class="w">W</i><i class="w">W</i><i class="w">W</i></span></td>
+            <td class="verdict v-champ">Dominant, accelerating</td>
+          </tr>
+
+          <tr class="z-chall">
+            <td class="pos"><span>2</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://tanstack.com/form">TanStack Form</a></div>
+                  <div class="club-sub">1.33.2 <sup><a href="https://registry.npmjs.org/@tanstack/react-form">[6]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num">2.0M<sup><a href="https://api.npmjs.org/downloads/point/last-week/@tanstack/react-form">[7]</a></sup></td>
+            <td class="num">6.6k<sup><a href="https://github.com/TanStack/form">[8]</a></sup></td>
+            <td class="num">17.84<sup><a href="https://bundlephobia.com/api/size?package=@tanstack/react-form@latest">[30]</a></sup></td>
+            <td class="num">91</td>
+            <td class="num">60</td>
+            <td class="num good">142<sup><a href="https://github.com/TanStack/form/releases">[9]</a></sup></td>
+            <td class="date">2026-07-13</td>
+            <td class="form"><span class="form-strip"><i class="w">W</i><i class="w">W</i><i class="d">D</i><i class="w">W</i><i class="w">W</i></span></td>
+            <td class="verdict v-chall">Healthy, post-v1</td>
+          </tr>
+
+          <tr class="z-spec">
+            <td class="pos"><span>3</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://conform.guide/">Conform</a></div>
+                  <div class="club-sub">1.19.4 <sup><a href="https://registry.npmjs.org/@conform-to/react">[10]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num">241k<sup><a href="https://api.npmjs.org/downloads/point/last-week/@conform-to/react">[11]</a></sup></td>
+            <td class="num">2.6k<sup><a href="https://github.com/edmundhung/conform">[12]</a></sup></td>
+            <td class="num good">10.61<sup><a href="https://bundlephobia.com/api/size?package=@conform-to/react@1.19.4">[31]</a></sup></td>
+            <td class="num">45</td>
+            <td class="num">8</td>
+            <td class="num">72<sup><a href="https://github.com/edmundhung/conform">[12]</a></sup></td>
+            <td class="date">2026-06-07</td>
+            <td class="form"><span class="form-strip"><i class="w">W</i><i class="d">D</i><i class="w">W</i><i class="d">D</i><i class="w">W</i></span></td>
+            <td class="verdict v-spec">Alive, bus-factor 1</td>
+          </tr>
+
+          <tr class="z-spec">
+            <td class="pos"><span>4</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=rvf-js.io&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://rvf-js.io">RVF</a></div>
+                  <div class="club-sub">8.1.3 <sup><a href="https://github.com/airjp73/rvf">[24]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num">31k<sup><a href="https://github.com/airjp73/rvf">[24]</a></sup></td>
+            <td class="num">972<sup><a href="https://github.com/airjp73/rvf">[24]</a></sup></td>
+            <td class="num">—</td>
+            <td class="num">18</td>
+            <td class="num">—</td>
+            <td class="num">—</td>
+            <td class="date">2026-07-04</td>
+            <td class="form"><span class="form-strip"><i class="w">W</i><i class="d">D</i><i class="d">D</i><i class="w">W</i><i class="d">D</i></span></td>
+            <td class="verdict v-spec">Tiny but current</td>
+          </tr>
+
+          <tr class="z-spec">
+            <td class="pos"><span>5</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=formisch.dev&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://formisch.dev/">Formisch</a></div>
+                  <div class="club-sub">1.0.0-rc.0 <sup><a href="https://formisch.dev/blog/formisch-v1-release-candidate/">[108]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num">2.5k</td>
+            <td class="num">1.0k<sup><a href="https://github.com/fabian-hiller/formisch">[97]</a></sup></td>
+            <td class="num good">6.39<sup><a href="https://github.com/fabian-hiller/formisch">[97]</a></sup></td>
+            <td class="num">—</td>
+            <td class="num">—</td>
+            <td class="num">—</td>
+            <td class="date">2026-06-23</td>
+            <td class="form"><span class="form-strip"><i class="n">·</i><i class="n">·</i><i class="n">·</i><i class="n">·</i><i class="w">W</i></span></td>
+            <td class="verdict v-spec">Too new to bet on</td>
+          </tr>
+
+          <tr class="z-rel">
+            <td class="pos"><span>6</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=final-form.org&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://final-form.org">React Final Form</a></div>
+                  <div class="club-sub">7.0.1 <sup><a href="https://registry.npmjs.org/react-final-form">[19]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num">551k<sup><a href="https://api.npmjs.org/downloads/point/last-week/react-final-form">[20]</a></sup></td>
+            <td class="num">7.4k<sup><a href="https://github.com/final-form/react-final-form">[21]</a></sup></td>
+            <td class="num good">10.85<sup><a href="https://bundlephobia.com/api/size?package=react-final-form@latest">[33]</a></sup></td>
+            <td class="num bad">360</td>
+            <td class="num">15</td>
+            <td class="num bad">24<sup><a href="https://github.com/final-form/react-final-form">[21]</a></sup></td>
+            <td class="date">2026-05-05</td>
+            <td class="form"><span class="form-strip"><i class="l">L</i><i class="l">L</i><i class="d">D</i><i class="l">L</i><i class="l">L</i></span></td>
+            <td class="verdict v-rel">Maintenance limbo</td>
+          </tr>
+
+          <tr class="z-rel">
+            <td class="pos"><span>7</span></td>
+            <td class="club">
+              <div class="club-inner">
+                <img class="crest" src="https://www.google.com/s2/favicons?domain=formik.org&sz=128" alt="">
+                <div>
+                  <div class="club-name"><a href="https://formik.org">Formik</a></div>
+                  <div class="club-sub">2.4.9 <sup><a href="https://registry.npmjs.org/formik">[13]</a></sup></div>
+                </div>
+              </div>
+            </td>
+            <td class="num big">4.3M<sup><a href="https://api.npmjs.org/downloads/point/last-week/formik">[14]</a></sup></td>
+            <td class="num">34.3k<sup><a href="https://github.com/jaredpalmer/formik">[15]</a></sup></td>
+            <td class="num">13.12<sup><a href="https://bundlephobia.com/api/size?package=formik@2.4.9">[32]</a></sup></td>
+            <td class="num bad">704</td>
+            <td class="num bad">132</td>
+            <td class="num bad">0<sup><a href="https://github.com/jaredpalmer/formik">[15]</a></sup></td>
+            <td class="date stale">2025-11-10</td>
+            <td class="form"><span class="form-strip"><i class="l">L</i><i class="l">L</i><i class="l">L</i><i class="l">L</i><i class="l">L</i></span></td>
+            <td class="verdict v-rel">Zombie</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sb__legend">
+      <div><i style="background:#35d07f"></i> Champions — sign by default</div>
+      <div><i style="background:#4fc3f7"></i> Title challenger</div>
+      <div><i style="background:#ffb703"></i> Cup specialists — sign on condition</div>
+      <div><i style="background:#ff4d4d"></i> Relegation — do not sign</div>
+    </div>
+
+    <p class="sb__note">
+      <b>Gate</b> = weekly npm downloads. <b>kB</b> = Bundlephobia min+gzip. <b>Com 6mo</b> = commits in the six months to 2026-07-13.
+      <b>Form</b> is the one editorial column here — it is our read of each club's maintenance record over that window, not a metric anyone publishes.
+      Every other cell is a figure from the npm registry or the GitHub API on 2026-07-13, cited in place.
+      <br><br>
+      <b>RHF outweighs everything else combined by roughly 8×.</b> Its 3-open-issue backlog at 44.8k stars is the standout maintenance signal in the set <sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup>.
+      TanStack's 91-issue / 60-PR backlog against 6.6k stars is proportionally far worse — a small-team-under-load signal, and the thing to price in if you adopt it <sup><a href="https://github.com/TanStack/form">[8]</a></sup>.
+      Its release cadence has slowed from ~8–9/month in 2025 to ~3 in 2026: post-v1 stabilisation, not decay, given 142 commits in H1 <sup><a href="https://github.com/TanStack/form/releases">[9]</a></sup> <sup><a href="https://tanstack.com/blog/announcing-tanstack-form-v1">[68]</a></sup>.
+    </p>
+
+    <div class="sb__var">
+      <span class="tag">VAR check — the table you were shown elsewhere</span>
+      <p><strong>Do not quote the "State of React 2025" form-library percentages</strong> — the widely-repeated "TanStack Form 21% usage, up 8 positions" <sup><a href="https://strapi.io/blog/state-of-react-2025-key-takeaways">[27]</a></sup>. The primary survey has <strong>no form-library question at all</strong>: its library sections are UI, State Management, Data Loading, Back-End and Other Tools <sup><a href="https://2025.stateofreact.com/en-US/libraries/">[26]</a></sup> <sup><a href="https://2025.stateofreact.com/en-US/other-tools/">[28]</a></sup>. The survey is real; those percentages are not attributable to it. That is why this table is built from npm and GitHub only.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ATTENDANCE VS FORM ============ -->
+<section id="attendance">
+  <div class="sb__wrap">
+    <div class="sb__att">
+      <div class="sb__att-img">
+        <img src="scoreboard/images/scoreboard-panel.webp" alt="A stadium scoreboard panel showing innings, runs and player numbers">
+      </div>
+      <div class="sb__att-body">
+        <div class="kicker">The board doesn't lie. It just doesn't tell you everything.</div>
+        <h3>Attendance is legacy, not form</h3>
+        <p><a href="https://formik.org">Formik</a> has the <strong>second-biggest gate in the league</strong> — 4.3M a week <sup><a href="https://api.npmjs.org/downloads/point/last-week/formik">[14]</a></sup> — and zero commits between 2026-01-13 and 2026-07-13 <sup><a href="https://github.com/jaredpalmer/formik">[15]</a></sup>. Its last <em>feature</em> release was 2.4.0 in May 2023 <sup><a href="https://registry.npmjs.org/formik">[13]</a></sup>. The 2.4.8/2.4.9 pair were React-19 type patches <strong>published by the github-actions bot, not a human</strong> <sup><a href="https://github.com/jaredpalmer/formik/releases">[16]</a></sup>.</p>
+        <p>The repo is not archived and there is no official notice. The community issue <em>"Is Formik no longer maintained?"</em> (opened Aug 2022) is still open with no maintainer reply <sup><a href="https://github.com/jaredpalmer/formik/issues/3613">[17]</a></sup>, as is its successor, literally titled <em>"The best Form Library for react is abandoned?"</em> <sup><a href="https://github.com/jaredpalmer/formik/issues/3663">[79]</a></sup>.</p>
+        <p><strong>4.3M weekly downloads is a crowd turning up out of habit — not a team on the pitch.</strong> Read the commit column, never the gate column.</p>
+
+        <div class="sb__gate">
+          <div><span>Formik gate</span><b class="led">4.3M</b></div>
+          <div><span>Commits, 6 mo</span><b style="color:#ff4d4d">0</b></div>
+          <div><span>Open issues</span><b style="color:#ff4d4d">704</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb__whistle">
+      <span class="tag">Also on the injury list</span>
+      <p><strong>React Final Form — limbo, not death.</strong> After a 3-year gap the <code>final-form</code> core shipped 5.0.0 (2025-06-07), converting Flow→TypeScript, and 5.0.1 (2026-05-05) was <em>"a big batch of bug fixes that have accumulated"</em> <sup><a href="https://github.com/final-form/final-form/releases">[23]</a></sup> <sup><a href="https://registry.npmjs.org/final-form">[18]</a></sup>. Bursty, not sustained: react-final-form had 0 commits in H2-2025 and 24 in H1-2026, with 360 open issues nobody works <sup><a href="https://github.com/final-form/react-final-form">[21]</a></sup>. 7.0.1 was published by an account named <code>erikras-richard-agent</code>, not Erik Rasmussen personally <sup><a href="https://registry.npmjs.org/react-final-form">[19]</a></sup>. No React 19, no Server Actions, no compiler story. <strong>HouseForm — dead</strong> (last release 2024-02-23) <sup><a href="https://api.npmjs.org/downloads/point/last-week/houseform">[25]</a></sup>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RENDER BUDGET ============ -->
+<section id="renders">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Defensive record</div>
+      <h2>Goals conceded, per keystroke</h2>
+      <p>The axis that actually separates these clubs. Note the distinction the marketing blurs: <strong>"no re-render" always means no <em>form-level</em> re-render</strong> — it does not always mean no <em>field-level</em> re-render.</p>
+    </div>
+
+    <div class="sb__concede">
+      <div class="sb__crow clean">
+        <div class="cname">React Hook Form <small>native input + register</small></div>
+        <div class="sb__pips"><b>0</b><span class="dot off"></span><span class="dot off"></span><span class="dot off"></span></div>
+        <div class="cwhy">Clean sheet. State lives on the DOM node and an internal object <strong>outside React state</strong>; the node is written directly and no component renders <sup><a href="https://react-hook-form.com/faqs">[45]</a></sup>.</div>
+      </div>
+
+      <div class="sb__crow clean">
+        <div class="cname">Conform <small>FormData, on demand</small></div>
+        <div class="sb__pips"><b>0</b><span class="dot off"></span><span class="dot off"></span><span class="dot off"></span></div>
+        <div class="cwhy">Clean sheet. Inputs stay native and uncontrolled; renders happen on validation events (blur/submit), not on input <sup><a href="https://conform.guide/">[52]</a></sup>.</div>
+      </div>
+
+      <div class="sb__crow one">
+        <div class="cname">TanStack Form <small>external store + useSyncExternalStore</small></div>
+        <div class="sb__pips"><b>1</b><span class="dot on"></span><span class="dot off"></span><span class="dot off"></span></div>
+        <div class="cwhy">One <code>&lt;form.Field&gt;</code> subtree. Fields are <em>controlled</em> render-props <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/basic-concepts">[96]</a></sup> — the form component itself does not render <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/reactivity">[50]</a></sup>.</div>
+      </div>
+
+      <div class="sb__crow one">
+        <div class="cname">React Hook Form <small>⚠ any Controller-wrapped field</small></div>
+        <div class="sb__pips"><b>1</b><span class="dot on"></span><span class="dot off"></span><span class="dot off"></span></div>
+        <div class="cwhy"><strong>The asterisk on the clean sheet.</strong> A <code>Controller</code>-wrapped field <em>is</em> controlled, so that field renders — and with MUI / AntD / Radix components that don't expose a native value/onChange contract, that is <em>every</em> field <sup><a href="https://github.com/orgs/react-hook-form/discussions/8117">[48]</a></sup>.</div>
+      </div>
+
+      <div class="sb__crow many">
+        <div class="cname">React Final Form <small>default subscription</small></div>
+        <div class="sb__pips"><b>ALL</b></div>
+        <div class="cwhy">Depends on the <code>subscription</code> you declare, and the default is pessimistic: <em>"If no subscription is provided, it will default to subscribing to all form state changes"</em> <sup><a href="https://final-form.org/docs/react-final-form/types/FormProps">[53]</a></sup>. An unconfigured RFF form gets Formik-grade renders.</div>
+      </div>
+
+      <div class="sb__crow many">
+        <div class="cname">Formik <small>one controlled values object in context</small></div>
+        <div class="sb__pips"><b>3</b><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></div>
+        <div class="cwhy">The whole form. <code>setState</code> per keystroke; issue #3400 measures <strong>3 renders on a single keystroke</strong> <sup><a href="https://github.com/jaredpalmer/formik/issues/3400">[49]</a></sup>. No escape hatch — architectural, and it multiplies with field count.</div>
+      </div>
+    </div>
+
+    <div class="sb__var">
+      <span class="tag">VAR check — "RHF is fastest" is unverified</span>
+      <p><strong>There is no credible cross-library benchmark in 2025–2026.</strong> Every comparison post is qualitative <sup><a href="https://splitforms.com/blog/best-react-form-library-2026">[54]</a></sup> <sup><a href="https://formisch.dev/blog/react-form-library-comparison/">[55]</a></sup> <sup><a href="https://asoasis.tech/articles/2026-03-28-1453-react-form-libraries-comparison-2026/">[58]</a></sup>. RHF's own benchmark repo — the one its FAQ links — is <code>bluebill1049/react-hook-form-performance-compare</code>, <span class="star">⭐ 33</span>, measuring <em>mount time</em> under 6× throttle against a Redux Form straw man, <strong>with no TanStack or Conform entrant</strong> <sup><a href="https://github.com/bluebill1049/react-hook-form-performance-compare">[46]</a></sup>.</p>
+      <p><strong>The perf conclusion that matters:</strong> at scale all three modern libraries are fast by default and slow by misuse, and the variable is subscription placement, not library choice. The RHF maintainer's guidance on the canonical blowup — a large form with a root-level <code>watch</code> plus <code>Controller</code>-wrapped AntD inputs — is <em>"subscribe as deep down the tree as possible"</em> <sup><a href="https://github.com/orgs/react-hook-form/discussions/8117">[48]</a></sup>. Every one of these libraries has that same trap under a different name: RHF's <code>watch()</code> re-renders the whole form <sup><a href="https://react-hook-form.com/docs/usewatch">[47]</a></sup>; TanStack's <code>useStore</code> without a selector re-renders the host component on any state change <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/reactivity">[50]</a></sup>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WEIGH-IN ============ -->
+<section id="weighin">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Pre-match weigh-in</div>
+      <h2>Bundle size — measured, not quoted</h2>
+      <p>Blog numbers (the perennial "RHF is 8.5 kB") are stale. Bars below are Bundlephobia min+gzip, measured 2026-07-13.</p>
+    </div>
+
+    <div class="sb__weigh">
+      <div class="sb__wrow small">
+        <div class="wl">@formisch/react@1.0.0-rc.0</div>
+        <div class="sb__wbar"><i style="width:36%"></i></div>
+        <div class="wv">6.39 kB<sup><a href="https://github.com/fabian-hiller/formisch">[97]</a></sup></div>
+      </div>
+      <div class="sb__wrow small">
+        <div class="wl">@conform-to/react@1.19.4</div>
+        <div class="sb__wbar"><i style="width:59%"></i></div>
+        <div class="wv">10.61 kB<sup><a href="https://bundlephobia.com/api/size?package=@conform-to/react@1.19.4">[31]</a></sup></div>
+      </div>
+      <div class="sb__wrow small">
+        <div class="wl">react-final-form + final-form</div>
+        <div class="sb__wbar"><i style="width:61%"></i></div>
+        <div class="wv">10.85 kB<sup><a href="https://bundlephobia.com/api/size?package=react-final-form@latest">[33]</a></sup><sup><a href="https://bundlephobia.com/api/size?package=final-form@latest">[34]</a></sup></div>
+      </div>
+      <div class="sb__wrow">
+        <div class="wl">react-hook-form@7.81.0</div>
+        <div class="sb__wbar"><i style="width:72%"></i></div>
+        <div class="wv">12.87 kB<sup><a href="https://bundlephobia.com/api/size?package=react-hook-form@7.81.0">[29]</a></sup></div>
+      </div>
+      <div class="sb__wrow dead">
+        <div class="wl">formik@2.4.9</div>
+        <div class="sb__wbar"><i style="width:74%"></i></div>
+        <div class="wv">13.12 kB<sup><a href="https://bundlephobia.com/api/size?package=formik@2.4.9">[32]</a></sup></div>
+      </div>
+      <div class="sb__wrow">
+        <div class="wl">@tanstack/react-form@1.33.2</div>
+        <div class="sb__wbar"><i style="width:100%"></i></div>
+        <div class="wv">17.84 kB<sup><a href="https://bundlephobia.com/api/size?package=@tanstack/react-form@latest">[30]</a></sup></div>
+      </div>
+    </div>
+
+    <p class="sb__note">
+      Runtime deps tell a second story: <b>RHF ships 0</b> <sup><a href="https://registry.npmjs.org/react-hook-form/7.81.0">[44]</a></sup>; TanStack 2 direct <sup><a href="https://registry.npmjs.org/@tanstack/react-form/1.33.2">[42]</a></sup>; <b>Formik ships 8 — including both <code>lodash</code> and <code>lodash-es</code></b> <sup><a href="https://registry.npmjs.org/formik/2.4.9">[43]</a></sup>.
+    </p>
+
+    <div class="sb__var">
+      <span class="tag">VAR check — the ranking above is contested</span>
+      <p>Two of the better 2026 comparison posts measure TanStack Form as <em>smaller</em> than RHF: splitforms (esbuild, May 2026) gives TanStack ~6 kB vs RHF ~9 kB <sup><a href="https://splitforms.com/blog/best-react-form-library-2026">[54]</a></sup>, LogRocket gives 9.6 vs 10.7 kB <sup><a href="https://blog.logrocket.com/tanstack-form-vs-react-hook-form/">[87]</a></sup> — the inverse of the bars above. Likely explanation: tree-shaking depth. <code>@tanstack/form-core</code> shakes hard on a narrow import surface, while Bundlephobia measures the whole published package. <strong>Read the spread, not the ranking.</strong></p>
+      <p><strong>And the size argument is dead anyway.</strong> <code>@hookform/resolvers</code> is 0.55 kB <sup><a href="https://bundlephobia.com/api/size?package=@hookform/resolvers@5.4.0">[35]</a></sup> while <code>zod@4</code> is 61.79 kB untreeshaken <sup><a href="https://bundlephobia.com/api/size?package=zod@latest">[36]</a></sup> — the schema library is the same order of magnitude as, or larger than, the form library. Every modern option lands somewhere in 6–21 kB. <strong>Nobody should choose a form library on 5 kB.</strong></p>
+    </div>
+
+    <p class="sb__note">
+      Conform is the smallest complete option and, being FormData-first, can run the same schema server-side and ship <strong>no client validator at all</strong> — an option the client-state libraries don't structurally have <sup><a href="https://conform.guide/">[52]</a></sup> <sup><a href="https://judemiracle.com/articles/server-first-forms-with-conform-vs-react-hook-form.html">[57]</a></sup>. TanStack's <code>createServerValidate</code> also validates server-side <sup><a href="https://github.com/TanStack/form/blob/main/docs/framework/react/guides/ssr.md">[101]</a></sup>, but it still ships the client form model.
+    </p>
+  </div>
+</section>
+
+<!-- ============ CHALKED OFF ============ -->
+<section id="var">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Referee's report</div>
+      <h2>Three goals chalked off</h2>
+      <p>Claims repeated across 2026 write-ups that do not survive the check.</p>
+    </div>
+
+    <div class="sb__goals">
+      <div class="sb__goal">
+        <p class="claim">"State of React 2025 says RHF 74%, TanStack Form 21%."</p>
+        <p class="truth">The survey has <b>no form-library question</b>. Its library sections are UI, State Management, Data Loading, Back-End and Other Tools <sup><a href="https://2025.stateofreact.com/en-US/libraries/">[26]</a></sup> <sup><a href="https://2025.stateofreact.com/en-US/other-tools/">[28]</a></sup>. Use npm and GitHub numbers.</p>
+      </div>
+      <div class="sb__goal">
+        <p class="claim">"RHF is 3× smaller than Formik."</p>
+        <p class="truth"><b>12.87 kB vs 13.12 kB</b> in July 2026 <sup><a href="https://bundlephobia.com/api/size?package=react-hook-form@7.81.0">[29]</a></sup> <sup><a href="https://bundlephobia.com/api/size?package=formik@2.4.9">[32]</a></sup>. The 8.5-vs-15 kB figure comes from RHF's own FAQ, citing 2022 versions <sup><a href="https://react-hook-form.com/faqs">[45]</a></sup>. The real win over Formik is <b>the render model, not the bundle</b>.</p>
+      </div>
+      <div class="sb__goal">
+        <p class="claim">"RHF has no React Compiler or SSR support."</p>
+        <p class="truth">Per TanStack's own comparison table <sup><a href="https://tanstack.com/form/latest/docs/comparison">[51]</a></sup> — read it as marketing. RHF v8 beta's <b>headline feature is zero-config React Compiler support</b> <sup><a href="https://react-hook-form.com/migrate-v7-to-v8">[5]</a></sup>, and the repo pushed on 2026-07-12 <sup><a href="https://github.com/react-hook-form/react-hook-form">[3]</a></sup>. Conversely <b>"RHF is legacy" is also false</b>: 175 commits in six months.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TECHNICAL RATING ============ -->
+<section id="types">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Technical rating</div>
+      <h2>TypeScript inference</h2>
+      <p>End-to-end schema → name → value inference. <strong>Conform ≥ TanStack Form &gt; RHF ≫ Formik ≈ React Final Form.</strong></p>
+    </div>
+
+    <div class="sb__rate">
+      <div class="sb__rrow">
+        <div class="rname"><a href="https://conform.guide/" style="text-decoration:none">Conform</a></div>
+        <div class="sb__stars"><span class="f">★★★★★</span></div>
+        <div class="rwhy"><strong>The schema is the single source of truth</strong> (<code>useForm&lt;Schema, FormValue, FormError&gt;</code>). No string-path union at all: <code>FieldName</code> is a <em>branded string</em> carrying phantom types, so names are <em>produced</em> via <code>getFieldset()</code> / <code>getFieldList()</code> <sup><a href="https://unpkg.com/@conform-to/dom@1.19.4/dist/form.d.ts">[75]</a></sup> <sup><a href="https://unpkg.com/@conform-to/react@1.19.4/dist/context.d.ts">[76]</a></sup>. Sidesteps TS-perf and depth limits entirely — at the cost of the FormData straitjacket.</div>
+      </div>
+
+      <div class="sb__rrow">
+        <div class="rname"><a href="https://tanstack.com/form" style="text-decoration:none">TanStack Form</a></div>
+        <div class="sb__stars"><span class="f">★★★★</span><span class="e">★</span></div>
+        <div class="rwhy">Best path machinery in the set: <code>DeepKeysAndValues</code> indexes array elements properly, handles tuples, distributes over unions, propagates parent nullability <sup><a href="https://unpkg.com/@tanstack/form-core@1.33.2/dist/esm/util-types.d.ts">[70]</a></sup>. Types come from <code>defaultValues</code>, not the schema <sup><a href="https://tanstack.com/form/latest/docs/philosophy">[67]</a></sup>. <span style="color:var(--led2)">⚠</span> Optional/union fields need a <code>defaultValue</code> expressing their full range or inference is wrong <sup><a href="https://formisch.dev/blog/react-form-library-comparison/#tanstack">[82]</a></sup>.</div>
+      </div>
+
+      <div class="sb__rrow">
+        <div class="rname"><a href="https://react-hook-form.com" style="text-decoration:none">React Hook Form</a></div>
+        <div class="sb__stars"><span class="f">★★★</span><span class="e">★★</span></div>
+        <div class="rwhy">Truth is the <strong>hand-written <code>useForm&lt;T&gt;</code> generic — not the resolver schema; nothing enforces they agree</strong>. Non-tuple arrays index as <code>ArrayKey = number</code>, so <code>items.${number}.name</code> is accepted <strong>with no index checking</strong> <sup><a href="https://unpkg.com/react-hook-form@7.81.0/dist/types/path/eager.d.ts">[60]</a></sup> <sup><a href="https://unpkg.com/react-hook-form@7.81.0/dist/types/path/common.d.ts">[61]</a></sup>. <code>FieldValues = Record&lt;string, any&gt;</code> <sup><a href="https://react-hook-form.com/ts">[59]</a></sup> → <code>useFormContext</code> returns <code>any</code> errors; the maintainer calls it <em>"a current limitation with V7, fixed in the next major"</em> — and v8 is <strong>still not GA</strong> <sup><a href="https://github.com/orgs/react-hook-form/discussions/8518">[62]</a></sup>.</div>
+      </div>
+
+      <div class="sb__rrow">
+        <div class="rname"><a href="https://formik.org" style="text-decoration:none">Formik</a></div>
+        <div class="sb__stars"><span class="f">★</span><span class="e">★★★★</span></div>
+        <div class="rwhy">Nothing. <code>FieldProps&lt;V = any, FormValues = any&gt;</code>, <code>name: string</code> <sup><a href="https://unpkg.com/formik@2.4.9/dist/Field.d.ts">[77]</a></sup>. No path inference, no schema inference, no field-array typing. The TS guide only ever shows manually-supplied generics <sup><a href="https://formik.org/docs/guides/typescript">[78]</a></sup>.</div>
+      </div>
+
+      <div class="sb__rrow">
+        <div class="rname"><a href="https://final-form.org" style="text-decoration:none">React Final Form</a></div>
+        <div class="sb__stars"><span class="f">★</span><span class="e">★★★★</span></div>
+        <div class="rwhy"><strong>Worst TS story of the five.</strong> <code>FieldProps</code> has <code>_FormValues</code> as a <em>phantom (unused) parameter</em>, <code>name: string</code>, and an <code>[key: string]: any</code> index signature that swallows typos <sup><a href="https://unpkg.com/react-final-form@7.0.1/dist/types.d.ts">[80]</a></sup>. <code>withTypes&lt;FormValues&gt;()</code> types <code>Form</code>/<code>FormSpy</code> but <strong>not <code>Field</code></strong> <sup><a href="https://unpkg.com/react-final-form@7.0.1/dist/index.d.ts">[81]</a></sup>.</div>
+      </div>
+    </div>
+
+    <div class="sb__whistle">
+      <span class="tag">Two RHF footguns an expert will hit</span>
+      <p><strong>1 · The stringly-typed contract breaks at runtime.</strong> A field typed <code>number</code> <strong>silently becomes a <code>string</code></strong> when edited, and TS cannot catch it — maintainer-confirmed <sup><a href="https://github.com/orgs/react-hook-form/discussions/8617">[93]</a></sup>.<br><br>
+      <strong>2 · Generic field wrappers broke under Zod v4.</strong> Constraining <code>TSchema extends z.ZodType</code> makes <code>z.infer&lt;TSchema&gt;</code> resolve to <code>unknown</code> → <em>"Type 'unknown' does not satisfy constraint 'FieldValues'"</em>; the current workaround is to constrain to <code>z.core.$ZodType&lt;any, any&gt;</code> <sup><a href="https://github.com/orgs/react-hook-form/discussions/13205">[63]</a></sup>. Transforming schemas also force <code>useForm&lt;z.input&lt;S&gt;, unknown, z.output&lt;S&gt;&gt;</code> <sup><a href="https://github.com/react-hook-form/react-hook-form/issues/11023">[64]</a></sup>.</p>
+    </div>
+
+    <div class="sb__var">
+      <span class="tag">VAR check — TanStack's "no generics" claim</span>
+      <p><strong>It breaks the moment you factor out a reusable field component.</strong> TanStack's own docs concede <em>"a common criticism of TanStack Form is that it is verbose out-of-the-box"</em>, warn that the context escape hatch <em>"will not warn you when the types do not align. You risk runtime errors"</em>, and note that chaining <code>AppForm</code> extensions <em>"can lead to decreases in TypeScript performance"</em> <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-composition">[69]</a></sup>. Community: <em>"I can't figure out how to properly type form or field… you have to pass 10 type arguments"</em> <sup><a href="https://github.com/TanStack/form/discussions/922">[71]</a></sup>. The sanctioned <code>createFormHook</code> + <code>withForm</code> answer still pushes you toward <code>AnyFormApi</code>/<code>AnyFieldApi</code>, <em>"where type safety is lost"</em> <sup><a href="https://matthuggins.com/blog/posts/building-a-reusable-form-component-library-with-tanstack-form">[72]</a></sup>.</p>
+      <p>For <em>reusable generic field components</em> all of them degrade — but not equally. <strong>TanStack is the least bad</strong>, because <code>createFormHook</code>/<code>withForm</code> is at least a sanctioned, documented path <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-composition">[69]</a></sup>. RHF has no equivalent, and its <code>useFormContext</code> type loss is a known v7 limitation deferred to a v8 that has not shipped <sup><a href="https://github.com/orgs/react-hook-form/discussions/8518">[62]</a></sup>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRANSFER WINDOW ============ -->
+<section id="transfers">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Transfer window</div>
+      <h2>What a move actually costs</h2>
+      <p>The only automated tool in the whole market is <code>@hookform/codemod</code> — and it only does v6→v7, last released Aug 2021 <sup><a href="https://github.com/react-hook-form/codemod">[86]</a></sup>. Nothing else here has a codemod. <strong>Every migration is hand-work, priced per form.</strong></p>
+    </div>
+
+    <div class="sb__transfers">
+      <div class="sb__tx">
+        <div>
+          <div class="route">RHF v7 <span>→</span> v8 (beta)</div>
+          <div class="breaks"><code>register</code> passes the real ref; <code>useFieldArray</code> <code>id</code>→<code>key</code>, <code>keyName</code> removed; <code>watch(callback)</code> → <code>subscribe()</code>; <code>setValue</code> no longer overwrites field arrays → <code>replace()</code> <sup><a href="https://react-hook-form.com/migrate-v7-to-v8">[5]</a></sup>.</div>
+        </div>
+        <div class="sb__fee"><b class="f-small">Free transfer</b><small>~5 mechanical edits</small></div>
+      </div>
+
+      <div class="sb__tx">
+        <div>
+          <div class="route">Formik <span>→</span> React Hook Form</div>
+          <div class="breaks">Mental-model flip: controlled <code>values</code> → uncontrolled refs. <code>&lt;Formik&gt;</code>/<code>useFormik()</code>→<code>useForm()</code>, <code>&lt;Field&gt;</code>→<code>register</code>, <code>useField()</code>→<code>useController()</code>. The two libs can coexist app-wide but <strong>not inside one form</strong>, so shared field components must be forked <sup><a href="https://github.com/trussworks/formik-to-react-hook-form-migration-guide">[85]</a></sup>.</div>
+        </div>
+        <div class="sb__fee"><b class="f-mid">Moderate</b><small>mechanical, form-by-form</small></div>
+      </div>
+
+      <div class="sb__tx hot">
+        <div>
+          <div class="route">Formik <span>→</span> TanStack Form <span style="color:var(--led2);font-size:.75rem;letter-spacing:.1em">◂ the surprise move</span></div>
+          <div class="breaks"><strong>Not harder than Formik → RHF.</strong> Both are <code>&lt;Field&gt;</code>-render-prop + controlled-value models, so the <em>shape</em> survives: <code>&lt;Field name&gt;</code>→<code>&lt;form.Field name children={(field)=>…}&gt;</code>, <code>values</code>→<code>field.state.value</code>, Yup schema→<code>validators</code> (Standard Schema, no adapter) <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/basic-concepts">[96]</a></sup> <sup><a href="https://github.com/TanStack/form/blob/main/docs/framework/react/guides/validation.md">[100]</a></sup>. If you're escaping Formik and were going to touch every field anyway, <strong>TanStack is not a bigger lift than RHF — it's a different one</strong>, and the usual "Formik→RHF is the obvious path" advice quietly assumes otherwise.</div>
+        </div>
+        <div class="sb__fee"><b class="f-mid">Moderate</b><small>same shape, new engine</small></div>
+      </div>
+
+      <div class="sb__tx">
+        <div>
+          <div class="route">React Final Form <span>→</span> RHF</div>
+          <div class="breaks">Closest exit from RFF. <code>&lt;Field&gt;</code> render-prop → <code>register</code>/<code>useController</code>; <code>subscription</code> objects → <code>useWatch</code>/<code>useFormState</code>. You gain a TS story RFF never had <sup><a href="https://unpkg.com/react-final-form@7.0.1/dist/types.d.ts">[80]</a></sup>. <span style="color:var(--led2)">⚠</span> If you rely on the <code>final-form</code> core outside React, TanStack Form is the like-for-like target instead <sup><a href="https://registry.npmjs.org/final-form">[18]</a></sup>.</div>
+        </div>
+        <div class="sb__fee"><b class="f-mid">Moderate</b><small>no codemod</small></div>
+      </div>
+
+      <div class="sb__tx">
+        <div>
+          <div class="route">RHF <span>→</span> TanStack Form</div>
+          <div class="breaks"><strong>A rewrite of the form layer.</strong> No official guide — TanStack ships only a comparison page <sup><a href="https://tanstack.com/form/latest/docs/comparison">[51]</a></sup>. <code>register()</code> string paths → <code>&lt;form.Field name validators children={(field) => …}&gt;</code> render props with manual <code>field.state.value</code> / <code>field.handleChange</code>. <strong>Every input component gets rewritten</strong>; validation moves from one resolver to per-field validators <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/basic-concepts">[96]</a></sup>.</div>
+        </div>
+        <div class="sb__fee"><b class="f-big">Club-record fee</b><small>rewrite the form layer</small></div>
+      </div>
+
+      <div class="sb__tx">
+        <div>
+          <div class="route">Anything <span>→</span> Conform</div>
+          <div class="breaks"><strong>Rewrite + server rework.</strong> You surrender client-owned form state. Needs a server action / Remix-style route action to submit to; in plain Vite + React <em>"the ergonomics suffer because there's no server action equivalent"</em> <sup><a href="https://splitforms.com/blog/best-nextjs-form-library-2026">[92]</a></sup>.</div>
+        </div>
+        <div class="sb__fee"><b class="f-big">Club-record fee</b><small>+ back-end work</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HEADLESS / FRAMEWORK COUPLING ============ -->
+<section id="squad">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Squad registration</div>
+      <h2>Who can play in other competitions</h2>
+    </div>
+
+    <div class="sb__rate">
+      <div class="sb__rrow" style="grid-template-columns: 190px 1fr">
+        <div class="rname">TanStack Form</div>
+        <div class="rwhy"><strong>✓ The only real framework-agnostic core.</strong> <code>@tanstack/form-core</code> + 7 adapters; react / vue / solid / svelte / angular all at 1.33.2 — <span style="color:var(--led2)">⚠ preact lags at 1.30.2 and lit at 1.25.2</span> <sup><a href="https://registry.npmjs.org/@tanstack/svelte-form">[73]</a></sup>. The cost is the render-prop <code>&lt;form.Field&gt;</code> scaffolding per field — the verbosity tax <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-composition">[69]</a></sup>.</div>
+      </div>
+      <div class="sb__rrow" style="grid-template-columns: 190px 1fr">
+        <div class="rname">Conform</div>
+        <div class="rwhy">Fully headless, least markup opinion — but <span style="color:var(--led2)">⚠</span> everything must be expressible as <code>FormData</code>, and non-native components (Radix/shadcn selects) bridge to a hidden native input via <code>useControl</code> <sup><a href="https://conform.guide/">[52]</a></sup>. <code>@conform-to/dom</code> exists but <strong>only a React adapter ships</strong> <sup><a href="https://registry.npmjs.org/@conform-to/react">[10]</a></sup> — it couples <em>upward</em> to Remix/Next server actions instead <sup><a href="https://conform.guide/integration/nextjs">[74]</a></sup>.</div>
+      </div>
+      <div class="sb__rrow" style="grid-template-columns: 190px 1fr">
+        <div class="rname">React Hook Form</div>
+        <div class="rwhy">Fully headless, <strong>✗ React-only</strong>. Uncontrolled/ref model; non-native components must go through <code>Controller</code>. <span style="color:var(--led2)">⚠</span> No official React 19 position: the "React v19" discussion (#11832, opened Apr 2024) is <em>still Unanswered</em> in 2026 <sup><a href="https://github.com/orgs/react-hook-form/discussions/11832">[103]</a></sup>. Its <code>&lt;Form action&gt;</code> + <code>progressive: true</code> POSTs to an <strong>HTTP endpoint, not a React Server Function</strong> <sup><a href="https://react-hook-form.com/docs/useform/form">[104]</a></sup>; bolted onto <code>useActionState</code> it needs hacks <sup><a href="https://markus.oberlehner.net/blog/using-react-hook-form-with-react-19-use-action-state-and-next-js-15-app-router">[105]</a></sup>. Best home: SPA / client-heavy.</div>
+      </div>
+      <div class="sb__rrow" style="grid-template-columns: 190px 1fr">
+        <div class="rname">React Final Form</div>
+        <div class="rwhy">Real <code>final-form</code> core with multiple bindings — but stagnant <sup><a href="https://registry.npmjs.org/final-form">[18]</a></sup>. Architecturally frozen: no React 19, no Server Actions, no compiler story.</div>
+      </div>
+      <div class="sb__rrow" style="grid-template-columns: 190px 1fr">
+        <div class="rname">Formik</div>
+        <div class="rwhy">Only <em>partly</em> headless — ships <code>&lt;Field&gt;</code>, <code>&lt;Form&gt;</code>, <code>&lt;ErrorMessage&gt;</code> components. React-only. Yup-centric, no Standard Schema, no Server Functions.</div>
+      </div>
+    </div>
+
+    <p class="sb__note">
+      <b>Validation layer.</b> <a href="https://standardschema.dev/">Standard Schema</a> is the common interface Zod / Valibot / ArkType / Effect now implement <sup><a href="https://standardschema.dev/">[109]</a></sup>. Only <b>TanStack Form</b> <sup><a href="https://github.com/TanStack/form/blob/main/docs/framework/react/guides/validation.md">[100]</a></sup> and <b>Conform</b> <sup><a href="https://github.com/edmundhung/conform/discussions/1014">[106]</a></sup> consume it with zero adapter code; RHF needs <code>@hookform/resolvers</code> <sup><a href="https://github.com/react-hook-form/resolvers">[65]</a></sup> <sup><a href="https://registry.npmjs.org/@hookform/resolvers/5.4.0">[102]</a></sup> — 0.55 kB, so this is ergonomics, not weight.
+      TanStack has best-in-class Server-Function wiring (<code>@tanstack/react-form-{nextjs,start,remix}</code>, <code>createServerValidate</code>, a documented <code>useActionState</code> bridge) <sup><a href="https://github.com/TanStack/form/blob/main/docs/framework/react/guides/ssr.md">[101]</a></sup>; for Conform, server-first <b>is the premise</b> — the same schema runs in the server action and the client, so they cannot drift, and it works with JS off <sup><a href="https://conform.guide/">[52]</a></sup> <sup><a href="https://conform.guide/integration/nextjs">[74]</a></sup>.
+    </p>
+  </div>
+</section>
+
+<!-- ============ PUNDITS ============ -->
+<section id="pundits">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Post-match panel</div>
+      <h2>The pundits</h2>
+      <p>⚠ Reddit blocks automated fetching, so this is Hacker News, GitHub discussions and blogs — not r/reactjs. Weight it accordingly.</p>
+    </div>
+
+    <div class="sb__pundits">
+      <div class="sb__quote red">
+        <blockquote>"I haven't maintained Formik since 2020."</blockquote>
+        <div class="src">Jared Palmer, Formik's author, on X — the React-19 release was a Copilot dogfooding exercise <sup><a href="https://x.com/jaredpalmer/status/1986851141645443151">[83]</a></sup></div>
+      </div>
+      <div class="sb__quote red">
+        <blockquote>"I would move on to React Hook Form if you're starting fresh."</blockquote>
+        <div class="src">johnrom, Formik collaborator <sup><a href="https://github.com/jaredpalmer/formik/discussions/3526">[84]</a></sup></div>
+      </div>
+      <div class="sb__quote red">
+        <blockquote>"It's outdated and hasn't seen a real commit in years… its lack of updates have caused it to fall behind in terms of performance and new React features."</blockquote>
+        <div class="src">Practitioner stuck on Formik, Hacker News <sup><a href="https://news.ycombinator.com/item?id=46732276">[89]</a></sup></div>
+      </div>
+      <div class="sb__quote amber">
+        <blockquote>"We started with react-hook-form and switched to TanStack Form."</blockquote>
+        <div class="src">HN practitioner who made the move — but reports TanStack's <strong>dirty-tracking breaks when default state changes</strong> and <strong>type inference degrades on complex array types</strong>, forcing custom code <sup><a href="https://news.ycombinator.com/item?id=48105772">[88]</a></sup></div>
+      </div>
+      <div class="sb__quote green">
+        <blockquote>"React Hook Form remains the default choice for most React applications in 2026."</blockquote>
+        <div class="src">The aggregator consensus — pkgpulse <sup><a href="https://www.pkgpulse.com/guides/best-react-form-libraries-2026">[95]</a></sup>, splitforms <sup><a href="https://splitforms.com/blog/best-react-form-library-2026">[54]</a></sup>, LogRocket <sup><a href="https://blog.logrocket.com/tanstack-form-vs-react-hook-form/">[87]</a></sup> all land here; TanStack only for complex/nested forms or when already in its ecosystem</div>
+      </div>
+      <div class="sb__quote amber">
+        <blockquote>TanStack Form, sighted in production.</blockquote>
+        <div class="src">OpenAI's Codex desktop app ships <code>@tanstack/react-form</code> with React 19 <sup><a href="https://news.ycombinator.com/item?id=46859949">[99]</a></sup>; small SaaS teams report it on Next + Zod for highly dynamic forms <sup><a href="https://news.ycombinator.com/item?id=48106107">[98]</a></sup></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEAM TALK ============ -->
+<section id="signings">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Manager's team talk</div>
+      <h2>Who to sign</h2>
+    </div>
+
+    <div class="sb__signings">
+      <div class="sb__sign yes">
+        <div>
+          <div class="sname"><a href="https://react-hook-form.com">React Hook Form</a></div>
+          <span class="stag">Sign by default</span>
+        </div>
+        <div class="sbody">
+          <p><strong>The burden of proof is on anything else.</strong> Pick it if you're building a SPA or a client-heavy app, you want the biggest ecosystem — 58M weekly downloads means every edge case is already answered on Stack Overflow <sup><a href="https://api.npmjs.org/downloads/point/last-week/react-hook-form">[2]</a></sup> — and you can live with stringly-typed paths.</p>
+          <p class="warn">⚠ Plan for v8: public beta, breaking changes, no GA date <sup><a href="https://github.com/react-hook-form/react-hook-form/releases">[4]</a></sup> <sup><a href="https://react-hook-form.com/migrate-v7-to-v8">[5]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign cond">
+        <div>
+          <div class="sname"><a href="https://tanstack.com/form">TanStack Form</a></div>
+          <span class="stag">Sign on condition</span>
+        </div>
+        <div class="sbody">
+          <p>Pick it if <strong>any</strong> of: <strong>(a)</strong> you ship the same form logic to more than one framework — it's the <em>only</em> library that genuinely delivers this <sup><a href="https://registry.npmjs.org/@tanstack/svelte-form">[73]</a></sup>; <strong>(b)</strong> you have deeply nested / array-heavy forms where RHF's index-less <code>${number}</code> paths hurt <sup><a href="https://unpkg.com/@tanstack/form-core@1.33.2/dist/esm/util-types.d.ts">[70]</a></sup>; <strong>(c)</strong> you're already on TanStack Start; <strong>(d)</strong> you want first-party Server-Function wiring rather than community glue <sup><a href="https://github.com/TanStack/form/blob/main/docs/framework/react/guides/ssr.md">[101]</a></sup>.</p>
+          <p class="warn">⚠ Budget for building a <code>createFormHook</code> wrapper layer on day one — the raw API is verbose by the maintainers' own admission <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-composition">[69]</a></sup>. The 91-issue / 60-PR backlog on a small team is the risk to price in <sup><a href="https://github.com/TanStack/form">[8]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign cond">
+        <div>
+          <div class="sname"><a href="https://conform.guide/">Conform</a></div>
+          <span class="stag">Cup specialist</span>
+        </div>
+        <div class="sbody">
+          <p>Pick it if progressive enhancement is a <strong>requirement</strong> (forms must work with JS disabled), or you're on Next App Router / React Router v7 and want one schema that provably cannot drift between client and server <sup><a href="https://conform.guide/">[52]</a></sup> <sup><a href="https://conform.guide/integration/nextjs">[74]</a></sup>.</p>
+          <p class="warn">⚠ Don't pick it for a multi-step wizard with cross-field live previews — there is <strong>no <code>watch</code></strong> and no client value store to hang derived UI off <sup><a href="https://judemiracle.com/articles/server-first-forms-with-conform-vs-react-hook-form.html">[57]</a></sup>. Bus-factor 1, 241k weekly downloads: a thin ecosystem when you hit an edge <sup><a href="https://api.npmjs.org/downloads/point/last-week/@conform-to/react">[11]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign cond">
+        <div>
+          <div class="sname">No library at all</div>
+          <span class="stag">Play the academy</span>
+        </div>
+        <div class="sbody">
+          <p>A real option for small forms — the Next-focused guides draw the line at roughly <strong>1–5 fields</strong> <sup><a href="https://splitforms.com/blog/best-nextjs-form-library-2026">[92]</a></sup> <sup><a href="https://splitforms.com/blog/best-react-form-library-2026">[54]</a></sup> — and it just got more legitimate: <strong><a href="https://ui.shadcn.com/docs/forms/react-hook-form">shadcn/ui went form-agnostic in Oct 2025</a></strong>, with a <code>&lt;Field&gt;</code> family supporting RHF, TanStack Form, React 19 <code>useActionState</code> and custom <sup><a href="https://github.com/shadcn-ui/ui/discussions/9505">[90]</a></sup> <sup><a href="https://ui.shadcn.com/docs/forms/react-hook-form">[91]</a></sup>.</p>
+          <p>One of the biggest structural reasons RHF was <em>the</em> default — "shadcn's <code>&lt;Form&gt;</code> is an RHF wrapper" — <strong>no longer holds</strong>. The critique that form libraries <em>"re-create and manage the entire form's state in a separate JS object"</em> instead of using <code>FormData</code> and <code>ValidityState</code> has more teeth now than it did in 2023 <sup><a href="https://thomason-isaiah.medium.com/why-you-can-and-should-finally-ditch-your-form-library-e6b95bff01b6">[94]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign cond">
+        <div>
+          <div class="sname"><a href="https://rvf-js.io">RVF</a></div>
+          <span class="stag">The option nobody names</span>
+        </div>
+        <div class="sbody">
+          <p>Occupies Conform's progressive-enhancement niche with a more conventional API, ships current (8.1.3, 2026-07-04), and is the fallback if Conform's bus-factor-1 risk is disqualifying.</p>
+          <p class="warn">⚠ At 972 stars and 31k weekly downloads it trades one bus-factor problem for a smaller one <sup><a href="https://github.com/airjp73/rvf">[24]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign cond">
+        <div>
+          <div class="sname"><a href="https://formisch.dev/">Formisch</a></div>
+          <span class="stag">Watch, don't bet</span>
+        </div>
+        <div class="sbody">
+          <p>By Fabian Hiller (author of Valibot, co-author of Standard Schema). Signal-based, ~2.5 kB core, six frameworks, and <strong>the only library that derives types straight off the schema</strong> with no generic and no resolver — which it achieves by binding to <strong>Valibot only</strong>, rather than accepting any Standard Schema <sup><a href="https://formisch.dev/">[107]</a></sup> <sup><a href="https://formisch.dev/blog/formisch-v1-release-candidate/">[108]</a></sup>.</p>
+          <p class="warn">⚠ Worth noticing: <strong>the Standard-Schema co-author's own form library does not consume Standard Schema</strong> — which tells you something about the ceiling on schema-derived inference through that interface. 1.0.0-rc.0, 2.5k weekly downloads: real, very early <sup><a href="https://github.com/fabian-hiller/formisch">[97]</a></sup>. Its comparison blog is a competitor's vendor blog — directionally useful, adversarial by construction <sup><a href="https://formisch.dev/blog/react-form-library-comparison/">[55]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign no">
+        <div>
+          <div class="sname"><a href="https://formik.org">Formik</a></div>
+          <span class="stag">Never — for new work</span>
+        </div>
+        <div class="sbody">
+          <p>Its author and its collaborator both say so <sup><a href="https://x.com/jaredpalmer/status/1986851141645443151">[83]</a></sup> <sup><a href="https://github.com/jaredpalmer/formik/discussions/3526">[84]</a></sup>. If you have it, the only question is migration budget — <strong>it is not a security or correctness emergency</strong>, so migrate opportunistically, form by form.</p>
+        </div>
+      </div>
+
+      <div class="sb__sign no">
+        <div>
+          <div class="sname"><a href="https://final-form.org">React Final Form</a></div>
+          <span class="stag">Only if you already have it</span>
+        </div>
+        <div class="sbody">
+          <p>No React 19 story, no compiler story, worst TS story, 360 stale issues <sup><a href="https://github.com/final-form/react-final-form">[21]</a></sup>. Legacy-only.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIXTURE LIST ============ -->
+<section id="fixtures">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Rest of the fixture list</div>
+      <h2>Other matches in this competition</h2>
+      <p>This table is one angle in the <a href="../../" style="color:var(--led)">Building forms in React in 2026</a> expedition.</p>
+    </div>
+
+    <div class="sb__fixtures">
+      <a class="sb__fix" href="../../react-native-form-primitives/">
+        <div class="fdepth">Survey</div>
+        <div class="ftitle">React's native form primitives in 2026: what they replace, and what they don't</div>
+      </a>
+      <a class="sb__fix" href="../../validation-and-schema-layer/">
+        <div class="fdepth">Survey</div>
+        <div class="ftitle">The validation &amp; schema layer for React forms in 2026: Zod 4, Valibot, ArkType — and why Standard Schema changed the question</div>
+      </a>
+      <a class="sb__fix" href="../../hard-forms-arrays-wizards-conditionals-performance/">
+        <div class="fdepth">Survey</div>
+        <div class="ftitle">The hard parts of React forms in 2026: arrays, conditionals, wizards, and the render budget</div>
+      </a>
+      <a class="sb__fix" href="../../ui-kit-integration/">
+        <div class="fdepth">Recon</div>
+        <div class="ftitle">Wiring form engines into React UI kits in 2026</div>
+      </a>
+      <a class="sb__fix" href="../../testing-forms/">
+        <div class="fdepth">Survey</div>
+        <div class="ftitle">Testing React forms in 2026: which tier catches what</div>
+      </a>
+      <a class="sb__fix" href="../../uploads-autosave-and-unsaved-changes/">
+        <div class="fdepth">Survey</div>
+        <div class="ftitle">Uploads, autosave and unsaved-changes guards in React forms (2026)</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OFFICIAL RECORD ============ -->
+<section id="record">
+  <div class="sb__wrap">
+    <div class="sechead">
+      <div class="kicker">Official record</div>
+      <h2>Where the numbers came from</h2>
+      <p>Every figure in the table is a primary read of the npm registry or the GitHub API on 2026-07-13. These are the ledgers.</p>
+    </div>
+
+    <div class="sb__record">
+      <a class="sb__rec" href="https://registry.npmjs.org/react-hook-form"><img src="https://www.google.com/s2/favicons?domain=npmjs.org&sz=128" alt=""><span>npm · react-hook-form</span></a>
+      <a class="sb__rec" href="https://github.com/react-hook-form/react-hook-form"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · react-hook-form</span></a>
+      <a class="sb__rec" href="https://registry.npmjs.org/@tanstack/react-form"><img src="https://www.google.com/s2/favicons?domain=npmjs.org&sz=128" alt=""><span>npm · @tanstack/react-form</span></a>
+      <a class="sb__rec" href="https://github.com/TanStack/form"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · TanStack/form</span></a>
+      <a class="sb__rec" href="https://registry.npmjs.org/@conform-to/react"><img src="https://www.google.com/s2/favicons?domain=npmjs.org&sz=128" alt=""><span>npm · @conform-to/react</span></a>
+      <a class="sb__rec" href="https://github.com/edmundhung/conform"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · edmundhung/conform</span></a>
+      <a class="sb__rec" href="https://registry.npmjs.org/formik"><img src="https://www.google.com/s2/favicons?domain=npmjs.org&sz=128" alt=""><span>npm · formik</span></a>
+      <a class="sb__rec" href="https://github.com/jaredpalmer/formik"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · jaredpalmer/formik</span></a>
+      <a class="sb__rec" href="https://registry.npmjs.org/react-final-form"><img src="https://www.google.com/s2/favicons?domain=npmjs.org&sz=128" alt=""><span>npm · react-final-form</span></a>
+      <a class="sb__rec" href="https://github.com/final-form/react-final-form"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · react-final-form</span></a>
+      <a class="sb__rec" href="https://github.com/airjp73/rvf"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · airjp73/rvf</span></a>
+      <a class="sb__rec" href="https://github.com/fabian-hiller/formisch"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span>GitHub · fabian-hiller/formisch</span></a>
+      <a class="sb__rec" href="https://bundlephobia.com/api/size?package=react-hook-form@7.81.0"><img src="https://www.google.com/s2/favicons?domain=bundlephobia.com&sz=128" alt=""><span>Bundlephobia · sizes</span></a>
+      <a class="sb__rec" href="https://bundlejs.com/?q=react-hook-form&treeshake=%5B%7BuseForm%2CuseFieldArray%2CController%2CuseWatch%7D%5D"><img src="https://www.google.com/s2/favicons?domain=bundlejs.com&sz=128" alt=""><span>bundlejs · treeshaken</span></a>
+      <a class="sb__rec" href="https://2025.stateofreact.com/en-US/libraries/"><img src="https://www.google.com/s2/favicons?domain=stateofreact.com&sz=128" alt=""><span>State of React 2025</span></a>
+      <a class="sb__rec" href="https://standardschema.dev/"><img src="https://www.google.com/s2/favicons?domain=standardschema.dev&sz=128" alt=""><span>Standard Schema</span></a>
+    </div>
+
+    <div class="sb__colophon">
+      <b>Scoreboard</b> — a view of the canonical report. All figures pulled 2026-07-13 from the npm registry and the GitHub API; bundle sizes from Bundlephobia and bundlejs on the same date. Stars use the canonical's format (<span class="star">⭐ 44.8k</span>). The <b>Form</b> column in the league table is editorial, not sourced; every other cell carries its citation. The full report carries all <b>109</b> citations and the reasoning behind each verdict.
+    </div>
+  </div>
+</section>
+
+</div>

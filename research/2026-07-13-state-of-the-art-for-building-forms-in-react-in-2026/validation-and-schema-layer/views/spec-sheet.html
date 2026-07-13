@@ -1,0 +1,1061 @@
+---
+layout: view
+view_name: "Spec sheet"
+view_of: ../
+title: "The validation & schema layer for React forms in 2026: Zod 4, Valibot, ArkType — and why Standard Schema changed the question — Spec sheet"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;600;700&display=swap');
+
+.ds {
+  --paper: #eae6db;
+  --paper-2: #f3f0e7;
+  --ink: #16150f;
+  --ink-2: #4a4739;
+  --rule: #16150f;
+  --hair: #b8b2a1;
+  --spot: #b4261a;
+  --pass: #1d6a4f;
+  --warn: #a8730b;
+  --pkg: #1b1a17;
+  --pin: #c6c2b4;
+
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 15px;
+  line-height: 1.55;
+  background-image:
+    linear-gradient(rgba(22,21,15,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22,21,15,.035) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.ds * { box-sizing: border-box; }
+.ds .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 96px; }
+
+/* ─── shared type ─── */
+.ds h1, .ds h2, .ds h3 { font-family: 'Archivo', system-ui, sans-serif; margin: 0; }
+.ds .mono { font-family: 'IBM Plex Mono', monospace; }
+.ds sup a {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 600;
+  color: var(--spot); text-decoration: none;
+  border-bottom: none; padding: 0 1px;
+}
+.ds sup a:hover { text-decoration: underline; }
+.ds a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--hair); }
+.ds a:hover { border-bottom-color: var(--spot); color: var(--spot); }
+
+/* ─── masthead ─── */
+.ds .sheet-head {
+  border-bottom: 4px solid var(--rule);
+  padding-top: 34px;
+}
+.ds .docline {
+  display: flex; flex-wrap: wrap; gap: 0;
+  border: 1.5px solid var(--rule);
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  background: var(--paper-2);
+}
+.ds .docline > div {
+  padding: 6px 12px;
+  border-right: 1px solid var(--hair);
+  display: flex; gap: 8px; align-items: baseline;
+}
+.ds .docline > div:last-child { border-right: 0; margin-left: auto; }
+.ds .docline b { font-weight: 700; }
+.ds .docline span { color: var(--ink-2); }
+
+.ds .title-block {
+  display: grid; grid-template-columns: 1.35fr .95fr; gap: 34px;
+  padding: 26px 0 24px;
+  align-items: center;
+}
+.ds h1 {
+  font-weight: 900; font-size: clamp(34px, 4.6vw, 60px);
+  line-height: .95; letter-spacing: -.025em; text-transform: uppercase;
+}
+.ds h1 .thin { font-weight: 400; color: var(--ink-2); display: block; font-size: .46em; letter-spacing: .02em; margin-top: 14px; line-height: 1.25; text-transform: none; font-family: 'IBM Plex Mono', monospace; }
+.ds .hero-img { position: relative; border: 1.5px solid var(--rule); }
+.ds .hero-img img { display: block; width: 100%; height: 290px; object-fit: cover; filter: saturate(.55) contrast(1.08); }
+.ds .hero-cap {
+  position: absolute; left: 0; bottom: 0; right: 0;
+  background: rgba(22,21,15,.86); color: var(--paper);
+  font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+  padding: 7px 10px;
+}
+.ds .fig { color: var(--spot); font-weight: 700; }
+
+/* ─── verdict ─── */
+.ds .verdict {
+  border: 2px solid var(--rule); border-top: 8px solid var(--rule);
+  background: var(--paper-2);
+  margin: 30px 0 0; padding: 22px 26px 24px;
+}
+.ds .verdict .lbl {
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 11px;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--spot);
+  margin-bottom: 12px;
+}
+.ds .verdict p { margin: 0 0 12px; font-size: 15px; }
+.ds .verdict p:last-child { margin-bottom: 0; }
+.ds .verdict strong { font-weight: 700; }
+.ds .kbd {
+  background: var(--ink); color: var(--paper); padding: 1px 6px;
+  font-weight: 600; font-size: .88em; letter-spacing: .02em;
+}
+
+/* ─── section headers ─── */
+.ds section { margin-top: 58px; }
+.ds .sec-h {
+  display: flex; align-items: baseline; gap: 14px;
+  border-bottom: 2px solid var(--rule); padding-bottom: 7px; margin-bottom: 22px;
+}
+.ds .sec-h .num {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 12px;
+  background: var(--ink); color: var(--paper); padding: 3px 8px;
+}
+.ds .sec-h h2 {
+  font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+  font-size: 22px; letter-spacing: .12em; text-transform: uppercase;
+}
+.ds .sec-h .sub {
+  margin-left: auto; font-size: 10.5px; color: var(--ink-2);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+
+/* ─── parts band ─── */
+.ds .band {
+  display: grid; grid-template-columns: 220px 1fr; gap: 0;
+  border: 1.5px solid var(--rule); background: var(--paper-2); margin-bottom: 26px;
+}
+.ds .band img { display: block; width: 100%; height: 100%; max-height: 132px; object-fit: cover; border-right: 1.5px solid var(--rule); filter: grayscale(.35) contrast(1.06); }
+.ds .band-txt { padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; }
+.ds .band-txt p {
+  margin: 0 0 6px; font-family: 'Archivo', sans-serif; font-weight: 800;
+  font-size: 19px; letter-spacing: -.01em;
+}
+.ds .band-txt span { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+.ds .band-txt code { background: rgba(22,21,15,.07); padding: 0 4px; font-size: .92em; }
+
+/* ─── part cards (DIP packages) ─── */
+.ds .parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.ds .part { border: 1.5px solid var(--rule); background: var(--paper-2); display: flex; flex-direction: column; }
+.ds .part.pick { border-width: 3px; box-shadow: 6px 6px 0 rgba(22,21,15,.14); }
+.ds .part-top {
+  padding: 26px 20px 22px;
+  background:
+    repeating-linear-gradient(45deg, rgba(22,21,15,.045) 0 3px, transparent 3px 8px);
+  border-bottom: 1.5px solid var(--rule);
+}
+.ds .dip {
+  position: relative; margin: 0 14px;
+  background: linear-gradient(175deg, #2b2a26 0%, var(--pkg) 42%, #100f0d 100%);
+  border-radius: 2px; padding: 26px 14px 20px; text-align: center;
+  box-shadow: 0 8px 16px rgba(22,21,15,.34), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.ds .dip::before, .ds .dip::after {
+  content: ""; position: absolute; top: 14%; height: 72%; width: 10px;
+  background: repeating-linear-gradient(to bottom, var(--pin) 0 8px, transparent 8px 18px);
+}
+.ds .dip::before { left: -10px; }
+.ds .dip::after { right: -10px; }
+.ds .notch {
+  position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  width: 26px; height: 13px; background: var(--paper-2);
+  border-radius: 0 0 26px 26px; border: 1.5px solid rgba(0,0,0,.35); border-top: 0;
+}
+.ds .dip .silk {
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 26px;
+  letter-spacing: .04em; color: #e6e2d3; text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0,0,0,.7);
+}
+.ds .dip .silk-2 {
+  font-size: 10.5px; letter-spacing: .18em; color: #9d9887; margin-top: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.ds .dip .dot {
+  position: absolute; left: 12px; bottom: 10px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #45443e; box-shadow: inset 0 1px 2px rgba(0,0,0,.8);
+}
+.ds .part-id {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 20px; font-size: 11px; letter-spacing: .06em; color: var(--ink-2);
+  text-transform: uppercase;
+}
+.ds .part-id .pn { font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.ds .part-body { padding: 18px 20px 20px; flex: 1; }
+.ds .part-role {
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px;
+  letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px;
+}
+.ds .part-role.a { color: var(--pass); }
+.ds .part-role.b { color: var(--spot); }
+.ds .part-role.c { color: var(--warn); }
+.ds .part-desc { font-size: 13px; color: var(--ink-2); line-height: 1.5; min-height: 76px; }
+.ds .part-stats { border-top: 1px dashed var(--hair); margin-top: 14px; padding-top: 12px; }
+.ds .part-stats div {
+  display: flex; justify-content: space-between; font-size: 12px;
+  padding: 3px 0; letter-spacing: .02em;
+}
+.ds .part-stats span:first-child { color: var(--ink-2); text-transform: uppercase; font-size: 10.5px; letter-spacing: .1em; }
+.ds .part-stats b { font-weight: 600; }
+.ds .headline-num {
+  font-family: 'Archivo', sans-serif; font-weight: 900;
+  font-size: 42px; line-height: 1; letter-spacing: -.03em; margin: 6px 0 2px;
+}
+.ds .headline-unit { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+
+/* ─── ratings table ─── */
+.ds .tbl-wrap { overflow-x: auto; border: 1.5px solid var(--rule); background: var(--paper-2); }
+.ds table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 13px; }
+.ds thead th {
+  background: var(--ink); color: var(--paper);
+  font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 10px 12px; text-align: left; border-right: 1px solid #3a382f;
+  vertical-align: bottom;
+}
+.ds thead th:last-child { border-right: 0; }
+.ds thead th small { display: block; font-family: 'IBM Plex Mono', monospace; font-weight: 400; letter-spacing: .06em; color: #a5a08e; text-transform: none; margin-top: 3px; }
+.ds tbody td { padding: 11px 12px; border-bottom: 1px solid var(--hair); border-right: 1px dotted var(--hair); vertical-align: top; }
+.ds tbody td:last-child { border-right: 0; }
+.ds tbody tr:nth-child(even) { background: rgba(22,21,15,.028); }
+.ds tbody tr:last-child td { border-bottom: 0; }
+.ds td.par { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; font-size: 12px; width: 190px; }
+.ds td.sym { font-size: 12px; color: var(--ink-2); width: 78px; white-space: nowrap; }
+.ds td.note { font-size: 11.5px; color: var(--ink-2); width: 180px; line-height: 1.45; }
+.ds .best { font-weight: 700; }
+.ds .best::after {
+  content: "BEST"; font-size: 8.5px; font-weight: 700; letter-spacing: .1em;
+  background: var(--pass); color: var(--paper-2); padding: 1px 4px; margin-left: 6px;
+  vertical-align: 2px;
+}
+.ds .meter { height: 6px; background: rgba(22,21,15,.1); margin-top: 5px; position: relative; }
+.ds .meter i { position: absolute; inset: 0 auto 0 0; background: var(--ink); }
+.ds .meter.g i { background: var(--pass); }
+.ds .meter.r i { background: var(--spot); }
+.ds .yes { color: var(--pass); font-weight: 700; }
+.ds .no { color: var(--spot); font-weight: 700; }
+.ds .caveat { color: var(--warn); font-weight: 700; }
+
+/* ─── socket / interface spec ─── */
+.ds .socket {
+  display: grid; grid-template-columns: 1fr 1.05fr; gap: 0;
+  border: 1.5px solid var(--rule);
+}
+.ds .socket-img { border-right: 1.5px solid var(--rule); position: relative; }
+.ds .socket-img img { display: block; width: 100%; height: 100%; min-height: 330px; object-fit: cover; filter: saturate(.5) contrast(1.05); }
+.ds .socket-body { padding: 24px 26px; background: var(--paper-2); }
+.ds .socket-body h3 {
+  font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 20px;
+  letter-spacing: -.01em; margin-bottom: 4px;
+}
+.ds .socket-body .spec-v { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 16px; }
+.ds .pinout { border-top: 2px solid var(--rule); margin-top: 16px; }
+.ds .pin-row {
+  display: grid; grid-template-columns: 42px 1fr; gap: 14px;
+  padding: 10px 0; border-bottom: 1px dotted var(--hair); align-items: baseline;
+}
+.ds .pin-no {
+  font-weight: 700; font-size: 11px; background: var(--ink); color: var(--paper);
+  text-align: center; padding: 2px 0; letter-spacing: .06em;
+}
+.ds .pin-row.absent .pin-no { background: var(--spot); }
+.ds .pin-fn code { font-size: 12.5px; font-weight: 600; background: rgba(22,21,15,.07); padding: 1px 5px; }
+.ds .pin-fn p { margin: 4px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+
+/* ─── callout strip ─── */
+.ds .amr { border: 2px solid var(--spot); background: var(--paper-2); }
+.ds .amr-h {
+  background: var(--spot); color: var(--paper);
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 12px;
+  letter-spacing: .18em; text-transform: uppercase; padding: 7px 14px;
+}
+.ds .amr-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+.ds .amr-item { padding: 16px 18px; border-right: 1px dotted var(--hair); border-bottom: 1px dotted var(--hair); }
+.ds .amr-item:nth-child(2n) { border-right: 0; }
+.ds .amr-item:nth-last-child(-n+2) { border-bottom: 0; }
+.ds .amr-item h4 {
+  margin: 0 0 5px; font-family: 'IBM Plex Mono', monospace; font-weight: 700;
+  font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+}
+.ds .amr-item h4::before { content: "⚠ "; color: var(--spot); }
+.ds .amr-item p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+.ds .amr-item code { background: rgba(22,21,15,.07); padding: 0 4px; font-size: .92em; }
+
+/* ─── host boards ─── */
+.ds .boards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border: 1.5px solid var(--rule); }
+.ds .board {
+  padding: 18px 20px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair);
+  background: var(--paper-2); display: flex; gap: 14px;
+}
+.ds .board:nth-child(2n) { border-right: 0; }
+.ds .board img.fav { width: 26px; height: 26px; flex: 0 0 26px; margin-top: 2px; filter: grayscale(1) contrast(1.1); }
+.ds .board h4 { margin: 0 0 2px; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 15px; }
+.ds .board .socket-tag {
+  display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; padding: 2px 6px; margin-bottom: 7px;
+}
+.ds .socket-tag.native { background: var(--pass); color: var(--paper-2); }
+.ds .socket-tag.adapter { background: var(--ink); color: var(--paper-2); }
+.ds .socket-tag.soldered { background: var(--spot); color: var(--paper-2); }
+.ds .board p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+.ds .board code { background: rgba(22,21,15,.07); padding: 0 4px; font-size: .92em; }
+.ds .stars { font-size: 11px; color: var(--ink-2); font-weight: 600; }
+
+/* ─── application note / code ─── */
+.ds .appnote { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.ds .circuit { border: 1.5px solid var(--rule); background: var(--paper-2); }
+.ds .circuit-h {
+  border-bottom: 1.5px solid var(--rule); padding: 9px 14px;
+  font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ds .circuit-h em { font-style: normal; color: var(--spot); font-size: 10px; letter-spacing: .08em; }
+.ds pre {
+  margin: 0; padding: 16px 14px; overflow-x: auto;
+  background: var(--ink); color: #d9d5c6;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6;
+}
+.ds pre .c { color: #7e7a68; }
+.ds pre .k { color: #d98c6a; }
+.ds pre .s { color: #96b58a; }
+.ds pre .f { color: #e5dfc9; font-weight: 600; }
+.ds .circuit-foot { padding: 12px 14px; font-size: 12px; color: var(--ink-2); line-height: 1.55; border-top: 1px solid var(--hair); }
+
+/* ─── coercion rows ─── */
+.ds .coerce { border: 1.5px solid var(--rule); background: var(--paper-2); margin-top: 24px; }
+.ds .coerce-row {
+  display: grid; grid-template-columns: 130px 1fr 1fr; gap: 0; align-items: stretch;
+  border-bottom: 1px solid var(--hair);
+}
+.ds .coerce-row:last-child { border-bottom: 0; }
+.ds .coerce-row .who {
+  padding: 14px 16px; border-right: 1px solid var(--hair);
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; background: rgba(22,21,15,.04);
+}
+.ds .coerce-row .sig { padding: 14px 16px; border-right: 1px dotted var(--hair); font-size: 12.5px; }
+.ds .coerce-row .sig code { display: block; background: var(--ink); color: #d9d5c6; padding: 6px 8px; font-size: 12px; overflow-x: auto; }
+.ds .coerce-row .verdict-c { padding: 14px 16px; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+
+/* ─── NRND band ─── */
+.ds .nrnd {
+  display: grid; grid-template-columns: .8fr 1.2fr;
+  border: 2px solid var(--spot); position: relative; overflow: hidden;
+}
+.ds .nrnd-img { position: relative; border-right: 2px solid var(--spot); }
+.ds .nrnd-img img { display: block; width: 100%; height: 100%; min-height: 280px; object-fit: cover; filter: grayscale(.75) contrast(1.06) sepia(.15); }
+.ds .stamp {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotate(-11deg);
+  border: 4px double var(--spot); color: var(--spot);
+  font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 17px;
+  letter-spacing: .1em; text-transform: uppercase; text-align: center;
+  padding: 10px 16px; background: rgba(234,230,219,.72); line-height: 1.15;
+  box-shadow: 0 0 0 2px rgba(180,38,26,.15);
+}
+.ds .nrnd-body { padding: 24px 26px; background: var(--paper-2); }
+.ds .nrnd-body h3 { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 21px; margin-bottom: 10px; }
+.ds .nrnd-body p { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+.ds .nrnd-body p:last-child { margin-bottom: 0; }
+.ds .legacy-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.ds .legacy-specs > div { border: 1px solid var(--hair); padding: 10px 12px; background: var(--paper); }
+.ds .legacy-specs h5 { margin: 0 0 6px; font-size: 13px; font-family: 'Archivo', sans-serif; font-weight: 800; }
+.ds .legacy-specs ul { margin: 0; padding-left: 15px; font-size: 11.5px; color: var(--ink-2); line-height: 1.55; }
+
+/* ─── ordering info ─── */
+.ds .order { border: 1.5px solid var(--rule); }
+.ds .order-row {
+  display: grid; grid-template-columns: 52px 1.1fr 1.5fr; align-items: stretch;
+  border-bottom: 1px solid var(--hair); background: var(--paper-2);
+}
+.ds .order-row:last-child { border-bottom: 0; }
+.ds .order-row .rank {
+  background: var(--ink); color: var(--paper);
+  font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ds .order-row.avoid .rank { background: var(--spot); }
+.ds .order-row .cond {
+  padding: 15px 18px; border-right: 1px dotted var(--hair);
+  font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 14px;
+  letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center;
+}
+.ds .order-row .spec-out { padding: 15px 18px; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+.ds .order-row .spec-out b { color: var(--ink); font-weight: 700; }
+
+/* ─── related sheets ─── */
+.ds .related { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.ds .rel {
+  border: 1px solid var(--hair); background: var(--paper-2); padding: 14px 16px;
+  display: block; border-bottom: 1px solid var(--hair);
+}
+.ds .rel:hover { border-color: var(--spot); color: inherit; }
+.ds .rel .depth {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--spot); display: block; margin-bottom: 6px;
+}
+.ds .rel h4 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13.5px; margin: 0 0 6px; line-height: 1.35; }
+.ds .rel p { margin: 0; font-size: 11.5px; color: var(--ink-2); line-height: 1.5; }
+
+/* ─── source register ─── */
+.ds .refs { columns: 2; column-gap: 34px; font-size: 11.5px; }
+.ds .ref {
+  break-inside: avoid; display: flex; gap: 8px; align-items: flex-start;
+  padding: 5px 0; border-bottom: 1px dotted var(--hair);
+}
+.ds .ref .n { font-weight: 700; color: var(--spot); flex: 0 0 24px; }
+.ds .ref img { width: 14px; height: 14px; flex: 0 0 14px; margin-top: 2px; filter: grayscale(1); }
+.ds .ref a { border-bottom: 0; color: var(--ink-2); line-height: 1.4; }
+.ds .ref a:hover { color: var(--spot); }
+
+/* ─── colophon ─── */
+.ds .colophon {
+  margin-top: 54px; border-top: 4px solid var(--rule); padding-top: 14px;
+  display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between;
+  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2);
+}
+
+@media (max-width: 900px) {
+  .ds .title-block, .ds .parts, .ds .socket, .ds .appnote, .ds .boards,
+  .ds .nrnd, .ds .related, .ds .amr-grid, .ds .band { grid-template-columns: 1fr; }
+  .ds .band img { border-right: 0; border-bottom: 1.5px solid var(--rule); }
+  .ds .socket-img { border-right: 0; border-bottom: 1.5px solid var(--rule); }
+  .ds .nrnd-img { border-right: 0; border-bottom: 2px solid var(--spot); }
+  .ds .amr-item { border-right: 0; }
+  .ds .coerce-row { grid-template-columns: 1fr; }
+  .ds .coerce-row .who, .ds .coerce-row .sig { border-right: 0; }
+  .ds .refs { columns: 1; }
+  .ds .order-row { grid-template-columns: 44px 1fr; }
+  .ds .order-row .spec-out { grid-column: 2; border-top: 1px dotted var(--hair); }
+}
+</style>
+
+<div class="ds">
+<div class="wrap">
+
+<!-- ══════════ MASTHEAD ══════════ -->
+<div class="sheet-head">
+  <div class="docline">
+    <div><b>DOC</b><span>DS-VSL-2607</span></div>
+    <div><b>REV</b><span>1.1 — SPEC v1.1.0 SOCKET</span></div>
+    <div><b>ISSUED</b><span>13 JUL 2026</span></div>
+    <div><b>CLASS</b><span>Survey · 33 sources</span></div>
+    <div><b>SUPERSEDES</b><span>ALL PRE-STANDARD-SCHEMA REVISIONS</span></div>
+  </div>
+
+  <div class="title-block">
+    <div>
+      <h1>Schema<br>Validators
+        <span class="thin">Interchangeable validation components for React forms.<br>Socket-compatible with <a href="https://standardschema.dev/">StandardSchemaV1</a>. Three parts characterised;<br>two legacy parts retained for repair only.</span>
+      </h1>
+    </div>
+    <div class="hero-img">
+      <img src="spec-sheet/images/chip-closeup.webp" alt="A socketed DIP chip seated on a circuit board">
+      <div class="hero-cap"><span class="fig">FIG. 1</span> &nbsp;The part is socketed, not soldered. Standard Schema v1 made the validator a field-replaceable unit.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ VERDICT ══════════ -->
+<div class="verdict">
+  <div class="lbl">▲ Selection guide — read this first</div>
+  <p>Fit <strong><a href="https://zod.dev/v4">Zod 4</a></strong> unless you have a reason not to. It is the only part whose ecosystem — drizzle-zod, tRPC, the Next.js docs, the AI SDKs — covers the <em>whole</em> shared-schema path from DB row to form field <sup><a href="https://nextjs.org/docs/app/guides/forms">[17]</a></sup> <sup><a href="https://abrarqasim.com/blog/valibot-vs-zod-2026-i-half-migrated-and-stopped/">[19]</a></sup>.</p>
+  <p>Fit <strong><a href="https://valibot.dev/guides/comparison/">Valibot</a></strong> when the schema is client-bundled and the kilobytes are load-bearing — <span class="kbd">1.37 kB vs 17.7 kB</span> for a login form <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup>. Fit <strong><a href="https://arktype.io/">ArkType</a></strong> when you validate at volume or want TS-syntax schemas — <span class="kbd">~4× Zod 4 throughput</span> <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup>.</p>
+  <p><strong>The 2026 twist:</strong> because Standard Schema v1 is near-universal, picking wrong is <em>cheap at the form-library boundary</em> and <em>expensive at the shared-schema boundary</em>. The form library no longer cares which part you seat. Your ORM, your RPC layer and your OpenAPI generator still do.</p>
+</div>
+
+<!-- ══════════ 01 · PARTS ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">01</span>
+    <h2>Characterised parts</h2>
+    <span class="sub">July 2026 · current majors</span>
+  </div>
+
+  <div class="band">
+    <img src="spec-sheet/images/chip-tray.webp" alt="Two loose DIP integrated circuits">
+    <div class="band-txt">
+      <p>Three parts. One footprint. <strong>Same pinout since Jan 2025.</strong></p>
+      <span><span class="fig">FIG. 1a</span> — Before the spec, each of these needed its own adapter at every board it touched. <code>@hookform/resolvers</code> still carries 20 of them <sup><a href="https://github.com/react-hook-form/resolvers">[14]</a></sup>, for the boards that predate the socket.</span>
+    </div>
+  </div>
+
+  <div class="parts">
+
+    <div class="part pick">
+      <div class="part-top">
+        <div class="dip">
+          <span class="notch"></span>
+          <div class="silk">ZOD</div>
+          <div class="silk-2">4.4.3 · 43.3K★</div>
+          <span class="dot"></span>
+        </div>
+        <div class="part-id">
+          <span class="pn">ZOD-4.4.3</span>
+          <span>~224M / wk <sup><a href="https://www.npmjs.com/package/zod">[24]</a></sup></span>
+        </div>
+      </div>
+      <div class="part-body">
+        <div class="part-role a">◆ Recommended for new designs</div>
+        <div class="headline-num">17.7 <span class="headline-unit">kB gz</span></div>
+        <div class="headline-unit">login-form schema <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup></div>
+        <p class="part-desc" style="margin-top:12px">The ecosystem part. Out-downloads React itself (~224M vs ~153M weekly) <sup><a href="https://www.npmjs.com/package/zod">[24]</a></sup>. The v4 rewrite closed both historical objections: 6.5–14.7× runtime and 10× less tsc thrash on <code>.extend()</code> chains <sup><a href="https://zod.dev/v4">[4]</a></sup>.</p>
+        <div class="part-stats">
+          <div><span>Throughput</span><b>~2M ops/s <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup></b></div>
+          <div><span>Locales</span><b>40+ built in <sup><a href="https://zod.dev/error-customization">[5]</a></sup></b></div>
+          <div><span>Tree-shake</span><b>only via <code>zod/mini</code> <sup><a href="https://zod.dev/packages/mini">[7]</a></sup></b></div>
+          <div><span>Socket</span><b>StandardSchemaV1 (co-author)</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <div class="dip">
+          <span class="notch"></span>
+          <div class="silk">VALIBOT</div>
+          <div class="silk-2">1.4.2 · 8.8K★</div>
+          <span class="dot"></span>
+        </div>
+        <div class="part-id">
+          <span class="pn">VLB-1.4.2</span>
+          <span>~14.3M / wk <sup><a href="https://www.npmjs.com/package/valibot">[25]</a></sup></span>
+        </div>
+      </div>
+      <div class="part-body">
+        <div class="part-role b">◆ Low-power / bundle-critical</div>
+        <div class="headline-num">1.37 <span class="headline-unit">kB gz</span></div>
+        <div class="headline-unit">same schema, 13× smaller <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup></div>
+        <p class="part-desc" style="margin-top:12px">Tree-shakeable by construction — one exported function per action, so the client only pays for what it references <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup>. The input/output split is impossible to get wrong. Its own docs rate its speed "midfield."</p>
+        <div class="part-stats">
+          <div><span>Throughput</span><b>~4M ops/s <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup></b></div>
+          <div><span>Locales</span><b><code>@valibot/i18n</code> <sup><a href="https://valibot.dev/guides/internationalization/">[10]</a></sup></b></div>
+          <div><span>Tree-shake</span><b>✓ by design</b></div>
+          <div><span>Socket</span><b>StandardSchemaV1 (co-author)</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-top">
+        <div class="dip">
+          <span class="notch"></span>
+          <div class="silk">ARKTYPE</div>
+          <div class="silk-2">2.2.3 · 7.8K★</div>
+          <span class="dot"></span>
+        </div>
+        <div class="part-id">
+          <span class="pn">ARK-2.2.3</span>
+          <span>~1.2M / wk <sup><a href="https://www.npmjs.com/package/arktype">[26]</a></sup></span>
+        </div>
+      </div>
+      <div class="part-body">
+        <div class="part-role c">◆ High-throughput / TS-native</div>
+        <div class="headline-num">~8M <span class="headline-unit">ops/s</span></div>
+        <div class="headline-unit">5-field object, ~4× Zod 4 <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup></div>
+        <p class="part-desc" style="margin-top:12px">Schemas are TypeScript syntax in a string; inference is 1:1 <sup><a href="https://arktype.io/">[23]</a></sup>. The price is on the bench, not the wire: a type-level parser plus a JIT runtime that ships whole (~20 kB) regardless of how little you use <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup>.</p>
+        <div class="part-stats">
+          <div><span>Bundle</span><b>~20 kB, monolithic <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup></b></div>
+          <div><span>Locales</span><b class="no">none <sup><a href="https://arktype.io/docs/configuration">[13]</a></sup></b></div>
+          <div><span>tsc cost</span><b class="caveat">highest of the three</b></div>
+          <div><span>Socket</span><b>StandardSchemaV1 (co-author)</b></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════ 02 · ELECTRICAL CHARACTERISTICS ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">02</span>
+    <h2>Rated characteristics</h2>
+    <span class="sub">every figure traceable to its citation</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:190px">Parameter</th>
+          <th style="width:78px">Sym.</th>
+          <th>Zod 4 <small>ZOD-4.4.3</small></th>
+          <th>Valibot 1 <small>VLB-1.4.2</small></th>
+          <th>ArkType 2 <small>ARK-2.2.3</small></th>
+          <th style="width:180px">Conditions / note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="par">Bundle, gzip</td>
+          <td class="sym">B<sub>gz</sub></td>
+          <td>17.7 kB <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup><br><small style="color:var(--ink-2)">Zod Mini: 6.88 kB</small><div class="meter r"><i style="width:88%"></i></div></td>
+          <td class="best">1.37 kB <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup><div class="meter g"><i style="width:7%"></i></div></td>
+          <td>~20 kB <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup><br><small style="color:var(--ink-2)">parser + JIT ship regardless</small><div class="meter r"><i style="width:100%"></i></div></td>
+          <td class="note">Login-form schema, esbuild. Yup ~12 kB; Joi ~145 kB.</td>
+        </tr>
+        <tr>
+          <td class="par">Tree-shakeable</td>
+          <td class="sym">η<sub>ts</sub></td>
+          <td><span class="no">✗</span> classic method chains; <span class="yes">✓</span> via <code>zod/mini</code> <sup><a href="https://zod.dev/packages/mini">[7]</a></sup></td>
+          <td class="yes">✓ by design <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup></td>
+          <td class="no">✗ monolithic runtime</td>
+          <td class="note">Valibot exports one function per action; nothing you don't import is emitted.</td>
+        </tr>
+        <tr>
+          <td class="par">Throughput</td>
+          <td class="sym">f<sub>val</sub></td>
+          <td>~2M ops/s <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup><br><small style="color:var(--ink-2)">6.5–14.7× vs Zod 3 <sup><a href="https://zod.dev/v4">[4]</a></sup></small><div class="meter"><i style="width:25%"></i></div></td>
+          <td>~4M ops/s <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup><div class="meter"><i style="width:50%"></i></div></td>
+          <td class="best">~8M ops/s <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup><div class="meter g"><i style="width:100%"></i></div></td>
+          <td class="note">5-field object. Zod 3 sat at ~300K. On a form, none of this is your bottleneck.</td>
+        </tr>
+        <tr>
+          <td class="par">TS inference</td>
+          <td class="sym">τ<sub>inf</sub></td>
+          <td>Excellent — <code>z.input</code> / <code>z.output</code> split <sup><a href="https://zod.dev/api">[6]</a></sup></td>
+          <td>Excellent — <code>InferInput</code> / <code>InferOutput</code> <sup><a href="https://valibot.dev/guides/pipelines/">[9]</a></sup></td>
+          <td class="best">1:1 with TS syntax <sup><a href="https://arktype.io/">[23]</a></sup></td>
+          <td class="note">Joi cannot infer values from a schema at all <sup><a href="https://github.com/react-hook-form/resolvers">[14]</a></sup>.</td>
+        </tr>
+        <tr>
+          <td class="par">tsc / editor cost</td>
+          <td class="sym">T<sub>tsc</sub></td>
+          <td>4000 ms → 400 ms vs v3 on <code>.extend()</code> chains <sup><a href="https://zod.dev/v4">[4]</a></sup><div class="meter"><i style="width:30%"></i></div></td>
+          <td class="best">Low — plain generics<div class="meter g"><i style="width:14%"></i></div></td>
+          <td><span class="caveat">⚠ Highest</span> — type-level parser; big schemas need <code>.scope()</code> <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup><div class="meter r"><i style="width:100%"></i></div></td>
+          <td class="note">This is the cost you pay every keystroke, not every request.</td>
+        </tr>
+        <tr>
+          <td class="par">Error customisation</td>
+          <td class="sym">E<sub>cfg</sub></td>
+          <td>Unified <code>error</code> param; schema → per-parse → <code>z.config()</code> → locale <sup><a href="https://zod.dev/error-customization">[5]</a></sup></td>
+          <td><code>setSpecificMessage</code> / <code>setSchemaMessage</code> / <code>setGlobalMessage</code> <sup><a href="https://valibot.dev/guides/internationalization/">[10]</a></sup></td>
+          <td><code>arktype/config</code> global, <code>.configure()</code> per type — <span class="caveat">shallow only</span> <sup><a href="https://arktype.io/docs/configuration">[13]</a></sup></td>
+          <td class="note">Yup/Joi: per-rule message strings.</td>
+        </tr>
+        <tr>
+          <td class="par">i18n locales</td>
+          <td class="sym">N<sub>loc</sub></td>
+          <td class="best">40+ in <code>zod/locales</code>, <code>z.config(de())</code> <sup><a href="https://zod.dev/error-customization">[5]</a></sup></td>
+          <td class="yes">✓ <code>@valibot/i18n</code>, modular per-language/per-action <sup><a href="https://valibot.dev/guides/internationalization/">[10]</a></sup></td>
+          <td><span class="no">✗ no locales package</span><br><small style="color:var(--ink-2)">docs: "still a topic we're working on" <sup><a href="https://arktype.io/docs/configuration">[13]</a></sup></small></td>
+          <td class="note">Load-bearing: the socket cannot translate for you. See §03.</td>
+        </tr>
+        <tr>
+          <td class="par">Form coercion</td>
+          <td class="sym">C<sub>str</sub></td>
+          <td><code>z.coerce.*</code>, <code>z.stringbool()</code>, <code>z.preprocess()</code> <sup><a href="https://zod.dev/api">[6]</a></sup></td>
+          <td><code>v.pipe(v.string(), v.toNumber())</code> <sup><a href="https://valibot.dev/api/toNumber/">[29]</a></sup></td>
+          <td><code>type("string.numeric.parse")</code>, filter / narrow <sup><a href="https://arktype.io/docs/expressions">[12]</a></sup></td>
+          <td class="note">Yup coerces implicitly — <span class="caveat">lossy</span>.</td>
+        </tr>
+        <tr>
+          <td class="par">JSON Schema out</td>
+          <td class="sym">J<sub>out</sub></td>
+          <td><code>z.toJSONSchema()</code> <sup><a href="https://zod.dev/v4">[4]</a></sup></td>
+          <td><code>@valibot/to-json-schema</code></td>
+          <td class="yes">✓ bidirectional <sup><a href="https://arktype.io/docs/integrations">[11]</a></sup></td>
+          <td class="note">Spec v1.1 standardises this pin; Joi 18 already ships it <sup><a href="https://github.com/hapijs/joi/blob/master/API.md">[22]</a></sup>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ 03 · SOCKET SPEC ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">03</span>
+    <h2>Socket specification</h2>
+    <span class="sub">StandardSchemaV1 · ~60 lines of TypeScript</span>
+  </div>
+
+  <div class="socket">
+    <div class="socket-img">
+      <img src="spec-sheet/images/sockets.webp" alt="A row of empty DIP sockets in ascending pin counts, laid on graph paper">
+      <div class="hero-cap"><span class="fig">FIG. 2</span> &nbsp;The socket, empty. Zod, Valibot and ArkType maintainers co-authored it — then each built a part that drops into it.</div>
+    </div>
+    <div class="socket-body">
+      <h3><a href="https://standardschema.dev/">Standard Schema</a> v1.1.0</h3>
+      <div class="spec-v">⭐ 3.6k · ~69M/wk · Dec 2025 <sup><a href="https://www.npmjs.com/package/@standard-schema/spec">[3]</a></sup> · no adapter, no peer dep, no shim</div>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0;line-height:1.6">A schema exposes a <code>~standard</code> property. A consumer calls <code>schema["~standard"].validate(input)</code> and gets back <code>{ value }</code> or <code>{ issues }</code> <sup><a href="https://next-safe-action.dev/docs/integrations/standard-schema">[16]</a></sup>. That is the whole interface.</p>
+
+      <div class="pinout">
+        <div class="pin-row">
+          <span class="pin-no">1</span>
+          <div class="pin-fn">
+            <code>~standard.validate(input)</code>
+            <p>Sync or async. Returns <code>{ value }</code> on success, <code>{ issues }</code> on failure. This one pin is why any form library can accept any of the five parts.</p>
+          </div>
+        </div>
+        <div class="pin-row">
+          <span class="pin-no">2</span>
+          <div class="pin-fn">
+            <code>Issue.message</code> &nbsp;<code>Issue.path</code>
+            <p>The entire error surface.</p>
+          </div>
+        </div>
+        <div class="pin-row absent">
+          <span class="pin-no">N/C</span>
+          <div class="pin-fn">
+            <code>Issue.code</code> &nbsp;<code>Issue.params</code>
+            <p><strong>Not connected — and this is the consequence nobody talks about.</strong> The spec's issue type is <code>{ message: string; path?: … }</code>: no error code, no params <sup><a href="https://github.com/standard-schema/standard-schema/blob/main/packages/spec/README.md">[2]</a></sup>. A Standard-Schema-consuming form library therefore cannot re-word or translate your errors. <strong>i18n must happen inside the part.</strong> That is what makes ArkType's missing locales package a real cost, not a footnote.</p>
+          </div>
+        </div>
+        <div class="pin-row">
+          <span class="pin-no">3</span>
+          <div class="pin-fn">
+            <code>~standard.jsonSchema.input() / .output()</code>
+            <p>Added in spec v1.1 (Dec 2025) <sup><a href="https://www.npmjs.com/package/@standard-schema/spec">[3]</a></sup>. Joi 18 already implements it <sup><a href="https://github.com/hapijs/joi/blob/master/API.md">[22]</a></sup>. This is the pin that will eventually drive OpenAPI, LLM tool-calling and form generation from one schema, without vendor-specific <code>toJSONSchema</code> calls.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 04 · HOST BOARDS ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">04</span>
+    <h2>Compatible host boards</h2>
+    <span class="sub">what accepts the socket, what is soldered to Zod</span>
+  </div>
+
+  <div class="boards">
+    <div class="board">
+      <img class="fav" src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt="">
+      <div>
+        <h4>React Hook Form <span class="stars">⭐ 44.8k</span></h4>
+        <span class="socket-tag adapter">Resolver socket</span>
+        <p><code>@hookform/resolvers</code> 5.4.0 ⭐ 2.3k ships <b>20</b> library-specific resolvers <em>plus</em> a generic <code>standardSchemaResolver</code> <sup><a href="https://github.com/react-hook-form/resolvers">[14]</a></sup> <sup><a href="https://www.npmjs.com/package/@hookform/resolvers">[32]</a></sup>. ⚠ ArkType's dedicated resolver is <code>firstError</code>-only; the Standard Schema one supports <code>firstError | all</code>.</p>
+      </div>
+    </div>
+
+    <div class="board">
+      <img class="fav" src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="">
+      <div>
+        <h4>TanStack Form <span class="stars">⭐ 6.6k</span></h4>
+        <span class="socket-tag native">Native socket</span>
+        <p>Pass the schema straight into <code>validators.onChange</code>. Zod, Valibot, ArkType, Effect/Schema — all adapter-free <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">[15]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="board">
+      <img class="fav" src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt="">
+      <div>
+        <h4><a href="https://conform.guide/">Conform</a> <span class="stars">⭐ 2.6k</span></h4>
+        <span class="socket-tag adapter">FormData socket</span>
+        <p><code>parseWithZod</code> (and the Valibot equivalent) runs <b>the same schema</b> in <code>onValidate</code> on the client and inside the Server Action <sup><a href="https://conform.guide/api/zod/parseWithZod">[18]</a></sup> <sup><a href="https://conform.guide/">[30]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="board">
+      <img class="fav" src="https://www.google.com/s2/favicons?domain=next-safe-action.dev&sz=128" alt="">
+      <div>
+        <h4><a href="https://github.com/TheEdoRan/next-safe-action">next-safe-action</a> <span class="stars">⭐ 3k</span></h4>
+        <span class="socket-tag native">Native socket</span>
+        <p>Standard Schema at the protocol level — <code>.inputSchema()</code> takes any compliant schema. You can mix Zod and Valibot across actions in one project <sup><a href="https://next-safe-action.dev/docs/integrations/standard-schema">[16]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="board">
+      <img class="fav" src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt="">
+      <div>
+        <h4><a href="https://nextjs.org/docs/app/guides/forms">Next.js docs</a></h4>
+        <span class="socket-tag soldered">Soldered to Zod</span>
+        <p>Still hard-codes Zod (<code>safeParse</code> + <code>flatten().fieldErrors</code> + <code>useActionState</code>) — and the 16.2 sample still uses the <b>removed v3 <code>invalid_type_error</code> option</b> <sup><a href="https://nextjs.org/docs/app/guides/forms">[17]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="board">
+      <img class="fav" src="https://www.google.com/s2/favicons?domain=arktype.io&sz=128" alt="">
+      <div>
+        <h4>tRPC 11 · Hono · oRPC · Drizzle</h4>
+        <span class="socket-tag adapter">Mixed</span>
+        <p>Standard Schema or per-library packages. ArkType ships <code>drizzle-arktype</code> and <code>@hono/arktype-validator</code> <sup><a href="https://arktype.io/docs/integrations">[11]</a></sup>. Coverage outside Zod is real but thinner — see the field report below.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict" style="margin-top:26px;border-top-width:2px">
+    <div class="lbl">◆ Field report — the boundary that actually bites</div>
+    <p>A practitioner migrated two forms to Valibot: <strong>~18 kB gzip and ~140 ms LCP saved.</strong> Then stopped — because <code>drizzle-valibot</code> lagged <code>drizzle-zod</code> on a nullable JSONB column, and the schema was shared with the DB <sup><a href="https://abrarqasim.com/blog/valibot-vs-zod-2026-i-half-migrated-and-stopped/">[19]</a></sup>.</p>
+    <p style="margin-bottom:0"><strong>At the form-library boundary the choice is free. At the ORM / RPC / codegen boundary it is not.</strong> Standard Schema makes the form library indifferent; it does nothing to make <code>drizzle-zod</code>, <code>zod-openapi</code> or an AI SDK's tool schemas indifferent.</p>
+  </div>
+</section>
+
+<!-- ══════════ 05 · APPLICATION NOTE ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">05</span>
+    <h2>Application note — strings in, typed data out</h2>
+    <span class="sub">where most 2026 form bugs live</span>
+  </div>
+
+  <p style="margin:0 0 22px;font-size:14px;color:var(--ink-2);max-width:78ch">Every <code>&lt;input&gt;</code> yields a string. Every part therefore has an <strong>input type ≠ output type</strong> problem. The three handle it in three different ways, and one of them has a trap in the obvious move.</p>
+
+  <div class="appnote">
+    <div class="circuit">
+      <div class="circuit-h"><span>Circuit A — one schema, two runtimes</span><em>recommended</em></div>
+<pre><span class="c">// schema.ts — no 'use server', no 'use client'</span>
+<span class="k">export const</span> signup = z.<span class="f">object</span>({
+  email: z.<span class="f">email</span>(),
+  age:   z.coerce.<span class="f">number</span>().<span class="f">min</span>(<span class="s">18</span>),
+});
+
+<span class="c">// action.ts</span>
+<span class="s">'use server'</span>;
+<span class="k">export async function</span> <span class="f">signupAction</span>(_prev, fd) {
+  <span class="k">const</span> r = signup.<span class="f">safeParse</span>(Object.<span class="f">fromEntries</span>(fd));
+  <span class="k">if</span> (!r.success)
+    <span class="k">return</span> { errors: z.<span class="f">flattenError</span>(r.error).fieldErrors };
+  <span class="c">// r.data is typed z.output&lt;typeof signup&gt;</span>
+}</pre>
+      <div class="circuit-foot"><code>z.flattenError()</code> / <code>z.treeifyError()</code> replace v3's <code>.flatten()</code> / <code>.format()</code>; <code>flattenError</code> yields <code>{ formErrors, fieldErrors }</code> — exactly the shape <code>useActionState</code> hands back to the client <sup><a href="https://zod.dev/error-formatting">[33]</a></sup>. ⚠ The whole schema module lands in the client bundle: keep DB imports out of it.</div>
+    </div>
+
+    <div class="circuit">
+      <div class="circuit-h"><span>Circuit B — the three-generic form</span><em>RHF</em></div>
+<pre><span class="k">const</span> schema = z.<span class="f">object</span>({ age: z.coerce.<span class="f">number</span>().<span class="f">min</span>(<span class="s">18</span>) });
+
+<span class="c">// RHF holds z.input, hands you z.output in onSubmit</span>
+<span class="f">useForm</span>&lt;
+  z.input&lt;<span class="k">typeof</span> schema&gt;,
+  unknown,
+  z.output&lt;<span class="k">typeof</span> schema&gt;
+&gt;({
+  resolver: <span class="f">standardSchemaResolver</span>(schema),
+});</pre>
+      <div class="circuit-foot">Resolvers v5 infers both sides from the schema, so the explicit generics are only needed when you wrap <code>useForm</code> yourself <sup><a href="https://www.npmjs.com/package/@hookform/resolvers">[32]</a></sup> <sup><a href="https://zod.dev/api">[6]</a></sup>. For checkboxes and env-ish strings, <code>z.stringbool()</code> beats a hand-rolled preprocessor <sup><a href="https://zod.dev/api">[6]</a></sup>.</div>
+    </div>
+  </div>
+
+  <div class="coerce">
+    <div class="coerce-row">
+      <div class="who">Zod 4</div>
+      <div class="sig"><code>z.string().transform(Number).pipe(z.number())</code></div>
+      <div class="verdict-c"><span class="caveat">⚠ Trap.</span> <code>z.coerce.number()</code> is the obvious move and the wrong one for forms: its <strong>input type is <code>unknown</code></strong> <sup><a href="https://zod.dev/api">[6]</a></sup>, which erases the compile-time contract with your form state. Prefer the transform+pipe above, or <code>z.preprocess</code>.</div>
+    </div>
+    <div class="coerce-row">
+      <div class="who">Valibot 1</div>
+      <div class="sig"><code>v.pipe(v.string(), v.toNumber(), v.minValue(18))</code></div>
+      <div class="verdict-c">Explicit by construction: <code>InferInput = string</code>, <code>InferOutput = number</code> <sup><a href="https://valibot.dev/guides/pipelines/">[9]</a></sup> <sup><a href="https://valibot.dev/api/toNumber/">[29]</a></sup>. Verbose — and impossible to get wrong.</div>
+    </div>
+    <div class="coerce-row">
+      <div class="who">ArkType 2</div>
+      <div class="sig"><code>type("string.numeric.parse")</code></div>
+      <div class="verdict-c">Morphs, with a <code>filter</code> / <code>narrow</code> split — validate <em>before</em> vs <em>after</em> the morph <sup><a href="https://arktype.io/docs/expressions">[12]</a></sup>. A <code>filter</code> rejects a 10 MB string before you parse it; a <code>narrow</code> checks the resulting number. The cleanest model of the three.</div>
+    </div>
+  </div>
+
+  <div class="amr" style="margin-top:26px">
+    <div class="amr-h">Absolute maximum ratings — exceeding these will produce bugs</div>
+    <div class="amr-grid">
+      <div class="amr-item">
+        <h4>TanStack Form drops transformed values</h4>
+        <p>Its validators <b>do not hand back</b> transformed output <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">[15]</a></sup>. The schema validates; you re-parse in <code>onSubmit</code> if you want the coerced value. Budget for that.</p>
+      </div>
+      <div class="amr-item">
+        <h4>Conform inverts the contract</h4>
+        <p><code>parseWithZod</code> introspects the schema and <b>injects</b> coercion + empty-string stripping, so a plain <code>z.number()</code> works against raw <code>FormData</code> <sup><a href="https://conform.guide/api/zod/parseWithZod">[18]</a></sup>. The only one that makes FormData first-class.</p>
+      </div>
+      <div class="amr-item">
+        <h4>ArkType's RHF resolver is firstError-only</h4>
+        <p>Use the generic <code>standardSchemaResolver</code> instead if you need <code>all</code>-error mode <sup><a href="https://github.com/react-hook-form/resolvers">[14]</a></sup>.</p>
+      </div>
+      <div class="amr-item">
+        <h4>i18n cannot live downstream of the socket</h4>
+        <p>The Standard Schema <code>Issue</code> carries only <code>message</code> + <code>path</code> <sup><a href="https://github.com/standard-schema/standard-schema/blob/main/packages/spec/README.md">[2]</a></sup>. A form library below the spec has nothing left to translate with. Do i18n <b>inside the part</b>, whichever part you seat.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 06 · NRND ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">06</span>
+    <h2>Legacy inventory</h2>
+    <span class="sub">Yup 1.7.1 · Joi 18.2.3</span>
+  </div>
+
+  <div class="nrnd">
+    <div class="nrnd-img">
+      <img src="spec-sheet/images/legacy-chip.webp" alt="Two old integrated circuits in a small cardboard parts tray">
+      <div class="stamp">Not recommended<br>for new designs</div>
+      <div class="hero-cap"><span class="fig">FIG. 3</span> &nbsp;Old stock, still in the tray. Now socket-compatible — which is a migration lifeline, not a reason to order more.</div>
+    </div>
+    <div class="nrnd-body">
+      <h3>Both now speak the socket. Neither is a starting choice.</h3>
+      <p><a href="https://github.com/jquense/yup">Yup</a> 1.7.1 <sup><a href="https://www.npmjs.com/package/yup">[27]</a></sup> ⭐ 23.7k and <a href="https://github.com/hapijs/joi/blob/master/API.md">Joi</a> 18.2.3 <sup><a href="https://www.npmjs.com/package/joi">[28]</a></sup> ⭐ 21.2k both implement Standard Schema <sup><a href="https://github.com/jquense/yup">[21]</a></sup> <sup><a href="https://github.com/hapijs/joi/blob/master/API.md">[22]</a></sup>. That means an existing Yup or Joi codebase can adopt TanStack Form or next-safe-action <em>without rewriting a single schema</em>. Keep them if you have them; don't start with them.</p>
+
+      <div class="legacy-specs">
+        <div>
+          <h5>YUP-1.7.1 &nbsp;<span style="font-weight:400;font-size:11px;color:var(--ink-2)">~10.1M/wk</span></h5>
+          <ul>
+            <li>~12 kB, not tree-shakeable</li>
+            <li>Runtime ≈ Zod 3 tier</li>
+            <li>Coerces <b>implicitly</b> — lossy</li>
+            <li>Inference: ✓</li>
+          </ul>
+        </div>
+        <div>
+          <h5>JOI-18.2.3 &nbsp;<span style="font-weight:400;font-size:11px;color:var(--ink-2)">~17.8M/wk</span></h5>
+          <ul>
+            <li>~145 kB, Node-oriented</li>
+            <li>Ships the spec's JSON Schema converter <sup><a href="https://github.com/hapijs/joi/blob/master/API.md">[22]</a></sup></li>
+            <li><b class="no">Cannot infer values from a schema</b> <sup><a href="https://github.com/react-hook-form/resolvers">[14]</a></sup></li>
+            <li>Server-only in practice</li>
+          </ul>
+        </div>
+      </div>
+
+      <p style="margin-bottom:0">Joi's missing inference breaks the "typed data out" half of the contract outright — the part fits the socket, but the board downstream gets <code>any</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 07 · ORDERING ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">07</span>
+    <h2>Ordering information</h2>
+    <span class="sub">pick the part that survives contact with your server stack</span>
+  </div>
+
+  <div class="order">
+    <div class="order-row">
+      <div class="rank">1</div>
+      <div class="cond">New app · shared client + server schemas</div>
+      <div class="spec-out"><b>Order ZOD-4.4.3.</b> The v4 rewrite closed both historical objections (6.5–14.7× runtime, 10× less tsc thrash on <code>.extend()</code> chains, half the bundle) <sup><a href="https://zod.dev/v4">[4]</a></sup>, it has 40+ locales built in <sup><a href="https://zod.dev/error-customization">[5]</a></sup>, and everything downstream of your form — ORM, RPC, OpenAPI, LLM tools — assumes it.</div>
+    </div>
+    <div class="order-row">
+      <div class="rank">2</div>
+      <div class="cond">Bundle-critical · client-only schemas <br><span style="font-weight:400;text-transform:none;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--ink-2)">edge, mobile web, embeddable widget</span></div>
+      <div class="spec-out"><b>Order VLB-1.4.2.</b> 1.37 kB vs 17.7 kB is not a rounding error <sup><a href="https://valibot.dev/guides/comparison/">[8]</a></sup>, and it pairs cleanly with Conform and TanStack Form. Reach for <code>zod/mini</code> <sup><a href="https://zod.dev/packages/mini">[7]</a></sup> instead only if you refuse a second library — its DX is worse than Valibot's for the same win.</div>
+    </div>
+    <div class="order-row">
+      <div class="rank">3</div>
+      <div class="cond">High-throughput validation · TS-native schema syntax</div>
+      <div class="spec-out"><b>Order ARK-2.2.3.</b> ~4× Zod 4 <sup><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">[20]</a></sup>. <span class="caveat">⚠</span> Budget for compile-time cost on large schemas and for rolling your own i18n <sup><a href="https://arktype.io/docs/configuration">[13]</a></sup>.</div>
+    </div>
+    <div class="order-row avoid">
+      <div class="rank">✕</div>
+      <div class="cond">Yup / Joi</div>
+      <div class="spec-out"><b>Don't start here.</b> Standard Schema support is a migration lifeline — it lets an existing codebase adopt a modern form library without rewriting schemas <sup><a href="https://github.com/jquense/yup">[21]</a></sup> <sup><a href="https://github.com/hapijs/joi/blob/master/API.md">[22]</a></sup>. It is not a reason to pick them.</div>
+    </div>
+    <div class="order-row">
+      <div class="rank">§</div>
+      <div class="cond">All configurations</div>
+      <div class="spec-out"><b>Do i18n inside the schema library.</b> The Standard Schema <code>Issue</code> carries only <code>message</code> + <code>path</code> <sup><a href="https://github.com/standard-schema/standard-schema/blob/main/packages/spec/README.md">[2]</a></sup> — a form library downstream of the spec has nothing left to translate with. Or split deliberately (Valibot client / Zod server) and accept translating at the boundary.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 08 · RELATED ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">08</span>
+    <h2>Related datasheets</h2>
+    <span class="sub"><a href="../../">Building forms in React in 2026</a> — series index</span>
+  </div>
+
+  <div class="related">
+    <a class="rel" href="../../form-library-landscape-2026/">
+      <span class="depth">Expedition</span>
+      <h4>The React form-library landscape in 2026</h4>
+      <p>RHF still wins, TanStack Form is the real challenger, Formik is a zombie.</p>
+    </a>
+    <a class="rel" href="../../hard-forms-arrays-wizards-conditionals-performance/">
+      <span class="depth">Survey</span>
+      <h4>The hard parts: arrays, conditionals, wizards, render budget</h4>
+      <p>Where the three mainstream libraries actually break, at API level.</p>
+    </a>
+    <a class="rel" href="../../react-native-form-primitives/">
+      <span class="depth">Survey</span>
+      <h4>React's native form primitives in 2026</h4>
+      <p>A submission layer, not a form layer — they own nothing about the fields.</p>
+    </a>
+    <a class="rel" href="../../testing-forms/">
+      <span class="depth">Survey</span>
+      <h4>Testing React forms in 2026</h4>
+      <p>Vitest + schema unit tests + jsdom, with Browser Mode as the real middle tier.</p>
+    </a>
+    <a class="rel" href="../../uploads-autosave-and-unsaved-changes/">
+      <span class="depth">Survey</span>
+      <h4>Uploads, autosave and unsaved-changes guards</h4>
+      <p>Bytes bypass your form: the browser uploads direct-to-storage; the form carries a key.</p>
+    </a>
+    <a class="rel" href="../../ui-kit-integration/">
+      <span class="depth">Recon</span>
+      <h4>Wiring form engines into React UI kits</h4>
+      <p>The kits stopped picking an engine for you; the bridge is still hand-written.</p>
+    </a>
+  </div>
+</section>
+
+<!-- ══════════ 09 · SOURCE REGISTER ══════════ -->
+<section>
+  <div class="sec-h">
+    <span class="num">09</span>
+    <h2>Source register</h2>
+    <span class="sub">33 citations · every figure above traces to one</span>
+  </div>
+
+  <div class="refs">
+    <div class="ref"><span class="n">[1]</span><img src="https://www.google.com/s2/favicons?domain=standardschema.dev&sz=64" alt=""><a href="https://standardschema.dev/">Standard Schema — the spec, co-authored by the Zod, Valibot and ArkType maintainers</a></div>
+    <div class="ref"><span class="n">[2]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><a href="https://github.com/standard-schema/standard-schema/blob/main/packages/spec/README.md">standard-schema/spec — README (Issue carries message + path only) ⭐ 3.6k</a></div>
+    <div class="ref"><span class="n">[3]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/@standard-schema/spec">npm — @standard-schema/spec 1.1.0 (Dec 2025)</a></div>
+    <div class="ref"><span class="n">[4]</span><img src="https://www.google.com/s2/favicons?domain=zod.dev&sz=64" alt=""><a href="https://zod.dev/v4">Zod 4 — release notes (6.5–14.7× runtime; tsc 4000ms → 400ms)</a></div>
+    <div class="ref"><span class="n">[5]</span><img src="https://www.google.com/s2/favicons?domain=zod.dev&sz=64" alt=""><a href="https://zod.dev/error-customization">Zod — error customization (40+ locales, z.config precedence)</a></div>
+    <div class="ref"><span class="n">[6]</span><img src="https://www.google.com/s2/favicons?domain=zod.dev&sz=64" alt=""><a href="https://zod.dev/api">Zod — API reference (z.coerce input type is unknown; z.stringbool)</a></div>
+    <div class="ref"><span class="n">[7]</span><img src="https://www.google.com/s2/favicons?domain=zod.dev&sz=64" alt=""><a href="https://zod.dev/packages/mini">Zod Mini — tree-shakable variant, 2.12kb vs 5.91kb</a></div>
+    <div class="ref"><span class="n">[8]</span><img src="https://www.google.com/s2/favicons?domain=valibot.dev&sz=64" alt=""><a href="https://valibot.dev/guides/comparison/">Valibot — comparison guide (1.37 kB vs 17.7 kB login form)</a></div>
+    <div class="ref"><span class="n">[9]</span><img src="https://www.google.com/s2/favicons?domain=valibot.dev&sz=64" alt=""><a href="https://valibot.dev/guides/pipelines/">Valibot — pipelines (InferInput / InferOutput)</a></div>
+    <div class="ref"><span class="n">[10]</span><img src="https://www.google.com/s2/favicons?domain=valibot.dev&sz=64" alt=""><a href="https://valibot.dev/guides/internationalization/">Valibot — internationalization (@valibot/i18n)</a></div>
+    <div class="ref"><span class="n">[11]</span><img src="https://www.google.com/s2/favicons?domain=arktype.io&sz=64" alt=""><a href="https://arktype.io/docs/integrations">ArkType — integrations (drizzle-arktype, Hono, tRPC 11+)</a></div>
+    <div class="ref"><span class="n">[12]</span><img src="https://www.google.com/s2/favicons?domain=arktype.io&sz=64" alt=""><a href="https://arktype.io/docs/expressions">ArkType — expressions (morphs, filter vs narrow)</a></div>
+    <div class="ref"><span class="n">[13]</span><img src="https://www.google.com/s2/favicons?domain=arktype.io&sz=64" alt=""><a href="https://arktype.io/docs/configuration">ArkType — configuration (no locales package)</a></div>
+    <div class="ref"><span class="n">[14]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><a href="https://github.com/react-hook-form/resolvers">@hookform/resolvers — 20 resolvers + standardSchemaResolver ⭐ 2.3k</a></div>
+    <div class="ref"><span class="n">[15]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=64" alt=""><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">TanStack Form — validation guide (native Standard Schema; no transformed values back)</a></div>
+    <div class="ref"><span class="n">[16]</span><img src="https://www.google.com/s2/favicons?domain=next-safe-action.dev&sz=64" alt=""><a href="https://next-safe-action.dev/docs/integrations/standard-schema">next-safe-action — Standard Schema integration</a></div>
+    <div class="ref"><span class="n">[17]</span><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=64" alt=""><a href="https://nextjs.org/docs/app/guides/forms">Next.js — forms guide (still hard-codes Zod; stale v3 sample)</a></div>
+    <div class="ref"><span class="n">[18]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=64" alt=""><a href="https://conform.guide/api/zod/parseWithZod">Conform — parseWithZod (injects coercion into FormData)</a></div>
+    <div class="ref"><span class="n">[19]</span><img src="https://www.google.com/s2/favicons?domain=abrarqasim.com&sz=64" alt=""><a href="https://abrarqasim.com/blog/valibot-vs-zod-2026-i-half-migrated-and-stopped/">Valibot vs Zod 2026: I half-migrated and stopped (~18 kB, ~140 ms LCP — then drizzle)</a></div>
+    <div class="ref"><span class="n">[20]</span><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=64" alt=""><a href="https://www.pkgpulse.com/guides/zod-v4-vs-arktype-vs-typebox-vs-valibot-2026">pkgpulse — Zod v4 vs ArkType vs TypeBox vs Valibot (throughput + bundle benchmarks)</a></div>
+    <div class="ref"><span class="n">[21]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><a href="https://github.com/jquense/yup">Yup — Standard Schema compatible ⭐ 23.7k</a></div>
+    <div class="ref"><span class="n">[22]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><a href="https://github.com/hapijs/joi/blob/master/API.md">Joi — API reference (18.x implements ~standard incl. JSON Schema) ⭐ 21.2k</a></div>
+    <div class="ref"><span class="n">[23]</span><img src="https://www.google.com/s2/favicons?domain=arktype.io&sz=64" alt=""><a href="https://arktype.io/">ArkType — "TypeScript's 1:1 validator, optimized from editor to runtime"</a></div>
+    <div class="ref"><span class="n">[24]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/zod">npm — zod 4.4.3, ~224M weekly</a></div>
+    <div class="ref"><span class="n">[25]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/valibot">npm — valibot 1.4.2, ~14.3M weekly</a></div>
+    <div class="ref"><span class="n">[26]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/arktype">npm — arktype 2.2.3, ~1.2M weekly</a></div>
+    <div class="ref"><span class="n">[27]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/yup">npm — yup 1.7.1, ~10.1M weekly</a></div>
+    <div class="ref"><span class="n">[28]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/joi">npm — joi 18.2.3, ~17.8M weekly</a></div>
+    <div class="ref"><span class="n">[29]</span><img src="https://www.google.com/s2/favicons?domain=valibot.dev&sz=64" alt=""><a href="https://valibot.dev/api/toNumber/">Valibot — toNumber (first-class coercion actions)</a></div>
+    <div class="ref"><span class="n">[30]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=64" alt=""><a href="https://conform.guide/">Conform — FormData-first, progressively enhanced</a></div>
+    <div class="ref"><span class="n">[31]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><a href="https://github.com/TheEdoRan/next-safe-action">next-safe-action ⭐ 3k</a></div>
+    <div class="ref"><span class="n">[32]</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=64" alt=""><a href="https://www.npmjs.com/package/@hookform/resolvers">npm — @hookform/resolvers 5.4.0 (May 2026)</a></div>
+    <div class="ref"><span class="n">[33]</span><img src="https://www.google.com/s2/favicons?domain=zod.dev&sz=64" alt=""><a href="https://zod.dev/error-formatting">Zod — error formatting (z.flattenError / z.treeifyError)</a></div>
+  </div>
+</section>
+
+<div class="colophon">
+  <span>DS-VSL-2607 · Rev 1.1 · Issued 13 Jul 2026</span>
+  <span>Figures 1–3: Wikimedia Commons</span>
+  <span><a href="../">Full canonical write-up →</a></span>
+  <span><a href="/">Atlas</a></span>
+</div>
+
+</div>
+</div>

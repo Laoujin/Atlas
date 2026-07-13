@@ -1,0 +1,734 @@
+---
+layout: view
+view_name: "Matrix"
+view_of: ../
+title: "The hard parts of React forms in 2026: arrays, conditionals, wizards, and the render budget — Matrix"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Archivo:wght@500;700;900&display=swap');
+
+.fmea {
+  --navy:   #08131f;
+  --navy2:  #0c1c2e;
+  --panel:  #0f2338;
+  --rule:   #1f435f;
+  --grid:   rgba(96,175,222,.055);
+  --cyan:   #62d0ff;
+  --ink:    #d3e6f4;
+  --dim:    #7ea6c3;
+  --ok:     #43cf8b;
+  --warn:   #f0b23c;
+  --bad:    #ff6257;
+  --paper:  #f3f0e7;
+
+  margin: 0;
+  padding: 0 0 4rem;
+  background:
+    repeating-linear-gradient(0deg,  transparent 0 31px, var(--grid) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, var(--grid) 31px 32px),
+    radial-gradient(1200px 700px at 20% -10%, #12314c 0%, var(--navy) 62%);
+  background-color: var(--navy);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.fmea * { box-sizing: border-box; }
+.fmea .wrap { max-width: 1240px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2.25rem); }
+.fmea a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(98,208,255,.45); }
+.fmea a:hover { border-bottom-style: solid; }
+.fmea sup a { border: 0; font-size: 10px; letter-spacing: .02em; opacity: .8; }
+.fmea sup a:hover { opacity: 1; }
+.fmea code {
+  font-family: inherit; font-size: .84em;
+  background: rgba(98,208,255,.08);
+  border: 1px solid rgba(98,208,255,.16);
+  border-radius: 2px; padding: 1px 4px; color: #a9e4ff; white-space: nowrap;
+}
+
+/* ── titleblock ───────────────────────────────────────────── */
+.tb { border-bottom: 2px solid var(--rule); padding-top: clamp(1.75rem, 4vw, 3rem); }
+.tb-stamp {
+  display: inline-block; font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--bad); border: 1px solid var(--bad); padding: .25rem .6rem;
+  transform: rotate(-1.2deg); margin-bottom: 1.25rem;
+}
+.tb h1 {
+  font-family: Archivo, 'Arial Narrow', sans-serif; font-weight: 900;
+  font-size: clamp(2.1rem, 6.2vw, 4.4rem); line-height: .95; letter-spacing: -.02em;
+  margin: 0 0 .35rem; color: #fff; text-transform: uppercase;
+}
+.tb h1 em { font-style: normal; color: var(--cyan); }
+.tb .sub { color: var(--dim); font-size: clamp(.9rem, 1.6vw, 1.05rem); max-width: 62ch; margin: 0 0 1.6rem; }
+.tb-fields {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  border-top: 1px solid var(--rule); border-left: 1px solid var(--rule);
+  margin-bottom: 1.5rem;
+}
+.tb-fields div { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: .5rem .7rem; }
+.tb-fields span { display: block; font-size: 9.5px; letter-spacing: .18em; color: var(--dim); text-transform: uppercase; }
+.tb-fields strong { font-weight: 600; color: #fff; font-size: 13px; }
+
+/* ── legend ───────────────────────────────────────────────── */
+.legend { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: .9rem 0 1.4rem; font-size: 11.5px; color: var(--dim); }
+.legend b { color: var(--ink); font-weight: 600; }
+.key { display: inline-flex; align-items: center; gap: .45rem; }
+.key i { width: 26px; height: 8px; display: inline-block; border-radius: 1px; }
+.key i.ok { background: var(--ok); } .key i.warn { background: var(--warn); } .key i.bad { background: var(--bad); }
+
+/* ── section heads ────────────────────────────────────────── */
+.sec { padding-top: 3.4rem; }
+.sec-h { display: flex; align-items: baseline; gap: .9rem; margin-bottom: .35rem; }
+.sec-n { font-size: 11px; letter-spacing: .2em; color: var(--cyan); border: 1px solid var(--rule); padding: .18rem .5rem; }
+.sec-h h2 {
+  font-family: Archivo, sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: clamp(1.05rem, 2.4vw, 1.5rem); letter-spacing: -.01em; margin: 0; color: #fff;
+}
+.sec-note { color: var(--dim); font-size: 13.5px; max-width: 78ch; margin: 0 0 1.6rem; }
+.rule-line { height: 1px; background: var(--rule); margin: .5rem 0 1.2rem; }
+
+/* ── the spine ────────────────────────────────────────────── */
+.spine-q {
+  border: 1px solid var(--cyan); background: rgba(98,208,255,.05);
+  padding: 1.3rem 1.4rem; margin-bottom: 1.9rem;
+}
+.spine-q p { margin: 0; }
+.spine-q .q {
+  font-family: Archivo, sans-serif; font-weight: 900; text-transform: uppercase;
+  font-size: clamp(1.15rem, 3.4vw, 2.05rem); line-height: 1.06; color: #fff; letter-spacing: -.015em;
+}
+.spine-q .a { color: var(--dim); font-size: 13.5px; margin-top: .6rem; max-width: 82ch; }
+
+.models { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.model { border: 1px solid var(--rule); background: var(--navy2); display: flex; flex-direction: column; }
+.model-plate { background: var(--paper); padding: 7px; }
+.model-plate img { display: block; width: 100%; aspect-ratio: 24 / 9; object-fit: cover; object-position: center; }
+.model-body { padding: 1rem 1rem 1.15rem; flex: 1; display: flex; flex-direction: column; }
+.model-name { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .1rem; }
+.model-name strong { font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; color: #fff; }
+.model-name .stars { font-size: 11px; color: var(--warn); white-space: nowrap; }
+.model-ver { font-size: 11px; color: var(--dim); margin-bottom: .85rem; }
+.model-glyph {
+  font-family: Archivo, sans-serif; font-weight: 900; font-size: clamp(1.5rem, 3vw, 2.05rem);
+  line-height: 1; color: var(--cyan); text-transform: lowercase; margin-bottom: .1rem;
+}
+.model-where { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: .95rem; }
+.model-spec { border-top: 1px dashed var(--rule); margin-top: auto; padding-top: .8rem; font-size: 12px; }
+.model-spec div { display: flex; gap: .6rem; padding: .18rem 0; }
+.model-spec dt { color: var(--dim); min-width: 74px; letter-spacing: .08em; font-size: 10.5px; text-transform: uppercase; padding-top: 2px; }
+.model-spec dd { margin: 0; color: var(--ink); }
+.consequence { margin-top: .95rem; padding: .6rem .7rem; font-size: 12.5px; line-height: 1.45; border-left: 3px solid; }
+.consequence.keep { border-color: var(--warn); background: rgba(240,178,60,.07); color: #ffdb9e; }
+.consequence.stale { border-color: var(--bad); background: rgba(255,98,87,.07); color: #ffb5af; }
+.consequence.drop { border-color: var(--cyan); background: rgba(98,208,255,.07); color: #b6e6ff; }
+
+/* ── matrix ───────────────────────────────────────────────── */
+.mx { border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+.mx-head, .mx-row { display: grid; grid-template-columns: 200px repeat(3, 1fr); }
+.mx-head > div, .mx-row > div { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.mx-head > div {
+  padding: .55rem .8rem; background: var(--panel);
+  font-family: Archivo, sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: 12px; letter-spacing: .12em; color: #fff;
+}
+.mx-head .corner { color: var(--dim); font-weight: 500; letter-spacing: .18em; font-size: 10px; font-family: 'IBM Plex Mono', monospace; }
+.rowhead { padding: 1rem .85rem; background: rgba(15,35,56,.55); }
+.rowhead .rn { font-size: 10px; letter-spacing: .18em; color: var(--cyan); }
+.rowhead h3 { font-family: Archivo, sans-serif; font-weight: 700; font-size: 14.5px; margin: .2rem 0 .5rem; color: #fff; line-height: 1.2; }
+.rowhead p { margin: 0; font-size: 11.5px; color: var(--dim); line-height: 1.45; }
+.cell { padding: 0 .85rem 1rem; position: relative; }
+.cell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+.cell.ok::before   { background: var(--ok); }
+.cell.warn::before { background: var(--warn); }
+.cell.bad::before  { background: var(--bad); }
+.cell-lib { display: none; }
+.verdict {
+  display: inline-block; margin: .95rem 0 .55rem; font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; padding: .16rem .45rem; border: 1px solid; font-weight: 600;
+}
+.cell.ok .verdict   { color: var(--ok);   border-color: rgba(67,207,139,.5);  background: rgba(67,207,139,.08); }
+.cell.warn .verdict { color: var(--warn); border-color: rgba(240,178,60,.5);  background: rgba(240,178,60,.08); }
+.cell.bad .verdict  { color: var(--bad);  border-color: rgba(255,98,87,.5);   background: rgba(255,98,87,.08); }
+.cell p { margin: 0 0 .5rem; font-size: 12.6px; line-height: 1.5; }
+.cell p:last-child { margin-bottom: 0; }
+.cell .snip {
+  display: block; white-space: pre-wrap; word-break: break-word; font-size: 11.5px; line-height: 1.45;
+  background: #061019; border: 1px solid var(--rule); border-left: 2px solid var(--cyan);
+  padding: .4rem .55rem; margin: .55rem 0; color: #9fdcff;
+}
+.defect {
+  display: inline-flex; align-items: center; gap: .35rem; margin-top: .35rem;
+  font-size: 11px; color: var(--bad); border: 1px dashed rgba(255,98,87,.45);
+  background: rgba(255,98,87,.06); padding: .2rem .45rem; border-bottom-style: dashed;
+}
+.defect:hover { background: rgba(255,98,87,.14); border-style: solid; border-bottom-style: solid; }
+
+/* ── collision callout ────────────────────────────────────── */
+.collision {
+  margin-top: 2.6rem; border: 2px solid var(--bad); background: rgba(255,98,87,.06);
+  padding: 1.4rem 1.5rem; position: relative;
+}
+.collision .tag {
+  position: absolute; top: -11px; left: 18px; background: var(--navy);
+  color: var(--bad); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; padding: 0 .5rem;
+}
+.collision h3 {
+  font-family: Archivo, sans-serif; font-weight: 900; text-transform: uppercase; color: #fff;
+  font-size: clamp(1rem, 2.6vw, 1.5rem); margin: .2rem 0 .7rem; line-height: 1.1; letter-spacing: -.01em;
+}
+.collision blockquote {
+  margin: 0 0 .9rem; padding-left: .9rem; border-left: 2px solid var(--bad);
+  color: #ffc9c4; font-size: 13px; line-height: 1.5;
+}
+.collision p { margin: 0; font-size: 13px; color: var(--ink); max-width: 88ch; }
+
+/* ── defect register ──────────────────────────────────────── */
+.reg { border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); font-size: 12.5px; }
+.reg-r { display: grid; grid-template-columns: 118px 110px 1fr 150px; align-items: stretch; }
+.reg-r > div { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: .6rem .75rem; }
+.reg-r.h > div { background: var(--panel); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
+.reg-id a { font-weight: 600; }
+.reg-lib { color: var(--dim); font-size: 11px; letter-spacing: .06em; }
+.reg-what { color: var(--ink); line-height: 1.45; }
+.reg-what b { color: #fff; font-weight: 600; }
+.reg-st { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; }
+.st-open   { color: var(--bad); }
+.st-design { color: var(--warn); }
+.st-fixed  { color: var(--ok); }
+
+/* ── disposition ──────────────────────────────────────────── */
+.disp { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.disp-c { border: 1px solid var(--rule); background: var(--navy2); padding: 1rem 1.05rem; }
+.disp-c .job { font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
+.disp-c .pick { font-family: Archivo, sans-serif; font-weight: 900; font-size: 1.25rem; color: var(--cyan); margin: .25rem 0 .5rem; }
+.disp-c p { margin: 0; font-size: 12.4px; line-height: 1.5; color: var(--ink); }
+
+/* ── colophon ─────────────────────────────────────────────── */
+.colo { margin-top: 3.4rem; border-top: 2px solid var(--rule); padding-top: 1.5rem; }
+.sib { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .6rem; margin-bottom: 2rem; }
+.sib a {
+  display: block; border: 1px solid var(--rule); padding: .7rem .8rem; border-bottom: 1px solid var(--rule);
+  background: rgba(15,35,56,.4);
+}
+.sib a:hover { background: var(--panel); border-color: var(--cyan); }
+.sib .d { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--warn); }
+.sib .t { display: block; color: var(--ink); font-size: 12.5px; line-height: 1.4; margin-top: .25rem; }
+.srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .35rem .9rem; }
+.src { display: flex; gap: .55rem; align-items: flex-start; font-size: 11.5px; line-height: 1.4; padding: .2rem 0; }
+.src img { width: 14px; height: 14px; margin-top: 2px; flex: 0 0 14px; border-radius: 2px; }
+.src .n { color: var(--dim); flex: 0 0 26px; }
+.foot { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 11px; color: var(--dim); display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
+
+@media (max-width: 900px) {
+  .models { grid-template-columns: 1fr; }
+  .mx-head { display: none; }
+  .mx-row { grid-template-columns: 1fr; }
+  .cell-lib {
+    display: block; margin-top: .95rem; font-family: Archivo, sans-serif; font-weight: 700;
+    text-transform: uppercase; font-size: 11px; letter-spacing: .14em; color: #fff;
+  }
+  .verdict { margin-top: .4rem; }
+  .reg-r { grid-template-columns: 1fr; }
+  .reg-r.h { display: none; }
+}
+</style>
+
+<div class="fmea">
+<div class="wrap">
+
+  <!-- ══ TITLEBLOCK ══ -->
+  <header class="tb">
+    <div class="tb-stamp">Failure-mode analysis · 5 hard patterns × 3 libraries</div>
+    <h1>Where do the<br>field <em>values</em> live?</h1>
+    <p class="sub">Every cell in this sheet falls out of one answer. React Hook Form keeps values in a mutable ref. TanStack Form keeps them in an external store. Conform reads them out of the DOM. Everything else — arrays, conditionals, wizards, the render budget — is downstream of that.</p>
+    <div class="tb-fields">
+      <div><span>Sheet</span><strong>FMEA · rev 2026-07</strong></div>
+      <div><span>Subject</span><strong>React forms, hard parts</strong></div>
+      <div><span>Units under test</span><strong>RHF 7.81 · TSF 1.30 · Conform 1.19</strong></div>
+      <div><span>Citations</span><strong>34</strong></div>
+      <div><span>Open defects</span><strong>6</strong></div>
+    </div>
+    <div class="legend">
+      <span class="key"><i class="ok"></i><b>HOLDS</b> — library gives you the primitive</span>
+      <span class="key"><i class="warn"></i><b>WORKAROUND</b> — works, but you write the missing part</span>
+      <span class="key"><i class="bad"></i><b>DEFECT</b> — known open bug or a design collision</span>
+    </div>
+  </header>
+
+  <!-- ══ 01 · THE SPINE ══ -->
+  <section class="sec">
+    <div class="sec-h"><span class="sec-n">01</span><h2>The storage model</h2></div>
+    <p class="sec-note">Read this section once and the matrix below stops needing explanation. The three libraries do not differ in taste; they differ in <em>where the bytes sit</em> when a field unmounts.</p>
+
+    <div class="spine-q">
+      <p class="q">A field unmounts. What happens to its value?</p>
+      <p class="a">RHF: kept — hidden fields still submit. TanStack: kept, <strong>and so is its validation error</strong>, which then silently blocks the submit. Conform: gone — the input left the DOM, so the value left with it. Three defaults, three different bugs, no correct one.</p>
+    </div>
+
+    <div class="models">
+
+      <article class="model">
+        <div class="model-plate"><img src="matrix/images/rhf.webp" alt="React Hook Form"></div>
+        <div class="model-body">
+          <div class="model-name">
+            <strong><a href="https://github.com/react-hook-form/react-hook-form">React Hook Form</a></strong>
+            <span class="stars">⭐ 44.8k</span>
+          </div>
+          <div class="model-ver">v7.81.0 · Jul 2026 · v8 beta in flight <sup><a href="https://github.com/react-hook-form/react-hook-form">[29]</a></sup></div>
+          <div class="model-glyph">useRef&#123;&#125;</div>
+          <div class="model-where">values live outside React</div>
+          <dl class="model-spec">
+            <div><dt>Read</dt><dd>DOM refs, <code>getValues()</code></dd></div>
+            <div><dt>Keystroke</dt><dd>0 re-renders <sup><a href="https://react-hook-form.com/advanced-usage">[6]</a></sup></dd></div>
+            <div><dt>Unmount</dt><dd><code>shouldUnregister:false</code></dd></div>
+          </dl>
+          <div class="consequence keep"><strong>Value kept.</strong> "isDeveloper is false but favoriteLanguage is still in the payload." Ghost fields ship to your API. <sup><a href="https://react-hook-form.com/docs/useform/register">[3]</a></sup></div>
+        </div>
+      </article>
+
+      <article class="model">
+        <div class="model-plate"><img src="matrix/images/tanstack.webp" alt="TanStack Form"></div>
+        <div class="model-body">
+          <div class="model-name">
+            <strong><a href="https://github.com/TanStack/form">TanStack Form</a></strong>
+            <span class="stars">⭐ 6.6k</span>
+          </div>
+          <div class="model-ver">v1.30.x · Jul 2026 <sup><a href="https://github.com/TanStack/form">[30]</a></sup></div>
+          <div class="model-glyph">store()</div>
+          <div class="model-where">external store + selectors</div>
+          <dl class="model-spec">
+            <div><dt>Read</dt><dd><code>form.Subscribe</code>, <code>useSelector</code></dd></div>
+            <div><dt>Keystroke</dt><dd>0 — unless a selector returns an object <sup><a href="https://github.com/TanStack/form/issues/2090">[14]</a></sup></dd></div>
+            <div><dt>Unmount</dt><dd>value + meta + <em>errors</em> retained</dd></div>
+          </dl>
+          <div class="consequence stale"><strong>Value AND stale error kept.</strong> A field that unmounts while invalid leaves its error in the store and blocks <code>handleSubmit</code> with nothing on screen to fix. <sup><a href="https://github.com/TanStack/form/issues/1133">[18]</a></sup></div>
+        </div>
+      </article>
+
+      <article class="model">
+        <div class="model-plate"><img src="matrix/images/conform.webp" alt="Conform"></div>
+        <div class="model-body">
+          <div class="model-name">
+            <strong><a href="https://github.com/edmundhung/conform">Conform</a></strong>
+            <span class="stars">⭐ 2.6k</span>
+          </div>
+          <div class="model-ver">v1.19.4 · Jun 2026 <sup><a href="https://github.com/edmundhung/conform">[31]</a></sup></div>
+          <div class="model-glyph">the DOM</div>
+          <div class="model-where">the form element is the store</div>
+          <dl class="model-spec">
+            <div><dt>Read</dt><dd><code>FormData</code> on submit / intent</dd></div>
+            <div><dt>Keystroke</dt><dd>0 — React holds only the last result <sup><a href="https://conform.guide/validation">[22]</a></sup></dd></div>
+            <div><dt>Unmount</dt><dd>value <em>deleted</em></dd></div>
+          </dl>
+          <div class="consequence drop"><strong>Value dropped.</strong> The inverse failure: go back to step 1 of a wizard and step 1's answers are gone. Fix is <code>&lt;PreserveBoundary&gt;</code>. <sup><a href="https://conform.guide/api/react/future/PreserveBoundary">[23]</a></sup></div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══ 02 · THE MATRIX ══ -->
+  <section class="sec">
+    <div class="sec-h"><span class="sec-n">02</span><h2>The failure matrix</h2></div>
+    <p class="sec-note">Five patterns that break naive implementations, against the three storage models. Each cell carries the actual behaviour and, where one exists, the ticket number.</p>
+
+    <div class="mx">
+      <div class="mx-head">
+        <div class="corner">PATTERN / UNIT</div>
+        <div>React Hook Form</div>
+        <div>TanStack Form</div>
+        <div>Conform</div>
+      </div>
+
+      <!-- R1 -->
+      <div class="mx-row">
+        <div class="rowhead">
+          <div class="rn">R1</div>
+          <h3>Field arrays &amp; reorder</h3>
+          <p>The invariant nobody gets right first time: rows must be keyed by <em>identity</em>, not index.</p>
+        </div>
+
+        <div class="cell ok">
+          <span class="cell-lib">React Hook Form</span>
+          <span class="verdict">Holds</span>
+          <p><code>useFieldArray</code> mints a per-row id. The docs are blunt: <code>key={field.id}</code> correct, <code>key={index}</code> incorrect. Full mutator set — <code>append</code> <code>insert</code> <code>swap</code> <code>move</code> <code>replace</code> <code>remove</code>. <sup><a href="https://react-hook-form.com/docs/usefieldarray">[1]</a></sup></p>
+          <p>Nested parent ops propagate to child arrays automatically. <sup><a href="https://deepwiki.com/react-hook-form/react-hook-form/5.3-advanced-field-array-patterns">[2]</a></sup> Sharp edges: <code>append({})</code> is invalid (pass every default), two hooks may not share a <code>name</code>, and never stack <code>append(); remove(0);</code> in one handler.</p>
+          <a class="defect" href="https://github.com/orgs/react-hook-form/discussions/9672">DnD over <em>nested</em> arrays: one ref for <code>move</code> = only the last array reorders. Keep a list of callbacks. [32]</a>
+        </div>
+
+        <div class="cell bad">
+          <span class="cell-lib">TanStack Form</span>
+          <span class="verdict">Defect</span>
+          <p>No row identity at all. The official arrays guide keys by index:</p>
+          <code class="snip">&lt;form.Field key={i} name={`people[${i}].name`}&gt;</code>
+          <p>Which is the direct cause of the duplication bug. If you reorder, carry your own <code>id</code> on each row and key on that. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/arrays">[9]</a></sup></p>
+          <a class="defect" href="https://github.com/TanStack/form/issues/957">#957 — remove item 2 from [1,2,3,4] in a conditionally-rendered form → [1,3,4,4]</a>
+        </div>
+
+        <div class="cell warn">
+          <span class="cell-lib">Conform</span>
+          <span class="verdict">Workaround</span>
+          <p>Stable <code>field.key</code> from metadata <sup><a href="https://conform.guide/complex-structures">[19]</a></sup>, and mutations are submit-button <em>intents</em> (<code>form.insert</code> / <code>remove</code> / <code>reorder</code>) — so the array editor works with JavaScript off. <sup><a href="https://conform.guide/intent-button">[20]</a></sup></p>
+          <p>The inverse of RHF's trap: rows are re-mounted by key on every intent, which is what makes reorder correct — and what resets any controlled widget in the row.</p>
+          <a class="defect" href="https://conform.guide/api/react/useInputControl">A Select/Combobox via <code>useInputControl</code> loses its value on every insert/remove/reorder [28]</a>
+        </div>
+      </div>
+
+      <!-- R2 -->
+      <div class="mx-row">
+        <div class="rowhead">
+          <div class="rn">R2</div>
+          <h3>Conditional fields on unmount</h3>
+          <p>The single biggest behavioural fork — and it is not a preference. It falls straight out of §01.</p>
+        </div>
+
+        <div class="cell warn">
+          <span class="cell-lib">React Hook Form</span>
+          <span class="verdict">Workaround</span>
+          <p>Default <code>shouldUnregister: false</code> → hidden fields still submit. Per-field fix: <code>register(name, { shouldUnregister: true })</code>. <sup><a href="https://react-hook-form.com/docs/useform/register">[3]</a></sup></p>
+          <p>Dynamic <em>validation</em> is the awkward half: either swap the resolver (re-validates everything) or write a <code>superRefine</code> that reads sibling values.</p>
+          <a class="defect" href="https://react-hook-form.com/docs/usefieldarray">The fix is unusable inside <code>useFieldArray</code> — see the collision below [1]</a>
+        </div>
+
+        <div class="cell bad">
+          <span class="cell-lib">TanStack Form</span>
+          <span class="verdict">Defect</span>
+          <p>Worse than a ghost value: the field's <em>meta and errors</em> survive too. Unmount a field while it's invalid and <code>handleSubmit</code> is blocked by an error attached to a field that no longer exists.</p>
+          <p>Escape hatch is manual: <code>form.deleteField(name)</code>. <sup><a href="https://github.com/TanStack/form/issues/502">[17]</a></sup></p>
+          <a class="defect" href="https://github.com/TanStack/form/issues/1133">#1133 — stale error from an unmounted field blocks submission</a>
+        </div>
+
+        <div class="cell warn">
+          <span class="cell-lib">Conform</span>
+          <span class="verdict">Workaround</span>
+          <p>Opposite failure: unmounted means <em>deleted</em>. Wrap the branch in <code>&lt;PreserveBoundary name="step-1"&gt;</code> from <code>@conform-to/react/future</code>. <sup><a href="https://conform.guide/api/react/future/PreserveBoundary">[23]</a></sup></p>
+          <p>Conditional <em>validation</em> is cleanest here: the schema is rebuilt per submission-intent, so <code>z.discriminatedUnion</code> on a "type" field just works, with no client state to sync. <sup><a href="https://conform.guide/api/zod/conformZodMessage">[21]</a></sup></p>
+        </div>
+      </div>
+
+      <!-- R3 -->
+      <div class="mx-row">
+        <div class="rowhead">
+          <div class="rn">R3</div>
+          <h3>Cross-field &amp; dependent async</h3>
+          <p>"Username taken" is where naive code dies: debounce → cancel in-flight → discard stale → per-field revalidate → a non-flickering <code>isValidating</code>.</p>
+        </div>
+
+        <div class="cell warn">
+          <span class="cell-lib">React Hook Form</span>
+          <span class="verdict">Workaround</span>
+          <p>Sync deps: <code>register("confirm", { deps: "password" })</code> — but the docs note it is "only limited to register api not trigger", so a wizard's Next button calling <code>trigger()</code> will <strong>not</strong> fan out to dependents. <sup><a href="https://react-hook-form.com/docs/useform/register">[3]</a></sup></p>
+          <p>No built-in debounce. Community consensus after several rounds of pain: keep the remote check <em>out</em> of the Zod resolver.</p>
+          <code class="snip">useWatch(field) + debounce + AbortController
+→ setError / clearErrors</code>
+          <a class="defect" href="https://github.com/orgs/react-hook-form/discussions/11942">Putting it in an async resolver is what produces stale errors and a stuck <code>isValidating</code> [8]</a>
+        </div>
+
+        <div class="cell ok">
+          <span class="cell-lib">TanStack Form</span>
+          <span class="verdict">Holds</span>
+          <p>The only one with the whole lifecycle built in: <code>asyncDebounceMs={500}</code> per field, sync validators gate the async one so you don't hit the network on obviously-invalid input, and <code>asyncAlways</code> overrides that. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">[10]</a></sup></p>
+          <p>Cross-field is declarative and symmetric: <code>onChangeListenTo: ['password']</code>. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/linked-fields">[11]</a></sup></p>
+          <a class="defect" href="https://tanstack.com/form/latest/docs/framework/react/guides/linked-fields">Documented footgun: A↔B mutual listening loops forever [11]</a>
+        </div>
+
+        <div class="cell ok">
+          <span class="cell-lib">Conform</span>
+          <span class="verdict">Holds</span>
+          <p>No primitive needed — the whole schema re-runs on each validation intent, so cross-field is free. <sup><a href="https://conform.guide/validation">[22]</a></sup></p>
+          <p>Deliberately no <em>client</em> async validation; the schema is a function of the intent. Untargeted fields emit <code>VALIDATION_SKIPPED</code> (reuse the last result); a check the client can't run emits <code>VALIDATION_UNDEFINED</code>, deferring to the server, where the same schema runs with <code>{ async: true }</code>. <sup><a href="https://conform.guide/api/zod/conformZodMessage">[21]</a></sup></p>
+          <p>One schema. No uniqueness endpoint. No client/server drift. Worth stealing even if you don't use Conform.</p>
+        </div>
+      </div>
+
+      <!-- R4 -->
+      <div class="mx-row">
+        <div class="rowhead">
+          <div class="rn">R4</div>
+          <h3>Multi-step wizards</h3>
+          <p>The question is only ever "where does step state live" — and §01 already answered it.</p>
+        </div>
+
+        <div class="cell warn">
+          <span class="cell-lib">React Hook Form</span>
+          <span class="verdict">Workaround</span>
+          <p>The official recipe is <em>bring a state library</em>: one <code>useForm</code> per route plus <code>little-state-machine</code> as the cross-step source of truth. <sup><a href="https://react-hook-form.com/advanced-usage">[6]</a></sup></p>
+          <p>The common variant in practice: one <code>FormProvider</code>, a per-step schema, and gate Next on <code>await trigger(stepFields)</code> — leaning on <code>shouldUnregister:false</code> to hold values for unmounted steps. <sup><a href="https://github.com/orgs/react-hook-form/discussions/4028">[34]</a></sup></p>
+          <a class="defect" href="https://react-hook-form.com/docs/useform/register">Interacts with R3: <code>trigger()</code> ignores <code>deps</code>, so cross-step dependent rules need an explicit re-trigger [3]</a>
+        </div>
+
+        <div class="cell ok">
+          <span class="cell-lib">TanStack Form</span>
+          <span class="verdict">Holds</span>
+          <p>The only first-class primitive of the three. <code>FormGroup</code> / <code>withFieldGroup</code> give each step its own validators and an <code>onGroupSubmit</code>, while values stay in the one parent store: advance when the group validates, call <code>form.handleSubmit()</code> only at the end. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-groups">[13]</a></sup></p>
+          <a class="defect" href="https://github.com/TanStack/form/issues/1133">…with the R2 caveat: an abandoned branch's stale errors stay in the store [18]</a>
+        </div>
+
+        <div class="cell warn">
+          <span class="cell-lib">Conform</span>
+          <span class="verdict">Workaround</span>
+          <p>The wizard is a server concern. Steps are conditionally rendered fieldsets of one form — and because values live in the DOM they vanish on step change, so each step's fields go inside a named <code>PreserveBoundary</code> (shipped v1.17.0). <sup><a href="https://github.com/edmundhung/conform/releases">[24]</a></sup></p>
+          <p>Per-step validation is the <code>validate</code> intent scoped to that step's field names. <sup><a href="https://conform.guide/intent-button">[20]</a></sup> Refresh-persistence is whatever your framework's session gives you — which is the point of the library.</p>
+        </div>
+      </div>
+
+      <!-- R5 -->
+      <div class="mx-row">
+        <div class="rowhead">
+          <div class="rn">R5</div>
+          <h3>The 100+ field render budget</h3>
+          <p>No public head-to-head render-count benchmark exists for these three in 2026 <sup><a href="https://splitforms.com/blog/best-react-form-library-2026">[25]</a></sup>. What is measured is below.</p>
+        </div>
+
+        <div class="cell ok">
+          <span class="cell-lib">React Hook Form</span>
+          <span class="verdict">Holds</span>
+          <p>Uncontrolled by construction: nothing re-renders on keystroke. The failure mode is <em>subscription placement</em>, not the library. The maintainer's answer to the canonical 100+-field lag report:</p>
+          <code class="snip">"Changing a field updates different form states
+like dirtyFields… which would cause your whole
+form to re-render due to that update subscription
+you made in the parent component"</code>
+          <p>Rules that follow: read <code>formState</code> in a leaf via <code>useFormState</code>, never the root; prefer <code>register</code> over <code>Controller</code> (every controlled wrapper is a render per keystroke by construction); <code>subscribe()</code> when you need values but not a render <sup><a href="https://react-hook-form.com/docs/useform/subscribe">[5]</a></sup>; <code>memo()</code> the rows, because <code>FormProvider</code> re-renders its subtree. <sup><a href="https://github.com/orgs/react-hook-form/discussions/7810">[7]</a></sup></p>
+          <a class="defect" href="https://react-hook-form.com/advanced-usage">Past ~1000 rows, virtualize — then windowed rows unmount, so you need form-level <code>defaultValues</code> to restore on scroll-back [6]</a>
+        </div>
+
+        <div class="cell bad">
+          <span class="cell-lib">TanStack Form</span>
+          <span class="verdict">Defect</span>
+          <p>Selector subscriptions should make scoping automatic. Two 2026 caveats say otherwise.</p>
+          <p><code>form.Subscribe</code> re-renders on <em>every</em> form mutation whenever the selector returns an object or array — <code>useStore</code> compares with <code>Object.is</code> and the selector allocates a fresh reference each render. Return primitives, or pass <code>shallow</code>.</p>
+          <a class="defect" href="https://github.com/TanStack/form/issues/2090">#2090 — open since Mar 2026</a>
+          <a class="defect" href="https://github.com/TanStack/form/issues/2150">#2150 — mount/unmount is worse than O(N): ~1300 fields = 10+ s, sometimes crashes the tab, vs ~200 ms for plain inputs (v1.29.1)</a>
+          <p style="margin-top:.55rem">Hygiene: always pass a selector, prefer <code>form.Subscribe</code> over <code>useSelector</code> for UI, and note <code>useStore</code> is deprecated. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/reactivity">[12]</a></sup></p>
+        </div>
+
+        <div class="cell ok">
+          <span class="cell-lib">Conform</span>
+          <span class="verdict">Holds</span>
+          <p>Barely participates. The DOM holds the values; React state holds only the last validation result, so keystroke re-render cost is near zero. <sup><a href="https://conform.guide/validation">[22]</a></sup></p>
+          <p>The cost moves elsewhere: every <em>validation</em> is potentially a server round-trip, and huge repeating groups are expensive on the parse side.</p>
+          <a class="defect" href="https://github.com/edmundhung/conform/releases">v1.19.4 patched a DoS in <code>parseSubmission</code> triggered by "submissions with numerous repeated fields" [24]</a>
+        </div>
+      </div>
+
+    </div><!-- /.mx -->
+
+    <!-- collision -->
+    <div class="collision">
+      <span class="tag">Design collision · no ticket, no fix</span>
+      <h3>In RHF, the fix for R2 is forbidden inside R1</h3>
+      <blockquote>"Field array relies on inputs being mounted and unmounted to manage its internal state — enabling <code>shouldUnregister</code> causes newly added fields to be unregistered on re-render, so their values are lost." <sup><a href="https://react-hook-form.com/docs/usefieldarray">[1]</a></sup></blockquote>
+      <p><code>shouldUnregister: true</code> is the sanctioned cure for ghost fields. It is <em>explicitly unsupported</em> inside <code>useFieldArray</code>, and <code>register</code>'s own docs repeat the warning. <sup><a href="https://react-hook-form.com/docs/useform/register">[3]</a></sup> So a repeating group whose rows contain conditional sub-fields cannot use the global switch at all. Your two remaining options: strip the dead branches in a <code>handleSubmit</code> transform, or model the row as a discriminated union and let Zod's <code>.transform()</code> drop them.</p>
+    </div>
+  </section>
+
+  <!-- ══ 03 · DEFECT REGISTER ══ -->
+  <section class="sec">
+    <div class="sec-h"><span class="sec-n">03</span><h2>Defect register</h2></div>
+    <p class="sec-note">Every sharp edge above, in one list. "Design" means it is working as intended and will still cut you.</p>
+
+    <div class="reg">
+      <div class="reg-r h">
+        <div>ID</div><div>Unit</div><div>Effect</div><div>Status</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/TanStack/form/issues/957">#957</a></div>
+        <div class="reg-lib">TanStack</div>
+        <div class="reg-what"><b>Index-keyed rows duplicate on remove.</b> Removing item 2 from <code>[1,2,3,4]</code> inside a conditionally-rendered form yields <code>[1,3,4,4]</code>.</div>
+        <div class="reg-st st-open">◉ Open</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/TanStack/form/issues/1133">#1133</a></div>
+        <div class="reg-lib">TanStack</div>
+        <div class="reg-what"><b>Stale error blocks submit.</b> A field that unmounts while invalid keeps its error in the store; submission is blocked by a field nobody can see.</div>
+        <div class="reg-st st-open">◉ Open</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/TanStack/form/issues/2090">#2090</a></div>
+        <div class="reg-lib">TanStack</div>
+        <div class="reg-what"><b><code>form.Subscribe</code> over-renders.</b> Object/array-returning selectors compare with <code>Object.is</code> against a fresh reference → a render on every form mutation. Open since Mar 2026; pass <code>shallow</code>.</div>
+        <div class="reg-st st-open">◉ Open</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/TanStack/form/issues/2150">#2150</a></div>
+        <div class="reg-lib">TanStack</div>
+        <div class="reg-what"><b>Field mount cost is super-linear.</b> ~1300 <code>&lt;form.Field&gt;</code> take 10+ seconds and can crash the tab (v1.29.1, May 2026) — the exact shape of a large dynamic form.</div>
+        <div class="reg-st st-open">◉ Open</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/TanStack/form/issues/502">#502</a></div>
+        <div class="reg-lib">TanStack</div>
+        <div class="reg-what"><b>Unmounted fields leak value + meta + fieldInfo</b> into the store. <code>form.deleteField</code> is the manual escape hatch.</div>
+        <div class="reg-st st-design">◈ By design</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://react-hook-form.com/docs/usefieldarray">RHF/docs</a></div>
+        <div class="reg-lib">RHF</div>
+        <div class="reg-what"><b><code>shouldUnregister</code> × <code>useFieldArray</code> are incompatible.</b> The cure for ghost fields is the poison for field arrays. Documented, unfixed, no workaround inside the library.</div>
+        <div class="reg-st st-design">◈ By design</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://zenn.dev/ashunar0/articles/692920ecb633fb?locale=en">RC/v7</a></div>
+        <div class="reg-lib">RHF</div>
+        <div class="reg-what"><b>React Compiler incompatibility.</b> A mutated <code>useRef</code> plus a <code>formState</code> proxy whose getters register subscriptions <em>as a render side-effect</em>: memoized reads never invalidate, <code>watch()</code> goes stale, <code>errors</code> stops updating. v7 workaround is <code>'use no memo'</code> on every form component.</div>
+        <div class="reg-st st-fixed">✓ Fixed in v8 beta</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/orgs/react-hook-form/discussions/9672">#9672</a></div>
+        <div class="reg-lib">RHF</div>
+        <div class="reg-what"><b>Nested-array drag &amp; drop reorders only the last array,</b> because a single ref holds the <code>move</code> callback and each new nested array overwrites it. Keep a list of callbacks.</div>
+        <div class="reg-st st-design">◈ Pattern trap</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://conform.guide/api/react/useInputControl">useInputControl</a></div>
+        <div class="reg-lib">Conform</div>
+        <div class="reg-what"><b>Controlled widgets reset on every list intent.</b> Rows re-mount by key on insert/remove/reorder — correct for native inputs, destructive for a Select/Combobox in a sortable list.</div>
+        <div class="reg-st st-design">◈ By design</div>
+      </div>
+      <div class="reg-r">
+        <div class="reg-id"><a href="https://github.com/edmundhung/conform/releases">CVE-ish</a></div>
+        <div class="reg-lib">Conform</div>
+        <div class="reg-what"><b>DoS in <code>parseSubmission</code></b> triggered by submissions with numerous repeated fields.</div>
+        <div class="reg-st st-fixed">✓ Patched 1.19.4</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 04 · MEASURED AXES ══ -->
+  <section class="sec">
+    <div class="sec-h"><span class="sec-n">04</span><h2>What is actually measured</h2></div>
+    <p class="sec-note">The comparison articles are qualitative and TanStack's own table is a feature matrix, not a benchmark <sup><a href="https://tanstack.com/form/latest/docs/comparison">[26]</a></sup>. These four numbers are the ones with a source behind them.</p>
+
+    <div class="mx">
+      <div class="mx-head">
+        <div class="corner">AXIS</div>
+        <div>React Hook Form 7.81</div>
+        <div>TanStack Form 1.30</div>
+        <div>Conform 1.19</div>
+      </div>
+      <div class="mx-row">
+        <div class="rowhead"><div class="rn">A1</div><h3>Bundle, min+gzip</h3><p>esbuild, May 2026 <sup><a href="https://splitforms.com/blog/best-react-form-library-2026">[25]</a></sup></p></div>
+        <div class="cell warn"><span class="cell-lib">RHF</span><span class="verdict">~9 kB</span><p>~14 kB with Zod.</p></div>
+        <div class="cell ok"><span class="cell-lib">TanStack</span><span class="verdict">~6 kB</span><p>~11 kB with Zod. Smallest core of the two measured.</p></div>
+        <div class="cell warn"><span class="cell-lib">Conform</span><span class="verdict">Not measured</span><p>Absent from that benchmark.</p></div>
+      </div>
+      <div class="mx-row">
+        <div class="rowhead"><div class="rn">A2</div><h3>Re-renders / keystroke</h3><p>Uninstrumented field.</p></div>
+        <div class="cell ok"><span class="cell-lib">RHF</span><span class="verdict">0</span><p>Ref-based. <sup><a href="https://react-hook-form.com/advanced-usage">[6]</a></sup></p></div>
+        <div class="cell warn"><span class="cell-lib">TanStack</span><span class="verdict">0*</span><p>*Zero outside subscribers — unless a selector returns an object, and then it's every mutation. <sup><a href="https://github.com/TanStack/form/issues/2090">[14]</a></sup></p></div>
+        <div class="cell ok"><span class="cell-lib">Conform</span><span class="verdict">0</span><p>DOM-backed. <sup><a href="https://conform.guide/validation">[22]</a></sup></p></div>
+      </div>
+      <div class="mx-row">
+        <div class="rowhead"><div class="rn">A3</div><h3>Built-in async debounce</h3><p>The one row TanStack's own table scores RHF ❓ on — honestly.</p></div>
+        <div class="cell bad"><span class="cell-lib">RHF</span><span class="verdict">None</span><p>Bring your own debounce + <code>AbortController</code>. <sup><a href="https://tanstack.com/form/latest/docs/comparison">[26]</a></sup></p></div>
+        <div class="cell ok"><span class="cell-lib">TanStack</span><span class="verdict"><code>asyncDebounceMs</code></span><p>Per field or per validator. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">[10]</a></sup></p></div>
+        <div class="cell ok"><span class="cell-lib">Conform</span><span class="verdict">n/a by design</span><p>Server round-trip instead of a client endpoint. <sup><a href="https://conform.guide/validation">[22]</a></sup></p></div>
+      </div>
+      <div class="mx-row">
+        <div class="rowhead"><div class="rn">A4</div><h3>React Compiler safe</h3><p>The 2026 headline. Turning the compiler on across a large RHF v7 codebase is a migration, not a flag.</p></div>
+        <div class="cell bad"><span class="cell-lib">RHF</span><span class="verdict">✗ v7 · ✓ v8 beta</span><p>v8's headline feature is exactly this: "V8 adds first-class support for the React Compiler. No additional configuration is required." <sup><a href="https://react-hook-form.com/migrate-v7-to-v8">[4]</a></sup></p></div>
+        <div class="cell ok"><span class="cell-lib">TanStack</span><span class="verdict">Safe</span><p>Store + <code>useSyncExternalStore</code> model. <sup><a href="https://zenn.dev/ashunar0/articles/692920ecb633fb?locale=en">[27]</a></sup></p></div>
+        <div class="cell ok"><span class="cell-lib">Conform</span><span class="verdict">Safe</span><p>No interior mutability in render.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 05 · DISPOSITION ══ -->
+  <section class="sec">
+    <div class="sec-h"><span class="sec-n">05</span><h2>Disposition</h2></div>
+    <p class="sec-note">Pick by the hard pattern you actually have, not by the library you already like.</p>
+    <div class="disp">
+      <div class="disp-c">
+        <div class="job">Repeating groups with reorder</div>
+        <div class="pick">RHF</div>
+        <p>The only one that hands you a stable row identity, and <code>swap</code>/<code>move</code> propagate correctly through nested arrays. With TanStack, carry your own row <code>id</code>. <sup><a href="https://react-hook-form.com/docs/usefieldarray">[1]</a></sup></p>
+      </div>
+      <div class="disp-c">
+        <div class="job">Conditional fields</div>
+        <div class="pick">Decide the payload</div>
+        <p>Every default is wrong for someone: RHF and TanStack submit ghosts, Conform loses answers. Make the payload contract explicit — and remember the RHF fix is unavailable inside field arrays.</p>
+      </div>
+      <div class="disp-c">
+        <div class="job">Dependent async validation</div>
+        <div class="pick">TanStack <span style="color:var(--dim);font-size:.8rem">/ Conform</span></div>
+        <p>TanStack if you want it declarative and debounced <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">[10]</a></sup>; Conform if you'd rather have one schema and no uniqueness endpoint <sup><a href="https://conform.guide/api/zod/conformZodMessage">[21]</a></sup>; RHF only with the remote check kept <em>outside</em> the resolver. <sup><a href="https://github.com/orgs/react-hook-form/discussions/11942">[8]</a></sup></p>
+      </div>
+      <div class="disp-c">
+        <div class="job">Wizards</div>
+        <div class="pick">TanStack</div>
+        <p><code>FormGroup</code> is the only first-class wizard primitive of the three. RHF's own docs tell you to bring a state library. <sup><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-groups">[13]</a></sup></p>
+      </div>
+      <div class="disp-c">
+        <div class="job">100+ fields</div>
+        <div class="pick">RHF</div>
+        <p>With <code>useFormState</code> pushed to the leaves. Benchmark TanStack's field mount cost against your field count before committing. <sup><a href="https://github.com/TanStack/form/issues/2150">[15]</a></sup></p>
+      </div>
+      <div class="disp-c">
+        <div class="job">Nobody persists for you</div>
+        <div class="pick">localStorage</div>
+        <p>None of the three writes to <code>localStorage</code>. That's your <code>subscribe()</code> (RHF, renderless <sup><a href="https://react-hook-form.com/docs/useform/subscribe">[5]</a></sup>) or a store subscription (TanStack), plus a debounced write.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ COLOPHON ══ -->
+  <footer class="colo">
+    <div class="sec-h"><span class="sec-n">06</span><h2>Same expedition</h2></div>
+    <div class="rule-line"></div>
+    <div class="sib">
+      <a href="../../form-library-landscape-2026/"><span class="d">Expedition</span><span class="t">The React form-library landscape in 2026: RHF still wins, TanStack Form is the real challenger, Formik is a zombie</span></a>
+      <a href="../../validation-and-schema-layer/"><span class="d">Survey</span><span class="t">The validation &amp; schema layer for React forms in 2026: Zod 4, Valibot, ArkType</span></a>
+      <a href="../../react-native-form-primitives/"><span class="d">Survey</span><span class="t">React's native form primitives in 2026: what they replace, and what they don't</span></a>
+      <a href="../../testing-forms/"><span class="d">Survey</span><span class="t">Testing React forms in 2026: which tier catches what</span></a>
+      <a href="../../uploads-autosave-and-unsaved-changes/"><span class="d">Survey</span><span class="t">Uploads, autosave and unsaved-changes guards in React forms</span></a>
+      <a href="../../ui-kit-integration/"><span class="d">Recon</span><span class="t">Wiring form engines into React UI kits in 2026</span></a>
+    </div>
+
+    <div class="sec-h"><span class="sec-n">07</span><h2>Sources</h2></div>
+    <div class="rule-line"></div>
+    <div class="srcs">
+      <div class="src"><span class="n">[1]</span><img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt=""><a href="https://react-hook-form.com/docs/usefieldarray">useFieldArray — API, keying rules, the shouldUnregister ban</a></div>
+      <div class="src"><span class="n">[2]</span><img src="https://www.google.com/s2/favicons?domain=deepwiki.com&sz=128" alt=""><a href="https://deepwiki.com/react-hook-form/react-hook-form/5.3-advanced-field-array-patterns">Advanced field-array patterns (nested arrays, _subjects.array)</a></div>
+      <div class="src"><span class="n">[3]</span><img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt=""><a href="https://react-hook-form.com/docs/useform/register">register — deps, dot paths, shouldUnregister</a></div>
+      <div class="src"><span class="n">[4]</span><img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt=""><a href="https://react-hook-form.com/migrate-v7-to-v8">Migrate v7 → v8 (React Compiler, id → key, flat arrays)</a></div>
+      <div class="src"><span class="n">[5]</span><img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt=""><a href="https://react-hook-form.com/docs/useform/subscribe">subscribe() — renderless observation</a></div>
+      <div class="src"><span class="n">[6]</span><img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt=""><a href="https://react-hook-form.com/advanced-usage">Advanced usage — wizard recipe, virtualization, FormProvider</a></div>
+      <div class="src"><span class="n">[7]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/orgs/react-hook-form/discussions/7810">RHF #7810 — 100+ fields laggy; subscription placement</a></div>
+      <div class="src"><span class="n">[8]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/orgs/react-hook-form/discussions/11942">RHF #11942 — keep the remote check out of the resolver</a></div>
+      <div class="src"><span class="n">[9]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://tanstack.com/form/latest/docs/framework/react/guides/arrays">TanStack Form — arrays guide (keys by index)</a></div>
+      <div class="src"><span class="n">[10]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://tanstack.com/form/latest/docs/framework/react/guides/validation">TanStack Form — validation, asyncDebounceMs</a></div>
+      <div class="src"><span class="n">[11]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://tanstack.com/form/latest/docs/framework/react/guides/linked-fields">TanStack Form — linked fields, onChangeListenTo</a></div>
+      <div class="src"><span class="n">[12]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://tanstack.com/form/latest/docs/framework/react/guides/reactivity">TanStack Form — reactivity, Subscribe vs useSelector</a></div>
+      <div class="src"><span class="n">[13]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://tanstack.com/form/latest/docs/framework/react/guides/form-groups">TanStack Form — FormGroup / withFieldGroup</a></div>
+      <div class="src"><span class="n">[14]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/TanStack/form/issues/2090">TanStack #2090 — Subscribe over-renders on object selectors</a></div>
+      <div class="src"><span class="n">[15]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/TanStack/form/issues/2150">TanStack #2150 — super-linear field mount cost</a></div>
+      <div class="src"><span class="n">[16]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/TanStack/form/issues/957">TanStack #957 — index-keyed array remove duplicates</a></div>
+      <div class="src"><span class="n">[17]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/TanStack/form/issues/502">TanStack #502 — unmounted fields retained in store</a></div>
+      <div class="src"><span class="n">[18]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/TanStack/form/issues/1133">TanStack #1133 — stale error blocks submission</a></div>
+      <div class="src"><span class="n">[19]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt=""><a href="https://conform.guide/complex-structures">Conform — complex structures, getFieldList, field.key</a></div>
+      <div class="src"><span class="n">[20]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt=""><a href="https://conform.guide/intent-button">Conform — intent buttons (insert/remove/reorder, no-JS)</a></div>
+      <div class="src"><span class="n">[21]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt=""><a href="https://conform.guide/api/zod/conformZodMessage">Conform — conformZodMessage, VALIDATION_SKIPPED/UNDEFINED</a></div>
+      <div class="src"><span class="n">[22]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt=""><a href="https://conform.guide/validation">Conform — validation, no client async by design</a></div>
+      <div class="src"><span class="n">[23]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt=""><a href="https://conform.guide/api/react/future/PreserveBoundary">Conform — PreserveBoundary</a></div>
+      <div class="src"><span class="n">[24]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/edmundhung/conform/releases">Conform releases — 1.17.0 PreserveBoundary, 1.19.4 DoS patch</a></div>
+      <div class="src"><span class="n">[25]</span><img src="https://www.google.com/s2/favicons?domain=splitforms.com&sz=128" alt=""><a href="https://splitforms.com/blog/best-react-form-library-2026">Bundle sizes, May 2026 (esbuild, min+gzip)</a></div>
+      <div class="src"><span class="n">[26]</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://tanstack.com/form/latest/docs/comparison">TanStack Form — the official comparison table</a></div>
+      <div class="src"><span class="n">[27]</span><img src="https://www.google.com/s2/favicons?domain=zenn.dev&sz=128" alt=""><a href="https://zenn.dev/ashunar0/articles/692920ecb633fb?locale=en">Why RHF v7 breaks under the React Compiler</a></div>
+      <div class="src"><span class="n">[28]</span><img src="https://www.google.com/s2/favicons?domain=conform.guide&sz=128" alt=""><a href="https://conform.guide/api/react/useInputControl">Conform — useInputControl resets on key change</a></div>
+      <div class="src"><span class="n">[29]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/react-hook-form/react-hook-form">react-hook-form ⭐ 44.8k</a></div>
+      <div class="src"><span class="n">[30]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/TanStack/form">TanStack/form ⭐ 6.6k</a></div>
+      <div class="src"><span class="n">[31]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/edmundhung/conform">edmundhung/conform ⭐ 2.6k</a></div>
+      <div class="src"><span class="n">[32]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/orgs/react-hook-form/discussions/9672">RHF #9672 — nested-array drag &amp; drop ref trap</a></div>
+      <div class="src"><span class="n">[33]</span><img src="https://www.google.com/s2/favicons?domain=claritydev.net&sz=128" alt=""><a href="https://claritydev.net/blog/advanced-multistep-forms-with-react">Advanced multi-step forms with React</a></div>
+      <div class="src"><span class="n">[34]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/orgs/react-hook-form/discussions/4028">RHF #4028 — per-step schema + await trigger(fields)</a></div>
+    </div>
+
+    <div class="foot">
+      <span>Sheet drawn from <a href="../">the canonical survey</a> · part of <a href="../../">Building forms in React in 2026</a> · <a href="/">Atlas</a></span>
+    </div>
+  </footer>
+
+</div>
+</div>
