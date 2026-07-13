@@ -1,0 +1,896 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "Toasts in the Next.js App Router: firing client state from the server — Blueprint"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+.bp {
+  --ink:      #dbe9f6;
+  --ink-dim:  #8fb0cc;
+  --ink-far:  #5c7f9e;
+  --paper:    #0c2c4a;
+  --paper-2:  #0a2340;
+  --plate:    #061c31;
+  --cyan:     #7fd4ff;
+  --amber:    #ffc857;
+  --red:      #ff7a6b;
+  --green:    #74e0a8;
+  --rule:     rgba(127, 212, 255, .28);
+  --rule-far: rgba(127, 212, 255, .10);
+
+  margin: 0;
+  padding: 0 0 4rem;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--rule-far) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rule-far) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px;
+  color: var(--ink);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bp .sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ---------- title block ---------- */
+.bp .titleblock {
+  border: 2px solid var(--rule);
+  border-top: none;
+  background: rgba(6, 28, 49, .55);
+  display: grid;
+  grid-template-columns: 1fr 210px;
+}
+.bp .tb-main { padding: 2.4rem 2rem 1.8rem; border-right: 2px solid var(--rule); }
+.bp .tb-kicker {
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 1.4rem;
+  display: flex; gap: .9rem; flex-wrap: wrap; align-items: center;
+}
+.bp .tb-kicker span:not(:last-child)::after { content: " ·"; color: var(--ink-far); }
+.bp h1 {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 700; font-size: clamp(30px, 4.4vw, 54px);
+  line-height: 1.04; letter-spacing: -.02em; margin: 0 0 1.1rem; color: #fff;
+}
+.bp .tb-sub { color: var(--ink-dim); font-size: 14px; max-width: 62ch; margin: 0; }
+.bp .tb-side { display: flex; flex-direction: column; }
+.bp .tb-cell { border-bottom: 1px solid var(--rule); padding: .7rem .9rem; }
+.bp .tb-cell:last-child { border-bottom: none; flex: 1; display: flex; align-items: center; justify-content: center; }
+.bp .tb-cell b { display: block; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-far); font-weight: 500; }
+.bp .tb-cell i { font-style: normal; font-size: 15px; color: var(--ink); }
+.bp .tb-cell img { width: 92px; opacity: .8; }
+
+/* ---------- verdict ---------- */
+.bp .verdict {
+  border: 2px solid var(--cyan);
+  background: rgba(127, 212, 255, .07);
+  padding: 1.6rem 1.8rem;
+  margin: 2.6rem 0;
+  position: relative;
+}
+.bp .verdict::before {
+  content: "GENERAL NOTE";
+  position: absolute; top: -9px; left: 18px;
+  background: var(--paper); padding: 0 .6rem;
+  font-size: 10px; letter-spacing: .2em; color: var(--cyan);
+}
+.bp .verdict p { margin: 0; font-size: 17px; line-height: 1.6; }
+.bp .verdict strong { color: #fff; }
+
+/* ---------- section headers ---------- */
+.bp .plate-hd {
+  display: flex; align-items: baseline; gap: 1rem;
+  border-bottom: 2px solid var(--rule);
+  padding-bottom: .5rem; margin: 3.6rem 0 1.6rem;
+}
+.bp .plate-no {
+  font-family: 'Archivo', sans-serif; font-weight: 700;
+  font-size: 12px; letter-spacing: .16em;
+  color: var(--paper); background: var(--cyan);
+  padding: .18rem .55rem;
+}
+.bp .plate-hd h2 {
+  font-family: 'Archivo', sans-serif; font-weight: 600;
+  font-size: clamp(19px, 2.4vw, 26px); letter-spacing: -.01em;
+  margin: 0; color: #fff; flex: 1;
+}
+.bp .plate-hd em { font-style: normal; font-size: 11px; letter-spacing: .16em; color: var(--ink-far); text-transform: uppercase; }
+
+.bp p { max-width: 80ch; }
+.bp a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(127,212,255,.5); }
+.bp a:hover { color: #fff; border-bottom-color: #fff; }
+.bp sup a { border: none; font-size: 10px; color: var(--ink-far); }
+.bp sup a:hover { color: var(--cyan); }
+
+/* ---------- drawings ---------- */
+.bp .drawing {
+  border: 1px solid var(--rule);
+  background: rgba(6, 28, 49, .5);
+  padding: 1.2rem;
+  margin: 1.8rem 0;
+  overflow-x: auto;
+}
+.bp .drawing svg { display: block; width: 100%; min-width: 720px; height: auto; }
+.bp .fig {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-far); margin: .8rem 0 0; padding-top: .7rem;
+  border-top: 1px dashed var(--rule-far);
+}
+
+/* ---------- code plates ---------- */
+.bp .code {
+  background: var(--plate);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--cyan);
+  margin: 1.2rem 0;
+  overflow-x: auto;
+}
+.bp .code .fname {
+  display: block;
+  border-bottom: 1px solid var(--rule-far);
+  padding: .45rem .9rem;
+  font-size: 11px; letter-spacing: .1em;
+  color: var(--ink-far);
+  background: rgba(127, 212, 255, .05);
+}
+.bp pre { margin: 0; padding: 1rem 1.1rem; overflow-x: auto; }
+.bp code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; line-height: 1.72; color: #cfe3f5; }
+.bp .c  { color: #5f89ab; font-style: italic; }
+.bp .s  { color: var(--green); }
+.bp .k  { color: #ff9ecb; }
+.bp .f  { color: var(--cyan); }
+.bp .t  { color: var(--amber); }
+.bp .dir { color: var(--amber); font-weight: 700; }
+
+.bp .cal {
+  display: inline-block; min-width: 17px; height: 17px;
+  border: 1px solid var(--amber); border-radius: 50%;
+  color: var(--amber); background: rgba(255, 200, 87, .12);
+  font-size: 10px; line-height: 15px; text-align: center;
+  margin-left: .9rem; vertical-align: 1px; font-weight: 700;
+}
+
+.bp .calouts { list-style: none; padding: 0; margin: 1rem 0 0; }
+.bp .calouts li {
+  display: grid; grid-template-columns: 26px 1fr; gap: .8rem;
+  padding: .55rem 0; border-top: 1px dashed var(--rule-far);
+  font-size: 13.5px; color: var(--ink-dim); max-width: 88ch;
+}
+.bp .calouts b {
+  width: 20px; height: 20px; border: 1px solid var(--amber); border-radius: 50%;
+  color: var(--amber); font-size: 11px; line-height: 18px; text-align: center; font-weight: 700;
+}
+.bp .calouts strong { color: var(--ink); }
+
+/* ---------- channel cards ---------- */
+.bp .channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 1.6rem 0; }
+.bp .ch {
+  border: 1px solid var(--rule); background: rgba(6, 28, 49, .55);
+  padding: 1rem 1.1rem; border-top: 3px solid var(--ink-far);
+}
+.bp .ch.on  { border-top-color: var(--green); }
+.bp .ch.warn{ border-top-color: var(--amber); }
+.bp .ch.off { border-top-color: var(--red); opacity: .82; }
+.bp .ch h3 {
+  font-family: 'Archivo', sans-serif; font-size: 14px; margin: 0 0 .5rem;
+  letter-spacing: .04em; color: #fff;
+}
+.bp .ch .tag { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-far); display: block; margin-bottom: .35rem; }
+.bp .ch p { font-size: 13px; color: var(--ink-dim); margin: 0; max-width: none; }
+.bp .ch .risk { display: block; margin-top: .7rem; padding-top: .55rem; border-top: 1px dashed var(--rule-far); font-size: 12px; color: var(--amber); }
+.bp .ch.off .risk { color: var(--red); }
+.bp .ch.on .risk { color: var(--green); }
+
+/* ---------- tables ---------- */
+.bp table { width: 100%; border-collapse: collapse; margin: 1.4rem 0; font-size: 13px; }
+.bp thead th {
+  text-align: left; padding: .55rem .7rem;
+  border-bottom: 2px solid var(--rule);
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--cyan); font-weight: 500; white-space: nowrap;
+}
+.bp td { padding: .62rem .7rem; border-bottom: 1px solid var(--rule-far); color: var(--ink-dim); vertical-align: top; }
+.bp td:first-child { color: var(--ink); white-space: nowrap; }
+.bp .yes { color: var(--green); font-weight: 700; }
+.bp .no  { color: var(--red);   font-weight: 700; }
+.bp .cav { color: var(--amber); font-weight: 700; }
+
+/* ---------- warning strip ---------- */
+.bp .warnstrip {
+  margin: 1.8rem 0;
+  border: 1px solid var(--amber);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,200,87,.10) 0 10px, transparent 10px 20px);
+  padding: 1rem 1.2rem;
+  font-size: 14px; color: var(--ink);
+}
+.bp .warnstrip b { color: var(--amber); letter-spacing: .12em; font-size: 11px; display: block; margin-bottom: .3rem; text-transform: uppercase; }
+.bp .warnstrip p { margin: 0; }
+
+/* ---------- sources / sheets ---------- */
+.bp .srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .1rem; margin-top: 1.2rem; }
+.bp .src {
+  display: grid; grid-template-columns: 30px 22px 1fr; gap: .6rem; align-items: start;
+  padding: .6rem .7rem; border: 1px solid var(--rule-far);
+  color: var(--ink-dim); text-decoration: none; border-bottom-style: solid;
+  font-size: 12px; line-height: 1.5;
+}
+.bp .src:hover { background: rgba(127,212,255,.07); color: var(--ink); border-color: var(--rule); }
+.bp .src .n { color: var(--cyan); font-size: 11px; padding-top: 2px; }
+.bp .src img { width: 18px; height: 18px; margin-top: 2px; }
+.bp .src u { text-decoration: none; display: block; color: var(--ink); word-break: break-word; }
+.bp .src small { color: var(--ink-far); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; }
+
+.bp .sheets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.2rem; }
+.bp .sh {
+  border: 1px solid var(--rule); padding: 1rem; text-decoration: none;
+  display: block; background: rgba(6,28,49,.4); border-bottom-style: solid;
+}
+.bp .sh:hover { background: rgba(127,212,255,.08); }
+.bp .sh small { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan); }
+.bp .sh b { display: block; font-family: 'Archivo', sans-serif; color: #fff; font-size: 14px; margin: .35rem 0 .4rem; line-height: 1.35; }
+.bp .sh span { font-size: 12px; color: var(--ink-dim); line-height: 1.5; display: block; }
+
+.bp .colophon {
+  margin-top: 3.5rem; border-top: 2px solid var(--rule); padding-top: 1rem;
+  display: flex; flex-wrap: wrap; gap: 1.6rem;
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-far);
+}
+</style>
+
+<div class="bp">
+<div class="sheet">
+
+  <div class="titleblock">
+    <div class="tb-main">
+      <div class="tb-kicker">
+        <span>Sheet 03</span><span>Server / Client Boundary</span><span>Next.js 16.2.10</span><span>Rev. 2026-07-13</span>
+      </div>
+      <h1>Firing a toast<br>across the seam</h1>
+      <p class="tb-sub">No toast library ships a server entrypoint. The queue is client memory in all three. A server mutation can only <em>describe</em> a toast and hand it across the boundary — and which channel it hands it through is decided by one question.</p>
+    </div>
+    <div class="tb-side">
+      <div class="tb-cell"><b>Scale</b><i>1 : 1 code</i></div>
+      <div class="tb-cell"><b>Sources</b><i>25 cited</i></div>
+      <div class="tb-cell"><b>Depth</b><i>survey</i></div>
+      <div class="tb-cell"><img src="../cover.svg" alt=""></div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <p><strong>Pick your channel by one question: does the action <code>redirect()</code>?</strong> No → return <code>{status, message, nonce}</code> and toast in a nonce-guarded effect (or skip <code>useActionState</code> and <code>await</code> the action inside a transition). Yes → <code>redirect()</code> throws <code>NEXT_REDIRECT</code> and unmounts the caller before any return value arrives <sup><a href="https://nextjs.org/docs/app/api-reference/functions/redirect">[3]</a></sup>, so set a <strong>flash cookie</strong> before redirecting and drain it on the next render <sup><a href="https://github.com/vercel/next.js/discussions/57118">[9]</a></sup>. Real apps end up running both.</p>
+  </div>
+
+  <!-- ================= PLATE 01 — THE SEAM ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">01</span>
+    <h2>The constraint: <code>'use client'</code> cuts the module graph in two</h2>
+    <em>Elevation</em>
+  </div>
+
+  <p>A module carrying the directive — and everything it imports — is bundled and evaluated on the client <sup><a href="https://react.dev/reference/rsc/use-client">[6]</a></sup>. All three libraries ship it as the <em>first line</em> of their ESM bundle, verified against the published dist. So <code>&lt;Toaster /&gt;</code> drops into a Server Component layout unchanged — but <code>toast()</code>, the imperative queue-push, is a <strong>client reference</strong>. A Server Function cannot call it.</p>
+
+  <div class="drawing">
+    <svg viewBox="0 0 1000 470" role="img" aria-label="Schematic: the 'use client' boundary between server modules and the client bundle. The Toaster element crosses legally; a toast() call from a Server Function is blocked at the seam; a serializable payload crosses legally.">
+      <defs>
+        <marker id="ar-c" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0 0 L9 4.5 L0 9 z" fill="#7fd4ff"/>
+        </marker>
+        <marker id="ar-r" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0 0 L9 4.5 L0 9 z" fill="#ff7a6b"/>
+        </marker>
+        <pattern id="hatch" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="8" stroke="#7fd4ff" stroke-width="2" opacity=".35"/>
+        </pattern>
+      </defs>
+
+      <!-- column headers -->
+      <text x="40" y="30" fill="#7fd4ff" font-family="Archivo, sans-serif" font-size="13" letter-spacing="3">SERVER · RSC RENDER + SERVER FUNCTIONS</text>
+      <text x="960" y="30" fill="#7fd4ff" font-family="Archivo, sans-serif" font-size="13" letter-spacing="3" text-anchor="end">CLIENT BUNDLE · BROWSER MEMORY</text>
+      <line x1="40" y1="42" x2="430" y2="42" stroke="#7fd4ff" stroke-opacity=".4"/>
+      <line x1="570" y1="42" x2="960" y2="42" stroke="#7fd4ff" stroke-opacity=".4"/>
+
+      <!-- the seam -->
+      <rect x="490" y="42" width="20" height="380" fill="url(#hatch)"/>
+      <line x1="500" y1="42" x2="500" y2="422" stroke="#ffc857" stroke-width="2.5"/>
+      <text x="500" y="448" fill="#ffc857" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">'use client' — module graph boundary</text>
+
+      <!-- server boxes -->
+      <g font-family="JetBrains Mono, monospace">
+        <rect x="40" y="76" width="390" height="58" fill="#061c31" stroke="#7fd4ff" stroke-opacity=".55"/>
+        <text x="56" y="102" fill="#dbe9f6" font-size="14">app/layout.tsx</text>
+        <text x="56" y="122" fill="#5c7f9e" font-size="11.5">Server Component · stays server-side</text>
+
+        <rect x="40" y="176" width="390" height="58" fill="#061c31" stroke="#7fd4ff" stroke-opacity=".55"/>
+        <text x="56" y="202" fill="#dbe9f6" font-size="14">app/posts/actions.ts</text>
+        <text x="56" y="222" fill="#ffc857" font-size="11.5">'use server'</text>
+
+        <rect x="40" y="300" width="390" height="58" fill="#061c31" stroke="#7fd4ff" stroke-opacity=".55"/>
+        <text x="56" y="326" fill="#dbe9f6" font-size="14">lib/flash.ts</text>
+        <text x="56" y="346" fill="#5c7f9e" font-size="11.5">'server-only' · cookies()</text>
+      </g>
+
+      <!-- client boxes -->
+      <g font-family="JetBrains Mono, monospace">
+        <rect x="570" y="60" width="390" height="58" fill="#061c31" stroke="#7fd4ff" stroke-opacity=".55"/>
+        <text x="586" y="86" fill="#dbe9f6" font-size="14">sonner/dist/index.mjs</text>
+        <text x="586" y="106" fill="#ffc857" font-size="11.5">'use client' ← line 1 of the bundle</text>
+
+        <rect x="570" y="146" width="390" height="58" fill="#061c31" stroke="#74e0a8" stroke-opacity=".6"/>
+        <text x="586" y="172" fill="#dbe9f6" font-size="14">&lt;Toaster /&gt;</text>
+        <text x="586" y="192" fill="#5c7f9e" font-size="11.5">portal + queue store</text>
+
+        <rect x="570" y="232" width="390" height="58" fill="#061c31" stroke="#ff7a6b" stroke-opacity=".6"/>
+        <text x="586" y="258" fill="#dbe9f6" font-size="14">toast(msg)</text>
+        <text x="586" y="278" fill="#5c7f9e" font-size="11.5">imperative push · queue lives here, only here</text>
+
+        <rect x="570" y="330" width="390" height="58" fill="#061c31" stroke="#7fd4ff" stroke-opacity=".55"/>
+        <text x="586" y="356" fill="#dbe9f6" font-size="14">PostForm · FlashToaster</text>
+        <text x="586" y="376" fill="#ffc857" font-size="11.5">'use client'</text>
+      </g>
+
+      <!-- crossing 1: legal -->
+      <polyline points="430,100 500,100 500,175 570,175" fill="none" stroke="#74e0a8" stroke-width="2" marker-end="url(#ar-c)"/>
+      <text x="516" y="140" fill="#74e0a8" font-family="JetBrains Mono, monospace" font-size="11.5">OK — renders it as an element reference</text>
+
+      <!-- crossing 2: blocked -->
+      <polyline points="430,205 490,205" fill="none" stroke="#ff7a6b" stroke-width="2"/>
+      <polyline points="510,205 570,205 570,232" fill="none" stroke="#ff7a6b" stroke-width="2" stroke-dasharray="5 5" opacity=".45"/>
+      <g stroke="#ff7a6b" stroke-width="3.5">
+        <line x1="488" y1="193" x2="512" y2="217"/>
+        <line x1="512" y1="193" x2="488" y2="217"/>
+      </g>
+      <text x="440" y="182" fill="#ff7a6b" font-family="JetBrains Mono, monospace" font-size="11.5">toast() is a client reference — a Server Function cannot call it</text>
+
+      <!-- crossing 3: payload -->
+      <polyline points="430,330 500,330 500,360 570,360" fill="none" stroke="#7fd4ff" stroke-width="2" marker-end="url(#ar-c)"/>
+      <text x="516" y="410" fill="#7fd4ff" font-family="JetBrains Mono, monospace" font-size="11.5">{ status, message, nonce } — serializable payload only</text>
+    </svg>
+    <p class="fig">Fig. 1 — the boundary. The server may hand across a <em>description</em> of a toast. It may never push one.</p>
+  </div>
+
+  <p>Practical reading: <strong>"RSC-safe" is table stakes and means less than it sounds.</strong> The directive buys you a <code>&lt;Toaster /&gt;</code> in <code>app/layout.tsx</code> without a hand-rolled wrapper. It does not make <code>toast()</code> callable from server code. Every server-origin toast is therefore a <em>serialization</em> problem, not a library feature — which is why the reference implementation is a blog post, not an API <sup><a href="https://buildui.com/posts/toast-messages-in-react-server-components">[1]</a></sup>.</p>
+
+  <table>
+    <thead>
+      <tr><th>Bill of materials</th><th>⭐</th><th>Ver.</th><th>gzip</th><th><code>'use client'</code> in dist</th><th>&lt;Toaster/&gt; in server layout</th><th>Server entrypoint</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="https://sonner.emilkowal.ski/getting-started">Sonner</a></td><td>⭐ 13k</td><td>2.0.7</td>
+        <td>9.4 kB <sup><a href="https://bundlephobia.com/package/sonner@2.0.7">[16]</a></sup></td>
+        <td><span class="yes">✓</span> <sup><a href="https://unpkg.com/sonner@2.0.7/dist/index.mjs">[12]</a></sup></td>
+        <td><span class="yes">✓</span> “can be placed anywhere, even in server components such as <code>layout.tsx</code>” <sup><a href="https://sonner.emilkowal.ski/getting-started">[11]</a></sup></td>
+        <td><span class="no">✗</span></td>
+      </tr>
+      <tr>
+        <td>react-hot-toast</td><td>⭐ 11k</td><td>2.6.0</td>
+        <td>4.8 kB <sup><a href="https://bundlephobia.com/package/react-hot-toast@2.6.0">[17]</a></sup></td>
+        <td><span class="yes">✓</span> <sup><a href="https://unpkg.com/react-hot-toast@2.6.0/dist/index.mjs">[13]</a></sup></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="no">✗</span></td>
+      </tr>
+      <tr>
+        <td>react-toastify</td><td>⭐ 13k</td><td>11.1.0</td>
+        <td>9.7 kB <sup><a href="https://bundlephobia.com/package/react-toastify@11.1.0">[18]</a></sup></td>
+        <td><span class="yes">✓</span> <sup><a href="https://unpkg.com/react-toastify@11.1.0/dist/index.mjs">[14]</a></sup></td>
+        <td><span class="yes">✓</span> v11 auto-injects its stylesheet</td>
+        <td><span class="no">✗</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Client-boundary cost is the toaster subtree, not the layout: 4.8–9.7 kB gzip, evaluated once, no dependency drag. <strong>This is not a reason to pick between them.</strong></p>
+
+  <div class="warnstrip">
+    <b>⚠ Failure at the joint — and it is not in Sonner</b>
+    <p>shadcn/ui's generated <code>components/ui/sonner.tsx</code> re-exports the Toaster wrapped in <code>next-themes</code>' <code>useTheme()</code> — and shipped <em>without</em> its own <code>'use client'</code>, producing <em>“Attempted to call useTheme() from the server”</em> <sup><a href="https://github.com/shadcn-ui/ui/issues/8173">[15]</a></sup>. Re-exporting a client component from a directive-less module erases the boundary: the directive is per-module, not viral upward.</p>
+  </div>
+
+  <!-- ================= PLATE 02 — THE FORK ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">02</span>
+    <h2>The junction: does the action <code>redirect()</code>?</h2>
+    <em>Routing diagram</em>
+  </div>
+
+  <div class="drawing">
+    <svg viewBox="0 0 940 480" role="img" aria-label="Decision diagram: a completed Server Function forks on whether it redirects. No redirect leads to channel A (useActionState plus nonce-guarded effect) or channel B (await inside a transition). Redirect leads to channel C (flash cookie). Channel D, the toast search param, is a rejected spur.">
+        <defs>
+          <marker id="ar-c2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0 0 L9 4.5 L0 9 z" fill="#7fd4ff"/>
+          </marker>
+          <marker id="ar-r2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0 0 L9 4.5 L0 9 z" fill="#ff7a6b"/>
+          </marker>
+        </defs>
+
+        <g font-family="JetBrains Mono, monospace">
+          <!-- input -->
+          <rect x="14" y="176" width="150" height="68" fill="#061c31" stroke="#7fd4ff" stroke-opacity=".55"/>
+          <text x="30" y="204" fill="#dbe9f6" font-size="12.5">Server Function</text>
+          <text x="30" y="224" fill="#5c7f9e" font-size="11">mutation completes</text>
+          <line x1="164" y1="210" x2="180" y2="210" stroke="#7fd4ff" stroke-width="2" marker-end="url(#ar-c2)"/>
+
+          <!-- diamond -->
+          <polygon points="290,130 390,210 290,290 190,210" fill="rgba(255,200,87,.09)" stroke="#ffc857" stroke-width="2"/>
+          <text x="290" y="205" fill="#ffc857" font-size="13" text-anchor="middle">redirect()</text>
+          <text x="290" y="226" fill="#ffc857" font-size="13" text-anchor="middle">?</text>
+
+          <!-- NO branch -->
+          <polyline points="290,130 290,74 470,74" fill="none" stroke="#74e0a8" stroke-width="2"/>
+          <circle cx="470" cy="74" r="4" fill="#74e0a8"/>
+          <polyline points="470,74 530,74" fill="none" stroke="#74e0a8" stroke-width="2" marker-end="url(#ar-c2)"/>
+          <polyline points="470,74 470,170 530,170" fill="none" stroke="#74e0a8" stroke-width="2" marker-end="url(#ar-c2)"/>
+          <text x="302" y="100" fill="#74e0a8" font-size="12">NO</text>
+
+          <rect x="536" y="40" width="386" height="68" fill="#061c31" stroke="#74e0a8" stroke-opacity=".7"/>
+          <text x="552" y="66" fill="#dbe9f6" font-size="13">CHANNEL A — return { status, message, nonce }</text>
+          <text x="552" y="88" fill="#5c7f9e" font-size="11">useActionState → useEffect guarded by the nonce</text>
+
+          <rect x="536" y="136" width="386" height="68" fill="#061c31" stroke="#74e0a8" stroke-opacity=".7"/>
+          <text x="552" y="162" fill="#dbe9f6" font-size="13">CHANNEL B — await inside startTransition</text>
+          <text x="552" y="184" fill="#5c7f9e" font-size="11">no effect · no nonce · no StrictMode double-fire</text>
+
+          <!-- YES branch -->
+          <polyline points="290,290 290,344 530,344" fill="none" stroke="#ffc857" stroke-width="2" marker-end="url(#ar-c2)"/>
+          <text x="302" y="326" fill="#ffc857" font-size="12">YES</text>
+          <text x="330" y="368" fill="#ff7a6b" font-size="11">throws NEXT_REDIRECT · 303 · caller unmounted · return value discarded</text>
+
+          <rect x="536" y="310" width="386" height="68" fill="#061c31" stroke="#ffc857" stroke-opacity=".8"/>
+          <text x="552" y="336" fill="#dbe9f6" font-size="13">CHANNEL C — flash cookie, set before redirecting</text>
+          <text x="552" y="358" fill="#5c7f9e" font-size="11">drained on the next render · survives 303, reload, new tab</text>
+
+          <!-- rejected spur D -->
+          <polyline points="420,344 420,432 530,432" fill="none" stroke="#ff7a6b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#ar-r2)"/>
+          <rect x="536" y="404" width="386" height="56" fill="rgba(255,122,107,.07)" stroke="#ff7a6b" stroke-opacity=".7" stroke-dasharray="6 5"/>
+          <text x="552" y="428" fill="#ff7a6b" font-size="13">CHANNEL D — redirect('/posts/1?toast=created')</text>
+          <text x="552" y="448" fill="#8fb0cc" font-size="11">re-toasts on refresh, back-nav and shared link — do not detail</text>
+        </g>
+    </svg>
+    <p class="fig">Fig. 2 — the critical junction. Everything downstream of it is determined by one <code>if</code> in the action.</p>
+  </div>
+
+  <div class="channels">
+    <div class="ch warn">
+      <span class="tag">Channel A</span>
+      <h3>useActionState + effect</h3>
+      <p>Progressive enhancement survives. The action's return value rides back through the RSC payload.</p>
+      <span class="risk">⚠ Stale re-toast + StrictMode double-fire. Needs a nonce.</span>
+    </div>
+    <div class="ch on">
+      <span class="tag">Channel B</span>
+      <h3>await in a transition</h3>
+      <p>Skip <code>useActionState</code> entirely. Toast in the same tick the promise resolves.</p>
+      <span class="risk">✓ No hazard. Cost: needs JS, must not redirect.</span>
+    </div>
+    <div class="ch warn">
+      <span class="tag">Channel C</span>
+      <h3>flash cookie</h3>
+      <p>The only channel that survives a 303, a hard reload and a new tab.</p>
+      <span class="risk">⚠ Dynamic-renders the layout. Drain must be a Server Function.</span>
+    </div>
+    <div class="ch off">
+      <span class="tag">Channel D</span>
+      <h3>?toast= search param</h3>
+      <p>The message lives in the URL. Refresh, back-nav or a shared link re-fires it.</p>
+      <span class="risk">✗ Rejected. Worst of the four.</span>
+    </div>
+  </div>
+
+  <!-- ================= PLATE 03 — CHANNEL A ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">03</span>
+    <h2>Channel A — the nonce is the whole pattern</h2>
+    <em>Detail · no redirect</em>
+  </div>
+
+  <p><code>useActionState(action, initialState)</code> returns <code>[state, formAction, isPending]</code>; the state is whatever the action returned, redelivered through the RSC payload <sup><a href="https://react.dev/reference/react/useActionState">[5]</a></sup>.</p>
+
+  <div class="code">
+    <span class="fname">app/posts/actions.ts</span>
+<pre><code><span class="dir">'use server'</span>
+<span class="k">import</span> { revalidatePath } <span class="k">from</span> <span class="s">'next/cache'</span>
+
+<span class="k">export type</span> <span class="t">ActionState</span> =
+  | { status: <span class="s">'success'</span> | <span class="s">'error'</span>; message: string; at: number }<span class="cal">1</span>
+  | <span class="k">null</span>
+
+<span class="k">export async function</span> <span class="f">savePost</span>(
+  _prev: <span class="t">ActionState</span>,
+  formData: <span class="t">FormData</span>,
+): <span class="t">Promise</span>&lt;<span class="t">ActionState</span>&gt; {
+  <span class="k">const</span> title = <span class="f">String</span>(formData.<span class="f">get</span>(<span class="s">'title'</span>) ?? <span class="s">''</span>)
+  <span class="k">if</span> (!title) <span class="k">return</span> { status: <span class="s">'error'</span>, message: <span class="s">'Title is required'</span>, at: <span class="t">Date</span>.<span class="f">now</span>() }
+
+  <span class="k">await</span> db.post.<span class="f">create</span>({ data: { title } })
+  <span class="f">revalidatePath</span>(<span class="s">'/posts'</span>)<span class="cal">2</span>
+  <span class="k">return</span> { status: <span class="s">'success'</span>, message: <span class="s">`Saved “${title}”`</span>, at: <span class="t">Date</span>.<span class="f">now</span>() }
+}</code></pre>
+  </div>
+
+  <div class="code">
+    <span class="fname">app/posts/post-form.tsx</span>
+<pre><code><span class="dir">'use client'</span>
+<span class="k">import</span> { useActionState, useEffect, useRef } <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> { toast } <span class="k">from</span> <span class="s">'sonner'</span>
+<span class="k">import</span> { savePost, <span class="k">type</span> <span class="t">ActionState</span> } <span class="k">from</span> <span class="s">'./actions'</span>
+
+<span class="k">export function</span> <span class="f">PostForm</span>() {
+  <span class="k">const</span> [state, formAction, isPending] = <span class="f">useActionState</span>&lt;<span class="t">ActionState</span>, <span class="t">FormData</span>&gt;(savePost, <span class="k">null</span>)
+  <span class="k">const</span> lastToasted = <span class="f">useRef</span>(0)<span class="cal">3</span>
+
+  <span class="f">useEffect</span>(() =&gt; {
+    <span class="k">if</span> (!state || state.at === lastToasted.current) <span class="k">return</span><span class="cal">4</span>
+    lastToasted.current = state.at
+    <span class="k">const</span> fire = state.status === <span class="s">'success'</span> ? toast.success : toast.error
+    <span class="f">fire</span>(state.message)
+  }, [state])
+
+  <span class="k">return</span> (
+    &lt;<span class="t">form</span> action={formAction}&gt;
+      &lt;<span class="t">input</span> name=<span class="s">"title"</span> /&gt;
+      &lt;<span class="t">button</span> disabled={isPending}&gt;Save&lt;/<span class="t">button</span>&gt;
+    &lt;/<span class="t">form</span>&gt;
+  )
+}</code></pre>
+  </div>
+
+  <ul class="calouts">
+    <li><b>1</b><span><strong><code>at</code> is not decoration — it is the pattern.</strong> It is the nonce. Remove it and the code breaks in two opposite directions at once (callouts 2 and 4).</span></li>
+    <li><b>2</b><span><strong>Stale re-toast.</strong> <code>revalidatePath</code> re-renders the tree; <code>state</code> deserializes into a <em>new object with the same contents</em>, the effect's dependency changes by identity, and the old message toasts again with no new submission. Robin Wieruch: <em>“If the component re-renders, it might show an old toast message even if no new action was triggered”</em> <sup><a href="https://www.robinwieruch.de/react-server-actions-useactionstate-toast/">[2]</a></sup>. Next's own docs state the mechanism: <em>“The UI is not unmounted, but effects that depend on data coming from the server will re-run”</em> <sup><a href="https://nextjs.org/docs/app/api-reference/functions/cookies">[4]</a></sup>.</span></li>
+    <li><b>3</b><span><strong>A ref, not state.</strong> Refs survive StrictMode's simulated remount, so the guard doubles as the StrictMode fix — see the strip below.</span></li>
+    <li><b>4</b><span><strong>Missing toast (the opposite failure).</strong> Submit the same invalid form twice and the action returns a <em>structurally identical</em> object. Without a nonce nothing in the deps array changed → no second toast → the user thinks the button is dead.</span></li>
+  </ul>
+
+  <div class="warnstrip">
+    <b>⚠ Why this bug ships</b>
+    <p>React deliberately runs effects setup → cleanup → setup in development <sup><a href="https://react.dev/reference/react/StrictMode">[23]</a></sup>, so a naive <code>useEffect(() =&gt; { toast(msg) })</code> double-toasts in dev — filed against Sonner as <a href="https://github.com/emilkowalski/sonner/issues/322">issue #322</a> ⭐ 13k and closed as expected behaviour <sup><a href="https://github.com/emilkowalski/sonner/issues/322">[10]</a></sup>. Production runs the effect once per mount regardless. That is exactly the trap: it <em>looks</em> like a dev-only annoyance — and the <em>stale re-toast</em> variant is not dev-only at all.</p>
+  </div>
+
+  <!-- ================= PLATE 04 — CHANNEL B ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">04</span>
+    <h2>Channel B — delete the effect</h2>
+    <em>Detail · no redirect, no progressive enhancement</em>
+  </div>
+
+  <p>If you don't need progressive enhancement, the effect is pure ceremony. <code>await</code> the action and toast in the same tick.</p>
+
+  <div class="code">
+    <span class="fname">app/posts/delete-button.tsx</span>
+<pre><code><span class="dir">'use client'</span>
+<span class="k">import</span> { useTransition } <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> { toast } <span class="k">from</span> <span class="s">'sonner'</span>
+<span class="k">import</span> { deletePost } <span class="k">from</span> <span class="s">'./actions'</span>
+
+<span class="k">export function</span> <span class="f">DeleteButton</span>({ id }: { id: string }) {
+  <span class="k">const</span> [isPending, startTransition] = <span class="f">useTransition</span>()
+
+  <span class="k">return</span> (
+    &lt;<span class="t">button</span>
+      disabled={isPending}
+      onClick={() =&gt;
+        <span class="f">startTransition</span>(<span class="k">async</span> () =&gt; {
+          <span class="k">const</span> res = <span class="k">await</span> <span class="f">deletePost</span>(id) <span class="c">// plain serializable result, never throws to the client</span>
+          res.ok ? toast.<span class="f">success</span>(<span class="s">'Post deleted'</span>) : toast.<span class="f">error</span>(res.message)<span class="cal">5</span>
+        })
+      }
+    &gt;
+      Delete
+    &lt;/<span class="t">button</span>&gt;
+  )
+}</code></pre>
+  </div>
+
+  <ul class="calouts">
+    <li><b>5</b><span>No effect, no nonce, no StrictMode double-fire, no stale replay. This is the “direct promise awaiting” answer the Next.js discussion converges on <sup><a href="https://github.com/vercel/next.js/discussions/67660">[7]</a></sup> ⭐ 141k. <strong>The cost:</strong> the button needs JS (no no-JS form fallback), and the action must not <code>redirect()</code>.</span></li>
+  </ul>
+
+  <p><a href="https://github.com/TheEdoRan/next-safe-action">next-safe-action</a> ⭐ 3.0k packages this with typed callbacks, so the toast site is declarative rather than an effect <sup><a href="https://github.com/TheEdoRan/next-safe-action">[25]</a></sup>:</p>
+
+  <div class="code">
+<pre><code><span class="k">const</span> { execute } = <span class="f">useAction</span>(createPost, {
+  onSuccess: ({ data }) =&gt; toast.<span class="f">success</span>(<span class="s">`Created: ${data.name}`</span>),
+  onError:   ({ error }) =&gt; toast.<span class="f">error</span>(error.serverError ?? <span class="s">'Invalid input'</span>),
+})</code></pre>
+  </div>
+  <p style="font-size:12px;color:var(--ink-far);margin-top:-.6rem;">Ref: <a href="https://next-safe-action.dev/docs/execute-actions/hooks/useaction">next-safe-action · useAction</a> <sup><a href="https://next-safe-action.dev/docs/execute-actions/hooks/useaction">[22]</a></sup></p>
+
+  <!-- ================= PLATE 05 — CHANNEL C ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">05</span>
+    <h2>Channel C — the flash cookie</h2>
+    <em>Detail · the redirect case</em>
+  </div>
+
+  <p><code>redirect()</code> throws a <code>NEXT_REDIRECT</code> error and terminates rendering of the segment; in a Server Action it serves a <strong>303</strong> <sup><a href="https://nextjs.org/docs/app/api-reference/functions/redirect">[3]</a></sup>. Three consequences, all fatal to Channels A and B:</p>
+
+  <ul class="calouts">
+    <li><b>1</b><span>The action <strong>never returns</strong> → <code>useActionState</code> state never updates → the effect never fires <sup><a href="https://github.com/vercel/next.js/discussions/67660">[7]</a></sup> ⭐ 141k.</span></li>
+    <li><b>2</b><span>The client component that owns the effect is <strong>unmounted by the navigation</strong> anyway.</span></li>
+    <li><b>3</b><span>Because it throws, <code>redirect()</code> must be called <strong>outside</strong> any <code>try</code> block — a <code>try/catch</code> around your mutation will swallow the redirect <sup><a href="https://nextjs.org/docs/app/api-reference/functions/redirect">[3]</a></sup>.</span></li>
+  </ul>
+
+  <p>The workaround the ecosystem settled on — and the one Next's own discussion threads recommend — is to <strong>set a cookie before redirecting and read it on the next render</strong> <sup><a href="https://github.com/vercel/next.js/discussions/57118">[9]</a></sup> ⭐ 141k <sup><a href="https://github.com/vercel/next.js/discussions/77389">[8]</a></sup>. Cookies are the only channel that survives a 303, a hard reload, and a new tab <sup><a href="https://buildui.com/posts/toast-messages-in-react-server-components">[1]</a></sup>.</p>
+
+  <div class="code">
+    <span class="fname">lib/flash.ts — server-only</span>
+<pre><code><span class="k">import</span> <span class="s">'server-only'</span>
+<span class="k">import</span> { cookies } <span class="k">from</span> <span class="s">'next/headers'</span>
+
+<span class="k">export type</span> <span class="t">Flash</span> = { status: <span class="s">'success'</span> | <span class="s">'error'</span>; message: string }
+
+<span class="k">export async function</span> <span class="f">setFlash</span>(flash: <span class="t">Flash</span>) {
+  <span class="k">const</span> store = <span class="k">await</span> <span class="f">cookies</span>()
+  <span class="c">// random name, not a fixed key: two flashes in one request must not overwrite each other</span>
+  store.<span class="f">set</span>(<span class="s">`flash-${crypto.randomUUID()}`</span>, <span class="t">JSON</span>.<span class="f">stringify</span>(flash), {<span class="cal">6</span>
+    path: <span class="s">'/'</span>,
+    maxAge: 60,
+    httpOnly: <span class="k">true</span>,
+    sameSite: <span class="s">'lax'</span>,
+  })
+}
+
+<span class="k">export async function</span> <span class="f">readFlash</span>() {
+  <span class="k">const</span> store = <span class="k">await</span> <span class="f">cookies</span>()
+  <span class="k">return</span> store
+    .<span class="f">getAll</span>()
+    .<span class="f">filter</span>((c) =&gt; c.name.<span class="f">startsWith</span>(<span class="s">'flash-'</span>) &amp;&amp; c.value)
+    .<span class="f">map</span>((c) =&gt; ({ id: c.name, ...(<span class="t">JSON</span>.<span class="f">parse</span>(c.value) <span class="k">as</span> <span class="t">Flash</span>) }))
+}</code></pre>
+  </div>
+
+  <div class="code">
+    <span class="fname">app/posts/actions.ts</span>
+<pre><code><span class="dir">'use server'</span>
+<span class="k">import</span> { redirect } <span class="k">from</span> <span class="s">'next/navigation'</span>
+<span class="k">import</span> { setFlash } <span class="k">from</span> <span class="s">'@/lib/flash'</span>
+
+<span class="k">export async function</span> <span class="f">createPost</span>(formData: <span class="t">FormData</span>) {
+  <span class="k">const</span> post = <span class="k">await</span> db.post.<span class="f">create</span>({ data: { title: <span class="f">String</span>(formData.<span class="f">get</span>(<span class="s">'title'</span>)) } })
+  <span class="k">await</span> <span class="f">setFlash</span>({ status: <span class="s">'success'</span>, message: <span class="s">'Post created'</span> })
+  <span class="f">redirect</span>(<span class="s">`/posts/${post.id}`</span>) <span class="c">// last statement — it throws</span><span class="cal">7</span>
+}</code></pre>
+  </div>
+
+  <div class="code">
+    <span class="fname">app/layout.tsx — stays a Server Component</span>
+<pre><code><span class="k">import</span> { Toaster } <span class="k">from</span> <span class="s">'sonner'</span>
+<span class="k">import</span> { readFlash } <span class="k">from</span> <span class="s">'@/lib/flash'</span>
+<span class="k">import</span> { FlashToaster } <span class="k">from</span> <span class="s">'./flash-toaster'</span>
+
+<span class="k">export default async function</span> <span class="f">RootLayout</span>({ children }: { children: <span class="t">React</span>.<span class="t">ReactNode</span> }) {
+  <span class="k">const</span> flashes = <span class="k">await</span> <span class="f">readFlash</span>()<span class="cal">8</span>
+  <span class="k">return</span> (
+    &lt;<span class="t">html</span> lang=<span class="s">"en"</span>&gt;
+      &lt;<span class="t">body</span>&gt;
+        {children}
+        &lt;<span class="t">Toaster</span> /&gt;
+        &lt;<span class="t">FlashToaster</span> flashes={flashes} /&gt;
+      &lt;/<span class="t">body</span>&gt;
+    &lt;/<span class="t">html</span>&gt;
+  )
+}</code></pre>
+  </div>
+
+  <div class="code">
+    <span class="fname">app/flash-toaster.tsx</span>
+<pre><code><span class="dir">'use client'</span>
+<span class="k">import</span> { useEffect, useRef } <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> { toast } <span class="k">from</span> <span class="s">'sonner'</span>
+<span class="k">import</span> { clearFlash } <span class="k">from</span> <span class="s">'./flash-actions'</span> <span class="c">// 'use server'</span>
+
+<span class="k">export function</span> <span class="f">FlashToaster</span>({ flashes }: { flashes: <span class="t">Array</span>&lt;{ id: string } &amp; <span class="t">Flash</span>&gt; }) {
+  <span class="k">const</span> fired = <span class="f">useRef</span>(<span class="k">new</span> <span class="t">Set</span>&lt;string&gt;())
+
+  <span class="f">useEffect</span>(() =&gt; {
+    <span class="k">for</span> (<span class="k">const</span> f <span class="k">of</span> flashes) {
+      <span class="k">if</span> (fired.current.<span class="f">has</span>(f.id)) <span class="k">continue</span>
+      fired.current.<span class="f">add</span>(f.id)
+      ;(f.status === <span class="s">'success'</span> ? toast.success : toast.error)(f.message)
+      <span class="k">void</span> <span class="f">clearFlash</span>(f.id) <span class="c">// must be a Server Function; see below</span><span class="cal">9</span>
+    }
+  }, [flashes])
+
+  <span class="k">return null</span>
+}</code></pre>
+  </div>
+
+  <ul class="calouts">
+    <li><b>6</b><span>The <strong>random suffix</strong> (rather than a single <code>flash</code> key) is Build UI's trick — it lets multiple messages queue in one request without clobbering each other <sup><a href="https://buildui.com/posts/toast-messages-in-react-server-components">[1]</a></sup>.</span></li>
+    <li><b>7</b><span><code>redirect()</code> is the <strong>last statement</strong>, outside any <code>try</code>. Everything after it is unreachable — it throws.</span></li>
+    <li><b>8</b><span>⚠ <strong>The buried bill.</strong> Reading <code>cookies()</code> here opts <strong>every route</strong> into dynamic rendering — <code>cookies</code> is a request-time API: <em>“Using it in a layout or page will opt a route into dynamic rendering”</em> <sup><a href="https://nextjs.org/docs/app/api-reference/functions/cookies">[4]</a></sup>. A static-first app that reads flash cookies in <code>app/layout.tsx</code> is no longer static-first.</span></li>
+    <li><b>9</b><span>You <strong>cannot</strong> <code>cookies().delete()</code> while rendering a Server Component: <em>“HTTP does not allow setting cookies after streaming starts, so you must use <code>.set</code> in a Server Function or Route Handler”</em> — <code>.delete</code> likewise <sup><a href="https://nextjs.org/docs/app/api-reference/functions/cookies">[4]</a></sup>. So the <em>drain</em> must be a client-triggered Server Function, not part of the read. Build UI hides the latency with <code>useOptimistic</code> <sup><a href="https://buildui.com/posts/toast-messages-in-react-server-components">[1]</a></sup>.</span></li>
+  </ul>
+
+  <div class="warnstrip">
+    <b>Mitigation for callout 8</b>
+    <p>Push the cookie read into its own <code>&lt;Suspense&gt;</code>-wrapped server component so only that subtree is dynamic — or drop <code>httpOnly</code> and read the flash cookie client-side.</p>
+  </div>
+
+  <!-- ================= PLATE 06 — SELECTION SCHEDULE ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">06</span>
+    <h2>Selection schedule</h2>
+    <em>Pick by column, not by taste</em>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Progressive enhancement</th>
+        <th>Survives <code>redirect()</code></th>
+        <th>Survives reload / new tab</th>
+        <th>Effect needed</th>
+        <th>Main hazard</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A</strong> · <code>useActionState</code> + effect + nonce</td>
+        <td><span class="yes">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="cav">✓</span></td>
+        <td>Stale re-toast without a nonce <sup><a href="https://www.robinwieruch.de/react-server-actions-useactionstate-toast/">[2]</a></sup></td>
+      </tr>
+      <tr>
+        <td><strong>B</strong> · <code>await</code> in <code>startTransition</code></td>
+        <td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="yes">✗</span></td>
+        <td>None; needs JS <sup><a href="https://github.com/vercel/next.js/discussions/67660">[7]</a></sup></td>
+      </tr>
+      <tr>
+        <td><strong>C</strong> · flash cookie</td>
+        <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="cav">✓ (to drain)</span></td>
+        <td>Dynamic-renders the layout <sup><a href="https://nextjs.org/docs/app/api-reference/functions/cookies">[4]</a></sup></td>
+      </tr>
+      <tr>
+        <td><strong>D</strong> · <code>?toast=</code> param</td>
+        <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="cav">✓ ⚠ <em>too</em> well</span></td><td><span class="cav">✓</span></td>
+        <td><span class="no">Re-toasts on refresh / share</span> <sup><a href="https://github.com/remix-run/react-router/discussions/11872">[20]</a></sup></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="verdict">
+    <p><strong>Real apps end up with B for in-place mutations + C for anything that redirects.</strong> A is the default the docs nudge you toward — and the one that generates the bug reports. D is listed as a canonical option in the Next.js discussion <sup><a href="https://github.com/vercel/next.js/discussions/77389">[8]</a></sup>; the React Router thread flags exactly why not: <em>“URL parameters: refreshes can re-trigger toasts (unreliable)”</em> <sup><a href="https://github.com/remix-run/react-router/discussions/11872">[20]</a></sup>.</p>
+  </div>
+
+  <div class="warnstrip">
+    <b>Hydration — a note on what is and isn't the risk</b>
+    <p>The toasters render an <em>empty</em> container during SSR (their queue lives in a client store that is empty on the server), so the toaster itself is not a hydration-mismatch source. The mismatches come from <em>what you put in the toast</em>: server-formatted dates, locale, <code>Date.now()</code> in the message body <sup><a href="https://nextjs.org/docs/messages/react-hydration-error">[24]</a></sup>. Keep flash payloads as opaque strings serialized on the server; format nothing client-side.</p>
+  </div>
+
+  <!-- ================= PLATE 07 — CONTRAST ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">07</span>
+    <h2>The part that already exists: React Router 7 <code>session.flash()</code></h2>
+    <em>Comparative detail</em>
+  </div>
+
+  <p>Same tension — the mutation runs on the server, the toast is client state — but the framework has a first-class channel, inherited from Rails: a value written with <code>session.flash(key, value)</code> is <strong>deleted the first time it is read</strong> <sup><a href="https://reactrouter.com/explanation/sessions-and-cookies">[19]</a></sup>.</p>
+
+  <div class="code">
+    <span class="fname">app/routes/posts.new.tsx</span>
+<pre><code><span class="k">export async function</span> <span class="f">action</span>({ request }: <span class="t">Route</span>.<span class="t">ActionArgs</span>) {
+  <span class="k">const</span> session = <span class="k">await</span> <span class="f">getSession</span>(request.headers.<span class="f">get</span>(<span class="s">'Cookie'</span>))
+  <span class="k">const</span> post = <span class="k">await</span> <span class="f">createPost</span>(<span class="k">await</span> request.<span class="f">formData</span>())
+
+  session.<span class="f">flash</span>(<span class="s">'toast'</span>, { status: <span class="s">'success'</span>, message: <span class="s">'Post created'</span> })
+
+  <span class="k">return</span> <span class="f">redirect</span>(<span class="s">`/posts/${post.id}`</span>, {
+    headers: { <span class="s">'Set-Cookie'</span>: <span class="k">await</span> <span class="f">commitSession</span>(session) },<span class="cal">10</span>
+  })
+}</code></pre>
+  </div>
+
+  <div class="code">
+    <span class="fname">app/root.tsx</span>
+<pre><code><span class="k">export async function</span> <span class="f">loader</span>({ request }: <span class="t">Route</span>.<span class="t">LoaderArgs</span>) {
+  <span class="k">const</span> session = <span class="k">await</span> <span class="f">getSession</span>(request.headers.<span class="f">get</span>(<span class="s">'Cookie'</span>))
+  <span class="k">const</span> toast = session.<span class="f">get</span>(<span class="s">'toast'</span>)            <span class="c">// reading consumes it</span><span class="cal">11</span>
+  <span class="k">return</span> <span class="f">data</span>({ toast }, { headers: { <span class="s">'Set-Cookie'</span>: <span class="k">await</span> <span class="f">commitSession</span>(session) } })
+}</code></pre>
+  </div>
+
+  <p>Structurally identical to Channel C — a cookie carrying the message across a redirect — with three differences that matter:</p>
+
+  <ul class="calouts">
+    <li><b>10</b><span><strong>Explicit headers.</strong> You must re-<code>commitSession</code> in the loader or the deletion never reaches the browser. ⚠ And the docs warn about nested routes: <em>“When using <code>session.flash()</code> or <code>session.unset()</code>, you need to be sure no other loaders in the request are going to want to read that, otherwise you'll get race conditions… if another loader wants a flash message, use a different key”</em> <sup><a href="https://reactrouter.com/explanation/sessions-and-cookies">[19]</a></sup>.</span></li>
+    <li><b>11</b><span><strong>Self-destructing.</strong> The flash is consumed on read, so the “who deletes the cookie” problem that forces Next into a client-triggered Server Function <sup><a href="https://nextjs.org/docs/app/api-reference/functions/cookies">[4]</a></sup> simply does not arise. Reload cannot re-toast <sup><a href="https://github.com/remix-run/react-router/discussions/11872">[20]</a></sup> ⭐ 57k.</span></li>
+    <li><b>12</b><span><strong>Still a <code>useEffect</code> on the client.</strong> The root component watches <code>loaderData.toast</code> and calls <code>toast()</code> — same StrictMode double-fire, same need for a dedupe key. <a href="https://github.com/code-forge-io/remix-toast">remix-toast</a> ⭐ 262 packages the whole loop (<code>redirectWithSuccess</code>, <code>getToast</code> returning <code>{ toast, headers }</code>) for React Router v7 <sup><a href="https://github.com/code-forge-io/remix-toast">[21]</a></sup>.</span></li>
+  </ul>
+
+  <div class="verdict">
+    <p><strong>Net:</strong> React Router's loader/action model gives you a <em>place</em> for server-origin UI messages. Next's RSC model gives you a return value that a redirect throws away. The Next equivalents are all reconstructions of <code>flash</code>.</p>
+  </div>
+
+  <!-- ================= SOURCE INDEX ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">08</span>
+    <h2>Source index</h2>
+    <em>25 references</em>
+  </div>
+
+  <div class="srcs">
+    <a class="src" href="https://buildui.com/posts/toast-messages-in-react-server-components"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=buildui.com&sz=128" alt=""><u>Build UI — Toast messages in RSC<small>The reference implementation: uuid-named cookies</small></u></a>
+    <a class="src" href="https://www.robinwieruch.de/react-server-actions-useactionstate-toast/"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=robinwieruch.de&sz=128" alt=""><u>Robin Wieruch — useActionState + toast<small>The stale re-toast, and the nonce fix</small></u></a>
+    <a class="src" href="https://nextjs.org/docs/app/api-reference/functions/redirect"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt=""><u>Next.js docs — redirect()<small>NEXT_REDIRECT · 303 · call outside try/catch</small></u></a>
+    <a class="src" href="https://nextjs.org/docs/app/api-reference/functions/cookies"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt=""><u>Next.js docs — cookies()<small>.set/.delete only in a Server Function · dynamic rendering</small></u></a>
+    <a class="src" href="https://react.dev/reference/react/useActionState"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><u>React docs — useActionState<small>[state, dispatchAction, isPending]</small></u></a>
+    <a class="src" href="https://react.dev/reference/rsc/use-client"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><u>React docs — 'use client'<small>The module boundary itself</small></u></a>
+    <a class="src" href="https://github.com/vercel/next.js/discussions/67660"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>next.js #67660 ⭐ 141k<small>Duplicate/stale toasts · await the promise directly</small></u></a>
+    <a class="src" href="https://github.com/vercel/next.js/discussions/77389"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>next.js #77389 ⭐ 141k<small>The three canonical redirect-toast options · no maintainer answer</small></u></a>
+    <a class="src" href="https://github.com/vercel/next.js/discussions/57118"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>next.js #57118 ⭐ 141k<small>Return-JSON and redirect() are mutually exclusive</small></u></a>
+    <a class="src" href="https://github.com/emilkowalski/sonner/issues/322"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>sonner #322 ⭐ 13k<small>StrictMode double-toast · closed as expected</small></u></a>
+    <a class="src" href="https://sonner.emilkowal.ski/getting-started"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=sonner.emilkowal.ski&sz=128" alt=""><u>Sonner — getting started<small>&lt;Toaster/&gt; may live in a server layout.tsx</small></u></a>
+    <a class="src" href="https://unpkg.com/sonner@2.0.7/dist/index.mjs"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=unpkg.com&sz=128" alt=""><u>sonner@2.0.7 dist<small>'use client' — line 1</small></u></a>
+    <a class="src" href="https://unpkg.com/react-hot-toast@2.6.0/dist/index.mjs"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=unpkg.com&sz=128" alt=""><u>react-hot-toast@2.6.0 dist<small>'use client' — line 1</small></u></a>
+    <a class="src" href="https://unpkg.com/react-toastify@11.1.0/dist/index.mjs"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=unpkg.com&sz=128" alt=""><u>react-toastify@11.1.0 dist<small>'use client' — line 1</small></u></a>
+    <a class="src" href="https://github.com/shadcn-ui/ui/issues/8173"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>shadcn/ui #8173 ⭐ 119k<small>Directive-less re-export erases the boundary</small></u></a>
+    <a class="src" href="https://bundlephobia.com/package/sonner@2.0.7"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=bundlephobia.com&sz=128" alt=""><u>Bundlephobia — sonner 2.0.7<small>34.2 kB min · 9.4 kB gzip · 0 deps</small></u></a>
+    <a class="src" href="https://bundlephobia.com/package/react-hot-toast@2.6.0"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=bundlephobia.com&sz=128" alt=""><u>Bundlephobia — react-hot-toast 2.6.0<small>12.2 kB min · 4.8 kB gzip</small></u></a>
+    <a class="src" href="https://bundlephobia.com/package/react-toastify@11.1.0"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=bundlephobia.com&sz=128" alt=""><u>Bundlephobia — react-toastify 11.1.0<small>34.4 kB min · 9.7 kB gzip</small></u></a>
+    <a class="src" href="https://reactrouter.com/explanation/sessions-and-cookies"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=reactrouter.com&sz=128" alt=""><u>React Router — sessions &amp; cookies<small>session.flash() · deleted on first read · nested-loader races</small></u></a>
+    <a class="src" href="https://github.com/remix-run/react-router/discussions/11872"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>react-router #11872 ⭐ 57k<small>Flash beats URL params — refreshes re-trigger those</small></u></a>
+    <a class="src" href="https://github.com/code-forge-io/remix-toast"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>remix-toast ⭐ 262<small>redirectWithSuccess · getToast → { toast, headers }</small></u></a>
+    <a class="src" href="https://next-safe-action.dev/docs/execute-actions/hooks/useaction"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=next-safe-action.dev&sz=128" alt=""><u>next-safe-action — useAction<small>onSuccess / onError / onSettled callbacks</small></u></a>
+    <a class="src" href="https://react.dev/reference/react/StrictMode"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><u>React docs — StrictMode<small>setup → cleanup → setup, in development only</small></u></a>
+    <a class="src" href="https://nextjs.org/docs/messages/react-hydration-error"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt=""><u>Next.js — hydration error<small>The risk is the payload, not the empty toaster</small></u></a>
+    <a class="src" href="https://github.com/TheEdoRan/next-safe-action"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><u>next-safe-action ⭐ 3.0k<small>Type-safe Server Actions with hooks and callbacks</small></u></a>
+  </div>
+
+  <!-- ================= RELATED SHEETS ================= -->
+  <div class="plate-hd">
+    <span class="plate-no">09</span>
+    <h2>Related sheets</h2>
+    <em>Same drawing set</em>
+  </div>
+
+  <div class="sheets">
+    <a class="sh" href="../../">
+      <small>Parent · Expedition</small>
+      <b>React toast notifications in 2026: the landscape, the a11y bill, and the server boundary</b>
+      <span>The full drawing set.</span>
+    </a>
+    <a class="sh" href="../../library-landscape-head-to-head/">
+      <small>Survey</small>
+      <b>React toast libraries in 2026: Sonner, react-toastify, react-hot-toast, notistack and the design-system natives</b>
+      <span>Sonner is the 2026 default (41M weekly installs, shadcn's toast); react-toastify is the actively-released power option; react-hot-toast is the 4.7 kB minimalist; notistack is legacy.</span>
+    </a>
+    <a class="sh" href="../../accessibility-of-toasts/">
+      <small>Survey</small>
+      <b>Accessible toasts in React (2026): what's actually required, and which libraries deliver</b>
+      <span>No React toast library is accessible out of the box: the correct pattern is a pre-mounted live region plus a landmark hotkey.</span>
+    </a>
+    <a class="sh" href="../../headless-primitives-vs-batteries-included/">
+      <small>Recon</small>
+      <b>Headless toast primitives vs batteries-included: when rolling your own pays</b>
+      <span>Base UI Toast is the only primitive both stable and feature-complete in 2026.</span>
+    </a>
+    <a class="sh" href="../../migrating-off-toastr-react-toastify/">
+      <small>Recon</small>
+      <b>Migrating off legacy toasts: toastr and react-toastify → Sonner</b>
+      <span>toastr is dead (last commit 2018, needs jQuery) — migrate. react-toastify is alive — don't churn a working integration.</span>
+    </a>
+  </div>
+
+  <div class="colophon">
+    <span>Sheet 03 of the toast drawing set</span>
+    <span>Verified against Next.js 16.2.10 · docs rev. 2026-03-03</span>
+    <span>Reading time 13 min</span>
+    <span><a href="../">Canonical page</a></span>
+    <span><a href="/">Atlas</a></span>
+  </div>
+
+</div>
+</div>
