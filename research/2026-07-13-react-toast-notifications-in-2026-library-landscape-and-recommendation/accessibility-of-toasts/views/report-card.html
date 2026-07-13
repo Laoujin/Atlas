@@ -1,0 +1,928 @@
+---
+layout: view
+view_name: "Report Card"
+view_of: ../
+title: "Accessible toasts in React (2026): what's actually required, and which libraries deliver — Report Card"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Archivo+Black&display=swap');
+
+.rc {
+  --paper: #f6f3ec;
+  --paper-2: #fffdf8;
+  --ink: #16150f;
+  --ink-2: #56524a;
+  --ink-3: #8b867c;
+  --rule: #cdc7ba;
+  --rule-2: #e3ddd1;
+  --red: #b0212a;
+  --red-soft: #fbe9e9;
+  --green: #1e6f43;
+  --green-soft: #e6f1ea;
+  --amber: #9a6a05;
+  --amber-soft: #f8eed7;
+
+  margin: 0;
+  padding: 0 0 5rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.rc *, .rc *::before, .rc *::after { box-sizing: border-box; }
+.rc .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.75rem; }
+.rc a { color: inherit; }
+.rc sup a {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62em;
+  color: var(--red);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0 .05em;
+}
+.rc sup a:hover { text-decoration: underline; }
+.rc code, .rc kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.87em;
+  background: #ece7dc;
+  border: 1px solid var(--rule-2);
+  padding: .05em .3em;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.rc kbd { background: var(--ink); color: var(--paper-2); border-color: var(--ink); font-weight: 600; }
+
+/* ---------- letterhead ---------- */
+.rc .head {
+  border-bottom: 3px double var(--ink);
+  background: var(--paper-2);
+  position: relative;
+  overflow: hidden;
+}
+.rc .head-inner {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: 2.25rem 0 1.25rem;
+}
+.rc .seal { width: 76px; height: 76px; flex: 0 0 76px; opacity: .9; filter: saturate(.25) contrast(1.05); }
+.rc .head h1 {
+  font-family: 'Archivo Black', 'IBM Plex Sans', sans-serif;
+  font-size: clamp(1.9rem, 4.2vw, 3.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: .35rem 0 .5rem;
+  text-transform: uppercase;
+}
+.rc .head h1 em { font-style: normal; color: var(--red); }
+.rc .docline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.rc .head .deck { font-size: 1.06rem; color: var(--ink-2); max-width: 62ch; margin: 0; }
+.rc .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2.5rem;
+  border-top: 1px solid var(--rule);
+  padding: .7rem 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--ink-2);
+}
+.rc .meta b { color: var(--ink); font-weight: 600; }
+.rc .meta span { display: block; }
+.rc .meta i { font-style: normal; color: var(--ink-3); display: block; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; }
+
+.rc .stamp {
+  position: absolute;
+  right: 1.5rem;
+  top: 2.4rem;
+  transform: rotate(-9deg);
+  border: 3px solid var(--red);
+  color: var(--red);
+  padding: .5rem 1rem .55rem;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  border-radius: 4px;
+  opacity: .88;
+  line-height: 1.15;
+  background: rgba(255,255,255,.35);
+}
+.rc .stamp b { display: block; font-size: 1.55rem; letter-spacing: .04em; font-weight: 700; }
+.rc .stamp span { display: block; font-size: .58rem; letter-spacing: .22em; text-transform: uppercase; }
+@media (max-width: 900px) { .rc .stamp { position: static; transform: none; margin: 1rem 0 0; display: inline-block; } }
+
+/* ---------- section chrome ---------- */
+.rc .sec { padding-top: 3.25rem; }
+.rc .sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: .9rem;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: .4rem;
+  margin-bottom: 1.5rem;
+}
+.rc .sec-head h2 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .82rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin: 0;
+  font-weight: 700;
+}
+.rc .sec-head .n {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: .82rem;
+  color: var(--red);
+}
+.rc .sec-head .note {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+
+/* ---------- requirements ---------- */
+.rc .reqs { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 0; border: 1px solid var(--rule); background: var(--paper-2); }
+.rc .req { padding: 1.1rem 1.15rem 1.25rem; border-right: 1px solid var(--rule-2); }
+.rc .req:last-child { border-right: 0; }
+.rc .req .id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .64rem;
+  letter-spacing: .16em;
+  color: var(--red);
+  font-weight: 700;
+  display: block;
+  margin-bottom: .5rem;
+}
+.rc .req h3 { font-size: .98rem; margin: 0 0 .45rem; line-height: 1.3; }
+.rc .req p { margin: 0; font-size: .82rem; color: var(--ink-2); line-height: 1.5; }
+@media (max-width: 780px) { .rc .req { border-right: 0; border-bottom: 1px solid var(--rule-2); } }
+
+/* ---------- matrix ---------- */
+.rc .scroller { overflow-x: auto; border: 1px solid var(--ink); background: var(--paper-2); }
+.rc table.matrix { border-collapse: collapse; width: 100%; min-width: 980px; font-size: .8rem; }
+.rc .matrix th, .rc .matrix td { border: 1px solid var(--rule-2); vertical-align: top; }
+.rc .matrix thead th {
+  border-bottom: 2px solid var(--ink);
+  padding: .75rem .55rem;
+  text-align: center;
+  background: #efeadf;
+  width: 11.5%;
+}
+.rc .matrix thead th.corner { text-align: left; width: 20%; background: var(--paper-2); }
+.rc .matrix thead th .lib { font-size: .84rem; font-weight: 700; display: block; line-height: 1.2; }
+.rc .matrix thead th .lib a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+.rc .matrix thead th .lib a:hover { border-color: var(--red); color: var(--red); }
+.rc .matrix thead th .stars {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem;
+  color: var(--ink-3);
+  display: block;
+  margin-top: .2rem;
+  letter-spacing: .02em;
+}
+.rc .matrix tbody th {
+  text-align: left;
+  padding: .7rem .8rem;
+  background: var(--paper-2);
+  font-weight: 600;
+  font-size: .8rem;
+  line-height: 1.35;
+}
+.rc .matrix tbody th .id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .6rem;
+  letter-spacing: .14em;
+  color: var(--red);
+  display: block;
+  margin-bottom: .18rem;
+}
+.rc .matrix tbody th small { display: block; font-weight: 400; color: var(--ink-3); font-size: .68rem; margin-top: .25rem; line-height: 1.35; }
+.rc .matrix td { padding: .6rem .5rem .65rem; text-align: center; }
+.rc .matrix td .g {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  display: block;
+  margin-bottom: .3rem;
+}
+.rc .matrix td .why { font-size: .66rem; line-height: 1.35; color: var(--ink-2); display: block; }
+.rc .matrix td .why code { font-size: .93em; padding: 0 .18em; background: rgba(0,0,0,.045); border: 0; white-space: normal; }
+.rc td.pass { background: var(--green-soft); }
+.rc td.pass .g { color: var(--green); }
+.rc td.part { background: var(--amber-soft); }
+.rc td.part .g { color: var(--amber); }
+.rc td.fail { background: var(--red-soft); }
+.rc td.fail .g { color: var(--red); }
+.rc .matrix tfoot td, .rc .matrix tfoot th {
+  border-top: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper-2);
+  padding: .55rem .5rem .7rem;
+  text-align: center;
+}
+.rc .matrix tfoot th {
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding-left: .8rem;
+  color: var(--paper-2);
+  background: var(--ink);
+}
+.rc .matrix tfoot .grade {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 2.3rem;
+  line-height: 1;
+  display: block;
+}
+.rc .matrix tfoot .score { font-family: 'IBM Plex Mono', monospace; font-size: .6rem; letter-spacing: .1em; opacity: .65; display: block; margin-top: .25rem; }
+.rc .gA { color: #6ee7a5; }
+.rc .gB { color: #cfe37a; }
+.rc .gC { color: #f0c05a; }
+.rc .gD { color: #f09355; }
+.rc .gF { color: #ff6b6b; }
+
+.rc .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  margin-top: .8rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem;
+  color: var(--ink-2);
+  letter-spacing: .04em;
+}
+.rc .legend b { font-size: .95rem; }
+.rc .legend .p { color: var(--green); }
+.rc .legend .a { color: var(--amber); }
+.rc .legend .f { color: var(--red); }
+
+.rc .footnote {
+  border-left: 3px solid var(--red);
+  padding: .55rem 0 .55rem .9rem;
+  margin-top: 1.4rem;
+  font-size: .84rem;
+  color: var(--ink-2);
+  max-width: 82ch;
+}
+.rc .footnote b { color: var(--ink); }
+
+/* ---------- verdict banner ---------- */
+.rc .verdict {
+  margin-top: 3.25rem;
+  background: var(--ink);
+  color: var(--paper-2);
+  padding: 2.1rem 0 2.3rem;
+}
+.rc .verdict .k {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .64rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: #9d968a;
+  margin-bottom: .8rem;
+}
+.rc .verdict p {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: clamp(1.35rem, 3vw, 2.15rem);
+  line-height: 1.16;
+  margin: 0;
+  letter-spacing: -0.01em;
+  max-width: 26ch;
+}
+.rc .verdict p .hi { color: #ff6b6b; }
+.rc .verdict p .ok { color: #6ee7a5; }
+.rc .verdict .sub { font-family: 'IBM Plex Sans', sans-serif; font-size: .92rem; font-weight: 400; color: #b8b1a4; max-width: 60ch; margin-top: 1rem; line-height: 1.5; letter-spacing: 0; }
+
+/* ---------- grade cards ---------- */
+.rc .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.rc .card { background: var(--paper-2); padding: 1.25rem 1.3rem 1.4rem; display: flex; flex-direction: column; }
+.rc .card-top { display: flex; align-items: flex-start; gap: .9rem; }
+.rc .card .letter {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 3.1rem;
+  line-height: .85;
+  flex: 0 0 auto;
+  letter-spacing: -0.03em;
+}
+.rc .card.a .letter { color: var(--green); }
+.rc .card.b .letter { color: #6f8a1e; }
+.rc .card.c .letter { color: var(--amber); }
+.rc .card.d .letter { color: #c2591b; }
+.rc .card.f .letter { color: var(--red); }
+.rc .card h3 { margin: 0; font-size: 1.12rem; line-height: 1.15; }
+.rc .card h3 a { text-decoration: none; border-bottom: 2px solid var(--rule); }
+.rc .card h3 a:hover { border-color: var(--red); color: var(--red); }
+.rc .card .sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .65rem;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+  margin-top: .3rem;
+}
+.rc .card .verdict-line { margin: .95rem 0 0; font-size: .88rem; line-height: 1.5; color: var(--ink-2); }
+.rc .card .verdict-line b { color: var(--ink); }
+.rc .exhibit {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.rc .exhibit .lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: .35rem;
+}
+.rc .exhibit blockquote {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+  line-height: 1.5;
+  background: #f0ece2;
+  border-left: 3px solid var(--ink-3);
+  padding: .6rem .7rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.rc .card.f .exhibit blockquote { border-left-color: var(--red); background: var(--red-soft); }
+.rc .card.a .exhibit blockquote { border-left-color: var(--green); background: var(--green-soft); }
+
+/* ---------- callouts ---------- */
+.rc .calls { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 820px) { .rc .calls { grid-template-columns: 1fr; } }
+.rc .call {
+  border: 1px solid var(--ink);
+  background: var(--paper-2);
+  padding: 1.4rem 1.5rem 1.5rem;
+  position: relative;
+}
+.rc .call .glyph {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--red);
+  display: block;
+  margin-bottom: .6rem;
+}
+.rc .call h3 { margin: 0 0 .55rem; font-size: 1.15rem; line-height: 1.25; }
+.rc .call p { margin: 0 0 .7rem; font-size: .9rem; color: var(--ink-2); line-height: 1.6; }
+.rc .call p:last-child { margin-bottom: 0; }
+.rc .call .say {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .74rem;
+  color: var(--ink);
+  background: #f0ece2;
+  padding: .5rem .65rem;
+  border-left: 3px solid var(--ink-3);
+  display: block;
+  line-height: 1.5;
+}
+
+/* ---------- remediation ---------- */
+.rc .fix { counter-reset: fx; border-top: 1px solid var(--rule); }
+.rc .fix li {
+  list-style: none;
+  counter-increment: fx;
+  display: flex;
+  gap: 1.1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--rule-2);
+  align-items: baseline;
+}
+.rc .fix { padding-left: 0; margin: 0; }
+.rc .fix li::before {
+  content: counter(fx, decimal-leading-zero);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.05rem;
+  color: var(--red);
+  flex: 0 0 2.1rem;
+}
+.rc .fix li p { margin: 0; font-size: .95rem; line-height: 1.55; }
+.rc .fix li p b { font-weight: 600; }
+
+/* ---------- evidence log ---------- */
+.rc .log { border: 1px solid var(--rule); background: var(--paper-2); }
+.rc .log-row {
+  display: grid;
+  grid-template-columns: 2.4rem 1.5rem minmax(0, 1fr) 5.5rem;
+  gap: .75rem;
+  align-items: center;
+  padding: .5rem .9rem;
+  border-bottom: 1px solid var(--rule-2);
+  font-size: .8rem;
+}
+.rc .log-row:last-child { border-bottom: 0; }
+.rc .log-row:nth-child(odd) { background: #faf7f0; }
+.rc .log-row .n { font-family: 'IBM Plex Mono', monospace; font-size: .68rem; color: var(--red); font-weight: 600; }
+.rc .log-row img { width: 16px; height: 16px; border-radius: 2px; display: block; }
+.rc .log-row a { text-decoration: none; border-bottom: 1px solid var(--rule-2); }
+.rc .log-row a:hover { color: var(--red); border-color: var(--red); }
+.rc .log-row .t { min-width: 0; }
+.rc .log-row .t .cl { display: block; color: var(--ink-3); font-size: .7rem; line-height: 1.35; margin-top: .1rem; }
+.rc .log-row .ty {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--ink-3);
+}
+.rc .log-row .ty.official { color: var(--green); }
+.rc .log-row .ty.forum { color: var(--red); }
+@media (max-width: 700px) {
+  .rc .log-row { grid-template-columns: 2rem 1.2rem minmax(0, 1fr); }
+  .rc .log-row .ty { display: none; }
+}
+
+/* ---------- sibling rail ---------- */
+.rc .sibs { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+.rc .sib {
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  padding: 1rem 1.1rem 1.15rem;
+  text-decoration: none;
+  display: block;
+  transition: border-color .12s ease;
+}
+.rc .sib:hover { border-color: var(--red); }
+.rc .sib .d {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.rc .sib h4 { margin: .35rem 0 .4rem; font-size: .92rem; line-height: 1.3; }
+.rc .sib p { margin: 0; font-size: .76rem; color: var(--ink-2); line-height: 1.45; }
+.rc .colophon {
+  margin-top: 2.5rem;
+  border-top: 3px double var(--ink);
+  padding-top: 1rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem;
+  letter-spacing: .08em;
+  color: var(--ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.5rem;
+}
+.rc .colophon a { color: var(--red); text-decoration: none; border-bottom: 1px solid var(--rule); }
+</style>
+
+<div class="rc">
+
+<header class="head">
+  <div class="wrap">
+    <div class="head-inner">
+      <img class="seal" src="../cover.svg" alt="">
+      <div>
+        <div class="docline">Conformance audit · WCAG 2.2 AA · ARIA APG</div>
+        <h1>Toast <em>Report Card</em></h1>
+        <p class="deck">Five requirements. Seven React toast libraries. The two that pass are the two nobody installs.</p>
+      </div>
+    </div>
+    <div class="stamp">
+      <b>2 / 7</b>
+      <span>pass all five</span>
+    </div>
+    <div class="meta">
+      <span><i>Scope</i><b>Announcement · keyboard · timing</b></span>
+      <span><i>Method</i><b>Source read + issue tracker</b></span>
+      <span><i>Exhibits</i><b>32 cited</b></span>
+      <span><i>Issued</i><b>2026-07-13</b></span>
+      <span><i>Status</i><b>No library ships compliant by default</b></span>
+    </div>
+  </div>
+</header>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§1</span>
+      <h2>The exam</h2>
+      <span class="note">what a correct toast must do</span>
+    </div>
+    <div class="reqs">
+      <div class="req">
+        <span class="id">REQ-01</span>
+        <h3>A live region that already exists</h3>
+        <p>The region must be in the DOM <em>before</em> the message arrives. Dynamically adding an already-populated <code>role="alert"</code> node "generally does not lead to an announcement" <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role">[7]</a></sup>.</p>
+      </div>
+      <div class="req">
+        <span class="id">REQ-02</span>
+        <h3>Polite by default, assertive by exception</h3>
+        <p><code>role="status"</code> for everything that isn't urgent. Assertive interrupts mid-sentence and assistive tech <em>may discard queued messages</em> <sup><a href="https://www.sarasoueidan.com/blog/accessible-notifications-with-aria-live-regions-part-2/">[9]</a></sup><sup><a href="https://www.w3.org/WAI/ARIA/apg/patterns/alert/">[5]</a></sup>.</p>
+      </div>
+      <div class="req">
+        <span class="id">REQ-03</span>
+        <h3>A keyboard route to the toast</h3>
+        <p>A toast portalled to the end of <code>&lt;body&gt;</code> is after everything in tab order and may vanish first. The answer is a landmark plus a hotkey — <kbd>F6</kbd>, <kbd>F8</kbd>, <kbd>Alt+T</kbd> <sup><a href="https://react-aria.adobe.com/Toast">[29]</a></sup>.</p>
+      </div>
+      <div class="req">
+        <span class="id">REQ-04</span>
+        <h3>A timer that pauses on focus</h3>
+        <p>Pause-on-hover is a mouse feature. The accessible version pauses on hover <em>and</em> focus <em>and</em> window blur <sup><a href="https://www.radix-ui.com/primitives/docs/components/toast">[16]</a></sup>.</p>
+      </div>
+      <div class="req">
+        <span class="id">REQ-05</span>
+        <h3>No auto-dismiss you can't survive</h3>
+        <p>An auto-dismissing toast is a content-set time limit. SC 2.2.1 (Level A) wants it off, ×10-adjustable or extendable — <em>unless</em> the information exists elsewhere <sup><a href="https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable.html">[1]</a></sup>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§2</span>
+      <h2>The matrix</h2>
+      <span class="note">graded against shipped defaults, not what you can configure</span>
+    </div>
+
+    <div class="scroller">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="corner">
+              <span class="lib">Requirement</span>
+              <span class="stars">7 libraries · main branch, Jul 2026</span>
+            </th>
+            <th><span class="lib"><a href="https://base-ui.com/react/components/toast">Base UI</a></span><span class="stars">⭐ 10.3k</span></th>
+            <th><span class="lib"><a href="https://react-aria.adobe.com/Toast">React Aria</a></span><span class="stars">⭐ 15.7k · alpha</span></th>
+            <th><span class="lib"><a href="https://www.radix-ui.com/primitives/docs/components/toast">Radix</a></span><span class="stars">⭐ 19.1k</span></th>
+            <th><span class="lib"><a href="https://sonner.emilkowal.ski/">Sonner</a></span><span class="stars">⭐ 12.6k</span></th>
+            <th><span class="lib"><a href="https://fkhadra.github.io/react-toastify/">react-toastify</a></span><span class="stars">⭐ 13.4k</span></th>
+            <th><span class="lib"><a href="https://react-hot-toast.com/">react-hot-toast</a></span><span class="stars">⭐ 11k</span></th>
+            <th><span class="lib"><a href="https://notistack.com/">notistack</a></span><span class="stars">⭐ 4.1k</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>
+              <span class="id">REQ-01</span>
+              Pre-mounted live region
+              <small>Region in the DOM before the message <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role">[7]</a></sup></small>
+            </th>
+            <td class="pass"><span class="g">✓</span><span class="why">Viewport <code>aria-live="polite"</code> + separate <code>role="alert"</code> region <sup><a href="https://github.com/mui/base-ui/blob/master/packages/react/src/toast/viewport/ToastViewport.tsx">[31]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why"><code>alert</code> region alongside a non-modal <code>alertdialog</code> <sup><a href="https://sandroroth.com/blog/react-toast-component/">[13]</a></sup></span></td>
+            <td class="part"><span class="g">~</span><span class="why">Portal'd announce node, text on the next frame for NVDA <sup><a href="https://github.com/radix-ui/primitives/blob/main/packages/react/toast/src/toast.tsx">[15]</a></sup> — but <b>#3634</b> reports <code>aria-live="off"</code> <sup><a href="https://github.com/radix-ui/primitives/issues/3634">[14]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">Persistent <code>&lt;section aria-live="polite"&gt;</code>, fixed after #306 <sup><a href="https://github.com/emilkowalski/sonner/issues/306">[17]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">Container carries <code>aria-live</code> since v11 <sup><a href="https://github.com/fkhadra/react-toastify/blob/main/src/components/ToastContainer.tsx">[24]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why">ARIA props spread onto the message div that <em>mounts with its text</em> <sup><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/toast.ts">[26]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><code>role="alert"</code> on a node that mounts already populated <sup><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">[28]</a></sup></span></td>
+          </tr>
+          <tr>
+            <th>
+              <span class="id">REQ-02</span>
+              Polite default / assertive exception
+              <small>Errors may interrupt. Success may not <sup><a href="https://www.w3.org/WAI/ARIA/apg/patterns/alert/">[5]</a></sup></small>
+            </th>
+            <td class="pass"><span class="g">✓</span><span class="why"><code>priority: 'low' | 'high'</code> <sup><a href="https://base-ui.com/react/components/toast">[30]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">Priority split, documented <sup><a href="https://react-aria.adobe.com/Toast">[29]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why"><code>type: 'foreground' | 'background'</code> → assertive / polite <sup><a href="https://www.radix-ui.com/primitives/docs/components/toast">[16]</a></sup></span></td>
+            <td class="part"><span class="g">~</span><span class="why"><b>Polite only.</b> No <code>assertive</code> anywhere in the source — <code>toast.error()</code> waits its turn <sup><a href="https://github.com/emilkowalski/sonner/blob/main/src/index.tsx">[18]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><b>Inverted.</b> Every toast defaults to <code>role="alert"</code> — your success message interrupts <sup><a href="https://fkhadra.github.io/react-toastify/accessibility/">[21]</a></sup></span></td>
+            <td class="part"><span class="g">~</span><span class="why">Right polarity (<code>status</code>/polite) but no split; #336 open on the ARIA API <sup><a href="https://github.com/timolins/react-hot-toast/issues/336">[25]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><code>alert</code> for <em>all</em> variants, including <code>success</code> <sup><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">[28]</a></sup></span></td>
+          </tr>
+          <tr>
+            <th>
+              <span class="id">REQ-03</span>
+              Keyboard route
+              <small>Landmark + hotkey, named in the label <sup><a href="https://react-aria.adobe.com/Toast">[29]</a></sup></small>
+            </th>
+            <td class="pass"><span class="g">✓</span><span class="why"><kbd>F6</kbd> force-focuses the viewport landmark <sup><a href="https://github.com/mui/base-ui/blob/master/packages/react/src/toast/viewport/ToastViewport.tsx">[31]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why"><kbd>F6</kbd>/<kbd>⇧F6</kbd>; focus restored on last close <sup><a href="https://react-aria.adobe.com/Toast">[29]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why"><kbd>F8</kbd>, and the hotkey is in the region's accessible name <sup><a href="https://github.com/radix-ui/primitives/blob/main/packages/react/toast/src/toast.tsx">[15]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why"><kbd>Alt+T</kbd>; container <code>tabIndex={-1}</code>, toasts <code>tabIndex={0}</code> <sup><a href="https://github.com/emilkowalski/sonner/blob/main/src/index.tsx">[18]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why"><kbd>Alt+T</kbd>, added in v11 (Dec 2024) <sup><a href="https://github.com/fkhadra/react-toastify/releases">[23]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why">Plain <code>&lt;div&gt;</code>s. No landmark, no hotkey, no <code>tabIndex</code> <sup><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/toast.ts">[26]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why">No landmark, no hotkey <sup><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">[28]</a></sup></span></td>
+          </tr>
+          <tr>
+            <th>
+              <span class="id">REQ-04</span>
+              Pause on focus
+              <small>Not just hover <sup><a href="https://www.radix-ui.com/primitives/docs/components/toast">[16]</a></sup></small>
+            </th>
+            <td class="pass"><span class="g">✓</span><span class="why">Hover + focus + document hidden <sup><a href="https://base-ui.com/react/components/toast">[30]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">Hover + focus + window blur <sup><a href="https://react-aria.adobe.com/Toast">[29]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">"Pauses closing on hover, focus and window blur" <sup><a href="https://www.radix-ui.com/primitives/docs/components/toast">[16]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">Full matrix incl. <code>isDocumentHidden</code> → <code>pauseTimer()</code> <sup><a href="https://github.com/emilkowalski/sonner/blob/main/src/index.tsx">[18]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><code>pauseOnFocusLoss</code> is <em>window blur</em>, not element focus <sup><a href="https://fkhadra.github.io/react-toastify/accessibility/">[21]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><code>onMouseEnter</code> / <code>onMouseLeave</code> only <sup><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/toast.ts">[26]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why">MUI Snackbar <code>onMouseEnter</code> only <sup><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">[28]</a></sup></span></td>
+          </tr>
+          <tr>
+            <th>
+              <span class="id">REQ-05</span>
+              Survivable timing
+              <small>SC 2.2.1, Level A <sup><a href="https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable.html">[1]</a></sup></small>
+            </th>
+            <td class="part"><span class="g">~</span><span class="why">5000 ms; <code>0</code> disables auto-dismiss <sup><a href="https://base-ui.com/react/components/toast">[30]</a></sup></span></td>
+            <td class="pass"><span class="g">✓</span><span class="why">No auto-dismiss by default; docs say don't auto-dismiss critical info <sup><a href="https://react-aria.adobe.com/Toast">[29]</a></sup></span></td>
+            <td class="part"><span class="g">~</span><span class="why">5000 ms default <sup><a href="https://github.com/radix-ui/primitives/blob/main/packages/react/toast/src/toast.tsx">[15]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><b>4000 ms.</b> Flagged as a 2.2.1 failure by the Apr 2026 audit <sup><a href="https://thefrontkit.com/blogs/shadcn-ui-accessibility-audit-2026">[20]</a></sup></span></td>
+            <td class="part"><span class="g">~</span><span class="why">5000 ms default <sup><a href="https://github.com/fkhadra/react-toastify/blob/main/src/components/ToastContainer.tsx">[24]</a></sup></span></td>
+            <td class="fail"><span class="g">✗</span><span class="why"><b>4000 ms</b> (errors too; <code>loading</code> is ∞) <sup><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/store.ts">[27]</a></sup></span></td>
+            <td class="part"><span class="g">~</span><span class="why">5000 ms (MUI Snackbar) <sup><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">[28]</a></sup></span></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>Grade</th>
+            <td><span class="grade gA">A</span><span class="score">9 / 10</span></td>
+            <td><span class="grade gA">A</span><span class="score">10 / 10</span></td>
+            <td><span class="grade gB">B</span><span class="score">8 / 10</span></td>
+            <td><span class="grade gC">C</span><span class="score">7 / 10</span></td>
+            <td><span class="grade gD">D</span><span class="score">5 / 10</span></td>
+            <td><span class="grade gF">F</span><span class="score">1 / 10</span></td>
+            <td><span class="grade gF">F</span><span class="score">1 / 10</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="legend">
+      <span><b class="p">✓</b> meets the requirement out of the box (2 pts)</span>
+      <span><b class="a">~</b> partial — right idea, wrong default (1 pt)</span>
+      <span><b class="f">✗</b> fails (0 pts)</span>
+    </div>
+
+    <p class="footnote"><b>Every cell in REQ-05 grades a developer default.</b> Not one of the seven exposes an <em>end-user</em> duration control — which is what SC 2.2.1 actually asks for. The escape hatch is real, though: a timer needs no adjustment "if there is an alternative that does not rely on a timer" <sup><a href="https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable.html">[1]</a></sup>. A toast that is the <em>only</em> carrier of its information has no such alternative.</p>
+
+    <p class="footnote"><b>REQ-04 is worth less than it looks.</b> A screen-reader user reading a toast with the virtual cursor generates <em>no focus event</em>. Pause-on-focus never fires for them; they are racing the timer like everyone else <sup><a href="https://www.scottohara.me/blog/2019/07/08/a-toast-to-a11y-toasts.html">[10]</a></sup>.</p>
+  </div>
+</section>
+
+<section class="verdict">
+  <div class="wrap">
+    <div class="k">Finding</div>
+    <p>The toast <span class="hi">shadcn/ui</span> puts in your app scores <span class="hi">C</span>. The two that score <span class="ok">A</span> ship in almost nobody's.</p>
+    <p class="sub">Radix ⭐ 19.1k has the most stars and the right design — and an open bug saying its own docs demo announces nothing <sup><a href="https://github.com/radix-ui/primitives/issues/3634">[14]</a></sup>. Popularity in this category tracked one scaffolding default, not one audit.</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§3</span>
+      <h2>Grades, with the evidence</h2>
+      <span class="note">verbatim from source, docs and open issues</span>
+    </div>
+    <div class="cards">
+
+      <article class="card a">
+        <div class="card-top">
+          <span class="letter">A</span>
+          <div>
+            <h3><a href="https://base-ui.com/react/components/toast">Base UI Toast</a></h3>
+            <div class="sub">⭐ 10.3k · 9/10 · stable</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>The correct model.</b> Each toast root is a non-modal <code>dialog</code> (or <code>alertdialog</code> when priority is high), so its buttons stay reachable <sup><a href="https://github.com/mui/base-ui/blob/master/packages/react/src/toast/root/ToastRoot.tsx">[32]</a></sup> — and the <em>announcement</em> lives in a separate pre-mounted region. Only demerit: raise the 5 s default.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · ToastRoot.tsx</div>
+          <blockquote>role: isHighPriority ? 'alertdialog' : 'dialog'</blockquote>
+        </div>
+      </article>
+
+      <article class="card a">
+        <div class="card-top">
+          <span class="letter">A</span>
+          <div>
+            <h3><a href="https://react-aria.adobe.com/Toast">React Aria Toast</a></h3>
+            <div class="sub">⭐ 15.7k · 10/10 · still alpha</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>Best documented, least shippable.</b> Same split model — <code>alert</code> region inside a non-modal <code>alertdialog</code> <sup><a href="https://sandroroth.com/blog/react-toast-component/">[13]</a></sup> — plus <kbd>F6</kbd> landmark cycling and focus restoration on the last close. The only library whose docs tell you <em>not</em> to auto-dismiss. It is also the only one still in alpha.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · React Aria docs</div>
+          <blockquote>"Only auto-dismiss toasts when the information is not critical, or may be found elsewhere."</blockquote>
+        </div>
+      </article>
+
+      <article class="card b">
+        <div class="card-top">
+          <span class="letter">B</span>
+          <div>
+            <h3><a href="https://www.radix-ui.com/primitives/docs/components/toast">Radix Toast</a></h3>
+            <div class="sub">⭐ 19.1k · 8/10 · open bug #3634</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>Right design, unverified delivery.</b> Hard-codes <code>role="status"</code> for every toast on purpose and modulates urgency through <code>aria-live</code> instead; renders the announce text on the <em>next frame</em> to beat NVDA's mount-time swallow <sup><a href="https://github.com/radix-ui/primitives/blob/main/packages/react/toast/src/toast.tsx">[15]</a></sup>. Then <b>#3634</b> (open, July 2025) reports <code>aria-live="off"</code> landing on that very node in the official demo, across Chrome, Safari and Firefox <sup><a href="https://github.com/radix-ui/primitives/issues/3634">[14]</a></sup>. Pin-check your version and test with a real screen reader.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · toast.tsx, line comment</div>
+          <blockquote>// Toasts are always role=status to avoid stuttering issues with role=alert in SRs.</blockquote>
+        </div>
+      </article>
+
+      <article class="card c">
+        <div class="card-top">
+          <span class="letter">C</span>
+          <div>
+            <h3><a href="https://sonner.emilkowal.ski/">Sonner</a></h3>
+            <div class="sub">⭐ 12.6k · 7/10 · the default everyone ships</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>Polite about everything, including your errors.</b> There is no <code>assertive</code> path anywhere in <code>src/index.tsx</code> — <code>toast.error()</code> queues behind whatever the screen reader is already reading <sup><a href="https://github.com/emilkowalski/sonner/blob/main/src/index.tsx">[18]</a></sup>. Default lifetime 4000 ms, flagged as an SC 2.2.1 failure <sup><a href="https://thefrontkit.com/blogs/shadcn-ui-accessibility-audit-2026">[20]</a></sup>. Good bones otherwise, and the <em>only</em> library in the batch shipping its own reduced-motion guard <sup><a href="https://github.com/emilkowalski/sonner/blob/main/src/styles.css">[19]</a></sup>. Set <code>duration={8000}</code> and <code>closeButton</code>; don't route urgent errors through it.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · src/index.tsx</div>
+          <blockquote>const TOAST_LIFETIME = 4000;<br>aria-live="polite" aria-atomic="false"</blockquote>
+        </div>
+      </article>
+
+      <article class="card d">
+        <div class="card-top">
+          <span class="letter">D</span>
+          <div>
+            <h3><a href="https://fkhadra.github.io/react-toastify/">react-toastify</a></h3>
+            <div class="sub">⭐ 13.4k · 5/10 · fixable in one prop</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>Half-fixed, and wrong in the half that's left.</b> v11 (Dec 2024) gave the container a real live region and added <kbd>Alt+T</kbd> <sup><a href="https://github.com/fkhadra/react-toastify/releases">[23]</a></sup> — then defaults <em>every</em> toast to <code>role="alert"</code>, so a "Saved!" interrupts the sentence a user was listening to <sup><a href="https://fkhadra.github.io/react-toastify/accessibility/">[21]</a></sup>. Issue <b>#1122</b> (open) reports those <code>role="alert"</code> toasts announced by nothing at all in Firefox + Orca <sup><a href="https://github.com/fkhadra/react-toastify/issues/1122">[22]</a></sup>. Set <code>role="status"</code> globally and it climbs.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · ToastContainer.tsx defaults</div>
+          <blockquote>role: 'alert', 'aria-label': 'Notifications Alt+T'</blockquote>
+        </div>
+      </article>
+
+      <article class="card f">
+        <div class="card-top">
+          <span class="letter">F</span>
+          <div>
+            <h3><a href="https://react-hot-toast.com/">react-hot-toast</a></h3>
+            <div class="sub">⭐ 11k · 1/10 · avoid where a11y is graded</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>Worst of the group.</b> No persistent live region — the ARIA props are spread onto the message div that mounts already holding its text, i.e. the exact pattern MDN says produces no announcement <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role">[7]</a></sup>. No landmark, no hotkey, toasts aren't focusable, pause fires only on <code>onMouseEnter</code> <sup><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/toast.ts">[26]</a></sup>. Its <em>Undo</em> buttons are decorative for keyboard users.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · src/core/toast.ts</div>
+          <blockquote>ariaProps: { role: 'status', 'aria-live': 'polite' }<br>— spread onto a node that mounts populated</blockquote>
+        </div>
+      </article>
+
+      <article class="card f">
+        <div class="card-top">
+          <span class="letter">F</span>
+          <div>
+            <h3><a href="https://notistack.com/">notistack</a></h3>
+            <div class="sub">⭐ 4.1k · 1/10 · assertive-everything</div>
+          </div>
+        </div>
+        <p class="verdict-line"><b>The textbook anti-pattern, on every variant.</b> <code>role="alert"</code> sits directly on the snackbar content element, which mounts already populated — for <code>success</code> and <code>info</code> too <sup><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">[28]</a></sup>. So it is simultaneously the most interrupting design on paper and, per MDN, the one most likely to announce nothing at all.</p>
+        <div class="exhibit">
+          <div class="lbl">Exhibit · MaterialDesignContent.tsx</div>
+          <blockquote>role="alert" aria-describedby={ariaDescribedby}</blockquote>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§4</span>
+      <h2>Two findings no library can fix</h2>
+      <span class="note">structural, not implementation</span>
+    </div>
+    <div class="calls">
+      <div class="call">
+        <span class="glyph">⊠</span>
+        <h3>A live region cannot carry a button</h3>
+        <p><code>alert</code>, <code>status</code> and <code>log</code> all map to live regions, and a screen reader announces the raw text within — "without any of the structure" <sup><a href="https://adrianroselli.com/2020/01/defining-toast-messages.html">[11]</a></sup>. Your <em>Undo</em> button is announced as the word <em>Undo</em>, with no route to reach it.</p>
+        <span class="say">If it has an interactive child, it should not be a live region — and it should not be a toast.</span>
+        <p style="margin-top:.7rem">That is why Base UI and React Aria render the toast as a non-modal dialog and put the announcement in a <em>separate</em> region <sup><a href="https://github.com/mui/base-ui/blob/master/packages/react/src/toast/root/ToastRoot.tsx">[32]</a></sup>. The dialog holds the buttons; the region holds the text. Everyone else picks one and loses the other. Scott O'Hara's narrower allowance: a toast action is acceptable only if the same action is <em>also</em> available in the primary document <sup><a href="https://www.scottohara.me/blog/2019/07/08/a-toast-to-a11y-toasts.html">[10]</a></sup>.</p>
+      </div>
+      <div class="call">
+        <span class="glyph">∞</span>
+        <h3>The standard hasn't decided either</h3>
+        <p>Patrick Lauke asked the working group whether a disappearing toast is a timeout at all. <b>w3c/wcag#976 has been open since 2019</b> with no resolution <sup><a href="https://github.com/w3c/wcag/issues/976">[2]</a></sup>. Auditors are not waiting: an April 2026 shadcn/ui audit fails Sonner's 4 s default outright <sup><a href="https://thefrontkit.com/blogs/shadcn-ui-accessibility-audit-2026">[20]</a></sup>.</p>
+        <p>Meanwhile the most-cited response to the whole pattern came from a design system, not a spec: <b>GitHub removed toasts from Primer in late 2025</b>, "because of their accessibility and usability issues" <sup><a href="https://adrianroselli.com/2020/01/defining-toast-messages.html">[11]</a></sup>.</p>
+        <span class="say">Roselli's failure list for a typical toast: 1.3.2 · 1.4.4 · 1.4.10 · 2.1.1 · 2.2.1 · 2.4.3 · 3.2.4 · 4.1.2 · 4.1.3</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§5</span>
+      <h2>Remediation</h2>
+      <span class="note">what to do on Monday, whichever library you're on</span>
+    </div>
+    <ol class="fix">
+      <li><p><b>Toast = text only.</b> <code>role="status"</code>, injected into a region that was already there. No buttons in the live region <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role">[7]</a></sup>.</p></li>
+      <li><p><b>Duplicate every toast action in the page.</b> The undone row keeps its own Undo control <sup><a href="https://www.scottohara.me/blog/2019/07/08/a-toast-to-a11y-toasts.html">[10]</a></sup>.</p></li>
+      <li><p><b>Errors that block the user are not toasts.</b> They are inline, focus-managed messages.</p></li>
+      <li><p><b>Auto-dismiss ≥ 8 s, pausable on hover <em>and</em> focus, with a close button</b> — or no auto-dismiss at all when the toast is the sole carrier of the information <sup><a href="https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable.html">[1]</a></sup><sup><a href="https://thefrontkit.com/blogs/shadcn-ui-accessibility-audit-2026">[20]</a></sup>.</p></li>
+      <li><p><b>Ship the landmark hotkey <em>and</em> name it in the region label.</b> A hotkey nobody is told about is not an affordance <sup><a href="https://github.com/radix-ui/primitives/blob/main/packages/react/toast/src/toast.tsx">[15]</a></sup>.</p></li>
+      <li><p><b>Test the combination you ship.</b> <code>aria-live</code> is advisory — "only strong suggestions" — and browsers and assistive tech override it <sup><a href="https://www.sarasoueidan.com/blog/accessible-notifications-with-aria-live-regions-part-2/">[9]</a></sup>. Firefox + Orca is where react-toastify goes silent; NVDA is where mount-time announcements vanish <sup><a href="https://github.com/fkhadra/react-toastify/issues/1122">[22]</a></sup><sup><a href="https://sandroroth.com/blog/react-toast-component/">[13]</a></sup>.</p></li>
+    </ol>
+    <p class="footnote" style="border-left-color: var(--ink);"><b>If your toast has an Undo button and a 4-second timer, no library choice will save you.</b></p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§6</span>
+      <h2>Evidence log</h2>
+      <span class="note">32 exhibits</span>
+    </div>
+    <div class="log">
+      <div class="log-row"><span class="n">[1]</span><img src="https://www.google.com/s2/favicons?domain=w3.org&sz=128" alt=""><span class="t"><a href="https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable.html">WCAG 2.2 — Understanding SC 2.2.1 Timing Adjustable</a><span class="cl">A timer needs no adjustment if a non-timed alternative to the information exists.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[2]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/w3c/wcag/issues/976">w3c/wcag#976 — "does a disappearing toast represent a timeout?"</a><span class="cl">Open since 2019. No working-group resolution.</span></span><span class="ty forum">forum</span></div>
+      <div class="log-row"><span class="n">[3]</span><img src="https://www.google.com/s2/favicons?domain=w3.org&sz=128" alt=""><span class="t"><a href="https://www.w3.org/WAI/WCAG22/Understanding/no-timing.html">WCAG 2.2 — Understanding SC 2.2.3 No Timing</a><span class="cl">Level AAA: timing must not be essential to the activity.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[4]</span><img src="https://www.google.com/s2/favicons?domain=w3.org&sz=128" alt=""><span class="t"><a href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html">WCAG 2.2 — Understanding SC 4.1.3 Status Messages</a><span class="cl">Level AA: status must be announced without receiving focus.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[5]</span><img src="https://www.google.com/s2/favicons?domain=w3.org&sz=128" alt=""><span class="t"><a href="https://www.w3.org/WAI/ARIA/apg/patterns/alert/">ARIA APG — Alert pattern</a><span class="cl">Keyboard interaction: "Not applicable". Avoid alerts that disappear automatically.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[6]</span><img src="https://www.google.com/s2/favicons?domain=w3.org&sz=128" alt=""><span class="t"><a href="https://www.w3.org/WAI/ARIA/apg/patterns/alert/examples/alert/">ARIA APG — Alert example</a><span class="cl">The alert element is pre-rendered empty; the message is inserted into it.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[7]</span><img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=128" alt=""><span class="t"><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role">MDN — ARIA: alert role</a><span class="cl">Do not dynamically add an already-populated role=alert: "this generally does not lead to an announcement".</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[8]</span><img src="https://www.google.com/s2/favicons?domain=sarasoueidan.com&sz=128" alt=""><span class="t"><a href="https://www.sarasoueidan.com/blog/accessible-notifications-with-aria-live-regions-part-1/">Sara Soueidan — ARIA live regions, part 1</a><span class="cl">Place the live region in the DOM as early as possible, then populate it.</span></span><span class="ty">vendor-blog</span></div>
+      <div class="log-row"><span class="n">[9]</span><img src="https://www.google.com/s2/favicons?domain=sarasoueidan.com&sz=128" alt=""><span class="t"><a href="https://www.sarasoueidan.com/blog/accessible-notifications-with-aria-live-regions-part-2/">Sara Soueidan — ARIA live regions, part 2</a><span class="cl">Assertive may discard queued messages; aria-live is advisory only.</span></span><span class="ty">vendor-blog</span></div>
+      <div class="log-row"><span class="n">[10]</span><img src="https://www.google.com/s2/favicons?domain=scottohara.me&sz=128" alt=""><span class="t"><a href="https://www.scottohara.me/blog/2019/07/08/a-toast-to-a11y-toasts.html">Scott O'Hara — A toast to a11y toasts</a><span class="cl">A toast is a status message; virtual-cursor reading fires no focus event.</span></span><span class="ty">vendor-blog</span></div>
+      <div class="log-row"><span class="n">[11]</span><img src="https://www.google.com/s2/favicons?domain=adrianroselli.com&sz=128" alt=""><span class="t"><a href="https://adrianroselli.com/2020/01/defining-toast-messages.html">Adrian Roselli — Defining toast messages</a><span class="cl">Live regions announce raw text; GitHub removed toasts from Primer in late 2025.</span></span><span class="ty">vendor-blog</span></div>
+      <div class="log-row"><span class="n">[12]</span><img src="https://www.google.com/s2/favicons?domain=w3.org&sz=128" alt=""><span class="t"><a href="https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html">WCAG 2.2 — SC 2.4.11 Focus Not Obscured</a><span class="cl">A toast stack over a focused control is a straight AA failure.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[13]</span><img src="https://www.google.com/s2/favicons?domain=sandroroth.com&sz=128" alt=""><span class="t"><a href="https://sandroroth.com/blog/react-toast-component/">Sandro Roth — Building a React toast component</a><span class="cl">NVDA does not announce a role=status element added already populated.</span></span><span class="ty">vendor-blog</span></div>
+      <div class="log-row"><span class="n">[14]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/radix-ui/primitives/issues/3634">radix-ui/primitives#3634 — toast not announced</a><span class="cl">Open: aria-live="off" on the role=status element, in the official demo.</span></span><span class="ty forum">forum</span></div>
+      <div class="log-row"><span class="n">[15]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/radix-ui/primitives/blob/main/packages/react/toast/src/toast.tsx">radix-ui/primitives — toast.tsx</a><span class="cl">role=status always; announce text on the next frame; hotkey F8 named in the label.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[16]</span><img src="https://www.google.com/s2/favicons?domain=radix-ui.com&sz=128" alt=""><span class="t"><a href="https://www.radix-ui.com/primitives/docs/components/toast">Radix Primitives — Toast docs</a><span class="cl">"Pauses closing on hover, focus and window blur."</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[17]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/emilkowalski/sonner/issues/306">emilkowalski/sonner#306 — live region must always be present</a><span class="cl">Silent toasts in Windows Narrator and older iOS VoiceOver. Fixed.</span></span><span class="ty forum">forum</span></div>
+      <div class="log-row"><span class="n">[18]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/emilkowalski/sonner/blob/main/src/index.tsx">emilkowalski/sonner — src/index.tsx</a><span class="cl">TOAST_LIFETIME 4000; aria-live=polite; no assertive anywhere; hotkey alt+T.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[19]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/emilkowalski/sonner/blob/main/src/styles.css">emilkowalski/sonner — src/styles.css</a><span class="cl">The only prefers-reduced-motion guard shipped by any library in the batch.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[20]</span><img src="https://www.google.com/s2/favicons?domain=thefrontkit.com&sz=128" alt=""><span class="t"><a href="https://thefrontkit.com/blogs/shadcn-ui-accessibility-audit-2026">The Front Kit — shadcn/ui accessibility audit (Apr 2026)</a><span class="cl">Sonner's 4 s default is a SC 2.2.1 failure; recommends 8 s plus a close button.</span></span><span class="ty">vendor-blog</span></div>
+      <div class="log-row"><span class="n">[21]</span><img src="https://www.google.com/s2/favicons?domain=fkhadra.github.io&sz=128" alt=""><span class="t"><a href="https://fkhadra.github.io/react-toastify/accessibility/">react-toastify — Accessibility docs</a><span class="cl">"By default, all toasts are displayed with the ARIA role alert."</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[22]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/fkhadra/react-toastify/issues/1122">fkhadra/react-toastify#1122 — silent in Firefox + Orca</a><span class="cl">Open. role=alert toasts announced in Chrome+Orca, not Firefox+Orca.</span></span><span class="ty forum">forum</span></div>
+      <div class="log-row"><span class="n">[23]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/fkhadra/react-toastify/releases">react-toastify — releases</a><span class="cl">v11 (Dec 2024) added ariaLabel and the Alt+T focus hotkey.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[24]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/fkhadra/react-toastify/blob/main/src/components/ToastContainer.tsx">react-toastify — ToastContainer.tsx</a><span class="cl">Persistent container live region; defaults role 'alert'.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[25]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/timolins/react-hot-toast/issues/336">timolins/react-hot-toast#336 — incoherent ARIA API</a><span class="cl">Open since Jan 2024. role=alert plus aria-live=assertive is redundant.</span></span><span class="ty forum">forum</span></div>
+      <div class="log-row"><span class="n">[26]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/toast.ts">react-hot-toast — src/core/toast.ts</a><span class="cl">ariaProps spread onto a Message element that mounts already containing its text.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[27]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/timolins/react-hot-toast/blob/main/src/core/store.ts">react-hot-toast — src/core/store.ts</a><span class="cl">blank 4000, error 4000, custom 4000, loading Infinity.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[28]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/iamhosseindhv/notistack/blob/master/src/ui/MaterialDesignContent/MaterialDesignContent.tsx">notistack — MaterialDesignContent.tsx</a><span class="cl">role="alert" on a populated node, for every variant including success.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[29]</span><img src="https://www.google.com/s2/favicons?domain=react-aria.adobe.com&sz=128" alt=""><span class="t"><a href="https://react-aria.adobe.com/Toast">React Aria — Toast</a><span class="cl">F6 / Shift+F6 landmark navigation; focus restored on last close; 5 s minimum.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[30]</span><img src="https://www.google.com/s2/favicons?domain=base-ui.com&sz=128" alt=""><span class="t"><a href="https://base-ui.com/react/components/toast">Base UI — Toast</a><span class="cl">F6 into the viewport landmark; priority low/high; timeout 5000, 0 disables.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[31]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/mui/base-ui/blob/master/packages/react/src/toast/viewport/ToastViewport.tsx">Base UI — ToastViewport.tsx</a><span class="cl">Polite viewport plus a separate role="alert" region for high-priority toasts.</span></span><span class="ty official">official</span></div>
+      <div class="log-row"><span class="n">[32]</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><a href="https://github.com/mui/base-ui/blob/master/packages/react/src/toast/root/ToastRoot.tsx">Base UI — ToastRoot.tsx</a><span class="cl">Each toast root is a non-modal dialog / alertdialog, so its buttons stay reachable.</span></span><span class="ty official">official</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="n">§7</span>
+      <h2>Filed under</h2>
+      <span class="note">the rest of the expedition</span>
+    </div>
+    <div class="sibs">
+      <a class="sib" href="../../library-landscape-head-to-head/">
+        <span class="d">survey</span>
+        <h4>The landscape, head to head</h4>
+        <p>Sonner is the 2026 default (41M weekly installs, shadcn's toast); react-toastify is the actively-released power option; notistack is legacy.</p>
+      </a>
+      <a class="sib" href="../../next-js-app-router-rsc-server-actions/">
+        <span class="d">survey</span>
+        <h4>Toasts in the Next.js App Router</h4>
+        <p>No library ships a server entrypoint — the queue lives in client memory, so an RSC app must serialize server-origin toasts through an action return value or a cookie.</p>
+      </a>
+      <a class="sib" href="../../headless-primitives-vs-batteries-included/">
+        <span class="d">recon</span>
+        <h4>Headless primitives vs batteries-included</h4>
+        <p>Base UI Toast is the only primitive both stable and feature-complete in 2026; adopt Sonner unless multi-framework or deep-theming needs force a primitive.</p>
+      </a>
+      <a class="sib" href="../../migrating-off-toastr-react-toastify/">
+        <span class="d">recon</span>
+        <h4>Migrating off legacy toasts</h4>
+        <p>toastr is dead (last commit 2018, needs jQuery). react-toastify is alive — don't churn a working integration.</p>
+      </a>
+    </div>
+
+    <div class="colophon">
+      <span>Report card · a view of <a href="../">the full audit</a></span>
+      <span>Parent: <a href="../../">React toast notifications in 2026</a></span>
+      <span>Grading: pass 2 · partial 1 · fail 0 · max 10</span>
+      <span>32 exhibits · issued 2026-07-13</span>
+    </div>
+  </div>
+</section>
+
+</div>
