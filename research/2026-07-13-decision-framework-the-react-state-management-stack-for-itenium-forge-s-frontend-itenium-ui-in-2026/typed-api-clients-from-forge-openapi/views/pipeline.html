@@ -1,0 +1,1484 @@
+---
+layout: view
+view_name: "Pipeline"
+view_of: ../
+title: "Generating the itenium-ui API client from Forge's OpenAPI document — Pipeline"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+.pl {
+  --steel-0: #0e1114;
+  --steel-1: #14181d;
+  --steel-2: #1b2027;
+  --steel-3: #232a33;
+  --steel-4: #2e3742;
+  --line: #333d49;
+  --ink: #e6ebf0;
+  --ink-dim: #9aa7b4;
+  --ink-faint: #6b7885;
+  --yellow: #f2c31d;
+  --yellow-dk: #b08f0b;
+  --cyan: #4fd1e0;
+  --green: #35d07f;
+  --amber: #ff9e2c;
+  --red: #ff5252;
+  --off: #2c343d;
+
+  margin: 0;
+  padding: 0;
+  background: var(--steel-0);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pl * { box-sizing: border-box; }
+.pl a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(79,209,224,.28); }
+.pl a:hover { border-bottom-color: var(--cyan); }
+.pl sup a { border-bottom: none; color: var(--yellow); font-family: 'IBM Plex Mono', monospace; font-size: .68em; padding: 0 1px; }
+.pl sup a:hover { text-decoration: underline; }
+.pl code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: .86em;
+  background: var(--steel-3);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: .08em .34em;
+  color: #cfe6ea;
+  white-space: nowrap;
+}
+
+.pl .hazard {
+  height: 10px;
+  background: repeating-linear-gradient(-45deg, var(--yellow) 0 14px, #14181d 14px 28px);
+}
+
+.pl .shell { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ── NAMEPLATE ───────────────────────────────── */
+.pl .plate {
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  border-bottom: 3px solid var(--yellow);
+}
+.pl .plate img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: .26;
+  filter: grayscale(1) contrast(1.15);
+}
+.pl .plate::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(14,17,20,.55) 0%, rgba(14,17,20,.82) 55%, rgba(14,17,20,.96) 100%);
+}
+.pl .plate-in { position: relative; z-index: 2; padding: 3.4rem 0 2.6rem; }
+.pl .stencil {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .74rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 1.1rem;
+}
+.pl .stencil .sep { color: var(--ink-faint); padding: 0 .5rem; }
+.pl h1.line-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 7vw, 5.4rem);
+  line-height: .96;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+  margin: 0 0 1.1rem;
+  color: #fff;
+}
+.pl h1.line-title em { font-style: normal; color: var(--yellow); }
+.pl .subtitle {
+  font-size: 1.06rem;
+  color: var(--ink-dim);
+  max-width: 62ch;
+  margin: 0 0 1.6rem;
+}
+.pl .specstrip {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.pl .specstrip span {
+  border: 1px solid var(--steel-4);
+  background: rgba(20,24,29,.75);
+  color: var(--ink-dim);
+  padding: .3rem .6rem;
+}
+
+/* ── PLACARD (decision) ──────────────────────── */
+.pl .placard {
+  position: relative;
+  margin: 2.5rem 0 0;
+  background: var(--steel-2);
+  border: 2px solid var(--yellow);
+  padding: 1.6rem 1.8rem 1.7rem;
+  box-shadow: 0 0 0 6px var(--steel-0), 0 18px 40px rgba(0,0,0,.5);
+}
+.pl .placard::before, .pl .placard::after {
+  content: '';
+  position: absolute; top: 9px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6d7883, #2b333c);
+}
+.pl .placard::before { left: 9px; }
+.pl .placard::after { right: 9px; }
+.pl .placard-tag {
+  display: inline-block;
+  background: var(--yellow);
+  color: #14181d;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: .78rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: .22rem .7rem;
+  margin-bottom: 1rem;
+}
+.pl .placard h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  text-transform: uppercase;
+  margin: 0 0 .8rem;
+  color: #fff;
+  line-height: 1.15;
+}
+.pl .placard p { margin: 0 0 .7rem; color: var(--ink-dim); font-size: .96rem; }
+.pl .placard p:last-child { margin-bottom: 0; }
+.pl .placard strong { color: var(--ink); }
+
+/* ── SECTIONS ────────────────────────────────── */
+.pl section { padding: 3.6rem 0 0; }
+.pl .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+.pl .sec-no {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem;
+  color: var(--steel-0);
+  background: var(--yellow);
+  padding: .18rem .55rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  flex: none;
+}
+.pl h2.sec {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.4rem, 3vw, 1.95rem);
+  text-transform: uppercase;
+  letter-spacing: .01em;
+  margin: 0;
+  color: #fff;
+}
+.pl .sec-note { color: var(--ink-faint); font-size: .82rem; font-family: 'IBM Plex Mono', monospace; }
+.pl p.lede { color: var(--ink-dim); max-width: 76ch; margin: 0 0 1.6rem; }
+
+/* ── INTAKE ──────────────────────────────────── */
+.pl .intake { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 1rem; }
+.pl .hopper {
+  background: var(--steel-2);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--cyan);
+  padding: 1.3rem;
+}
+.pl .hopper .kicker {
+  font-family: 'IBM Plex Mono', monospace; font-size: .68rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--cyan); margin-bottom: .5rem;
+}
+.pl .hopper h3 {
+  font-family: 'Oswald', sans-serif; font-weight: 600; text-transform: uppercase;
+  font-size: 1.1rem; margin: 0 0 .6rem; color: #fff;
+}
+.pl .hopper p { margin: 0 0 .6rem; font-size: .89rem; color: var(--ink-dim); }
+.pl .hopper p:last-child { margin-bottom: 0; }
+.pl .hopper.warn { border-top-color: var(--red); }
+.pl .hopper.warn .kicker { color: var(--red); }
+.pl .hopper.ok { border-top-color: var(--green); }
+.pl .hopper.ok .kicker { color: var(--green); }
+
+/* ── QC GATES ────────────────────────────────── */
+.pl .band {
+  position: relative;
+  margin: 2rem 0 0;
+  height: 190px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.pl .band img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.1) brightness(.62);
+}
+.pl .band-cap {
+  position: absolute; left: 0; bottom: 0;
+  background: var(--yellow);
+  color: #14181d;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: .35rem .8rem;
+}
+
+.pl .gates { display: grid; gap: .9rem; margin-top: 1.6rem; }
+.pl .gate {
+  display: grid;
+  grid-template-columns: 168px 1fr 1fr;
+  gap: 1.2rem;
+  background: var(--steel-1);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--off);
+  padding: 1.1rem 1.2rem;
+}
+.pl .gate.pass  { border-left-color: var(--green); }
+.pl .gate.act   { border-left-color: var(--amber); }
+.pl .gate.hold  { border-left-color: var(--red); }
+.pl .gate-id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: .3rem;
+}
+.pl .gate-name {
+  font-family: 'Oswald', sans-serif; font-weight: 600; text-transform: uppercase;
+  font-size: 1rem; color: #fff; line-height: 1.25; margin-bottom: .55rem;
+}
+.pl .gate-name code { text-transform: none; font-family: 'IBM Plex Mono', monospace; }
+.pl .status {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .64rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  padding: .16rem .5rem;
+  border: 1px solid currentColor;
+}
+.pl .status.pass { color: var(--green); }
+.pl .status.act  { color: var(--amber); }
+.pl .status.hold { color: var(--red); background: rgba(255,82,82,.09); }
+.pl .gate-col .lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: .32rem;
+}
+.pl .gate-col p { margin: 0; font-size: .88rem; color: var(--ink-dim); }
+.pl .gate-col p strong { color: var(--ink); }
+
+.pl .stamp {
+  margin-top: .7rem;
+  display: inline-block;
+  border: 2px solid var(--yellow);
+  color: var(--yellow);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: .82rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .3rem .7rem;
+  transform: rotate(-1.2deg);
+  background: rgba(242,195,29,.06);
+}
+.pl .stamp.red { border-color: var(--red); color: var(--red); background: rgba(255,82,82,.07); }
+
+.pl .orders {
+  margin-top: 1.6rem;
+  background: var(--steel-2);
+  border: 1px dashed var(--yellow-dk);
+  padding: 1.3rem 1.4rem;
+}
+.pl .orders h3 {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; font-weight: 600;
+  font-size: 1.05rem; color: var(--yellow); margin: 0 0 .8rem;
+}
+.pl .orders ol { margin: 0; padding-left: 1.2rem; color: var(--ink-dim); }
+.pl .orders li { margin-bottom: .5rem; font-size: .93rem; }
+.pl .orders li:last-child { margin-bottom: 0; }
+.pl .orders strong { color: var(--ink); }
+
+/* ── MACHINE PANEL ───────────────────────────── */
+.pl .panel {
+  background: var(--steel-1);
+  border: 1px solid var(--line);
+  overflow-x: auto;
+}
+.pl .panel-grid { min-width: 780px; }
+.pl .prow {
+  display: grid;
+  grid-template-columns: 1.5fr 74px repeat(4, 62px) 1.35fr;
+  align-items: center;
+  gap: .6rem;
+  padding: .85rem 1.1rem;
+  border-bottom: 1px solid var(--steel-3);
+}
+.pl .prow:last-child { border-bottom: none; }
+.pl .prow.head {
+  background: var(--steel-3);
+  border-bottom: 2px solid var(--steel-4);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .6rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+}
+.pl .prow.head > :first-child, .pl .prow.head > :last-child { text-align: left; }
+.pl .prow.sel { background: rgba(242,195,29,.07); box-shadow: inset 4px 0 0 var(--yellow); }
+.pl .prow.dead { opacity: .72; }
+.pl .machine { display: flex; align-items: center; gap: .55rem; }
+.pl .machine img { width: 17px; height: 17px; border-radius: 3px; flex: none; background: #fff; }
+.pl .machine .nm {
+  font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1rem;
+  color: #fff; text-transform: uppercase; letter-spacing: .01em;
+}
+.pl .machine .nm a { color: #fff; border-bottom-color: rgba(255,255,255,.25); }
+.pl .machine .nm a:hover { color: var(--yellow); border-bottom-color: var(--yellow); }
+.pl .stars {
+  font-family: 'IBM Plex Mono', monospace; font-size: .72rem; color: var(--ink-faint);
+  text-align: center; white-space: nowrap;
+}
+.pl .lamp {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: .22rem;
+}
+.pl .bulb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--off);
+  border: 1px solid #10151a;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.7);
+}
+.pl .bulb.on    { background: var(--green); box-shadow: 0 0 9px rgba(53,208,127,.75), inset 0 1px 1px rgba(255,255,255,.35); }
+.pl .bulb.alt   { background: var(--cyan);  box-shadow: 0 0 9px rgba(79,209,224,.75), inset 0 1px 1px rgba(255,255,255,.35); }
+.pl .bulb.part  { background: var(--amber); box-shadow: 0 0 9px rgba(255,158,44,.7),  inset 0 1px 1px rgba(255,255,255,.3); }
+.pl .lamp .cap {
+  font-family: 'IBM Plex Mono', monospace; font-size: .52rem;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint);
+}
+.pl .verdict { font-size: .82rem; color: var(--ink-dim); line-height: 1.4; }
+.pl .verdict b { color: var(--yellow); font-family: 'Oswald', sans-serif; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase; display: block; font-size: .8rem; }
+.pl .verdict.no b { color: var(--red); }
+.pl .verdict.mid b { color: var(--ink); }
+
+.pl .rail-head {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  background: rgba(255,82,82,.09);
+  border-top: 1px solid var(--red);
+  border-bottom: 1px solid var(--steel-3);
+  padding: .7rem 1.1rem;
+}
+.pl .rail-head .tag {
+  font-family: 'Oswald', sans-serif; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; font-size: .82rem; color: var(--red);
+}
+.pl .rail-head .why { font-size: .8rem; color: var(--ink-dim); font-family: 'IBM Plex Mono', monospace; }
+
+.pl .loto {
+  margin-top: 1.4rem;
+  display: grid; grid-template-columns: 190px 1fr; gap: 1.4rem; align-items: center;
+  background: var(--steel-2); border: 1px solid var(--line); padding: 1.3rem 1.4rem;
+}
+.pl .tagout {
+  background: var(--red); color: #fff;
+  font-family: 'Oswald', sans-serif; font-weight: 700; text-transform: uppercase;
+  text-align: center; padding: .9rem .6rem; line-height: 1.15;
+  transform: rotate(-2deg);
+  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  border: 2px dashed rgba(255,255,255,.5);
+}
+.pl .tagout .big { display: block; font-size: 1.15rem; letter-spacing: .04em; }
+.pl .tagout .small { display: block; font-size: .62rem; letter-spacing: .16em; opacity: .9; margin-top: .25rem; }
+.pl .loto p { margin: 0 0 .6rem; font-size: .92rem; color: var(--ink-dim); }
+.pl .loto p:last-child { margin: 0; }
+.pl blockquote.quote {
+  margin: 0 0 .8rem;
+  border-left: 3px solid var(--red);
+  padding-left: .9rem;
+  font-style: italic;
+  color: var(--ink);
+  font-size: .95rem;
+}
+
+.pl .drift {
+  margin-top: 1.4rem;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--cyan);
+  background: var(--steel-1);
+  padding: 1.2rem 1.4rem;
+}
+.pl .drift h3 {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; font-weight: 600;
+  font-size: 1rem; color: var(--cyan); margin: 0 0 .6rem;
+}
+.pl .drift p { margin: 0; font-size: .92rem; color: var(--ink-dim); }
+
+/* ── THE LINE ────────────────────────────────── */
+.pl .belt { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 1.6rem; }
+.pl .station {
+  background: var(--steel-2);
+  border: 1px solid var(--line);
+  border-right: none;
+  padding: 1.1rem;
+  position: relative;
+}
+.pl .station:last-child { border-right: 1px solid var(--line); }
+.pl .station::after {
+  content: '▶';
+  position: absolute; right: -9px; top: 50%; transform: translateY(-50%);
+  color: var(--yellow); font-size: .8rem; z-index: 3;
+  background: var(--steel-0); padding: 2px 0;
+}
+.pl .station:last-child::after { content: none; }
+.pl .station .st-id {
+  font-family: 'IBM Plex Mono', monospace; font-size: .62rem; letter-spacing: .14em;
+  color: var(--yellow); margin-bottom: .4rem;
+}
+.pl .station h4 {
+  font-family: 'Oswald', sans-serif; font-weight: 600; text-transform: uppercase;
+  font-size: .98rem; margin: 0 0 .45rem; color: #fff;
+}
+.pl .station p { margin: 0; font-size: .82rem; color: var(--ink-dim); }
+
+.pl .bins { display: grid; grid-template-columns: repeat(4, 1fr); gap: .9rem; margin-top: 1.5rem; }
+.pl .bin {
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2));
+  border: 1px solid var(--steel-4);
+  border-top: 4px solid var(--green);
+  padding: 1.1rem;
+  text-align: center;
+}
+.pl .bin .glyph { font-size: 2rem; line-height: 1; color: var(--green); display: block; margin-bottom: .5rem; }
+.pl .bin h4 {
+  font-family: 'Oswald', sans-serif; font-weight: 600; text-transform: uppercase;
+  font-size: .95rem; margin: 0 0 .3rem; color: #fff;
+}
+.pl .bin p { margin: 0; font-size: .76rem; color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── CODE ────────────────────────────────────── */
+.pl .prog { margin-top: 1.4rem; border: 1px solid var(--line); background: #0b0e11; }
+.pl .prog-tab {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--steel-3);
+  border-bottom: 1px solid var(--line);
+  padding: .5rem .9rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+}
+.pl .prog-tab .fname { color: var(--yellow); letter-spacing: .04em; }
+.pl .prog-tab .fnote { color: var(--ink-faint); text-align: right; }
+.pl .prog pre {
+  margin: 0;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: .82rem;
+  line-height: 1.72;
+  color: #d7e3ea;
+  tab-size: 2;
+  white-space: pre;
+}
+.pl .prog pre::-webkit-scrollbar { height: 10px; }
+.pl .prog pre::-webkit-scrollbar-thumb { background: var(--steel-4); }
+.pl .prog pre::-webkit-scrollbar-track { background: var(--steel-1); }
+.pl .c { color: #63798a; font-style: italic; }
+.pl .k { color: #ff9e2c; }
+.pl .s { color: #8fd98a; }
+.pl .p { color: #4fd1e0; }
+.pl .n { color: #d7a3ff; }
+
+/* ── ERGONOMICS ──────────────────────────────── */
+.pl .ergs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .9rem; margin-top: 1.5rem; }
+.pl .erg {
+  background: var(--steel-1); border: 1px solid var(--line); padding: 1rem 1.05rem;
+  border-top: 3px solid var(--cyan);
+}
+.pl .erg h4 {
+  font-family: 'Oswald', sans-serif; font-weight: 600; text-transform: uppercase;
+  font-size: .88rem; margin: 0 0 .4rem; color: var(--cyan);
+}
+.pl .erg p { margin: 0; font-size: .82rem; color: var(--ink-dim); }
+.pl .sharp {
+  margin-top: 1.1rem;
+  background: rgba(255,158,44,.07);
+  border: 1px solid rgba(255,158,44,.35);
+  border-left: 5px solid var(--amber);
+  padding: 1rem 1.2rem;
+  font-size: .89rem;
+  color: var(--ink-dim);
+}
+.pl .sharp b { color: var(--amber); font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── OUTPUT GAUGE / FINDING ──────────────────── */
+.pl .finding {
+  margin-top: 1.6rem;
+  background: var(--yellow);
+  color: #14181d;
+  padding: 2.4rem 2rem;
+}
+.pl .finding .k {
+  font-family: 'IBM Plex Mono', monospace; font-size: .7rem; letter-spacing: .2em;
+  text-transform: uppercase; color: #6b5a06; margin-bottom: .9rem;
+}
+.pl .finding h3 {
+  font-family: 'Oswald', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: clamp(1.6rem, 4.2vw, 2.7rem); line-height: 1.06; margin: 0 0 1rem;
+  color: #14181d; max-width: 22ch;
+}
+.pl .finding p { margin: 0 0 .7rem; font-size: 1rem; color: #2b2a13; max-width: 70ch; }
+.pl .finding p:last-child { margin-bottom: 0; }
+.pl .finding a { color: #14181d; border-bottom: 1px solid rgba(20,24,29,.4); font-weight: 600; }
+.pl .finding sup a { color: #6b5a06; border-bottom: none; }
+.pl .finding blockquote {
+  margin: 1.1rem 0;
+  border-left: 4px solid #14181d;
+  padding-left: 1rem;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  color: #14181d;
+}
+
+.pl .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+.pl .path { background: var(--steel-1); border: 1px solid var(--line); padding: 1.2rem 1.3rem; }
+.pl .path.no { border-top: 4px solid var(--red); }
+.pl .path.yes { border-top: 4px solid var(--green); }
+.pl .path h4 {
+  font-family: 'Oswald', sans-serif; font-weight: 600; text-transform: uppercase;
+  font-size: 1.02rem; margin: 0 0 .55rem; color: #fff;
+}
+.pl .path.no h4 { color: var(--red); }
+.pl .path.yes h4 { color: var(--green); }
+.pl .path p { margin: 0; font-size: .89rem; color: var(--ink-dim); }
+.pl .residue {
+  margin-top: 1.4rem; background: var(--steel-2); border: 1px solid var(--line);
+  padding: 1.3rem 1.4rem;
+}
+.pl .residue .k {
+  font-family: 'IBM Plex Mono', monospace; font-size: .66rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: .7rem;
+}
+.pl .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pl .chip {
+  border: 1px dashed var(--steel-4); background: var(--steel-1);
+  color: var(--ink-dim);
+  font-family: 'IBM Plex Mono', monospace; font-size: .78rem;
+  padding: .3rem .65rem;
+}
+.pl .residue p { margin: .9rem 0 0; font-size: .89rem; color: var(--ink-dim); }
+
+/* ── MANIFEST ────────────────────────────────── */
+.pl .manifest { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: 1.4rem; }
+.pl .part {
+  display: grid; grid-template-columns: 30px 18px 1fr; gap: .6rem; align-items: start;
+  background: var(--steel-1); border: 1px solid var(--steel-3);
+  padding: .6rem .75rem;
+}
+.pl .part .pn {
+  font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--yellow);
+  padding-top: .1rem;
+}
+.pl .part img { width: 16px; height: 16px; border-radius: 3px; margin-top: .18rem; background: #fff; }
+.pl .part .pc { font-size: .8rem; color: var(--ink-dim); line-height: 1.45; }
+.pl .part .pc a { color: var(--ink); border-bottom-color: var(--steel-4); }
+.pl .part .pc a:hover { color: var(--cyan); }
+.pl .part .meta {
+  font-family: 'IBM Plex Mono', monospace; font-size: .62rem;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint);
+  margin-top: .25rem;
+}
+.pl .part .meta .st { color: var(--yellow); }
+
+/* ── ADJACENT LINES ──────────────────────────── */
+.pl .adj { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; margin-top: 1.4rem; }
+.pl .adj-card {
+  background: var(--steel-1); border: 1px solid var(--line);
+  border-left: 4px solid var(--steel-4);
+  padding: 1rem 1.1rem;
+}
+.pl .adj-card .d {
+  font-family: 'IBM Plex Mono', monospace; font-size: .6rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+}
+.pl .adj-card h4 { margin: 0 0 .4rem; font-size: .95rem; font-weight: 600; line-height: 1.3; }
+.pl .adj-card h4 a { color: #fff; border-bottom: none; }
+.pl .adj-card h4 a:hover { color: var(--yellow); }
+.pl .adj-card p { margin: 0; font-size: .8rem; color: var(--ink-faint); line-height: 1.5; }
+.pl .parent-card {
+  margin-top: 1.4rem;
+  background: var(--steel-2); border: 1px solid var(--yellow-dk);
+  padding: 1.2rem 1.3rem;
+}
+.pl .parent-card .d {
+  font-family: 'IBM Plex Mono', monospace; font-size: .62rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--yellow); margin-bottom: .4rem;
+}
+.pl .parent-card h4 { margin: 0 0 .35rem; font-size: 1.05rem; }
+.pl .parent-card h4 a { color: #fff; border-bottom: none; }
+.pl .parent-card h4 a:hover { color: var(--yellow); }
+.pl .parent-card p { margin: 0; font-size: .86rem; color: var(--ink-dim); }
+
+/* ── COLOPHON ────────────────────────────────── */
+.pl .colophon {
+  margin-top: 3.5rem;
+  border-top: 1px solid var(--steel-3);
+  padding: 1.6rem 0 3rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .pl .intake, .pl .paths, .pl .manifest, .pl .loto { grid-template-columns: 1fr; }
+  .pl .belt, .pl .bins, .pl .ergs, .pl .adj { grid-template-columns: 1fr 1fr; }
+  .pl .station { border-right: 1px solid var(--line); }
+  .pl .station::after { content: none; }
+  .pl .gate { grid-template-columns: 1fr; gap: .8rem; }
+}
+@media (max-width: 560px) {
+  .pl .belt, .pl .bins, .pl .ergs, .pl .adj { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="pl">
+
+<div class="hazard"></div>
+
+<!-- ═══ NAMEPLATE ═══════════════════════════════════ -->
+<header class="plate">
+  <img src="pipeline/images/plant-floor.webp" alt="Panoramic view of a vehicle assembly plant floor">
+  <div class="plate-in">
+    <div class="shell">
+      <div class="stencil">
+        Itenium · Forge <span class="sep">▸</span> Line 01 <span class="sep">▸</span> API Client Codegen
+      </div>
+      <h1 class="line-title">One document in.<br><em>Four products out.</em></h1>
+      <p class="subtitle">
+        Generating the <code>itenium-ui</code> API client from Forge's OpenAPI document.
+        The .NET spec enters at the intake; typed hooks, query keys, MSW handlers and Zod
+        schemas come off the end of the line.
+      </p>
+      <div class="specstrip">
+        <span>Depth: Survey</span>
+        <span>30 Sources</span>
+        <span>8 min</span>
+        <span>2026-07-13</span>
+        <span>Nx 21 · React 19 · Vite</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ═══ PLACARD ═══════════════════════════════════ -->
+  <div class="placard">
+    <div class="placard-tag">Machine selected</div>
+    <h2>Orval, <code style="font-size:.8em">client: 'react-query'</code></h2>
+    <p>
+      It is the only generator that emits typed hooks, query-key factories, <strong>MSW handlers</strong>
+      and <strong>Zod</strong> schemas from a single config <sup><a href="https://orval.dev/docs/reference/configuration/output/">[5]</a></sup>
+      — and MSW + TDD is exactly the Jest/Testing-Library setup itenium-ui already has.
+    </p>
+    <p>
+      <a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">Hey API</a> ⭐ 5.1k is the runner-up and the better
+      <em>architectural</em> fit — it emits framework-agnostic <code>queryOptions</code>/<code>mutationOptions</code>
+      instead of hooks <sup><a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">[7]</a></sup>. Take it if you dislike one-hook-per-endpoint.
+      Do <strong>not</strong> build on <code>openapi-fetch</code>/<code>openapi-react-query</code>: their maintainer put them in
+      <strong>maintenance mode</strong> for 2026 <sup><a href="https://github.com/openapi-ts/openapi-typescript/discussions/2559">[2]</a></sup>.
+    </p>
+    <p>
+      And the big-picture point: once the client <em>and</em> its query hooks are generated, "which state manager"
+      shrinks to "which 200-line client-state store".
+    </p>
+  </div>
+
+  <!-- ═══ 01 INTAKE ═════════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">01</span>
+      <h2 class="sec">Intake — what enters the line</h2>
+      <span class="sec-note">forge.json</span>
+    </div>
+    <p class="lede">
+      The raw material is the OpenAPI document Forge produces. Two producers are available, and the
+      choice of producer is <em>not</em> coupled to the choice of generator — Orval consumes both.
+      What the producer choice changes is <em>when</em> you migrate.
+    </p>
+    <div class="intake">
+      <div class="hopper">
+        <div class="kicker">Hopper · Feedstock</div>
+        <h3>The document</h3>
+        <p>
+          Point <code>input.target</code> at the on-disk <code>forge.json</code> emitted by <code>dotnet build</code>
+          via <code>Microsoft.Extensions.ApiDescription.Server</code> <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">[10]</a></sup>.
+        </p>
+        <p>CI never has to boot the API to regenerate the client. That is the single biggest CI ergonomics win available here.</p>
+      </div>
+      <div class="hopper ok">
+        <div class="kicker">Producer A · Current</div>
+        <h3>Swashbuckle</h3>
+        <p>
+          Dropped from the .NET template but <strong>not deprecated</strong>; v10 supports .NET 10 <sup><a href="https://codewithmukesh.com/blog/dotnet-swagger-alternatives-openapi/">[22]</a></sup>.
+          Forge's <code>AddForgeSwagger()</code> is fine.
+        </p>
+        <p>Emits <code>oneOf</code> + a real <code>discriminator</code> for polymorphic DTOs — which is the whole ballgame (see Gate 04).</p>
+      </div>
+      <div class="hopper warn">
+        <div class="kicker">Producer B · Built-in</div>
+        <h3>Microsoft.AspNetCore.OpenApi</h3>
+        <p>
+          Buys OpenAPI <strong>3.1 by default</strong> (3.2 in .NET 11) and <strong>build-time</strong> document generation <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">[10]</a></sup>.
+        </p>
+        <p>
+          Blocked by the missing <code>discriminator</code> object on polymorphic types — open, backlogged <sup><a href="https://github.com/dotnet/aspnetcore/issues/57982">[9]</a></sup>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 02 QC GATES ═══════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">02</span>
+      <h2 class="sec">Quality-control gates — the .NET quirks</h2>
+      <span class="sec-note">inbound material inspection · 6 gates</span>
+    </div>
+    <p class="lede">
+      Every gate inspects one thing the .NET side does to the document, and reports what it costs downstream.
+      <strong>Two of them cannot be fixed in the generator config</strong> — they are orders for the backend.
+      Clear those first; everything else is a flag in <code>orval.config.ts</code>.
+    </p>
+
+    <div class="band">
+      <img src="pipeline/images/qc-inspection.webp" alt="A worker performing a quality-control inspection inside a steel pipe, Italsider Taranto, 1963">
+      <div class="band-cap">Inbound inspection · 6 gates · 2 holds</div>
+    </div>
+
+    <div class="gates">
+
+      <div class="gate pass">
+        <div>
+          <div class="gate-id">Gate 01</div>
+          <div class="gate-name"><code>System.Text.Json</code> casing</div>
+          <span class="status pass">Pass</span>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">In the document</div>
+          <p>Schema property names are already camelCase; the doc reflects <code>JsonNamingPolicy</code> <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0">[11]</a></sup>.</p>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">Codegen consequence</div>
+          <p><strong>Non-issue.</strong> No <code>namingConvention</code> gymnastics needed. ⚠ MVC <code>AddJsonOptions</code> naming policies are <em>not</em> read by the built-in generator — it reads <code>Http.Json.JsonOptions</code>.</p>
+        </div>
+      </div>
+
+      <div class="gate act">
+        <div>
+          <div class="gate-id">Gate 02</div>
+          <div class="gate-name">Enums</div>
+          <span class="status act">Action required</span>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">In the document</div>
+          <p>
+            No converter → <code>type: integer</code> <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0">[11]</a></sup>.
+            With <code>JsonStringEnumConverter</code> → string enum values (⚠ and even then .NET has emitted them without a type <sup><a href="https://github.com/dotnet/aspnetcore/issues/61303">[12]</a></sup>).
+          </p>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">Codegen consequence</div>
+          <p>
+            Then Orval's <code>override.enumGenerationType: 'enum' | 'const'</code> <sup><a href="https://orval.dev/docs/versions/v8/">[6]</a></sup>
+            gives real names instead of <code>0 | 1 | 2</code>.
+          </p>
+          <div class="stamp">Add JsonStringEnumConverter — Forge side, first</div>
+        </div>
+      </div>
+
+      <div class="gate pass">
+        <div>
+          <div class="gate-id">Gate 03</div>
+          <div class="gate-name"><code>DateTime</code></div>
+          <span class="status pass">Pass · one flag</span>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">In the document</div>
+          <p><code>type: string, format: date-time</code>.</p>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">Codegen consequence</div>
+          <p>Orval <code>override.useDates: true</code> converts to real <code>Date</code> objects <sup><a href="https://orval.dev/docs/reference/configuration/output/">[5]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="gate hold">
+        <div>
+          <div class="gate-id">Gate 04</div>
+          <div class="gate-name"><code>[JsonPolymorphic]</code> / <code>[JsonDerivedType]</code></div>
+          <span class="status hold">Hold — line stop</span>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">In the document</div>
+          <p>
+            Swashbuckle emits <code>oneOf</code> + <code>discriminator</code>. The <strong>built-in</strong> .NET generator emits
+            <code>anyOf</code> with renamed derived schemas and <strong>no discriminator object</strong> — open, backlogged <sup><a href="https://github.com/dotnet/aspnetcore/issues/57982">[9]</a></sup>.
+          </p>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">Codegen consequence</div>
+          <p>
+            Without a <code>discriminator</code>, <strong>no generator can emit a TS discriminated union</strong>.
+            <a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">Hey API</a> only shipped real discriminated-union output in 2026 <sup><a href="https://github.com/hey-api/hey-api/issues/3270">[8]</a></sup>.
+          </p>
+          <div class="stamp red">Stay on Swashbuckle — do not migrate the producer yet</div>
+        </div>
+      </div>
+
+      <div class="gate act">
+        <div>
+          <div class="gate-id">Gate 05</div>
+          <div class="gate-name"><code>ProblemDetails</code></div>
+          <span class="status act">Action required</span>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">In the document</div>
+          <p>
+            Only lands as a schema if responses are annotated (<code>ProducesResponseType</code> / <code>TypedResults</code>) <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0">[11]</a></sup>;
+            Swashbuckle has misses here <sup><a href="https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2944">[28]</a></sup>.
+          </p>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">Codegen consequence</div>
+          <p>
+            Orval's custom mutator exports an <code>ErrorType</code> alias that <strong>overrides the error type of every generated hook</strong> <sup><a href="https://orval.dev/docs/guides/custom-axios/">[18]</a></sup>
+            → one line makes <code>error</code> a <code>ProblemDetails</code> everywhere.
+          </p>
+        </div>
+      </div>
+
+      <div class="gate act">
+        <div>
+          <div class="gate-id">Gate 06</div>
+          <div class="gate-name">Nullability</div>
+          <span class="status act">Watch</span>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">In the document</div>
+          <p>
+            OpenAPI 3.0 <code>nullable: true</code>. .NET 10 emits <strong>3.1</strong> by default <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">[10]</a></sup>,
+            where nullability is <code>type: [string, 'null']</code>.
+          </p>
+        </div>
+        <div class="gate-col">
+          <div class="lbl">Codegen consequence</div>
+          <p>
+            ⚠ Orval v8 had a bug emitting invalid TS for nullable-only schemas <sup><a href="https://github.com/orval-labs/orval/issues/3149">[19]</a></sup> (fixed Mar 2026).
+            Orval v8 specifically improved 3.1 compliance <sup><a href="https://orval.dev/docs/versions/v8/">[6]</a></sup>; NSwag's 3.1 support is still partial <sup><a href="https://codingdroplets.com/kiota-vs-nswag-vs-refitter-dotnet-typed-api-client-2026">[13]</a></sup>.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="orders">
+      <h3>Work orders for the backend — clear before the line runs</h3>
+      <ol>
+        <li><strong>Add <code>JsonStringEnumConverter</code> on the Forge side.</strong> Without it every enum arrives as <code>type: integer</code> and no generator can name your values.</li>
+        <li><strong>Stay on Swashbuckle.</strong> The missing <code>discriminator</code> in .NET 10's built-in generator is what blocks migration — not the generator you pick on the frontend. If Forge has (or wants) <code>[JsonPolymorphic]</code> DTOs, hold, or write a document transformer to re-add the discriminator.</li>
+        <li><strong>Annotate error responses</strong> (<code>ProducesResponseType</code> / <code>TypedResults</code>) so <code>ProblemDetails</code> actually lands as a schema for the mutator to bind to.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ═══ 03 MACHINE SELECTION ══════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">03</span>
+      <h2 class="sec">Machine selection panel</h2>
+      <span class="sec-note">four output ports · lamp lit = the machine emits it</span>
+    </div>
+    <p class="lede">
+      The only question that matters for a React frontend: <em>which output ports does the machine actually have?</em>
+      Everything a generator does not emit, you hand-write. Read the lamps.
+    </p>
+
+    <div class="panel">
+      <div class="panel-grid">
+
+        <div class="prow head">
+          <div>Machine</div>
+          <div>Stars</div>
+          <div>Fetch<br>binding</div>
+          <div>Query<br>keys</div>
+          <div>MSW<br>mocks</div>
+          <div>Zod /<br>Valibot</div>
+          <div>Verdict for Forge</div>
+        </div>
+
+        <div class="prow sel">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt="">
+            <span class="nm"><a href="https://orval.dev/docs/guides/react-query/">Orval</a></span>
+          </div>
+          <div class="stars">⭐ 6.2k</div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Hooks</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Factory</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">+Faker</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Zod</span></div>
+          <div class="verdict"><b>◆ Winner — 4/4 ports</b>TanStack / SWR / Vue / Svelte / Solid / Angular Query; per-op key factory; auto-detects Zod v3/v4 <sup><a href="https://orval.dev/docs/guides/react-query/">[4]</a></sup></div>
+        </div>
+
+        <div class="prow">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=heyapi.dev&sz=128" alt="">
+            <span class="nm"><a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">Hey API</a></span>
+          </div>
+          <div class="stars">⭐ 5.1k</div>
+          <div class="lamp"><span class="bulb alt"></span><span class="cap">Options</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Normal.</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Plugin</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Both</span></div>
+          <div class="verdict mid"><b>Strong runner-up</b>Emits <code>queryOptions</code>/<code>mutationOptions</code>, not hooks — arguably the <em>better</em> port <sup><a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">[7]</a></sup></div>
+        </div>
+
+        <div class="prow">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=kubb.dev&sz=128" alt="">
+            <span class="nm"><a href="https://kubb.dev/docs/5.x/guide/comparison">Kubb</a></span>
+          </div>
+          <div class="stars">⭐ 1.8k</div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Hooks</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Yes</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Yes</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Yes</span></div>
+          <div class="verdict mid"><b>Over-engineered</b>Plugin/AST-based, every output a separate plugin — too much machine for 2 apps <sup><a href="https://kubb.dev/docs/5.x/guide/comparison">[3]</a></sup></div>
+        </div>
+
+        <div class="prow">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=redux-toolkit.js.org&sz=128" alt="">
+            <span class="nm"><a href="https://redux-toolkit.js.org/rtk-query/usage/code-generation">RTK Query codegen</a></span>
+          </div>
+          <div class="stars">⭐ 11k</div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Hooks</span></div>
+          <div class="lamp"><span class="bulb part"></span><span class="cap">Tags</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="verdict mid"><b>Only if Redux already</b><code>hooks: true</code> emits <code>useQuery</code>/<code>useMutation</code> <sup><a href="https://redux-toolkit.js.org/rtk-query/usage/code-generation">[16]</a></sup>; tag invalidation, not keys. No MSW, no Zod.</div>
+        </div>
+
+        <div class="prow">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="nm"><a href="https://github.com/OpenAPI-Qraft/openapi-qraft">openapi-qraft</a></span>
+          </div>
+          <div class="stars">⭐ 96</div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Proxy</span></div>
+          <div class="lamp"><span class="bulb on"></span><span class="cap">Yes</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="verdict no"><b>Too small to bet on</b>Proxy-based TanStack hooks, but 96 stars is not a foundation <sup><a href="https://github.com/OpenAPI-Qraft/openapi-qraft">[27]</a></sup></div>
+        </div>
+
+        <div class="prow dead">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=openapi-ts.dev&sz=128" alt="">
+            <span class="nm"><a href="https://openapi-ts.dev/openapi-react-query/">openapi-typescript</a></span>
+          </div>
+          <div class="stars">⭐ 8.2k</div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">Wrapper</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="verdict no"><b>⚠ Satellites locked out</b>Excellent as a <em>types-only floor</em>. But <code>openapi-react-query</code> is a 1 kB runtime wrapper — no codegen, no per-op hooks or keys <sup><a href="https://openapi-ts.dev/openapi-react-query/">[24]</a></sup></div>
+        </div>
+
+        <div class="rail-head">
+          <span class="tag">✕ Rejected rail — 0/4 ports</span>
+          <span class="why">// no hook · no query key · no mock handler · no schema</span>
+        </div>
+
+        <div class="prow dead">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+            <span class="nm">NSwag</span>
+          </div>
+          <div class="stars">⭐ 7.3k</div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">Classes</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="verdict no"><b>Not in the running</b>Partial OpenAPI 3.1; can produce incorrect models for complex schemas <sup><a href="https://codingdroplets.com/kiota-vs-nswag-vs-refitter-dotnet-typed-api-client-2026">[13]</a></sup></div>
+        </div>
+
+        <div class="prow dead">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt="">
+            <span class="nm"><a href="https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/typescript">Kiota</a></span>
+          </div>
+          <div class="stars">⭐ 3.8k</div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">Builders</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="verdict no"><b>Not in the running</b>TypeScript support is officially <strong>in preview</strong>; source-breaking changes expected <sup><a href="https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/typescript">[14]</a></sup></div>
+        </div>
+
+        <div class="prow dead">
+          <div class="machine">
+            <img src="https://www.google.com/s2/favicons?domain=openapi-generator.tech&sz=128" alt="">
+            <span class="nm">openapi-generator</span>
+          </div>
+          <div class="stars">⭐ 26k</div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="lamp"><span class="bulb"></span><span class="cap">—</span></div>
+          <div class="verdict no"><b>Not in the running</b>Java toolchain, template sprawl, no React story <sup><a href="https://github.com/microsoft/kiota/discussions/3966">[15]</a></sup></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="loto">
+      <div class="tagout">
+        <span class="big">Do not operate</span>
+        <span class="small">Maintenance mode · 2025-12-29</span>
+      </div>
+      <div>
+        <blockquote class="quote">
+          "openapi-fetch, openapi-react-query, and openapi-metadata will be put into maintenance mode and won't get
+          future updates, so we can put 100% of efforts back into openapi-typescript."
+          <sup><a href="https://github.com/openapi-ts/openapi-typescript/discussions/2559">[2]</a></sup>
+        </blockquote>
+        <p>
+          <code>openapi-fetch</code> + <code>openapi-react-query</code> was the fashionable 2025 answer. They still work — but
+          building a greenfield data layer on a package that is explicitly frozen is a bad trade, especially when the
+          alternatives are <em>more</em> capable, not less.
+        </p>
+        <p>
+          <a href="https://openapi-ts.dev/openapi-react-query/">openapi-typescript</a> itself (types only) remains excellent and is worth keeping in mind as the floor.
+        </p>
+      </div>
+    </div>
+
+    <div class="drift">
+      <h3>The other 2026 shift: from hooks to options objects</h3>
+      <p>
+        The ecosystem is moving from <em>generated hooks</em> to <em>generated options objects</em> — <code>queryOptions()</code>
+        you pass to <code>useQuery</code> yourself <sup><a href="https://saschb2b.com/blog/typesafe-api-codegen-2026">[1]</a></sup>. Hey API does this <sup><a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">[7]</a></sup>;
+        Orval still generates one <code>useXxx</code> hook per path <sup><a href="https://orval.dev/docs/guides/react-query/">[4]</a></sup>. Options objects compose better (suspense, prefetch,
+        <code>useQueries</code>) and are framework-agnostic. <strong>This is Orval's one genuine architectural weakness, and it is the
+        only reason to pick Hey API instead.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ 04 THE LINE ═══════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">04</span>
+      <h2 class="sec">The line</h2>
+      <span class="sec-note">4 stations · 4 output bins</span>
+    </div>
+
+    <div class="band">
+      <img src="pipeline/images/conveyor.webp" alt="Overhead chain conveyor system feeding an assembly line">
+      <div class="band-cap">Chain conveyor · spec → transform → generate → bind</div>
+    </div>
+
+    <div class="belt">
+      <div class="station">
+        <div class="st-id">ST-01</div>
+        <h4>Intake</h4>
+        <p><code>forge.json</code> on disk, dropped by <code>dotnet build</code>. No API boot required.</p>
+      </div>
+      <div class="station">
+        <div class="st-id">ST-02</div>
+        <h4>Transform</h4>
+        <p><code>input.override.transformer</code> mutates the document <em>before</em> validation <sup><a href="https://orval.dev/docs/reference/configuration/input/">[23]</a></sup> — the right place to force a discriminator or rename an <code>operationId</code> without forking Forge.</p>
+      </div>
+      <div class="station">
+        <div class="st-id">ST-03</div>
+        <h4>Generate</h4>
+        <p><code>client: 'react-query'</code>, <code>mode: 'tags-split'</code>. One config, four outputs.</p>
+      </div>
+      <div class="station">
+        <div class="st-id">ST-04</div>
+        <h4>Bind</h4>
+        <p>The custom mutator <code>forgeFetch</code> types every hook's <code>error</code> as <code>ProblemDetails</code> <sup><a href="https://orval.dev/docs/guides/custom-axios/">[18]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="bins">
+      <div class="bin">
+        <span class="glyph">⚙</span>
+        <h4>Typed hooks</h4>
+        <p>useXxx() per op</p>
+      </div>
+      <div class="bin">
+        <span class="glyph">🔑</span>
+        <h4>Query keys</h4>
+        <p>getXxxQueryKey()</p>
+      </div>
+      <div class="bin">
+        <span class="glyph">🧪</span>
+        <h4>MSW handlers</h4>
+        <p>+ Faker data</p>
+      </div>
+      <div class="bin">
+        <span class="glyph">🛡</span>
+        <h4>Zod schemas</h4>
+        <p>*.zod.ts</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 05 THE PROGRAM ════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">05</span>
+      <h2 class="sec">The machine program</h2>
+      <span class="sec-note">two entries: client + hooks + mocks, and Zod</span>
+    </div>
+    <p class="lede">
+      All options below are from Orval's own reference <sup><a href="https://orval.dev/docs/reference/configuration/output/">[5]</a></sup>
+      <sup><a href="https://orval.dev/docs/reference/configuration/input/">[23]</a></sup>
+      <sup><a href="https://orval.dev/docs/versions/v8/">[6]</a></sup>.
+    </p>
+
+    <div class="prog">
+      <div class="prog-tab">
+        <span class="fname">orval.config.ts</span>
+        <span class="fnote">workspace root</span>
+      </div>
+      <pre><span class="k">import</span> { defineConfig } <span class="k">from</span> <span class="s">'orval'</span>;
+
+<span class="k">const</span> spec = <span class="s">'./openapi/forge.json'</span>; <span class="c">// emitted by `dotnet build` (Microsoft.Extensions.ApiDescription.Server)</span>
+
+<span class="k">export default</span> <span class="n">defineConfig</span>({
+  forge: {
+    input: {
+      target: spec,
+      override: {
+        <span class="c">// Patch .NET quirks before validation: e.g. re-add the polymorphic discriminator.</span>
+        transformer: <span class="s">'./tools/orval/forge-transformer.ts'</span>,
+      },
+    },
+    output: {
+      mode: <span class="s">'tags-split'</span>,
+      target: <span class="s">'libs/api/src/generated/forge.ts'</span>,
+      schemas: <span class="s">'libs/api/src/generated/model'</span>,
+      client: <span class="s">'react-query'</span>,
+      httpClient: <span class="s">'fetch'</span>,
+      clean: <span class="p">true</span>,
+      formatter: <span class="s">'prettier'</span>,
+      baseUrl: { runtime: <span class="s">'import.meta.env.VITE_API_URL'</span> },
+      mock: {
+        generators: [
+          { type: <span class="s">'msw'</span>, delay: <span class="p">0</span>, baseUrl: <span class="s">'/api'</span> },
+          { type: <span class="s">'faker'</span>, schemas: <span class="p">true</span> },
+        ],
+      },
+      override: {
+        mutator: {
+          path: <span class="s">'./libs/api/src/http/forge-fetch.ts'</span>,
+          name: <span class="s">'forgeFetch'</span>,
+        },
+        useDates: <span class="p">true</span>,               <span class="c">// DateTime -&gt; Date</span>
+        enumGenerationType: <span class="s">'enum'</span>,   <span class="c">// replaces v7's useNativeEnums</span>
+        query: {
+          useQuery: <span class="p">true</span>,
+          useMutation: <span class="p">true</span>,
+          signal: <span class="p">true</span>,
+        },
+        operations: {
+          <span class="c">// ForgePagedResult endpoints -&gt; infinite queries, keyed on ForgePageQuery.page</span>
+          listDocuments: {
+            query: { useInfinite: <span class="p">true</span>, useInfiniteQueryParam: <span class="s">'page'</span> },
+          },
+        },
+      },
+    },
+  },
+
+  forgeZod: {
+    input: { target: spec },
+    output: {
+      mode: <span class="s">'tags-split'</span>,
+      target: <span class="s">'libs/api/src/generated/zod'</span>,
+      client: <span class="s">'zod'</span>,
+      fileExtension: <span class="s">'.zod.ts'</span>,
+      formatter: <span class="s">'prettier'</span>,
+    },
+  },
+});</pre>
+    </div>
+
+    <div class="prog">
+      <div class="prog-tab">
+        <span class="fname">libs/api/src/http/forge-fetch.ts</span>
+        <span class="fnote">the mutator — makes every hook's error a ProblemDetails <sup><a href="https://orval.dev/docs/guides/custom-axios/">[18]</a></sup></span>
+      </div>
+      <pre><span class="k">import type</span> { ProblemDetails } <span class="k">from</span> <span class="s">'../generated/model'</span>;
+
+<span class="k">export const</span> forgeFetch = <span class="k">async</span> &lt;T&gt;(
+  url: <span class="p">string</span>,
+  init: RequestInit &amp; { params?: Record&lt;<span class="p">string</span>, <span class="p">unknown</span>&gt; },
+): Promise&lt;T&gt; =&gt; {
+  <span class="k">const</span> res = <span class="k">await</span> <span class="n">fetch</span>(<span class="s">`${import.meta.env.VITE_API_URL}${url}`</span>, {
+    ...init,
+    headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span>, ...init.headers },
+    credentials: <span class="s">'include'</span>, <span class="c">// JWT via httpOnly cookie; swap for an Authorization header if Keycloak returns a bearer</span>
+  });
+
+  <span class="k">if</span> (!res.ok) <span class="k">throw</span> (<span class="k">await</span> res.<span class="n">json</span>()) <span class="k">as</span> ProblemDetails; <span class="c">// RFC 7807, guaranteed by Forge</span>
+  <span class="k">return</span> res.status === <span class="p">204</span> ? (<span class="p">undefined</span> <span class="k">as</span> T) : ((<span class="k">await</span> res.<span class="n">json</span>()) <span class="k">as</span> T);
+};
+
+<span class="c">// Orval reads these aliases to type the hooks' TError / TBody.</span>
+<span class="k">export type</span> ErrorType&lt;_ = <span class="p">unknown</span>&gt; = ProblemDetails;
+<span class="k">export type</span> BodyType&lt;T&gt; = T;</pre>
+    </div>
+
+    <div class="prog">
+      <div class="prog-tab">
+        <span class="fname">libs/api/project.json</span>
+        <span class="fnote">Nx target, cached on the spec <sup><a href="https://nx.dev/recipes/running-tasks/configure-outputs">[21]</a></sup></span>
+      </div>
+      <pre>{
+  <span class="s">"targets"</span>: {
+    <span class="s">"api-codegen"</span>: {
+      <span class="s">"executor"</span>: <span class="s">"nx:run-commands"</span>,
+      <span class="s">"options"</span>: { <span class="s">"command"</span>: <span class="s">"bunx orval --config orval.config.ts"</span> },
+      <span class="s">"inputs"</span>: [<span class="s">"{workspaceRoot}/openapi/forge.json"</span>, <span class="s">"{workspaceRoot}/orval.config.ts"</span>],
+      <span class="s">"outputs"</span>: [<span class="s">"{projectRoot}/src/generated"</span>],
+      <span class="s">"cache"</span>: <span class="p">true</span>
+    },
+    <span class="s">"build"</span>: { <span class="s">"dependsOn"</span>: [<span class="s">"api-codegen"</span>] },
+    <span class="s">"test"</span>:  { <span class="s">"dependsOn"</span>: [<span class="s">"api-codegen"</span>] }
+  }
+}</pre>
+    </div>
+
+    <div class="prog">
+      <div class="prog-tab">
+        <span class="fname">CI drift gate</span>
+        <span class="fnote">commit the generated code — let PR diffs show contract changes</span>
+      </div>
+      <pre>nx run api:api-codegen --skip-nx-cache
+git diff --exit-code libs/api/src/generated</pre>
+    </div>
+
+    <div class="ergs">
+      <div class="erg">
+        <h4>Watch</h4>
+        <p><code>orval --watch</code> regenerates on spec change. Better: point <code>input.target</code> at the on-disk <code>forge.json</code> and let the file watcher do the rest.</p>
+      </div>
+      <div class="erg">
+        <h4>CI drift</h4>
+        <p>Run codegen, fail on a dirty tree. <strong>Commit the generated code</strong> — don't <code>.gitignore</code> it. That is the whole point of owning both sides.</p>
+      </div>
+      <div class="erg">
+        <h4>Nx cache</h4>
+        <p>Declare <code>inputs: [spec]</code> and <code>outputs: [generated dir]</code>; <a href="https://nx.dev/recipes/running-tasks/configure-outputs">Nx</a> restores the output instead of re-running it <sup><a href="https://nx.dev/recipes/running-tasks/configure-outputs">[21]</a></sup>.</p>
+      </div>
+      <div class="erg">
+        <h4>Escape hatch</h4>
+        <p><code>input.override.transformer</code> patches the document pre-validation <sup><a href="https://orval.dev/docs/reference/configuration/input/">[23]</a></sup> — repair .NET quirks without forking Forge.</p>
+      </div>
+    </div>
+
+    <div class="sharp">
+      <b>Sharp edges to budget for.</b>
+      Zod split-mode codegen bugs <sup><a href="https://github.com/orval-labs/orval/issues/2933">[20]</a></sup>, and an empty-import bug with
+      <code>enumGenerationType: 'enum'</code> + <code>$ref</code>'d enums (open, Apr 2026) <sup><a href="https://github.com/orval-labs/orval/issues/3246">[25]</a></sup>.
+      Neither is a blocker; both are the tax of a code generator.
+    </div>
+  </section>
+
+  <!-- ═══ 06 OUTPUT ═════════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">06</span>
+      <h2 class="sec">What comes off the end of the line</h2>
+      <span class="sec-note">and what's left for a "state manager"</span>
+    </div>
+
+    <div class="finding">
+      <div class="k">The actual finding</div>
+      <h3>The contract is the source of truth. The state library is an implementation detail.</h3>
+      <p>
+        Generate the client and you have already generated: the request functions, the response types, the
+        <strong>query keys</strong>, the mutations, and the MSW handlers your tests mock against.
+        What is left for a "state manager" is: which tab is open, is the sidebar collapsed, what's in the form
+        before submit, the selected rows in a grid.
+      </p>
+      <blockquote>
+        "the truly globally accessible client state that is left over after migrating all of your async code to
+        TanStack Query is usually very tiny"
+        <sup><a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">[17]</a></sup>
+      </blockquote>
+      <p>
+        Practitioners in 2026 phrase the failure mode as: the mistake codebases make is treating server state like
+        client state — dumping API responses into Redux and hand-tracking loading flags <sup><a href="https://saschb2b.com/blog/typesafe-api-codegen-2026">[1]</a></sup>.
+      </p>
+    </div>
+
+    <div class="paths">
+      <div class="path no">
+        <h4>✕ Redux Toolkit here</h4>
+        <p>
+          Means choosing <a href="https://redux-toolkit.js.org/rtk-query/usage/code-generation">RTK Query</a> (its codegen does emit hooks <sup><a href="https://redux-toolkit.js.org/rtk-query/usage/code-generation">[16]</a></sup>),
+          then paying for a store, slices and a tag-invalidation model to solve a problem TanStack Query solves with a
+          query key. RTK's codegen is also strictly weaker: <strong>no MSW, no Zod, no query-key factory.</strong>
+        </p>
+      </div>
+      <div class="path yes">
+        <h4>✓ TanStack Query + Orval</h4>
+        <p>
+          The "state management library" line item in <code>package.json</code> is
+          <a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">TanStack Query</a> ⭐ 50k —
+          plus whatever tiny thing you use for UI state (<code>useState</code> first; a 1-file Zustand store when you
+          actually need cross-tree UI state).
+        </p>
+      </div>
+    </div>
+
+    <div class="residue">
+      <div class="k">Residue — the ~10% of state that isn't in the contract</div>
+      <div class="chips">
+        <span class="chip">which tab is open</span>
+        <span class="chip">sidebar collapsed</span>
+        <span class="chip">form draft before submit</span>
+        <span class="chip">selected rows in a grid</span>
+        <span class="chip">theme</span>
+        <span class="chip">column visibility</span>
+      </div>
+      <p>
+        The decision that <em>does</em> still matter is <strong>runtime validation at the boundary</strong> — generate Zod from
+        the same spec <sup><a href="https://orval.dev/docs/guides/client-with-zod/">[29]</a></sup> and reuse those schemas as
+        <code>react-hook-form</code> resolvers so the form rules and the API contract cannot drift.
+      </p>
+      <p>
+        And tests get the MSW handlers for free — <code>getListDocumentsMockHandler()</code> and friends land next to the hooks
+        <sup><a href="https://orval.dev/docs/reference/configuration/output/">[5]</a></sup>, so a Testing-Library test mocks the
+        <em>contract</em>, not <code>fetch</code>. That is the TDD payoff, and it is the reason Orval beats Hey API for this specific repo.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ 07 MANIFEST ═══════════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">07</span>
+      <h2 class="sec">Parts manifest</h2>
+      <span class="sec-note">30 sources</span>
+    </div>
+    <div class="manifest">
+
+      <div class="part"><span class="pn">01</span><img src="https://www.google.com/s2/favicons?domain=saschb2b.com&sz=128" alt=""><div class="pc"><a href="https://saschb2b.com/blog/typesafe-api-codegen-2026">Typesafe API codegen 2026</a> — generate framework-agnostic options, not hooks.<div class="meta">vendor-blog</div></div></div>
+      <div class="part"><span class="pn">02</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/openapi-ts/openapi-typescript/discussions/2559">openapi-typescript · 2026 roadmap</a> — openapi-fetch/react-query moved to maintenance mode.<div class="meta">forum <span class="st">⭐ 8.2k</span></div></div></div>
+      <div class="part"><span class="pn">03</span><img src="https://www.google.com/s2/favicons?domain=kubb.dev&sz=128" alt=""><div class="pc"><a href="https://kubb.dev/docs/5.x/guide/comparison">Kubb · comparison</a> — plugin/AST-based; every output a separate plugin.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">04</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="pc"><a href="https://orval.dev/docs/guides/react-query/">Orval · React Query guide</a> — base fn + query-key generator + hook per endpoint.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">05</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="pc"><a href="https://orval.dev/docs/reference/configuration/output/">Orval · output reference</a> — mode, client, mock.generators, override.mutator, useDates.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">06</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="pc"><a href="https://orval.dev/docs/versions/v8/">Orval v8</a> — ESM-only, fetch default, enumGenerationType, 3.1 compliance.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">07</span><img src="https://www.google.com/s2/favicons?domain=heyapi.dev&sz=128" alt=""><div class="pc"><a href="https://heyapi.dev/openapi-ts/plugins/tanstack-query">Hey API · TanStack Query plugin</a> — queryOptions/mutationOptions + normalized keys.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">08</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/hey-api/hey-api/issues/3270">hey-api #3270</a> — true discriminated-union output only landed in 2026.<div class="meta">forum <span class="st">⭐ 5.1k</span></div></div></div>
+      <div class="part"><span class="pn">09</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/dotnet/aspnetcore/issues/57982">aspnetcore #57982</a> — built-in OpenAPI omits the discriminator object. Open, backlogged.<div class="meta">forum <span class="st">⭐ 38k</span></div></div></div>
+      <div class="part"><span class="pn">10</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div class="pc"><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">ASP.NET Core OpenAPI</a> — 3.1 default; build-time doc via ApiDescription.Server.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">11</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div class="pc"><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0">Include OpenAPI metadata</a> — enums default to type: integer; annotate ProblemDetails.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">12</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/dotnet/aspnetcore/issues/61303">aspnetcore #61303</a> — enum type missing even with JsonStringEnumConverter.<div class="meta">forum <span class="st">⭐ 38k</span></div></div></div>
+      <div class="part"><span class="pn">13</span><img src="https://www.google.com/s2/favicons?domain=codingdroplets.com&sz=128" alt=""><div class="pc"><a href="https://codingdroplets.com/kiota-vs-nswag-vs-refitter-dotnet-typed-api-client-2026">Kiota vs NSwag vs Refitter (2026)</a> — NSwag's 3.1 support is partial.<div class="meta">vendor-blog</div></div></div>
+      <div class="part"><span class="pn">14</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div class="pc"><a href="https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/typescript">Kiota · TypeScript quickstart</a> — "The TypeScript language is in preview."<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">15</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/microsoft/kiota/discussions/3966">kiota #3966</a> — openapi-generator's Java toolchain and template sprawl.<div class="meta">forum <span class="st">⭐ 3.8k</span></div></div></div>
+      <div class="part"><span class="pn">16</span><img src="https://www.google.com/s2/favicons?domain=redux-toolkit.js.org&sz=128" alt=""><div class="pc"><a href="https://redux-toolkit.js.org/rtk-query/usage/code-generation">RTK Query codegen</a> — hooks: true emits useQuery/useMutation.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">17</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div class="pc"><a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">TanStack Query · does this replace client state?</a> — the leftover global state is "usually very tiny".<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">18</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="pc"><a href="https://orval.dev/docs/guides/custom-axios/">Orval · custom mutator</a> — ErrorType overrides the error type of every hook.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">19</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/orval-labs/orval/issues/3149">orval #3149</a> — nullable-only schema emitted invalid TS (fixed Mar 2026).<div class="meta">forum <span class="st">⭐ 6.2k</span></div></div></div>
+      <div class="part"><span class="pn">20</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/orval-labs/orval/issues/2933">orval #2933</a> — Zod split-mode codegen bugs.<div class="meta">forum <span class="st">⭐ 6.2k</span></div></div></div>
+      <div class="part"><span class="pn">21</span><img src="https://www.google.com/s2/favicons?domain=nx.dev&sz=128" alt=""><div class="pc"><a href="https://nx.dev/recipes/running-tasks/configure-outputs">Nx · configure outputs</a> — declared outputs are cached and restored.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">22</span><img src="https://www.google.com/s2/favicons?domain=codewithmukesh.com&sz=128" alt=""><div class="pc"><a href="https://codewithmukesh.com/blog/dotnet-swagger-alternatives-openapi/">Swagger alternatives in .NET</a> — Swashbuckle removed from the template ≠ deprecated.<div class="meta">vendor-blog</div></div></div>
+      <div class="part"><span class="pn">23</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="pc"><a href="https://orval.dev/docs/reference/configuration/input/">Orval · input reference</a> — override.transformer runs before validation.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">24</span><img src="https://www.google.com/s2/favicons?domain=openapi-ts.dev&sz=128" alt=""><div class="pc"><a href="https://openapi-ts.dev/openapi-react-query/">openapi-react-query</a> — a 1 kB runtime wrapper, not a codegen step.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">25</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/orval-labs/orval/issues/3246">orval #3246</a> — empty import with enumGenerationType 'enum' + $ref'd enums. Open.<div class="meta">forum <span class="st">⭐ 6.2k</span></div></div></div>
+      <div class="part"><span class="pn">26</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><div class="pc"><a href="https://dev.to/nyaomaru/which-openapi-codegen-should-you-choose-openapi-typescript-vs-hey-api-vs-orval-vs-kubb-100p">Which OpenAPI codegen should you choose?</a> — types only / everything generated / maximum control.<div class="meta">vendor-blog</div></div></div>
+      <div class="part"><span class="pn">27</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/OpenAPI-Qraft/openapi-qraft">openapi-qraft</a> — proxy-based typed TanStack hooks; very small project.<div class="meta">official <span class="st">⭐ 96</span></div></div></div>
+      <div class="part"><span class="pn">28</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="pc"><a href="https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2944">Swashbuckle #2944</a> — ProblemDetails isn't always generated as a schema.<div class="meta">forum <span class="st">⭐ 5.5k</span></div></div></div>
+      <div class="part"><span class="pn">29</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="pc"><a href="https://orval.dev/docs/guides/client-with-zod/">Orval · client with Zod</a> — second config entry, client: 'zod', fileExtension '.zod.ts'.<div class="meta">official</div></div></div>
+      <div class="part"><span class="pn">30</span><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=128" alt=""><div class="pc"><a href="https://www.pkgpulse.com/guides/orval-vs-openapi-typescript-vs-kubb-openapi-client-2026">Orval vs openapi-typescript vs Kubb (2026)</a> — upgrade to Orval when React Query integration matters.<div class="meta">vendor-blog</div></div></div>
+
+    </div>
+  </section>
+
+  <!-- ═══ 08 ADJACENT LINES ═════════════════════════ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">08</span>
+      <h2 class="sec">Adjacent lines on the plant floor</h2>
+    </div>
+
+    <div class="parent-card">
+      <div class="d">▲ Expedition · parent</div>
+      <h4><a href="../../">The React state stack for Itenium.Forge in 2026: the Redux question dissolves</a></h4>
+      <p>Six angles independently converge: don't introduce Redux — generate the client from Forge's OpenAPI, let TanStack Query own server state, let the router own filter state, and leave one small Zustand store for what remains.</p>
+    </div>
+
+    <div class="adj">
+      <div class="adj-card">
+        <div class="d">Survey</div>
+        <h4><a href="../../is-redux-still-the-right-answer-in-2026/">Is Redux still the right answer for a new React 19 app in 2026?</a></h4>
+        <p>Redux is healthy but no longer the default: TanStack Query plus a small Zustand store wins.</p>
+      </div>
+      <div class="adj-card">
+        <div class="d">Survey</div>
+        <h4><a href="../../server-state-tanstack-query-vs-rtk-query-vs-swr-vs-route-loaders/">Server-state layer: TanStack Query wins</a></h4>
+        <p><code>Register.defaultError</code> makes ProblemDetails a first-class typed error with no per-call generics.</p>
+      </div>
+      <div class="adj-card">
+        <div class="d">Survey</div>
+        <h4><a href="../../client-state-zustand-vs-jotai-vs-redux-toolkit-vs-plain-react/">Client state after the query cache</a></h4>
+        <p>The residual client state in a CRUD admin is roughly one persisted preferences store — take Zustand.</p>
+      </div>
+      <div class="adj-card">
+        <div class="d">Recon</div>
+        <h4><a href="../../routing-and-where-state-lives/">The router is a state manager</a></h4>
+        <p>TanStack Router makes filters/sort/pagination typed URL state instead of Redux slices.</p>
+      </div>
+      <div class="adj-card">
+        <div class="d">Recon</div>
+        <h4><a href="../../auth-and-session-state-against-forge-jwt-and-oidc/">Auth &amp; session state on Forge</a></h4>
+        <p>Kill the localStorage JWT plan: in-memory access token, capabilities from <code>/me</code>.</p>
+      </div>
+      <div class="adj-card">
+        <div class="d">Canonical</div>
+        <h4><a href="../">Read the default view</a></h4>
+        <p>The full write-up this line was built from — prose, tables, all 30 citations inline.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="colophon">
+    <span>Scout · Line 01 · API Client Codegen</span>
+    <span>Survey · 30 sources · 2026-07-13</span>
+    <span><a href="/">Atlas</a></span>
+  </div>
+
+</div>
+
+<div class="hazard"></div>
+
+</div>

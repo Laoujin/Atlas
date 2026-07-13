@@ -1,0 +1,971 @@
+---
+layout: view
+view_name: "Scorecard"
+view_of: ../
+title: "Client state after the query cache: Zustand vs Jotai vs RTK vs plain React 19 — Scorecard"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+  .v-sc *{box-sizing:border-box}
+  .v-sc{
+    /* Light: sports-almanac newsprint. Dark: stadium scoreboard. */
+    --paper:#f2efe7;
+    --card:#fbfaf6;
+    --card-2:#e9e5da;
+    --ink:#15171c;
+    --ink-2:#4c5057;
+    --ink-3:#767b84;
+    --rule:#cfcabb;
+    --rule-2:#e0dccf;
+    --in:#12633f;
+    --in-bg:#dcefe4;
+    --out:#a32d20;
+    --out-bg:#f6e0dc;
+    --amber:#8a5a05;
+    --amber-bg:#f7e9c9;
+    --bar:#2a5d8f;
+    --bar-track:#ddd8ca;
+    --board:#15171c;
+    --board-ink:#f5f2ea;
+    --win:#0f5c3a;
+
+    margin:0;
+    padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-color-scheme: dark){
+    .v-sc{
+      --paper:#0b0d11;
+      --card:#14171d;
+      --card-2:#1b1f27;
+      --ink:#eef1f6;
+      --ink-2:#aab2be;
+      --ink-3:#7f8894;
+      --rule:#2b313b;
+      --rule-2:#222831;
+      --in:#5fd39a;
+      --in-bg:#102a20;
+      --out:#ff8574;
+      --out-bg:#2e1614;
+      --amber:#f2c14e;
+      --amber-bg:#2c2311;
+      --bar:#6aa9e9;
+      --bar-track:#232a34;
+      --board:#05070a;
+      --board-ink:#f2f5fa;
+      --win:#5fd39a;
+    }
+  }
+
+  .v-sc .mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+  .v-sc .cond{font-family:'Barlow Condensed','Inter',sans-serif;letter-spacing:.01em}
+  .v-sc a{color:inherit}
+  .v-sc a:hover{text-decoration:none}
+  .v-sc sup a{
+    font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+    color:var(--ink-3);text-decoration:none;padding:0 1px;
+  }
+  .v-sc sup a:hover{color:var(--bar)}
+  .v-sc .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+  /* ── masthead ───────────────────────────────── */
+  .v-sc .board{
+    background:var(--board);color:var(--board-ink);
+    padding:64px 0 30px;border-bottom:4px solid var(--board);
+  }
+  .v-sc .board .kicker{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+    letter-spacing:.22em;text-transform:uppercase;color:#8f9bab;margin-bottom:16px;
+  }
+  .v-sc h1{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:clamp(38px,6.2vw,76px);line-height:.94;margin:0 0 18px;
+    text-transform:uppercase;letter-spacing:-.005em;max-width:16ch;
+  }
+  .v-sc h1 em{font-style:normal;color:#5fd39a}
+  .v-sc .board .sub{font-size:16px;color:#c3cbd6;max-width:62ch;line-height:1.55}
+  .v-sc .metastrip{
+    display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;
+  }
+  .v-sc .metastrip span{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;
+    border:1px solid #333b47;color:#aeb8c4;padding:5px 10px;border-radius:2px;
+  }
+
+  /* ── section headers ────────────────────────── */
+  .v-sc section{padding:56px 0}
+  .v-sc .shead{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:8px}
+  .v-sc .shead .num{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:34px;line-height:1;
+    color:var(--ink-3);
+  }
+  .v-sc .shead h2{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;
+    font-size:34px;line-height:1;margin:0;flex:1;letter-spacing:.01em;
+  }
+  .v-sc .shead .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .v-sc .deck{color:var(--ink-2);max-width:76ch;margin:16px 0 30px;font-size:16px;line-height:1.6}
+  .v-sc .deck strong{color:var(--ink);font-weight:600}
+
+  /* ── the cut: team sheet ────────────────────── */
+  .v-sc .sheet{border:2px solid var(--ink);background:var(--card)}
+  .v-sc .sheet .hd{
+    display:grid;grid-template-columns:76px 1.25fr 1.5fr;gap:0;
+    background:var(--ink);color:var(--paper);
+  }
+  .v-sc .sheet .hd div{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;padding:9px 14px;
+  }
+  .v-sc .row{
+    display:grid;grid-template-columns:76px 1.25fr 1.5fr;gap:0;
+    border-bottom:1px solid var(--rule-2);align-items:stretch;
+  }
+  .v-sc .row:last-child{border-bottom:0}
+  .v-sc .row > div{padding:14px}
+  .v-sc .row .stamp{
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;
+    letter-spacing:.06em;text-transform:uppercase;
+  }
+  .v-sc .row.keep{background:var(--card)}
+  .v-sc .row.keep .stamp{background:var(--in-bg);color:var(--in);border-right:4px solid var(--in)}
+  .v-sc .row.keep .what{font-weight:600}
+  .v-sc .row.cut{background:transparent}
+  .v-sc .row.cut .stamp{background:var(--out-bg);color:var(--out);border-right:4px solid var(--out)}
+  .v-sc .row.cut .what{color:var(--ink-2)}
+  .v-sc .row .what{font-size:16px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+  .v-sc .row .what small{font-size:12px;color:var(--ink-3);font-weight:400;line-height:1.4}
+  .v-sc .row .dest{
+    display:flex;flex-direction:column;justify-content:center;gap:5px;
+    border-left:1px solid var(--rule-2);font-size:13.5px;color:var(--ink-2);line-height:1.45;
+  }
+  .v-sc .chip{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+    padding:3px 8px;border-radius:2px;border:1px solid var(--rule);
+    background:var(--card-2);color:var(--ink);align-self:flex-start;
+  }
+  .v-sc .row.keep .chip{border-color:var(--in);color:var(--in);background:var(--in-bg)}
+  .v-sc .warn{
+    display:block;margin-top:4px;font-size:12px;color:var(--amber);
+    background:var(--amber-bg);border-left:3px solid var(--amber);padding:5px 8px;line-height:1.4;
+  }
+
+  /* ── the prize ──────────────────────────────── */
+  .v-sc .prize{
+    margin-top:32px;background:var(--board);color:var(--board-ink);
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+    border:2px solid var(--board);
+  }
+  .v-sc .prize .cell{background:var(--board);padding:30px 24px;text-align:center;border-right:1px solid #262c36}
+  .v-sc .prize .cell:last-child{border-right:0}
+  .v-sc .prize .big{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:72px;line-height:.9;
+    color:#5fd39a;display:block;
+  }
+  .v-sc .prize .lbl{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:#9aa5b2;margin-top:10px;display:block;
+  }
+  .v-sc .pullquote{
+    margin:24px 0 0;padding:20px 24px;border-left:4px solid var(--ink);
+    background:var(--card);font-size:17px;line-height:1.55;color:var(--ink);
+  }
+  .v-sc .pullquote cite{display:block;margin-top:8px;font-style:normal;font-size:12px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+
+  /* ── league table ───────────────────────────── */
+  .v-sc .lg{display:flex;flex-direction:column;gap:10px}
+  .v-sc .lghd{
+    display:grid;grid-template-columns:38px minmax(180px,1.3fr) 1.5fr 100px 92px 108px 112px;
+    gap:12px;padding:0 16px 8px;align-items:end;
+  }
+  .v-sc .lghd span{
+    font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);line-height:1.3;
+  }
+  .v-sc .team{
+    display:grid;grid-template-columns:38px minmax(180px,1.3fr) 1.5fr 100px 92px 108px 112px;
+    gap:12px;align-items:center;
+    background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--rule);
+    padding:16px;position:relative;
+  }
+  .v-sc .team.champ{
+    border:2px solid var(--win);border-left:6px solid var(--win);
+    background:var(--card);box-shadow:0 6px 0 -2px var(--rule-2);padding:24px 16px;
+  }
+  .v-sc .team .pos{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;
+    color:var(--ink-3);text-align:center;
+  }
+  .v-sc .team.champ .pos{color:var(--win);font-size:40px}
+  .v-sc .crest{display:flex;align-items:center;gap:11px;min-width:0}
+  .v-sc .crest img{width:26px;height:26px;border-radius:5px;flex:none;background:var(--card-2)}
+  .v-sc .crest .nm{min-width:0}
+  .v-sc .crest .nm b{
+    display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:24px;line-height:1.05;letter-spacing:.01em;
+  }
+  .v-sc .team.champ .crest .nm b{font-size:30px}
+  .v-sc .crest .nm b a{text-decoration:none}
+  .v-sc .crest .nm b a:hover{text-decoration:underline}
+  .v-sc .crest .nm span{
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);
+    display:block;margin-top:2px;
+  }
+  .v-sc .verdict{font-size:13px;color:var(--ink-2);line-height:1.45}
+  .v-sc .team.champ .verdict{color:var(--ink);font-size:14px}
+
+  /* stat tiles */
+  .v-sc .tile{text-align:left}
+  .v-sc .tile .v{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;line-height:1;
+    display:block;
+  }
+  .v-sc .tile .u{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-3);
+    display:block;margin-top:3px;letter-spacing:.05em;
+  }
+  .v-sc .bar{
+    height:6px;background:var(--bar-track);border:1px solid var(--rule);margin-top:6px;position:relative;
+  }
+  .v-sc .bar i{display:block;height:100%;background:var(--bar)}
+  .v-sc .team.champ .bar i{background:var(--win)}
+  .v-sc .yn{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;
+    text-transform:uppercase;letter-spacing:.04em;line-height:1.25;
+  }
+  .v-sc .yn.y{color:var(--in)}
+  .v-sc .yn.n{color:var(--out)}
+  .v-sc .yn small{display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:11px;
+    letter-spacing:0;text-transform:none;color:var(--ink-3);margin-top:2px;line-height:1.35}
+  .v-sc .ribbon{
+    position:absolute;top:-2px;right:-2px;
+    background:var(--win);color:var(--paper);
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;
+    letter-spacing:.16em;padding:5px 10px;
+  }
+  @media (prefers-color-scheme: dark){
+    .v-sc .ribbon{color:#05070a}
+  }
+  .v-sc .footnote{margin-top:20px;font-size:13px;color:var(--ink-2);line-height:1.6;max-width:80ch}
+
+  /* ── downloads strip ────────────────────────── */
+  .v-sc .dl{margin-top:44px;border-top:1px solid var(--rule);padding-top:26px}
+  .v-sc .dl h3{
+    font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;font-size:22px;
+    margin:0 0 4px;letter-spacing:.02em;
+  }
+  .v-sc .dl p{margin:0 0 18px;font-size:13px;color:var(--ink-3)}
+  .v-sc .dlrow{display:grid;grid-template-columns:130px 1fr 90px;gap:14px;align-items:center;margin-bottom:9px}
+  .v-sc .dlrow .n{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:19px}
+  .v-sc .dlrow .t{height:16px;background:var(--bar-track);border:1px solid var(--rule)}
+  .v-sc .dlrow .t i{display:block;height:100%;background:var(--bar)}
+  .v-sc .dlrow.lead .t i{background:var(--win)}
+  .v-sc .dlrow .val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-align:right}
+
+  /* ── nx / where the store lives ─────────────── */
+  .v-sc .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
+  .v-sc .panel{border:1px solid var(--rule);background:var(--card);padding:22px}
+  .v-sc .panel h4{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;margin:0 0 12px;
+    letter-spacing:.06em;color:var(--ink);
+  }
+  .v-sc .panel ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink-2);line-height:1.6}
+  .v-sc .panel li{margin-bottom:7px}
+  .v-sc .panel li b{color:var(--ink)}
+  .v-sc .fence{
+    margin-top:18px;border:1px dashed var(--rule);background:var(--card-2);
+    padding:14px 18px;font-size:13.5px;color:var(--ink-2);line-height:1.55;
+  }
+  .v-sc .fence code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink)}
+
+  /* ── code panels ────────────────────────────── */
+  .v-sc .codegrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .v-sc .codepanel{border:1px solid var(--rule);background:var(--board);overflow:hidden}
+  .v-sc .codepanel .cap{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;
+    color:#93a0b0;padding:9px 14px;border-bottom:1px solid #262c36;background:#101319;
+  }
+  .v-sc .codepanel pre{
+    margin:0;padding:16px 14px;overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;color:#dfe6ef;
+  }
+  .v-sc .codepanel pre .k{color:#c39bf5}
+  .v-sc .codepanel pre .s{color:#8fd6a4}
+  .v-sc .codepanel pre .c{color:#6d7886}
+  .v-sc .codepanel pre .f{color:#7cc0f5}
+
+  /* ── cards (traps) ──────────────────────────── */
+  .v-sc .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:16px}
+  .v-sc .disc{border:1px solid var(--rule);background:var(--card);padding:18px;position:relative;padding-left:22px}
+  .v-sc .disc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px}
+  .v-sc .disc.red::before{background:var(--out)}
+  .v-sc .disc.yellow::before{background:var(--amber)}
+  .v-sc .disc .cardtype{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;margin-bottom:8px;display:block;
+  }
+  .v-sc .disc.red .cardtype{color:var(--out)}
+  .v-sc .disc.yellow .cardtype{color:var(--amber)}
+  .v-sc .disc h5{font-size:15px;margin:0 0 7px;font-weight:600;line-height:1.3}
+  .v-sc .disc p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+  .v-sc .disc code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--card-2);padding:1px 4px}
+
+  /* ── full time ──────────────────────────────── */
+  .v-sc .ft{background:var(--board);color:var(--board-ink);padding:56px 0}
+  .v-sc .ft .shead{border-color:#3a424e}
+  .v-sc .ft .shead h2,.v-sc .ft .shead .num{color:var(--board-ink)}
+  .v-sc .ft .shead .num{color:#6e7987}
+  .v-sc .ft .shead .tag{color:#8f9bab}
+  .v-sc .lineup{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:#262c36;border:1px solid #262c36;margin-top:26px}
+  .v-sc .lineup .sl{background:var(--board);padding:22px}
+  .v-sc .lineup .sl .no{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:#5fd39a;
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
+  }
+  .v-sc .lineup .sl b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;margin-bottom:6px}
+  .v-sc .lineup .sl b a{text-decoration:none;color:#fff}
+  .v-sc .lineup .sl p{margin:0;font-size:13px;color:#b6bfca;line-height:1.5}
+  .v-sc .closer{
+    margin-top:34px;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:clamp(26px,3.6vw,42px);line-height:1.12;max-width:22ch;text-transform:uppercase;
+  }
+  .v-sc .closer em{font-style:normal;color:#5fd39a}
+  .v-sc .closer + p{margin-top:14px;color:#b6bfca;font-size:15px;max-width:60ch;line-height:1.6}
+
+  /* ── sources + nav ──────────────────────────── */
+  .v-sc .srcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:8px}
+  .v-sc .src{
+    display:flex;gap:9px;align-items:center;text-decoration:none;
+    border:1px solid var(--rule-2);background:var(--card);padding:9px 11px;
+  }
+  .v-sc .src:hover{border-color:var(--ink-3)}
+  .v-sc .src img{width:16px;height:16px;flex:none;border-radius:3px}
+  .v-sc .src .sn{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);flex:none;width:20px}
+  .v-sc .src .st{font-size:12.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .v-sc .sibs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:8px}
+  .v-sc .sib{
+    text-decoration:none;border:1px solid var(--rule);background:var(--card);padding:14px 16px;display:block;
+  }
+  .v-sc .sib:hover{border-color:var(--ink)}
+  .v-sc .sib .d{
+    font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);
+  }
+  .v-sc .sib b{display:block;font-size:14px;margin:5px 0 4px;line-height:1.3;color:var(--ink)}
+  .v-sc .sib p{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.45}
+  .v-sc .colophon{
+    border-top:2px solid var(--ink);margin-top:44px;padding:20px 0 60px;
+    display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.06em;
+  }
+  .v-sc .colophon a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule)}
+
+  @media (max-width:1000px){
+    .v-sc .lghd{display:none}
+    .v-sc .team,.v-sc .team.champ{grid-template-columns:34px 1fr;grid-auto-rows:auto;row-gap:14px}
+    .v-sc .team .verdict{grid-column:1 / -1}
+    .v-sc .tile,.v-sc .team .yn{grid-column:auto}
+    .v-sc .team > .tile:nth-of-type(1){grid-column:1 / -1}
+    .v-sc .codegrid,.v-sc .two,.v-sc .prize{grid-template-columns:1fr}
+    .v-sc .prize .cell{border-right:0;border-bottom:1px solid #262c36}
+  }
+  @media (max-width:720px){
+    .v-sc .wrap{padding:0 18px}
+    .v-sc .sheet .hd{display:none}
+    .v-sc .row{grid-template-columns:64px 1fr}
+    .v-sc .row .dest{grid-column:1 / -1;border-left:0;border-top:1px solid var(--rule-2)}
+    .v-sc .dlrow{grid-template-columns:100px 1fr 76px}
+  }
+</style>
+
+<div class="v-sc">
+
+  <header class="board">
+    <div class="wrap">
+      <div class="kicker">Itenium.Forge · itenium-ui · survey · 27 sources · 8 min</div>
+      <h1>Six libraries<br>are fighting over<br><em>three fields</em></h1>
+      <p class="sub">Once <a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">TanStack Query</a> owns server state, the residual global client state in a CRUD admin is theme, sidebar and column visibility. Scope the job first — then read the table.</p>
+      <div class="metastrip">
+        <span>React 19</span><span>Nx 21</span><span>Vite</span><span>Jest, no render</span><span>2 apps, 1 store</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">01</div>
+        <h2>The cut — who is actually global</h2>
+        <div class="tag">7 candidates · 3 survive</div>
+      </div>
+      <p class="deck">Seven things get called “client state” in a React admin. Four of them are not global at all — they have a route's lifecycle, or a library already owns them, or they were server state wearing a disguise. <strong>Run the cut before the shootout.</strong> A library evaluation that skips this step buys a state manager for work the state manager never had.</p>
+
+      <div class="sheet">
+        <div class="hd">
+          <div>Verdict</div>
+          <div>Candidate</div>
+          <div>Where it actually belongs</div>
+        </div>
+
+        <div class="row keep">
+          <div class="stamp">In</div>
+          <div class="what">Theme <small>light / dark / system</small></div>
+          <div class="dest">
+            <span class="chip">persisted store</span>
+            Cross-app and must survive a reload — that is exactly what <code>persist</code> + <code>localStorage</code> is for. <sup><a href="https://zustand.docs.pmnd.rs/reference/middlewares/persist">[14]</a></sup>
+          </div>
+        </div>
+
+        <div class="row keep">
+          <div class="stamp">In</div>
+          <div class="what">Sidebar collapse <small>app shell + a few pages</small></div>
+          <div class="dest">
+            <span class="chip">same store</span>
+            TanStack's own canonical example of what's left over. <sup><a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">[1]</a></sup>
+          </div>
+        </div>
+
+        <div class="row keep">
+          <div class="stamp">In</div>
+          <div class="what">Column visibility <small>keyed by table id</small></div>
+          <div class="dest">
+            <span class="chip">same store</span>
+            A per-user preference that survives reload.
+            <span class="warn">⚠ Column <em>filter / sort / page</em> is not a preference — it must be linkable. That goes in the URL via <a href="https://nuqs.dev/">nuqs</a> ⭐ 11k <sup><a href="https://github.com/47ng/nuqs">[23]</a></sup>, not the store.</span>
+          </div>
+        </div>
+
+        <div class="row cut">
+          <div class="stamp">Cut</div>
+          <div class="what">Multi-step wizard draft <small>lifecycle = the wizard's, not the app's</small></div>
+          <div class="dest">
+            <span class="chip">useReducer, in the route</span>
+            Put it in the global store and you own a reset-on-unmount bug forever. Add <code>persist</code> only if a half-finished draft must survive reload — and give it its own store name.
+          </div>
+        </div>
+
+        <div class="row cut">
+          <div class="stamp">Cut</div>
+          <div class="what">Toasts <small>sonner / shadcn useToast</small></div>
+          <div class="dest">
+            <span class="chip">the toast library</span>
+            Already an external store behind the scenes. A second one is duplication.
+          </div>
+        </div>
+
+        <div class="row cut">
+          <div class="stamp">Cut</div>
+          <div class="what">Auth session <small>server state in disguise</small></div>
+          <div class="dest">
+            <span class="chip">query cache · useQuery(['me'])</span>
+            Keycloak/OpenIddict issues it, the server invalidates it. The token lives in the OIDC client.
+            <span class="warn">⚠ One exception: the <code>isAuthenticated</code> boolean the router guards on can live in the store.</span>
+          </div>
+        </div>
+
+        <div class="row cut">
+          <div class="stamp">Cut</div>
+          <div class="what">Feature flags <small>never mutated by the UI</small></div>
+          <div class="dest">
+            <span class="chip">query cache · or import.meta.env</span>
+            Server-owned (fetched) or a build-time constant in Vite. Either way, not app state.
+          </div>
+        </div>
+      </div>
+
+      <div class="prize">
+        <div class="cell"><span class="big">3</span><span class="lbl">fields left</span></div>
+        <div class="cell"><span class="big">1</span><span class="lbl">middleware (persist)</span></div>
+        <div class="cell"><span class="big">0</span><span class="lbl">providers required</span></div>
+      </div>
+
+      <blockquote class="pullquote">
+        “The truly globally accessible client state that is left over after migrating all of your async code to TanStack Query is <strong>usually very tiny</strong>.”
+        <cite>TanStack Query docs — “Does this replace client state?” <a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">[1]</a></cite>
+      </blockquote>
+      <p class="footnote">React 19 shrinks it again: <code>useActionState</code> and <code>useOptimistic</code> absorb pending / error / rollback state for form-shaped mutations — which in a CRUD admin is most mutations. <sup><a href="https://react.dev/blog/2024/12/05/react-19">[9]</a></sup></p>
+    </div>
+  </section>
+
+  <section style="padding-top:20px">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">02</div>
+        <h2>The league table</h2>
+        <div class="tag">Job spec: 3 fields · persist · testable headless</div>
+      </div>
+      <p class="deck">Now — and only now — the shootout. Every row is scored against a job that is three fields wide, so <strong>bundle weight and boilerplate are real costs while devtools depth is mostly theatre</strong>. Bars are drawn against the heaviest entrant (XState, ~15 KB).</p>
+
+      <div class="lg">
+        <div class="lghd">
+          <span>Pos</span>
+          <span>Library</span>
+          <span>Verdict for itenium-ui</span>
+          <span>Bundle gz</span>
+          <span>Store setup</span>
+          <span>Jest w/o React</span>
+          <span>localStorage</span>
+        </div>
+
+        <article class="team champ">
+          <span class="ribbon">THE PICK</span>
+          <div class="pos">1</div>
+          <div class="crest">
+            <img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt="">
+            <div class="nm">
+              <b><a href="https://github.com/pmndrs/zustand">Zustand</a></b>
+              <span>v5.0 · ⭐ 59k <a href="https://github.com/pmndrs/zustand">[4]</a></span>
+            </div>
+          </div>
+          <div class="verdict"><code>createStore</code> from <code>zustand/vanilla</code> is a plain object — no React import, no Provider, nothing to leak across Nx boundaries. Redux DevTools via the <code>devtools</code> middleware, so you keep time-travel without the 12 KB.</div>
+          <div class="tile">
+            <span class="v">1.2 KB</span><span class="u">lightest that persists</span>
+            <span class="bar"><i style="width:8%"></i></span>
+          </div>
+          <div class="tile">
+            <span class="v">~12</span><span class="u">lines, no Provider <sup><a href="https://dev.to/jsgurujobs/state-management-in-2026-zustand-vs-jotai-vs-redux-toolkit-vs-signals-2gge">[25]</a></sup></span>
+          </div>
+          <div class="yn y">Yes<small><code>createStore().getState()</code> — zero React <sup><a href="https://zustand.docs.pmnd.rs/learn/guides/testing">[12]</a></sup></small></div>
+          <div class="yn y">Built in<small><code>persist</code> + <code>partialize</code> + <code>migrate</code></small></div>
+        </article>
+
+        <article class="team">
+          <div class="pos">2</div>
+          <div class="crest">
+            <img src="https://www.google.com/s2/favicons?domain=jotai.org&sz=128" alt="">
+            <div class="nm">
+              <b><a href="https://github.com/pmndrs/jotai">Jotai</a></b>
+              <span>v2.20 · ⭐ 21k <a href="https://github.com/pmndrs/jotai">[5]</a></span>
+            </div>
+          </div>
+          <div class="verdict">Best TS inference of the group and an automatic per-atom dependency graph. The credible runner-up — take it if you ever find yourself fighting selector granularity. Context-first by its own docs <sup><a href="https://jotai.org/docs/basics/comparison">[11]</a></sup>: provider-less works, but test isolation pulls you back to <code>&lt;Provider&gt;</code> <sup><a href="https://jotai.org/docs/core/provider">[27]</a></sup>.</div>
+          <div class="tile">
+            <span class="v">3.5 KB</span><span class="u">3× Zustand</span>
+            <span class="bar"><i style="width:23%"></i></span>
+          </div>
+          <div class="tile">
+            <span class="v">~1</span><span class="u">line per atom</span>
+          </div>
+          <div class="yn y">Yes<small><code>createStore()</code> + <code>store.get/set</code> <sup><a href="https://jotai.org/docs/guides/using-store-outside-react">[20]</a></sup></small></div>
+          <div class="yn y">Built in<small><code>atomWithStorage</code></small></div>
+        </article>
+
+        <article class="team">
+          <div class="pos">3</div>
+          <div class="crest">
+            <img src="https://www.google.com/s2/favicons?domain=valtio.dev&sz=128" alt="">
+            <div class="nm">
+              <b><a href="https://github.com/pmndrs/valtio">Valtio</a></b>
+              <span>v2.3 · ⭐ 10k <a href="https://github.com/pmndrs/valtio">[7]</a></span>
+            </div>
+          </div>
+          <div class="verdict">Fine engineering — <code>useSnapshot</code> is <code>useSyncExternalStore</code> + proxy-compare, so render tracking is automatic <sup><a href="https://blog.axlight.com/posts/how-valtio-proxy-state-works-react-part/">[26]</a></sup>. But mutable proxy semantics fight the immutable habits of a .NET architect, and it buys nothing Zustand doesn't.</div>
+          <div class="tile">
+            <span class="v">3.2 KB</span><span class="u">proxy runtime</span>
+            <span class="bar"><i style="width:21%"></i></span>
+          </div>
+          <div class="tile">
+            <span class="v">~5</span><span class="u">lines, mutable</span>
+          </div>
+          <div class="yn y">Yes<small>the proxy is a plain object</small></div>
+          <div class="yn n">Manual<small>hand-rolled <code>subscribe</code></small></div>
+        </article>
+
+        <article class="team">
+          <div class="pos">4</div>
+          <div class="crest">
+            <img src="https://www.google.com/s2/favicons?domain=redux-toolkit.js.org&sz=128" alt="">
+            <div class="nm">
+              <b><a href="https://github.com/reduxjs/redux-toolkit">Redux Toolkit</a></b>
+              <span>v2.12 · ⭐ 11k <a href="https://github.com/reduxjs/redux-toolkit">[6]</a></span>
+            </div>
+          </div>
+          <div class="verdict">Best-in-class time-travel devtools — for three booleans you will never open them. The store is only reachable through React context, so <code>libs/state</code> becomes a React lib both apps must wrap themselves in <sup><a href="https://zustand.docs.pmnd.rs/learn/getting-started/comparison">[10]</a></sup>. You test <em>reducers</em>, not the store.</div>
+          <div class="tile">
+            <span class="v">12 KB</span><span class="u">10× the winner</span>
+            <span class="bar"><i style="width:80%"></i></span>
+          </div>
+          <div class="tile">
+            <span class="v">~28</span><span class="u">lines + Provider <sup><a href="https://dev.to/jsgurujobs/state-management-in-2026-zustand-vs-jotai-vs-redux-toolkit-vs-signals-2gge">[25]</a></sup></span>
+          </div>
+          <div class="yn y">Partly<small>reducers are pure — the wiring still needs a Provider</small></div>
+          <div class="yn n">3rd party<small><code>redux-persist</code></small></div>
+        </article>
+
+        <article class="team">
+          <div class="pos">5</div>
+          <div class="crest">
+            <img src="https://www.google.com/s2/favicons?domain=stately.ai&sz=128" alt="">
+            <div class="nm">
+              <b><a href="https://github.com/statelyai/xstate">XState</a></b>
+              <span>v5.32 · ⭐ 30k <a href="https://github.com/statelyai/xstate">[8]</a></span>
+            </div>
+          </div>
+          <div class="verdict">Not a competitor — a scalpel. Excellent for one genuinely gnarly wizard via <a href="https://stately.ai/docs/xstate-store">@xstate/store</a> <sup><a href="https://stately.ai/docs/xstate-store">[21]</a></sup>, which drops into <code>libs/</code> cleanly. Adopting statecharts as the app's state layer for three booleans is not KISS.</div>
+          <div class="tile">
+            <span class="v">~15 KB</span><span class="u">heaviest entrant</span>
+            <span class="bar"><i style="width:100%"></i></span>
+          </div>
+          <div class="tile">
+            <span class="v">machine</span><span class="u">definition per concern</span>
+          </div>
+          <div class="yn y">Yes<small>machines run headless</small></div>
+          <div class="yn n">Manual<small>no built-in persistence</small></div>
+        </article>
+
+        <article class="team">
+          <div class="pos">6</div>
+          <div class="crest">
+            <img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt="">
+            <div class="nm">
+              <b><a href="https://react.dev/blog/2024/12/05/react-19">Plain React 19</a></b>
+              <span>useState · useReducer · Context</span>
+            </div>
+          </div>
+          <div class="verdict">Wins the bundle column outright and still loses the tie. Context re-renders <em>every</em> consumer on value change <sup><a href="https://react.dev/reference/react/useSyncExternalStore">[19]</a></sup> — fine for a theme that flips twice a session, wrong for anything a table touches. And you cannot test your state logic without React at all.</div>
+          <div class="tile">
+            <span class="v">0 KB</span><span class="u">already in the app</span>
+            <span class="bar"><i style="width:1%"></i></span>
+          </div>
+          <div class="tile">
+            <span class="v">0</span><span class="u">nothing to install</span>
+          </div>
+          <div class="yn n">No<small>needs <code>renderHook</code> + a wrapper</small></div>
+          <div class="yn n">No<small>hand-rolled <code>useEffect</code></small></div>
+        </article>
+      </div>
+
+      <p class="footnote"><strong>Read the last row twice.</strong> Plain React posts the best bundle score on the board and still isn't the pick — the two columns it fails are the two the job actually has. That is the whole argument: persistence, plus not re-rendering the world from a theme Context. It's a 1.2 KB problem.</p>
+
+      <div class="dl">
+        <h3>Weekly npm downloads — dedicated client-state libraries</h3>
+        <p>State of React 2025 calls Zustand the category leader on satisfaction and says it is climbing fast <sup><a href="https://2025.stateofreact.com/en-US/libraries/state-management/">[2]</a></sup>. RTK's volume is largely legacy projects with no reason to migrate <sup><a href="https://www.pkgpulse.com/blog/state-of-react-state-management-2026">[24]</a></sup>.</p>
+        <div class="dlrow lead">
+          <span class="n">Zustand</span>
+          <span class="t"><i style="width:100%"></i></span>
+          <span class="val">22.6M</span>
+        </div>
+        <div class="dlrow">
+          <span class="n">Redux Toolkit</span>
+          <span class="t"><i style="width:50%"></i></span>
+          <span class="val">11.4M</span>
+        </div>
+        <div class="dlrow">
+          <span class="n">Jotai</span>
+          <span class="t"><i style="width:13%"></i></span>
+          <span class="val">2.9M</span>
+        </div>
+        <div class="dlrow">
+          <span class="n">Valtio</span>
+          <span class="t"><i style="width:5%"></i></span>
+          <span class="val">1.2M</span>
+        </div>
+        <p class="footnote">Figures: gzip bundle sizes and weekly downloads, 2026 <sup><a href="https://saschb2b.com/blog/react-state-management-2026">[3]</a></sup>. Recoil was archived by Meta in early 2025 — it isn't on the sheet for a reason.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:14px">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">03</div>
+        <h2>Where the store lives — the Nx tiebreak</h2>
+        <div class="tag">The axis every generic blog post misses</div>
+      </div>
+      <p class="deck">The table above narrows it. <strong>The monorepo decides it.</strong> Zustand's vanilla <code>createStore</code> produces a plain object with <code>getState</code> / <code>setState</code> / <code>subscribe</code> and no React import at all <sup><a href="https://zustand.docs.pmnd.rs/learn/getting-started/comparison">[10]</a></sup> — which means the shared lib carries no React peer dependency and no context to leak across the two apps.</p>
+
+      <div class="two">
+        <div class="panel">
+          <h4>libs/state — tagged type:util, scope:shared</h4>
+          <ul>
+            <li><b>Theme, sidebar.</b> Identical semantics in both apps.</li>
+            <li><b>No React peer dep, no Provider</b> → no ordering constraint between the app shell and the lib. RTK forces the opposite: the store is only reachable through context.</li>
+            <li>Sits at the bottom of the tag graph: <code>onlyDependOnLibsWithTags: ["type:util"]</code>.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h4>apps/file-management — owned locally</h4>
+          <ul>
+            <li><b>Column visibility for that app's grids.</b> Split by ownership, not convenience.</li>
+            <li>A store is cheap. Two small stores in the right libs beat one god-store that forces both apps to rebuild on every change.</li>
+            <li>Nx's affected graph rewards the split.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fence">
+        <strong>The realistic failure</strong> is <code>libs/state</code> importing a feature lib for a type while that feature lib imports the store. The <code>@nx/enforce-module-boundaries</code> lint rule fails the PR before it lands <sup><a href="https://nx.dev/features/enforce-module-boundaries">[17]</a></sup>. ⚠ It is project-level only, not folder-level — so a fat <code>libs/state</code> holding both apps' state is a boundary you cannot lint <em>inside</em> <sup><a href="https://www.stefanos-lignos.dev/posts/nx-module-boundaries">[18]</a></sup>.
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:14px">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">04</div>
+        <h2>The proof — the store under Jest, no render</h2>
+        <div class="tag">No Provider · no renderHook · no act</div>
+      </div>
+      <p class="deck">The hard requirement, satisfied. A vanilla store in a lib, and a test that never mounts a component.</p>
+
+      <div class="codegrid">
+        <div class="codepanel">
+          <div class="cap">libs/state/src/lib/ui-preferences.store.ts</div>
+<pre><span class="k">import</span> { useStore } <span class="k">from</span> <span class="s">'zustand'</span>;
+<span class="k">import</span> { createStore } <span class="k">from</span> <span class="s">'zustand/vanilla'</span>;
+<span class="k">import</span> { createJSONStorage, persist } <span class="k">from</span> <span class="s">'zustand/middleware'</span>;
+
+<span class="k">export type</span> Theme = <span class="s">'light'</span> | <span class="s">'dark'</span> | <span class="s">'system'</span>;
+
+<span class="k">export interface</span> <span class="f">UiPreferences</span> {
+  theme: Theme;
+  sidebarCollapsed: <span class="k">boolean</span>;
+  hiddenColumns: Record&lt;<span class="k">string</span>, <span class="k">string</span>[]&gt;;
+  setTheme: (theme: Theme) =&gt; <span class="k">void</span>;
+  toggleSidebar: () =&gt; <span class="k">void</span>;
+  toggleColumn: (table: <span class="k">string</span>, column: <span class="k">string</span>) =&gt; <span class="k">void</span>;
+}
+
+<span class="k">export const</span> uiPreferencesStore = <span class="f">createStore</span>&lt;UiPreferences&gt;()(
+  <span class="f">persist</span>(
+    (set) =&gt; ({
+      theme: <span class="s">'system'</span>,
+      sidebarCollapsed: <span class="k">false</span>,
+      hiddenColumns: {},
+      setTheme: (theme) =&gt; <span class="f">set</span>({ theme }),
+      toggleSidebar: () =&gt; <span class="f">set</span>((s) =&gt; ({
+        sidebarCollapsed: !s.sidebarCollapsed,
+      })),
+      <span class="c">/* toggleColumn: table-keyed, see canonical */</span>
+    }),
+    {
+      name: <span class="s">'itenium.ui.preferences'</span>,
+      version: <span class="s">1</span>,
+      storage: <span class="f">createJSONStorage</span>(() =&gt; localStorage),
+      partialize: ({ theme, sidebarCollapsed, hiddenColumns }) =&gt;
+        ({ theme, sidebarCollapsed, hiddenColumns }),
+    },
+  ),
+);
+
+<span class="k">export const</span> useUiPreferences = &lt;T,&gt;(
+  selector: (s: UiPreferences) =&gt; T,
+): T =&gt; <span class="f">useStore</span>(uiPreferencesStore, selector);</pre>
+        </div>
+
+        <div class="codepanel">
+          <div class="cap">libs/state/src/lib/ui-preferences.store.spec.ts</div>
+<pre><span class="k">import</span> { uiPreferencesStore } <span class="k">from</span> <span class="s">'./ui-preferences.store'</span>;
+
+<span class="k">const</span> initialState = uiPreferencesStore.<span class="f">getInitialState</span>();
+
+<span class="f">beforeEach</span>(() =&gt;
+  uiPreferencesStore.<span class="f">setState</span>(initialState, <span class="k">true</span>));
+
+<span class="f">describe</span>(<span class="s">'uiPreferencesStore'</span>, () =&gt; {
+  <span class="f">it</span>(<span class="s">'toggles a column off, then back on'</span>, () =&gt; {
+    <span class="k">const</span> { toggleColumn } = uiPreferencesStore.<span class="f">getState</span>();
+
+    <span class="f">toggleColumn</span>(<span class="s">'users'</span>, <span class="s">'email'</span>);
+    <span class="f">expect</span>(uiPreferencesStore.<span class="f">getState</span>()
+      .hiddenColumns[<span class="s">'users'</span>]).<span class="f">toEqual</span>([<span class="s">'email'</span>]);
+
+    <span class="f">toggleColumn</span>(<span class="s">'users'</span>, <span class="s">'email'</span>);
+    <span class="f">expect</span>(uiPreferencesStore.<span class="f">getState</span>()
+      .hiddenColumns[<span class="s">'users'</span>]).<span class="f">toEqual</span>([]);
+  });
+
+  <span class="f">it</span>(<span class="s">'notifies subscribers on theme change'</span>, () =&gt; {
+    <span class="k">const</span> listener = jest.<span class="f">fn</span>();
+    uiPreferencesStore.<span class="f">subscribe</span>(listener);
+
+    uiPreferencesStore.<span class="f">getState</span>().<span class="f">setTheme</span>(<span class="s">'dark'</span>);
+
+    <span class="f">expect</span>(listener).<span class="f">toHaveBeenCalledTimes</span>(<span class="s">1</span>);
+    <span class="f">expect</span>(uiPreferencesStore.<span class="f">getState</span>().theme)
+      .<span class="f">toBe</span>(<span class="s">'dark'</span>);
+  });
+});</pre>
+        </div>
+      </div>
+
+      <div class="two" style="margin-top:18px">
+        <div class="panel">
+          <h4>The reset idiom</h4>
+          <ul>
+            <li><code>getInitialState()</code> + <code>setState(next, true)</code> — the <code>true</code> means <em>replace</em>, not merge.</li>
+            <li>Zustand's own Jest guide scales this to every store at once with a <code>__mocks__/zustand.ts</code> that collects reset functions and fires them in <code>afterEach</code> <sup><a href="https://zustand.docs.pmnd.rs/learn/guides/testing">[12]</a></sup> — adopt it the moment you have more than two stores.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h4>The one environment constraint</h4>
+          <ul>
+            <li><code>persist</code> with <code>createJSONStorage(() =&gt; localStorage)</code> needs a DOM. Nx's React Jest preset already runs <code>jsdom</code>.</li>
+            <li>Move <code>libs/state</code> to a <code>node</code> test environment and <b>store construction itself throws</b>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:14px">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">05</div>
+        <h2>Cards shown</h2>
+        <div class="tag">1 red · 3 yellow</div>
+      </div>
+      <div class="cards">
+        <div class="disc red">
+          <span class="cardtype">Red card · sending-off offence</span>
+          <h5>Object selectors in Zustand v5</h5>
+          <p><code>useStore(store, s =&gt; ({ a: s.a, b: s.b }))</code> returns a fresh reference each render → <code>useSyncExternalStore</code> sees a change → <em>Maximum update depth exceeded</em> <sup><a href="https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5">[15]</a></sup>. It is the single most common v5 crash <sup><a href="https://github.com/pmndrs/zustand/discussions/2790">[16]</a></sup>. Select primitives one at a time, or wrap in <code>useShallow</code>. Add the ESLint rule and it never bites twice.</p>
+        </div>
+        <div class="disc yellow">
+          <span class="cardtype">Yellow · persistent offending</span>
+          <h5>The wizard draft in the global store</h5>
+          <p>It has the wizard's lifecycle, not the app's. <code>useReducer</code>, co-located with the route. If a half-finished draft must survive a reload, give it its <em>own</em> store with its own <code>name</code> — then clearing it is one <code>.clearStorage()</code> call.</p>
+        </div>
+        <div class="disc yellow">
+          <span class="cardtype">Yellow · dissent</span>
+          <h5>“Context is free”</h5>
+          <p>Any change to a context value re-renders every consumer in the subtree <sup><a href="https://react.dev/reference/react/useSyncExternalStore">[19]</a></sup>. Fine for a theme that changes twice a session; wrong for anything a table touches. That is the entire reason external stores exist.</p>
+        </div>
+        <div class="disc yellow">
+          <span class="cardtype">Yellow · playing out of position</span>
+          <h5>XState as the app's state layer</h5>
+          <p>Statecharts for three booleans is not KISS. Reach for <a href="https://stately.ai/docs/xstate-store">@xstate/store</a> or a machine <em>for the one wizard that earns it</em> <sup><a href="https://stately.ai/docs/xstate-store">[21]</a></sup> — it's framework-agnostic and drops into <code>libs/</code> cleanly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ft">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">FT</div>
+        <h2>Full time — the stack for itenium-ui</h2>
+        <div class="tag">Four layers, one store</div>
+      </div>
+      <div class="lineup">
+        <div class="sl">
+          <div class="no">Server state</div>
+          <b><a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">TanStack Query</a></b>
+          <p>Owns everything the Forge API returns — including <code>/me</code> and feature flags.</p>
+        </div>
+        <div class="sl">
+          <div class="no">Client state</div>
+          <b><a href="https://github.com/pmndrs/zustand">Zustand</a></b>
+          <p>One <code>libs/state</code> lib, vanilla <code>createStore</code>, <code>persist</code>, tagged <code>type:util</code>, lint-fenced at the bottom of the dep graph. <code>devtools</code> middleware in dev only — it speaks Redux DevTools, so you keep time-travel without the 12 KB.</p>
+        </div>
+        <div class="sl">
+          <div class="no">URL state</div>
+          <b><a href="https://nuqs.dev/">nuqs</a></b>
+          <p>⭐ 11k <a href="https://github.com/47ng/nuqs">[23]</a> — table filter / sort / page, when it needs to be linkable. It is state you would otherwise wrongly put in the store.</p>
+        </div>
+        <div class="sl">
+          <div class="no">Component state</div>
+          <b><a href="https://react.dev/blog/2024/12/05/react-19">React 19 built-ins</a></b>
+          <p><code>useState</code> for modals and popovers, <code>useReducer</code> for wizards, <code>useActionState</code> / <code>useOptimistic</code> for CRUD mutations.</p>
+        </div>
+      </div>
+
+      <p class="closer">You could ship this app with <em>zero</em> state libraries. 34% of React devs do.</p>
+      <p>The honest reason not to is persistence, plus avoiding a theme Context that re-renders the world <sup><a href="https://2025.stateofreact.com/en-US/libraries/state-management/">[2]</a></sup>. That's a 1.2 KB problem — and Zustand is the 1.2 KB answer.</p>
+    </div>
+  </section>
+
+  <section style="padding-top:44px">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">06</div>
+        <h2>Elsewhere in this expedition</h2>
+        <div class="tag">5 sibling angles</div>
+      </div>
+      <div class="sibs">
+        <a class="sib" href="../../is-redux-still-the-right-answer-in-2026/">
+          <span class="d">survey</span>
+          <b>Is Redux still the right answer in 2026?</b>
+          <p>Healthy, but no longer the default — its classic moats no longer belong to Redux alone.</p>
+        </a>
+        <a class="sib" href="../../server-state-tanstack-query-vs-rtk-query-vs-swr-vs-route-loaders/">
+          <span class="d">survey</span>
+          <b>Server state: TanStack Query wins</b>
+          <p>Register.defaultError makes RFC 9457 ProblemDetails a first-class typed error.</p>
+        </a>
+        <a class="sib" href="../../typed-api-clients-from-forge-openapi/">
+          <span class="d">survey</span>
+          <b>Typed API clients from Forge's OpenAPI</b>
+          <p>Orval emits Query hooks, query keys, MSW mocks and Zod schemas from one config.</p>
+        </a>
+        <a class="sib" href="../../routing-and-where-state-lives/">
+          <span class="d">recon</span>
+          <b>The router is a state manager</b>
+          <p>TanStack Router turns filters / sort / pagination into typed URL state, not slices.</p>
+        </a>
+        <a class="sib" href="../../auth-and-session-state-against-forge-jwt-and-oidc/">
+          <span class="d">recon</span>
+          <b>Auth &amp; session: kill the localStorage plan</b>
+          <p>react-oidc-context, an in-memory access token, roles behind a <code>/me</code> query.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:14px">
+    <div class="wrap">
+      <div class="shead">
+        <div class="num">07</div>
+        <h2>Sources</h2>
+        <div class="tag">27 citations</div>
+      </div>
+      <div class="srcs">
+        <a class="src" href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state"><span class="sn">01</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span class="st">TanStack Query — client state</span></a>
+        <a class="src" href="https://2025.stateofreact.com/en-US/libraries/state-management/"><span class="sn">02</span><img src="https://www.google.com/s2/favicons?domain=2025.stateofreact.com&sz=128" alt=""><span class="st">State of React 2025</span></a>
+        <a class="src" href="https://saschb2b.com/blog/react-state-management-2026"><span class="sn">03</span><img src="https://www.google.com/s2/favicons?domain=saschb2b.com&sz=128" alt=""><span class="st">Bundle sizes &amp; downloads 2026</span></a>
+        <a class="src" href="https://github.com/pmndrs/zustand"><span class="sn">04</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">pmndrs/zustand ⭐ 59k</span></a>
+        <a class="src" href="https://github.com/pmndrs/jotai"><span class="sn">05</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">pmndrs/jotai ⭐ 21k</span></a>
+        <a class="src" href="https://github.com/reduxjs/redux-toolkit"><span class="sn">06</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">reduxjs/redux-toolkit ⭐ 11k</span></a>
+        <a class="src" href="https://github.com/pmndrs/valtio"><span class="sn">07</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">pmndrs/valtio ⭐ 10k</span></a>
+        <a class="src" href="https://github.com/statelyai/xstate"><span class="sn">08</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">statelyai/xstate ⭐ 30k</span></a>
+        <a class="src" href="https://react.dev/blog/2024/12/05/react-19"><span class="sn">09</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><span class="st">React 19 release notes</span></a>
+        <a class="src" href="https://zustand.docs.pmnd.rs/learn/getting-started/comparison"><span class="sn">10</span><img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt=""><span class="st">Zustand — comparison</span></a>
+        <a class="src" href="https://jotai.org/docs/basics/comparison"><span class="sn">11</span><img src="https://www.google.com/s2/favicons?domain=jotai.org&sz=128" alt=""><span class="st">Jotai — comparison</span></a>
+        <a class="src" href="https://zustand.docs.pmnd.rs/learn/guides/testing"><span class="sn">12</span><img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt=""><span class="st">Zustand — testing</span></a>
+        <a class="src" href="https://jotai.org/docs/guides/testing"><span class="sn">13</span><img src="https://www.google.com/s2/favicons?domain=jotai.org&sz=128" alt=""><span class="st">Jotai — testing</span></a>
+        <a class="src" href="https://zustand.docs.pmnd.rs/reference/middlewares/persist"><span class="sn">14</span><img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt=""><span class="st">Zustand — persist</span></a>
+        <a class="src" href="https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5"><span class="sn">15</span><img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt=""><span class="st">Zustand — migrating to v5</span></a>
+        <a class="src" href="https://github.com/pmndrs/zustand/discussions/2790"><span class="sn">16</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">Infinite loop error with v5</span></a>
+        <a class="src" href="https://nx.dev/features/enforce-module-boundaries"><span class="sn">17</span><img src="https://www.google.com/s2/favicons?domain=nx.dev&sz=128" alt=""><span class="st">Nx — enforce module boundaries</span></a>
+        <a class="src" href="https://www.stefanos-lignos.dev/posts/nx-module-boundaries"><span class="sn">18</span><img src="https://www.google.com/s2/favicons?domain=stefanos-lignos.dev&sz=128" alt=""><span class="st">Nx boundaries in practice</span></a>
+        <a class="src" href="https://react.dev/reference/react/useSyncExternalStore"><span class="sn">19</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><span class="st">React — useSyncExternalStore</span></a>
+        <a class="src" href="https://jotai.org/docs/guides/using-store-outside-react"><span class="sn">20</span><img src="https://www.google.com/s2/favicons?domain=jotai.org&sz=128" alt=""><span class="st">Jotai — store outside React</span></a>
+        <a class="src" href="https://stately.ai/docs/xstate-store"><span class="sn">21</span><img src="https://www.google.com/s2/favicons?domain=stately.ai&sz=128" alt=""><span class="st">Stately — @xstate/store</span></a>
+        <a class="src" href="https://nuqs.dev/"><span class="sn">22</span><img src="https://www.google.com/s2/favicons?domain=nuqs.dev&sz=128" alt=""><span class="st">nuqs — URL search-param state</span></a>
+        <a class="src" href="https://github.com/47ng/nuqs"><span class="sn">23</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st">47ng/nuqs ⭐ 11k</span></a>
+        <a class="src" href="https://www.pkgpulse.com/blog/state-of-react-state-management-2026"><span class="sn">24</span><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=128" alt=""><span class="st">State of React state mgmt 2026</span></a>
+        <a class="src" href="https://dev.to/jsgurujobs/state-management-in-2026-zustand-vs-jotai-vs-redux-toolkit-vs-signals-2gge"><span class="sn">25</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><span class="st">Boilerplate: 12 lines vs 28</span></a>
+        <a class="src" href="https://blog.axlight.com/posts/how-valtio-proxy-state-works-react-part/"><span class="sn">26</span><img src="https://www.google.com/s2/favicons?domain=blog.axlight.com&sz=128" alt=""><span class="st">How Valtio proxy state works</span></a>
+        <a class="src" href="https://jotai.org/docs/core/provider"><span class="sn">27</span><img src="https://www.google.com/s2/favicons?domain=jotai.org&sz=128" alt=""><span class="st">Jotai — Provider</span></a>
+      </div>
+
+      <div class="colophon">
+        <span>Scorecard view · scoped before scored</span>
+        <span><a href="../">Full write-up</a> · <a href="../../">Expedition: the Redux question dissolves</a> · <a href="/">Atlas</a></span>
+      </div>
+    </div>
+  </section>
+
+</div>

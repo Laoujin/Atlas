@@ -1,0 +1,791 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "The React state stack for Itenium.Forge in 2026: the Redux question dissolves — Blueprint"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+.bp {
+  --paper: #072033;
+  --paper-2: #0b2d47;
+  --grid: rgba(125, 211, 252, 0.10);
+  --grid-2: rgba(125, 211, 252, 0.20);
+  --ink: #dbeafe;
+  --ink-dim: #8ab4d8;
+  --line: rgba(125, 211, 252, 0.30);
+  --line-hard: rgba(125, 211, 252, 0.62);
+  --cyan: #7dd3fc;
+  --white: #f2fbff;
+  --red: #ff5f6d;
+  --amber: #fbbf24;
+  --green: #5eead4;
+
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.6;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    linear-gradient(var(--grid-2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-2) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, #0e3855 0%, #072033 55%, #04141f 100%);
+  background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px, 100% 100%;
+}
+
+.bp * { box-sizing: border-box; }
+.bp a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(125,211,252,0.5); }
+.bp a:hover { color: var(--white); border-bottom-color: var(--white); }
+.bp sup a { border-bottom: none; font-size: 11px; padding: 0 1px; }
+
+.sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 22px 90px;
+}
+
+/* ---- sheet border with corner ticks ---- */
+.frame {
+  border: 1px solid var(--line);
+  outline: 4px solid rgba(125,211,252,0.06);
+  outline-offset: 4px;
+  position: relative;
+  padding: 0;
+}
+.frame::before, .frame::after {
+  content: "";
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 1px solid var(--line-hard);
+}
+.frame::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.frame::after  { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+/* ---- title block ---- */
+.titleblock {
+  display: grid;
+  grid-template-columns: 1fr 210px;
+  border-bottom: 1px solid var(--line);
+}
+.tb-main { padding: 26px 28px 22px; border-right: 1px solid var(--line); }
+.tb-kicker {
+  font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 14px;
+}
+.tb-title {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(28px, 4.4vw, 50px);
+  line-height: 1.03;
+  color: var(--white);
+  letter-spacing: -0.015em;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+.tb-title em { font-style: normal; color: var(--cyan); }
+.tb-sub { font-size: 13.5px; color: var(--ink-dim); max-width: 62ch; }
+.tb-meta { display: flex; flex-direction: column; }
+.tb-cell { padding: 9px 14px; border-bottom: 1px solid var(--line); }
+.tb-cell:last-child { border-bottom: none; }
+.tb-cell b {
+  display: block; font-size: 9.5px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-dim); font-weight: 500;
+}
+.tb-cell span { font-size: 14px; color: var(--white); }
+
+/* ---- verdict band ---- */
+.verdict {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 30px;
+  align-items: center;
+  padding: 30px 28px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(125,211,252,0.03);
+}
+.verdict p { margin: 0 0 12px; font-size: 15.5px; }
+.verdict p:last-child { margin-bottom: 0; }
+.verdict strong { color: var(--white); }
+.verdict .lead {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-size: 20px; line-height: 1.42; color: var(--white); font-weight: 400;
+}
+.stamp {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 800;
+  color: var(--red);
+  border: 3px solid var(--red);
+  outline: 1px solid var(--red);
+  outline-offset: 3px;
+  padding: 12px 18px 10px;
+  transform: rotate(-8deg);
+  text-align: center;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+  opacity: 0.92;
+  flex-shrink: 0;
+}
+.stamp b { display: block; font-size: 30px; }
+.stamp i { display: block; font-style: normal; font-size: 11px; letter-spacing: 0.24em; margin-top: 5px; }
+
+/* ---- section headers ---- */
+.sect { padding: 34px 28px; border-bottom: 1px solid var(--line); }
+.sect-h {
+  display: flex; align-items: baseline; gap: 14px;
+  margin: 0 0 6px;
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 800; text-transform: uppercase;
+  font-size: 19px; letter-spacing: 0.04em; color: var(--white);
+}
+.sect-h .tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: 0.2em; font-weight: 600;
+  color: var(--paper); background: var(--cyan);
+  padding: 3px 8px; border-radius: 2px;
+}
+.sect-note { color: var(--ink-dim); font-size: 13.5px; margin: 0 0 26px; max-width: 78ch; }
+
+/* ---- the elevation ---- */
+.plate {
+  border: 1px dashed var(--line);
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-dim);
+  background: rgba(125,211,252,0.04);
+}
+.plate.ground {
+  border-style: solid;
+  border-color: var(--line-hard);
+  color: var(--white);
+  background:
+    repeating-linear-gradient(45deg, rgba(125,211,252,0.10) 0 2px, transparent 2px 8px);
+}
+.spine { text-align: center; color: var(--cyan); font-size: 17px; line-height: 1; padding: 6px 0; }
+
+.layer {
+  display: grid;
+  grid-template-columns: 54px 1fr 268px;
+  gap: 0;
+  align-items: stretch;
+  margin: 0;
+}
+.layer .no {
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 22px;
+  color: var(--paper-2);
+  -webkit-text-stroke: 1px var(--line-hard);
+  border-right: 1px dashed var(--line);
+}
+.slab {
+  border: 1px solid var(--line-hard);
+  border-left: 5px solid var(--cyan);
+  padding: 16px 20px;
+  background: rgba(125,211,252,0.055);
+  position: relative;
+  margin: 5px 0;
+}
+.slab.hero { border-left-color: var(--amber); background: rgba(251,191,36,0.08); }
+.slab-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.slab-top img { width: 18px; height: 18px; border-radius: 3px; }
+.slab-name {
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 21px;
+  color: var(--white); letter-spacing: -0.01em;
+}
+.slab-role {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cyan);
+}
+.slab.hero .slab-role { color: var(--amber); }
+.slab-owns { margin: 9px 0 0; font-size: 13.5px; color: var(--ink); }
+.slab-owns b { color: var(--white); }
+.annot {
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+  border-right: 1px dashed var(--line);
+  margin: 5px 0;
+  padding: 12px 14px;
+  display: flex; flex-direction: column; justify-content: center; gap: 5px;
+  font-size: 11.5px; color: var(--ink-dim);
+  position: relative;
+}
+.annot::before {
+  content: "";
+  position: absolute; left: -1px; top: 50%; width: 14px;
+  border-top: 1px dashed var(--line-hard);
+}
+.annot .k { color: var(--cyan); letter-spacing: 0.12em; text-transform: uppercase; font-size: 9.5px; }
+.annot .v { color: var(--white); font-size: 13px; }
+.annot .stars { color: var(--amber); }
+
+/* ---- detail A ---- */
+.detail {
+  border: 1px solid var(--line-hard);
+  background: rgba(4,20,31,0.55);
+  padding: 26px;
+  position: relative;
+}
+.detail::before {
+  content: "DETAIL A";
+  position: absolute; top: -10px; left: 22px;
+  background: var(--paper); padding: 0 8px;
+  font-size: 10px; letter-spacing: 0.24em; color: var(--cyan);
+}
+.flow {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr 40px 1fr;
+  align-items: center;
+  gap: 0;
+}
+.node {
+  border: 1px solid var(--line);
+  padding: 14px 12px;
+  text-align: center;
+  background: rgba(125,211,252,0.05);
+}
+.node .n-t { font-size: 12.5px; color: var(--white); font-weight: 600; }
+.node .n-c { font-size: 11px; color: var(--ink-dim); margin-top: 5px; word-break: break-word; }
+.node.cache { border-color: var(--amber); background: rgba(251,191,36,0.09); }
+.node.cache .n-t { color: var(--amber); }
+.arrow { text-align: center; color: var(--cyan); font-size: 19px; }
+.eq {
+  margin-top: 22px;
+  border-top: 1px dashed var(--line);
+  padding-top: 20px;
+  text-align: center;
+}
+.eq-line {
+  font-family: 'Archivo', sans-serif; font-weight: 800;
+  font-size: clamp(17px, 2.6vw, 26px);
+  color: var(--white); letter-spacing: -0.01em;
+}
+.eq-line b { color: var(--cyan); }
+.eq-sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 8px; }
+.code {
+  margin-top: 20px;
+  border-left: 3px solid var(--cyan);
+  background: rgba(4,20,31,0.7);
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--ink);
+  white-space: pre;
+  overflow-x: auto;
+}
+.code .c { color: var(--ink-dim); }
+.code .f { color: var(--amber); }
+
+/* ---- schedule table ---- */
+.sched { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sched th {
+  text-align: left; padding: 9px 12px;
+  font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--cyan); font-weight: 600;
+  border-bottom: 1px solid var(--line-hard);
+  white-space: nowrap;
+}
+.sched td { padding: 12px; border-bottom: 1px dashed var(--line); vertical-align: top; }
+.sched tr:last-child td { border-bottom: none; }
+.sched .pkg { display: flex; align-items: center; gap: 8px; color: var(--white); }
+.sched .pkg img { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
+.sched .num { color: var(--white); white-space: nowrap; }
+.sched .stars { color: var(--amber); white-space: nowrap; }
+
+/* ---- rejected schedule ---- */
+.rej { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0; }
+.rej-item {
+  border: 1px dashed var(--line);
+  margin: -0.5px 0 0 -0.5px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.rej-item::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(-45deg, transparent 0 22px, rgba(255,95,109,0.055) 22px 24px);
+  pointer-events: none;
+}
+.rej-name {
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 16px;
+  color: var(--ink-dim); text-decoration: line-through;
+  text-decoration-color: var(--red); text-decoration-thickness: 2px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rej-name img { width: 15px; height: 15px; border-radius: 3px; opacity: 0.55; }
+.rej-why { font-size: 12.5px; color: var(--ink-dim); margin-top: 8px; }
+.rej-why b { color: var(--ink); }
+
+/* ---- notes ---- */
+.notes { display: grid; gap: 0; }
+.note-row {
+  display: grid; grid-template-columns: 44px 1fr;
+  border: 1px solid var(--line);
+  margin-top: -1px;
+}
+.note-n {
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--line);
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 18px;
+  color: var(--amber);
+  background: rgba(251,191,36,0.06);
+}
+.note-b { padding: 15px 18px; font-size: 13.5px; }
+.note-b b { color: var(--white); }
+
+/* ---- risks ---- */
+.risks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.risk {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--amber);
+  padding: 16px 18px;
+  background: rgba(251,191,36,0.04);
+}
+.risk h4 {
+  margin: 0 0 8px;
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 14px;
+  color: var(--white); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.risk p { margin: 0; font-size: 12.5px; color: var(--ink-dim); }
+.openq {
+  margin-top: 20px;
+  border: 1px solid var(--red);
+  border-left: 5px solid var(--red);
+  padding: 20px 22px;
+  background: rgba(255,95,109,0.07);
+}
+.openq .lab {
+  font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--red);
+}
+.openq p {
+  margin: 8px 0 0;
+  font-family: 'Archivo', sans-serif;
+  font-size: 17px; line-height: 1.45; color: var(--white);
+}
+
+/* ---- sheet index (children) ---- */
+.idx { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0; }
+.idx-card {
+  border: 1px solid var(--line);
+  margin: -0.5px 0 0 -0.5px;
+  padding: 20px 22px;
+  display: block;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none !important;
+  transition: background 0.15s;
+}
+.idx-card:hover { background: rgba(125,211,252,0.07); }
+.idx-top {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-dim); margin-bottom: 10px;
+}
+.idx-no { color: var(--cyan); font-weight: 600; }
+.idx-t {
+  font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 16.5px;
+  line-height: 1.28; color: var(--white); margin-bottom: 9px;
+}
+.idx-s { font-size: 12.5px; color: var(--ink-dim); line-height: 1.55; }
+.idx-f {
+  margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line);
+  font-size: 10.5px; color: var(--cyan); display: flex; justify-content: space-between;
+}
+
+/* ---- references ---- */
+.refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+.ref {
+  display: flex; gap: 10px; align-items: flex-start;
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  font-size: 11.5px;
+}
+.ref img { width: 16px; height: 16px; border-radius: 3px; margin-top: 2px; flex-shrink: 0; }
+.ref .rn { color: var(--cyan); font-weight: 600; }
+.ref .rt { color: var(--ink); word-break: break-word; }
+.ref .rt a { border-bottom: none; }
+
+/* ---- colophon ---- */
+.colophon {
+  padding: 22px 28px;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+@media (max-width: 860px) {
+  .titleblock { grid-template-columns: 1fr; }
+  .tb-main { border-right: none; border-bottom: 1px solid var(--line); }
+  .tb-meta { flex-direction: row; flex-wrap: wrap; }
+  .tb-cell { flex: 1 1 40%; border-bottom: 1px solid var(--line); }
+  .verdict { grid-template-columns: 1fr; }
+  .stamp { justify-self: start; }
+  .layer { grid-template-columns: 1fr; }
+  .layer .no { display: none; }
+  .annot { border-left: 1px dashed var(--line); border-top: none; margin-top: -1px; }
+  .annot::before { display: none; }
+  .flow { grid-template-columns: 1fr; }
+  .arrow { transform: rotate(90deg); padding: 4px 0; }
+  .sect { padding: 26px 16px; }
+  .sheet { padding: 20px 10px 60px; }
+}
+</style>
+
+<div class="bp">
+<div class="sheet">
+<div class="frame">
+
+  <!-- ============ TITLE BLOCK ============ -->
+  <div class="titleblock">
+    <div class="tb-main">
+      <div class="tb-kicker">Itenium.Forge · itenium-ui · state architecture</div>
+      <h1 class="tb-title">Four layers,<br>one <em>cache</em>,<br>no store to speak of.</h1>
+      <p class="tb-sub">Six angles ran independently on the same question — <em>is Redux still the answer?</em> — and all six came back with the same drawing. This sheet is that drawing: what each layer owns, what it costs, and where the seams are.</p>
+    </div>
+    <div class="tb-meta">
+      <div class="tb-cell"><b>Drawing</b><span>ST-2026-01</span></div>
+      <div class="tb-cell"><b>Issued</b><span>2026-07-13</span></div>
+      <div class="tb-cell"><b>Substrate</b><span>Nx 21 · React 19<br>Vite · Tailwind 4</span></div>
+      <div class="tb-cell"><b>Serves</b><span>.NET 10 REST<br>ProblemDetails · JWT</span></div>
+      <div class="tb-cell"><b>Sheets</b><span>6 · 148 citations</span></div>
+      <div class="tb-cell"><b>Status</b><span style="color:var(--green)">Issued for construction</span></div>
+    </div>
+  </div>
+
+  <!-- ============ VERDICT ============ -->
+  <div class="verdict">
+    <div>
+      <p class="lead">Do not introduce Redux. Generate the client from Forge's OpenAPI with <strong>Orval</strong>, let <strong>TanStack Query</strong> own server state, let <strong>TanStack Router</strong> own filter/sort/page state as typed URL search params, and leave <strong>one small Zustand store</strong> for theme, sidebar and column visibility.</p>
+      <p style="font-size:13px;color:var(--ink-dim)">Redux's own FAQ still says <em>"don't use Redux until you have problems with vanilla React"</em> <sup><a href="https://redux.js.org/faq/general">[1]</a></sup>. An admin console over a REST API does not have those problems. Redux is not dying — 23.6M weekly downloads, quarterly releases <sup><a href="https://github.com/reduxjs/redux-toolkit/releases">[4]</a></sup> — there is simply no bucket of state left for it to own.</p>
+    </div>
+    <div class="stamp">
+      <b>REDUX</b>
+      <i>not specified</i>
+    </div>
+  </div>
+
+  <!-- ============ SECTION A-A : THE ELEVATION ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">SECTION A–A</span> The stack in elevation</h2>
+    <p class="sect-note">Read top-down: a component renders, a hook reads the cache, the cache is filled by the generated client, the client talks to Forge. Every band names the state it owns — and no band is a global store.</p>
+
+    <div class="plate">Routes &amp; components · React 19 · Tailwind 4</div>
+    <div class="spine">↓</div>
+
+    <div class="layer">
+      <div class="no">04</div>
+      <div class="slab">
+        <div class="slab-top">
+          <img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt="">
+          <span class="slab-name"><a href="https://github.com/pmndrs/zustand">Zustand</a></span>
+          <span class="slab-role">client store · the residue</span>
+        </div>
+        <p class="slab-owns">Owns: <b>theme · sidebar collapsed · column visibility</b>. One vanilla <code>createStore</code> in a shared Nx lib, wrapped in <code>persist</code> <sup><a href="https://zustand.docs.pmnd.rs/reference/middlewares/persist">[32]</a></sup>. No Provider. ~12 lines. If it grows past that, something upstream is misplaced.</p>
+      </div>
+      <div class="annot">
+        <div><span class="k">size</span> <span class="v">1.2 kB gzip</span></div>
+        <div><span class="k">github</span> <span class="v stars">⭐ 59k</span></div>
+        <div><span class="k">pitfall</span> object-returning selectors loop in v5 — wrap in <code>useShallow</code> <sup><a href="https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5">[41]</a></sup></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="no">03</div>
+      <div class="slab">
+        <div class="slab-top">
+          <img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="">
+          <span class="slab-name"><a href="https://github.com/TanStack/router">TanStack Router</a></span>
+          <span class="slab-role">URL state · typed search params</span>
+        </div>
+        <p class="slab-owns">Owns: <b>filters · sort · page · selected row</b> — validated against a per-route schema, with every <code>navigate()</code> type-checked against it <sup><a href="https://tanstack.com/router/latest/docs/framework/react/guide/search-params">[23]</a></sup>. This is the single largest fake use-case for a store: put filters in a store and they stop being shareable, bookmarkable or refresh-proof, and the back button breaks <sup><a href="https://tanstack.com/blog/search-params-are-state">[3]</a></sup>. Also owns the auth guard: <code>beforeLoad</code> + <code>redirect()</code> on a parent route protects the whole subtree <sup><a href="https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes">[33]</a></sup>.</p>
+      </div>
+      <div class="annot">
+        <div><span class="k">size</span> <span class="v">39.6 kB gzip <sup><a href="https://bundlephobia.com/package/@tanstack/react-router">[18]</a></sup></span></div>
+        <div><span class="k">github</span> <span class="v stars">⭐ 15k</span></div>
+        <div><span class="k">note</span> the heaviest single line item on this sheet — and the one that deletes the most store code</div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="no">02</div>
+      <div class="slab hero">
+        <div class="slab-top">
+          <img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="">
+          <span class="slab-name"><a href="https://github.com/TanStack/query">TanStack Query</a></span>
+          <span class="slab-role">load-bearing · server state</span>
+        </div>
+        <p class="slab-owns">Owns: <b>nearly everything</b>. Caching, staleness, dedupe, retries, invalidation, optimistic rollback. Its own docs are the origin of this whole decision: once async code moves into the cache, the truly global client state left over "is usually very tiny" — their worked example reduces to <code>themeMode</code> and <code>sidebarStatus</code> <sup><a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">[2]</a></sup>. Declaration-merge <code>Register.defaultError</code> once and RFC 9457 ProblemDetails <sup><a href="https://www.rfc-editor.org/rfc/rfc9457">[25]</a></sup> becomes the typed error of <em>every</em> hook, with no per-call generics <sup><a href="https://tanstack.com/query/latest/docs/framework/react/typescript">[24]</a></sup>.</p>
+      </div>
+      <div class="annot">
+        <div><span class="k">size</span> <span class="v">13.3 kB gzip <sup><a href="https://bundlephobia.com/package/@tanstack/react-query">[19]</a></sup></span></div>
+        <div><span class="k">github</span> <span class="v stars">⭐ 50k</span></div>
+        <div><span class="k">npm / wk</span> <span class="v">61.2M <sup><a href="https://api.npmjs.org/downloads/point/last-week/@tanstack/react-query">[21]</a></sup></span></div>
+        <div><span class="k">tests</span> MSW at the network edge, fresh QueryClient per test <sup><a href="https://tkdodo.eu/blog/testing-react-query">[36]</a></sup></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="no">01</div>
+      <div class="slab">
+        <div class="slab-top">
+          <img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt="">
+          <span class="slab-name"><a href="https://github.com/orval-labs/orval">Orval</a></span>
+          <span class="slab-role">generated · not written</span>
+        </div>
+        <p class="slab-owns">Owns: <b>hooks · query keys · Zod schemas · MSW mocks</b> — all emitted from Forge's OpenAPI document by one config <sup><a href="https://orval.dev/docs/reference/configuration/output/">[37]</a></sup>. Per operation you get a request fn, a key factory and a typed hook <sup><a href="https://orval.dev/docs/guides/react-query/">[8]</a></sup>. One custom mutator exports an <code>ErrorType</code> alias and ProblemDetails becomes the error type of every generated hook <sup><a href="https://orval.dev/docs/guides/custom-axios/">[9]</a></sup>. Wire it as an Nx target so the codegen is cached on its inputs <sup><a href="https://nx.dev/recipes/running-tasks/configure-outputs">[46]</a></sup>.</p>
+      </div>
+      <div class="annot">
+        <div><span class="k">github</span> <span class="v stars">⭐ 6.2k</span></div>
+        <div><span class="k">why</span> <span class="v">only generator emitting hooks + keys + mocks + Zod from one config</span></div>
+        <div><span class="k">watch</span> v8 nullable-only schemas emit invalid TS <sup><a href="https://github.com/orval-labs/orval/issues/3149">[43]</a></sup></div>
+      </div>
+    </div>
+
+    <div class="spine">↓</div>
+    <div class="plate ground">Itenium.Forge · .NET 10 REST · ProblemDetails <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/web-api/handle-errors?view=aspnetcore-9.0">[34]</a></sup> · JWT via Keycloak / OpenIddict</div>
+
+    <p class="sect-note" style="margin:26px 0 0">Session sits alongside, not inside: <a href="https://github.com/authts/react-oidc-context">react-oidc-context</a> ⭐ 1.0k already exposes the access token as a React Context. Copying it into a store creates a second copy that goes stale. Keep it in memory — never localStorage, which OWASP forbids outright for session material <sup><a href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html">[38]</a></sup>.</p>
+  </div>
+
+  <!-- ============ DETAIL A : THE COMPOSITION ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">DETAIL A</span> The layers compose — that is the actual finding</h2>
+    <p class="sect-note">These are not four independent picks that happen to co-exist. The router is explicitly designed as "a perfect coordinator for external data fetching and caching libraries" <sup><a href="https://tanstack.com/router/latest/docs/framework/react/guide/external-data-loading">[7]</a></sup>. Follow one navigation through the joint:</p>
+
+    <div class="detail">
+      <div class="flow">
+        <div class="node">
+          <div class="n-t">Route search params</div>
+          <div class="n-c">?status=open&amp;page=2<br>validated by schema</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node">
+          <div class="n-t">loader()</div>
+          <div class="n-c">queryClient<br>.ensureQueryData()</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node cache">
+          <div class="n-t">Query cache</div>
+          <div class="n-c">keyed by those same params<br>← useSuspenseQuery() reads it</div>
+        </div>
+      </div>
+
+      <div class="eq">
+        <div class="eq-line">The typed search params <b>ARE</b> the query key.</div>
+        <div class="eq-sub">One schema. One source of truth. No slice, no action, no reducer, no selector — and the URL is the state, so it is shareable, bookmarkable and refresh-proof by construction.</div>
+      </div>
+
+      <div class="code"><span class="c">// route</span>
+validateSearch: (s) =&gt; issueFilters.parse(s),        <span class="c">// Zod, emitted by Orval</span>
+loader: ({ context, deps }) =&gt;
+  context.queryClient.<span class="f">ensureQueryData</span>(getIssuesQueryOptions(deps)),
+
+<span class="c">// component — same key, same cache entry, zero prop drilling</span>
+const { data } = <span class="f">useSuspenseQuery</span>(getIssuesQueryOptions(useSearch()))</div>
+
+      <p style="margin:20px 0 0;font-size:13px;color:var(--ink-dim)">And the layer below generates <code>getIssuesQueryOptions</code> from the OpenAPI document — so the code that would have been the store mostly ceases to exist <sup><a href="https://orval.dev/docs/guides/react-query/">[8]</a></sup>. Invalidation stays coarse and prefix-matched <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation">[45]</a></sup>; the one thing to avoid is a 401-retry interceptor fighting Query's own retry <sup><a href="https://github.com/TanStack/query/discussions/3653">[48]</a></sup>.</p>
+    </div>
+  </div>
+
+  <!-- ============ BILL OF MATERIALS ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">SCHEDULE 1</span> Bill of materials</h2>
+    <p class="sect-note">Four new runtime dependencies plus a codegen step. Three of them ship from one vendor — that is the concentration risk, stated plainly.</p>
+    <table class="sched">
+      <thead>
+        <tr><th>Package</th><th>Layer</th><th>Gzip</th><th>Stars</th><th>Owns</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pkg"><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><a href="https://github.com/orval-labs/orval">orval</a></span></td>
+          <td>01 · codegen</td>
+          <td class="num">devDep</td>
+          <td class="stars">⭐ 6.2k</td>
+          <td>Hooks, query keys, Zod schemas, MSW mocks</td>
+        </tr>
+        <tr>
+          <td><span class="pkg"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://github.com/TanStack/query">@tanstack/react-query</a></span></td>
+          <td>02 · server state</td>
+          <td class="num">13.3 kB</td>
+          <td class="stars">⭐ 50k</td>
+          <td>Every byte that came from the API</td>
+        </tr>
+        <tr>
+          <td><span class="pkg"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><a href="https://github.com/TanStack/router">@tanstack/react-router</a></span></td>
+          <td>03 · URL state</td>
+          <td class="num">39.6 kB</td>
+          <td class="stars">⭐ 15k</td>
+          <td>Filters, sort, page, selection, route guards</td>
+        </tr>
+        <tr>
+          <td><span class="pkg"><img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt=""><a href="https://github.com/pmndrs/zustand">zustand</a></span></td>
+          <td>04 · client store</td>
+          <td class="num">1.2 kB</td>
+          <td class="stars">⭐ 59k</td>
+          <td>Theme, sidebar, column visibility</td>
+        </tr>
+        <tr>
+          <td><span class="pkg"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/authts/react-oidc-context">react-oidc-context</a></span></td>
+          <td>— · session</td>
+          <td class="num">in-memory</td>
+          <td class="stars">⭐ 1.0k</td>
+          <td>Access token (Context, not a store)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ REJECTED ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">SCHEDULE 2</span> Considered &amp; not specified</h2>
+    <p class="sect-note">Each of these was the leading candidate on at least one sheet. None of them is bad; each loses to the drawing above for a specific, stated reason.</p>
+    <div class="rej">
+      <div class="rej-item">
+        <div class="rej-name"><img src="https://www.google.com/s2/favicons?domain=redux.js.org&sz=128" alt=""><a href="https://github.com/reduxjs/redux-toolkit" style="color:inherit;border:none">Redux Toolkit</a> <span style="font-size:11px;color:var(--amber);text-decoration:none">⭐ 11k</span></div>
+        <div class="rej-why">The three moats fell. Time-travel through the Redux DevTools extension is now a <b>Zustand middleware</b> <sup><a href="https://zustand.docs.pmnd.rs/reference/middlewares/devtools">[5]</a></sup>; Redux's own testing guide calls the store "an <b>implementation detail</b>" that often needs no explicit tests <sup><a href="https://redux.js.org/usage/writing-tests">[6]</a></sup> — so a TDD mandate is not an argument for it either.</div>
+      </div>
+      <div class="rej-item">
+        <div class="rej-name"><img src="https://www.google.com/s2/favicons?domain=redux-toolkit.js.org&sz=128" alt="">RTK Query</div>
+        <div class="rej-why">Its own comparison page positions it as the pick <b>when you already use Redux</b>, and concedes it does not normalize or deduplicate cached items <sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[30]</a></sup>. It also has no Suspense support <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[31]</a></sup>. Greenfield, that premise never holds.</div>
+      </div>
+      <div class="rej-item">
+        <div class="rej-name"><img src="https://www.google.com/s2/favicons?domain=swr.vercel.app&sz=128" alt=""><a href="https://github.com/vercel/swr" style="color:inherit;border:none">SWR</a> <span style="font-size:11px;color:var(--amber);text-decoration:none">⭐ 32k</span></div>
+        <div class="rej-why">Alive and 5 kB, but no <code>staleTime</code>, no selectors, no garbage collection, and cache invalidation is a manual flat map <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[31]</a></sup>. An admin console with filters and pagination outgrows that in a month.</div>
+      </div>
+      <div class="rej-item">
+        <div class="rej-name"><img src="https://www.google.com/s2/favicons?domain=reactrouter.com&sz=128" alt=""><a href="https://github.com/remix-run/react-router" style="color:inherit;border:none">React Router</a> <span style="font-size:11px;color:var(--amber);text-decoration:none">⭐ 56k</span></div>
+        <div class="rej-why">The safe default, and 59 kB gzip — heavier than TanStack Router. But it does not give you a validated, type-checked search-param schema, which is the entire mechanism that kills the filter slice. Loaders cache active routes only <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[31]</a></sup>.</div>
+      </div>
+      <div class="rej-item">
+        <div class="rej-name"><img src="https://www.google.com/s2/favicons?domain=jotai.org&sz=128" alt=""><a href="https://github.com/pmndrs/jotai" style="color:inherit;border:none">Jotai</a> <span style="font-size:11px;color:var(--amber);text-decoration:none">⭐ 21k</span></div>
+        <div class="rej-why">Excellent, and pointless here. Atomic bottom-up composition earns its keep when client state is a dense graph. After layers 01–03, the client state is <b>three booleans and a string</b>.</div>
+      </div>
+      <div class="rej-item">
+        <div class="rej-name"><img src="https://www.google.com/s2/favicons?domain=heyapi.dev&sz=128" alt=""><a href="https://github.com/hey-api/openapi-ts" style="color:inherit;border:none">Hey API</a> <span style="font-size:11px;color:var(--amber);text-decoration:none">⭐ 5.1k</span></div>
+        <div class="rej-why">The <b>closest call on the sheet</b>. It emits composable <code>queryOptions</code> objects, which is where the ecosystem is drifting; Orval's one-hook-per-endpoint style is on the wrong side of that drift. Orval still wins today on mocks + Zod from one config — revisit at the next major.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ NOTES TO THE BACKEND ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">NOTES</span> Two findings point back at the backend</h2>
+    <p class="sect-note">The frontend decision is not frontend-only. These two items are structural, and both belong to Forge, not to itenium-ui.</p>
+    <div class="notes">
+      <div class="note-row">
+        <div class="note-n">1</div>
+        <div class="note-b"><b>Move capabilities out of the JWT.</b> The README's own worry — that baking capabilities into the token makes it too large — resolves by not doing it. Keep the JWT to <code>sub</code> plus coarse roles, and serve fine-grained capabilities from <code>GET /me</code>, cached in the query layer. That also buys revocation without re-login, which the token never could.</div>
+      </div>
+      <div class="note-row">
+        <div class="note-n">2</div>
+        <div class="note-b"><b>Stay on Swashbuckle — for now.</b> .NET 10's built-in OpenAPI generator emits <code>anyOf</code> without a discriminator object for polymorphic types <sup><a href="https://github.com/dotnet/aspnetcore/issues/57982">[10]</a></sup>, and without a discriminator <em>no</em> generator can emit a TypeScript discriminated union. Swashbuckle was dropped from the default template but is not deprecated <sup><a href="https://codewithmukesh.com/blog/dotnet-swagger-alternatives-openapi/">[35]</a></sup>. The whole codegen layer rests on this document; a lossy document quietly degrades every layer above it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TOLERANCES ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">TOLERANCES</span> What it costs, honestly</h2>
+    <div class="risks">
+      <div class="risk">
+        <h4>Vendor concentration</h4>
+        <p>Three of the four picks are TanStack. If that family stumbles, three layers stumble together. Accepted — the alternative is a worse stack today for a hedge against a hypothetical.</p>
+      </div>
+      <div class="risk">
+        <h4>39.6 kB router</h4>
+        <p>TanStack Router is not free, and it is the heaviest line item on the sheet. It pays for itself by deleting the filter/sort/pagination store — but only if the app really is search-driven. itenium-ui is.</p>
+      </div>
+      <div class="risk">
+        <h4>Codegen drift</h4>
+        <p>Orval's per-endpoint hooks sit on the wrong side of the ecosystem's move to composable <code>queryOptions</code>. Open v8 bugs on nullable-only schemas <sup><a href="https://github.com/orval-labs/orval/issues/3149">[43]</a></sup>. Hey API is the escape hatch.</p>
+      </div>
+      <div class="risk">
+        <h4>In-memory ≠ safe</h4>
+        <p>An in-memory access token is a damage limiter, not a fix. Malicious JS on the page defeats every browser-side storage strategy <sup><a href="https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-26.html">[11]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="openq">
+      <div class="lab">Open question · not settled by this run</div>
+      <p>The IETF's browser-apps BCP reserves its <strong>top-ranked architecture — a backend-for-frontend</strong> — for exactly the class of app Forge is built for <sup><a href="https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-26.html">[11]</a></sup>. In the BFF pattern the SPA holds only an httpOnly cookie and tokens never reach the browser at all <sup><a href="https://duendesoftware.com/blog/20210326-bff">[44]</a></sup>. So: put a .NET BFF in front of itenium-ui <em>now</em>, while the frontend is still greenfield and the migration is nearly free — or ship the pure SPA and pay for it later?</p>
+    </div>
+  </div>
+
+  <!-- ============ SHEET INDEX ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">SHEET INDEX</span> The six angles, as drawn</h2>
+    <p class="sect-note">Each sheet was researched independently, bottom of the stack upward. Every one of them arrived at the same elevation.</p>
+    <div class="idx">
+      <a class="idx-card" href="typed-api-clients-from-forge-openapi/">
+        <div class="idx-top"><span class="idx-no">Sheet 01 · Codegen</span><span>survey</span></div>
+        <div class="idx-t">Generating the itenium-ui API client from Forge's OpenAPI document</div>
+        <div class="idx-s">Orval is the only generator that emits TanStack Query hooks, query keys, MSW mocks and Zod schemas from one config — and generating the client collapses the state-management question to "server cache + a little client state".</div>
+        <div class="idx-f"><span>30 citations</span><span>8 min →</span></div>
+      </a>
+      <a class="idx-card" href="server-state-tanstack-query-vs-rtk-query-vs-swr-vs-route-loaders/">
+        <div class="idx-top"><span class="idx-no">Sheet 02 · Server state</span><span>survey</span></div>
+        <div class="idx-t">TanStack Query vs RTK Query vs SWR vs route loaders</div>
+        <div class="idx-s">TanStack Query is the correct server-state layer; its <code>Register.defaultError</code> hook makes RFC 9457 ProblemDetails a first-class typed error with no per-call generics.</div>
+        <div class="idx-f"><span>32 citations</span><span>11 min →</span></div>
+      </a>
+      <a class="idx-card" href="routing-and-where-state-lives/">
+        <div class="idx-top"><span class="idx-no">Sheet 03 · URL state</span><span>recon</span></div>
+        <div class="idx-t">The router is a state manager: TanStack Router for itenium-ui</div>
+        <div class="idx-s">The only option that makes filters/sort/pagination typed URL state instead of Redux slices — and it composes with TanStack Query rather than competing with it.</div>
+        <div class="idx-f"><span>16 citations</span><span>3 min →</span></div>
+      </a>
+      <a class="idx-card" href="client-state-zustand-vs-jotai-vs-redux-toolkit-vs-plain-react/">
+        <div class="idx-top"><span class="idx-no">Sheet 04 · Client state</span><span>survey</span></div>
+        <div class="idx-t">Zustand vs Jotai vs RTK vs plain React 19, after the query cache</div>
+        <div class="idx-s">Once TanStack Query owns server state, the residual client state in a CRUD admin is roughly one persisted preferences store — take Zustand's vanilla <code>createStore</code> in a shared Nx lib and skip the rest.</div>
+        <div class="idx-f"><span>27 citations</span><span>8 min →</span></div>
+      </a>
+      <a class="idx-card" href="auth-and-session-state-against-forge-jwt-and-oidc/">
+        <div class="idx-top"><span class="idx-no">Sheet 05 · Session</span><span>recon</span></div>
+        <div class="idx-t">Auth &amp; session state on Forge: kill the localStorage plan</div>
+        <div class="idx-s">Use react-oidc-context with an in-memory access token, put roles/capabilities behind a <code>/me</code> query instead of in the token, and treat a .NET BFF as the target end-state.</div>
+        <div class="idx-f"><span>11 citations</span><span>3 min →</span></div>
+      </a>
+      <a class="idx-card" href="is-redux-still-the-right-answer-in-2026/">
+        <div class="idx-top"><span class="idx-no">Sheet 06 · The question</span><span>survey</span></div>
+        <div class="idx-t">Is Redux still the right answer for a new React 19 app in 2026?</div>
+        <div class="idx-s">Redux is healthy but no longer the default. Its classic moats — devtools, time-travel, testable reducers — no longer belong to Redux alone.</div>
+        <div class="idx-f"><span>32 citations</span><span>11 min →</span></div>
+      </a>
+    </div>
+    <p class="sect-note" style="margin:22px 0 0">Two proposed angles — a dedicated pass on testing each candidate, and one on lock-in and migration cost — were offered and left unticked, so they were not researched separately. MSW/Jest coverage appears inside the codegen and client-state sheets instead.</p>
+  </div>
+
+  <!-- ============ REFERENCES ============ -->
+  <div class="sect">
+    <h2 class="sect-h"><span class="tag">REFERENCES</span> Load-bearing sources</h2>
+    <p class="sect-note">The eleven cited on this sheet, plus the primary specification documents behind them.</p>
+    <div class="refs">
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=redux.js.org&sz=128" alt=""><div><span class="rn">[1]</span> <span class="rt"><a href="https://redux.js.org/faq/general">Redux FAQ — "don't use Redux until you have problems with vanilla React"</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><span class="rn">[2]</span> <span class="rt"><a href="https://tanstack.com/query/v5/docs/framework/react/guides/does-this-replace-client-state">TanStack Query — Does this replace client state?</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><span class="rn">[3]</span> <span class="rt"><a href="https://tanstack.com/blog/search-params-are-state">TanStack — Search params are state</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="rn">[4]</span> <span class="rt"><a href="https://github.com/reduxjs/redux-toolkit/releases">Redux Toolkit — release cadence</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=zustand.docs.pmnd.rs&sz=128" alt=""><div><span class="rn">[5]</span> <span class="rt"><a href="https://zustand.docs.pmnd.rs/reference/middlewares/devtools">Zustand — devtools middleware (time-travel)</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=redux.js.org&sz=128" alt=""><div><span class="rn">[6]</span> <span class="rt"><a href="https://redux.js.org/usage/writing-tests">Redux — Writing Tests ("an implementation detail")</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><span class="rn">[7]</span> <span class="rt"><a href="https://tanstack.com/router/latest/docs/framework/react/guide/external-data-loading">TanStack Router — External data loading</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div><span class="rn">[8]</span> <span class="rt"><a href="https://orval.dev/docs/guides/react-query/">Orval — React Query client</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div><span class="rn">[9]</span> <span class="rt"><a href="https://orval.dev/docs/guides/custom-axios/">Orval — custom mutator &amp; ErrorType</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="rn">[10]</span> <span class="rt"><a href="https://github.com/dotnet/aspnetcore/issues/57982">dotnet/aspnetcore#57982 — anyOf without discriminator</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=ietf.org&sz=128" alt=""><div><span class="rn">[11]</span> <span class="rt"><a href="https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-26.html">IETF — OAuth 2.0 for Browser-Based Apps (BCP)</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=rfc-editor.org&sz=128" alt=""><div><span class="rn">[25]</span> <span class="rt"><a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457 — Problem Details for HTTP APIs</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div><span class="rn">[34]</span> <span class="rt"><a href="https://learn.microsoft.com/en-us/aspnet/core/web-api/handle-errors?view=aspnetcore-9.0">ASP.NET Core — ProblemDetails on every error result</a></span></div></div>
+      <div class="ref"><img src="https://www.google.com/s2/favicons?domain=stateofreact.com&sz=128" alt=""><div><span class="rn">[39]</span> <span class="rt"><a href="https://2025.stateofreact.com/en-US/libraries/state-management/">State of React 2025 — state management</a></span></div></div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span>Scout · expedition · 6 sheets · 148 citations</span>
+    <span><a href="../">Canonical write-up</a> · <a href="/">Atlas</a></span>
+  </div>
+
+</div>
+</div>
+</div>

@@ -1,0 +1,385 @@
+---
+title: "Server-state layer for a React 19 + Vite SPA on a .NET API: TanStack Query wins"
+date: 2026-07-13
+depth: standard
+format: html
+topic: "Compare server-state / data-fetching layers for a React 19 + Vite SPA talking to a .NET REST API in 2026: TanStack Query (React Query) vs RTK Query vs SWR vs router-owned route loaders vs plain fetch in useEffect. Most of the \"state\" in a CRUD admin app is just cached REST data, so this layer choice largely determines whether a separate client-state library is even needed. Compare on: caching and staleness model, request deduplication, invalidation ergonomics, optimistic updates and rollback, pagination/infinite queries, mutation error handling, devtools, bundle size, TypeScript inference quality, testability under Jest + MSW, maintenance health and GitHub stars, and coupling to a router or a state library. Give special weight to mapping RFC 7807 ProblemDetails error bodies (the .NET standard, which the API returns for 400/500) into typed, user-presentable errors — show the concrete pattern for the recommended library. Also cover pagination against a paged-result API contract."
+topic_raw: "Compare server-state / data-fetching layers for a React 19 + Vite SPA talking to a .NET REST API in 2026: TanStack Query (React Query) vs RTK Query vs SWR vs router-owned route loaders vs plain fetch in useEffect. Most of the \"state\" in a CRUD admin app is just cached REST data, so this layer choice largely determines whether a separate client-state library is even needed. Compare on: caching and staleness model, request deduplication, invalidation ergonomics, optimistic updates and rollback, pagination/infinite queries, mutation error handling, devtools, bundle size, TypeScript inference quality, testability under Jest + MSW, maintenance health and GitHub stars, and coupling to a router or a state library. Give special weight to mapping RFC 7807 ProblemDetails error bodies (the .NET standard, which the API returns for 400/500) into typed, user-presentable errors — show the concrete pattern for the recommended library. Also cover pagination against a paged-result API contract."
+tags: [react, tanstack-query, rtk-query, swr, dotnet, problemdetails, state-management, vite, typescript]
+summary: "TanStack Query is the correct server-state layer for itenium-ui; its Register.defaultError hook makes RFC 9457 ProblemDetails a first-class typed error with no per-call generics."
+citations: 32
+reading_time_min: 11
+cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 576
+issue: 2
+---
+
+<style>
+.tldr { border-left: 4px solid #b7410e; background: rgba(183,65,14,.06); padding: 1rem 1.2rem; margin: 0 0 2rem; }
+.tldr p { margin: .4rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+th, td { padding: .45rem .6rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(128,128,128,.25); }
+th { font-weight: 600; }
+td.win { color: #1a7f37; font-weight: 600; }
+td.lose { color: #a40e26; }
+.tbl-wrap { overflow-x: auto; margin: 1rem 0 1.6rem; }
+pre { overflow-x: auto; padding: .9rem 1rem; font-size: .85rem; line-height: 1.45; border-radius: 4px; }
+h3 { margin-top: 1.8rem; }
+.note { font-size: .9rem; opacity: .8; }
+</style>
+
+<div class="tldr">
+<p><strong>Decision — use <a href="https://tanstack.com/query/latest">TanStack Query</a> ⭐ 50k (Jul 2026)</strong><sup><a href="https://github.com/TanStack/query">[2]</a></sup>. It is the only option in the list that gives you a real staleness model, prefix-based invalidation, optimistic rollback, paginated + infinite queries, and devtools without dragging in a router or a store<sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup>. Its <code>Register.defaultError</code> declaration-merging hook lets you make a <code>ForgeApiError</code> (wrapping an RFC 9457 ProblemDetails body) the global error type once — every <code>useQuery</code>/<code>useMutation</code> in the monorepo then infers it with zero generics<sup><a href="https://tanstack.com/query/latest/docs/framework/react/typescript">[8]</a></sup>.</p>
+<p><strong>Pick something else only if:</strong> you already run Redux (→ RTK Query<sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[11]</a></sup>); the app is read-only and 8 kB gzip matters more than features (→ SWR<sup><a href="https://swr.vercel.app/docs/api">[14]</a></sup>). <strong>Route loaders are not a cache</strong> — React Router keeps data for active routes only, has no stale-time, no dedup window, no devtools<sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup>. <strong>fetch-in-useEffect</strong> is not a candidate; it is the boilerplate all four libraries exist to delete.</p>
+</div>
+
+<h2>The five options, scored</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead>
+<tr>
+  <th>Axis</th>
+  <th><a href="https://tanstack.com/query/latest">TanStack Query</a></th>
+  <th><a href="https://redux-toolkit.js.org/rtk-query/overview">RTK Query</a></th>
+  <th><a href="https://swr.vercel.app/">SWR</a></th>
+  <th><a href="https://reactrouter.com/">Route loaders</a></th>
+  <th>fetch + useEffect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>⭐ Stars (Jul 2026)</td>
+  <td>50k <sup><a href="https://github.com/TanStack/query">[2]</a></sup></td>
+  <td>11k <sup><a href="https://github.com/reduxjs/redux-toolkit">[4]</a></sup></td>
+  <td>32k <sup><a href="https://github.com/vercel/swr">[3]</a></sup></td>
+  <td>56k <sup><a href="https://github.com/remix-run/react-router">[5]</a></sup></td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>npm / week</td>
+  <td>61.2M <sup><a href="https://api.npmjs.org/downloads/point/last-week/@tanstack/react-query">[10]</a></sup></td>
+  <td>23.6M (whole RTK) <sup><a href="https://api.npmjs.org/downloads/point/last-week/@reduxjs/toolkit">[10]</a></sup></td>
+  <td>13.2M <sup><a href="https://api.npmjs.org/downloads/point/last-week/swr">[10]</a></sup></td>
+  <td>42.6M <sup><a href="https://api.npmjs.org/downloads/point/last-week/react-router">[10]</a></sup></td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>Bundle (gzip)</td>
+  <td>13.3 kB <sup><a href="https://bundlephobia.com/package/@tanstack/react-query">[9]</a></sup></td>
+  <td class="lose">~13 kB + Redux + react-redux (~31 kB total) <sup><a href="https://trybuildpilot.com/842-react-query-vs-swr-vs-rtk-query-2026">[31]</a></sup></td>
+  <td class="win">5.0 kB <sup><a href="https://bundlephobia.com/package/swr">[9]</a></sup></td>
+  <td>free (router already needed)</td>
+  <td class="win">0</td>
+</tr>
+<tr>
+  <td>Cache key model</td>
+  <td class="win">Hierarchical key → value (prefix match) <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td>endpoint + serialized args <sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[11]</a></sup></td>
+  <td>Unique key → value (flat) <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="lose">Nested route → value, active routes only <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="lose">none</td>
+</tr>
+<tr>
+  <td>Stale-time config</td>
+  <td class="win">✓ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="win">✓ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="lose">✗ (only a 2 s <code>dedupingInterval</code>) <sup><a href="https://swr.vercel.app/docs/api">[14]</a></sup></td>
+  <td class="lose">✗</td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Auto garbage collection</td>
+  <td class="win">✓</td>
+  <td class="win">✓</td>
+  <td class="lose">✗ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td>N/A</td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Request dedup</td>
+  <td class="win">✓ (by query key)</td>
+  <td class="win">✓ (by endpoint+args)</td>
+  <td>✓ 2 s window <sup><a href="https://swr.vercel.app/docs/api">[14]</a></sup></td>
+  <td>✓ per navigation</td>
+  <td class="lose">✗ (double-fire in StrictMode)</td>
+</tr>
+<tr>
+  <td>Invalidation</td>
+  <td class="win">Prefix / <code>exact</code> / <code>predicate</code> <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation">[19]</a></sup></td>
+  <td class="win">Declarative tags by type/id <sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[11]</a></sup></td>
+  <td>Manual <code>mutate(key)</code> <sup><a href="https://swr.vercel.app/docs/advanced/cache">[15]</a></sup></td>
+  <td>Automatic full-page revalidate after an action <sup><a href="https://reactrouter.com/start/data/route-object">[16]</a></sup></td>
+  <td class="lose">hand-rolled</td>
+</tr>
+<tr>
+  <td>Optimistic + rollback</td>
+  <td class="win">✓ <code>onMutate</code> snapshot → <code>onError</code> restore <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates">[20]</a></sup></td>
+  <td>✓ <code>onQueryStarted</code> + <code>patchResult.undo()</code></td>
+  <td>✓ <code>mutate</code> with <code>optimisticData</code>/<code>rollbackOnError</code></td>
+  <td class="lose">✗ (fetcher only, no cache to patch)</td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Paged (keep previous)</td>
+  <td class="win">✓ <code>placeholderData: keepPreviousData</code> <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">[21]</a></sup></td>
+  <td>✓</td>
+  <td>✓ <code>keepPreviousData</code> <sup><a href="https://swr.vercel.app/docs/api">[14]</a></sup></td>
+  <td class="lose">✗ (route swap = blank)</td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Infinite / bi-directional</td>
+  <td class="win">✓ / ✓ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td>✓ / ✓</td>
+  <td>✓ / 🔶</td>
+  <td class="lose">✗ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Devtools</td>
+  <td class="win">Dedicated, dev-only bundle <sup><a href="https://tanstack.com/query/latest/docs/framework/react/devtools">[25]</a></sup></td>
+  <td>Redux DevTools</td>
+  <td class="lose">None built-in <sup><a href="https://trybuildpilot.com/842-react-query-vs-swr-vs-rtk-query-2026">[31]</a></sup></td>
+  <td class="lose">✗ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Global typed error</td>
+  <td class="win"><code>Register.defaultError</code> <sup><a href="https://tanstack.com/query/latest/docs/framework/react/typescript">[8]</a></sup></td>
+  <td class="lose">Union <code>FetchBaseQueryError</code>, needs type guards <sup><a href="https://redux-toolkit.js.org/rtk-query/usage-with-typescript">[12]</a></sup></td>
+  <td class="lose"><code>error: any</code> unless generic per call <sup><a href="https://swr.vercel.app/docs/api">[14]</a></sup></td>
+  <td class="lose">Untyped <code>useLoaderData</code> + <code>ErrorBoundary</code></td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Coupling</td>
+  <td class="win">None — router-agnostic, store-agnostic</td>
+  <td class="lose">Requires Redux store + <code>&lt;Provider&gt;</code> <sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[11]</a></sup></td>
+  <td class="win">None</td>
+  <td class="lose">Requires a data router <sup><a href="https://reactrouter.com/start/data/route-object">[16]</a></sup></td>
+  <td class="win">None</td>
+</tr>
+<tr>
+  <td>Suspense</td>
+  <td class="win">✓</td>
+  <td class="lose">✗ <sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup></td>
+  <td class="win">✓</td>
+  <td class="win">✓</td>
+  <td class="lose">✗</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h3>Why the runners-up lose, in one line each</h3>
+
+<p><strong>RTK Query</strong> — technically the closest competitor, and its tag-based invalidation (<code>providesTags</code>/<code>invalidatesTags</code>) is genuinely more declarative than manual key invalidation<sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[11]</a></sup>. But its own docs say the entry price is a Redux store plus react-redux as a peer dependency<sup><a href="https://redux-toolkit.js.org/rtk-query/comparison">[11]</a></sup>, and its error type is the union <code>FetchBaseQueryError</code> — <code>{status: number, data: unknown}</code> plus three string-status variants — so every ProblemDetails read starts with an <code>isFetchBaseQueryError</code> guard and a cast off <code>unknown</code><sup><a href="https://redux-toolkit.js.org/rtk-query/usage-with-typescript">[12]</a></sup>. There is no global-error-type registration either: the error shape is "dictated by the <code>baseQuery</code> provided", and cross-cutting error handling means writing Redux middleware around <code>isRejectedWithValue</code><sup><a href="https://redux-toolkit.js.org/rtk-query/usage/error-handling">[13]</a></sup>. Adopting Redux purely to get RTK Query is exactly what the ecosystem tells you not to do<sup><a href="https://trybuildpilot.com/842-react-query-vs-swr-vs-rtk-query-2026">[31]</a></sup>. It also has no Suspense support<sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup>.</p>
+
+<p><strong>SWR</strong> ⭐ 32k, 5.0 kB gzip — half the bundle, a quarter of the model. No stale-time (only a 2 s <code>dedupingInterval</code>), no selectors, no garbage collection, no query cancellation<sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup><sup><a href="https://swr.vercel.app/docs/api">[14]</a></sup>. It revalidates on focus + reconnect by default and expects you to hand-mutate cache keys<sup><a href="https://swr.vercel.app/docs/advanced/cache">[15]</a></sup>. Fine for a read-heavy dashboard; wrong for a CRUD admin app where mutation → invalidation → optimistic rollback is the core loop. Still actively maintained (2.4.2, commits Jul 2026)<sup><a href="https://github.com/vercel/swr">[3]</a></sup> — not a health risk, just a smaller feature set.</p>
+
+<p><strong>Route loaders (React Router 8 / TanStack Router)</strong> — a loader is a <em>fetch scheduler</em>, not a cache. React Router revalidates every loader on the page after any successful action, and gives you <code>shouldRevalidate</code> to opt out<sup><a href="https://reactrouter.com/start/data/route-object">[16]</a></sup>; there is no staleness tracking, no cache persistence beyond active routes, no polling, no infinite queries, no devtools<sup><a href="https://tanstack.com/query/latest/docs/framework/react/comparison">[1]</a></sup>. Loaders and TanStack Query are complementary, not alternatives — the sibling <code>shadcn-admin</code> stack pairs <a href="https://tanstack.com/router/latest">TanStack Router</a> ⭐ 15k<sup><a href="https://github.com/TanStack/router">[32]</a></sup> loaders (which call <code>queryClient.ensureQueryData</code>) with TanStack Query as the actual store.</p>
+
+<p><strong>fetch in useEffect</strong> — no dedup (React 19 StrictMode double-invokes effects), no cancellation, no cache sharing between two components asking for the same list, and you rebuild retry/backoff by hand. TanStack Query's default is 3 retries with <code>Math.min(1000 * 2 ** attemptIndex, 30000)</code> backoff<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-retries">[24]</a></sup>. Not a serious candidate for a greenfield admin app.</p>
+
+<h2>The ProblemDetails pattern (the part that actually matters)</h2>
+
+<p>Forge returns RFC 9457 <code>application/problem+json</code> for every 400/500 — <code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code><sup><a href="https://www.rfc-editor.org/rfc/rfc9457">[6]</a></sup>, plus ASP.NET Core's <code>traceId</code> extension member, and — for model-validation failures — a <code>ValidationProblemDetails</code> with an <code>errors: Record&lt;string, string[]&gt;</code> dictionary<sup><a href="https://codewithmukesh.com/blog/problem-details-in-aspnet-core/">[27]</a></sup><sup><a href="https://learn.microsoft.com/en-us/aspnet/core/web-api/handle-errors?view=aspnetcore-9.0">[7]</a></sup>.</p>
+
+<h3>1. A typed error, thrown from the fetch wrapper</h3>
+
+<pre><code>// libs/api/src/problem-details.ts
+export interface ProblemDetails {
+  type: string
+  title: string
+  status: number
+  detail?: string
+  instance?: string
+  traceId?: string // ASP.NET Core extension member; correlate with Loki
+}
+
+export interface ValidationProblemDetails extends ProblemDetails {
+  errors: Record&lt;string, string[]&gt; // ModelState key -&gt; messages
+}
+
+export class ForgeApiError extends Error {
+  constructor(readonly problem: ProblemDetails) {
+    super(problem.detail ?? problem.title)
+    this.name = 'ForgeApiError'
+  }
+  get status() { return this.problem.status }
+  get fieldErrors() {
+    return (this.problem as ValidationProblemDetails).errors as
+      Record&lt;string, string[]&gt; | undefined
+  }
+}
+
+export async function forgeFetch&lt;T&gt;(url: string, init?: RequestInit): Promise&lt;T&gt; {
+  const res = await fetch(url, {
+    ...init,
+    // ASP.NET's DefaultProblemDetailsWriter only honours application/json,
+    // application/problem+json and wildcards — any other Accept falls back to
+    // a non-Problem body. [[7]]
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...init?.headers },
+  })
+
+  if (!res.ok) {
+    const ct = res.headers.get('content-type') ?? ''
+    const problem: ProblemDetails = ct.includes('problem+json') || ct.includes('json')
+      ? await res.json()
+      : { type: 'about:blank', title: res.statusText, status: res.status }
+    throw new ForgeApiError(problem)
+  }
+  return res.status === 204 ? (undefined as T) : ((await res.json()) as T)
+}
+</code></pre>
+
+<h3>2. Register it globally — no generics anywhere else</h3>
+
+<p>This is the payoff line. Declaration-merging <code>Register.defaultError</code> sets "a global Error type for everything, without having to specify generics on call-sides"<sup><a href="https://tanstack.com/query/latest/docs/framework/react/typescript">[8]</a></sup>. RTK Query and SWR have no equivalent.</p>
+
+<pre><code>// libs/api/src/query-client.ts
+import { QueryCache, QueryClient } from '@tanstack/react-query'
+import { ForgeApiError } from './problem-details'
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    defaultError: ForgeApiError
+  }
+}
+
+export const queryClient = new QueryClient({
+  // Fires once per failed query — the right place for toasts. Only toast on
+  // background refetch failures; a first-load failure is the component's job. [[17]]
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      if (query.state.data !== undefined) {
+        toast.error(error.title ?? error.message, { description: error.problem.detail })
+      }
+    },
+  }),
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      // 4xx is a contract violation, not a blip — retrying it is pure latency. [[24]]
+      retry: (failureCount, error) =&gt; error.status &gt;= 500 &amp;&amp; failureCount &lt; 3,
+    },
+  },
+})
+</code></pre>
+
+<p class="note">After this, <code>const { error } = useQuery(...)</code> gives <code>ForgeApiError | null</code>, and <code>error.fieldErrors</code> type-checks. No <code>unknown</code>, no guards, no per-call generic — the exact thing RTK Query's <code>isFetchBaseQueryError</code> ceremony exists to work around<sup><a href="https://redux-toolkit.js.org/rtk-query/usage-with-typescript">[12]</a></sup>.</p>
+
+<h3>3. Mutation: invalidate, roll back, and pipe 400s into the form</h3>
+
+<pre><code>// The onMutate/onError/onSettled shape is the documented rollback pattern. [[20]]
+const useUpdateUser = (form: UseFormReturn&lt;UserForm&gt;) =&gt;
+  useMutation({
+    mutationFn: (user: User) =&gt;
+      forgeFetch&lt;User&gt;(`/api/users/${user.id}`, { method: 'PUT', body: JSON.stringify(user) }),
+
+    onMutate: async (user, context) =&gt; {
+      await context.client.cancelQueries({ queryKey: ['users', 'detail', user.id] })
+      const previous = context.client.getQueryData(['users', 'detail', user.id])
+      context.client.setQueryData(['users', 'detail', user.id], user)
+      return { previous }
+    },
+
+    onError: (error, user, onMutateResult, context) =&gt; {
+      context.client.setQueryData(['users', 'detail', user.id], onMutateResult.previous)
+
+      // ValidationProblemDetails.errors maps 1:1 onto react-hook-form's setError.
+      // .NET emits PascalCase ModelState keys; the form fields are camelCase.
+      if (error.status === 400 &amp;&amp; error.fieldErrors) {
+        for (const [key, messages] of Object.entries(error.fieldErrors)) {
+          form.setError(camelCase(key) as keyof UserForm, { message: messages.join(' ') })
+        }
+      }
+    },
+
+    // Prefix match: one call re-fetches ['users','list',*] AND ['users','detail',id]. [[19]]
+    onSettled: (_d, _e, user, _r, context) =&gt;
+      context.client.invalidateQueries({ queryKey: ['users'] }),
+  })
+</code></pre>
+
+<h3>4. Pagination against <code>ForgePagedResult</code></h3>
+
+<p>A paged-result contract is a <em>page-based</em> query, not a cursor-based one. Put the page in the key and use <code>placeholderData: keepPreviousData</code> so the table doesn't blank between pages<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">[21]</a></sup>. <code>queryOptions</code> keeps the inference intact when you hoist options out of the component<sup><a href="https://tanstack.com/query/latest/docs/framework/react/typescript">[8]</a></sup>.</p>
+
+<pre><code>// Mirror ForgePagedResult / ForgePageQuery field names exactly.
+export interface ForgePagedResult&lt;T&gt; {
+  items: T[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
+export const usersPage = (q: ForgePageQuery) =&gt;
+  queryOptions({
+    queryKey: ['users', 'list', q] as const,
+    queryFn: () =&gt;
+      forgeFetch&lt;ForgePagedResult&lt;User&gt;&gt;(
+        `/api/users?page=${q.page}&amp;pageSize=${q.pageSize}&amp;sort=${q.sort ?? ''}`,
+      ),
+    placeholderData: keepPreviousData,
+  })
+
+// In the table:
+const { data, isPlaceholderData } = useQuery(usersPage({ page, pageSize: 25 }))
+// isPlaceholderData -&gt; disable the "next" button while the new page is in flight [[21]]
+</code></pre>
+
+<p>If a screen ever needs infinite scroll instead, the same endpoint works with <code>useInfiniteQuery</code>: <code>initialPageParam: 1</code>, <code>getNextPageParam: (last) =&gt; last.page * last.pageSize &lt; last.totalCount ? last.page + 1 : undefined</code>; results arrive as <code>data.pages[]</code> / <code>data.pageParams[]</code>, and <code>maxPages</code> caps retention<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/infinite-queries">[22]</a></sup>.</p>
+
+<h3>5. Jest + MSW: assert on the ProblemDetails body, not on a mocked module</h3>
+
+<p>TkDodo's rule: mock at the network layer with <a href="https://mswjs.io/">MSW</a> ⭐ 18k<sup><a href="https://github.com/mswjs/msw">[28]</a></sup> so the mock is one source of truth across tests, Storybook and dev<sup><a href="https://tkdodo.eu/blog/testing-react-query">[18]</a></sup>. Fresh <code>QueryClient</code> per test with <code>retry: false</code>, otherwise the 3-retry default times the test out<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/testing">[23]</a></sup>. Under Jest specifically, set <code>gcTime: Infinity</code> to avoid the "Jest did not exit" warning<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/testing">[23]</a></sup>.</p>
+
+<pre><code>const server = setupServer(
+  http.put('/api/users/:id', () =&gt;
+    HttpResponse.json(
+      {
+        type: 'https://tools.ietf.org/html/rfc9110#section-15.5.1',
+        title: 'One or more validation errors occurred.',
+        status: 400,
+        errors: { Email: ['The Email field is not a valid e-mail address.'] },
+      },
+      { status: 400, headers: { 'Content-Type': 'application/problem+json' } },
+    ),
+  ),
+)
+
+const createWrapper = () =&gt; {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  })
+  return ({ children }: PropsWithChildren) =&gt; (
+    &lt;QueryClientProvider client={client}&gt;{children}&lt;/QueryClientProvider&gt;
+  )
+}
+
+it('maps ValidationProblemDetails onto form fields', async () =&gt; {
+  const { result } = renderHook(() =&gt; useUpdateUser(form), { wrapper: createWrapper() })
+  result.current.mutate({ id: 1, email: 'nope' })
+
+  await waitFor(() =&gt; expect(result.current.isError).toBe(true))
+  expect(result.current.error!.fieldErrors!.Email).toHaveLength(1) // typed, no cast
+})
+</code></pre>
+
+<h2>Does this kill the need for a client-state library?</h2>
+
+<p>Mostly. TanStack Query's own position: "for a vast majority of applications, the truly globally accessible client state that is left over after migrating all of your async code to TanStack Query is usually very tiny"<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state">[26]</a></sup>. In a CRUD admin app the residue is theme, sidebar collapse, and maybe a command-palette flag. That is <code>useState</code> + a context, or — if you want one store — <a href="https://zustand.docs.pmnd.rs/">Zustand</a> ⭐ 59k<sup><a href="https://github.com/pmndrs/zustand">[29]</a></sup>, which is what the <code>shadcn-admin</code> reference stack uses. Table filters/sort/page belong in the URL, not a store. <strong>Do not adopt Redux.</strong></p>
+
+<h2>Caveats and second-order calls</h2>
+
+<ul>
+<li>⚠ <strong>The <code>context</code> argument in <code>onMutate</code>/<code>onError</code>/<code>onSettled</code> is the current-docs signature</strong> (<code>context.client.setQueryData(...)</code>)<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates">[20]</a></sup>. Older tutorials close over a <code>useQueryClient()</code> handle instead. Both work; pick one and be consistent across <code>libs/</code>.</li>
+<li>⚠ <strong>Prefix invalidation is a blunt instrument.</strong> <code>invalidateQueries({ queryKey: ['users'] })</code> nukes every page of every user list. That is correct-by-default and fine at admin-app scale; reach for <code>predicate</code> only when a screen measurably suffers<sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation">[19]</a></sup>.</li>
+<li><strong>Consider generating the query layer from Forge's Swagger.</strong> Since the API already ships OpenAPI, <a href="https://openapi-ts.dev/openapi-react-query/">openapi-react-query</a> is a 1 kB type-safe wrapper over TanStack Query driven straight off the schema — path params, bodies and responses all type-checked, no hand-written DTOs<sup><a href="https://openapi-ts.dev/openapi-react-query/">[30]</a></sup>. It is the strongest single argument RTK Query had (its own codegen<sup><a href="https://trybuildpilot.com/842-react-query-vs-swr-vs-rtk-query-2026">[31]</a></sup>), and TanStack Query has an equivalent. Trade-off: you lose the hand-rolled <code>forgeFetch</code> throw-site, so the <code>ForgeApiError</code> mapping moves into an <code>openapi-fetch</code> middleware.</li>
+<li><strong>Devtools cost nothing in prod</strong> — <code>@tanstack/react-query-devtools</code> is only bundled when <code>process.env.NODE_ENV === 'development'</code><sup><a href="https://tanstack.com/query/latest/docs/framework/react/devtools">[25]</a></sup>.</li>
+<li><strong>Error boundaries:</strong> use <code>throwOnError: (error) =&gt; error.status &gt;= 500</code> to send 5xx to a boundary while leaving 4xx to render inline<sup><a href="https://tkdodo.eu/blog/react-query-error-handling">[17]</a></sup>. That split maps cleanly onto ProblemDetails' <code>status</code>.</li>
+</ul>
