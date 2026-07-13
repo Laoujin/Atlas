@@ -1,0 +1,763 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "Server-driven data: which React table actually does the work for you — Blueprint"
+---
+
+<style>
+  .bp {
+    --sheet:      #082744;
+    --sheet-dk:   #05192e;
+    --sheet-lt:   #0d3357;
+    --ink:        #e2f0ff;
+    --ink-dim:    #8db3d6;
+    --ink-faint:  #5d84a8;
+    --line:       #3f7fc0;
+    --cyan:       #74d4ff;
+    --amber:      #ffc44d;
+    --red:        #ff7a6b;
+    --green:      #74e0a6;
+    --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", "Menlo", "Consolas", monospace;
+
+    margin: 0;
+    padding: 0 0 4rem;
+    background-color: var(--sheet);
+    background-image:
+      linear-gradient(rgba(120,180,235,.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,180,235,.055) 1px, transparent 1px),
+      linear-gradient(rgba(120,180,235,.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,180,235,.10) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .bp * { box-sizing: border-box; }
+  .bp a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(116,212,255,.45); }
+  .bp a:hover { color: #fff; border-bottom-color: #fff; background: rgba(116,212,255,.12); }
+  .bp sup a { border-bottom: none; font-size: .68em; color: var(--ink-faint); padding: 0 .1em; }
+  .bp sup a:hover { color: var(--cyan); background: none; }
+  .bp code {
+    font-family: var(--mono);
+    background: rgba(116,212,255,.09);
+    border: 1px solid rgba(116,212,255,.18);
+    padding: .05em .35em;
+    border-radius: 2px;
+    font-size: .88em;
+    color: #bfe8ff;
+  }
+  .bp .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---------- drafting plate ---------- */
+  .plate {
+    border: 1px solid rgba(120,180,235,.35);
+    background: rgba(5,25,46,.55);
+    padding: 2.2rem 1.6rem 1.6rem;
+    margin: 0 0 2.4rem;
+    position: relative;
+  }
+  .plate::before {
+    content: attr(data-no);
+    position: absolute; top: -1px; left: -1px;
+    background: var(--cyan); color: #041625;
+    font-size: 11px; font-weight: 700; letter-spacing: .16em;
+    padding: .28rem .7rem;
+  }
+  .plate-title {
+    font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--ink-dim); margin: 0 0 1.4rem; padding-left: 6.2rem;
+    border-bottom: 1px solid rgba(120,180,235,.18); padding-bottom: .7rem;
+  }
+  .plate-title b { color: var(--ink); font-weight: 700; letter-spacing: .18em; }
+
+  /* ---------- sheet header / title block ---------- */
+  .hdr { border: 2px solid var(--cyan); margin: 2rem 0 2.4rem; display: grid; grid-template-columns: 1fr 250px; }
+  .hdr-main { padding: 1.8rem 1.6rem; border-right: 1px solid rgba(116,212,255,.4); }
+  .hdr-kicker { font-size: 11px; letter-spacing: .32em; color: var(--cyan); text-transform: uppercase; }
+  .hdr h1 {
+    font-size: clamp(1.7rem, 4.4vw, 3rem); line-height: 1.06; margin: .8rem 0 .9rem;
+    font-weight: 700; letter-spacing: -.01em; color: #fff; text-transform: uppercase;
+  }
+  .hdr h1 em { font-style: normal; color: var(--cyan); }
+  .hdr-sub { color: var(--ink-dim); font-size: 14px; max-width: 60ch; margin: 0; }
+  .hdr-meta { display: grid; grid-template-columns: 1fr 1fr; }
+  .hdr-meta div {
+    border-bottom: 1px solid rgba(116,212,255,.25);
+    border-right: 1px solid rgba(116,212,255,.25);
+    padding: .5rem .6rem; font-size: 10px; letter-spacing: .12em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .hdr-meta div span { display: block; color: var(--ink); font-size: 14px; letter-spacing: .04em; margin-top: .15rem; }
+  .hdr-meta .keyplan {
+    grid-column: 1 / -1; border-right: none; border-bottom: none; padding: .55rem .6rem .7rem;
+  }
+  .keyplan img {
+    display: block; width: 100%; height: 74px; object-fit: cover; margin-top: .35rem;
+    border: 1px solid rgba(116,212,255,.3);
+    filter: invert(1) hue-rotate(178deg) saturate(1.5) brightness(.92);
+  }
+
+  /* ---------- general notes / decision ---------- */
+  .notes { border-left: 4px solid var(--cyan); background: rgba(116,212,255,.07); padding: 1.3rem 1.5rem; margin: 0 0 2.4rem; }
+  .notes h2 { font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--cyan); margin: 0 0 .8rem; }
+  .notes p { margin: 0; font-size: 15.5px; line-height: 1.72; color: var(--ink); }
+  .notes strong { color: #fff; }
+
+  /* ---------- the boundary ---------- */
+  .bnd { display: grid; grid-template-columns: 1fr 132px 1fr; align-items: stretch; margin-bottom: 2rem; }
+  .bnd:last-child { margin-bottom: 0; }
+  .bnd-side { padding: .2rem 0; }
+  .bnd-side.srv { padding-left: 0; }
+  .side-tag {
+    font-size: 10px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-faint);
+    margin-bottom: .7rem; display: flex; align-items: center; gap: .5rem;
+  }
+  .side-tag i { font-style: normal; color: var(--cyan); }
+  .axis { position: relative; display: flex; align-items: center; justify-content: center; }
+  .axis::before {
+    content: ""; position: absolute; top: -14px; bottom: -14px; left: 50%; width: 0;
+    border-left: 3px dashed var(--cyan);
+    box-shadow: 0 0 22px 3px rgba(116,212,255,.42);
+    transform: translateX(-50%);
+  }
+  .axis span {
+    position: relative; writing-mode: vertical-rl; text-orientation: mixed;
+    background: var(--sheet); border: 1px solid var(--cyan); color: var(--cyan);
+    font-size: 10px; letter-spacing: .3em; text-transform: uppercase; padding: .9rem .34rem;
+    box-shadow: 0 0 0 6px var(--sheet);
+  }
+  .arrows { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.6rem 0; }
+  .arrow { font-size: 11px; letter-spacing: .1em; color: var(--ink-faint); text-align: center; background: var(--sheet); padding: .1rem 0; }
+
+  .blk {
+    border: 1px solid var(--cyan); background: rgba(116,212,255,.13);
+    padding: .55rem .75rem; margin-bottom: .5rem; font-size: 13px; color: #d7f0ff;
+    display: flex; justify-content: space-between; gap: .8rem; align-items: baseline;
+  }
+  .blk b { font-weight: 700; color: #fff; }
+  .blk em { font-style: normal; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); white-space: nowrap; }
+  .blk.you {
+    border: 1px dashed var(--amber); color: #ffe6b8;
+    background-color: rgba(255,196,77,.05);
+    background-image: repeating-linear-gradient(45deg, rgba(255,196,77,.13) 0 2px, transparent 2px 8px);
+  }
+  .blk.you em { color: var(--amber); }
+  .blk.srv { border-color: var(--green); background: rgba(116,224,166,.10); color: #cdf3e0; }
+  .blk.srv em { color: var(--green); }
+  .blk.dead { border-color: var(--ink-faint); background: transparent; color: var(--ink-faint); }
+  .blk.dead em { color: var(--ink-faint); }
+
+  .engine {
+    border: 2px solid var(--cyan); background: rgba(116,212,255,.08); padding: .8rem;
+    box-shadow: inset 0 0 30px rgba(116,212,255,.08);
+  }
+  .engine-cap {
+    font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--cyan);
+    display: flex; justify-content: space-between; margin-bottom: .7rem;
+  }
+  .engine .blk { font-size: 12px; padding: .4rem .6rem; margin-bottom: .35rem; }
+  .engine .blk:last-child { margin-bottom: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 1.4rem; font-size: 11px; letter-spacing: .1em; color: var(--ink-dim); margin-top: 1.6rem; padding-top: 1rem; border-top: 1px solid rgba(120,180,235,.18); text-transform: uppercase; }
+  .legend i { display: inline-block; width: 26px; height: 11px; margin-right: .45rem; vertical-align: -1px; }
+  .lg-grid { border: 1px solid var(--cyan); background: rgba(116,212,255,.2); }
+  .lg-you { border: 1px dashed var(--amber); background-image: repeating-linear-gradient(45deg, rgba(255,196,77,.35) 0 2px, transparent 2px 7px); }
+  .lg-pay { border: 1px solid var(--amber); background: repeating-linear-gradient(90deg, var(--amber) 0 4px, #2b1d00 4px 8px); }
+  .lg-no  { border: 1px solid var(--red); background: rgba(255,122,107,.2); }
+
+  .model-h { font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: #fff; margin: 0 0 .3rem; }
+  .model-p { font-size: 13px; color: var(--ink-dim); margin: 0 0 1.2rem; max-width: 78ch; }
+  .model-p b { color: var(--amber); font-weight: 700; }
+  .model-p .g { color: var(--cyan); font-weight: 700; }
+
+  /* ---------- ownership matrix ---------- */
+  .mx { display: grid; grid-template-columns: 190px repeat(4, 1fr); gap: 2px; font-size: 11px; }
+  .mx-h {
+    padding: .7rem .55rem; background: rgba(116,212,255,.1); border-bottom: 2px solid var(--cyan);
+    letter-spacing: .06em;
+  }
+  .mx-h.lib { line-height: 1.35; }
+  .mx-h.lib a { font-size: 12.5px; letter-spacing: .02em; color: #fff; border: none; }
+  .mx-h.lib a:hover { color: var(--cyan); background: none; }
+  .mx-h.lib span { display: block; color: var(--amber); font-size: 10px; margin-top: .2rem; letter-spacing: .08em; }
+  .mx-h.corner { background: transparent; border-bottom-color: rgba(120,180,235,.3); }
+  .mx-r { padding: .65rem .55rem; color: var(--ink-dim); letter-spacing: .04em; border-bottom: 1px solid rgba(120,180,235,.12); display: flex; align-items: center; text-transform: uppercase; font-size: 10px; }
+  .cell {
+    padding: .6rem .55rem; border-bottom: 1px solid rgba(120,180,235,.12); line-height: 1.4;
+    display: flex; flex-direction: column; justify-content: center; min-height: 62px;
+  }
+  .cell b { display: block; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: .25rem; }
+  .cell i { font-style: normal; font-size: 11px; color: var(--ink); opacity: .82; }
+  .c-grid { background: rgba(116,212,255,.15); border-left: 3px solid var(--cyan); }
+  .c-grid b { color: var(--cyan); }
+  .c-you {
+    border-left: 3px dashed var(--amber);
+    background-color: rgba(255,196,77,.04);
+    background-image: repeating-linear-gradient(45deg, rgba(255,196,77,.10) 0 2px, transparent 2px 8px);
+  }
+  .c-you b { color: var(--amber); }
+  .c-pay { background: rgba(255,196,77,.14); border-left: 3px solid var(--amber); }
+  .c-pay b { color: var(--amber); }
+  .c-no { background: rgba(255,122,107,.10); border-left: 3px solid var(--red); }
+  .c-no b { color: var(--red); }
+
+  /* ---------- restricted zone ---------- */
+  .zone {
+    border: 2px solid var(--amber); margin-bottom: 2.4rem; position: relative;
+    background: rgba(255,196,77,.05);
+  }
+  .zone-bar {
+    height: 16px;
+    background: repeating-linear-gradient(135deg, var(--amber) 0 12px, #2a1c00 12px 24px);
+  }
+  .zone-in { padding: 1.4rem 1.5rem; }
+  .zone h2 { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--amber); margin: 0 0 .5rem; }
+  .zone > .zone-in > p { color: var(--ink-dim); font-size: 13.5px; margin: 0 0 1.2rem; max-width: 82ch; }
+  .gate { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1px; background: rgba(255,196,77,.3); }
+  .gate div { background: var(--sheet-dk); padding: .9rem 1rem; }
+  .gate .plan { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); font-weight: 700; }
+  .gate .what { color: var(--ink); font-size: 13px; margin-top: .3rem; }
+  .gate .cost { color: var(--ink-faint); font-size: 11px; margin-top: .3rem; }
+  .gate .free { color: var(--green); }
+
+  /* ---------- defect ---------- */
+  .defect { border: 2px solid var(--red); background: rgba(255,122,107,.06); padding: 1.6rem 1.5rem; margin-bottom: 2.4rem; position: relative; }
+  .stamp {
+    position: absolute; top: -16px; right: 18px; transform: rotate(-3.5deg);
+    border: 2px solid var(--red); color: var(--red); background: var(--sheet-dk);
+    font-size: 11px; font-weight: 700; letter-spacing: .18em; padding: .35rem .8rem; text-transform: uppercase;
+  }
+  .defect h2 { font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--red); margin: 0 0 .8rem; }
+  .defect .lead { font-size: 16px; color: #fff; margin: 0 0 1.3rem; max-width: 70ch; line-height: 1.6; }
+  .seq { display: flex; flex-wrap: wrap; align-items: stretch; gap: .4rem; margin-bottom: 1.3rem; }
+  .seq div {
+    flex: 1 1 130px; border: 1px solid rgba(120,180,235,.35); padding: .6rem .7rem;
+    font-size: 11.5px; color: var(--ink-dim); background: rgba(5,25,46,.6); position: relative; line-height: 1.45;
+  }
+  .seq div b { display: block; font-size: 9px; letter-spacing: .18em; color: var(--ink-faint); margin-bottom: .3rem; text-transform: uppercase; }
+  .seq div.bad { border-color: var(--red); color: #ffd7d1; background: rgba(255,122,107,.12); }
+  .seq div.bad b { color: var(--red); }
+  .seq .ar { flex: 0 0 auto; border: none; background: none; display: flex; align-items: center; color: var(--line); font-size: 15px; padding: 0; }
+
+  /* ---------- detail / code ---------- */
+  .details { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+  .detail { border: 1px solid rgba(120,180,235,.35); background: var(--sheet-dk); position: relative; }
+  .detail-h {
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: .55rem .8rem; border-bottom: 1px solid rgba(120,180,235,.3);
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-dim);
+  }
+  .bubble {
+    border: 1px solid var(--cyan); color: var(--cyan); border-radius: 999px;
+    padding: .1rem .55rem; font-size: 10px; letter-spacing: .16em; white-space: nowrap;
+  }
+  .detail pre {
+    margin: 0; padding: 1rem .9rem; overflow-x: auto; font-size: 12px; line-height: 1.62;
+    color: #cfe8fb; font-family: var(--mono);
+  }
+  .detail pre .k { color: #ff9ec4; }
+  .detail pre .s { color: var(--green); }
+  .detail pre .c { color: var(--ink-faint); font-style: italic; }
+  .detail pre .f { color: var(--cyan); }
+  .detail pre .n { color: var(--amber); }
+  .detail-note { padding: .8rem .9rem; border-top: 1px dashed rgba(120,180,235,.3); font-size: 12px; color: var(--ink-dim); }
+  .detail-note b { color: var(--amber); }
+
+  /* ---------- notes list ---------- */
+  .nlist { list-style: none; padding: 0; margin: 0; counter-reset: n; }
+  .nlist li { position: relative; padding: .8rem 0 .8rem 3rem; border-bottom: 1px dashed rgba(120,180,235,.18); font-size: 14px; color: var(--ink-dim); }
+  .nlist li:last-child { border-bottom: none; }
+  .nlist li::before {
+    counter-increment: n; content: counter(n, decimal-leading-zero);
+    position: absolute; left: 0; top: .85rem; color: var(--cyan); font-size: 11px; letter-spacing: .1em;
+    border: 1px solid rgba(116,212,255,.4); padding: .05rem .35rem;
+  }
+  .nlist li b { color: #fff; }
+
+  /* ---------- selection chart ---------- */
+  .sel { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  .sel th {
+    text-align: left; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint);
+    padding: .5rem .8rem; border-bottom: 2px solid var(--cyan); font-weight: 400;
+  }
+  .sel td { padding: .95rem .8rem; border-bottom: 1px solid rgba(120,180,235,.15); vertical-align: top; color: var(--ink-dim); }
+  .sel td:first-child { color: var(--ink); width: 42%; }
+  .sel td b { color: #fff; }
+  .sel tr:hover td { background: rgba(116,212,255,.05); }
+  .sel .warn { color: var(--amber); }
+
+  /* ---------- sources ---------- */
+  .srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 1px; background: rgba(120,180,235,.18); border: 1px solid rgba(120,180,235,.18); }
+  .src { background: var(--sheet-dk); padding: .7rem .8rem; display: flex; gap: .6rem; align-items: flex-start; }
+  .src img { width: 16px; height: 16px; flex: 0 0 16px; margin-top: .22rem; border-radius: 2px; }
+  .src .n { color: var(--cyan); font-size: 10px; letter-spacing: .1em; }
+  .src .t { font-size: 12px; line-height: 1.4; }
+  .src .t a { color: var(--ink); border-bottom-color: rgba(120,180,235,.25); }
+  .src .d { font-size: 10px; color: var(--ink-faint); letter-spacing: .08em; margin-top: .2rem; text-transform: uppercase; }
+
+  /* ---------- sheet index ---------- */
+  .idx { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+  .idx a.card {
+    display: block; border: 1px solid rgba(120,180,235,.3); padding: 1rem; border-bottom: 1px solid rgba(120,180,235,.3);
+    background: rgba(5,25,46,.5); color: var(--ink);
+  }
+  .idx a.card:hover { border-color: var(--cyan); background: rgba(116,212,255,.07); }
+  .idx .no { font-size: 10px; letter-spacing: .2em; color: var(--ink-faint); text-transform: uppercase; }
+  .idx .no b { color: var(--cyan); }
+  .idx h3 { font-size: 14px; margin: .5rem 0 .5rem; color: #fff; line-height: 1.35; font-weight: 700; }
+  .idx p { margin: 0; font-size: 12px; color: var(--ink-dim); line-height: 1.5; }
+  .idx .cur { border-color: var(--cyan); background: rgba(116,212,255,.1); padding: 1rem; }
+  .idx .cur h3 { color: var(--cyan); }
+
+  /* ---------- foot title block ---------- */
+  .tblock {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; border: 2px solid var(--cyan);
+    margin-top: 2.4rem;
+  }
+  .tblock div { padding: .8rem 1rem; border-right: 1px solid rgba(116,212,255,.3); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+  .tblock div:last-child { border-right: none; }
+  .tblock div span { display: block; margin-top: .3rem; font-size: 13px; letter-spacing: .04em; color: var(--ink); text-transform: none; }
+
+  @media (max-width: 900px) {
+    .hdr { grid-template-columns: 1fr; }
+    .hdr-main { border-right: none; border-bottom: 1px solid rgba(116,212,255,.4); }
+    .bnd { grid-template-columns: 1fr; }
+    .axis { min-height: 66px; margin: .8rem 0; }
+    .axis::before { top: 50%; bottom: auto; left: -10px; right: -10px; width: auto; border-left: none; border-top: 3px dashed var(--cyan); transform: translateY(-50%); }
+    .axis span { writing-mode: horizontal-tb; }
+    .arrows { display: none; }
+    .mx { grid-template-columns: 1fr; }
+    .mx-h.corner { display: none; }
+    .mx-r { background: rgba(116,212,255,.08); border-top: 2px solid var(--cyan); margin-top: .8rem; }
+    .tblock { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<div class="bp">
+<div class="wrap">
+
+  <!-- ================= SHEET HEADER ================= -->
+  <div class="hdr">
+    <div class="hdr-main">
+      <div class="hdr-kicker">Sheet S-03 · Server-driven data · React data grids 2026</div>
+      <h1>Who owns the<br><em>state machine?</em></h1>
+      <p class="hdr-sub">A schematic of one line: the client/server boundary. Every library on this sheet draws the same boundary — they differ only in how much of the fetch/cache/lazy-load machinery they place on which side of it, and how much of it they leave for you to fabricate on site.</p>
+    </div>
+    <div class="hdr-meta">
+      <div>Depth<span>Survey</span></div>
+      <div>Rev<span>2026-07-13</span></div>
+      <div>Sources<span>31</span></div>
+      <div>Read<span>8 min</span></div>
+      <div class="keyplan">Key plan
+        <img src="../cover.svg" alt="Key plan: client/server wiring diagram">
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= GENERAL NOTES ================= -->
+  <div class="notes">
+    <h2>General notes — decision</h2>
+    <p>If the server owns pagination + sorting + filtering <strong>and grouping/aggregation</strong>, only <a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid</a>'s Server-Side Row Model <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[12]</a></sup> and <a href="https://mui.com/x/react-data-grid/server-side-data/">MUI X</a>'s Data Source <sup><a href="https://mui.com/x/react-data-grid/server-side-data/">[18]</a></sup> are first-class engines that fetch, cache and lazy-load for you — both paywalled at the group/aggregate tier <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[13]</a></sup><sup><a href="https://mui.com/x/react-data-grid/server-side-data/aggregation/">[20]</a></sup>. <a href="https://tanstack.com/table/latest/docs/guide/pagination">TanStack Table</a> ⭐ 28.2k gives you <code>manual*</code> <strong>opt-outs</strong>, not an engine: you own the state, the fetch, the debounce and the page-reset <sup><a href="https://tanstack.com/table/latest/docs/guide/pagination">[1]</a></sup><sup><a href="https://github.com/TanStack/table/issues/4797">[5]</a></sup> — pair it with <a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">TanStack Query</a> ⭐ 50k and it's excellent, but the wiring is yours. <a href="https://www.mantine-react-table.com/docs/guides/pagination">Mantine React Table</a> ⭐ 1.1k inherits exactly TanStack Table v8's manual model and adds nothing server-side <sup><a href="https://www.mantine-react-table.com/docs/guides/pagination">[24]</a></sup>.</p>
+  </div>
+
+  <!-- ================= PLATE 01 — THE BOUNDARY ================= -->
+  <div class="plate" data-no="PLATE 01">
+    <div class="plate-title"><b>Elevation — the boundary</b> &nbsp;·&nbsp; two philosophies, one dashed line</div>
+
+    <h3 class="model-h">A · Opt-out model</h3>
+    <p class="model-p"><a href="https://tanstack.com/table/latest/docs/guide/pagination">TanStack Table</a>, <a href="https://www.mantine-react-table.com/docs/guides/pagination">Mantine React Table</a> — you flip <code>manualPagination</code> / <code>manualSorting</code> / <code>manualFiltering</code> and the table <b>stops doing the work</b>. It does not start doing it on the server. It just believes whatever <code>data</code> array you hand it <sup><a href="https://tanstack.com/table/latest/docs/guide/pagination">[1]</a></sup><sup><a href="https://tanstack.com/table/latest/docs/guide/column-filtering">[2]</a></sup><sup><a href="https://tanstack.com/table/v8/docs/guide/sorting">[3]</a></sup>.</p>
+
+    <div class="bnd">
+      <div class="bnd-side">
+        <div class="side-tag"><i>◧</i> Client — browser</div>
+        <div class="blk you"><span>pagination / sorting / filter state</span><em>you</em></div>
+        <div class="blk you"><span>page-reset on filter change</span><em>you</em></div>
+        <div class="blk you"><span>keystroke debounce</span><em>you</em></div>
+        <div class="blk you"><span>query key + request cache</span><em>TanStack&nbsp;Query</em></div>
+        <div class="blk you"><span>race safety / out-of-order responses</span><em>you</em></div>
+        <div class="blk you"><span><code>fetchRows()</code></span><em>you</em></div>
+        <div class="blk dead"><span><code>useReactTable</code> — renders rows, believes <code>data</code></span><em>lib</em></div>
+      </div>
+      <div class="axis">
+        <span>Client / Server</span>
+        <div class="arrows">
+          <div class="arrow">──▶</div>
+          <div class="arrow">◀──</div>
+        </div>
+      </div>
+      <div class="bnd-side srv">
+        <div class="side-tag"><i>◨</i> Server — your API</div>
+        <div class="blk srv"><span><code>GET /rows?page&amp;sort&amp;filter</code></span><em>you</em></div>
+        <div class="blk srv"><span>returns <code>{ rows, total }</code></span><em>you</em></div>
+        <div class="blk dead"><span>grouping / aggregation — no wire format exists <sup><a href="https://tanstack.com/table/latest/docs/guide/grouping">[4]</a></sup></span><em>gap</em></div>
+      </div>
+    </div>
+
+    <h3 class="model-h" style="margin-top:2.4rem">B · Datasource model</h3>
+    <p class="model-p"><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid</a> SSRM, <a href="https://mui.com/x/react-data-grid/server-side-data/">MUI X</a> Data Source — you implement <span class="g">one</span> <code>getRows(params)</code> callback. The grid owns the request lifecycle, block cache, scroll-triggered fetching, loading skeletons and error surface <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[12]</a></sup><sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model-datasource/">[14]</a></sup><sup><a href="https://mui.com/x/react-data-grid/server-side-data/">[18]</a></sup>.</p>
+
+    <div class="bnd">
+      <div class="bnd-side">
+        <div class="side-tag"><i>◧</i> Client — the grid is the engine</div>
+        <div class="engine">
+          <div class="engine-cap"><span>Grid-owned machinery</span><span>sealed unit</span></div>
+          <div class="blk"><span>block cache — <code>cacheBlockSize</code> 100, LRU eviction</span><em>grid</em></div>
+          <div class="blk"><span>scroll-triggered block fetch</span><em>grid</em></div>
+          <div class="blk"><span>debounce — <code>blockLoadDebounceMillis</code> / 500 ms throttle</span><em>grid</em></div>
+          <div class="blk"><span>cache purge + refetch on sort/filter change</span><em>grid</em></div>
+          <div class="blk"><span>loading skeletons + error surface</span><em>grid</em></div>
+          <div class="blk"><span>sort / filter / group / pivot models</span><em>grid</em></div>
+          <div class="blk you" style="margin-top:.7rem"><span><code>getRows(params)</code> — the one seam you fabricate</span><em>you</em></div>
+        </div>
+      </div>
+      <div class="axis">
+        <span>Client / Server</span>
+        <div class="arrows">
+          <div class="arrow">──▶</div>
+          <div class="arrow">◀──</div>
+        </div>
+      </div>
+      <div class="bnd-side srv">
+        <div class="side-tag"><i>◨</i> Server — receives the models</div>
+        <div class="blk srv"><span><code>startRow</code> / <code>endRow</code></span><em>req</em></div>
+        <div class="blk srv"><span><code>sortModel</code> · <code>filterModel</code></span><em>req</em></div>
+        <div class="blk srv"><span><code>rowGroupCols</code> · <code>groupKeys</code></span><em>req</em></div>
+        <div class="blk srv"><span><code>valueCols</code> · <code>pivotCols</code></span><em>req</em></div>
+        <div class="blk srv"><span><code>aggregationModel</code> <span style="opacity:.6">(MUI)</span></span><em>req</em></div>
+        <div class="blk srv"><span>filter · sort · group · pivot · aggregate execute here <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[12]</a></sup></span><em>sql</em></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i class="lg-grid"></i>Library owns it</span>
+      <span><i class="lg-you"></i>You build it</span>
+      <span><i class="lg-pay"></i>Behind a paywall</span>
+      <span><i class="lg-no"></i>Not supported</span>
+    </div>
+  </div>
+
+  <!-- ================= PLATE 02 — OWNERSHIP MATRIX ================= -->
+  <div class="plate" data-no="PLATE 02">
+    <div class="plate-title"><b>Parts schedule</b> &nbsp;·&nbsp; which side of the line each part sits on</div>
+
+    <div class="mx">
+      <div class="mx-h corner"></div>
+      <div class="mx-h lib"><a href="https://tanstack.com/table/latest/docs/guide/pagination">TanStack Table</a><span>⭐ 28.2k</span></div>
+      <div class="mx-h lib"><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid</a><span>⭐ 15.5k · SSRM</span></div>
+      <div class="mx-h lib"><a href="https://mui.com/x/react-data-grid/server-side-data/">MUI X DataGrid</a><span>⭐ 5.8k</span></div>
+      <div class="mx-h lib"><a href="https://www.mantine-react-table.com/docs/guides/pagination">Mantine React Table</a><span>⭐ 1.1k</span></div>
+
+      <div class="mx-r">Server pagination</div>
+      <div class="cell c-you"><b>You</b><i><code>manualPagination</code> + you supply <code>rowCount</code>/<code>pageCount</code> <sup><a href="https://tanstack.com/table/latest/docs/guide/pagination">[1]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i>block-based, grid-driven <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[12]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i><code>paginationMode="server"</code> or Data Source <sup><a href="https://mui.com/x/react-data-grid/pagination/">[21]</a></sup></i></div>
+      <div class="cell c-you"><b>You</b><i><code>manualPagination</code> + <code>rowCount</code> <sup><a href="https://www.mantine-react-table.com/docs/guides/pagination">[24]</a></sup></i></div>
+
+      <div class="mx-r">Server sort / filter</div>
+      <div class="cell c-you"><b>You</b><i><code>manualSorting</code> / <code>manualFiltering</code> <sup><a href="https://tanstack.com/table/latest/docs/guide/column-filtering">[2]</a></sup><sup><a href="https://tanstack.com/table/v8/docs/guide/sorting">[3]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i><code>sortModel</code>/<code>filterModel</code> in request; cache auto-purged <sup><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">[15]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i><code>sortingMode</code>/<code>filterMode="server"</code> <sup><a href="https://mui.com/x/api/data-grid/data-grid/">[22]</a></sup></i></div>
+      <div class="cell c-you"><b>You</b><i>same as TanStack v8 <sup><a href="https://github.com/KevinVandy/mantine-react-table">[25]</a></sup></i></div>
+
+      <div class="mx-r">Server grouping / aggregation</div>
+      <div class="cell c-no"><b>Gap</b><i><code>manualGrouping</code> exists, but "not currently many known easy ways" <sup><a href="https://tanstack.com/table/latest/docs/guide/grouping">[4]</a></sup></i></div>
+      <div class="cell c-pay"><b>Enterprise</b><i>lazy group expansion, pivot, aggregation <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[13]</a></sup></i></div>
+      <div class="cell c-pay"><b>Premium</b><i><code>aggregationModel</code> + <code>getAggregatedValue()</code> <sup><a href="https://mui.com/x/react-data-grid/server-side-data/aggregation/">[20]</a></sup></i></div>
+      <div class="cell c-no"><b>None</b><i>inherits TanStack's gap <sup><a href="https://tanstack.com/table/latest/docs/guide/grouping">[4]</a></sup></i></div>
+
+      <div class="mx-r">Infinite / lazy scroll</div>
+      <div class="cell c-you"><b>You</b><i>Table + Query <code>useInfiniteQuery</code> + Virtual <sup><a href="https://tanstack.com/table/v8/docs/framework/react/examples/virtualized-infinite-scrolling">[7]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i>Infinite Row Model (free) or SSRM (Enterprise) <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[13]</a></sup></i></div>
+      <div class="cell c-pay"><b>Pro</b><i><code>lazyLoading</code> prop <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup></i></div>
+      <div class="cell c-no"><b>None</b><i>build it</i></div>
+
+      <div class="mx-r">Built-in request cache</div>
+      <div class="cell c-you"><b>You</b><i>bring TanStack Query</i></div>
+      <div class="cell c-grid"><b>Grid</b><i>block cache, <code>cacheBlockSize</code> 100, <code>maxBlocksInCache</code> LRU <sup><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">[15]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i><code>GridDataSourceCacheDefault</code>, 5-min TTL, swappable <sup><a href="https://mui.com/x/react-data-grid/server-side-data/">[18]</a></sup></i></div>
+      <div class="cell c-no"><b>None</b><i>bring your own</i></div>
+
+      <div class="mx-r">Built-in scroll debounce</div>
+      <div class="cell c-no"><b>None</b><i>hand-rolled</i></div>
+      <div class="cell c-grid"><b>Grid</b><i><code>blockLoadDebounceMillis</code> <sup><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">[15]</a></sup></i></div>
+      <div class="cell c-grid"><b>Grid</b><i>500 ms viewport-loading throttle <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup></i></div>
+      <div class="cell c-no"><b>None</b><i>hand-rolled</i></div>
+
+      <div class="mx-r">Renders in a Server Component</div>
+      <div class="cell c-no"><b>No</b><i><code>'use client'</code></i></div>
+      <div class="cell c-no"><b>No</b><i><code>'use client'</code> — depends on <code>window</code>/<code>document</code> <sup><a href="https://blog.ag-grid.com/using-ag-grid-with-next-js-to-build-a-react-table/">[16]</a></sup></i></div>
+      <div class="cell c-no"><b>No</b><i><code>'use client'</code></i></div>
+      <div class="cell c-no"><b>No</b><i><code>'use client'</code></i></div>
+
+      <div class="mx-r">Cost of server mode</div>
+      <div class="cell c-you"><b>Free</b><i>your time</i></div>
+      <div class="cell c-pay"><b>Enterprise</b><i>licence required for SSRM <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[13]</a></sup></i></div>
+      <div class="cell c-pay"><b>MIT → Premium</b><i>MIT for basic Data Source <sup><a href="https://mui.com/blog/mui-x-v8/">[23]</a></sup>; Pro for lazy load, Premium for aggregation <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup><sup><a href="https://mui.com/x/react-data-grid/server-side-data/aggregation/">[20]</a></sup></i></div>
+      <div class="cell c-you"><b>Free</b><i>your time</i></div>
+    </div>
+  </div>
+
+  <!-- ================= RESTRICTED ZONE ================= -->
+  <div class="zone">
+    <div class="zone-bar"></div>
+    <div class="zone-in">
+      <h2>⚠ Restricted zone — the paywall sits on the boundary</h2>
+      <p>The features that move work across the line are exactly the features that are gated. Grouping and aggregation on the server are not something you can grow into on a free tier — they are the purchase.</p>
+      <div class="gate">
+        <div>
+          <div class="plan">AG Grid · Community</div>
+          <div class="what">Infinite Row Model</div>
+          <div class="cost free">Free — but "aggregation and grouping are not available in infinite scrolling" <sup><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">[15]</a></sup></div>
+        </div>
+        <div>
+          <div class="plan">AG Grid · Enterprise</div>
+          <div class="what">Server-Side Row Model</div>
+          <div class="cost">Any grouped server table means SSRM, and SSRM means Enterprise <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[13]</a></sup></div>
+        </div>
+        <div>
+          <div class="plan">MUI X · Community (MIT)</div>
+          <div class="what"><code>paginationMode</code>/<code>sortingMode</code>/<code>filterMode="server"</code>, basic <code>dataSource</code></div>
+          <div class="cost free">Free — v8 moved Data Source into Community <sup><a href="https://mui.com/blog/mui-x-v8/">[23]</a></sup></div>
+        </div>
+        <div>
+          <div class="plan">MUI X · Pro</div>
+          <div class="what"><code>lazyLoading</code> — viewport skeletons + infinite scroll</div>
+          <div class="cost">Paid tier <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup></div>
+        </div>
+        <div>
+          <div class="plan">MUI X · Premium</div>
+          <div class="what">Server-side aggregation, row grouping, tree data</div>
+          <div class="cost">Top tier <sup><a href="https://mui.com/x/react-data-grid/server-side-data/aggregation/">[20]</a></sup></div>
+        </div>
+        <div>
+          <div class="plan">TanStack · always free</div>
+          <div class="what">Server grouping</div>
+          <div class="cost">Not sold, not shipped — "you will need to do lots of custom cell rendering to make this work" <sup><a href="https://tanstack.com/table/latest/docs/guide/grouping">[4]</a></sup></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= DEFECT NOTE ================= -->
+  <div class="defect">
+    <div class="stamp">Open defect · #4797</div>
+    <h2>Fault note — the page that never resets</h2>
+    <p class="lead">Turn on <code>manualPagination</code> and <code>autoResetPageIndex</code> is switched off for you <sup><a href="https://tanstack.com/table/latest/docs/guide/pagination">[1]</a></sup>. Nothing in the table connects a filter change to the page index. The failure is silent — no error, no empty-state, just an empty table.</p>
+    <div class="seq">
+      <div><b>Step 01</b>User is on page 1000</div>
+      <div class="ar">▶</div>
+      <div><b>Step 02</b>User types a filter</div>
+      <div class="ar">▶</div>
+      <div><b>Step 03</b><code>pageIndex</code> stays at 999</div>
+      <div class="ar">▶</div>
+      <div><b>Step 04</b>Request goes out for page 1000 <em>of the filtered set</em></div>
+      <div class="ar">▶</div>
+      <div class="bad"><b>Result</b>Server returns <code>[]</code>. Table renders empty. User concludes the filter matched nothing.</div>
+    </div>
+    <p style="margin:0;color:var(--ink-dim);font-size:13.5px">Open since v8 — <a href="https://github.com/TanStack/table/issues/4797">TanStack Table issue #4797</a> ⭐ 28.2k <sup><a href="https://github.com/TanStack/table/issues/4797">[5]</a></sup>. The fix is yours to fabricate: wrap <code>setFilters</code> / <code>setSorting</code> so they also <code>setPagination(p =&gt; ({ ...p, pageIndex: 0 }))</code> — in the <em>same</em> transaction, so only one query key ever exists.</p>
+  </div>
+
+  <!-- ================= PLATE 03 — DETAILS ================= -->
+  <div class="plate" data-no="PLATE 03">
+    <div class="plate-title"><b>Details</b> &nbsp;·&nbsp; the seam, drawn at full scale</div>
+
+    <div class="details">
+      <div class="detail">
+        <div class="detail-h"><span>Detail A — opt-out wiring</span><span class="bubble">TanStack Table</span></div>
+<pre><span class="k">const</span> [pagination, setPagination] = <span class="f">useState</span>({ pageIndex: <span class="n">0</span>, pageSize: <span class="n">50</span> });
+<span class="k">const</span> [sorting, setSorting]       = <span class="f">useState</span>&lt;SortingState&gt;([]);
+<span class="k">const</span> [filters, setFilters]       = <span class="f">useState</span>&lt;ColumnFiltersState&gt;([]);
+
+<span class="k">const</span> q = <span class="f">useQuery</span>({
+  queryKey: [<span class="s">'rows'</span>, pagination, sorting, filters],  <span class="c">// the key IS the query</span>
+  queryFn: () =&gt; <span class="f">fetchRows</span>({ pagination, sorting, filters }),
+  placeholderData: keepPreviousData,             <span class="c">// no flash-to-empty</span>
+});
+
+<span class="k">const</span> table = <span class="f">useReactTable</span>({
+  data: q.data?.rows ?? [],
+  columns,
+  getCoreRowModel: <span class="f">getCoreRowModel</span>(),
+  manualPagination: <span class="k">true</span>, manualSorting: <span class="k">true</span>, manualFiltering: <span class="k">true</span>,
+  rowCount: q.data?.total,
+  state: { pagination, sorting, columnFilters: filters },
+  onPaginationChange: setPagination,
+  onSortingChange: setSorting,
+  onColumnFiltersChange: setFilters,
+});</pre>
+        <div class="detail-note"><b>Not solved by this snippet:</b> page-reset, keystroke debounce <sup><a href="https://www.robinwieruch.de/react-server-side-table/">[31]</a></sup>, and grouping <sup><a href="https://tanstack.com/table/latest/docs/guide/grouping">[4]</a></sup>. <code>pageCount: -1</code> for unknown totals makes <code>getCanNextPage()</code> always return <code>true</code> <sup><a href="https://tanstack.com/table/latest/docs/guide/pagination">[1]</a></sup>.</div>
+      </div>
+
+      <div class="detail">
+        <div class="detail-h"><span>Detail B — datasource wiring</span><span class="bubble">AG Grid SSRM</span></div>
+<pre><span class="k">const</span> datasource: IServerSideDatasource = {
+  getRows: params =&gt; {
+    <span class="k">const</span> res = server.<span class="f">getData</span>(params.request);
+    res.success
+      ? params.<span class="f">success</span>({ rowData: res.rows, rowCount: res.total })
+      : params.<span class="f">fail</span>();
+  },
+};</pre>
+        <div class="detail-note">That is the whole seam <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model-datasource/">[14]</a></sup>. Everything else — block cache, scroll fetch, debounce, purge-on-sort — is behind the boundary of the grid <sup><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">[15]</a></sup>.<br><br><b>⚠ Query friction:</b> <code>getRows</code> is a plain callback, not a component, so you cannot call <code>useQuery</code> inside it. Use <code>useQueryClient()</code> in the component and <code>qc.fetchQuery(...)</code> inside <code>getRows</code>, memoise the datasource, and put every request param in the key <sup><a href="https://scientyficworld.org/how-to-integrate-react-query-with-ag-grid/">[17]</a></sup>. You are then running two caches — decide which is authoritative before you build.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PLATE 04 — RACE SAFETY ================= -->
+  <div class="plate" data-no="PLATE 04">
+    <div class="plate-title"><b>Tolerances</b> &nbsp;·&nbsp; debounce ≠ race safety</div>
+    <p class="model-p" style="font-size:15px;color:var(--ink)">React's own docs are blunt: <em style="color:#fff">"network responses may arrive in a different order than you sent them"</em> — and then tell you not to hand-roll the fix at all, but to use <a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">TanStack Query</a> or <a href="https://swr.vercel.app/docs/pagination">SWR</a> <sup><a href="https://react.dev/reference/react/useEffect">[30]</a></sup>.</p>
+    <ol class="nlist">
+      <li>Debouncing a filter input only reduces <b>how many</b> requests fire. If a request outlives the debounce window, the stale response can still land last and overwrite the fresh one <sup><a href="https://react.dev/reference/react/useEffect">[30]</a></sup><sup><a href="https://www.robinwieruch.de/react-server-side-table/">[31]</a></sup>.</li>
+      <li>Putting <code>{ pagination, sorting, filters }</code> <b>into the query key</b> structurally removes the race: each parameter combination is a distinct cache entry, so a late response writes into <em>its own</em> key, not the visible one <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">[8]</a></sup>.</li>
+      <li>Debounce the <b>state update that feeds the key</b>, not the fetch — and always reset <code>pageIndex</code> in the same transaction as the filter/sort change <sup><a href="https://github.com/TanStack/table/issues/4797">[5]</a></sup>.</li>
+      <li>The datasource grids sidestep most of this by construction: AG Grid purges and refetches on sort/filter change <sup><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">[15]</a></sup>, MUI throttles viewport requests to 500 ms <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup>.</li>
+      <li>Query v5 <b>removed</b> <code>keepPreviousData</code> and <code>isPreviousData</code>; write <code>placeholderData: keepPreviousData</code> and read <code>isPlaceholderData</code> <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/migrating-to-v5">[9]</a></sup>. Gate the Next button on <code>isPlaceholderData || !data.hasMore</code> <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">[8]</a></sup>.</li>
+      <li><b>Row-count trap (MUI):</b> "if the value <code>rowCount</code> becomes <code>undefined</code> during loading, it will reset the page to zero" — memoise it across fetches <sup><a href="https://mui.com/x/react-data-grid/pagination/">[21]</a></sup>.</li>
+    </ol>
+  </div>
+
+  <!-- ================= PLATE 05 — CURSOR VS OFFSET ================= -->
+  <div class="plate" data-no="PLATE 05">
+    <div class="plate-title"><b>Section</b> &nbsp;·&nbsp; cursor vs offset, and how the grid infers it</div>
+    <div class="details">
+      <div class="detail">
+        <div class="detail-h"><span>Offset backend — a total exists</span><span class="bubble">Viewport loading</span></div>
+        <div class="detail-note" style="border-top:none">Known <code>rowCount</code> → MUI picks <b>viewport loading</b>: skeleton rows, fetch when a skeleton enters the render window, 500 ms request throttle <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup>. In TanStack land this is a plain <code>useQuery</code> keyed on the page.</div>
+      </div>
+      <div class="detail">
+        <div class="detail-h"><span>Cursor backend — no cheap total</span><span class="bubble">Infinite loading</span></div>
+        <div class="detail-note" style="border-top:none">Hand the grid <code>rowCount = -1</code> (or <code>undefined</code>) plus <code>paginationMeta.hasNextPage</code> or <code>estimatedRowCount</code> → <b>infinite loading</b>: fetch at scroll-end, stop when the server returns nothing <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup><sup><a href="https://mui.com/x/react-data-grid/pagination/">[21]</a></sup>. In TanStack land: <code>useInfiniteQuery</code> + <code>getNextPageParam</code> returning the server's <code>nextCursor</code>, with <code>maxPages</code> to cap retained pages <sup><a href="https://tanstack.com/query/v5/docs/framework/react/guides/infinite-queries">[10]</a></sup>.</div>
+      </div>
+    </div>
+    <p class="model-p" style="margin-top:1.4rem;margin-bottom:0"><a href="https://swr.vercel.app/docs/pagination">SWR</a> does the same job with one option — <code>keepPreviousData: true</code> keeps prior data across key changes <sup><a href="https://swr.vercel.app/docs/pagination">[11]</a></sup> — but has no equivalent of Query's imperative <code>fetchQuery</code> escape hatch, so for AG Grid SSRM and MUI Data Source, <span class="g">Query is the better fit</span>.</p>
+  </div>
+
+  <!-- ================= PLATE 06 — RSC ================= -->
+  <div class="plate" data-no="PLATE 06">
+    <div class="plate-title"><b>Site constraint</b> &nbsp;·&nbsp; no grid crosses into a Server Component</div>
+    <p class="model-p" style="font-size:15px;color:var(--ink);margin-bottom:1.6rem">All four need <code>'use client'</code>, and once a file is marked, "all of its imports and the components it directly renders are included in the client bundle" <sup><a href="https://nextjs.org/docs/app/getting-started/server-and-client-components">[29]</a></sup>. <a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid</a> says it outright: <code>ag-grid-react</code> "depends on some browser-specific APIs (e.g. <code>window</code>/<code>document</code>) and can not be rendered server-side" <sup><a href="https://blog.ag-grid.com/using-ag-grid-with-next-js-to-build-a-react-table/">[16]</a></sup>. So the boundary you draw in the App Router is <b>URL-as-table-state</b>:</p>
+    <ol class="nlist">
+      <li>Server Component <code>page.tsx</code> parses <code>searchParams</code> (a Promise since Next 15) via <code>createSearchParamsCache</code> and passes typed page/sort/filter down without prop-drilling <sup><a href="https://nuqs.dev/docs/server-side">[26]</a></sup>.</li>
+      <li>It fetches server-side and streams rows into a thin <code>'use client'</code> table shell.</li>
+      <li>The client shell writes state back with <a href="https://nuqs.dev/docs/server-side">nuqs</a> ⭐ 10.7k <code>useQueryState</code>; <code>shallow: false</code> opts into "notifying the server (to re-render Server Components on the app router)", with <code>throttleMs</code> to rate-limit — the hook's state updates instantly regardless, only the URL write and server round-trip are throttled (default 50 ms; ~340 ms on Safari) <sup><a href="https://github.com/47ng/nuqs">[27]</a></sup>. <b>That <code>throttleMs</code> is your debounce for RSC round-trips.</b></li>
+    </ol>
+    <p class="model-p" style="margin-top:1.4rem;margin-bottom:0">Reference implementation: <a href="https://github.com/sadmann7/shadcn-table">shadcn-table</a> ⭐ 6.2k — TanStack Table + Next.js with "server-side pagination, sorting, and filtering", Notion-style advanced filters and virtualized infinite scroll <sup><a href="https://github.com/sadmann7/shadcn-table">[28]</a></sup>. AG Grid and MUI X can live inside this too, but their state lives in the grid's own model objects, so you must serialise <code>sortModel</code>/<code>filterModel</code> into the URL yourself — <span class="g">the URL-state ergonomics favour the headless option</span>.</p>
+  </div>
+
+  <!-- ================= PLATE 07 — SELECTION CHART ================= -->
+  <div class="plate" data-no="PLATE 07">
+    <div class="plate-title"><b>Selection chart</b> &nbsp;·&nbsp; specify by the shape of your server</div>
+    <table class="sel">
+      <thead>
+        <tr><th>Your situation</th><th>Specified component</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Flat rows, offset or cursor paging, sort + filter, <b>no grouping</b></td>
+          <td><b><a href="https://tanstack.com/table/latest/docs/guide/pagination">TanStack Table</a> + <a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">TanStack Query</a></b> — <code>manual*</code> + <code>placeholderData: keepPreviousData</code> <sup><a href="https://tanstack.com/table/latest/docs/guide/pagination">[1]</a></sup><sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">[8]</a></sup></td>
+        </tr>
+        <tr>
+          <td>Table state must live in the <b>URL</b> / RSC + App Router</td>
+          <td><b><a href="https://tanstack.com/table/latest/docs/guide/pagination">TanStack Table</a> + <a href="https://nuqs.dev/docs/server-side">nuqs</a></b> — grid-model libraries fight you here <sup><a href="https://nuqs.dev/docs/server-side">[26]</a></sup><sup><a href="https://github.com/sadmann7/shadcn-table">[28]</a></sup></td>
+        </tr>
+        <tr>
+          <td>Server-side <b>grouping, pivot, aggregation</b> over millions of rows</td>
+          <td><b><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid</a> SSRM</b> <span class="warn">(Enterprise)</span> <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[12]</a></sup><sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[13]</a></sup></td>
+        </tr>
+        <tr>
+          <td>Already on MUI, want server grouping/aggregation without writing the engine</td>
+          <td><b><a href="https://mui.com/x/react-data-grid/server-side-data/">MUI X</a> Data Source</b> — <span class="warn">Pro for lazy load, Premium for aggregation</span> <sup><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">[19]</a></sup><sup><a href="https://mui.com/x/react-data-grid/server-side-data/aggregation/">[20]</a></sup></td>
+        </tr>
+        <tr>
+          <td>Mantine design system, simple server paging</td>
+          <td><b><a href="https://www.mantine-react-table.com/docs/guides/pagination">Mantine React Table</a></b> — but it is a TanStack v8 wrapper with a stale cadence (last tagged release Oct 2023) <sup><a href="https://github.com/KevinVandy/mantine-react-table">[25]</a></sup>. <span class="warn">⚠ No server-side story of its own.</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="model-p" style="margin-top:1.6rem;margin-bottom:0"><b>Revision note — v9.</b> TanStack Table v9 has been in beta since 7 June 2026 (TanStack Store-backed state, plugin-registered features, large memory and type-instantiation wins). The announcement says nothing about improving server-driven mode — <span class="g">the <code>manual*</code> opt-out philosophy is unchanged</span> <sup><a href="https://tanstack.com/blog/tanstack-table-v9-taking-form">[6]</a></sup>. Adopting v9 in 2026 means adopting a beta.</p>
+  </div>
+
+  <!-- ================= REFERENCE DOCUMENTS ================= -->
+  <div class="plate" data-no="REFS">
+    <div class="plate-title"><b>Reference documents</b> &nbsp;·&nbsp; 31 sources</div>
+    <div class="srcs">
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[1]</div><div class="t"><a href="https://tanstack.com/table/latest/docs/guide/pagination">TanStack Table — Pagination guide</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[2]</div><div class="t"><a href="https://tanstack.com/table/latest/docs/guide/column-filtering">TanStack Table — Column Filtering guide</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[3]</div><div class="t"><a href="https://tanstack.com/table/v8/docs/guide/sorting">TanStack Table v8 — Sorting guide</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[4]</div><div class="t"><a href="https://tanstack.com/table/latest/docs/guide/grouping">TanStack Table — Grouping guide</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="n">[5]</div><div class="t"><a href="https://github.com/TanStack/table/issues/4797">Issue #4797 — manualPagination doesn't reset pageIndex</a></div><div class="d">forum · ⭐ 28.2k</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[6]</div><div class="t"><a href="https://tanstack.com/blog/tanstack-table-v9-taking-form">TanStack Table V9 Taking Form</a></div><div class="d">vendor blog</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[7]</div><div class="t"><a href="https://tanstack.com/table/v8/docs/framework/react/examples/virtualized-infinite-scrolling">Virtualized Infinite Scrolling example</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[8]</div><div class="t"><a href="https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries">TanStack Query — Paginated Queries</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[9]</div><div class="t"><a href="https://tanstack.com/query/latest/docs/framework/react/guides/migrating-to-v5">TanStack Query — Migrating to v5</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="n">[10]</div><div class="t"><a href="https://tanstack.com/query/v5/docs/framework/react/guides/infinite-queries">TanStack Query — Infinite Queries</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=swr.vercel.app&sz=128" alt=""><div><div class="n">[11]</div><div class="t"><a href="https://swr.vercel.app/docs/pagination">SWR — Pagination</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="n">[12]</div><div class="t"><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid — Server-Side Row Model</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="n">[13]</div><div class="t"><a href="https://www.ag-grid.com/react-data-grid/row-models/">AG Grid — Row Models</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="n">[14]</div><div class="t"><a href="https://www.ag-grid.com/react-data-grid/server-side-model-datasource/">AG Grid — Server-Side Datasource</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="n">[15]</div><div class="t"><a href="https://www.ag-grid.com/react-data-grid/infinite-scrolling/">AG Grid — Infinite Row Model</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=blog.ag-grid.com&sz=128" alt=""><div><div class="n">[16]</div><div class="t"><a href="https://blog.ag-grid.com/using-ag-grid-with-next-js-to-build-a-react-table/">AG Grid with Next.js</a></div><div class="d">vendor blog</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=scientyficworld.org&sz=128" alt=""><div><div class="n">[17]</div><div class="t"><a href="https://scientyficworld.org/how-to-integrate-react-query-with-ag-grid/">Integrating React Query with AG Grid</a></div><div class="d">vendor blog</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="n">[18]</div><div class="t"><a href="https://mui.com/x/react-data-grid/server-side-data/">MUI X — Server-side data (Data Source)</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="n">[19]</div><div class="t"><a href="https://mui.com/x/react-data-grid/server-side-data/lazy-loading/">MUI X — Server-side lazy loading</a></div><div class="d">official · Pro</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="n">[20]</div><div class="t"><a href="https://mui.com/x/react-data-grid/server-side-data/aggregation/">MUI X — Server-side aggregation</a></div><div class="d">official · Premium</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="n">[21]</div><div class="t"><a href="https://mui.com/x/react-data-grid/pagination/">MUI X — Pagination</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="n">[22]</div><div class="t"><a href="https://mui.com/x/api/data-grid/data-grid/">MUI X — DataGrid API</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="n">[23]</div><div class="t"><a href="https://mui.com/blog/mui-x-v8/">MUI X v8 release</a></div><div class="d">vendor blog</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=mantine-react-table.com&sz=128" alt=""><div><div class="n">[24]</div><div class="t"><a href="https://www.mantine-react-table.com/docs/guides/pagination">Mantine React Table — Pagination</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="n">[25]</div><div class="t"><a href="https://github.com/KevinVandy/mantine-react-table">Mantine React Table — GitHub</a></div><div class="d">official · ⭐ 1.1k</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=nuqs.dev&sz=128" alt=""><div><div class="n">[26]</div><div class="t"><a href="https://nuqs.dev/docs/server-side">nuqs — Server-side usage</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="n">[27]</div><div class="t"><a href="https://github.com/47ng/nuqs">nuqs — GitHub</a></div><div class="d">official · ⭐ 10.7k</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="n">[28]</div><div class="t"><a href="https://github.com/sadmann7/shadcn-table">shadcn-table — GitHub</a></div><div class="d">official · ⭐ 6.2k</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt=""><div><div class="n">[29]</div><div class="t"><a href="https://nextjs.org/docs/app/getting-started/server-and-client-components">Next.js — Server and Client Components</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><div><div class="n">[30]</div><div class="t"><a href="https://react.dev/reference/react/useEffect">React — useEffect reference</a></div><div class="d">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=robinwieruch.de&sz=128" alt=""><div><div class="n">[31]</div><div class="t"><a href="https://www.robinwieruch.de/react-server-side-table/">Robin Wieruch — React server-side table</a></div><div class="d">vendor blog</div></div></div>
+    </div>
+  </div>
+
+  <!-- ================= SHEET INDEX ================= -->
+  <div class="plate" data-no="INDEX">
+    <div class="plate-title"><b>Sheet index</b> &nbsp;·&nbsp; <a href="../../">Which React table component to use in 2026</a></div>
+    <div class="idx">
+      <a class="card" href="../../the-2026-candidate-landscape-headless-vs-batteries-included-vs-commercial-grid/">
+        <div class="no">S-01 · <b>Survey</b></div>
+        <h3>The 2026 React table landscape: headless vs batteries-included vs commercial grid</h3>
+        <p>Only four candidates are genuinely alive in 2026, and the real axis is not features but how many weeks of table you agree to write yourself.</p>
+      </a>
+      <a class="card" href="../../performance-at-row-scale/">
+        <div class="no">S-02 · <b>Survey</b></div>
+        <h3>React tables at row scale: where the ceilings actually are</h3>
+        <p>Row count is almost never the constraint — update frequency, referential stability and the browser's 33.5M-pixel scroll cap are.</p>
+      </a>
+      <div class="cur">
+        <div class="no">S-03 · <b>Survey</b> · you are here</div>
+        <h3>Server-driven data: which React table actually does the work for you</h3>
+        <p>AG Grid's Server-Side Row Model and MUI X's Data Source are real server-driven engines; TanStack Table only gives you manual* opt-outs and hands you the state machine.</p>
+      </div>
+      <a class="card" href="../../enterprise-features-and-what-they-cost/">
+        <div class="no">S-04 · <b>Survey</b></div>
+        <h3>Enterprise React data-grid features and what they actually cost in 2026</h3>
+        <p>AG Grid Enterprise at $999/dev perpetual is the cheapest way to buy row grouping + pivot + Excel export; buy wins below ~40 developers.</p>
+      </a>
+      <a class="card" href="../../styling-and-design-system-fit/">
+        <div class="no">S-05 · <b>Recon</b></div>
+        <h3>Styling and design-system fit: which React grid bends to your design system?</h3>
+        <p>If the design system is authoritative, go headless; MUI X / Mantine grids are design-system adoptions, not component adoptions.</p>
+      </a>
+    </div>
+  </div>
+
+  <!-- ================= TITLE BLOCK ================= -->
+  <div class="tblock">
+    <div>Sheet title<span>Server-driven data — which React table actually does the work for you</span></div>
+    <div>Drawing<span><a href="../">Canonical page</a></span></div>
+    <div>Project<span><a href="../../">React tables 2026</a></span></div>
+    <div>Archive<span><a href="/">Atlas</a></span></div>
+  </div>
+
+</div>
+</div>

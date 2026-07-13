@@ -1,0 +1,1039 @@
+---
+layout: view
+view_name: "Telemetry"
+view_of: ../
+title: "React tables at row scale: where the ceilings actually are — Telemetry"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+.tlm {
+  --bg: #080b0a;
+  --panel: #0e1413;
+  --panel2: #121a18;
+  --edge: #1e2b28;
+  --edge2: #2d403b;
+  --grn: #3ff08a;
+  --grn-dim: #1c6b45;
+  --amb: #ffb020;
+  --red: #ff3b46;
+  --cyn: #35d6e8;
+  --txt: #c4d3cd;
+  --mut: #6b8079;
+  --dim: #46574f;
+
+  margin: 0;
+  padding: 0 0 5rem;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+.tlm * { box-sizing: border-box; }
+.tlm .wrap { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+.tlm a { color: var(--cyn); text-decoration: none; border-bottom: 1px dotted rgba(53,214,232,.45); }
+.tlm a:hover { color: #fff; border-bottom-color: #fff; }
+.tlm sup a { border: 0; color: var(--dim); font-size: .68em; letter-spacing: -.02em; }
+.tlm sup a:hover { color: var(--grn); }
+.tlm p { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+
+/* ---------- bezel / masthead ---------- */
+.tlm .bezel {
+  border-bottom: 1px solid var(--edge);
+  background:
+    linear-gradient(180deg, #101817 0%, #080b0a 100%);
+  position: relative;
+}
+.tlm .bezel::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(63,240,138,.035) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+}
+.tlm .mast { display: flex; align-items: flex-end; gap: 2rem; padding: 2.6rem 0 1.4rem; position: relative; z-index: 1; }
+.tlm .mast-l { flex: 1; min-width: 0; }
+.tlm .rig {
+  font-size: .68rem; letter-spacing: .34em; color: var(--grn-dim);
+  text-transform: uppercase; margin-bottom: .9rem;
+}
+.tlm h1.title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700; font-size: clamp(1.9rem, 4.4vw, 3.05rem);
+  line-height: 1.05; letter-spacing: -.025em; margin: 0 0 .8rem;
+  color: #eaf5f0;
+}
+.tlm h1.title em { font-style: normal; color: var(--grn); }
+.tlm .sub {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 1.02rem; color: var(--mut);
+  max-width: 60ch; margin: 0;
+}
+.tlm .cover-chip {
+  width: 132px; height: 132px; flex: none; border: 1px solid var(--edge2);
+  background: #0b100f; padding: 6px; opacity: .78;
+  box-shadow: 0 0 0 4px #080b0a, 0 0 24px rgba(63,240,138,.07);
+}
+.tlm .cover-chip img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(1) brightness(1.25) sepia(1) hue-rotate(90deg) saturate(1.6); }
+
+/* ---------- status strip ---------- */
+.tlm .strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--edge); border-bottom: 1px solid var(--edge);
+  background: #0b100f; position: relative; z-index: 1;
+}
+.tlm .ch {
+  padding: 1.1rem 1.2rem; border-right: 1px solid var(--edge);
+  display: flex; flex-direction: column; gap: .45rem;
+}
+.tlm .ch:last-child { border-right: 0; }
+.tlm .ch-id { font-size: .64rem; letter-spacing: .2em; color: var(--dim); }
+.tlm .ch-name { font-size: .93rem; font-weight: 600; color: #dfeae5; letter-spacing: -.01em; }
+.tlm .led { display: flex; align-items: center; gap: .5rem; font-size: .7rem; letter-spacing: .16em; font-weight: 600; }
+.tlm .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.tlm .ok  .dot { background: var(--grn); box-shadow: 0 0 10px var(--grn); }
+.tlm .ok  { color: var(--grn); }
+.tlm .warn .dot { background: var(--amb); box-shadow: 0 0 10px var(--amb); }
+.tlm .warn { color: var(--amb); }
+.tlm .bad .dot { background: var(--red); box-shadow: 0 0 12px var(--red); }
+.tlm .bad { color: var(--red); }
+
+/* ---------- section scaffolding ---------- */
+.tlm section { padding-top: 3.6rem; }
+.tlm .sechead { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.4rem; }
+.tlm .sechead .tag {
+  font-size: .66rem; letter-spacing: .22em; color: var(--bg);
+  background: var(--grn); padding: .22rem .5rem; font-weight: 700; flex: none;
+}
+.tlm .sechead .tag.r { background: var(--red); color: #fff; }
+.tlm .sechead .tag.a { background: var(--amb); }
+.tlm .sechead h2 {
+  font-size: 1.42rem; font-weight: 600; letter-spacing: -.02em; margin: 0; color: #eaf5f0;
+}
+.tlm .sechead .rule { flex: 1; border-bottom: 1px dashed var(--edge2); transform: translateY(-4px); }
+.tlm .lede { font-size: 1.02rem; color: var(--mut); max-width: 72ch; margin: 0 0 1.6rem; }
+.tlm .lede strong { color: var(--txt); font-weight: 600; }
+
+.tlm .panel {
+  border: 1px solid var(--edge); background: var(--panel);
+  padding: 1.5rem; position: relative;
+}
+.tlm .panel-t {
+  font-size: .66rem; letter-spacing: .2em; color: var(--dim);
+  border-bottom: 1px solid var(--edge); padding-bottom: .6rem; margin-bottom: 1.1rem;
+  display: flex; justify-content: space-between; gap: 1rem;
+}
+
+/* ---------- CH-01 oscilloscope ---------- */
+.tlm .scope-row { display: grid; grid-template-columns: 1fr 250px; gap: 1.25rem; align-items: stretch; }
+.tlm .scope {
+  position: relative; height: 300px; overflow: hidden;
+  border: 1px solid var(--edge2); background: #060a09;
+  background-image:
+    linear-gradient(rgba(63,240,138,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(63,240,138,.07) 1px, transparent 1px);
+  background-size: 10% 20%, 10% 20%;
+}
+.tlm .scope::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0,0,0,.55) 100%);
+  pointer-events: none;
+}
+.tlm .trace-flat {
+  position: absolute; left: 0; right: 0; bottom: 34px; height: 2px;
+  background: var(--grn); box-shadow: 0 0 12px 2px rgba(63,240,138,.55);
+}
+.tlm .trace-flat::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 4px;
+  background: rgba(63,240,138,.14); filter: blur(4px);
+}
+.tlm .trace-naive {
+  position: absolute; left: -6%; bottom: 34px; width: 132%; height: 2px;
+  background: var(--red); box-shadow: 0 0 12px 1px rgba(255,59,70,.45);
+  transform-origin: 0 50%; transform: rotate(-33deg); opacity: .85;
+}
+.tlm .scope-lbl {
+  position: absolute; font-size: .7rem; letter-spacing: .06em; padding: .18rem .45rem;
+  background: rgba(6,10,9,.86); border: 1px solid var(--edge2);
+}
+.tlm .lbl-flat { left: 14px; bottom: 44px; color: var(--grn); border-color: var(--grn-dim); }
+.tlm .lbl-naive { left: 46%; top: 18px; color: var(--red); border-color: #5c1e22; }
+.tlm .scope-x {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 32px;
+  border-top: 1px solid var(--edge2); display: flex; align-items: center;
+  justify-content: space-between; padding: 0 .8rem; font-size: .66rem; color: var(--dim);
+  background: rgba(6,10,9,.9); letter-spacing: .1em;
+}
+.tlm .scope-y {
+  position: absolute; top: 10px; left: 12px; font-size: .64rem; color: var(--dim); letter-spacing: .14em;
+}
+.tlm .poster {
+  border: 1px solid var(--edge2); background: var(--panel2);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 1.2rem; text-align: center;
+}
+.tlm .poster .n {
+  font-size: 6.4rem; font-weight: 700; line-height: .86; color: var(--grn);
+  letter-spacing: -.05em; text-shadow: 0 0 34px rgba(63,240,138,.35);
+}
+.tlm .poster .u { font-size: .72rem; letter-spacing: .18em; color: var(--mut); margin-top: .9rem; }
+.tlm .poster .c { font-size: .74rem; color: var(--dim); margin-top: .55rem; line-height: 1.4; }
+
+/* ---------- gauges ---------- */
+.tlm .gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.tlm .gauge-card { border: 1px solid var(--edge); background: var(--panel); padding: 1.5rem; }
+.tlm .gauge-card.crit { border-color: #5c1e22; background: linear-gradient(180deg, #170f11 0%, var(--panel) 60%); }
+.tlm .dial {
+  position: relative; width: 210px; height: 112px; margin: .4rem auto 1.1rem; overflow: hidden;
+}
+.tlm .dial-arc {
+  position: absolute; top: 0; left: 0; width: 210px; height: 210px; border-radius: 50%;
+  background: conic-gradient(from 270deg,
+    var(--grn-dim) 0deg 52deg,
+    #7a7a1e 52deg 68deg,
+    var(--amb) 68deg 82deg,
+    var(--red) 82deg 90deg,
+    transparent 90deg);
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 62px, #000 63px, #000 96px, transparent 97px);
+          mask: radial-gradient(circle at 50% 50%, transparent 62px, #000 63px, #000 96px, transparent 97px);
+}
+.tlm .dial-arc.safe {
+  background: conic-gradient(from 270deg,
+    var(--grn) 0deg 60deg,
+    var(--grn-dim) 60deg 78deg,
+    #4a4a24 78deg 90deg,
+    transparent 90deg);
+}
+.tlm .needle {
+  position: absolute; left: 104px; bottom: 0; width: 2px; height: 92px;
+  background: linear-gradient(180deg, #fff 0%, #fff 55%, var(--dim) 100%);
+  transform-origin: 50% 100%;
+}
+.tlm .needle.red-zone { transform: rotate(78deg); background: linear-gradient(180deg, var(--red) 0%, var(--red) 60%, #4a1015 100%); box-shadow: 0 0 14px rgba(255,59,70,.6); }
+.tlm .needle.green-zone { transform: rotate(-58deg); background: linear-gradient(180deg, var(--grn) 0%, var(--grn) 60%, #103a26 100%); box-shadow: 0 0 14px rgba(63,240,138,.45); }
+.tlm .hub { position: absolute; left: 98px; bottom: -7px; width: 14px; height: 14px; border-radius: 50%; background: #2a3a35; border: 1px solid var(--edge2); }
+.tlm .dial-min, .tlm .dial-max { position: absolute; bottom: 4px; font-size: .62rem; color: var(--dim); }
+.tlm .dial-min { left: 2px; } .tlm .dial-max { right: 2px; }
+.tlm .g-name { font-size: .95rem; font-weight: 600; color: #e4efe9; }
+.tlm .g-name .stars { color: var(--dim); font-weight: 400; font-size: .8rem; }
+.tlm .g-read { text-align: center; }
+.tlm .g-read .v { font-size: 2.5rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+.tlm .g-read .v.r { color: var(--red); }
+.tlm .g-read .v.g { color: var(--grn); }
+.tlm .g-read .k { font-size: .68rem; letter-spacing: .16em; color: var(--mut); margin-top: .5rem; }
+.tlm .g-note { font-family: 'IBM Plex Sans', sans-serif; font-size: .88rem; color: var(--mut); margin: 1.1rem 0 0; border-top: 1px solid var(--edge); padding-top: .9rem; }
+
+/* ---------- bars ---------- */
+.tlm .barlist { display: flex; flex-direction: column; gap: .55rem; margin-top: 1.2rem; }
+.tlm .bar-row { display: grid; grid-template-columns: 190px 1fr 92px; gap: .8rem; align-items: center; font-size: .82rem; }
+.tlm .bar-lab { color: var(--txt); text-align: right; }
+.tlm .bar-track { height: 16px; background: #0a100e; border: 1px solid var(--edge); position: relative; }
+.tlm .bar-fill { position: absolute; inset: 0 auto 0 0; }
+.tlm .bar-fill.g { background: linear-gradient(90deg, var(--grn-dim), var(--grn)); }
+.tlm .bar-fill.r { background: linear-gradient(90deg, #6b1a20, var(--red)); }
+.tlm .bar-fill.a { background: linear-gradient(90deg, #6b4a10, var(--amb)); }
+.tlm .bar-val { color: var(--mut); font-size: .78rem; }
+
+/* ---------- fault / code ---------- */
+.tlm .fault { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.25rem; }
+.tlm pre.code {
+  margin: 0; background: #060a09; border: 1px solid var(--edge2); padding: 1.1rem;
+  font-size: .82rem; line-height: 1.75; overflow-x: auto; color: var(--txt);
+}
+.tlm pre.code .cm { color: var(--dim); }
+.tlm pre.code .kw { color: var(--cyn); }
+.tlm pre.code .bad-line { display: block; background: rgba(255,59,70,.13); border-left: 2px solid var(--red); margin-left: -1.1rem; padding-left: calc(1.1rem - 2px); color: #ffc9cc; }
+.tlm .loop-box {
+  border: 1px solid #5c1e22; background: linear-gradient(180deg, #170f11, #0e1413);
+  padding: 1.4rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+}
+.tlm .loop-glyph { font-size: 5.4rem; line-height: 1; color: var(--red); text-shadow: 0 0 30px rgba(255,59,70,.4); }
+.tlm .loop-box .t { font-size: .95rem; font-weight: 600; color: #ffb9bd; margin-top: .7rem; letter-spacing: .02em; }
+.tlm .loop-box .d { font-family: 'IBM Plex Sans', sans-serif; font-size: .87rem; color: var(--mut); margin-top: .6rem; }
+
+/* ---------- the wall / ceiling ---------- */
+.tlm .wall-wrap { border: 1px solid var(--edge2); background: #070b0a; padding: 0; overflow: hidden; }
+.tlm .ceiling {
+  height: 44px; position: relative;
+  background: repeating-linear-gradient(135deg, #ff3b46 0 12px, #1a0b0d 12px 24px);
+  border-bottom: 3px solid var(--red);
+  display: flex; align-items: center; justify-content: center;
+}
+.tlm .ceiling span {
+  background: #080b0a; color: var(--red); font-size: .72rem; font-weight: 700;
+  letter-spacing: .2em; padding: .28rem .9rem; border: 1px solid var(--red);
+}
+.tlm .cols {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--edge); align-items: end; height: 300px;
+}
+.tlm .col { background: #0a100e; height: 100%; position: relative; display: flex; flex-direction: column; justify-content: flex-start; }
+.tlm .col-fill {
+  flex: 1; margin: 0 18%;
+  background: linear-gradient(180deg, rgba(255,59,70,.32) 0%, rgba(63,240,138,.10) 55%, rgba(63,240,138,.02) 100%);
+  border-left: 1px solid var(--edge2); border-right: 1px solid var(--edge2);
+  position: relative;
+  background-image:
+    linear-gradient(180deg, rgba(255,59,70,.30) 0%, rgba(63,240,138,.09) 55%, transparent 100%),
+    repeating-linear-gradient(180deg, rgba(196,211,205,.10) 0 1px, transparent 1px 7px);
+}
+.tlm .col-cap {
+  position: absolute; top: 8px; left: 0; right: 0; text-align: center;
+  font-size: 1.24rem; font-weight: 700; color: #ffd9db; letter-spacing: -.02em;
+}
+.tlm .col-cap small { display: block; font-size: .6rem; font-weight: 500; letter-spacing: .14em; color: var(--dim); margin-top: .25rem; }
+.tlm .col-base {
+  border-top: 1px solid var(--edge2); padding: .7rem .5rem; text-align: center;
+  background: #0e1413;
+}
+.tlm .col-base .rh { font-size: .95rem; font-weight: 600; color: #dfeae5; }
+.tlm .col-base .rn { font-size: .64rem; color: var(--mut); letter-spacing: .1em; margin-top: .2rem; }
+.tlm .col.canvas .col-fill {
+  background-image:
+    linear-gradient(180deg, rgba(255,59,70,.30) 0%, rgba(53,214,232,.10) 55%, transparent 100%),
+    repeating-linear-gradient(180deg, rgba(53,214,232,.12) 0 1px, transparent 1px 7px);
+}
+.tlm .col.canvas .col-base .rh { color: var(--cyn); }
+.tlm .wall-foot {
+  border-top: 1px solid var(--edge); padding: .9rem 1.2rem; font-size: .78rem; color: var(--mut);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: .6rem; background: #0e1413;
+}
+
+/* ---------- escapes ---------- */
+.tlm .escapes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.25rem; }
+.tlm .esc { border: 1px solid var(--edge); background: var(--panel); padding: 1.2rem; }
+.tlm .esc .en { font-size: .66rem; letter-spacing: .2em; color: var(--grn); }
+.tlm .esc h4 { margin: .55rem 0 .5rem; font-size: .98rem; color: #e4efe9; font-weight: 600; }
+.tlm .esc p { margin: 0; font-size: .87rem; color: var(--mut); }
+
+/* ---------- calibration / vendor warning ---------- */
+.tlm .hazard {
+  border: 1px solid var(--amb); background: #14100a;
+}
+.tlm .hazard-t {
+  background: repeating-linear-gradient(135deg, #ffb020 0 14px, #14100a 14px 28px);
+  padding: .5rem; display: flex; justify-content: center;
+}
+.tlm .hazard-t span {
+  background: #14100a; color: var(--amb); font-size: .7rem; font-weight: 700; letter-spacing: .2em;
+  padding: .3rem 1rem; border: 1px solid var(--amb);
+}
+.tlm .hazard-b { padding: 1.5rem; }
+.tlm table.tt { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.tlm table.tt th {
+  text-align: left; font-size: .64rem; letter-spacing: .16em; color: var(--dim);
+  border-bottom: 1px solid var(--edge2); padding: .5rem .7rem; font-weight: 600;
+}
+.tlm table.tt td { padding: .7rem; border-bottom: 1px solid var(--edge); vertical-align: middle; }
+.tlm table.tt tr:last-child td { border-bottom: 0; }
+.tlm table.tt td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tlm .stamp {
+  display: inline-block; font-size: .62rem; letter-spacing: .14em; font-weight: 700;
+  border: 1px solid var(--red); color: var(--red); padding: .12rem .4rem; transform: rotate(-1.5deg);
+}
+.tlm .stamp.ok { border-color: var(--grn); color: var(--grn); }
+.tlm .conflict { display: grid; grid-template-columns: 1fr 64px 1fr; gap: 0; margin-top: 1.5rem; align-items: stretch; }
+.tlm .cf {
+  border: 1px solid var(--edge2); background: #0a100e; padding: 1.2rem;
+}
+.tlm .cf .src { font-size: .66rem; letter-spacing: .14em; color: var(--dim); margin-bottom: .5rem; }
+.tlm .cf .rd { font-size: 1.05rem; color: #e4efe9; font-weight: 600; line-height: 1.45; }
+.tlm .cf .rd b { color: var(--red); }
+.tlm .cf .rd b.g { color: var(--grn); }
+.tlm .xor {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; color: var(--red); background: #14100a;
+  border-top: 1px solid var(--edge2); border-bottom: 1px solid var(--edge2);
+}
+.tlm .verdict-line {
+  text-align: center; font-size: .78rem; letter-spacing: .22em; color: var(--amb);
+  margin-top: 1rem; font-weight: 600;
+}
+
+/* ---------- readout table ---------- */
+.tlm .readout td .mini {
+  display: inline-block; height: 6px; background: var(--grn-dim); vertical-align: middle;
+  margin-right: .5rem;
+}
+.tlm .readout tr.hot td { color: var(--amb); }
+.tlm .readout tr.hot .mini { background: #6b4a10; }
+.tlm .readout .lib { font-weight: 600; color: #e4efe9; }
+.tlm .readout .stars { color: var(--dim); font-weight: 400; font-size: .78rem; }
+
+/* ---------- ceilings rack ---------- */
+.tlm .rack { display: flex; flex-direction: column; gap: .75rem; }
+.tlm .unit {
+  display: grid; grid-template-columns: 210px 1fr; gap: 1.1rem;
+  border: 1px solid var(--edge); background: var(--panel); padding: 1.1rem 1.2rem;
+}
+.tlm .unit-l .un { font-size: 1rem; font-weight: 600; color: #e4efe9; }
+.tlm .unit-l .us { font-size: .68rem; color: var(--dim); letter-spacing: .1em; margin-top: .25rem; }
+.tlm .track { position: relative; height: 100%; min-height: 54px; display: flex; flex-direction: column; gap: .45rem; justify-content: center; }
+.tlm .seg-row { display: flex; height: 14px; border: 1px solid var(--edge2); background: #0a100e; }
+.tlm .seg { height: 100%; }
+.tlm .seg.g { background: rgba(63,240,138,.55); }
+.tlm .seg.a { background: rgba(255,176,32,.55); }
+.tlm .seg.r { background: rgba(255,59,70,.6); }
+.tlm .seg.x { background: repeating-linear-gradient(135deg, #ff3b46 0 5px, #1a0b0d 5px 10px); }
+.tlm .seg-key { font-size: .76rem; color: var(--mut); font-family: 'IBM Plex Sans', sans-serif; }
+.tlm .seg-key b { color: var(--txt); font-weight: 600; }
+.tlm .seg-key .stop { color: var(--red); }
+
+/* ---------- probes ---------- */
+.tlm .probes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.tlm .probe { border: 1px solid var(--edge); background: var(--panel); padding: 1.3rem; display: flex; gap: 1rem; }
+.tlm .probe .pn {
+  font-size: 2.1rem; font-weight: 700; color: var(--grn-dim); line-height: 1; flex: none; width: 42px;
+}
+.tlm .probe h4 { margin: 0 0 .4rem; font-size: .98rem; color: #e4efe9; font-weight: 600; }
+.tlm .probe p { margin: 0; font-size: .87rem; color: var(--mut); }
+
+/* ---------- sources rack ---------- */
+.tlm .srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: .5rem; }
+.tlm .src {
+  display: flex; gap: .7rem; align-items: flex-start; border: 1px solid var(--edge);
+  background: var(--panel); padding: .7rem .8rem;
+}
+.tlm .src img { width: 18px; height: 18px; flex: none; margin-top: 2px; border-radius: 2px; }
+.tlm .src .sn { font-size: .68rem; color: var(--dim); flex: none; margin-top: 2px; width: 20px; }
+.tlm .src .st { font-size: .78rem; line-height: 1.4; }
+.tlm .src .st a { border: 0; color: var(--txt); }
+.tlm .src .st a:hover { color: var(--grn); }
+.tlm .src .sm { font-size: .62rem; color: var(--dim); letter-spacing: .1em; margin-top: .25rem; }
+.tlm .src .sm .vend { color: var(--amb); }
+
+/* ---------- nav ---------- */
+.tlm .bus { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+.tlm .bus a {
+  border: 1px solid var(--edge); background: var(--panel); padding: 1rem 1.1rem; display: block;
+  color: var(--txt);
+}
+.tlm .bus a:hover { border-color: var(--grn-dim); background: var(--panel2); }
+.tlm .bus .bd { font-size: .62rem; letter-spacing: .18em; color: var(--grn-dim); }
+.tlm .bus .bt { font-size: .92rem; font-weight: 600; color: #e4efe9; margin: .35rem 0 .3rem; }
+.tlm .bus .bs { font-size: .8rem; color: var(--mut); font-family: 'IBM Plex Sans', sans-serif; }
+.tlm .foot {
+  margin-top: 3rem; border-top: 1px solid var(--edge); padding-top: 1.2rem;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: .8rem;
+  font-size: .72rem; letter-spacing: .12em; color: var(--dim);
+}
+
+@media (max-width: 900px) {
+  .tlm .mast { flex-direction: column; align-items: flex-start; gap: 1.4rem; }
+  .tlm .strip { grid-template-columns: repeat(2, 1fr); }
+  .tlm .ch:nth-child(2) { border-right: 0; }
+  .tlm .ch:nth-child(1), .tlm .ch:nth-child(2) { border-bottom: 1px solid var(--edge); }
+  .tlm .scope-row, .tlm .gauges, .tlm .fault, .tlm .escapes, .tlm .probes, .tlm .bus { grid-template-columns: 1fr; }
+  .tlm .cols { grid-template-columns: repeat(2, 1fr); height: auto; }
+  .tlm .col { height: 220px; }
+  .tlm .conflict { grid-template-columns: 1fr; }
+  .tlm .xor { padding: .5rem; }
+  .tlm .unit { grid-template-columns: 1fr; }
+  .tlm .bar-row { grid-template-columns: 130px 1fr 80px; }
+}
+</style>
+
+<div class="tlm">
+
+  <div class="bezel">
+    <div class="wrap">
+      <div class="mast">
+        <div class="mast-l">
+          <div class="rig">Instrument panel · React data-grid load bench · 2026-07-13</div>
+          <h1 class="title">Four channels.<br>Three in the red.<br><em>One is a wall.</em></h1>
+          <p class="sub">Row count is almost never the constraint that breaks a React grid. Update frequency, referential stability, and the browser's scroll-container pixel cap are.</p>
+        </div>
+        <div class="cover-chip"><img src="../cover.svg" alt="Cover mark for this research page"></div>
+      </div>
+    </div>
+    <div class="strip">
+      <div class="ch">
+        <div class="ch-id">CH-01</div>
+        <div class="ch-name">Row count</div>
+        <div class="led ok"><span class="dot"></span>NOMINAL</div>
+      </div>
+      <div class="ch">
+        <div class="ch-id">CH-02</div>
+        <div class="ch-name">Update frequency</div>
+        <div class="led bad"><span class="dot"></span>REDLINE @ 10/s</div>
+      </div>
+      <div class="ch">
+        <div class="ch-id">CH-03</div>
+        <div class="ch-name">Referential stability</div>
+        <div class="led bad"><span class="dot"></span>FAULT · LOOP</div>
+      </div>
+      <div class="ch">
+        <div class="ch-id">CH-04</div>
+        <div class="ch-name">Scroll-container height</div>
+        <div class="led bad"><span class="dot"></span>HARD CEILING</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ============ CH-01 ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag">CH-01 · NOMINAL</span>
+        <h2>The needle that never moves</h2>
+        <span class="rule"></span>
+      </div>
+      <p class="lede">Virtualize above ~1k rows and the row count stops mattering. <strong>Every serious grid renders about forty rows</strong>, whether the dataset is ten thousand or ten million <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[10]</a></sup>. The trace you are looking for — DOM cost climbing with dataset size — does not exist. It was flattened in 2015 and people are still buying grids to fix it.</p>
+
+      <div class="scope-row">
+        <div class="scope">
+          <div class="scope-y">MOUNTED DOM ROWS ↑</div>
+          <div class="trace-naive"></div>
+          <div class="trace-flat"></div>
+          <div class="scope-lbl lbl-flat">VIRTUALIZED · ~40 rows · flat</div>
+          <div class="scope-lbl lbl-naive">UNVIRTUALIZED · what you fear</div>
+          <div class="scope-x">
+            <span>1k</span><span>10k</span><span>50k</span><span>100k</span><span>1M</span><span>10M →</span>
+          </div>
+        </div>
+        <div class="poster">
+          <div class="n">40</div>
+          <div class="u">ROWS IN THE DOM</div>
+          <div class="c">…at any dataset size. AG Grid's docs say the browser runs out of memory before the grid gets into trouble <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[10]</a></sup>.</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-t"><span>READOUT · 50,000 ROWS × 20 COLUMNS · 1200×600 VIEWPORT · 36px ROWS</span><span>THE ONE REPRODUCIBLE FIXTURE <sup><a href="https://vitashev.github.io/react-data-grid-benchmark/">[1]</a></sup></span></div>
+        <table class="tt readout">
+          <thead>
+            <tr>
+              <th>Grid</th>
+              <th class="num">JS gzip</th>
+              <th class="num">Ready (median)</th>
+              <th class="num">Scroll settle</th>
+              <th class="num">Mounted cells</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="lib">React Data Grid <span class="stars">⭐ 7.7k</span></td>
+              <td class="num"><span class="mini" style="width:19px"></span>72.3 KB</td>
+              <td class="num"><span class="mini" style="width:42px"></span>367.6 ms</td>
+              <td class="num"><span class="mini" style="width:22px"></span>21.2 ms</td>
+              <td class="num">264</td>
+            </tr>
+            <tr>
+              <td class="lib"><a href="https://tanstack.com/table/v8/docs/faq">TanStack Table</a> + <a href="https://tanstack.com/virtual/latest/docs/introduction">Virtual</a> <span class="stars">⭐ 28k</span></td>
+              <td class="num"><span class="mini" style="width:21px"></span>78.7 KB</td>
+              <td class="num"><span class="mini" style="width:42px"></span>369.3 ms</td>
+              <td class="num"><span class="mini" style="width:23px"></span>21.7 ms</td>
+              <td class="num">444</td>
+            </tr>
+            <tr>
+              <td class="lib">Ace Grid Core</td>
+              <td class="num"><span class="mini" style="width:59px"></span>224.5 KB</td>
+              <td class="num"><span class="mini" style="width:44px"></span>387.4 ms</td>
+              <td class="num"><span class="mini" style="width:29px"></span>28.1 ms</td>
+              <td class="num">220</td>
+            </tr>
+            <tr>
+              <td class="lib"><a href="https://www.ag-grid.com/react-data-grid/row-models/">AG Grid</a> Community <span class="stars">⭐ 15k</span></td>
+              <td class="num"><span class="mini" style="width:94px"></span>358.7 KB</td>
+              <td class="num"><span class="mini" style="width:50px"></span>443.2 ms</td>
+              <td class="num"><span class="mini" style="width:31px"></span>29.8 ms</td>
+              <td class="num">360</td>
+            </tr>
+            <tr class="hot">
+              <td class="lib"><a href="https://handsontable.com/docs/javascript-data-grid/performance/">Handsontable</a> <span class="stars">⭐ 22k</span></td>
+              <td class="num"><span class="mini" style="width:100px"></span>380.9 KB</td>
+              <td class="num"><span class="mini" style="width:98px"></span>872.8 ms</td>
+              <td class="num"><span class="mini" style="width:52px"></span>49.8 ms</td>
+              <td class="num">198</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="g-note"><strong style="color:var(--grn)">Read the flatness, not the ranking.</strong> Scroll settle is 21–30 ms across the entire field. The 76 ms spread between fastest and slowest (excluding Handsontable) is bundle parse and init — not scrolling. <strong style="color:#e4efe9">Nobody is slow at 50k rows.</strong> Below ~100k, pick on features. MUI X Community was excluded from the ranking outright: its Community tier cannot virtualize past 100 rows without pagination <sup><a href="https://mui.com/x/react-data-grid/virtualization/">[6]</a></sup>.</p>
+      </div>
+    </section>
+
+    <!-- ============ CH-02 ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag r">CH-02 · REDLINE</span>
+        <h2>Updates per second — where the architecture shows</h2>
+        <span class="rule"></span>
+      </div>
+      <p class="lede">This is the channel that actually pegs, and it has nothing to do with how many rows you loaded. It is decided by <strong>whether a cell update enters the React reconciler at all</strong>.</p>
+
+      <div class="gauges">
+        <div class="gauge-card crit">
+          <div class="g-name">MUI X Data Grid <span class="stars">⭐ 5.8k</span></div>
+          <div class="dial">
+            <div class="dial-arc"></div>
+            <div class="needle red-zone"></div>
+            <div class="hub"></div>
+            <div class="dial-min">0/s</div>
+            <div class="dial-max">100/s</div>
+          </div>
+          <div class="g-read">
+            <div class="v r">~10<span style="font-size:1.1rem;color:var(--mut)">/sec</span></div>
+            <div class="k">DEGRADES TO UNUSABLE</div>
+          </div>
+          <p class="g-note">Every cell is a React element. Users report the grid becoming "slow and nearly unusable" at ten row-updates per second on a <em>400-row</em> window — where the plain HTML table it replaced handled a hundred <sup><a href="https://github.com/mui/mui-x/issues/10952">[13]</a></sup>. The grid memoizes cells, but <a href="https://mui.com/x/react-data-grid/performance/">React.memo is defeated at the root</a> the moment a caller passes an unstable non-primitive prop <sup><a href="https://mui.com/x/react-data-grid/performance/">[14]</a></sup>. ⚠ MUI X is a <em>display</em> grid at scale, not a <em>streaming</em> grid.</p>
+        </div>
+
+        <div class="gauge-card">
+          <div class="g-name">AG Grid <span class="stars">⭐ 15k</span></div>
+          <div class="dial">
+            <div class="dial-arc safe"></div>
+            <div class="needle green-zone"></div>
+            <div class="hub"></div>
+            <div class="dial-min">0/s</div>
+            <div class="dial-max">100/s</div>
+          </div>
+          <div class="g-read">
+            <div class="v g">50<span style="font-size:1.1rem;color:var(--mut)">ms</span></div>
+            <div class="k">DEFAULT COALESCE WINDOW</div>
+          </div>
+          <p class="g-note">Framework-agnostic core; React only at the edges. <a href="https://www.ag-grid.com/react-data-grid/data-update-high-frequency/">applyTransactionAsync()</a> coalesces streaming ticks into a single flush every 50 ms — the reconciler never sees them <sup><a href="https://www.ag-grid.com/react-data-grid/data-update-high-frequency/">[12]</a></sup>. This, not row count, is why AG Grid is the trading-blotter default. Handsontable shares the same shape.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-t"><span>ROW-UPDATE THROUGHPUT · 400-ROW WINDOW · USER-REPORTED</span><span>CH-02</span></div>
+        <div class="barlist">
+          <div class="bar-row">
+            <div class="bar-lab">Plain HTML table</div>
+            <div class="bar-track"><div class="bar-fill g" style="width:100%"></div></div>
+            <div class="bar-val">100 /sec</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-lab">MUI X Data Grid</div>
+            <div class="bar-track"><div class="bar-fill r" style="width:10%"></div></div>
+            <div class="bar-val">~10 /sec</div>
+          </div>
+        </div>
+        <p class="g-note">The grid you adopted to handle "big data" is ten times slower at updating four hundred rows than the <code>&lt;table&gt;</code> you deleted <sup><a href="https://github.com/mui/mui-x/issues/10952">[13]</a></sup>. Separately: an open issue reports DataGridPro leaking <strong style="color:var(--red)">~199 MB per refresh</strong> at 100k rows, reaching 4.7 GB, with retained <code>CellWidget</code> instances implicating <code>renderCell</code> <sup><a href="https://github.com/mui/mui-x/issues/20699">[28]</a></sup>.</p>
+      </div>
+    </section>
+
+    <!-- ============ CH-03 ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag r">CH-03 · FAULT</span>
+        <h2>The failure is referential, not algorithmic</h2>
+        <span class="rule"></span>
+      </div>
+      <p class="lede">Headless means zero built-in re-render cost <em>and</em> zero built-in protection. The classic <a href="https://tanstack.com/table/v8/docs/faq">TanStack Table</a> ⭐ 28k blow-up is not a slow render path — it is a new array identity on every render <sup><a href="https://tanstack.com/table/v8/docs/faq">[22]</a></sup>.</p>
+
+      <div class="fault">
+        <pre class="code"><span class="cm">// memoized the base array — still broken</span>
+<span class="kw">const</span> rows = useMemo(() =&gt; fetchRows(), []);
+
+<span class="kw">const</span> table = useReactTable({
+<span class="bad-line">  data: rows.filter(r =&gt; r.active),   <span class="cm">// ← new array, every render</span></span>
+  columns,
+});
+
+<span class="cm">// data changes identity → table re-renders</span>
+<span class="cm">// → .filter() runs again → new array</span>
+<span class="cm">// → data changes identity → ∞</span></pre>
+        <div class="loop-box">
+          <div class="loop-glyph">∞</div>
+          <div class="t">INFINITE RENDER LOOP</div>
+          <div class="d">Not a performance cliff — a hang. And the <a href="https://react.dev/learn/react-compiler">React Compiler</a> does not save you: it auto-memoizes existing code, but a freshly-constructed array is new <em>by construction</em>, not by a missed memo <sup><a href="https://react.dev/learn/react-compiler">[27]</a></sup> <sup><a href="https://tanstack.com/table/v8/docs/faq">[22]</a></sup>.</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-t"><span>⚠ COUNTER-MEASURE MISFIRE · MEMOIZATION IS NOT FREE</span><span>CH-03</span></div>
+        <p class="g-note" style="border-top:0;padding-top:0;margin-top:0">The instinct to <code>memo()</code> your way out is a trap. <a href="https://www.material-react-table.com/docs/guides/memoization">Material React Table's own guide</a> is blunt: <code>memoMode: 'table-body'</code> <strong style="color:var(--amb)">disables virtualization and most features</strong>, leaving a table "mostly frozen after first render"; memoizing rows costs you access to table state like <code>getIsSelected()</code> <sup><a href="https://www.material-react-table.com/docs/guides/memoization">[23]</a></sup>. <strong style="color:#e4efe9">Memoize the data, not the render tree.</strong></p>
+      </div>
+    </section>
+
+    <!-- ============ CH-04 — THE WALL ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag r">CH-04 · HARD LIMIT</span>
+        <h2>The ceiling nobody markets</h2>
+        <span class="rule"></span>
+      </div>
+      <p class="lede">Browsers truncate an element's height. MUI documents <strong>17.5M px on Firefox and 33.5M px on Chrome/Edge/Safari</strong> <sup><a href="https://mui.com/x/react-data-grid/virtualization/">[6]</a></sup>; the open TanStack Virtual issue cites 33,554,400 / 33,554,428 <sup><a href="https://github.com/TanStack/virtual/issues/616">[7]</a></sup> ⭐ 7.0k; a third measurement puts Chromium at 16,777,216 <sup><a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">[8]</a></sup>. The figure is engine- and version-dependent — <strong>budget for the low end, ~16.7M px.</strong> Past it the container is silently clipped and <strong style="color:var(--red)">the tail of your data is unreachable</strong>. The virtualizer does not error. It just stops.</p>
+
+      <div class="wall-wrap">
+        <div class="ceiling"><span>SCROLL-CONTAINER PIXEL CAP · ~16,777,216 px (BUDGET) · 33,554,432 px (BEST CASE)</span></div>
+        <div class="cols">
+          <div class="col">
+            <div class="col-fill"><div class="col-cap">~760k<small>ROWS AT 16.7M PX</small></div></div>
+            <div class="col-base"><div class="rh">22 px</div><div class="rn">~1.5M @ 33.5M</div></div>
+          </div>
+          <div class="col">
+            <div class="col-fill"><div class="col-cap">~520k<small>ROWS AT 16.7M PX</small></div></div>
+            <div class="col-base"><div class="rh">32 px</div><div class="rn">~1.0M @ 33.5M</div></div>
+          </div>
+          <div class="col">
+            <div class="col-fill"><div class="col-cap">~465k<small>ROWS AT 16.7M PX</small></div></div>
+            <div class="col-base"><div class="rh">36 px</div><div class="rn">~930k @ 33.5M</div></div>
+          </div>
+          <div class="col">
+            <div class="col-fill"><div class="col-cap">~300k<small>ROWS AT 16.7M PX</small></div></div>
+            <div class="col-base"><div class="rh">56 px</div><div class="rn">Material · ~600k @ 33.5M</div></div>
+          </div>
+          <div class="col canvas">
+            <div class="col-fill"><div class="col-cap">SAME<small>CANVAS IS NOT EXEMPT</small></div></div>
+            <div class="col-base"><div class="rh">Canvas</div><div class="rn">native scrolling → same cap</div></div>
+          </div>
+        </div>
+        <div class="wall-foot">
+          <span>Every column hits the same ceiling. What differs is only <strong style="color:var(--txt)">how many rows that buys you</strong>.</span>
+          <span><a href="https://grid.glideapps.com/">Glide Data Grid</a> ⭐ 5.3k uses <em>native</em> scrolling <sup><a href="https://grid.glideapps.com/">[16]</a></sup> — canvas fixes paint cost, not scroll geometry.</span>
+        </div>
+      </div>
+
+      <div class="escapes">
+        <div class="esc">
+          <div class="en">ESCAPE 01 · BORING &amp; CORRECT</div>
+          <h4><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">Server-side row model</a></h4>
+          <p>AG Grid's SSRM demo serves 10M records and moves the constraint to your backend <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[11]</a></sup>.</p>
+        </div>
+        <div class="esc">
+          <div class="en">ESCAPE 02 · YOU OWN IT NOW</div>
+          <h4>Custom scrollbar</h4>
+          <p>Replace native scrolling; position rows absolutely against a synthetic scroll position <sup><a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">[8]</a></sup>.</p>
+        </div>
+        <div class="esc">
+          <div class="en">ESCAPE 03 · DOWNSCALE</div>
+          <h4><a href="https://rednegra.net/blog/20260212-virtual-scroll/">HighTable</a></h4>
+          <p>Caps the canvas at ~8M px, then switches to a global-anchor + local-offset model — claiming 1-px fidelity to ~2 trillion rows at 30 px <sup><a href="https://rednegra.net/blog/20260212-virtual-scroll/">[9]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-t"><span>UPSTREAM STATUS</span><span>UNRESOLVED</span></div>
+        <p class="g-note" style="border-top:0;padding-top:0;margin-top:0">The <a href="https://github.com/TanStack/virtual/issues/616">TanStack Virtual issue is still open</a> <sup><a href="https://github.com/TanStack/virtual/issues/616">[7]</a></sup>. A headless virtualizer ships indices and offsets, <a href="https://tanstack.com/virtual/latest/docs/introduction">not a scrollbar</a> — so this is explicitly your problem <sup><a href="https://tanstack.com/virtual/latest/docs/introduction">[20]</a></sup>. Treat any "millions of rows" claim as marketing unless the grid has replaced native scrolling.</p>
+      </div>
+    </section>
+
+    <!-- ============ CALIBRATION ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag a">CALIBRATION</span>
+        <h2>Every instrument here was supplied by someone selling a grid</h2>
+        <span class="rule"></span>
+      </div>
+      <p class="lede">Read this before you trust any number above. <strong>Every published 2026 benchmark is vendor-authored</strong>, and they do not merely flatter their authors — they contradict each other outright.</p>
+
+      <div class="hazard">
+        <div class="hazard-t"><span>⚠ CONFLICT OF INTEREST · CALIBRATION UNVERIFIED</span></div>
+        <div class="hazard-b">
+          <table class="tt">
+            <thead>
+              <tr><th>Benchmark</th><th>Author</th><th>Also ships</th><th>Winner</th><th>Fixture</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="https://www.1771technologies.com/blog/performance-benchmarks">1771 Technologies</a> <sup><a href="https://www.1771technologies.com/blog/performance-benchmarks">[3]</a></sup></td>
+                <td>1771 Technologies</td>
+                <td>LyteNyte Grid</td>
+                <td><span class="stamp">LYTENYTE — ITS OWN</span></td>
+                <td>not published</td>
+              </tr>
+              <tr>
+                <td><a href="https://dev.to/revolist/battle-of-the-rows-the-limits-of-data-performance-4mcn">Battle of the Rows</a> <sup><a href="https://dev.to/revolist/battle-of-the-rows-the-limits-of-data-performance-4mcn">[5]</a></sup></td>
+                <td>Revolist OU</td>
+                <td>RevoGrid</td>
+                <td><span class="stamp">REVOGRID — ITS OWN</span></td>
+                <td>not published</td>
+              </tr>
+              <tr>
+                <td><a href="https://vitashev.github.io/react-data-grid-benchmark/">react-data-grid-benchmark</a> <sup><a href="https://vitashev.github.io/react-data-grid-benchmark/">[1]</a></sup></td>
+                <td>Vitashev <sup><a href="https://github.com/Vitashev/react-data-grid-benchmark">[2]</a></sup> ⭐ 0</td>
+                <td>Ace Grid</td>
+                <td><span class="stamp ok">REACT DATA GRID — NOT ITS OWN</span></td>
+                <td><span style="color:var(--grn)">fixture + lockfile + raw samples</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="conflict">
+            <div class="cf">
+              <div class="src">REVOGRID, ON AG GRID <sup><a href="https://dev.to/revolist/battle-of-the-rows-the-limits-of-data-performance-4mcn">[5]</a></sup></div>
+              <div class="rd">1,297 MB at 100k rows.<br><b>Tab crashed at 400k.</b></div>
+            </div>
+            <div class="xor">≠</div>
+            <div class="cf">
+              <div class="src">1771 TECHNOLOGIES, ON AG GRID <sup><a href="https://www.1771technologies.com/blog/performance-benchmarks">[3]</a></sup></div>
+              <div class="rd">Scrolls <b class="g">1M rows at 27 FPS</b>.<br>No crash.</div>
+            </div>
+          </div>
+          <div class="verdict-line">BOTH CANNOT BE TRUE · SAME LIBRARY · SAME YEAR</div>
+
+          <p class="g-note">Trust the one that ships a reproducible fixture, a package lock and raw samples — currently only <a href="https://github.com/Vitashev/react-data-grid-benchmark">Vitashev's</a> ⭐ 0, which publishes its conflict of interest in the README and still doesn't put its own grid first <sup><a href="https://github.com/Vitashev/react-data-grid-benchmark">[2]</a></sup>. And vendor FPS on an M4 MacBook Air <sup><a href="https://www.1771technologies.com/blog/performance-benchmarks">[3]</a></sup> tells you nothing about your users' 2019 ThinkPads.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DOM vs CANVAS ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag a">AUX · RENDERER</span>
+        <h2>DOM vs canvas — the dealbreaker isn't architectural</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="panel">
+        <div class="panel-t"><span>CHANNEL COMPARISON</span><span>DOM + VIRTUALIZATION vs CANVAS</span></div>
+        <table class="tt">
+          <thead>
+            <tr><th></th><th>DOM (+ virtualization)</th><th>Canvas — <a href="https://grid.glideapps.com/">Glide</a> ⭐ 5.3k</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--dim);font-size:.78rem;letter-spacing:.08em">PAINT AT SCROLL</td>
+              <td>Create/destroy N nodes per frame — the argument <a href="https://github.com/glideapps/glide-data-grid">Glide makes against DOM</a> <sup><a href="https://github.com/glideapps/glide-data-grid">[15]</a></sup></td>
+              <td>Repaint dirty rects; flat memory 100 rows → 10M rows <sup><a href="https://grid.glideapps.com/">[16]</a></sup></td>
+            </tr>
+            <tr>
+              <td style="color:var(--dim);font-size:.78rem;letter-spacing:.08em">HIGH-FREQ UPDATES</td>
+              <td>Reconciler-bound</td>
+              <td><span style="color:var(--amb)">Vendor claims 100k+ updates/sec</span> <sup><a href="https://grid.glideapps.com/">[16]</a></sup> — unverified by any third party</td>
+            </tr>
+            <tr>
+              <td style="color:var(--dim);font-size:.78rem;letter-spacing:.08em">TEXT SELECT / CTRL-F</td>
+              <td><span style="color:var(--grn)">✓ free</span></td>
+              <td><span style="color:var(--red)">✗ must be re-implemented</span> <sup><a href="https://news.ycombinator.com/item?id=23935464">[18]</a></sup></td>
+            </tr>
+            <tr>
+              <td style="color:var(--dim);font-size:.78rem;letter-spacing:.08em">ACCESSIBILITY</td>
+              <td><span style="color:var(--grn)">✓ real semantics</span> (though pinned columns + virtualization mangle DOM order anyway)</td>
+              <td><span style="color:var(--amb)">⚠ hidden mirror DOM</span>; maintainers admit "none of the primary developers are accessibility users so there are likely flaws" <sup><a href="https://github.com/glideapps/glide-data-grid">[15]</a></sup></td>
+            </tr>
+            <tr>
+              <td style="color:var(--dim);font-size:.78rem;letter-spacing:.08em">CSS / THEMING</td>
+              <td><span style="color:var(--grn)">✓</span></td>
+              <td><span style="color:var(--red)">✗ draw calls</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--dim);font-size:.78rem;letter-spacing:.08em">MAINTENANCE</td>
+              <td>—</td>
+              <td><span class="stamp">LATEST STABLE 6.0.3 · 2024-02-03</span> <sup><a href="https://registry.npmjs.org/@glideapps/glide-data-grid">[17]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="g-note"><strong style="color:#e4efe9">No stable release in 29 months.</strong> Adopting a canvas grid in 2026 means owning a canvas renderer <sup><a href="https://registry.npmjs.org/@glideapps/glide-data-grid">[17]</a></sup>. The practitioner view is also less one-sided than the README: canvas wins scroll and streaming, loses layout primitives, and a well-built DOM grid closes much of the gap <sup><a href="https://news.ycombinator.com/item?id=23935464">[18]</a></sup>.</p>
+      </div>
+    </section>
+
+    <!-- ============ VIRTUALIZERS ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag">AUX · VIRTUALIZER</span>
+        <h2>This choice is not a performance decision</h2>
+        <span class="rule"></span>
+      </div>
+      <p class="lede">Only relevant if you pair a headless table with a virtualizer — bought grids have one built in and you should not layer another on top. <strong>All three hold 60 FPS at 100k items</strong>; initial render differs by single-digit milliseconds <sup><a href="https://www.pkgpulse.com/guides/tanstack-virtual-vs-react-window-vs-react-virtuoso-2026">[19]</a></sup>. It's an API-surface decision.</p>
+      <div class="panel">
+        <table class="tt">
+          <thead>
+            <tr><th>Library</th><th class="num">Bundle</th><th>Latest</th><th>Dynamic heights</th><th>Verdict</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="lib"><a href="https://tanstack.com/virtual/latest/docs/introduction">@tanstack/react-virtual</a> <span class="stars">⭐ 7.0k</span></td>
+              <td class="num">~5 KB</td>
+              <td>3.14.6 · Jul 2026</td>
+              <td><code>measureElement</code> ref</td>
+              <td>Default if already on TanStack Table; headless, no markup <sup><a href="https://tanstack.com/virtual/latest/docs/introduction">[20]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="lib">react-virtuoso <span class="stars">⭐ 6.4k</span></td>
+              <td class="num">~17 KB</td>
+              <td>4.18.10 · Jun 2026</td>
+              <td>auto · ResizeObserver</td>
+              <td>Fewest footguns; sticky groups + bidirectional infinite scroll built in</td>
+            </tr>
+            <tr>
+              <td class="lib"><a href="https://github.com/bvaughn/react-window">react-window</a> <span class="stars">⭐ 17k</span></td>
+              <td class="num">~6 KB</td>
+              <td>2.2.7 · Feb 2026</td>
+              <td><code>useDynamicRowHeight</code></td>
+              <td><span style="color:var(--amb)">⚠ Stop repeating the "abandoned, fixed-height-only" line — v2 is a full rewrite</span> <sup><a href="https://github.com/bvaughn/react-window">[21]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="g-note">Virtualization only earns its overhead somewhere around 50+ simultaneously-rendered rows. <strong>Column</strong> virtualization is where wide grids quietly die: don't bother under ~12–20 columns <sup><a href="https://www.material-react-table.com/docs/examples/column-virtualization">[24]</a></sup>, but note that <a href="https://mui.com/x/react-data-grid/virtualization/">MUI X disables column virtualization entirely when dynamic row height is on</a> <sup><a href="https://mui.com/x/react-data-grid/virtualization/">[6]</a></sup> — wide + auto-height means every column mounted.</p>
+      </div>
+    </section>
+
+    <!-- ============ CEILINGS RACK ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag r">LIMITS</span>
+        <h2>Practical ceilings, per unit</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="rack">
+        <div class="unit">
+          <div class="unit-l"><div class="un"><a href="https://www.ag-grid.com/react-data-grid/row-models/">AG Grid</a> — client-side</div><div class="us">⭐ 15k</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:55%"></div><div class="seg a" style="width:30%"></div><div class="seg x" style="width:15%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> 100k+ <sup><a href="https://www.ag-grid.com/react-data-grid/row-models/">[10]</a></sup> · <b>Degrades</b> ~1M at 27 FPS (vendor-measured) <sup><a href="https://www.1771technologies.com/blog/performance-benchmarks">[3]</a></sup> · <span class="stop">Hard stop</span> browser memory / scroll cap</div>
+          </div>
+        </div>
+        <div class="unit">
+          <div class="unit-l"><div class="un"><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid</a> — SSRM</div><div class="us">SERVER-SIDE ROW MODEL</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:92%"></div><div class="seg x" style="width:8%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> 10M+ <sup><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">[11]</a></sup> · <span class="stop">Hard stop</span> your backend</div>
+          </div>
+        </div>
+        <div class="unit">
+          <div class="unit-l"><div class="un"><a href="https://tanstack.com/table/v8/docs/faq">TanStack Table</a> + Virtual</div><div class="us">⭐ 28k · v8.21.3, Apr 2025</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:58%"></div><div class="seg r" style="width:25%"></div><div class="seg x" style="width:17%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> 100k+ <sup><a href="https://vitashev.github.io/react-data-grid-benchmark/">[1]</a></sup> · <b>Degrades</b> when <em>you</em> mis-memoize · <span class="stop">Hard stop</span> scroll cap — unsolved upstream <sup><a href="https://github.com/TanStack/virtual/issues/616">[7]</a></sup>. Note v9 has not landed <sup><a href="https://registry.npmjs.org/@tanstack/react-table">[26]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="unit">
+          <div class="unit-l"><div class="un">React Data Grid</div><div class="us">⭐ 7.7k · LEANEST BUNDLE</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:45%"></div><div class="seg a" style="width:35%"></div><div class="seg x" style="width:20%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> 50k measured, 72.3 KB gzip, 264 mounted cells <sup><a href="https://vitashev.github.io/react-data-grid-benchmark/">[1]</a></sup> · <span class="stop">Hard stop</span> still <code>7.0.0-beta</code> after years</div>
+          </div>
+        </div>
+        <div class="unit">
+          <div class="unit-l"><div class="un"><a href="https://mui.com/x/react-data-grid/performance/">MUI X Data Grid</a></div><div class="us">⭐ 5.8k</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:30%"></div><div class="seg r" style="width:40%"></div><div class="seg x" style="width:30%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> 10k–100k <em>display-only</em> · <b>Degrades</b> ~10 updates/sec <sup><a href="https://github.com/mui/mui-x/issues/10952">[13]</a></sup>; 1M scroll ≈ 33 FPS (vendor) <sup><a href="https://www.1771technologies.com/blog/performance-benchmarks">[3]</a></sup> · <span class="stop">Hard stop</span> Community caps virtualization at 100 rows <sup><a href="https://mui.com/x/react-data-grid/virtualization/">[6]</a></sup>; ⚠ open 199 MB/refresh leak at 100k <sup><a href="https://github.com/mui/mui-x/issues/20699">[28]</a></sup></div>
+          </div>
+        </div>
+        <div class="unit">
+          <div class="unit-l"><div class="un"><a href="https://handsontable.com/docs/javascript-data-grid/performance/">Handsontable</a></div><div class="us">⭐ 22k</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:28%"></div><div class="seg r" style="width:32%"></div><div class="seg x" style="width:40%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> ≤ ~150k; docs steer you to pagination <sup><a href="https://handsontable.com/docs/javascript-data-grid/performance/">[25]</a></sup> · <b>Degrades</b> 872 ms ready at 50k — 2.4× the field <sup><a href="https://vitashev.github.io/react-data-grid-benchmark/">[1]</a></sup> · <span class="stop">Hard stop</span> OOM crash reported at 200k–500k <sup><a href="https://medium.com/1771-technologies/benchmarked-the-top-6-react-data-grids-for-performance-and-scalability-a10a6b441789">[4]</a></sup> and 400k <sup><a href="https://dev.to/revolist/battle-of-the-rows-the-limits-of-data-performance-4mcn">[5]</a></sup></div>
+          </div>
+        </div>
+        <div class="unit">
+          <div class="unit-l"><div class="un"><a href="https://grid.glideapps.com/">Glide Data Grid</a></div><div class="us">⭐ 5.3k · CANVAS</div></div>
+          <div class="track">
+            <div class="seg-row"><div class="seg g" style="width:60%"></div><div class="seg x" style="width:40%"></div></div>
+            <div class="seg-key"><b>Comfortable</b> millions (vendor) <sup><a href="https://grid.glideapps.com/">[16]</a></sup> · <span class="stop">Hard stop</span> ⚠ unmaintained since Feb 2024 <sup><a href="https://registry.npmjs.org/@glideapps/glide-data-grid">[17]</a></sup> — and the scroll cap applies anyway</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TEST POINTS ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag">TEST POINTS</span>
+        <h2>Probe these four, on your data</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="probes">
+        <div class="probe">
+          <div class="pn">01</div>
+          <div>
+            <h4>Mounted cell count after scrolling to the middle</h4>
+            <p>The honest proxy for virtualization quality — and the one number no marketing page prints <sup><a href="https://vitashev.github.io/react-data-grid-benchmark/">[1]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="probe">
+          <div class="pn">02</div>
+          <div>
+            <h4>Updates/sec before frame drops</h4>
+            <p>The metric that actually separates AG Grid from MUI X <sup><a href="https://www.ag-grid.com/react-data-grid/data-update-high-frequency/">[12]</a></sup> <sup><a href="https://github.com/mui/mui-x/issues/10952">[13]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="probe">
+          <div class="pn">03</div>
+          <div>
+            <h4><code>rowCount × rowHeight</code> vs 16.7M px</h4>
+            <p>A pure-arithmetic go/no-go on native scrolling. Do this one before you write any code <sup><a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">[8]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="probe">
+          <div class="pn">04</div>
+          <div>
+            <h4>Heap after 5 minutes of data refresh</h4>
+            <p>An open MUI X issue leaks ~199 MB per refresh at 100k rows, reaching 4.7 GB <sup><a href="https://github.com/mui/mui-x/issues/20699">[28]</a></sup> ⭐ 5.8k.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SOURCE RACK ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag">SOURCE RACK</span>
+        <h2>28 inputs · vendor-flagged</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="srcs">
+        <div class="src"><span class="sn">01</span><img src="https://www.google.com/s2/favicons?domain=vitashev.github.io&sz=128" alt=""><div><div class="st"><a href="https://vitashev.github.io/react-data-grid-benchmark/">react-data-grid-benchmark — results</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span> · reproducible</div></div></div>
+        <div class="src"><span class="sn">02</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="st"><a href="https://github.com/Vitashev/react-data-grid-benchmark">Vitashev/react-data-grid-benchmark</a></div><div class="sm">OFFICIAL · ⭐ 0</div></div></div>
+        <div class="src"><span class="sn">03</span><img src="https://www.google.com/s2/favicons?domain=1771technologies.com&sz=128" alt=""><div><div class="st"><a href="https://www.1771technologies.com/blog/performance-benchmarks">1771 Technologies — performance benchmarks</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span></div></div></div>
+        <div class="src"><span class="sn">04</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><div><div class="st"><a href="https://medium.com/1771-technologies/benchmarked-the-top-6-react-data-grids-for-performance-and-scalability-a10a6b441789">Benchmarked the top 6 React data grids</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span></div></div></div>
+        <div class="src"><span class="sn">05</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><div><div class="st"><a href="https://dev.to/revolist/battle-of-the-rows-the-limits-of-data-performance-4mcn">Battle of the Rows — the limits of data performance</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span></div></div></div>
+        <div class="src"><span class="sn">06</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="st"><a href="https://mui.com/x/react-data-grid/virtualization/">MUI X Data Grid — Virtualization</a></div><div class="sm">OFFICIAL · the pixel cap</div></div></div>
+        <div class="src"><span class="sn">07</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="st"><a href="https://github.com/TanStack/virtual/issues/616">TanStack Virtual #616 — max element height</a></div><div class="sm">FORUM · ⭐ 7.0k · open</div></div></div>
+        <div class="src"><span class="sn">08</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><div><div class="st"><a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">Virtual scrolling beyond the browser's limit</a></div><div class="sm">FORUM</div></div></div>
+        <div class="src"><span class="sn">09</span><img src="https://www.google.com/s2/favicons?domain=rednegra.net&sz=128" alt=""><div><div class="st"><a href="https://rednegra.net/blog/20260212-virtual-scroll/">HighTable — virtual scroll beyond the cap</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span></div></div></div>
+        <div class="src"><span class="sn">10</span><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="st"><a href="https://www.ag-grid.com/react-data-grid/row-models/">AG Grid — Row Models</a></div><div class="sm">OFFICIAL · the ~40 rows</div></div></div>
+        <div class="src"><span class="sn">11</span><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="st"><a href="https://www.ag-grid.com/react-data-grid/server-side-model/">AG Grid — Server-Side Row Model</a></div><div class="sm">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">12</span><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><div><div class="st"><a href="https://www.ag-grid.com/react-data-grid/data-update-high-frequency/">AG Grid — High-frequency updates</a></div><div class="sm">OFFICIAL · 50 ms flush</div></div></div>
+        <div class="src"><span class="sn">13</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="st"><a href="https://github.com/mui/mui-x/issues/10952">MUI X #10952 — degradation at ~10 updates/sec</a></div><div class="sm">FORUM · ⭐ 5.8k</div></div></div>
+        <div class="src"><span class="sn">14</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=128" alt=""><div><div class="st"><a href="https://mui.com/x/react-data-grid/performance/">MUI X Data Grid — Performance</a></div><div class="sm">OFFICIAL · ⭐ 5.8k</div></div></div>
+        <div class="src"><span class="sn">15</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="st"><a href="https://github.com/glideapps/glide-data-grid">glideapps/glide-data-grid</a></div><div class="sm">OFFICIAL · ⭐ 5.3k</div></div></div>
+        <div class="src"><span class="sn">16</span><img src="https://www.google.com/s2/favicons?domain=grid.glideapps.com&sz=128" alt=""><div><div class="st"><a href="https://grid.glideapps.com/">Glide Data Grid</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span> · unverified claims</div></div></div>
+        <div class="src"><span class="sn">17</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><div><div class="st"><a href="https://registry.npmjs.org/@glideapps/glide-data-grid">npm — @glideapps/glide-data-grid</a></div><div class="sm">OFFICIAL · 6.0.3 · 2024-02-03</div></div></div>
+        <div class="src"><span class="sn">18</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><div><div class="st"><a href="https://news.ycombinator.com/item?id=23935464">Hacker News — canvas vs DOM grids</a></div><div class="sm">FORUM</div></div></div>
+        <div class="src"><span class="sn">19</span><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=128" alt=""><div><div class="st"><a href="https://www.pkgpulse.com/guides/tanstack-virtual-vs-react-window-vs-react-virtuoso-2026">TanStack Virtual vs react-window vs react-virtuoso</a></div><div class="sm"><span class="vend">VENDOR-BLOG</span></div></div></div>
+        <div class="src"><span class="sn">20</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="st"><a href="https://tanstack.com/virtual/latest/docs/introduction">TanStack Virtual — Introduction</a></div><div class="sm">OFFICIAL · headless</div></div></div>
+        <div class="src"><span class="sn">21</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="st"><a href="https://github.com/bvaughn/react-window">bvaughn/react-window</a></div><div class="sm">OFFICIAL · ⭐ 17k · v2.2.7</div></div></div>
+        <div class="src"><span class="sn">22</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><div><div class="st"><a href="https://tanstack.com/table/v8/docs/faq">TanStack Table — FAQ</a></div><div class="sm">OFFICIAL · ⭐ 28k · the loop</div></div></div>
+        <div class="src"><span class="sn">23</span><img src="https://www.google.com/s2/favicons?domain=material-react-table.com&sz=128" alt=""><div><div class="st"><a href="https://www.material-react-table.com/docs/guides/memoization">Material React Table — Memoization</a></div><div class="sm">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">24</span><img src="https://www.google.com/s2/favicons?domain=material-react-table.com&sz=128" alt=""><div><div class="st"><a href="https://www.material-react-table.com/docs/examples/column-virtualization">Material React Table — Column virtualization</a></div><div class="sm">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">25</span><img src="https://www.google.com/s2/favicons?domain=handsontable.com&sz=128" alt=""><div><div class="st"><a href="https://handsontable.com/docs/javascript-data-grid/performance/">Handsontable — Performance</a></div><div class="sm">OFFICIAL · ⭐ 22k</div></div></div>
+        <div class="src"><span class="sn">26</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><div><div class="st"><a href="https://registry.npmjs.org/@tanstack/react-table">npm — @tanstack/react-table</a></div><div class="sm">OFFICIAL · 8.21.3 · Apr 2025</div></div></div>
+        <div class="src"><span class="sn">27</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><div><div class="st"><a href="https://react.dev/learn/react-compiler">React Compiler</a></div><div class="sm">OFFICIAL · won't save you</div></div></div>
+        <div class="src"><span class="sn">28</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="st"><a href="https://github.com/mui/mui-x/issues/20699">MUI X #20699 — 199 MB/refresh leak</a></div><div class="sm">FORUM · ⭐ 5.8k · open</div></div></div>
+      </div>
+    </section>
+
+    <!-- ============ BUS ============ -->
+    <section>
+      <div class="sechead">
+        <span class="tag">BUS</span>
+        <h2>Other channels on this expedition</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="bus">
+        <a href="../../the-2026-candidate-landscape-headless-vs-batteries-included-vs-commercial-grid/">
+          <div class="bd">SURVEY</div>
+          <div class="bt">The 2026 React table landscape: headless vs batteries-included vs commercial grid</div>
+          <div class="bs">Only four candidates are genuinely alive — and the real axis is how many weeks of table you agree to write yourself.</div>
+        </a>
+        <a href="../../server-driven-data/">
+          <div class="bd">SURVEY</div>
+          <div class="bt">Server-driven data: which React table actually does the work for you</div>
+          <div class="bs">AG Grid's SSRM and MUI X's Data Source are real engines; TanStack Table hands you the state machine.</div>
+        </a>
+        <a href="../../enterprise-features-and-what-they-cost/">
+          <div class="bd">SURVEY</div>
+          <div class="bt">Enterprise React data-grid features and what they actually cost in 2026</div>
+          <div class="bs">$999/dev perpetual buys grouping + pivot + Excel export; building it costs 25–50 dev-days.</div>
+        </a>
+        <a href="../../styling-and-design-system-fit/">
+          <div class="bd">RECON</div>
+          <div class="bt">Styling and design-system fit: which React grid bends to your design system?</div>
+          <div class="bs">If the design system is authoritative, go headless; grid-owned CSS is a design-system adoption.</div>
+        </a>
+      </div>
+      <div class="foot">
+        <span><a href="../../">↰ EXPEDITION · WHICH REACT TABLE COMPONENT TO USE IN 2026</a></span>
+        <span>28 SOURCES · 10 MIN · <a href="../">FULL READOUT</a></span>
+      </div>
+    </section>
+
+  </div>
+</div>
