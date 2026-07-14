@@ -1,0 +1,963 @@
+---
+layout: view
+view_name: "Matrix"
+view_of: ../
+title: "Admin-console component coverage: what MUI, shadcn/ui, Mantine and Base UI actually ship in 2026 — Matrix"
+---
+
+<style>
+  .gapboard {
+    --paper: #efece4;
+    --paper-2: #f7f5f0;
+    --rule: #d3cec2;
+    --rule-hard: #1b1a17;
+    --ink: #171613;
+    --ink-2: #5f5b52;
+    --ink-3: #8b8578;
+    --void: #0a0a0b;
+    --hazard: #ffc400;
+    --hazard-ink: #14130f;
+    --addon: #2f4bd8;
+    --ok: #3f7d5a;
+    --alarm: #d92b1c;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  .gapboard * { box-sizing: border-box; }
+  .gapboard a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- masthead ---------- */
+  .sheet-head {
+    border-bottom: 3px solid var(--rule-hard);
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.035) 0 1px, transparent 1px 28px),
+      var(--paper-2);
+    padding: 40px 0 0;
+  }
+  .stamp-row {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .stamp {
+    border: 1px solid var(--rule-hard); padding: 3px 8px; background: transparent;
+  }
+  .stamp.hot { background: var(--rule-hard); color: var(--paper); }
+  .sheet-title {
+    font-size: clamp(38px, 7vw, 84px);
+    line-height: .92; letter-spacing: -.035em; font-weight: 800;
+    margin: 26px 0 0; text-transform: uppercase;
+  }
+  .sheet-title em { font-style: normal; display: block; color: var(--alarm); }
+  .sheet-sub {
+    max-width: 720px; margin: 20px 0 0; font-size: 17px; color: var(--ink-2);
+  }
+  .head-flex { display: flex; gap: 32px; align-items: flex-end; flex-wrap: wrap; }
+  .head-flex > div:first-child { flex: 1 1 460px; }
+  .cover-chip {
+    flex: 0 0 190px; border: 2px solid var(--rule-hard); background: #fff;
+    padding: 6px; margin-bottom: 4px;
+  }
+  .cover-chip img { display: block; width: 100%; height: 118px; object-fit: cover; }
+  .cover-chip figcaption {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); padding-top: 6px;
+  }
+  .head-rule { margin: 34px 0 0; height: 0; }
+
+  /* ---------- verdict ---------- */
+  .verdict {
+    background: var(--rule-hard); color: var(--paper);
+    padding: 40px 0 44px; margin: 0;
+  }
+  .verdict h2 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--hazard); margin: 0 0 18px;
+  }
+  .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; border-top: 1px solid #3a3833; }
+  .vcell { padding: 22px 22px 22px 0; border-right: 1px solid #3a3833; padding-right: 22px; }
+  .vcell:last-child { border-right: 0; }
+  .vcell + .vcell { padding-left: 22px; }
+  .vname { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 2px; }
+  .vname a { text-decoration: none; }
+  .vtag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    display: inline-block; padding: 2px 6px; margin-bottom: 10px;
+  }
+  .vtag.pick { background: var(--hazard); color: var(--hazard-ink); }
+  .vtag.cost { background: var(--alarm); color: #fff; }
+  .vtag.same { background: #4a4842; color: #e6e2d8; }
+  .vcell p { margin: 0; font-size: 14px; color: #bdb8ac; line-height: 1.55; }
+  .vcell p a { color: #e8e3d6; }
+
+  /* ---------- legend ---------- */
+  .legend { padding: 44px 0 0; }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .kicker::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+  .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 14px; }
+  .lg { border: 1px solid var(--rule); background: #fff; padding: 0; display: flex; }
+  .lg .swatch { flex: 0 0 74px; }
+  .lg .txt { padding: 12px 14px; }
+  .lg h4 { margin: 0 0 3px; font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+  .lg p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.4; }
+
+  /* swatch renderings shared with cells */
+  .sw-ok { background: #e7ede8; border-right: 1px solid var(--rule); }
+  .sw-pay {
+    background: repeating-linear-gradient(45deg, var(--hazard) 0 9px, var(--hazard-ink) 9px 18px);
+  }
+  .sw-addon {
+    background: #fff; border-right: 1px dashed var(--addon);
+    background-image: repeating-linear-gradient(45deg, rgba(47,75,216,.10) 0 2px, transparent 2px 7px);
+  }
+  .sw-void {
+    background: var(--void);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.9), inset 0 -1px 0 rgba(255,255,255,.06);
+  }
+
+  /* ---------- the board ---------- */
+  .board-scroll { overflow-x: auto; border: 2px solid var(--rule-hard); background: var(--paper-2); margin-top: 8px; }
+  .board { min-width: 940px; display: grid; grid-template-columns: minmax(220px, 1.45fr) repeat(4, minmax(160px, 1fr)); }
+  .board > * { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .board > *:nth-child(5n) { border-right: 0; }
+
+  .bh {
+    background: var(--rule-hard); color: var(--paper); padding: 14px 14px 12px;
+    border-right-color: #3a3833;
+  }
+  .bh .kit { font-size: 19px; font-weight: 800; letter-spacing: -.02em; }
+  .bh .kit a { text-decoration: none; }
+  .bh .meta {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; color: #a8a396; margin-top: 3px;
+  }
+  .bh.corner { background: var(--rule-hard); color: #8b8578; font-family: var(--mono); font-size: 10px;
+    letter-spacing: .18em; text-transform: uppercase; display: flex; align-items: flex-end; }
+
+  .grouprow {
+    grid-column: 1 / -1; border-right: 0 !important;
+    background: var(--paper); padding: 11px 14px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ink-2);
+    display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+    border-top: 2px solid var(--rule-hard); border-bottom: 1px solid var(--rule-hard);
+  }
+  .grouprow b { color: var(--alarm); letter-spacing: .1em; }
+
+  .rl {
+    background: #fff; padding: 13px 14px; display: flex; flex-direction: column; justify-content: center;
+    font-size: 14.5px; font-weight: 600; letter-spacing: -.005em;
+  }
+  .rl small {
+    display: block; font-weight: 400; font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-3); letter-spacing: .06em; margin-top: 2px; text-transform: uppercase;
+  }
+
+  .c { padding: 13px 13px; min-height: 74px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+  .c .g { font-size: 17px; line-height: 1; font-weight: 800; font-family: var(--mono); }
+  .c .t { font-size: 12px; line-height: 1.35; }
+  .c sup { font-size: 9px; }
+  .c sup a { color: inherit; opacity: .55; text-decoration: none; }
+  .c sup a:hover { opacity: 1; }
+
+  /* state: shipped, MIT, in the box — deliberately quiet */
+  .c.ok { background: #e7ede8; color: #4a6d59; }
+  .c.ok .g { color: var(--ok); font-weight: 500; }
+  .c.ok .t { color: #5c6f63; }
+
+  /* state: paywalled — hazard tape */
+  .c.pay {
+    background: repeating-linear-gradient(45deg, var(--hazard) 0 11px, var(--hazard-ink) 11px 22px);
+    color: var(--hazard-ink);
+    padding: 0; justify-content: center; align-items: stretch;
+  }
+  .c.pay .plate {
+    margin: 9px; background: var(--hazard-ink); color: var(--hazard);
+    padding: 8px 10px; border: 1px solid var(--hazard); flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .c.pay .tier {
+    font-family: var(--mono); font-weight: 800; font-size: 14px; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .c.pay .t { color: #e5cf8d; margin-top: 3px; }
+  .c.pay sup a { color: #e5cf8d; }
+
+  /* state: community add-on / DIY — you build it */
+  .c.addon {
+    background-color: #fff;
+    background-image: repeating-linear-gradient(45deg, rgba(47,75,216,.09) 0 2px, transparent 2px 8px);
+    color: var(--addon);
+    box-shadow: inset 0 0 0 1px rgba(47,75,216,.28);
+  }
+  .c.addon .g { color: var(--addon); }
+  .c.addon .t { color: #34406e; }
+
+  /* state: missing — a hole punched through the sheet */
+  .c.void {
+    background: var(--void);
+    background-image:
+      repeating-linear-gradient(45deg, rgba(217,43,28,.20) 0 1px, transparent 1px 9px);
+    box-shadow: inset 0 3px 10px rgba(0,0,0,.95), inset 0 0 0 1px rgba(255,255,255,.05);
+    color: #6d6a66; justify-content: center;
+  }
+  .c.void .g { color: var(--alarm); font-size: 22px; }
+  .c.void .t { color: #7d7a74; }
+  .c.void sup a { color: #7d7a74; }
+
+  .flag {
+    position: absolute; top: 0; right: 0;
+    background: var(--hazard); color: var(--hazard-ink);
+    font-family: var(--mono); font-size: 9px; font-weight: 800; letter-spacing: .08em;
+    padding: 2px 5px; text-transform: uppercase;
+  }
+
+  /* ---------- scoreboard ---------- */
+  .score { padding: 52px 0 0; }
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 16px; }
+  .sc { border: 1px solid var(--rule-hard); background: #fff; padding: 18px 18px 16px; }
+  .sc h3 { margin: 0 0 2px; font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .sc h3 a { text-decoration: none; }
+  .sc .stars { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .bar { display: flex; height: 26px; margin: 14px 0 12px; border: 1px solid var(--rule-hard); }
+  .bar span { flex: 1; }
+  .bar .b-ok { background: #dfe7e1; }
+  .bar .b-pay { background: repeating-linear-gradient(45deg, var(--hazard) 0 5px, var(--hazard-ink) 5px 10px); }
+  .bar .b-addon { background: #fff; background-image: repeating-linear-gradient(45deg, rgba(47,75,216,.35) 0 2px, transparent 2px 6px); box-shadow: inset 0 0 0 1px rgba(47,75,216,.35); }
+  .bar .b-void { background: var(--void); }
+  .tally { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--ink-2); }
+  .tally b { font-size: 19px; letter-spacing: -.02em; display: block; color: var(--ink); }
+  .tally .n-void b { color: var(--alarm); }
+  .sc .verdict-line { margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--rule); font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---------- money ---------- */
+  .money { background: var(--rule-hard); color: var(--paper); margin: 56px 0 0; padding: 46px 0 50px; }
+  .money .kicker { color: var(--hazard); }
+  .money .kicker::after { background: #3a3833; }
+  .price-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px; align-items: start; }
+  .price { border-top: 4px solid var(--hazard); padding-top: 14px; }
+  .price .num {
+    font-size: clamp(56px, 9vw, 104px); line-height: .85; font-weight: 800; letter-spacing: -.05em;
+    color: var(--hazard); font-family: var(--sans);
+  }
+  .price .num sup { font-size: .38em; top: -.75em; letter-spacing: 0; }
+  .price .unit { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #a8a396; margin-top: 10px; }
+  .price .plan { font-size: 15px; font-weight: 700; margin-top: 8px; }
+  .price ul { margin: 10px 0 0; padding: 0; list-style: none; }
+  .price li { font-size: 13px; color: #bdb8ac; padding: 5px 0; border-bottom: 1px solid #2c2a26; }
+  .price li a { color: #d8d3c6; }
+  .fineprint {
+    margin-top: 30px; padding: 16px 18px; border-left: 4px solid var(--alarm); background: #201f1c;
+    font-size: 14.5px; color: #d8d3c6; line-height: 1.6;
+  }
+  .fineprint b { color: #fff; }
+  .fineprint a { color: var(--hazard); }
+
+  /* ---------- gap list ---------- */
+  .gaps { padding: 54px 0 0; }
+  .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .gap { border: 1px solid var(--rule-hard); background: #fff; display: flex; flex-direction: column; }
+  .gap header { padding: 14px 16px; border-bottom: 1px solid var(--rule-hard); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .gap header h3 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+  .gap header h3 a { text-decoration: none; }
+  .gap header .cnt { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+  .gap.worst header { background: var(--alarm); color: #fff; border-bottom-color: var(--alarm); }
+  .gap.worst header .cnt { color: #ffd7d3; }
+  .gap.best header { background: #e7ede8; }
+  .deps { list-style: none; margin: 0; padding: 10px 16px 4px; flex: 1; }
+  .deps li { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px dashed var(--rule); font-size: 13.5px; }
+  .deps li:last-child { border-bottom: 0; }
+  .deps img { width: 17px; height: 17px; flex: 0 0 17px; display: block; }
+  .deps .nm { font-weight: 600; }
+  .deps .nm a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .deps .st { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); white-space: nowrap; }
+  .deps .why { color: var(--ink-3); font-size: 12px; }
+  .gap footer { padding: 12px 16px; background: #faf9f6; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  .gap footer a { color: var(--ink); }
+  .paybadge { display: inline-block; background: var(--hazard); color: var(--hazard-ink); font-family: var(--mono); font-size: 10px; font-weight: 800; padding: 2px 6px; letter-spacing: .08em; }
+
+  /* ---------- headless strip ---------- */
+  .headless { margin: 54px 0 0; border: 2px solid var(--rule-hard); background: #fff; }
+  .headless .hl-head { padding: 16px 18px; border-bottom: 1px solid var(--rule-hard); }
+  .headless h3 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+  .headless .hl-head p { margin: 5px 0 0; font-size: 13.5px; color: var(--ink-2); max-width: 640px; }
+  .hl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); }
+  .hl { padding: 14px 16px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); display: flex; gap: 10px; align-items: flex-start; }
+  .hl img { width: 20px; height: 20px; flex: 0 0 20px; margin-top: 2px; }
+  .hl .role { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .hl .lib { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+  .hl .lib a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .hl .lib .stars { font-family: var(--mono); font-size: 10.5px; font-weight: 400; color: var(--ink-3); border: 0; }
+  .hl .note { font-size: 12px; color: var(--ink-2); margin-top: 3px; line-height: 1.4; }
+
+  /* ---------- house picks ---------- */
+  .house { margin: 54px 0 0; }
+  .house-scroll { overflow-x: auto; border: 2px solid var(--rule-hard); }
+  .house-grid { min-width: 840px; display: grid; grid-template-columns: 150px repeat(3, 1fr); background: #fff; }
+  .house-grid > * { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 13px 14px; }
+  .house-grid > *:nth-child(4n) { border-right: 0; }
+  .house-grid .hh { background: var(--rule-hard); color: var(--paper); font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; border-right-color: #3a3833; }
+  .house-grid .kitname { font-weight: 800; font-size: 16px; display: flex; align-items: center; }
+  .verdict-tag { font-family: var(--mono); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; display: inline-block; margin-bottom: 5px; }
+  .vt-conflict { background: var(--alarm); color: #fff; }
+  .vt-dup { background: var(--hazard); color: var(--hazard-ink); }
+  .vt-comp { background: #e7ede8; color: var(--ok); }
+  .house-grid p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+
+  /* ---------- takeaway ---------- */
+  .takeaway { margin: 56px 0 0; padding: 34px 0 0; border-top: 3px solid var(--rule-hard); }
+  .take-list { list-style: none; margin: 0; padding: 0; }
+  .take-list li {
+    display: flex; gap: 16px; align-items: baseline; padding: 15px 0; border-bottom: 1px solid var(--rule);
+    font-size: 16px; line-height: 1.5;
+  }
+  .take-list .idx { font-family: var(--mono); font-size: 12px; color: var(--alarm); font-weight: 800; flex: 0 0 26px; }
+  .take-list b { font-weight: 800; }
+
+  /* ---------- siblings ---------- */
+  .siblings { margin: 54px 0 0; }
+  .sib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+  .sib { display: block; border: 1px solid var(--rule); background: #fff; padding: 14px 15px; text-decoration: none; }
+  .sib:hover { border-color: var(--rule-hard); }
+  .sib .d { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .sib .t { font-size: 14.5px; font-weight: 700; margin: 4px 0 4px; letter-spacing: -.01em; line-height: 1.3; }
+  .sib .s { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+  .parent-link {
+    display: block; margin-top: 14px; padding: 16px 18px; background: var(--rule-hard); color: var(--paper);
+    text-decoration: none;
+  }
+  .parent-link .d { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--hazard); }
+  .parent-link .t { font-size: 18px; font-weight: 800; margin-top: 4px; letter-spacing: -.02em; }
+
+  /* ---------- sources ---------- */
+  .sources { margin: 54px 0 0; padding: 34px 0 60px; border-top: 3px solid var(--rule-hard); }
+  .src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+  .src { display: flex; gap: 9px; align-items: flex-start; padding: 9px 10px; border: 1px solid var(--rule); background: #fff; text-decoration: none; font-size: 12px; }
+  .src:hover { border-color: var(--rule-hard); }
+  .src img { width: 16px; height: 16px; flex: 0 0 16px; margin-top: 1px; }
+  .src .n { font-family: var(--mono); font-size: 10px; color: var(--ink-3); flex: 0 0 auto; }
+  .src .ti { color: var(--ink); line-height: 1.35; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    .vcell, .vcell + .vcell { padding-left: 0; padding-right: 0; border-right: 0; border-bottom: 1px solid #3a3833; }
+  }
+</style>
+
+<div class="gapboard">
+
+  <!-- ═══════════ MASTHEAD ═══════════ -->
+  <header class="sheet-head">
+    <div class="wrap">
+      <div class="stamp-row">
+        <span class="stamp hot">Coverage inspection</span>
+        <span class="stamp">itenium-ui · admin console</span>
+        <span class="stamp">19 surfaces × 4 kits</span>
+        <span class="stamp">survey · 41 sources</span>
+        <span class="stamp">2026-07-14</span>
+      </div>
+      <div class="head-flex">
+        <div>
+          <h1 class="sheet-title">The gap<br>board<em>76 cells. 26 holes.</em></h1>
+          <p class="sheet-sub">Fourteen surfaces a CRUD admin console reaches for, broken into nineteen testable rows. Every cell a kit does not fill is a second dependency you own, version and theme — or a licence you buy. The ticks are the boring part. Read the black.</p>
+        </div>
+        <figure class="cover-chip">
+          <img src="../cover.svg" alt="Cover artwork for the coverage research">
+          <figcaption>Fig. 0 — canonical</figcaption>
+        </figure>
+      </div>
+      <div class="head-rule"></div>
+    </div>
+  </header>
+
+  <!-- ═══════════ VERDICT ═══════════ -->
+  <section class="verdict">
+    <div class="wrap">
+      <h2>Inspection result</h2>
+      <div class="verdict-grid">
+        <div class="vcell">
+          <div class="vname"><a href="https://mantine.dev/getting-started/">Mantine</a></div>
+          <span class="vtag pick">One hole</span>
+          <p>The only kit with exactly one gap — no data grid. Dates + range, tree, multi-select, dropzone, Tiptap RTE, charts, command palette, notifications and AppShell all ship MIT, in the box <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>.</p>
+        </div>
+        <div class="vcell">
+          <div class="vname"><a href="https://mui.com/pricing/">MUI</a></div>
+          <span class="vtag cost">$299–599 / dev / yr</span>
+          <p>Covers the most surface — but every grid feature you reach for on day two (virtualisation, pinning, grouping, Excel) is behind MUI X Pro or Premium <sup><a href="https://mui.com/pricing/">[3]</a></sup>, and its DataGrid is a head-on duplicate of the TanStack Table this team already picked.</p>
+        </div>
+        <div class="vcell">
+          <div class="vname"><a href="https://ui.shadcn.com/docs/components">shadcn/ui</a> = <a href="https://base-ui.com/react/overview/quick-start">Base UI</a></div>
+          <span class="vtag same">Not two options</span>
+          <p>Since July 2026 <code>shadcn init</code> defaults to Base UI <sup><a href="https://ui.shadcn.com/docs/changelog/2026-07-base-ui-default">[13]</a></sup>. shadcn = Base UI + a Tailwind-styled layer + a registry. Raw Base UI is that minus the styling and minus every data component.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ LEGEND ═══════════ -->
+  <section class="legend">
+    <div class="wrap">
+      <p class="kicker">Cell states — four, not two</p>
+      <div class="legend-grid">
+        <div class="lg">
+          <div class="swatch sw-ok"></div>
+          <div class="txt"><h4>✓ In the box</h4><p>Ships MIT, free, first-party. Costs nothing and asks nothing.</p></div>
+        </div>
+        <div class="lg">
+          <div class="swatch sw-pay"></div>
+          <div class="txt"><h4>$ Paywalled</h4><p>Exists, and is behind MUI X Pro or Premium. Per concurrent developer. Forever.</p></div>
+        </div>
+        <div class="lg">
+          <div class="swatch sw-addon"></div>
+          <div class="txt"><h4>+ You build it</h4><p>A recipe, a community registry entry, or DIY over a headless engine. Free, not free of work.</p></div>
+        </div>
+        <div class="lg">
+          <div class="swatch sw-void"></div>
+          <div class="txt"><h4>✗ Missing</h4><p>A hole in the sheet. Forces a second dependency you own, version and theme.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ THE BOARD ═══════════ -->
+  <section class="legend" style="padding-top:34px;">
+    <div class="wrap">
+      <p class="kicker">The board — 19 surfaces × 4 kits</p>
+      <div class="board-scroll">
+        <div class="board">
+
+          <div class="bh corner">Surface</div>
+          <div class="bh">
+            <div class="kit"><a href="https://mui.com/pricing/">MUI</a></div>
+            <div class="meta">⭐ 99k · MIT core + paid X <sup><a href="https://github.com/mui/material-ui" style="color:#a8a396;">[36]</a></sup></div>
+          </div>
+          <div class="bh">
+            <div class="kit"><a href="https://ui.shadcn.com/docs/components">shadcn/ui</a></div>
+            <div class="meta">⭐ 119k · registry, not a lib <sup><a href="https://github.com/shadcn-ui/ui" style="color:#a8a396;">[38]</a></sup></div>
+          </div>
+          <div class="bh">
+            <div class="kit"><a href="https://mantine.dev/getting-started/">Mantine</a></div>
+            <div class="meta">⭐ 31k · all MIT <sup><a href="https://github.com/mantinedev/mantine" style="color:#a8a396;">[39]</a></sup></div>
+          </div>
+          <div class="bh">
+            <div class="kit"><a href="https://base-ui.com/react/overview/quick-start">Base UI</a></div>
+            <div class="meta">⭐ 10k · 35 primitives <sup><a href="https://github.com/mui/base-ui" style="color:#a8a396;">[37]</a></sup></div>
+          </div>
+
+          <!-- ── GROUP: THE GRID ── -->
+          <div class="grouprow"><span>Block A · The data grid — 6 rows</span><b>22 of 24 cells are paid, DIY or missing</b></div>
+
+          <div class="rl">Sort / filter / paginate<small>the table itself</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">DataGrid Community <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup></span></div>
+          <div class="c addon"><span class="g">+</span><span class="t">A copy-paste guide over TanStack Table, not a component <sup><a href="https://ui.shadcn.com/docs/components/data-table">[15]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">dumb <code>Table</code> only <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">no table at all <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+          <div class="rl">Row virtualisation<small>the 5,000-row moment</small></div>
+          <div class="c pay"><div class="plate"><span class="tier">$ Pro</span><span class="t">Free grid is capped at 100 rows <sup><a href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/virtualization/virtualization.md">[5]</a></sup></span></div></div>
+          <div class="c addon"><span class="g">+</span><span class="t">DIY with TanStack Virtual</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Column pinning<small>freeze the ID column</small></div>
+          <div class="c pay"><div class="plate"><span class="tier">$ Pro</span><span class="t">plan badge on the docs page <sup><a href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/column-pinning/column-pinning.md">[6]</a></sup></span></div></div>
+          <div class="c addon"><span class="g">+</span><span class="t">DIY</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Row grouping + aggregation<small>the reporting screen</small></div>
+          <div class="c pay"><div class="plate"><span class="tier">$ Premium</span><span class="t">top tier only <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup></span></div></div>
+          <div class="c addon"><span class="g">+</span><span class="t">DIY</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">CSV export<small>the export button</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">CSV, print and clipboard stay free <sup><a href="https://mui.com/x/react-data-grid/export/">[7]</a></sup></span></div>
+          <div class="c addon"><span class="g">+</span><span class="t">DIY</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Excel export<small>what finance asks for</small></div>
+          <div class="c pay"><div class="plate"><span class="tier">$ Premium</span><span class="t">relies on exceljs <sup><a href="https://mui.com/x/react-data-grid/export/">[7]</a></sup></span></div></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <!-- ── GROUP: EVERYTHING ELSE ── -->
+          <div class="grouprow"><span>Block B · Everything else — 13 rows</span><b>Mantine fills all 13</b></div>
+
+          <div class="rl">Forms + validation<small>state, not inputs</small></div>
+          <div class="c void"><span class="g">✗</span><span class="t">inputs only, no form state <sup><a href="https://mui.com/material-ui/all-components/">[11]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">RHF / TanStack Form / Formisch wrappers <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/form</code> <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>Field</code> / <code>Form</code> primitives <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+          <div class="rl">Date + time picker<small>the everyday one</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">MUI X Community <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Popover + react-day-picker <sup><a href="https://ui.shadcn.com/docs/components/date-picker">[16]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/dates</code> <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">no picker <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+          <div class="rl">Date <em>range</em> picker<small>every filter bar, ever</small></div>
+          <div class="c pay"><div class="plate"><span class="tier">$ Pro</span><span class="t">Date Range Picker is a Pro component <sup><a href="https://mui.com/x/react-date-pickers/date-range-picker/">[10]</a></sup></span></div></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">range + presets <sup><a href="https://ui.shadcn.com/docs/components/date-picker">[16]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>type="range"</code>, free <sup><a href="https://mantine.dev/dates/date-picker-input/">[20]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Combobox<small>async + virtualised</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Autocomplete <sup><a href="https://mui.com/material-ui/all-components/">[11]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Base UI Combobox / cmdk <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Combobox <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">async + 10k rows via TanStack Virtual <sup><a href="https://base-ui.com/react/components/combobox">[23]</a></sup></span></div>
+
+          <div class="rl">Multi-select / tags input<small>the roles field</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Autocomplete <code>multiple</code> <sup><a href="https://mui.com/material-ui/all-components/">[11]</a></sup></span></div>
+          <div class="c addon"><span class="g">+</span><span class="t">community registry only <sup><a href="https://ui.shadcn.com/docs/directory">[17]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">MultiSelect / TagsInput <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Combobox <code>multiple</code> + Chips <sup><a href="https://base-ui.com/react/components/combobox">[23]</a></sup></span></div>
+
+          <div class="rl">Tree view<small>permissions, org charts</small></div>
+          <div class="c ok"><span class="flag">$ Pro above</span><span class="g">✓</span><span class="t">basic free · DnD, lazy load and virtualisation are Pro <sup><a href="https://mui.com/x/react-tree-view/">[8]</a></sup></span></div>
+          <div class="c addon"><span class="g">+</span><span class="t">community registry only <sup><a href="https://ui.shadcn.com/docs/directory">[17]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>Tree</code> — checkboxes, DnD, lazy, virtualisation helpers <sup><a href="https://mantine.dev/core/tree/">[19]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Dialog / Drawer / Sheet<small>table stakes</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Dialog + Drawer <sup><a href="https://mui.com/material-ui/all-components/">[11]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Dialog + Sheet + Drawer <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">+ a modals manager <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Dialog, AlertDialog, Drawer <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+          <div class="rl">Toasts<small>stacked, imperative</small></div>
+          <div class="c addon"><span class="g">+</span><span class="t">Snackbar can't stack — MUI's own docs send you to notistack <sup><a href="https://mui.com/material-ui/react-snackbar/">[12]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">it <em>is</em> Sonner <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/notifications</code> <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Toast primitive <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+          <div class="rl">File upload / dropzone<small>the import screen</small></div>
+          <div class="c void"><span class="g">✗</span><span class="t">nothing ships <sup><a href="https://mui.com/material-ui/all-components/">[11]</a></sup></span></div>
+          <div class="c addon"><span class="g">+</span><span class="t">community registry only <sup><a href="https://ui.shadcn.com/docs/directory">[17]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/dropzone</code> <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Charts<small>the dashboard tab</small></div>
+          <div class="c ok"><span class="flag">$ Pro/Prem above</span><span class="g">✓</span><span class="t">bar/line/pie/scatter/gauge free · heatmap, funnel, sankey, zoom Pro · candlestick, WebGL Premium <sup><a href="https://mui.com/x/react-charts/">[9]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Recharts wrapper <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/charts</code> (Recharts) <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Rich text editor<small>the one nobody ships</small></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/tiptap</code> — a wrapper, but a wrapper you don't write <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+
+          <div class="rl">Command palette<small>⌘K</small></div>
+          <div class="c void"><span class="g">✗</span><span class="t">—</span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Command (cmdk) <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t"><code>@mantine/spotlight</code> <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">Menu / Combobox primitives only <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+          <div class="rl">App shell<small>nav rail, breadcrumbs, responsive drawer</small></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">AppBar + Drawer + Breadcrumbs <sup><a href="https://mui.com/material-ui/all-components/">[11]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">Sidebar + Breadcrumb <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup></span></div>
+          <div class="c ok"><span class="g">✓</span><span class="t">AppShell + NavLink + Breadcrumbs <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup></span></div>
+          <div class="c void"><span class="g">✗</span><span class="t">primitives only — Navigation Menu, Toolbar <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup></span></div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ SCOREBOARD ═══════════ -->
+  <section class="score">
+    <div class="wrap">
+      <p class="kicker">Read the column, not the row — 19 cells each</p>
+      <div class="score-grid">
+
+        <div class="sc">
+          <h3><a href="https://mui.com/pricing/">MUI</a></h3>
+          <div class="stars">⭐ 99k · the most surface, the most invoice</div>
+          <div class="bar">
+            <span class="b-ok" style="flex:9"></span><span class="b-pay" style="flex:5"></span><span class="b-addon" style="flex:1"></span><span class="b-void" style="flex:4"></span>
+          </div>
+          <div class="tally">
+            <span><b>9</b> in-box</span><span><b>5</b> paid</span><span><b>1</b> add-on</span><span class="n-void"><b>4</b> missing</span>
+          </div>
+          <p class="verdict-line">Five hazard cells, and they are exactly the five an admin console hits in month two. The "free grid" holds until row 101.</p>
+        </div>
+
+        <div class="sc">
+          <h3><a href="https://ui.shadcn.com/docs/components">shadcn/ui</a></h3>
+          <div class="stars">⭐ 119k · nothing paid, plenty to build</div>
+          <div class="bar">
+            <span class="b-ok" style="flex:9"></span><span class="b-addon" style="flex:8"></span><span class="b-void" style="flex:2"></span>
+          </div>
+          <div class="tally">
+            <span><b>9</b> in-box</span><span><b>0</b> paid</span><span><b>8</b> add-on</span><span class="n-void"><b>2</b> missing</span>
+          </div>
+          <p class="verdict-line">Zero hazard tape. Eight of nineteen cells are "here is a guide" — six of them the grid, which the house picks already said you'd build on TanStack Table anyway.</p>
+        </div>
+
+        <div class="sc">
+          <h3><a href="https://mantine.dev/getting-started/">Mantine</a></h3>
+          <div class="stars">⭐ 31k · six holes, one shape</div>
+          <div class="bar">
+            <span class="b-ok" style="flex:13"></span><span class="b-void" style="flex:6"></span>
+          </div>
+          <div class="tally">
+            <span><b>13</b> in-box</span><span><b>0</b> paid</span><span><b>0</b> add-on</span><span class="n-void"><b>6</b> missing</span>
+          </div>
+          <p class="verdict-line">The six black cells are all Block A. It is not six gaps — it is one gap, the data grid, counted six ways. Everything else is MIT.</p>
+        </div>
+
+        <div class="sc">
+          <h3><a href="https://base-ui.com/react/overview/quick-start">Base UI</a></h3>
+          <div class="stars">⭐ 10k · 35 primitives, no product</div>
+          <div class="bar">
+            <span class="b-ok" style="flex:5"></span><span class="b-void" style="flex:14"></span>
+          </div>
+          <div class="tally">
+            <span><b>5</b> in-box</span><span><b>0</b> paid</span><span><b>0</b> add-on</span><span class="n-void"><b>14</b> missing</span>
+          </div>
+          <p class="verdict-line">Fourteen holes. Filling them by hand is, precisely, rebuilding shadcn/ui — which Base UI's own quick-start tells you to go use instead <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup>.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ MONEY ═══════════ -->
+  <section class="money">
+    <div class="wrap">
+      <p class="kicker">The paywall, precisely — MUI X is the only paid surface among the four</p>
+      <div class="price-row">
+        <div class="price">
+          <div class="num"><sup>$</sup>299</div>
+          <div class="unit">per developer · per year</div>
+          <div class="plan">MUI X Pro <sup><a href="https://mui.com/pricing/">[3]</a></sup></div>
+          <ul>
+            <li>Row virtualisation — the free grid stops at 100 rows <sup><a href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/virtualization/virtualization.md">[5]</a></sup></li>
+            <li>Column pinning, tree data, master-detail <sup><a href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/column-pinning/column-pinning.md">[6]</a></sup></li>
+            <li>Date <em>Range</em> Picker <sup><a href="https://mui.com/x/react-date-pickers/date-range-picker/">[10]</a></sup></li>
+            <li>Tree View: DnD reorder, lazy children, virtualisation <sup><a href="https://mui.com/x/react-tree-view/">[8]</a></sup></li>
+            <li>Charts: heatmap, funnel, sankey, zoom/pan, export <sup><a href="https://mui.com/x/react-charts/">[9]</a></sup></li>
+          </ul>
+        </div>
+        <div class="price">
+          <div class="num"><sup>$</sup>599</div>
+          <div class="unit">per developer · per year</div>
+          <div class="plan">MUI X Premium <sup><a href="https://mui.com/pricing/">[3]</a></sup></div>
+          <ul>
+            <li>Row grouping + aggregation <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup></li>
+            <li>Excel export — CSV, print and clipboard stay free <sup><a href="https://mui.com/x/react-data-grid/export/">[7]</a></sup></li>
+            <li>Charts: candlestick, WebGL at scale <sup><a href="https://mui.com/x/react-charts/">[9]</a></sup></li>
+          </ul>
+        </div>
+        <div class="price">
+          <div class="num">×N</div>
+          <div class="unit">concurrent front-end devs</div>
+          <div class="plan">The licence unit <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup></div>
+          <ul>
+            <li>Priced per concurrent developer contributing changes to front-end code — not per app, not per seat in prod</li>
+            <li>Perpetual use of the version you bought, with 12 months of updates</li>
+            <li>The other three kits: $0, MIT, all rows</li>
+          </ul>
+        </div>
+      </div>
+      <p class="fineprint">
+        <b>Read the virtualisation row twice.</b> A free MUI DataGrid renders fine at 100 rows and degrades past that <sup><a href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/virtualization/virtualization.md">[5]</a></sup>. The moment an admin console hits a 5,000-row table, the free-grid argument evaporates → <a href="https://mui.com/pricing/">Pro</a>, for every dev on the team, forever. And this team already chose <a href="https://github.com/TanStack/table">TanStack Table</a> as the house grid — so the invoice buys a DataGrid that gets deleted.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ GAP LIST ═══════════ -->
+  <section class="gaps">
+    <div class="wrap">
+      <p class="kicker">The bill of materials — what each choice forces you to additionally adopt</p>
+      <div class="gap-grid">
+
+        <div class="gap worst">
+          <header>
+            <h3><a href="https://mui.com/pricing/">MUI</a></h3>
+            <span class="cnt">5 deps + a licence</span>
+          </header>
+          <ul class="deps">
+            <li><img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt=""><span class="nm"><a href="https://github.com/react-hook-form/react-hook-form">React Hook Form</a></span> <span class="why">+ Zod — MUI ships inputs, not form state</span> <span class="st">⭐ 45k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=react-dropzone.js.org&sz=128" alt=""><span class="nm"><a href="https://github.com/react-dropzone/react-dropzone">react-dropzone</a></span> <span class="why">no upload surface</span> <span class="st">⭐ 11k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=tiptap.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/ueberdosis/tiptap">Tiptap</a></span> <span class="why">no RTE</span> <span class="st">⭐ 38k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=cmdk.paco.me&sz=128" alt=""><span class="nm"><a href="https://github.com/pacocoursey/cmdk">cmdk</a></span> <span class="why">no command palette</span> <span class="st">⭐ 13k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=notistack.com&sz=128" alt=""><span class="nm"><a href="https://github.com/iamhosseindhv/notistack">notistack</a></span> <span class="why">Snackbar can't stack</span> <span class="st">⭐ 4.1k</span></li>
+          </ul>
+          <footer><span class="paybadge">+ Pro / Premium</span> the day the grid needs virtualisation, pinning, grouping or Excel <sup><a href="https://mui.com/pricing/">[3]</a></sup>.</footer>
+        </div>
+
+        <div class="gap">
+          <header>
+            <h3><a href="https://ui.shadcn.com/docs/components">shadcn/ui</a></h3>
+            <span class="cnt">3 deps + registry code</span>
+          </header>
+          <ul class="deps">
+            <li><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span class="nm"><a href="https://github.com/TanStack/table">TanStack Table</a></span> <span class="why">the data-table page is a guide <sup><a href="https://ui.shadcn.com/docs/components/data-table">[15]</a></sup></span> <span class="st">⭐ 28k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span class="nm"><a href="https://github.com/TanStack/virtual">TanStack Virtual</a></span> <span class="why">long lists</span> <span class="st">⭐ 7k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=tiptap.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/ueberdosis/tiptap">Tiptap</a></span> <span class="why">no RTE</span> <span class="st">⭐ 38k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=128" alt=""><span class="nm"><a href="https://ui.shadcn.com/docs/directory">Community registry</a></span> <span class="why">multi-select, tree, dropzone</span> <span class="st">or DIY</span></li>
+          </ul>
+          <footer>Nothing paid. Sonner, cmdk, Recharts, react-day-picker, Sidebar and the RHF <code>Form</code> wrapper are already in the box <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup>.</footer>
+        </div>
+
+        <div class="gap best">
+          <header>
+            <h3><a href="https://mantine.dev/getting-started/">Mantine</a></h3>
+            <span class="cnt">1 dep — a table</span>
+          </header>
+          <ul class="deps">
+            <li><img src="https://www.google.com/s2/favicons?domain=mantine-react-table.com&sz=128" alt=""><span class="nm"><a href="https://www.mantine-react-table.com/">Mantine React Table</a></span> <span class="why">TanStack v8 inside: virtualisation, grouping, editing <sup><a href="https://www.mantine-react-table.com/">[21]</a></sup></span> <span class="st">⭐ 1.1k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=icflorescu.github.io&sz=128" alt=""><span class="nm"><a href="https://icflorescu.github.io/mantine-datatable/">Mantine DataTable</a></span> <span class="why">lighter, dependency-free, no grouping <sup><a href="https://icflorescu.github.io/mantine-datatable/">[22]</a></sup></span> <span class="st">⭐ 1.2k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span class="nm"><a href="https://github.com/TanStack/table">TanStack Table</a></span> <span class="why">…or wire it to Mantine's <code>Table</code> yourself</span> <span class="st">⭐ 28k</span></li>
+          </ul>
+          <footer>Both wrappers are single-maintainer projects at ~1k stars — price the bus factor in. Everything else ships MIT <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>. Two packages go dead: <code>@mantine/form</code> and <code>@mantine/notifications</code>.</footer>
+        </div>
+
+        <div class="gap worst">
+          <header>
+            <h3><a href="https://base-ui.com/react/overview/quick-start">Base UI</a></h3>
+            <span class="cnt">the whole data layer</span>
+          </header>
+          <ul class="deps">
+            <li><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span class="nm"><a href="https://github.com/TanStack/table">TanStack Table</a></span> <span class="why">no table</span> <span class="st">⭐ 28k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=daypicker.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/gpbl/react-day-picker">react-day-picker</a></span> <span class="why">no dates</span> <span class="st">⭐ 6.8k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=recharts.org&sz=128" alt=""><span class="nm"><a href="https://github.com/recharts/recharts">Recharts</a></span> <span class="why">no charts</span> <span class="st">⭐ 27k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=tiptap.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/ueberdosis/tiptap">Tiptap</a></span> <span class="why">no RTE</span> <span class="st">⭐ 38k</span></li>
+            <li><img src="https://www.google.com/s2/favicons?domain=react-dropzone.js.org&sz=128" alt=""><span class="nm"><a href="https://github.com/react-dropzone/react-dropzone">react-dropzone</a></span> <span class="why">no upload</span> <span class="st">⭐ 11k</span></li>
+          </ul>
+          <footer>Plus tree view and app shell by hand, plus the entire styling layer. 1.0 shipped 11 Dec 2025; v1.6.0 in June 2026 <sup><a href="https://base-ui.com/react/overview/releases">[2]</a></sup>. This list <em>is</em> shadcn/ui, hand-assembled.</footer>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ HEADLESS ═══════════ -->
+  <section class="wrap">
+    <div class="headless">
+      <div class="hl-head">
+        <h3>The cells no kit fills — the ones you keep either way</h3>
+        <p>These are the de-facto answers no kit displaces. Which is exactly why the house-level dependency picks (state, forms, table, toasts) matter more than the kit choice does.</p>
+      </div>
+      <div class="hl-grid">
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="">
+          <div>
+            <div class="role">Table engine</div>
+            <div class="lib"><a href="https://github.com/TanStack/table">TanStack Table</a> <span class="stars">⭐ 28k</span></div>
+            <div class="note">Powers shadcn's data-table <em>and</em> Mantine React Table. v9 is beta as of June 2026 — start on v8 <sup><a href="https://tanstack.com/blog/tanstack-table-v9-taking-form">[24]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="">
+          <div>
+            <div class="role">Virtualisation</div>
+            <div class="lib"><a href="https://github.com/TanStack/virtual">TanStack Virtual</a> <span class="stars">⭐ 7k</span></div>
+            <div class="note">Base UI's own Combobox virtualisation example uses it <sup><a href="https://base-ui.com/react/components/combobox">[23]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128" alt="">
+          <div>
+            <div class="role">Form state</div>
+            <div class="lib"><a href="https://github.com/react-hook-form/react-hook-form">React Hook Form</a> <span class="stars">⭐ 45k</span></div>
+            <div class="note">shadcn's <code>Form</code> is an RHF wrapper; MUI, Mantine and Base UI inputs all bind via <code>Controller</code> <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=zod.dev&sz=128" alt="">
+          <div>
+            <div class="role">Schema validation</div>
+            <div class="lib"><a href="https://github.com/colinhacks/zod">Zod</a> <span class="stars">⭐ 43k</span></div>
+            <div class="note">No kit ships validation. None. <sup><a href="https://github.com/colinhacks/zod">[28]</a></sup></div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=sonner.emilkowal.ski&sz=128" alt="">
+          <div>
+            <div class="role">Toasts</div>
+            <div class="lib"><a href="https://github.com/emilkowalski/sonner">Sonner</a> <span class="stars">⭐ 13k</span></div>
+            <div class="note">shadcn's toast <em>is</em> Sonner <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=cmdk.paco.me&sz=128" alt="">
+          <div>
+            <div class="role">Command palette</div>
+            <div class="lib"><a href="https://github.com/pacocoursey/cmdk">cmdk</a> <span class="stars">⭐ 13k</span></div>
+            <div class="note">Only Mantine has a first-party equivalent (Spotlight) <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=tiptap.dev&sz=128" alt="">
+          <div>
+            <div class="role">Rich text</div>
+            <div class="lib"><a href="https://github.com/ueberdosis/tiptap">Tiptap</a> <span class="stars">⭐ 38k</span></div>
+            <div class="note">Zero kits ship an RTE; <code>@mantine/tiptap</code> is a wrapper around this <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>.</div>
+          </div>
+        </div>
+        <div class="hl">
+          <img src="https://www.google.com/s2/favicons?domain=recharts.org&sz=128" alt="">
+          <div>
+            <div class="role">Charts</div>
+            <div class="lib"><a href="https://github.com/recharts/recharts">Recharts</a> <span class="stars">⭐ 27k</span></div>
+            <div class="note">Both shadcn Charts and <code>@mantine/charts</code> are Recharts skins <sup><a href="https://github.com/recharts/recharts">[32]</a></sup>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ HOUSE PICKS ═══════════ -->
+  <section class="house">
+    <div class="wrap">
+      <p class="kicker">Against the house picks — state, forms, table and toasts are already settled</p>
+      <div class="house-scroll">
+        <div class="house-grid">
+          <div class="hh">Kit</div>
+          <div class="hh">vs house table — TanStack</div>
+          <div class="hh">vs house forms — RHF + Zod</div>
+          <div class="hh">vs house toasts — Sonner</div>
+
+          <div class="kitname"><a href="https://mui.com/pricing/" style="text-decoration:none;">MUI</a></div>
+          <div><span class="verdict-tag vt-conflict">Conflict</span><p>DataGrid is MUI X's whole commercial value and a full replacement for TanStack Table <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup>. Paying $299–599/dev/yr for a grid you have already chosen not to use is the single worst outcome in this decision.</p></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p>Inputs bind via <code>Controller</code>.</p></div>
+          <div><span class="verdict-tag vt-dup">Duplicate-ish</span><p>Snackbar can't stack anyway <sup><a href="https://mui.com/material-ui/react-snackbar/">[12]</a></sup>.</p></div>
+
+          <div class="kitname"><a href="https://ui.shadcn.com/docs/components" style="text-decoration:none;">shadcn/ui</a></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p>Its data-table <em>is</em> TanStack Table, styled <sup><a href="https://ui.shadcn.com/docs/components/data-table">[15]</a></sup>.</p></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p><code>Form</code> is the RHF wrapper <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup>.</p></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p>It <em>is</em> Sonner <sup><a href="https://ui.shadcn.com/docs/components">[14]</a></sup>.</p></div>
+
+          <div class="kitname"><a href="https://mantine.dev/getting-started/" style="text-decoration:none;">Mantine</a></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p>No grid to conflict with; MRT is TanStack Table anyway <sup><a href="https://www.mantine-react-table.com/">[21]</a></sup>.</p></div>
+          <div><span class="verdict-tag vt-dup">Duplicate</span><p><code>@mantine/form</code> goes unused <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>.</p></div>
+          <div><span class="verdict-tag vt-dup">Duplicate</span><p><code>@mantine/notifications</code> goes unused <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>.</p></div>
+
+          <div class="kitname"><a href="https://base-ui.com/react/overview/quick-start" style="text-decoration:none;">Base UI</a></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p>Ships nothing to conflict with <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup>.</p></div>
+          <div><span class="verdict-tag vt-comp">Complement</span><p><code>Field</code> / <code>Form</code> are validation-agnostic <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup>.</p></div>
+          <div><span class="verdict-tag vt-dup">Overlap</span><p>Its own Toast primitive <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup>.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ TAKEAWAY ═══════════ -->
+  <section class="takeaway">
+    <div class="wrap">
+      <p class="kicker">If you read one thing</p>
+      <ul class="take-list">
+        <li><span class="idx">01</span><span>Adopting <b>MUI</b> while TanStack Table is the house grid means <b>paying for, and not using, the thing MUI sells</b> <sup><a href="https://mui.com/pricing/">[3]</a></sup> <sup><a href="https://mui.com/x/introduction/licensing/">[4]</a></sup>.</span></li>
+        <li><span class="idx">02</span><span>Adopting <b>Mantine</b> means one extra dependency (a table) and two dead packages — <code>@mantine/form</code>, <code>@mantine/notifications</code>. Cheap <sup><a href="https://mantine.dev/getting-started/">[18]</a></sup>.</span></li>
+        <li><span class="idx">03</span><span>Adopting <b>shadcn/ui</b> means adopting Base UI <sup><a href="https://ui.shadcn.com/docs/changelog/2026-07-base-ui-default">[13]</a></sup> and building the grid from TanStack Table <sup><a href="https://ui.shadcn.com/docs/components/data-table">[15]</a></sup> — which is what the house picks already said you would do.</span></li>
+        <li><span class="idx">04</span><span>Adopting <b>raw Base UI</b> means hand-building tree, dropzone, dates, charts and app shell that shadcn or Mantine would have handed you <sup><a href="https://base-ui.com/react/overview/quick-start">[1]</a></sup>.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════ SIBLINGS ═══════════ -->
+  <section class="siblings">
+    <div class="wrap">
+      <p class="kicker">The other five angles</p>
+      <div class="sib-grid">
+        <a class="sib" href="../../candidate-profiles-maturity-governance/">
+          <div class="d">survey</div>
+          <div class="t">MUI vs shadcn/ui vs Mantine vs Base UI: the 2026 maturity and governance baseline</div>
+          <div class="s">The four kits are not the same category — and shadcn/ui now defaults to Base UI, making MUI's primitive layer the foundation almost everyone now ships on.</div>
+        </a>
+        <a class="sib" href="../../styling-engine-tailwind-4-interop/">
+          <div class="d">expedition</div>
+          <div class="t">Styling engine and Tailwind 4 interop: which kit survives the cascade</div>
+          <div class="s">Tailwind 4 layers every utility, so a kit that ships unlayered CSS silently outranks it. Plus a bigger Nx <code>@source</code> tax underneath all four.</div>
+        </a>
+        <a class="sib" href="../../accessibility-headless-primitive-foundations/">
+          <div class="d">survey</div>
+          <div class="t">A11y &amp; primitive foundations: what each kit actually inherits</div>
+          <div class="s">The real choice is which primitive foundation you inherit — and none of the four publishes a VPAT.</div>
+        </a>
+        <a class="sib" href="../../theming-design-tokens-branding-reach/">
+          <div class="d">survey</div>
+          <div class="t">Theming, tokens and brand reach</div>
+          <div class="s">shadcn and Base UI put brand tokens directly in <code>@theme</code>; MUI and Mantine keep a JS theme object as source of truth.</div>
+        </a>
+        <a class="sib" href="../../nx-21-monorepo-build-ergonomics/">
+          <div class="d">recon</div>
+          <div class="t">Nx 21 build ergonomics in a shared itenium-ui library</div>
+          <div class="s">The copy-in model works in a shared Nx lib — but only if you own the plumbing: a components.json, a private registry, and <code>@source</code> globs.</div>
+        </a>
+      </div>
+      <a class="parent-link" href="../../">
+        <div class="d">↑ Back to the expedition</div>
+        <div class="t">Which React UI component kit should itenium-ui adopt in 2026?</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══════════ SOURCES ═══════════ -->
+  <section class="sources">
+    <div class="wrap">
+      <p class="kicker">41 sources — all primary docs</p>
+      <div class="src-grid">
+        <a class="src" href="https://base-ui.com/react/overview/quick-start"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=base-ui.com&sz=64" alt=""><span class="ti">Base UI — Quick start (component inventory)</span></a>
+        <a class="src" href="https://base-ui.com/react/overview/releases"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=base-ui.com&sz=64" alt=""><span class="ti">Base UI — Releases (1.0.0 stable, 1.6.0)</span></a>
+        <a class="src" href="https://mui.com/pricing/"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">MUI — Pricing ($299 Pro / $599 Premium)</span></a>
+        <a class="src" href="https://mui.com/x/introduction/licensing/"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">MUI X — Licensing: Community vs Pro vs Premium</span></a>
+        <a class="src" href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/virtualization/virtualization.md"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">MUI X Data Grid — Virtualization (Pro, 100-row cap) ⭐ 5.8k</span></a>
+        <a class="src" href="https://github.com/mui/mui-x/blob/master/docs/data/data-grid/column-pinning/column-pinning.md"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">MUI X Data Grid — Column pinning (Pro) ⭐ 5.8k</span></a>
+        <a class="src" href="https://mui.com/x/react-data-grid/export/"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">MUI X Data Grid — Export (CSV free, Excel Premium)</span></a>
+        <a class="src" href="https://mui.com/x/react-tree-view/"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">MUI X — Tree View (Community vs Pro)</span></a>
+        <a class="src" href="https://mui.com/x/react-charts/"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">MUI X — Charts (Community / Pro / Premium)</span></a>
+        <a class="src" href="https://mui.com/x/react-date-pickers/date-range-picker/"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">MUI X — Date Range Picker (Pro plan)</span></a>
+        <a class="src" href="https://mui.com/material-ui/all-components/"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">Material UI — All components</span></a>
+        <a class="src" href="https://mui.com/material-ui/react-snackbar/"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=mui.com&sz=64" alt=""><span class="ti">Material UI — Snackbar (docs recommend notistack)</span></a>
+        <a class="src" href="https://ui.shadcn.com/docs/changelog/2026-07-base-ui-default"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=64" alt=""><span class="ti">shadcn/ui — Base UI is the default (July 2026)</span></a>
+        <a class="src" href="https://ui.shadcn.com/docs/components"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=64" alt=""><span class="ti">shadcn/ui — Components index</span></a>
+        <a class="src" href="https://ui.shadcn.com/docs/components/data-table"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=64" alt=""><span class="ti">shadcn/ui — Data Table (a guide, not a component)</span></a>
+        <a class="src" href="https://ui.shadcn.com/docs/components/date-picker"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=64" alt=""><span class="ti">shadcn/ui — Date Picker (Popover + react-day-picker)</span></a>
+        <a class="src" href="https://ui.shadcn.com/docs/directory"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=64" alt=""><span class="ti">shadcn/ui — Community registry directory</span></a>
+        <a class="src" href="https://mantine.dev/getting-started/"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=mantine.dev&sz=64" alt=""><span class="ti">Mantine — Getting started (package inventory)</span></a>
+        <a class="src" href="https://mantine.dev/core/tree/"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=mantine.dev&sz=64" alt=""><span class="ti">Mantine — Tree component</span></a>
+        <a class="src" href="https://mantine.dev/dates/date-picker-input/"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=mantine.dev&sz=64" alt=""><span class="ti">Mantine — DatePickerInput (type="range")</span></a>
+        <a class="src" href="https://www.mantine-react-table.com/"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=mantine-react-table.com&sz=64" alt=""><span class="ti">Mantine React Table</span></a>
+        <a class="src" href="https://icflorescu.github.io/mantine-datatable/"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=icflorescu.github.io&sz=64" alt=""><span class="ti">Mantine DataTable</span></a>
+        <a class="src" href="https://base-ui.com/react/components/combobox"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=base-ui.com&sz=64" alt=""><span class="ti">Base UI — Combobox (multiple, async, virtualised)</span></a>
+        <a class="src" href="https://tanstack.com/blog/tanstack-table-v9-taking-form"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=64" alt=""><span class="ti">TanStack — Table v9 beta announcement</span></a>
+        <a class="src" href="https://github.com/TanStack/table"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">TanStack Table ⭐ 28k</span></a>
+        <a class="src" href="https://github.com/TanStack/virtual"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">TanStack Virtual ⭐ 7k</span></a>
+        <a class="src" href="https://github.com/react-hook-form/react-hook-form"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">React Hook Form ⭐ 45k</span></a>
+        <a class="src" href="https://github.com/colinhacks/zod"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Zod ⭐ 43k</span></a>
+        <a class="src" href="https://github.com/emilkowalski/sonner"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Sonner ⭐ 13k</span></a>
+        <a class="src" href="https://github.com/pacocoursey/cmdk"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">cmdk ⭐ 13k</span></a>
+        <a class="src" href="https://github.com/ueberdosis/tiptap"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Tiptap ⭐ 38k</span></a>
+        <a class="src" href="https://github.com/recharts/recharts"><span class="n">32</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Recharts ⭐ 27k</span></a>
+        <a class="src" href="https://github.com/react-dropzone/react-dropzone"><span class="n">33</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">react-dropzone ⭐ 11k</span></a>
+        <a class="src" href="https://github.com/gpbl/react-day-picker"><span class="n">34</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">react-day-picker ⭐ 6.8k</span></a>
+        <a class="src" href="https://github.com/iamhosseindhv/notistack"><span class="n">35</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">notistack ⭐ 4.1k</span></a>
+        <a class="src" href="https://github.com/mui/material-ui"><span class="n">36</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Material UI ⭐ 99k</span></a>
+        <a class="src" href="https://github.com/mui/base-ui"><span class="n">37</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Base UI ⭐ 10k</span></a>
+        <a class="src" href="https://github.com/shadcn-ui/ui"><span class="n">38</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">shadcn/ui ⭐ 119k</span></a>
+        <a class="src" href="https://github.com/mantinedev/mantine"><span class="n">39</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Mantine ⭐ 31k</span></a>
+        <a class="src" href="https://github.com/KevinVandy/mantine-react-table"><span class="n">40</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Mantine React Table ⭐ 1.1k</span></a>
+        <a class="src" href="https://github.com/icflorescu/mantine-datatable"><span class="n">41</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="ti">Mantine DataTable ⭐ 1.2k</span></a>
+      </div>
+    </div>
+  </section>
+
+</div>
