@@ -1,0 +1,967 @@
+---
+layout: view
+view_name: "Dev Loop"
+view_of: ../
+title: "What a BFF costs you every day: OpenAPI codegen and the local dev loop — Dev Loop"
+---
+
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+<style>
+  .tmux {
+    --bg:        #0b0e14;
+    --panel:     #11141c;
+    --panel-2:   #161a24;
+    --border:    #262c3a;
+    --fg:        #c3ccdb;
+    --dim:       #6b7489;
+    --dimmer:    #4a5164;
+    --green:     #7ee787;
+    --red:       #ff7b72;
+    --amber:     #e3b341;
+    --cyan:      #56d4dd;
+    --blue:      #79c0ff;
+    --magenta:   #d2a8ff;
+    --white:     #e6edf3;
+
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 0 5rem;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tmux *  { box-sizing: border-box; }
+  .tmux a  { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(121,192,255,.28); }
+  .tmux a:hover { border-bottom-color: var(--blue); background: rgba(121,192,255,.08); }
+  .tmux sup a { border: 0; color: var(--dim); font-size: 10px; padding: 0 1px; }
+  .tmux sup a:hover { color: var(--cyan); background: none; }
+
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ── tmux status bar ───────────────────────────────── */
+  .statusbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: stretch;
+    background: #05070b;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 500;
+    padding-left: 168px;              /* clears the fixed ← Default view pill */
+    overflow: hidden; white-space: nowrap;
+  }
+  .sb-seg { padding: 7px 14px; display: flex; align-items: center; gap: .5rem; }
+  .sb-session { background: var(--green); color: #05070b; font-weight: 700; }
+  .sb-win  { color: var(--dim); }
+  .sb-win.on { background: var(--panel-2); color: var(--white); box-shadow: inset 0 -2px 0 var(--cyan); }
+  .sb-spacer { flex: 1; }
+  .sb-right { color: var(--dimmer); border-left: 1px solid var(--border); }
+  @media (max-width: 860px) { .statusbar { padding-left: 0; font-size: 11px; } .sb-hideable { display: none; } }
+
+  /* ── MOTD banner ───────────────────────────────────── */
+  .motd { padding: 4.5rem 0 3.5rem; border-bottom: 1px dashed var(--border); }
+  .motd-kicker { color: var(--dim); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 1.75rem; }
+  .motd-kicker b { color: var(--amber); font-weight: 700; }
+  .motd h1 {
+    font-size: clamp(28px, 4.4vw, 50px); line-height: 1.16; font-weight: 800;
+    color: var(--white); margin: 0 0 1.75rem; letter-spacing: -.02em; max-width: 22ch;
+  }
+  .motd h1 .hl { color: var(--green); }
+  .motd h1 .strike { color: var(--red); }
+  .motd-lede { max-width: 74ch; color: var(--fg); font-size: 15px; line-height: 1.75; }
+  .motd-lede + .motd-lede { margin-top: 1rem; }
+  .motd-lede b { color: var(--white); font-weight: 700; }
+
+  .headline-nums { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 2.75rem; background: var(--border); border: 1px solid var(--border); }
+  .hn { flex: 1 1 150px; background: var(--panel); padding: 1.1rem 1.25rem; }
+  .hn-v { font-size: 30px; font-weight: 800; line-height: 1.1; color: var(--white); }
+  .hn-v.g { color: var(--green); } .hn-v.r { color: var(--red); } .hn-v.a { color: var(--amber); }
+  .hn-l { font-size: 11px; color: var(--dim); margin-top: .35rem; letter-spacing: .04em; }
+
+  /* ── generic terminal block ────────────────────────── */
+  .term { border: 1px solid var(--border); background: var(--panel); margin: 0; overflow: hidden; }
+  .term-bar {
+    background: var(--panel-2); border-bottom: 1px solid var(--border);
+    padding: 6px 12px; font-size: 11px; color: var(--dim);
+    display: flex; align-items: center; gap: .6rem; white-space: nowrap; overflow: hidden;
+  }
+  .term-bar .idx { color: var(--dimmer); }
+  .term-bar .ttl { color: var(--fg); font-weight: 500; }
+  .term-bar .tag { margin-left: auto; font-size: 10px; letter-spacing: .06em; }
+  .term-body { padding: 1rem 1.15rem; overflow-x: auto; }
+  .term-body pre { margin: 0; font: inherit; white-space: pre; }
+
+  /* ── section scaffolding ───────────────────────────── */
+  .sec { padding: 3.75rem 0 0; }
+  .sec-h { display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .sec-h .p { color: var(--green); font-weight: 700; }
+  .sec-h h2 { font-size: 19px; font-weight: 700; color: var(--white); margin: 0; letter-spacing: -.01em; }
+  .sec-h .cmt { color: var(--dimmer); font-size: 12px; }
+  .note { color: var(--dim); font-size: 13px; line-height: 1.75; max-width: 82ch; margin: 1.15rem 0 0; }
+  .note b { color: var(--white); } .note em { color: var(--amber); font-style: normal; }
+
+  /* colors as utilities */
+  .c-g { color: var(--green); } .c-r { color: var(--red); } .c-a { color: var(--amber); }
+  .c-c { color: var(--cyan); } .c-b { color: var(--blue); } .c-m { color: var(--magenta); }
+  .c-d { color: var(--dim); } .c-dd { color: var(--dimmer); } .c-w { color: var(--white); }
+  .bold { font-weight: 700; }
+
+  /* ── diff ──────────────────────────────────────────── */
+  .diff .add { color: var(--green); background: rgba(126,231,135,.07); display: block; }
+  .diff .del { color: var(--red);   background: rgba(255,123,114,.07); display: block; }
+  .diff .ctx { color: var(--dim); display: block; }
+  .diff .hunk { color: var(--magenta); display: block; }
+  .diff .fh { color: var(--white); font-weight: 700; display: block; }
+
+  /* ── the two sessions ──────────────────────────────── */
+  .sessions { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 1000px) { .sessions { grid-template-columns: 1fr; } }
+
+  .sess { border: 1px solid var(--border); background: var(--panel); }
+  .sess.bff { border-color: #3a4a3f; box-shadow: 0 0 0 1px rgba(126,231,135,.06); }
+  .sess-head { padding: .9rem 1.15rem; border-bottom: 1px solid var(--border); background: var(--panel-2); display: flex; align-items: center; gap: .75rem; }
+  .sess-head .nm { font-weight: 700; color: var(--white); font-size: 14px; }
+  .sess-head .ct { margin-left: auto; font-size: 11px; color: var(--dim); }
+  .sess-body { padding: .85rem; display: flex; flex-direction: column; gap: .85rem; }
+
+  .pane { border: 1px solid var(--border); background: #0d1017; }
+  .pane-bar { display: flex; align-items: center; gap: .55rem; padding: 5px 10px; background: #12161f; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .pane-bar .n { color: var(--dimmer); }
+  .pane-bar .cmd { color: var(--cyan); font-weight: 500; }
+  .pane-bar .port { margin-left: auto; color: var(--dimmer); font-size: 10px; }
+  .pane-out { padding: .7rem .85rem; font-size: 12px; line-height: 1.65; overflow-x: auto; }
+  .pane-out pre { margin: 0; font: inherit; white-space: pre; }
+
+  .pane.extra { border-color: var(--green); position: relative; background: #0e1512; }
+  .pane.extra .pane-bar { background: rgba(126,231,135,.09); border-bottom-color: rgba(126,231,135,.25); }
+  .pane.extra .pane-bar .cmd { color: var(--green); font-weight: 700; }
+  .extra-flag {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--green); color: #06120a; font-size: 10px; font-weight: 700;
+    letter-spacing: .1em; padding: 4px 10px;
+  }
+  .ghost {
+    border: 1px dashed var(--dimmer); background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(107,116,137,.05) 6px 12px);
+    padding: .85rem; text-align: center; color: var(--dimmer); font-size: 11px; letter-spacing: .06em;
+  }
+
+  /* tmux status strip under each session */
+  .strip { display: flex; flex-wrap: wrap; background: #05070b; border-top: 1px solid var(--border); font-size: 11px; }
+  .strip-seg { padding: 7px 11px; display: flex; align-items: center; gap: .4rem; border-right: 1px solid var(--border); color: var(--dim); }
+  .strip-seg .v { font-weight: 700; }
+  .strip-seg .v.ok  { color: var(--green); }
+  .strip-seg .v.no  { color: var(--red); }
+  .strip-seg:last-child { border-right: 0; margin-left: auto; }
+  .strip-count { background: var(--panel-2); color: var(--white); font-weight: 700; }
+  .strip-count.n4 { background: var(--green); color: #06120a; }
+
+  /* ── exit-code ladder ──────────────────────────────── */
+  .ladder { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .rung { background: var(--panel); padding: 1.1rem 1.25rem; display: grid; grid-template-columns: 88px 1fr; gap: 1.25rem; align-items: start; }
+  @media (max-width: 720px) { .rung { grid-template-columns: 1fr; gap: .6rem; } }
+  .rung-code { font-weight: 800; font-size: 12px; letter-spacing: .06em; padding-top: 2px; }
+  .rung-code.e0 { color: var(--green); } .rung-code.e1 { color: var(--amber); } .rung-code.e2 { color: var(--red); }
+  .rung-t { color: var(--white); font-weight: 700; margin-bottom: .3rem; font-size: 14px; }
+  .rung-t .sh { color: var(--dim); font-weight: 400; }
+  .rung-d { color: var(--dim); font-size: 13px; line-height: 1.7; }
+  .rung-d b { color: var(--fg); }
+  .rung.hot { background: #16120e; }
+
+  /* ── test-runner rows ──────────────────────────────── */
+  .trow { display: grid; grid-template-columns: 22px 150px 1fr auto; gap: 1rem; align-items: baseline; padding: .55rem 0; border-bottom: 1px solid #1b2029; font-size: 13px; }
+  .trow:last-of-type { border-bottom: 0; }
+  @media (max-width: 780px) { .trow { grid-template-columns: 22px 1fr; } .trow .tfix, .trow .tstar { grid-column: 2; } }
+  .trow .tname { color: var(--white); font-weight: 700; }
+  .trow .tfix  { color: var(--dim); }
+  .trow .tstar { color: var(--dimmer); font-size: 11px; white-space: nowrap; }
+
+  /* ── delta table ───────────────────────────────────── */
+  .delta { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .delta td { padding: .62rem .9rem; border-bottom: 1px solid #1b2029; vertical-align: top; }
+  .delta tr:last-child td { border-bottom: 0; }
+  .delta .k { color: var(--fg); white-space: nowrap; width: 1%; }
+  .delta .s { width: 1%; font-weight: 800; text-align: center; padding-right: 0; }
+  .delta .v { color: var(--dim); }
+  .delta .v b { color: var(--white); font-weight: 700; }
+  .delta tr.good td { background: rgba(126,231,135,.035); }
+  .delta tr.bad  td { background: rgba(255,123,114,.045); }
+
+  /* ── the two rules ─────────────────────────────────── */
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 860px) { .rules { grid-template-columns: 1fr; } }
+  .rule { border: 1px solid var(--border); border-left: 3px solid var(--amber); background: var(--panel); padding: 1.4rem 1.5rem; }
+  .rule-n { color: var(--amber); font-size: 11px; font-weight: 700; letter-spacing: .12em; margin-bottom: .7rem; }
+  .rule-t { color: var(--white); font-size: 16px; font-weight: 800; line-height: 1.4; margin-bottom: .7rem; }
+  .rule-d { color: var(--dim); font-size: 13px; line-height: 1.75; }
+  .rule-d b { color: var(--fg); }
+
+  /* ── sources ───────────────────────────────────────── */
+  .srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .src { background: var(--panel); padding: .8rem .95rem; display: flex; gap: .7rem; align-items: flex-start; }
+  .src img { width: 16px; height: 16px; border-radius: 3px; margin-top: 3px; flex: none; background: var(--panel-2); }
+  .src .sn { color: var(--dimmer); font-size: 11px; flex: none; margin-top: 2px; width: 20px; }
+  .src-b { min-width: 0; }
+  .src-t { font-size: 12px; font-weight: 500; line-height: 1.45; }
+  .src-t a { color: var(--fg); border: 0; }
+  .src-t a:hover { color: var(--cyan); background: none; }
+  .src-m { color: var(--dimmer); font-size: 10px; margin-top: .2rem; letter-spacing: .04em; }
+
+  /* ── siblings ──────────────────────────────────────── */
+  .sibs { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .sib { background: var(--panel); padding: .85rem 1rem; display: grid; grid-template-columns: 96px 1fr; gap: 1rem; align-items: baseline; }
+  @media (max-width: 720px) { .sib { grid-template-columns: 1fr; gap: .3rem; } }
+  .sib .d { font-size: 10px; letter-spacing: .1em; color: var(--dimmer); text-transform: uppercase; }
+  .sib .d.expedition { color: var(--magenta); }
+  .sib .d.survey { color: var(--cyan); }
+  .sib .d.recon { color: var(--dimmer); }
+  .sib-t a { color: var(--white); font-weight: 700; font-size: 13px; border: 0; }
+  .sib-t a:hover { color: var(--cyan); }
+  .sib-s { color: var(--dim); font-size: 12px; margin-top: .25rem; line-height: 1.6; }
+  .sib.self { background: var(--panel-2); }
+  .sib.self .sib-t { color: var(--green); font-weight: 700; font-size: 13px; }
+
+  .eof { margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--border); color: var(--dimmer); font-size: 11px; display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+</style>
+
+<div class="tmux">
+
+  <!-- ══ tmux status bar ══════════════════════════════ -->
+  <div class="statusbar">
+    <div class="sb-seg sb-session">◧ bff-vs-spa</div>
+    <div class="sb-seg sb-win on">0:dev-loop*</div>
+    <div class="sb-seg sb-win sb-hideable">1:codegen</div>
+    <div class="sb-seg sb-win sb-hideable">2:traps</div>
+    <div class="sb-seg sb-win sb-hideable">3:sources</div>
+    <div class="sb-spacer"></div>
+    <div class="sb-seg sb-right sb-hideable">survey · 27 citations · 13 min</div>
+    <div class="sb-seg sb-right">2026-07-14</div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ══ MOTD ═══════════════════════════════════════ -->
+    <section class="motd">
+      <div class="motd-kicker">itenium-ui · admin console · <b>what a BFF costs you every day</b></div>
+      <h1>The codegen never notices.<br><span class="hl">You notice one extra pane.</span></h1>
+      <p class="motd-lede">
+        A <b>path-preserving</b> BFF is <b>codegen-neutral</b>. The OpenAPI document is unchanged. The generated
+        client is <b>byte-identical</b>. Two config lines move — <span class="c-c">baseUrl</span> and
+        <span class="c-c">credentials: 'include'</span> — and that is the entire delta on the codegen axis
+        <sup><a href="https://openapi-ts.dev/openapi-fetch/api">[15]</a></sup>.
+      </p>
+      <p class="motd-lede">
+        The real daily bill is paid in the terminal, not the build: <b>one extra process</b>, <b>one four-route
+        Vite proxy</b>, and the <b class="c-r">loss of Swagger UI's "Try it out"</b> for cookie-authenticated
+        endpoints <sup><a href="https://swagger.io/docs/specification/v3_0/authentication/cookie-authentication/">[11]</a></sup>.
+        Let the BFF start <em>composing</em> per-screen DTOs instead of proxying and you inherit a second OpenAPI
+        document and a merge problem — <b class="c-r">that</b> is where it gets genuinely expensive
+        <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup>.
+      </p>
+
+      <div class="headline-nums">
+        <div class="hn"><div class="hn-v g">+1</div><div class="hn-l">process to run</div></div>
+        <div class="hn"><div class="hn-v">4</div><div class="hn-l">Vite proxy routes</div></div>
+        <div class="hn"><div class="hn-v g">0</div><div class="hn-l">lines of generated code changed</div></div>
+        <div class="hn"><div class="hn-v a">~50</div><div class="hn-l">hand-written lines, once</div></div>
+        <div class="hn"><div class="hn-v r">1</div><div class="hn-l">debugging tool broken</div></div>
+        <div class="hn"><div class="hn-v g">−1</div><div class="hn-l">CORS config, deleted</div></div>
+      </div>
+    </section>
+
+    <!-- ══ 1 · THE DIFF ═══════════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>git diff — everything the BFF touches</h2>
+        <span class="cmt"># the spec and the generated client are not in this list</span>
+      </div>
+
+      <div class="term diff">
+        <div class="term-bar"><span class="idx">0:</span><span class="ttl">git diff --stat spa..bff</span><span class="tag c-dd">5 files</span></div>
+        <div class="term-body"><pre><span class="ctx"> openapi.json                  |  <span class="c-g bold">0</span>            <span class="c-dd">← the document is untouched. path-preserving proxy. </span><span class="c-dd">[3]</span></span>
+<span class="ctx"> src/api/schema.d.ts           |  <span class="c-g bold">0</span>            <span class="c-dd">← generated. byte-identical. codegen never ran differently.</span></span>
+<span class="ctx"> src/api/client.ts             |  3 <span class="c-g">++</span><span class="c-r">-</span>          <span class="c-dd">← two config lines. this is the whole codegen story.</span></span>
+<span class="ctx"> vite.config.ts                |  8 <span class="c-g">++++++++</span>    <span class="c-dd">← the proxy block. 4 routes.</span></span>
+<span class="ctx"> src/auth/bff.ts               | 52 <span class="c-g">+++++++++++</span> <span class="c-dd">← new. hand-written, once. /bff/user|login|logout </span><span class="c-dd">[4]</span></span>
+<span class="ctx"> src/api/tokenRefresh.ts       | 41 <span class="c-r">-----------</span> <span class="c-dd">← DELETED. no token store, no refresh race.</span></span>
+<span class="ctx"> src/Api/Program.cs            |  6 <span class="c-r">------</span>      <span class="c-dd">← DELETED. AddCors(...) is not needed any more. </span><span class="c-dd">[1]</span></span></pre></div>
+      </div>
+
+      <div style="height:1.5rem"></div>
+
+      <div class="term diff">
+        <div class="term-bar"><span class="idx">1:</span><span class="ttl">git diff src/api/client.ts</span><span class="tag c-g">+2 −1</span></div>
+        <div class="term-body"><pre><span class="fh">--- a/src/api/client.ts</span>
+<span class="fh">+++ b/src/api/client.ts</span>
+<span class="hunk">@@ -1,9 +1,10 @@</span>
+<span class="ctx"> import createClient from "openapi-fetch";</span>
+<span class="ctx"> import type { paths } from "./schema";   <span class="c-dd">// generated from openapi.json — NOT REGENERATED</span></span>
+<span class="ctx"> </span>
+<span class="ctx"> export const api = createClient&lt;paths&gt;({</span>
+<span class="del">-  baseUrl: "https://localhost:7245",</span>
+<span class="del">-  headers: { Authorization: `Bearer ${tokenStore.get()}` },</span>
+<span class="add">+  baseUrl: "/",                    <span style="color:#4a5164">// same origin. Vite proxies it.</span></span>
+<span class="add">+  credentials: "include",          <span style="color:#4a5164">// the httpOnly BFF session cookie</span></span>
+<span class="add">+  headers: { "X-CSRF": "1" },      <span style="color:#4a5164">// required on every BFF route [3]</span></span>
+<span class="ctx"> });</span></pre></div>
+      </div>
+
+      <p class="note">
+        That is it. <b>Every generator already has this hook</b> — it is the same hook the bearer token would
+        have used, and what flows through it gets <em>strictly simpler</em>: a constant instead of a token you
+        must acquire, cache, refresh, and race-condition-proof. And because .NET 10 writes the spec to disk at
+        <b>build time</b> (<span class="c-c">GetDocument.Insider</span>), the codegen pipeline never touches a
+        live server — so it never traverses the BFF, and never has to authenticate at all
+        <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">[9]</a></sup>.
+        <b>The BFF is invisible to codegen.</b>
+      </p>
+    </section>
+
+    <!-- ══ 2 · EXIT CODES ═════════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>the shape of the proxy decides everything</h2>
+        <span class="cmt"># three BFF shapes, in ascending order of pain</span>
+      </div>
+
+      <div class="ladder">
+        <div class="rung">
+          <div class="rung-code e0">exit 0<br><span class="c-dd" style="font-weight:400">free</span></div>
+          <div>
+            <div class="rung-t">Transparent proxy, path-preserving <span class="sh">— /api/* → API /api/*</span></div>
+            <div class="rung-d">
+              The document is still the API's own. The generated client is unchanged. Only <b>baseUrl</b> (now
+              relative) and <b>credentials: 'include'</b> move. Configure the route as
+              <span class="c-c">MapRemoteBffApiEndpoint("/api", new Uri("https://remoteHost/api"))</span> and the
+              paths line up with nothing to do in codegen. <b>A free, deliberate choice at day zero</b> — retrofitting
+              it later is not. <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[3]</a></sup>
+            </div>
+          </div>
+        </div>
+
+        <div class="rung hot">
+          <div class="rung-code e1">exit 1<br><span class="c-dd" style="font-weight:400">warn</span></div>
+          <div>
+            <div class="rung-t">Proxy with a prefix change <span class="sh">— /api/users → https://api/users</span></div>
+            <div class="rung-d">
+              <b>This is Duende BFF's <em>default</em> shape</b>, and the one people trip over:
+              <span class="c-c">MapRemoteBffApiEndpoint("/api/users", new Uri("https://remoteHost/users"))</span>
+              maps a local path onto a <em>different</em> remote path. The downstream document says
+              <span class="c-c">/users</span>; the browser must call <span class="c-c">/api/users</span>. Fixable
+              with the generator's baseUrl prefix — <b>if the prefix is uniform</b>. Duende put it plainly:
+              <span class="c-a">"The server URLs in these documents represent the direct URL to the API. Clients
+              shouldn't access the API directly but through the BFF."</span>
+              <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup>
+            </div>
+          </div>
+        </div>
+
+        <div class="rung">
+          <div class="rung-code e2">exit 2<br><span class="c-dd" style="font-weight:400">fatal</span></div>
+          <div>
+            <div class="rung-t">Composing BFF <span class="sh">— aggregation, per-screen DTOs</span></div>
+            <div class="rung-d">
+              <b class="c-r">Two OpenAPI documents</b>, or a merged one you must build. Two generated clients, or a
+              document-merge step in CI. Your options: a runtime <span class="c-c">OpenApiDocumentCombiner</span> in
+              the BFF that rewrites <b>paths</b>, rewrites <b>servers</b> and strips <b>securitySchemes</b>
+              <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup>;
+              or <a href="https://github.com/andreytreyt/yarp-swagger">yarp-swagger</a> ⭐ 108 — a load-bearing
+              build-chain dependency at 108 stars, and
+              <a href="https://github.com/dotnet/yarp">YARP</a> itself ships <b>no</b> built-in OpenAPI aggregation
+              <sup><a href="https://github.com/andreytreyt/yarp-swagger">[23]</a></sup>; or .NET 10 document
+              transformers, which only transform <em>your own</em> app's document — merging is still hand-rolled
+              <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/customize-openapi?view=aspnetcore-10.0">[10]</a></sup>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="note">
+        <b>Bottom line:</b> a proxying BFF is codegen-neutral. <b class="c-r">A composing BFF is a codegen project.</b>
+      </p>
+    </section>
+
+    <!-- ══ 3 · THE TWO SESSIONS — the centerpiece ═════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>tmux list-panes — the actual daily cost</h2>
+        <span class="cmt"># one pane per process you must run. this is the whole ergonomics delta.</span>
+      </div>
+
+      <div class="sessions">
+
+        <!-- ── PURE SPA ── -->
+        <div class="sess">
+          <div class="sess-head">
+            <span class="c-dd">◧</span>
+            <span class="nm">pure-spa</span>
+            <span class="ct">3 panes</span>
+          </div>
+          <div class="sess-body">
+
+            <div class="pane">
+              <div class="pane-bar"><span class="n">0</span><span class="cmd">bun run dev</span><span class="port">:5173</span></div>
+              <div class="pane-out"><pre>  <span class="c-m">VITE</span> <span class="c-g">v7.1.2</span>  ready in <span class="c-w">412 ms</span>
+
+  ➜  Local:   <span class="c-c">http://localhost:5173/</span>
+  ➜  press <span class="c-w">h + enter</span> to show help
+<span class="c-dd">  [hmr] connected.</span></pre></div>
+            </div>
+
+            <div class="pane">
+              <div class="pane-bar"><span class="n">1</span><span class="cmd">dotnet run --project src/Api</span><span class="port">:7245</span></div>
+              <div class="pane-out"><pre><span class="c-dd">info:</span> Now listening on: <span class="c-c">https://localhost:7245</span>
+<span class="c-dd">info:</span> Application started.
+<span class="c-a">warn:</span> CORS policy <span class="c-a">'spa'</span> applied
+      → origin <span class="c-c">http://localhost:5173</span>
+      <span class="c-dd">AllowCredentials + AllowHeaders</span>
+      <span class="c-a">← you own this config forever</span></pre></div>
+            </div>
+
+            <div class="pane">
+              <div class="pane-bar"><span class="n">2</span><span class="cmd">docker compose up keycloak</span><span class="port">:8080</span></div>
+              <div class="pane-out"><pre><span class="c-dd">keycloak-1  |</span> Keycloak 27.0.1 started
+<span class="c-dd">keycloak-1  |</span> Listening on: <span class="c-c">http://0.0.0.0:8080</span>
+<span class="c-dd">keycloak-1  |</span> Running in <span class="c-a">development mode</span></pre></div>
+            </div>
+
+            <div class="ghost">— no fourth pane —</div>
+
+          </div>
+          <div class="strip">
+            <div class="strip-seg">HMR <span class="v ok">✓</span></div>
+            <div class="strip-seg">Swagger "Try it out" <span class="v ok">✓</span></div>
+            <div class="strip-seg">CORS needed <span class="v no">✓</span></div>
+            <div class="strip-seg strip-count">3 terminals</div>
+          </div>
+        </div>
+
+        <!-- ── BFF ── -->
+        <div class="sess bff">
+          <div class="sess-head">
+            <span class="c-g">◧</span>
+            <span class="nm">bff</span>
+            <span class="ct">4 panes</span>
+          </div>
+          <div class="sess-body">
+
+            <div class="pane">
+              <div class="pane-bar"><span class="n">0</span><span class="cmd">bun run dev</span><span class="port">:5173</span></div>
+              <div class="pane-out"><pre>  <span class="c-m">VITE</span> <span class="c-g">v7.1.2</span>  ready in <span class="c-w">409 ms</span>
+
+  ➜  Local:   <span class="c-c">http://localhost:5173/</span>
+<span class="c-dd">  proxy → https://localhost:7164 (secure:false)</span>
+    <span class="c-g">/bff</span>  <span class="c-g">/api</span>
+    <span class="c-g">/signin-oidc</span>  <span class="c-g">/signout-callback-oidc</span>
+<span class="c-dd">  [hmr] connected.  ← Vite is the origin. untouched.</span></pre></div>
+            </div>
+
+            <div class="pane">
+              <div class="pane-bar"><span class="n">1</span><span class="cmd">dotnet run --project src/Api</span><span class="port">:7245</span></div>
+              <div class="pane-out"><pre><span class="c-dd">info:</span> Now listening on: <span class="c-c">https://localhost:7245</span>
+<span class="c-dd">info:</span> Application started.
+<span class="c-g">     no CORS policy configured.</span>
+<span class="c-dd">     nothing calls this cross-origin any more.</span>
+<span class="c-dd">     ─────────────────────────────────────</span>
+<span class="c-dd">     unchanged: AddJwtBearer stays as-is.</span></pre></div>
+            </div>
+
+            <div class="pane extra">
+              <div class="extra-flag">▲ THE EXTRA PANE — THIS IS THE COST</div>
+              <div class="pane-bar"><span class="n">2</span><span class="cmd">dotnet run --project src/Bff</span><span class="port">:7164</span></div>
+              <div class="pane-out"><pre><span class="c-dd">info:</span> Now listening on: <span class="c-c">https://localhost:7164</span>
+<span class="c-dd">info:</span> BFF management endpoints → <span class="c-g">/bff</span>
+      <span class="c-dd">/bff/user  /bff/login  /bff/logout</span>
+<span class="c-dd">info:</span> MapRemoteBffApiEndpoint
+      <span class="c-g">/api</span> → <span class="c-c">https://localhost:7245/api</span>
+      <span class="c-g">↑ path-preserving. codegen safe.</span>
+<span class="c-dd">info:</span> x-csrf required on all remote routes</pre></div>
+            </div>
+
+            <div class="pane">
+              <div class="pane-bar"><span class="n">3</span><span class="cmd">docker compose up keycloak</span><span class="port">:8080</span></div>
+              <div class="pane-out"><pre><span class="c-dd">keycloak-1  |</span> Keycloak 27.0.1 started
+<span class="c-dd">keycloak-1  |</span> Listening on: <span class="c-c">http://0.0.0.0:8080</span>
+<span class="c-a">keycloak-1  |</span> redirect_uri must be the <span class="c-a">VITE</span> origin
+<span class="c-dd">keycloak-1  |</span>   <span class="c-c">http://localhost:5173/signin-oidc</span></pre></div>
+            </div>
+
+          </div>
+          <div class="strip">
+            <div class="strip-seg">HMR <span class="v ok">✓</span></div>
+            <div class="strip-seg">Swagger "Try it out" <span class="v no">✗</span></div>
+            <div class="strip-seg">CORS needed <span class="v ok">✗</span></div>
+            <div class="strip-seg strip-count n4">4 terminals</div>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="note">
+        The BFF adds <b>exactly one process</b> and <b>one vite.config.ts proxy block</b>. That is the whole
+        recurring ergonomics delta on the run-the-app axis — <em>far smaller than the folklore suggests</em> — and
+        it <b class="c-g">removes the CORS configuration from the API</b>
+        <sup><a href="https://docs.duendesoftware.com/bff/architecture/ui-hosting/">[1]</a></sup>.
+        The F5 loop itself is unchanged: Vite still serves modules, HMR still fires,
+        <span class="c-c">dotnet watch</span> still recompiles. <b>Nothing is added to the inner loop, because the
+        BFF sits in the request path, not the build path.</b>
+      </p>
+
+      <p class="note">
+        Note the two ✗ marks point in <em>opposite directions</em>. The BFF loses you Swagger "Try it out" and
+        gains you the deletion of CORS. Only one of those is a daily irritation — and it is not the one people warn
+        you about.
+      </p>
+    </section>
+
+    <!-- ══ 4 · THE PROXY + HMR ════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>cat vite.config.ts — the four routes, and why Vite must be the proxy</h2>
+      </div>
+
+      <div class="term">
+        <div class="term-bar"><span class="idx">0:</span><span class="ttl">vite.config.ts</span><span class="tag c-dd">+8 lines, once</span></div>
+        <div class="term-body"><pre><span class="c-m">server</span>: {
+  <span class="c-m">proxy</span>: {
+    <span class="c-g">'/bff'</span>:                    { target: <span class="c-c">'https://localhost:7164'</span>, changeOrigin: <span class="c-b">true</span>, secure: <span class="c-b">false</span> },
+    <span class="c-g">'/api'</span>:                    { target: <span class="c-c">'https://localhost:7164'</span>, changeOrigin: <span class="c-b">true</span>, secure: <span class="c-b">false</span> },
+    <span class="c-a">'/signin-oidc'</span>:            { target: <span class="c-c">'https://localhost:7164'</span>, changeOrigin: <span class="c-b">true</span>, secure: <span class="c-b">false</span> },  <span class="c-dd">// ← easy to miss</span>
+    <span class="c-a">'/signout-callback-oidc'</span>:  { target: <span class="c-c">'https://localhost:7164'</span>, changeOrigin: <span class="c-b">true</span>, secure: <span class="c-b">false</span> },  <span class="c-dd">// ← easy to miss</span>
+  }
+}
+<span class="c-dd">
+# secure:false → the self-signed cert is only crossed SERVER-side, never by the browser.
+#                so you can skip Vite HTTPS, mkcert, and exporting the .NET dev cert entirely. [8]</span></pre></div>
+      </div>
+
+      <p class="note">
+        The two OIDC callback paths are the non-obvious part. <span class="c-c">/bff/login</span> is a top-level
+        navigation that 302s to Keycloak; Keycloak redirects back to a <b>redirect_uri registered against the Vite
+        origin</b> (<span class="c-c">http://localhost:5173/signin-oidc</span>) — so Vite must proxy that path back
+        to the BFF or the login loop dead-ends
+        <sup><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">[8]</a></sup>. And the BFF must be
+        told its public origin is <b>:5173</b> — set <span class="c-c">changeOrigin</span> and/or
+        <span class="c-c">ForwardedHeaders</span>, or the OIDC handler builds redirect URIs against :7164 and the
+        round-trip breaks.
+      </p>
+
+      <div class="term" style="margin-top:1.5rem">
+        <div class="term-bar"><span class="idx">1:</span><span class="ttl">the deciding argument — who proxies whom</span><span class="tag c-dd">HMR</span></div>
+        <div class="term-body"><pre><span class="c-g">✓  Vite proxies the BFF</span>          Vite is the origin. The HMR WebSocket is direct.
+                                 <span class="c-g bold">Zero HMR risk.</span>  ← do this
+
+<span class="c-a">⚠  BFF proxies Vite (SpaProxy)</span>   The .NET proxy now sits in front of Vite's HMR socket.
+                                 It needs WebSocket passthrough, or you get Vite's fallback:
+                                 <span class="c-dd">"the client will fall back to connecting the WebSocket</span>
+                                 <span class="c-dd"> directly to the Vite HMR server bypassing the reverse</span>
+                                 <span class="c-dd"> proxies"</span> — works, but spews console errors. <span class="c-dd">[7]</span></pre></div>
+      </div>
+
+      <p class="note">
+        <b>Let Vite be the proxy, not the proxied.</b> It keeps HMR native, keeps the cookie first-party, and makes
+        the dev-cert problem disappear.
+      </p>
+    </section>
+
+    <!-- ══ 5 · THE TRAP ═══════════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p c-r">!</span>
+        <h2>the trap everyone falls into: it's the <em class="c-r">scheme</em>, not the port</h2>
+      </div>
+
+      <div class="term" style="border-color:#4a2b28">
+        <div class="term-bar" style="background:#1a1210;border-bottom-color:#4a2b28">
+          <span class="idx c-r">✗</span><span class="ttl">devtools → Application → Cookies</span>
+          <span class="tag c-r">401 Unauthorized</span>
+        </div>
+        <div class="term-body"><pre>  <span class="c-w">GET</span> /bff/user
+  <span class="c-dd">→</span> <span class="c-r bold">401 Unauthorized</span>   <span class="c-dd">(silently. no error. no clue why.)</span>
+
+  <span class="c-dd">Cookie</span>  <span class="c-w">__Host-bff-session</span>  <span class="c-dd">SameSite=Lax</span>   <span class="c-r bold">✗ NOT SENT</span>
+
+  <span class="c-dd">─────────────────────────────────────────────────────────────</span>
+
+  Vite defaults to   <span class="c-r bold">http</span><span class="c-dd">://localhost:5173</span>
+  ASP.NET defaults to <span class="c-g bold">https</span><span class="c-dd">://localhost:7164</span>
+                     <span class="c-dd">──────</span>
+  <span class="c-w">same site?</span>  <span class="c-r bold">NO.</span>  The "site" is <span class="c-w">scheme + eTLD+1</span>. Schemeful same-site. <span class="c-dd">[6]</span>
+  <span class="c-w">the port?</span>   <span class="c-g bold">IRRELEVANT.</span>  :5173 vs :5000 would have been <span class="c-g">same-site</span>, fine. <span class="c-dd">[6]</span>
+
+  <span class="c-a">So the SameSite=Lax session cookie is never sent — and nothing tells you.</span></pre></div>
+      </div>
+
+      <p class="note">
+        The default dev configuration puts you <em>straight</em> into this trap. The fix is the Vite-proxies-BFF
+        topology above: the browser only ever talks to <span class="c-c">localhost:5173</span>, so the cookie is
+        <b>first-party and the scheme is moot</b>. Do <b class="c-r">not</b> reach for
+        <span class="c-c">SameSite=None</span> to force it — it requires <span class="c-c">Secure</span>, it runs
+        into third-party cookie blocking in Safari and Firefox, and it re-opens the CSRF surface the BFF exists to
+        close <sup><a href="https://docs.duendesoftware.com/bff/architecture/third-party-cookies/">[24]</a></sup>.
+      </p>
+    </section>
+
+    <!-- ══ 6 · SWAGGER — the real cost ════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p c-r">!</span>
+        <h2>the real cost: your backend debugging tooling breaks</h2>
+        <span class="cmt"># this is the underrated one, and it is where the BFF actually hurts</span>
+      </div>
+
+      <div class="term" style="border-color:#4a2b28">
+        <div class="term-bar" style="background:#1a1210;border-bottom-color:#4a2b28">
+          <span class="idx c-r">✗</span><span class="ttl">Swagger UI → Try it out → Execute</span>
+          <span class="tag c-r">401</span>
+        </div>
+        <div class="term-body"><pre>  <span class="c-w">POST</span> /api/users     <span class="c-dd">[Try it out]</span>  <span class="c-dd">→</span>  <span class="c-r bold">401 Unauthorized</span>
+
+  <span class="c-dd">Swagger UI sent:</span>   <span class="c-r">Authorization: Bearer eyJhbGciOi…</span>
+                     <span class="c-dd">↑ which a secure BFF should REJECT </span><span class="c-dd">[12]</span>
+  <span class="c-dd">Swagger UI did NOT send:</span>
+                     <span class="c-r">✗ the BFF session cookie</span>
+                     <span class="c-r">✗ the X-CSRF header</span>
+
+  <span class="c-a">"Cookie authentication is currently not supported for 'try it out'</span>
+  <span class="c-a"> requests due to browser security restrictions."</span>  <span class="c-dd">— swagger.io </span><span class="c-dd">[11]</span></pre></div>
+      </div>
+
+      <div class="term" style="margin-top:1.5rem">
+        <div class="term-bar"><span class="idx">1:</span><span class="ttl">a backend dev's habits, under a cookie BFF</span></div>
+        <div class="term-body"><pre>  <span class="c-w">Swagger UI / Scalar "Try it out"</span>
+      pure SPA  <span class="c-g">✓</span>  paste a token from Keycloak
+      under BFF <span class="c-r">✗</span>  <span class="c-r">broken out of the box</span>
+
+  <span class="c-w">.http file / REST Client / Postman</span>
+      pure SPA  <span class="c-g">✓</span>  Authorization: Bearer …
+      under BFF <span class="c-a">⚠</span>  works <span class="c-a">only if you hit the API directly</span>, bypassing the BFF
+                   <span class="c-dd">— so you are not testing the real path</span>
+
+  <span class="c-w">curl against the API port</span>
+      pure SPA  <span class="c-g">✓</span>
+      under BFF <span class="c-a">⚠</span>  same caveat</pre></div>
+      </div>
+
+      <p class="note">
+        Two fixes exist, both real work. <b>(1)</b> Serve Swagger UI <em>from the BFF's origin</em> and inject the
+        CSRF header — Duende's exact recipe is
+        <span class="c-c">c.UseRequestInterceptor("function(request){ request.headers['X-CSRF'] = '1'; return request; }")</span>,
+        combined with a proxied+transformed spec whose <b>servers</b> point at the BFF. Then the browser's existing
+        BFF session cookie is used automatically and <em>"users authenticate once to the BFF, then Swagger UI can
+        explore and test all proxied APIs"</em>. This genuinely works
+        <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup>.
+        <b>(2)</b> A Swagger UI plugin that routes calls through the BFF and adds CSRF headers, treating Swagger UI
+        as "just another frontend client" <sup><a href="https://dzone.com/articles/swagger-ui-bff-architecture">[12]</a></sup>.
+      </p>
+      <p class="note">
+        Either way: <b class="c-r">the API's Swagger UI stops being usable standalone</b>, and someone has to build
+        and maintain the BFF-hosted variant. <b>Budget half a day, once</b> — plus the ongoing reality that backend
+        devs must remember there are now two Swagger UIs and only one of them is honest about auth. Mitigation: in an
+        <b>internal admin console</b> the API is usually still directly reachable in dev, so a backend dev keeps
+        bearer-token <span class="c-c">.http</span> files for API-only iteration and only exercises the BFF path when
+        debugging auth. <em>The cost is the cognitive split, not a hard block.</em>
+      </p>
+    </section>
+
+    <!-- ══ 7 · GENERATOR TEST RUN ═════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>bun test codegen/bff-compat.spec.ts</h2>
+        <span class="cmt"># does any generator actually break under a cookie BFF?</span>
+      </div>
+
+      <div class="term">
+        <div class="term-bar"><span class="idx">0:</span><span class="ttl">where the cookie/CSRF config goes, per generator</span><span class="tag c-g">5 pass · 0 fail</span></div>
+        <div class="term-body">
+          <div class="trow">
+            <span class="c-g bold">✓</span>
+            <span class="tname"><a href="https://openapi-ts.dev/openapi-fetch/">openapi-fetch</a></span>
+            <span class="tfix"><span class="c-c">createClient({ baseUrl, credentials: 'include', headers })</span> — any valid fetch option is accepted <sup><a href="https://openapi-ts.dev/openapi-fetch/api">[15]</a></sup></span>
+            <span class="tstar">⭐ 8.2k · <span class="c-g">2 lines</span></span>
+          </div>
+          <div class="trow">
+            <span class="c-g bold">✓</span>
+            <span class="tname"><a href="https://orval.dev">Orval</a></span>
+            <span class="tfix"><span class="c-c">output.baseUrl</span> + <span class="c-c">override.mutator</span> (custom fetch/axios instance) <sup><a href="https://orval.dev/docs/">[18]</a></sup></span>
+            <span class="tstar">⭐ 6.2k · <span class="c-g">mutator</span></span>
+          </div>
+          <div class="trow">
+            <span class="c-g bold">✓</span>
+            <span class="tname"><a href="https://heyapi.dev">Hey API</a></span>
+            <span class="tfix"><span class="c-c">createClient({ baseUrl, credentials, headers })</span> on the fetch client <sup><a href="https://heyapi.dev/docs/openapi/typescript/clients/fetch">[19]</a></sup></span>
+            <span class="tstar">⭐ 5.1k · <span class="c-g">2 lines</span></span>
+          </div>
+          <div class="trow">
+            <span class="c-a bold">⚠</span>
+            <span class="tname"><a href="https://github.com/RicoSuter/NSwag">NSwag</a></span>
+            <span class="tfix">
+              <span class="c-c">useTransformOptionsMethod: true</span> → implement <span class="c-c">transformOptions(RequestInit)</span>
+              <sup><a href="https://github.com/RicoSuter/NSwag/wiki/TypeScriptClientGenerator">[17]</a></sup><br>
+              <span class="c-a">WithCredentials = true <b>does not</b> emit credentials into the Fetch-template client — open issue</span>
+              <sup><a href="https://github.com/RicoSuter/NSwag/issues/5229">[16]</a></sup>
+            </span>
+            <span class="tstar">⭐ 7.3k · <span class="c-a">workaround</span></span>
+          </div>
+          <div class="trow">
+            <span class="c-a bold">⚠</span>
+            <span class="tname"><a href="https://github.com/microsoft/kiota">Kiota</a></span>
+            <span class="tfix">
+              <span class="c-c">AnonymousAuthenticationProvider</span> <sup><a href="https://learn.microsoft.com/en-us/openapi/kiota/authentication">[14]</a></sup> + a <b>custom fetch function</b><br>
+              <span class="c-a">Kiota TS has <b>no</b> way to pass fetch options out of the box — you hand-write the wrapper; open issue on
+              <a href="https://github.com/microsoft/kiota-typescript">kiota-typescript</a> ⭐ 61</span>
+              <sup><a href="https://github.com/microsoft/kiota-typescript/issues/1817">[13]</a></sup>
+            </span>
+            <span class="tstar">⭐ 3.8k · <span class="c-a">workaround</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="term" style="border-top:0">
+        <div class="term-body" style="background:#0d1017"><pre> <span class="c-g bold">5 pass</span> <span class="c-dd">(3 clean, 2 with a documented workaround)</span>   <span class="c-g bold">0 fail</span>
+
+ <span class="c-g bold">NO GENERATOR IS BROKEN BY A BFF.</span>
+
+ <span class="c-dd">And one genuine simplification: because the BFF terminates auth, the spec can drop</span>
+ <span class="c-dd">`securitySchemes` entirely </span><span class="c-dd">[2]</span><span class="c-dd">. The pure-SPA path forces you to KEEP the bearer scheme</span>
+ <span class="c-dd">in the document AND build a token-refresh interceptor in the client.</span>
+ <span class="c-g">→ Net: the BFF removes more client-side auth code than it adds.</span></pre></div>
+      </div>
+    </section>
+
+    <!-- ══ 8 · ASPIRE COLLAPSE ════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>aspire run — 4 panes collapse to 1</h2>
+        <span class="cmt"># does Aspire fix the multi-process problem? largely, yes.</span>
+      </div>
+
+      <div class="term" style="border-color:#2f4a3a">
+        <div class="term-bar" style="background:#0e1512;border-bottom-color:#2f4a3a">
+          <span class="idx c-g">0</span><span class="cmd c-g" style="font-weight:700">aspire run</span>
+          <span class="tag c-g">1 terminal</span>
+        </div>
+        <div class="term-body"><pre>  <span class="c-dd">Starting resources…</span>
+
+  <span class="c-g">✓</span> <span class="c-w">keycloak</span>    Running   <span class="c-c">http://localhost:8080</span>    <span class="c-dd">container, first-class integration</span>
+  <span class="c-g">✓</span> <span class="c-w">api</span>         Running   <span class="c-c">https://localhost:7245</span>
+  <span class="c-g">✓</span> <span class="c-w">bff</span>         Running   <span class="c-c">https://localhost:7164</span>
+  <span class="c-g">✓</span> <span class="c-w">frontend</span>    Running   <span class="c-c">http://localhost:5173</span>   <span class="c-dd">AddViteApp(…).WithNpmPackageInstallation()</span>
+
+  <span class="c-m">Dashboard</span>  <span class="c-c">https://localhost:17090</span>   <span class="c-dd">unified logs · traces · status, all four</span>
+
+  <span class="c-dd">Aspire injects the API's assigned address as `services__apiservice__https__0`,</span>
+  <span class="c-dd">which vite.config.js reads to configure server.proxy:</span>
+  <span class="c-g">  "This eliminates CORS issues during development by proxying requests</span>
+  <span class="c-g">   through the same origin."</span>  <span class="c-dd">— .NET Blog </span><span class="c-dd">[20]</span></pre></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-top:0;">
+        <div class="hn" style="flex:none"><div class="hn-l">pure SPA</div><div class="hn-v">3 <span class="c-dd" style="font-size:14px">terminals</span></div></div>
+        <div class="hn" style="flex:none"><div class="hn-l">BFF (Vite proxy)</div><div class="hn-v a">4 <span class="c-dd" style="font-size:14px">terminals</span></div></div>
+        <div class="hn" style="flex:none"><div class="hn-l">BFF + Aspire</div><div class="hn-v g">1 <span class="c-dd" style="font-size:14px">terminal</span></div></div>
+      </div>
+
+      <p class="note">
+        <b>The cost, honestly stated:</b> Aspire is orchestration you now own. The 2026 community read is that it
+        shines when <em>"you have multiple services that need to communicate, shared infrastructure, a need for
+        consistent observability, or complex local development setup"</em> — but <em>"for single-API projects with
+        just a database, Aspire adds unnecessary overhead"</em>, and its local dev experience is
+        <em>"considerably more polished than the deployment experience"</em>
+        <sup><a href="https://codewithmukesh.com/blog/aspire-for-dotnet-developers-deep-dive/">[22]</a></sup>.
+        <a href="https://github.com/microsoft/aspire">Aspire</a> ⭐ 6.2k shipped 13.2 in March 2026 with 1,100+ closed
+        issues, themed on the CLI and "making local development seamless"
+        <sup><a href="https://www.infoq.com/news/2026/04/aspire-13-2-release/">[21]</a></sup>
+        <sup><a href="https://github.com/microsoft/aspire/discussions/15662">[27]</a></sup>.
+      </p>
+      <p class="note">
+        With <b>SPA + API + BFF + Keycloak</b> — four processes, two of them containers — you are squarely in the
+        "Aspire pays for itself" band. And note the asymmetry that actually matters for this decision:
+        <b class="c-g">Aspire helps the BFF option more than it helps the pure-SPA option</b>, because it collapses
+        precisely the multi-process cost the BFF introduces. <b>Adopting Aspire neutralises the BFF's main
+        ergonomics objection.</b>
+      </p>
+    </section>
+
+    <!-- ══ 9 · THE DELTA ══════════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>scout verdict --daily-delta</h2>
+        <span class="cmt"># everything that changes when you add a BFF</span>
+      </div>
+
+      <div class="term">
+        <div class="term-bar"><span class="idx">0:</span><span class="ttl">delta from adding a BFF</span></div>
+        <table class="delta">
+          <tr class="good"><td class="s c-g">=</td><td class="k">OpenAPI document</td><td class="v"><b>No change</b> if the proxy is path-preserving <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[3]</a></sup></td></tr>
+          <tr class="good"><td class="s c-g">=</td><td class="k">Generated client code</td><td class="v"><b>No change.</b> baseUrl becomes relative; <span class="c-c">credentials: 'include'</span> + <span class="c-c">X-CSRF: 1</span> added <sup><a href="https://openapi-ts.dev/openapi-fetch/api">[15]</a></sup></td></tr>
+          <tr class="good"><td class="s c-g">=</td><td class="k">Codegen pipeline</td><td class="v"><b>No change</b> — .NET 10 build-time generation writes the spec to disk; it never traverses the BFF <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">[9]</a></sup></td></tr>
+          <tr class="good"><td class="s c-g">−</td><td class="k">Client auth code</td><td class="v"><b>Simpler.</b> No token store, no refresh interceptor, no bearer scheme in the spec <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup></td></tr>
+          <tr class="good"><td class="s c-g">−</td><td class="k">CORS config in the API</td><td class="v"><b>Removed</b> <sup><a href="https://docs.duendesoftware.com/bff/architecture/ui-hosting/">[1]</a></sup></td></tr>
+          <tr class="good"><td class="s c-g">=</td><td class="k">HMR / F5 loop</td><td class="v"><b>Unchanged</b> — provided Vite is the proxy, not the proxied <sup><a href="https://vite.dev/config/server-options">[7]</a></sup></td></tr>
+          <tr class="good"><td class="s c-g">−</td><td class="k">HTTPS dev certs</td><td class="v"><b>Not needed</b> with the Vite-proxy topology (<span class="c-c">secure: false</span>) <sup><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">[8]</a></sup></td></tr>
+          <tr><td class="s c-a">+</td><td class="k">Hand-written client code</td><td class="v"><b>+30–50 lines</b>, once: <span class="c-c">/bff/user</span>, <span class="c-c">/bff/login</span>, <span class="c-c">/bff/logout</span> <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/management/user/">[4]</a></sup></td></tr>
+          <tr><td class="s c-a">+</td><td class="k">Processes to run</td><td class="v"><b>+1</b> (3 → 4), or <b class="c-g">→1</b> if you adopt Aspire <sup><a href="https://devblogs.microsoft.com/dotnet/new-aspire-app-with-react/">[20]</a></sup></td></tr>
+          <tr><td class="s c-a">+</td><td class="k">vite.config.ts</td><td class="v"><b>+1 proxy block, 4 routes</b> <sup><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">[8]</a></sup></td></tr>
+          <tr><td class="s c-a">~</td><td class="k">Keycloak client config</td><td class="v"><span class="c-c">redirect_uri</span> must be the <b>Vite</b> origin in dev, not the BFF's <sup><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">[8]</a></sup></td></tr>
+          <tr class="bad"><td class="s c-r">✗</td><td class="k">Swagger UI "Try it out"</td><td class="v"><b class="c-r">Breaks.</b> ~half a day to rebuild a BFF-hosted, CSRF-intercepting Swagger UI <sup><a href="https://swagger.io/docs/specification/v3_0/authentication/cookie-authentication/">[11]</a></sup> <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup></td></tr>
+          <tr class="bad"><td class="s c-r">✗</td><td class="k">Composing / aggregating BFF</td><td class="v"><b class="c-r">Don't.</b> Two OpenAPI docs, a hand-rolled merger, and a 108-star dependency <sup><a href="https://github.com/andreytreyt/yarp-swagger">[23]</a></sup> <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[2]</a></sup></td></tr>
+        </table>
+      </div>
+
+      <p class="note">
+        <b>Summed up.</b> The BFF's ergonomics bill is roughly: <b>one extra process, one config block, one broken
+        debugging tool, and a one-time ~50-line hand-written auth module.</b> Against that, it <em>deletes</em> your
+        CORS config and your entire client-side token-refresh machinery. For an internal admin console with a modest
+        team, <b>that is close to a wash</b> — provided you make two non-negotiable design choices at day zero.
+      </p>
+    </section>
+
+    <!-- ══ 10 · THE TWO RULES ═════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p c-a">#</span>
+        <h2>two rules. break either and the "quietly free" BFF becomes the expensive one.</h2>
+      </div>
+
+      <div class="rules">
+        <div class="rule">
+          <div class="rule-n">RULE 01 — CODEGEN</div>
+          <div class="rule-t">The BFF is a path-preserving transparent proxy. <span class="c-r">Never a composer.</span></div>
+          <div class="rule-d">
+            <span class="c-c">/api/*</span> → <span class="c-c">/api/*</span>. The document stays the API's own; the
+            generated client never changes. <b>The moment it composes, codegen becomes a project</b> — two documents,
+            a hand-rolled merger, a build-chain dependency. This is free at day zero and expensive to retrofit.
+          </div>
+        </div>
+        <div class="rule">
+          <div class="rule-n">RULE 02 — DEV LOOP</div>
+          <div class="rule-t">Vite proxies the BFF. <span class="c-r">Not the reverse.</span></div>
+          <div class="rule-d">
+            Keeps HMR native (Vite owns its own WebSocket), keeps the session cookie <b>first-party</b> so the
+            schemeful-same-site trap can't fire, and makes the HTTPS dev-cert problem disappear entirely
+            (<span class="c-c">secure: false</span>). The SpaProxy direction works, but it puts a .NET proxy in front
+            of Vite's HMR socket for no benefit.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ 11 · SIBLINGS ══════════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>cd .. &amp;&amp; ls</h2>
+        <span class="cmt"># the other angles in this decision framework</span>
+      </div>
+
+      <div class="sibs">
+        <div class="sib">
+          <span class="d expedition">expedition</span>
+          <div>
+            <div class="sib-t"><a href="../../">Pure React 19 SPA or a .NET 10 BFF? A decision framework for an internal admin console</a> <span class="c-dd" style="font-weight:400">← parent</span></div>
+            <div class="sib-s">Ship the SPA, not the BFF — but build it so the BFF is a 2–5 day retrofit, because the IETF names business apps explicitly and the supply-chain argument is the one that survives scrutiny.</div>
+          </div>
+        </div>
+        <div class="sib">
+          <span class="d survey">survey</span>
+          <div>
+            <div class="sib-t"><a href="../../in-memory-tokens-vs-cookie-backed-bff-sessions-under-xss/">In-memory tokens vs cookie-backed BFF sessions under XSS</a></div>
+            <div class="sib-s">httpOnly cookies do not stop XSS — they convert silent token exfiltration into loud, tab-bound session riding. That's a real but bounded win; CSP + Trusted Types is the actual mitigation.</div>
+          </div>
+        </div>
+        <div class="sib">
+          <span class="d recon">recon</span>
+          <div>
+            <div class="sib-t"><a href="../../does-the-ietf-browser-based-apps-bcp-apply-to-an-internal-admin-console/">Does the IETF browser-based-apps BCP apply to an internal admin console?</a></div>
+            <div class="sib-s">The BCP names "business applications" in its strongest recommendation, so an internal console is in scope — but the ranking is a security/simplicity trade-off, not a normative MUST.</div>
+          </div>
+        </div>
+        <div class="sib">
+          <span class="d survey">survey</span>
+          <div>
+            <div class="sib-t"><a href="../../refresh-tokens-and-silent-renew-in-a-browser-spa-2026/">Refresh tokens and silent renew in a browser SPA (2026)</a></div>
+            <div class="sib-s">Iframe silent renew is dead cross-site but alive same-site; refresh-token rotation works on both stacks, DPoP only really works on Keycloak, and TanStack Query needs a single-flight mutex either way.</div>
+          </div>
+        </div>
+        <div class="sib">
+          <span class="d survey">survey</span>
+          <div>
+            <div class="sib-t"><a href="../../greenfield-bff-cost-vs-retrofitting-one-later/">Greenfield BFF vs retrofitting later: where the asymmetry actually is</a></div>
+            <div class="sib-s">Adding a BFF later is a two-way door — if you build the SPA with one auth module, one fetch wrapper, relative paths and no client-side JWT parsing. The one-way door is the API, not the frontend.</div>
+          </div>
+        </div>
+        <div class="sib">
+          <span class="d expedition">expedition</span>
+          <div>
+            <div class="sib-t"><a href="../../bff-options-in-net-10-yarp-duende-bff-minimal-custom/">BFF options in .NET 10: Duende.BFF, YARP, or hand-rolled</a></div>
+            <div class="sib-s">The realistic .NET 10 choice is YARP + AddOpenIdConnect + the free Apache-2.0 Duende.AccessTokenManagement (~250 LOC you own), or Duende.BFF if you qualify for its free Community Edition; the paid entry point is $5,750/yr.</div>
+          </div>
+        </div>
+        <div class="sib self">
+          <span class="d survey">survey</span>
+          <div>
+            <div class="sib-t">▸ What a BFF costs you every day: OpenAPI codegen and the local dev loop <span class="c-dd" style="font-weight:400">← you are here</span></div>
+            <div class="sib-s">A path-preserving BFF leaves OpenAPI codegen essentially untouched — the real daily cost is one extra process, a Vite proxy config, and losing Swagger UI "Try it out".</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ 12 · SOURCES ═══════════════════════════════ -->
+    <section class="sec">
+      <div class="sec-h">
+        <span class="p">$</span>
+        <h2>ls -la sources/</h2>
+        <span class="cmt"># 27 citations</span>
+      </div>
+
+      <div class="srcs">
+        <div class="src"><span class="sn">01</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://docs.duendesoftware.com/bff/architecture/ui-hosting/">Duende BFF — UI hosting</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">02</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">Managing OpenAPI specifications with BFF and Swagger UI</a></div><div class="src-m">VENDOR-BLOG</div></div></div>
+        <div class="src"><span class="sn">03</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">Duende BFF — Remote API endpoints</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">04</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://docs.duendesoftware.com/bff/fundamentals/session/management/user/">Duende BFF — /bff/user endpoint</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">05</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://docs.duendesoftware.com/bff/samples/">Duende BFF — Samples (OpenAPI, YARP, Separate Host)</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">06</span><img src="https://www.google.com/s2/favicons?domain=web.dev&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://web.dev/articles/same-site-same-origin">web.dev — Understanding same-site and same-origin</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">07</span><img src="https://www.google.com/s2/favicons?domain=vite.dev&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://vite.dev/config/server-options">Vite — Server options (server.proxy, HMR)</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">08</span><img src="https://www.google.com/s2/favicons?domain=wrapt.dev&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">Wrapt — Standalone Duende BFF for any SPA</a></div><div class="src-m">VENDOR-BLOG</div></div></div>
+        <div class="src"><span class="sn">09</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0">OpenAPI support in ASP.NET Core 10</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">10</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/customize-openapi?view=aspnetcore-10.0">Customize OpenAPI documents (transformers)</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">11</span><img src="https://www.google.com/s2/favicons?domain=swagger.io&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://swagger.io/docs/specification/v3_0/authentication/cookie-authentication/">Swagger — Cookie authentication</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">12</span><img src="https://www.google.com/s2/favicons?domain=dzone.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://dzone.com/articles/swagger-ui-bff-architecture">DZone — Swagger UI in a BFF architecture</a></div><div class="src-m">NEWS</div></div></div>
+        <div class="src"><span class="sn">13</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://github.com/microsoft/kiota-typescript/issues/1817">kiota-typescript — no fetch-options hook (#1817)</a></div><div class="src-m">FORUM · ⭐ 61</div></div></div>
+        <div class="src"><span class="sn">14</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://learn.microsoft.com/en-us/openapi/kiota/authentication">Kiota — Authentication (AnonymousAuthenticationProvider)</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">15</span><img src="https://www.google.com/s2/favicons?domain=openapi-ts.dev&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://openapi-ts.dev/openapi-fetch/api">openapi-fetch — API reference</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">16</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://github.com/RicoSuter/NSwag/issues/5229">NSwag — WithCredentials is a no-op (#5229)</a></div><div class="src-m">FORUM · ⭐ 7.3k</div></div></div>
+        <div class="src"><span class="sn">17</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://github.com/RicoSuter/NSwag/wiki/TypeScriptClientGenerator">NSwag — TypeScriptClientGenerator wiki</a></div><div class="src-m">WIKI · ⭐ 7.3k</div></div></div>
+        <div class="src"><span class="sn">18</span><img src="https://www.google.com/s2/favicons?domain=orval.dev&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://orval.dev/docs/">Orval — Documentation</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">19</span><img src="https://www.google.com/s2/favicons?domain=heyapi.dev&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://heyapi.dev/docs/openapi/typescript/clients/fetch">Hey API — Fetch client</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">20</span><img src="https://www.google.com/s2/favicons?domain=devblogs.microsoft.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://devblogs.microsoft.com/dotnet/new-aspire-app-with-react/">.NET Blog — New Aspire app with React</a></div><div class="src-m">VENDOR-BLOG</div></div></div>
+        <div class="src"><span class="sn">21</span><img src="https://www.google.com/s2/favicons?domain=infoq.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://www.infoq.com/news/2026/04/aspire-13-2-release/">InfoQ — Aspire 13.2 released</a></div><div class="src-m">NEWS</div></div></div>
+        <div class="src"><span class="sn">22</span><img src="https://www.google.com/s2/favicons?domain=codewithmukesh.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://codewithmukesh.com/blog/aspire-for-dotnet-developers-deep-dive/">Aspire for .NET developers — deep dive</a></div><div class="src-m">VENDOR-BLOG</div></div></div>
+        <div class="src"><span class="sn">23</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://github.com/andreytreyt/yarp-swagger">andreytreyt/yarp-swagger</a></div><div class="src-m">OFFICIAL · ⭐ 108</div></div></div>
+        <div class="src"><span class="sn">24</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://docs.duendesoftware.com/bff/architecture/third-party-cookies/">Duende BFF — Third-party cookies</a></div><div class="src-m">OFFICIAL</div></div></div>
+        <div class="src"><span class="sn">25</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://github.com/liuweiGL/vite-plugin-mkcert">liuweiGL/vite-plugin-mkcert</a></div><div class="src-m">OFFICIAL · ⭐ 759</div></div></div>
+        <div class="src"><span class="sn">26</span><img src="https://www.google.com/s2/favicons?domain=jmelosegui.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://jmelosegui.com/posts/dotnet-dev-cert-with-vite">jmelosegui — .NET dev cert with Vite</a></div><div class="src-m">VENDOR-BLOG</div></div></div>
+        <div class="src"><span class="sn">27</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div class="src-b"><div class="src-t"><a href="https://github.com/microsoft/aspire/discussions/15662">microsoft/aspire — Roadmap Q1 2026 update</a></div><div class="src-m">FORUM · ⭐ 6.2k</div></div></div>
+      </div>
+
+      <div class="eof">
+        <span>[exit 0]</span>
+        <span><a href="../">read the canonical</a></span>
+        <span><a href="../../">back to the expedition</a></span>
+        <span><a href="/">Atlas</a></span>
+        <span class="c-dd">survey · 27 citations · 13 min · 2026-07-14</span>
+      </div>
+    </section>
+
+  </div>
+</div>

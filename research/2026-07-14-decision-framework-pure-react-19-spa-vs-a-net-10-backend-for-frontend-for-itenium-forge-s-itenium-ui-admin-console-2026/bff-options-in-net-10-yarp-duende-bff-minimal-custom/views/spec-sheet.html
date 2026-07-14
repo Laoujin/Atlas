@@ -1,0 +1,1238 @@
+---
+layout: view
+view_name: "Spec Sheet"
+view_of: ../
+title: "BFF options in .NET 10: Duende.BFF, YARP, or hand-rolled — Spec Sheet"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+.sheet {
+  --paper: #efece4;
+  --paper-2: #e5e1d6;
+  --ink: #16181b;
+  --ink-2: #4a4f57;
+  --ink-3: #8b8f96;
+  --rule: #c3bfb2;
+  --rule-2: #d8d4c8;
+  --red: #b7222b;
+  --blue: #16456b;
+  --green: #256b45;
+  --amber: #a2670a;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Archivo', -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.sheet * { box-sizing: border-box; }
+.sheet a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px 80px; }
+
+/* ---------- masthead ---------- */
+.mast {
+  border-bottom: 3px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0;
+}
+.mast-in { max-width: 1180px; margin: 0 auto; padding: 26px 28px 20px; display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+.mast-brand { flex: 1 1 460px; }
+.mast-kicker {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: #b9b3a3; margin-bottom: 10px;
+}
+.mast-kicker b { color: var(--paper); font-weight: 700; }
+.mast h1 {
+  font-family: 'Archivo Narrow', 'Archivo', sans-serif;
+  font-weight: 700; font-size: clamp(30px, 4.4vw, 50px); line-height: 1.02;
+  margin: 0; text-transform: uppercase; letter-spacing: -.01em;
+}
+.mast h1 em { font-style: normal; color: #e8b04b; }
+.mast-sub { margin-top: 12px; font-size: 14px; color: #b9b3a3; max-width: 60ch; line-height: 1.45; }
+.stamp {
+  flex: 0 0 auto;
+  border: 2px solid #6d6a5f;
+  padding: 10px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; line-height: 1.9; letter-spacing: .06em;
+  color: #b9b3a3; text-transform: uppercase;
+  min-width: 210px;
+}
+.stamp .row { display: flex; justify-content: space-between; gap: 18px; }
+.stamp .row b { color: var(--paper); font-weight: 700; }
+
+/* ---------- section headers ---------- */
+.sec { margin-top: 52px; }
+.sec-head {
+  display: flex; align-items: baseline; gap: 14px;
+  border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 22px;
+}
+.sec-no {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  background: var(--ink); color: var(--paper); padding: 3px 7px; letter-spacing: .08em;
+}
+.sec-head h2 {
+  margin: 0; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+  font-size: 22px; text-transform: uppercase; letter-spacing: .04em;
+}
+.sec-head .note {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase;
+}
+
+/* ---------- selection guide ---------- */
+.guide { border: 2px solid var(--ink); background: #fff; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.guide-step { padding: 20px 22px; border-right: 1px dashed var(--rule); position: relative; }
+.guide-step:last-child { border-right: 0; }
+.guide-step .q {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px;
+}
+.guide-step .a { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 21px; line-height: 1.2; text-transform: uppercase; }
+.guide-step .a.go { color: var(--green); }
+.guide-step .a.alt { color: var(--blue); }
+.guide-step .a.stop { color: var(--red); }
+.guide-step p { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+.guide-step .arrow {
+  position: absolute; right: -9px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; color: var(--ink); background: #fff; padding: 2px 0; z-index: 2;
+}
+.guide-price {
+  border-top: 2px solid var(--ink); grid-column: 1 / -1;
+  background: var(--paper-2); padding: 12px 22px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .04em;
+  display: flex; gap: 22px; flex-wrap: wrap; align-items: center;
+}
+.guide-price b { color: var(--red); }
+
+/* ---------- part cards ---------- */
+.parts { display: grid; gap: 22px; }
+.part {
+  background: #fff; border: 2px solid var(--ink);
+  display: grid; grid-template-columns: 1fr 300px;
+}
+@media (max-width: 900px) { .part { grid-template-columns: 1fr; } }
+.part-main { padding: 0; }
+.part-top {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 18px 22px 16px; border-bottom: 1px solid var(--rule-2);
+}
+.part-logo {
+  width: 44px; height: 44px; flex: 0 0 44px;
+  border: 1px solid var(--rule); background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+}
+.part-logo img { width: 26px; height: 26px; display: block; }
+.part-logo .glyph { font-size: 24px; line-height: 1; color: var(--ink-2); }
+.part-id { flex: 1 1 auto; min-width: 0; }
+.part-code {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .14em;
+  color: var(--ink-3); text-transform: uppercase; margin-bottom: 3px;
+}
+.part-name { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 26px; line-height: 1.1; letter-spacing: -.005em; }
+.part-name a { text-decoration: none; border-bottom: 2px solid var(--rule); }
+.part-name a:hover { border-bottom-color: var(--red); color: var(--red); }
+.part-tag { font-size: 13px; color: var(--ink-2); margin-top: 5px; }
+.stars {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  flex: 0 0 auto; border: 1px solid var(--rule); padding: 4px 8px; background: var(--paper);
+  white-space: nowrap;
+}
+
+.specs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--rule-2); }
+@media (max-width: 640px) { .specs { grid-template-columns: repeat(2, 1fr); } }
+.spec { padding: 12px 14px 13px; border-right: 1px dashed var(--rule-2); }
+.spec:last-child { border-right: 0; }
+.spec .k {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px;
+}
+.spec .v { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.15; }
+.spec .v.money { color: var(--red); }
+.spec .v.free { color: var(--green); }
+.spec .v small { display: block; font-family: 'Archivo', sans-serif; font-weight: 400; font-size: 11.5px; color: var(--ink-2); margin-top: 3px; letter-spacing: 0; }
+
+.part-body { padding: 15px 22px 18px; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+.part-body strong { color: var(--ink); }
+.part-body code {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  background: var(--paper-2); padding: 1px 4px; border-radius: 2px; color: var(--ink);
+}
+.part-body .warn { color: var(--red); font-weight: 600; }
+
+/* capability panel */
+.caps { border-left: 2px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; }
+@media (max-width: 900px) { .caps { border-left: 0; border-top: 2px solid var(--ink); } }
+.caps-head {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-3);
+  padding: 9px 14px; border-bottom: 1px solid var(--rule-2);
+}
+.caps-list { flex: 1 1 auto; }
+.cap {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 14px; font-size: 12.5px; border-bottom: 1px dotted var(--rule-2);
+}
+.cap .mark {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px;
+  width: 16px; text-align: center; flex: 0 0 16px;
+}
+.cap .mark.y { color: var(--green); }
+.cap .mark.n { color: var(--red); }
+.cap .mark.p { color: var(--amber); }
+.cap .lbl { flex: 1 1 auto; }
+.cap .lbl.off { color: var(--ink-3); }
+.cap .qual { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+
+.verdict {
+  padding: 12px 14px; border-top: 2px solid var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+}
+.verdict .v-label { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.verdict .v-why { font-family: 'Archivo', sans-serif; font-size: 12px; line-height: 1.4; margin-top: 5px; letter-spacing: 0; }
+.verdict.buy { background: #dfeadf; color: #1b4d33; }
+.verdict.buy .v-label { color: #1b4d33; }
+.verdict.free { background: #dde6ee; color: #14395a; }
+.verdict.free .v-label { color: #14395a; }
+.verdict.cond { background: #f2e6cd; color: #6f4708; }
+.verdict.cond .v-label { color: #6f4708; }
+.verdict.no { background: #efd9d9; color: #8c1c22; }
+.verdict.no .v-label { color: #8c1c22; }
+.verdict.spec { background: #e3e1da; color: #3d3f43; }
+.verdict.spec .v-label { color: #3d3f43; }
+
+/* verdict stripe on the card edge */
+.part { position: relative; }
+.part::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+}
+.part.p-buy::before { background: #256b45; }
+.part.p-free::before { background: #16456b; }
+.part.p-cond::before { background: #a2670a; }
+.part.p-no::before { background: #b7222b; }
+.part.p-spec::before { background: #8b8f96; }
+.part-top { padding-left: 28px; }
+
+/* ---------- price block ---------- */
+.pricing { display: grid; grid-template-columns: 2fr 1fr; gap: 22px; }
+@media (max-width: 860px) { .pricing { grid-template-columns: 1fr; } }
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid var(--ink); background: #fff; }
+@media (max-width: 640px) { .tiers { grid-template-columns: 1fr; } }
+.tier { padding: 20px 18px; border-right: 1px solid var(--rule-2); text-align: center; }
+.tier:last-child { border-right: 0; }
+.tier .t-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.tier .t-price {
+  font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+  font-size: clamp(34px, 5vw, 46px); line-height: 1.05; margin: 8px 0 2px; color: var(--red);
+  letter-spacing: -.02em;
+}
+.tier .t-per { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+.tier .t-quota { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--rule-2); font-size: 13px; color: var(--ink-2); }
+.tier .t-quota b { font-family: 'Archivo Narrow', sans-serif; font-size: 17px; color: var(--ink); }
+.tier.entry { background: #fdfbf6; }
+.tier.entry .t-name { color: var(--red); font-weight: 700; }
+
+.free-box { border: 2px solid var(--green); background: #e7efe8; padding: 20px 20px 18px; }
+.free-box .fb-title {
+  font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 22px;
+  text-transform: uppercase; color: #1b4d33; line-height: 1.1;
+}
+.free-box .fb-price { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 44px; color: #1b4d33; line-height: 1; margin: 6px 0 12px; }
+.free-box .gate { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.9; color: #1b4d33; }
+.free-box .gate .op { color: #256b45; font-weight: 700; }
+.free-box p { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: #2b4a39; }
+.addons {
+  margin-top: 22px; border: 1px solid var(--rule); background: #fff;
+  display: flex; flex-wrap: wrap; gap: 0;
+}
+.addon {
+  flex: 1 1 180px; padding: 12px 16px; border-right: 1px dashed var(--rule-2);
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: .04em;
+}
+.addon:last-child { border-right: 0; }
+.addon b { display: block; font-size: 17px; color: var(--red); font-weight: 700; margin-top: 3px; letter-spacing: 0; }
+.addon span { color: var(--ink-3); text-transform: uppercase; font-size: 9.5px; letter-spacing: .12em; }
+
+/* ---------- assembly diagram ---------- */
+.assembly { border: 2px solid var(--ink); background: #fff; padding: 24px 22px 16px; }
+.assembly svg { width: 100%; height: auto; display: block; max-width: 1040px; margin: 0 auto; }
+.assembly-cap {
+  margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--rule-2);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3);
+  letter-spacing: .04em; text-align: center;
+}
+
+/* ---------- LOC bill of materials ---------- */
+.bom { border: 2px solid var(--ink); background: #fff; }
+.bom-row {
+  display: grid; grid-template-columns: 300px 62px 1fr; align-items: center;
+  gap: 0; border-bottom: 1px dotted var(--rule-2);
+}
+@media (max-width: 720px) { .bom-row { grid-template-columns: 1fr 56px; } .bom-row .bar-cell { display: none; } }
+.bom-row:last-child { border-bottom: 0; }
+.bom-row .file {
+  padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  border-right: 1px dotted var(--rule-2);
+}
+.bom-row .file small { display: block; font-family: 'Archivo', sans-serif; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+.bom-row .loc {
+  padding: 10px 8px; text-align: right; font-family: 'JetBrains Mono', monospace;
+  font-size: 15px; font-weight: 700; border-right: 1px dotted var(--rule-2);
+}
+.bom-row .bar-cell { padding: 10px 14px; }
+.bar { height: 12px; background: var(--blue); }
+.bar.est { background: repeating-linear-gradient(45deg, #16456b, #16456b 3px, #6d90ad 3px, #6d90ad 6px); }
+.bom-row.sub { background: var(--paper-2); }
+.bom-row.sub .file, .bom-row.sub .loc { font-weight: 700; }
+.bom-row.total { background: var(--ink); color: var(--paper); border-bottom: 0; }
+.bom-row.total .file, .bom-row.total .loc { font-weight: 700; font-size: 15px; border-right-color: #4a4f57; }
+.bom-row.total .loc { font-size: 18px; color: #e8b04b; }
+.bom-row.total .bar { background: #e8b04b; }
+.exchange {
+  margin-top: 18px; border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
+  padding: 20px 22px; display: flex; align-items: center; justify-content: center;
+  gap: 20px; flex-wrap: wrap; text-align: center;
+}
+.exchange .side { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: clamp(20px, 3vw, 30px); text-transform: uppercase; line-height: 1.1; }
+.exchange .side small { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em; color: #b9b3a3; font-weight: 400; margin-top: 5px; }
+.exchange .eq { font-size: 30px; color: #e8b04b; }
+
+/* ---------- warnings ---------- */
+.warns { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 2px solid var(--ink); background: #fff; }
+@media (max-width: 800px) { .warns { grid-template-columns: 1fr; } }
+.warn-item { padding: 16px 18px; border-right: 1px solid var(--rule-2); border-bottom: 1px solid var(--rule-2); }
+.warn-item:nth-child(2n) { border-right: 0; }
+.warn-item .w-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.warn-item .w-icon { color: var(--red); font-size: 15px; font-weight: 700; }
+.warn-item h4 {
+  margin: 0; font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 16px;
+  text-transform: uppercase; letter-spacing: .02em;
+}
+.warn-item p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.warn-item p code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: var(--paper-2); padding: 1px 4px; }
+.warn-item.fixed { background: #e7efe8; }
+.warn-item.fixed .w-icon { color: var(--green); }
+
+/* ---------- platform delta ---------- */
+.delta { border: 2px solid var(--ink); background: #fff; }
+.delta-row { display: grid; grid-template-columns: 92px 1fr 150px; border-bottom: 1px dotted var(--rule-2); align-items: stretch; }
+@media (max-width: 720px) { .delta-row { grid-template-columns: 76px 1fr; } .delta-row .d-status { display: none; } }
+.delta-row:last-child { border-bottom: 0; }
+.d-mark {
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px;
+  border-right: 1px dotted var(--rule-2); letter-spacing: -.05em;
+}
+.d-mark.yes { background: #e7efe8; color: var(--green); }
+.d-mark.no { background: #f6e5e5; color: var(--red); }
+.d-mark.meh { background: var(--paper-2); color: var(--ink-3); }
+.d-body { padding: 12px 16px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.d-body b { color: var(--ink); }
+.d-body code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper-2); padding: 1px 4px; }
+.d-status {
+  border-left: 1px dotted var(--rule-2); padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .08em;
+  text-transform: uppercase; display: flex; align-items: center;
+}
+.d-status.shipped { color: var(--green); }
+.d-status.notshipped { color: var(--red); font-weight: 700; }
+
+/* ---------- accessories ---------- */
+.acc { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 800px) { .acc { grid-template-columns: 1fr; } }
+.acc-item { border: 1px solid var(--ink); background: #fff; padding: 14px 16px; display: flex; gap: 12px; }
+.acc-item.dead { background: var(--paper-2); color: var(--ink-3); border-style: dashed; }
+.acc-logo { width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid var(--rule); background: var(--paper); display: flex; align-items: center; justify-content: center; }
+.acc-logo img { width: 18px; height: 18px; }
+.acc-b { flex: 1 1 auto; min-width: 0; }
+.acc-b .an { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 17px; line-height: 1.15; }
+.acc-b .an a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+.acc-b .an a:hover { color: var(--red); }
+.acc-b .am {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3);
+  letter-spacing: .05em; margin: 3px 0 6px;
+}
+.acc-b p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.acc-item.dead p, .acc-item.dead .am { color: var(--ink-3); }
+.acc-note {
+  margin-top: 16px; border-left: 4px solid var(--ink); padding: 10px 0 10px 14px;
+  font-size: 13.5px; line-height: 1.55; color: var(--ink-2);
+}
+.acc-note b { color: var(--ink); }
+
+/* ---------- order recommendation ---------- */
+.order { border: 3px solid var(--ink); background: #fff; }
+.order-head {
+  background: var(--ink); color: var(--paper); padding: 14px 22px;
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+}
+.order-head .oh-t { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: .04em; }
+.order-head .oh-s { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #b9b3a3; letter-spacing: .1em; text-transform: uppercase; margin-left: auto; }
+.order-steps { counter-reset: step; }
+.order-step { display: flex; gap: 16px; padding: 16px 22px; border-bottom: 1px dotted var(--rule-2); }
+.order-step:last-child { border-bottom: 0; }
+.order-step::before {
+  counter-increment: step; content: counter(step, decimal-leading-zero);
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px;
+  color: var(--red); flex: 0 0 28px;
+}
+.order-step .os-b { flex: 1 1 auto; }
+.order-step h4 { margin: 0 0 4px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: .02em; }
+.order-step p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.order-step p code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper-2); padding: 1px 4px; }
+.order-step p b { color: var(--ink); }
+
+/* ---------- sibling sheets ---------- */
+.sheets { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.sheet-card {
+  border: 1px solid var(--rule); background: #fff; padding: 12px 14px;
+  text-decoration: none; display: block;
+}
+.sheet-card:hover { border-color: var(--ink); background: #fdfbf6; }
+.sheet-card .sc-d {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px;
+}
+.sheet-card .sc-t { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 15px; line-height: 1.2; }
+.sheet-card .sc-s { font-size: 12px; color: var(--ink-2); line-height: 1.4; margin-top: 5px; }
+
+/* ---------- references ---------- */
+.refs { columns: 3 260px; column-gap: 26px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.65; }
+.ref { break-inside: avoid; margin-bottom: 5px; display: flex; gap: 7px; }
+.ref .rn { color: var(--red); font-weight: 700; flex: 0 0 22px; }
+.ref a { color: var(--ink-2); text-decoration: none; word-break: break-all; }
+.ref a:hover { color: var(--red); text-decoration: underline; }
+
+.colophon {
+  margin-top: 42px; border-top: 2px solid var(--ink); padding-top: 14px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .06em;
+  color: var(--ink-3); text-transform: uppercase;
+  display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+}
+.colophon a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+.colophon a:hover { color: var(--red); }
+</style>
+
+<div class="sheet">
+
+<div class="mast">
+  <div class="mast-in">
+    <div class="mast-brand">
+      <div class="mast-kicker">Itenium.Forge · Component Catalogue · <b>Section 4 — Auth Subsystems</b> · Edition Jul 2026</div>
+      <h1>BFF Options<br>for <em>.NET 10</em></h1>
+      <div class="mast-sub">Five ways to put an OIDC session in front of an API. Priced, licensed, weighed by the lines of security-critical code you end up owning.</div>
+    </div>
+    <div class="stamp">
+      <div class="row"><span>Sheet</span><b>1 / 1</b></div>
+      <div class="row"><span>Depth</span><b>Expedition</b></div>
+      <div class="row"><span>Refs</span><b>50</b></div>
+      <div class="row"><span>Platform</span><b>net10.0</b></div>
+      <div class="row"><span>Rev.</span><b>2026-07-14</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ============ SELECTION GUIDE ============ -->
+<div class="sec" style="margin-top: 38px;">
+  <div class="sec-head">
+    <span class="sec-no">00</span>
+    <h2>Selection guide</h2>
+    <span class="note">Two questions, one part number</span>
+  </div>
+  <div class="guide">
+    <div class="guide-step">
+      <div class="q">Q1 · Revenue test</div>
+      <div class="a">Under <span style="color:var(--red)">$1M</span> gross revenue<br>and under $3M capital?</div>
+      <p>The Community Edition gate is <strong>org revenue, not app audience</strong>. "It's only an internal tool" does not qualify you <sup><a href="https://duendesoftware.com/products/communityedition">[2]</a></sup>.</p>
+      <span class="arrow">→</span>
+    </div>
+    <div class="guide-step">
+      <div class="q">If yes</div>
+      <div class="a go">Duende.BFF · $0</div>
+      <p>Complete, supported, reference implementation. The answer is trivially Duende — take the free Community Edition licence and stop reading <sup><a href="https://docs.duendesoftware.com/general/licensing/">[11]</a></sup>.</p>
+      <span class="arrow">→</span>
+    </div>
+    <div class="guide-step">
+      <div class="q">If no · and $5,750/yr is a blocker</div>
+      <div class="a alt">YARP + OIDC + ATM</div>
+      <p>Microsoft's own recipe. Free forever, ~250–450 lines of security-critical code you own forever <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/security/blazor-web-app-with-oidc?view=aspnetcore-10.0">[5]</a></sup>.</p>
+    </div>
+    <div class="guide-price">
+      <span>⚠ NEVER HAND-ROLL TOKEN REFRESH — refresh races, rotation reuse-detection and multi-instance token stores are where custom BFFs break <sup><a href="https://nestenius.se/net/bff-in-asp-net-core-5-automatic-token-renewal/">[8]</a></sup></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ASSEMBLY DIAGRAM ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">01</span>
+    <h2>Assembly diagram</h2>
+    <span class="note">Where the part fits · Fig. 1</span>
+  </div>
+  <div class="assembly">
+    <svg viewBox="0 0 1040 260" role="img" aria-label="Assembly diagram: browser holds only an httpOnly cookie; the BFF holds tokens, exchanges the code with the IdP and forwards a bearer token to the API.">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#16181b"/>
+        </marker>
+        <marker id="arr" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#b7222b"/>
+        </marker>
+      </defs>
+      <g font-family="JetBrains Mono, monospace">
+        <!-- trust boundary -->
+        <rect x="212" y="8" width="828" height="244" fill="#f7f5f0" stroke="#c3bfb2" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="1030" y="26" text-anchor="end" font-size="10" letter-spacing="2" fill="#8b8f96">SERVER SIDE — TRUST BOUNDARY</text>
+
+        <!-- browser -->
+        <rect x="10" y="70" width="176" height="94" fill="#ffffff" stroke="#16181b" stroke-width="2"/>
+        <text x="24" y="94" font-size="10" letter-spacing="2" fill="#8b8f96">CLIENT</text>
+        <text x="24" y="118" font-size="17" font-weight="700" fill="#16181b" font-family="Archivo Narrow, sans-serif">React 19 SPA</text>
+        <text x="24" y="140" font-size="10.5" fill="#256b45">cookie: __Host- httpOnly</text>
+        <text x="24" y="155" font-size="10.5" fill="#b7222b">tokens: none ✗</text>
+
+        <!-- BFF -->
+        <rect x="256" y="46" width="248" height="142" fill="#16181b" stroke="#16181b" stroke-width="2"/>
+        <text x="274" y="70" font-size="10" letter-spacing="2" fill="#b9b3a3">PART UNDER TEST</text>
+        <text x="274" y="96" font-size="21" font-weight="700" fill="#e8b04b" font-family="Archivo Narrow, sans-serif">THE BFF</text>
+        <text x="274" y="120" font-size="10.5" fill="#efece4">· cookie ⇄ OIDC handler</text>
+        <text x="274" y="137" font-size="10.5" fill="#efece4">· token store + refresh</text>
+        <text x="274" y="154" font-size="10.5" fill="#efece4">· X-CSRF + /bff/user</text>
+        <text x="274" y="171" font-size="10.5" fill="#efece4">· forwarder (always YARP)</text>
+
+        <!-- API -->
+        <rect x="592" y="30" width="200" height="82" fill="#ffffff" stroke="#16181b" stroke-width="2"/>
+        <text x="608" y="52" font-size="10" letter-spacing="2" fill="#8b8f96">DOWNSTREAM</text>
+        <text x="608" y="76" font-size="17" font-weight="700" fill="#16181b" font-family="Archivo Narrow, sans-serif">.NET 10 API</text>
+        <text x="608" y="96" font-size="10.5" fill="#16456b">AddJwtBearer — unchanged</text>
+
+        <!-- IdP -->
+        <rect x="592" y="146" width="200" height="82" fill="#ffffff" stroke="#16181b" stroke-width="2"/>
+        <text x="608" y="168" font-size="10" letter-spacing="2" fill="#8b8f96">IDENTITY PROVIDER</text>
+        <text x="608" y="192" font-size="17" font-weight="700" fill="#16181b" font-family="Archivo Narrow, sans-serif">Keycloak / OpenIddict</text>
+        <text x="608" y="212" font-size="10.5" fill="#4a4f57">any OIDC provider</text>
+
+        <!-- arrows -->
+        <line x1="188" y1="105" x2="250" y2="105" stroke="#16181b" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="192" y="98" font-size="9.5" fill="#4a4f57">cookie</text>
+        <line x1="506" y1="82" x2="586" y2="72" stroke="#16181b" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="510" y="66" font-size="9.5" fill="#16456b">Bearer &lt;access_token&gt;</text>
+        <line x1="506" y1="158" x2="586" y2="180" stroke="#b7222b" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="512" y="200" font-size="9.5" fill="#b7222b">code exchange · refresh</text>
+
+        <!-- strip cookie annotation -->
+        <text x="510" y="120" font-size="9.5" fill="#8b8f96">↑ strip the Cookie header here</text>
+
+        <!-- what you buy -->
+        <line x1="816" y1="30" x2="816" y2="228" stroke="#c3bfb2" stroke-width="1"/>
+        <text x="834" y="52" font-size="10" letter-spacing="2" fill="#8b8f96">THE CHOICE</text>
+        <text x="834" y="80" font-size="12.5" font-weight="700" fill="#16181b" font-family="Archivo, sans-serif">Not Duende vs YARP.</text>
+        <text x="834" y="104" font-size="11" fill="#4a4f57" font-family="Archivo, sans-serif">Duende.BFF's forwarder</text>
+        <text x="834" y="120" font-size="11" fill="#4a4f57" font-family="Archivo, sans-serif">IS YARP. You are choosing</text>
+        <text x="834" y="136" font-size="11" fill="#4a4f57" font-family="Archivo, sans-serif">whether to buy the auth</text>
+        <text x="834" y="152" font-size="11" fill="#4a4f57" font-family="Archivo, sans-serif">layer that sits on top.</text>
+        <text x="834" y="188" font-size="10" fill="#8b8f96" font-family="Archivo, sans-serif">Ref. [24]</text>
+      </g>
+    </svg>
+    <div class="assembly-cap">Fig. 1 — Every option on this sheet occupies the same slot. They differ only in how much of the black box you write yourself. <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[24]</a></sup></div>
+  </div>
+</div>
+
+<!-- ============ THE PARTS ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">02</span>
+    <h2>The parts</h2>
+    <span class="note">5 options · ordered by verdict</span>
+  </div>
+
+  <div class="parts">
+
+  <!-- ===== DUENDE ===== -->
+  <div class="part p-buy">
+    <div class="part-main">
+      <div class="part-top">
+        <div class="part-logo"><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt="Duende Software"></div>
+        <div class="part-id">
+          <div class="part-code">Part DUE-BFF · v4.2.0 · rel. 2026-06-10 · net10.0 only</div>
+          <div class="part-name"><a href="https://docs.duendesoftware.com/bff/architecture/">Duende.BFF v4</a></div>
+          <div class="part-tag">The reference implementation. Ships the whole pattern — <code>/bff/login</code>, <code>/bff/logout</code>, <code>/bff/user</code>, CSRF, refresh, server-side sessions, back-channel logout.</div>
+        </div>
+        <div class="stars">⭐ 1.6k</div>
+      </div>
+      <div class="specs">
+        <div class="spec">
+          <div class="k">Licence</div>
+          <div class="v">Commercial<small>free Community Edition under thresholds</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Entry price</div>
+          <div class="v money">$5,750<small>/yr, Lite, billed annually <sup><a href="https://duendesoftware.com/pricing">[1]</a></sup></small></div>
+        </div>
+        <div class="spec">
+          <div class="k">LOC you own</div>
+          <div class="v">~50<small>config only <sup><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">[3]</a></sup></small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Upgrade burden</div>
+          <div class="v" style="color:var(--red)">High<small>v3→v4 broke the DB schema <sup><a href="https://docs.duendesoftware.com/bff/upgrading/bff-v3-to-v4/">[16]</a></sup></small></div>
+        </div>
+      </div>
+      <div class="part-body">
+        <p style="margin:0 0 8px">4.7M NuGet downloads <sup><a href="https://www.nuget.org/packages/Duende.BFF">[14]</a></sup>. Anti-forgery is a single required <code>X-CSRF: 1</code> header, which forces a CORS preflight for cross-origin callers — that's what actually blocks CSRF <sup><a href="https://duendesoftware.com/blog/20250325-understanding-antiforgery-in-aspnetcore">[13]</a></sup>. It does <strong>not</strong> need Duende IdentityServer: it drives the stock ASP.NET Core OIDC handler, so Keycloak and OpenIddict are just OIDC servers to it <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/handlers/">[50]</a></sup>. v4 (Dec 2025) added multi-frontend hosting and OpenTelemetry <sup><a href="https://duendesoftware.com/blog/20251202-duende-bffv4-now-available-multi-frontend-opentelemetry-and-simplified-security">[25]</a></sup>.</p>
+        <p style="margin:0" class="warn">⚠ Trial mode is not a free tier: no key = a startup error and a 5-sessions-per-host limit that degrades into log noise, not an outage <sup><a href="https://docs.duendesoftware.com/general/licensing/">[11]</a></sup>. 4.2.0 dropped net8/net9 — the support window is short <sup><a href="https://api.nuget.org/v3/registration5-gz-semver2/duende.bff/index.json">[17]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="caps">
+      <div class="caps-head">Capability · fitted from the box</div>
+      <div class="caps-list">
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Server-side sessions</span><span class="qual">EF store</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Token refresh</span><span class="qual">bundled ATM</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">CSRF</span><span class="qual">X-CSRF: 1</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Back-channel logout</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">/bff/user endpoint</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Keycloak</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">OpenIddict</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Multi-frontend host</span><span class="qual">v4</span></div>
+      </div>
+      <div class="verdict buy">
+        <div class="v-label">✔ Buy — or take it free</div>
+        <div class="v-why">The only option that ships the whole pattern. Free under Community Edition; otherwise evaluate the licence at portfolio level, not per app.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== YARP + OIDC + ATM ===== -->
+  <div class="part p-free">
+    <div class="part-main">
+      <div class="part-top">
+        <div class="part-logo"><img src="https://www.google.com/s2/favicons?domain=dotnet.microsoft.com&sz=128" alt="Microsoft .NET"></div>
+        <div class="part-id">
+          <div class="part-code">Part YRP-OIDC-ATM · YARP 2.3.0 (Feb 2025) + ATM 4.2.0 (Mar 2026)</div>
+          <div class="part-name"><a href="https://github.com/dotnet/yarp">YARP</a> + <code style="font-size:20px">AddOpenIdConnect</code> + <a href="https://github.com/DuendeSoftware/foss">Duende.AccessTokenManagement</a></div>
+          <div class="part-tag">Microsoft's own documented BFF recipe. YARP proxies, the stock OIDC handler does the protocol, Duende's Apache-2.0 library does the refresh cycle.</div>
+        </div>
+        <div class="stars">⭐ 9.6k</div>
+      </div>
+      <div class="specs">
+        <div class="spec">
+          <div class="k">Licence</div>
+          <div class="v">MIT + Apache-2.0<small>no licence key <sup><a href="https://github.com/dotnet/yarp">[18]</a></sup> <sup><a href="https://github.com/DuendeSoftware/foss">[4]</a></sup></small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Entry price</div>
+          <div class="v free">$0<small>forever</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">LOC you own</div>
+          <div class="v">~200–400<small>security-critical, see §03</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Upgrade burden</div>
+          <div class="v">Low (libs)<small>but <strong>you</strong> own the glue</small></div>
+        </div>
+      </div>
+      <div class="part-body">
+        <p style="margin:0 0 8px">68.7M downloads <sup><a href="https://www.nuget.org/packages/Yarp.ReverseProxy">[21]</a></sup>. YARP itself does <strong>no auth</strong>: "No authentication or authorization is performed on requests unless enabled in the route or application configuration", and by default your API receives the <em>cookie</em>, not a bearer token — swapping credential types "can be performed using custom request transforms" <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/authn-authz?view=aspnetcore-10.0">[27]</a></sup>. The transform is the whole trick:</p>
+        <p style="margin:0 0 8px"><code>transformBuilder.AddRequestTransform(async t =&gt; { var at = await t.HttpContext.GetTokenAsync("access_token"); t.ProxyRequest.Headers.Authorization = new("Bearer", at); });</code> — straight out of <a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/Program.cs">Microsoft's <code>BlazorWebAppOidcBffAutoYarpAspire</code></a> ⭐ 1.1k <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/Program.cs">[29]</a></sup>. It is Blazor-shaped, but the BFF half transplants onto a React SPA unchanged <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/security/blazor-web-app-with-oidc?view=aspnetcore-10.0">[5]</a></sup>.</p>
+        <p style="margin:0">Use <code>GetUserAccessTokenAsync()</code> from ATM, not raw token retrieval — the latter "doesn't automatically handle token expiration and most importantly the refresh cycle" <sup><a href="https://timdeschryver.dev/blog/forwarding-authenticated-calls-to-a-downstream-api-using-yarp">[32]</a></sup>. And add <code>RequestHeaderRemoveTransform("Cookie")</code> <sup><a href="https://timdeschryver.dev/blog/secure-your-yarp-bff-with-cookie-based-authentication">[31]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="caps">
+      <div class="caps-head">Capability · fitted from the box</div>
+      <div class="caps-list">
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">Server-side sessions</span><span class="qual">write ITicketStore</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Token refresh</span><span class="qual">via ATM</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">CSRF</span><span class="qual">write it</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">Back-channel logout</span><span class="qual">write it</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">/bff/user endpoint</span><span class="qual">write it</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Keycloak</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">OpenIddict</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Aspire discovery</span><span class="qual">resolver</span></div>
+      </div>
+      <div class="verdict free">
+        <div class="v-label">✔ The free path</div>
+        <div class="v-why">Take this when the licence is a blocker. You get Microsoft's blessing and a skeleton to copy — and ~250–450 lines of security code you own forever.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HAND-ROLLED ===== -->
+  <div class="part p-no">
+    <div class="part-main">
+      <div class="part-top">
+        <div class="part-logo"><span class="glyph">⌥</span></div>
+        <div class="part-id">
+          <div class="part-code">Part DIY-000 · unversioned · maintainer: you, forever</div>
+          <div class="part-name">Hand-rolled (<code style="font-size:20px">IHttpForwarder</code> / <code style="font-size:20px">HttpClient</code>)</div>
+          <div class="part-tag">One <code>app.MapForwarder("/{**catch-all}", …)</code> plus an <code>HttpMessageInvoker</code> and you have a proxy — no routing, no load balancing, no config discovery <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/direct-forwarding?view=aspnetcore-10.0">[34]</a></sup>.</div>
+        </div>
+        <div class="stars">n/a</div>
+      </div>
+      <div class="specs">
+        <div class="spec">
+          <div class="k">Licence</div>
+          <div class="v">—<small>it's yours</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Entry price</div>
+          <div class="v free">$0<small>up front</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">LOC you own</div>
+          <div class="v" style="color:var(--red)">~250–500<small>all of it security-critical</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Maturity</div>
+          <div class="v">n/a<small>you are the maintainer</small></div>
+        </div>
+      </div>
+      <div class="part-body">
+        <p style="margin:0 0 8px">Legitimate in exactly one shape: serve the SPA from the BFF's own <code>wwwroot</code> and the whole thing is same-origin, so the "proxy" collapses to a thin <code>/api</code> passthrough — which is what <a href="https://github.com/damienbod/bff-aspnetcore-oidc-vuejs">damienbod's sample</a> ⭐ 24 does, using YARP only in dev to front the Vite server <sup><a href="https://github.com/damienbod/bff-aspnetcore-oidc-vuejs">[35]</a></sup>.</p>
+        <p style="margin:0" class="warn">⚠ Never hand-roll <em>token refresh</em>. Microsoft's own 102-line <code>CookieOidcRefresher.cs</code> has no locking and no single-flight <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/CookieOidcRefresher.cs">[36]</a></sup> — and its header comment points straight at <a href="https://github.com/dotnet/aspnetcore/issues/8175">dotnet/aspnetcore#8175</a> ⭐ 38.3k, the still-open request for built-in support <sup><a href="https://github.com/dotnet/aspnetcore/issues/8175">[10]</a></sup>. Also don't use <a href="https://github.com/ardalis/BFF">ardalis/BFF</a> ⭐ 6 — a stale fork of the archived Duende repo <sup><a href="https://github.com/ardalis/BFF">[39]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="caps">
+      <div class="caps-head">Capability · fitted from the box</div>
+      <div class="caps-list">
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">Server-side sessions</span></div>
+        <div class="cap"><span class="mark n">⚠</span><span class="lbl off">Token refresh</span><span class="qual">you write it — don't</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">CSRF</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">Back-channel logout</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">/bff/user endpoint</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Keycloak</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">OpenIddict</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">Anyone to call</span></div>
+      </div>
+      <div class="verdict no">
+        <div class="v-label">✘ Not recommended</div>
+        <div class="v-why">The refresh cycle is the part that breaks. Every serious write-up ends by migrating to a library. Take the free path instead — it <em>is</em> the hand-rolled path, minus the token code.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== OIDCPROXY ===== -->
+  <div class="part p-cond">
+    <div class="part-main">
+      <div class="part-top">
+        <div class="part-logo"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="GitHub"></div>
+        <div class="part-id">
+          <div class="part-code">Part OPX-NET · LGPL-3.0 · community-maintained</div>
+          <div class="part-name"><a href="https://github.com/oidcproxydotnet/OidcProxy.Net">OidcProxy.Net</a></div>
+          <div class="part-tag">A config-only OSS BFF: an identity-aware reverse proxy built on YARP that implements the token-handler pattern. Keycloak, OpenIddict, Auth0, Entra ID.</div>
+        </div>
+        <div class="stars">⭐ 159</div>
+      </div>
+      <div class="specs">
+        <div class="spec">
+          <div class="k">Licence</div>
+          <div class="v">LGPL-3.0<small>copyleft — check with legal</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Entry price</div>
+          <div class="v free">$0</div>
+        </div>
+        <div class="spec">
+          <div class="k">LOC you own</div>
+          <div class="v">~20<small>configuration</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Bus factor</div>
+          <div class="v" style="color:var(--amber)">Low<small>⭐ 159 · maintainer unknown</small></div>
+        </div>
+      </div>
+      <div class="part-body">
+        <p style="margin:0">Functionally it is the closest OSS thing to Duende.BFF — Redis-backed sessions, refresh, CSRF, partial back-channel logout, all from config <sup><a href="https://github.com/oidcproxydotnet/OidcProxy.Net">[6]</a></sup>. The question is not capability, it's whether you want your admin console's session security depending on a 159-star project with an unclear maintainer.</p>
+      </div>
+    </div>
+    <div class="caps">
+      <div class="caps-head">Capability · fitted from the box</div>
+      <div class="caps-list">
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Server-side sessions</span><span class="qual">Redis</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Token refresh</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">CSRF</span></div>
+        <div class="cap"><span class="mark p">◐</span><span class="lbl">Back-channel logout</span><span class="qual">partial</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Token-handler shape</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Keycloak</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">OpenIddict</span></div>
+        <div class="cap"><span class="mark p">◐</span><span class="lbl">Support to call</span><span class="qual">community</span></div>
+      </div>
+      <div class="verdict cond">
+        <div class="v-label">◐ Conditional</div>
+        <div class="v-why">Take it if you want a config-only OSS BFF and can accept a small bus factor. Its licence is LGPL-3.0, not MIT — that alone will decide it in some shops.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== OAUTH2-PROXY ===== -->
+  <div class="part p-spec">
+    <div class="part-main">
+      <div class="part-top">
+        <div class="part-logo"><img src="https://www.google.com/s2/favicons?domain=oauth2-proxy.github.io&sz=128" alt="oauth2-proxy"></div>
+        <div class="part-id">
+          <div class="part-code">Part O2P-SIDECAR · v7.15.3 (Jun 2026) · container, not code</div>
+          <div class="part-name"><a href="https://github.com/oauth2-proxy/oauth2-proxy">oauth2-proxy</a> sidecar</div>
+          <div class="part-tag">If the console already sits behind an ingress, the BFF can be a container instead of a codebase. Zero .NET security code; the config is YAML.</div>
+        </div>
+        <div class="stars">⭐ 15k</div>
+      </div>
+      <div class="specs">
+        <div class="spec">
+          <div class="k">Licence</div>
+          <div class="v">MIT<small><sup><a href="https://github.com/oauth2-proxy/oauth2-proxy">[7]</a></sup></small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Entry price</div>
+          <div class="v free">$0</div>
+        </div>
+        <div class="spec">
+          <div class="k">LOC you own</div>
+          <div class="v free">0<small>YAML + a container tag</small></div>
+        </div>
+        <div class="spec">
+          <div class="k">Upgrade burden</div>
+          <div class="v">Low<small>bump the image</small></div>
+        </div>
+      </div>
+      <div class="part-body">
+        <p style="margin:0" class="warn">⚠ It gives you a <em>gate</em>, not a BFF. The token flow is header-shaped, not BFF-shaped: <code>pass-access-token</code> → <code>X-Forwarded-Access-Token</code>; <code>pass-authorization-header</code> sends the <strong>ID token</strong> as the Bearer; <code>set-authorization-header</code> only helps in nginx <code>auth_request</code> mode <sup><a href="https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview">[22]</a></sup>. There is no <code>/bff/user</code> shape, CSRF is its own cookie scheme, and back-channel logout is absent. For an internal console fronting your <em>own</em> .NET APIs the impedance mismatch usually costs more than the ~250 lines it saves.</p>
+      </div>
+    </div>
+    <div class="caps">
+      <div class="caps-head">Capability · fitted from the box</div>
+      <div class="caps-list">
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Server-side sessions</span><span class="qual">Redis store</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Token refresh</span><span class="qual">cookie-refresh</span></div>
+        <div class="cap"><span class="mark p">⚠</span><span class="lbl">CSRF</span><span class="qual">own cookie, not a header</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">Back-channel logout</span></div>
+        <div class="cap"><span class="mark n">✗</span><span class="lbl off">/bff/user endpoint</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">Keycloak</span></div>
+        <div class="cap"><span class="mark y">✓</span><span class="lbl">OpenIddict</span><span class="qual">generic OIDC</span></div>
+        <div class="cap"><span class="mark p">⚠</span><span class="lbl">Scoped access token</span><span class="qual">may be the ID token</span></div>
+      </div>
+      <div class="verdict spec">
+        <div class="v-label">◇ Specialist</div>
+        <div class="v-why">Wins only when you already run the reverse proxy, want zero .NET security code, and your API can be told which header to trust.</div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- ============ PRICE LIST ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">03</span>
+    <h2>Price list · Duende, 2026</h2>
+    <span class="note">Billed annually · no EUR list price published</span>
+  </div>
+  <div class="pricing">
+    <div>
+      <div class="tiers">
+        <div class="tier entry">
+          <div class="t-name">Lite — entry</div>
+          <div class="t-price">$5,750</div>
+          <div class="t-per">per year</div>
+          <div class="t-quota"><b>2</b> BFF front-ends</div>
+        </div>
+        <div class="tier">
+          <div class="t-name">Standard</div>
+          <div class="t-price">$12,500</div>
+          <div class="t-per">per year</div>
+          <div class="t-quota"><b>10</b> BFF front-ends</div>
+        </div>
+        <div class="tier">
+          <div class="t-name">Advanced</div>
+          <div class="t-price">$24,900</div>
+          <div class="t-per">per year</div>
+          <div class="t-quota"><b>30</b> BFF front-ends</div>
+        </div>
+      </div>
+      <div class="addons">
+        <div class="addon"><span>Add-on · SAML</span><b>$1,500</b></div>
+        <div class="addon"><span>Add-on · Automatic Key Mgmt</span><b>$4,000</b></div>
+        <div class="addon"><span>Add-on · FAPI conformance</span><b>$7,500</b></div>
+      </div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.04em;margin-top:12px">Free for development, testing and personal projects — you only pay for production <sup><a href="https://duendesoftware.com/pricing">[1]</a></sup>. Licence validation is fully local, no outbound calls, and the same key may be used in dev/test/QA <sup><a href="https://docs.duendesoftware.com/general/licensing/">[11]</a></sup> <sup><a href="https://github.com/orgs/DuendeSoftware/discussions/557">[26]</a></sup>.</p>
+    </div>
+    <div>
+      <div class="free-box">
+        <div class="fb-title">Community Edition</div>
+        <div class="fb-price">$0</div>
+        <div class="gate">
+          <div>revenue <span class="op">&lt;</span> <b>$1M</b> USD/yr</div>
+          <div><span class="op">AND</span> capital <span class="op">&lt;</span> <b>$3M</b> USD</div>
+          <div><span class="op">OR</span> non-profit budget <span class="op">&lt;</span> $1M</div>
+        </div>
+        <p>Excludes redistribution and building identity infra for an end customer. If the console runs in <em>your</em> infra for <em>your</em> staff you are judged on your own revenue; if it ships to a client, that client needs the licence <sup><a href="https://duendesoftware.com/products/communityedition">[2]</a></sup>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BOM ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">04</span>
+    <h2>Bill of materials — the free path</h2>
+    <span class="note">LOC counted from Microsoft's own .NET 10 BFF sample</span>
+  </div>
+  <div class="bom">
+    <div class="bom-row">
+      <div class="file">CookieOidcRefresher.cs<small>refresh-token exchange at <code>OnValidatePrincipal</code>, re-validate the id_token, re-issue the cookie <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/CookieOidcRefresher.cs">[36]</a></sup></small></div>
+      <div class="loc">102</div>
+      <div class="bar-cell"><div class="bar" style="width:22.7%"></div></div>
+    </div>
+    <div class="bom-row">
+      <div class="file">CookieOidcServiceCollectionExtensions.cs<small>wires the refresher, sets <code>SaveTokens</code>, adds <code>offline_access</code></small></div>
+      <div class="loc">26</div>
+      <div class="bar-cell"><div class="bar" style="width:5.8%"></div></div>
+    </div>
+    <div class="bom-row">
+      <div class="file">LoginLogoutEndpointRouteBuilderExtensions.cs<small><code>/login</code> challenge + <code>/logout</code> sign-out</small></div>
+      <div class="loc">46</div>
+      <div class="bar-cell"><div class="bar" style="width:10.2%"></div></div>
+    </div>
+    <div class="bom-row">
+      <div class="file">auth wiring in Program.cs<small><code>AddOpenIdConnect</code> + <code>AddCookie</code> + <code>MapForwarder</code> + transform <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/Program.cs">[29]</a></sup></small></div>
+      <div class="loc">~40</div>
+      <div class="bar-cell"><div class="bar" style="width:8.9%"></div></div>
+    </div>
+    <div class="bom-row sub">
+      <div class="file">Microsoft's baseline<small>and this is the <em>happy path</em></small></div>
+      <div class="loc">~215</div>
+      <div class="bar-cell"><div class="bar" style="width:47.8%"></div></div>
+    </div>
+    <div class="bom-row">
+      <div class="file">+ /bff/user endpoint, X-CSRF middleware<small>Duende gives these free <sup><a href="https://duendesoftware.com/blog/20250325-understanding-antiforgery-in-aspnetcore">[13]</a></sup></small></div>
+      <div class="loc">~35</div>
+      <div class="bar-cell"><div class="bar est" style="width:7.8%"></div></div>
+    </div>
+    <div class="bom-row">
+      <div class="file">+ ITicketStore (server-side sessions)<small>needed once cookies get fat <sup><a href="https://duendesoftware.com/blog/20260429-aspnet-core-cookie-size-limits">[37]</a></sup></small></div>
+      <div class="loc">~80</div>
+      <div class="bar-cell"><div class="bar est" style="width:17.8%"></div></div>
+    </div>
+    <div class="bom-row">
+      <div class="file">+ back-channel logout + revocation<small>ASP.NET Core has <strong>none</strong> built in <sup><a href="https://damienbod.com/2024/09/09/implement-openid-connect-back-channel-logout-using-asp-net-core-keycloak-and-net-aspire/">[20]</a></sup></small></div>
+      <div class="loc">~60–100</div>
+      <div class="bar-cell"><div class="bar est" style="width:22.2%"></div></div>
+    </div>
+    <div class="bom-row total">
+      <div class="file">REALISTIC TOTAL<small style="color:#b9b3a3">security-critical · yours forever</small></div>
+      <div class="loc">~250–450</div>
+      <div class="bar-cell"><div class="bar" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <div class="exchange">
+    <div class="side">~250–450 lines<small>security-critical code you own</small></div>
+    <div class="eq">⇄</div>
+    <div class="side" style="color:#e8b04b">$5,750 / yr<small>or $0 under Community Edition</small></div>
+  </div>
+  <p style="font-size:13.5px;color:var(--ink-2);line-height:1.6;margin-top:14px;max-width:82ch">
+    That is the honest exchange rate. Nestenius's series ends by migrating a from-scratch BFF to Duende and reports the collapse: the whole custom <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--paper-2);padding:1px 4px">BffController</code> becomes <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--paper-2);padding:1px 4px">app.MapBffManagementEndpoints();</code>, the proxying becomes one line, and the custom CSRF middleware disappears entirely <sup><a href="https://nestenius.se/net/bff-in-asp-net-core-7-introducing-the-duende-bff-library/">[38]</a></sup>.
+  </p>
+</div>
+
+<!-- ============ HANDLING WARNINGS ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">05</span>
+    <h2>Handling warnings</h2>
+    <span class="note">What breaks a hand-built BFF</span>
+  </div>
+  <div class="warns">
+    <div class="warn-item">
+      <div class="w-head"><span class="w-icon">⚠</span><h4>Refresh races</h4></div>
+      <p>Concurrent requests each hit the token endpoint with the same refresh token. With rotation + reuse detection (Keycloak's default posture) that can nuke the session. Microsoft's 102-line refresher has <strong>no locking or single-flight</strong>. "Real-world incidents have occurred where custom implementations accidentally exposed tokens to wrong users." <sup><a href="https://nestenius.se/net/bff-in-asp-net-core-5-automatic-token-renewal/">[8]</a></sup> <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/CookieOidcRefresher.cs">[36]</a></sup></p>
+    </div>
+    <div class="warn-item">
+      <div class="w-head"><span class="w-icon">⚠</span><h4>SaveTokens blows up the cookie</h4></div>
+      <p>Cookie limit ~4 KB, header limit ~8 KB. Base64 JWTs plus Keycloak group/role claims overflow it → <code>HTTP 431</code>, silent truncation, intermittent logout, WAF drops. <code>ChunkingCookieManager</code> splits at 3500 bytes but is tactical only. <sup><a href="https://duendesoftware.com/blog/20260429-aspnet-core-cookie-size-limits">[37]</a></sup></p>
+    </div>
+    <div class="warn-item">
+      <div class="w-head"><span class="w-icon">⚠</span><h4>The real fix is a session store</h4></div>
+      <p><code>ITicketStore</code> / server-side sessions — the cookie becomes an opaque key. Duende does this with one call; on the free path you write it. Put it in from day one, not after the first HTTP 431. <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[12]</a></sup></p>
+    </div>
+    <div class="warn-item">
+      <div class="w-head"><span class="w-icon">⚠</span><h4>CSRF</h4></div>
+      <p>Cookie auth means the browser attaches credentials automatically. You need <code>SameSite</code>, the <code>__Host-</code> prefix <strong>and</strong> a required custom header. Deschryver's otherwise-solid YARP walkthrough simply doesn't cover antiforgery. <sup><a href="https://duendesoftware.com/blog/20250325-understanding-antiforgery-in-aspnetcore">[13]</a></sup> <sup><a href="https://timdeschryver.dev/blog/secure-your-yarp-bff-with-cookie-based-authentication">[31]</a></sup></p>
+    </div>
+    <div class="warn-item">
+      <div class="w-head"><span class="w-icon">⚠</span><h4>Back-channel logout</h4></div>
+      <p>No built-in support anywhere in ASP.NET Core. You implement the webhook, validate the logout token, persist it to a distributed cache, and check it on every request via a cookie event handler. <sup><a href="https://damienbod.com/2024/09/09/implement-openid-connect-back-channel-logout-using-asp-net-core-keycloak-and-net-aspire/">[20]</a></sup></p>
+    </div>
+    <div class="warn-item">
+      <div class="w-head"><span class="w-icon">⚠</span><h4>Forwarding the cookie downstream</h4></div>
+      <p>Strip it. The API should see only <code>Authorization: Bearer</code> — use <code>RequestHeaderRemoveTransform("Cookie")</code>. <sup><a href="https://timdeschryver.dev/blog/forwarding-authenticated-calls-to-a-downstream-api-using-yarp">[32]</a></sup></p>
+    </div>
+    <div class="warn-item fixed" style="grid-column: 1 / -1; border-right: 0;">
+      <div class="w-head"><span class="w-icon">✔</span><h4>401 vs 302 on proxied calls — fixed in .NET 10</h4></div>
+      <p>Historically the killer: an expired cookie turned an XHR into a 302 to Keycloak, and every hand-rolled BFF carried a custom <code>OnRedirectToLogin</code> hack to force a 401. As of .NET 10 the cookie handler returns 401/403 for endpoints carrying the new <code>IApiEndpointMetadata</code> — auto-added to <code>[ApiController]</code>, JSON minimal APIs, <code>TypedResults</code> and SignalR. Opt out with <code>[AllowCookieRedirect]</code>. <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/cookie-authentication-api-endpoints?view=aspnetcore-10.0">[9]</a></sup></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PLATFORM DELTA ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">06</span>
+    <h2>Platform delta — what .NET 10 itself ships</h2>
+    <span class="note">Does it shrink the gap?</span>
+  </div>
+  <div class="delta">
+    <div class="delta-row">
+      <div class="d-mark yes">✓✓</div>
+      <div class="d-body"><b>Cookie handler returns 401/403 instead of redirecting</b> for API endpoints. Removes the single most annoying hand-rolled-BFF hack. <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/cookie-authentication-api-endpoints?view=aspnetcore-10.0">[9]</a></sup> <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-10.0?view=aspnetcore-10.0">[40]</a></sup></div>
+      <div class="d-status shipped">Shipped · breaking</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark yes">✓</div>
+      <div class="d-body"><b>Official BFF-with-YARP + Aspire sample</b> (<code>BlazorWebAppOidcBffAutoYarpAspire</code>), plus a <code>MinimalApiJwt</code> downstream API and service-discovery destination resolution. A Microsoft-blessed skeleton to copy. <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/security/blazor-web-app-with-oidc?view=aspnetcore-10.0">[5]</a></sup> <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/Program.cs">[29]</a></sup></div>
+      <div class="d-status shipped">Shipped · sample, not a package</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark yes">✓</div>
+      <div class="d-body"><b>PAR (RFC 9126)</b> used automatically when the IdP advertises it. Free hardening for the BFF's OIDC leg — Keycloak supports PAR (Entra does not). <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/Program.cs">[29]</a></sup></div>
+      <div class="d-status shipped">Shipped · .NET 9, default in 10 samples</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark meh">~</div>
+      <div class="d-body"><b>Auth/authz metrics</b> (<code>aspnetcore.authentication.authenticate.duration</code>, sign-in/out counters). An ops nicety. <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-10.0?view=aspnetcore-10.0">[40]</a></sup></div>
+      <div class="d-status shipped">Shipped</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark no">✗</div>
+      <div class="d-body"><b>Passkeys / WebAuthn</b> in ASP.NET Core Identity. Irrelevant if Keycloak or OpenIddict is the IdP. <sup><a href="https://auth0.com/blog/authentication-authorization-enhancements-dotnet-10/">[41]</a></sup></div>
+      <div class="d-status shipped">Shipped · not applicable</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark no">✗✗</div>
+      <div class="d-body"><b>OAuth 2 refresh-token support</b> (<a href="https://github.com/dotnet/aspnetcore/issues/8175">#8175</a>, open since 2019) — <strong>the core gap</strong>. Was on the .NET 10 aspirational list; still open, now milestoned .NET 11 Planning. <sup><a href="https://github.com/dotnet/aspnetcore/issues/8175">[10]</a></sup> <sup><a href="https://github.com/dotnet/aspnetcore/issues/59443">[42]</a></sup></div>
+      <div class="d-status notshipped">Not shipped · .NET 11</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark no">✗</div>
+      <div class="d-body"><b>DPoP</b> (<a href="https://github.com/dotnet/aspnetcore/issues/58016">#58016</a>) — the issue itself says it: "The current option in .NET is to either use Duende libraries, or write your own." <sup><a href="https://github.com/dotnet/aspnetcore/issues/58016">[43]</a></sup></div>
+      <div class="d-status notshipped">Not shipped · .NET 11</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark no">✗</div>
+      <div class="d-body">A first-party <b>BFF package or <code>dotnet new bff</code> template</b>. Does not exist. No BFF item appears anywhere in the .NET 10 auth roadmap; the token-handler pattern remains third-party. <sup><a href="https://github.com/dotnet/aspnetcore/issues/59443">[42]</a></sup></div>
+      <div class="d-status notshipped">Does not exist</div>
+    </div>
+    <div class="delta-row">
+      <div class="d-mark no">✗</div>
+      <div class="d-body">Back-channel logout, an <code>ITicketStore</code> implementation, antiforgery-for-BFF. Still yours to write. <sup><a href="https://damienbod.com/2024/09/09/implement-openid-connect-back-channel-logout-using-asp-net-core-keycloak-and-net-aspire/">[20]</a></sup></div>
+      <div class="d-status notshipped">Still yours</div>
+    </div>
+  </div>
+  <div class="acc-note" style="margin-top:18px">
+    <b>Read:</b> .NET 10 makes the hand-rolled BFF <em>pleasanter</em> — 401s, an official sample, better metrics — not <em>smaller</em>. The two things that would actually shrink the code you own, refresh-token management and DPoP, both slipped to .NET 11 planning. Until then, "free token management" means <code>Duende.AccessTokenManagement</code> (Apache-2.0), which is a Duende library either way. You're just not paying for it. <sup><a href="https://github.com/DuendeSoftware/foss">[4]</a></sup>
+  </div>
+</div>
+
+<!-- ============ ACCESSORIES ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">07</span>
+    <h2>Accessories &amp; third-party fittings</h2>
+    <span class="note">The option the .NET framing misses</span>
+  </div>
+  <div class="acc">
+    <div class="acc-item">
+      <div class="acc-logo"><img src="https://www.google.com/s2/favicons?domain=pomerium.com&sz=128" alt="Pomerium"></div>
+      <div class="acc-b">
+        <div class="an"><a href="https://github.com/pomerium/pomerium">Pomerium</a></div>
+        <div class="am">⭐ 4.9k · Apache-2.0 · v0.32.9 (Jun 2026)</div>
+        <p>Identity-aware proxy / zero-trust gateway. Heavier: a policy engine and its own control plane. Overkill for one admin console. <sup><a href="https://github.com/pomerium/pomerium">[44]</a></sup></p>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-logo"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="GitHub"></div>
+      <div class="acc-b">
+        <div class="an"><a href="https://github.com/thomseddon/traefik-forward-auth">traefik-forward-auth</a></div>
+        <div class="am">⭐ 2.4k · MIT · v2.3.0</div>
+        <p>Gate-only. Authenticates the user and forwards identity headers — it does <strong>not</strong> mint or refresh access tokens for a downstream API. <sup><a href="https://github.com/thomseddon/traefik-forward-auth">[45]</a></sup></p>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-logo"><img src="https://www.google.com/s2/favicons?domain=traefik.io&sz=128" alt="Traefik"></div>
+      <div class="acc-b">
+        <div class="an"><a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/">Traefik ForwardAuth</a> / <a href="https://nginx.org/en/docs/http/ngx_http_auth_request_module.html">nginx auth_request</a></div>
+        <div class="am">built into the proxy</div>
+        <p>Primitives, not solutions. ForwardAuth "delegates authentication to an external service" <sup><a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/">[46]</a></sup>; auth_request "implements client authorization based on the result of a subrequest" <sup><a href="https://nginx.org/en/docs/http/ngx_http_auth_request_module.html">[47]</a></sup>. Traefik's own OIDC middleware is a commercial Hub/Enterprise feature.</p>
+      </div>
+    </div>
+    <div class="acc-item dead">
+      <div class="acc-logo"><span style="font-size:15px">⊠</span></div>
+      <div class="acc-b">
+        <div class="an"><a href="https://github.com/keycloak/keycloak-gatekeeper">Keycloak Gatekeeper / louketo-proxy</a></div>
+        <div class="am">⭐ 948 · ARCHIVED DEC 2020 · EOL</div>
+        <p>Dead. The community successor is <a href="https://github.com/gogatekeeper/gatekeeper">gogatekeeper</a> ⭐ 318, Apache-2.0, v4.10.0 (Jun 2026) — alive but tiny. <sup><a href="https://github.com/keycloak/keycloak-gatekeeper">[48]</a></sup> <sup><a href="https://github.com/gogatekeeper/gatekeeper">[49]</a></sup></p>
+      </div>
+    </div>
+  </div>
+  <div class="acc-note">
+    <b>When the sidecar wins:</b> you already run the reverse proxy, you want zero .NET security code, and the console's APIs can accept a header you configure. <b>When it loses:</b> the sidecar gives you a <em>gate</em>, not a BFF — no <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--paper-2);padding:1px 4px">/bff/user</code> shape, CSRF is its own scheme, back-channel logout is absent, and the token it forwards may be the ID token rather than a scoped access token.
+  </div>
+</div>
+
+<!-- ============ ORDER RECOMMENDATION ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">08</span>
+    <h2>Order recommendation</h2>
+    <span class="note">For itenium-ui</span>
+  </div>
+  <div class="order">
+    <div class="order-head">
+      <span class="oh-t">Greenfield · internal · Keycloak-or-OpenIddict · one frontend</span>
+      <span class="oh-s">Fitting instructions</span>
+    </div>
+    <div class="order-steps">
+      <div class="order-step">
+        <div class="os-b">
+          <h4>Check Community Edition eligibility first</h4>
+          <p>It is a two-line revenue test <sup><a href="https://duendesoftware.com/products/communityedition">[2]</a></sup>. If it passes, <b>Duende.BFF is free, complete and supported</b>, and the answer is trivially Duende. Stop here.</p>
+        </div>
+      </div>
+      <div class="order-step">
+        <div class="os-b">
+          <h4>If not eligible: YARP + AddOpenIdConnect + Duende.AccessTokenManagement</h4>
+          <p>Copy Microsoft's <code>BlazorWebAppOidcBffAutoYarpAspire</code> sample <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/security/blazor-web-app-with-oidc?view=aspnetcore-10.0">[5]</a></sup>. Budget <b>~250–450 LOC</b>, and put server-side sessions (<code>ITicketStore</code>) in from day one rather than after the first HTTP 431 <sup><a href="https://duendesoftware.com/blog/20260429-aspnet-core-cookie-size-limits">[37]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="order-step">
+        <div class="os-b">
+          <h4>Serve the SPA from the BFF's own origin</h4>
+          <p><code>wwwroot</code> in production, dev-proxy in dev. It makes SameSite and CSRF tractable and removes most of the proxy <sup><a href="https://github.com/damienbod/bff-aspnetcore-oidc-vuejs">[35]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="order-step">
+        <div class="os-b">
+          <h4>Price the licence at portfolio level, not per app</h4>
+          <p><b>$5,750/yr buys ~350 lines of security code you never write</b>, a DB-backed session store, back-channel logout, and someone to call. For a <em>single</em> internal console that's expensive — but the same licence covers 2 front-ends and the org's other apps <sup><a href="https://duendesoftware.com/pricing">[1]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OTHER SHEETS ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">09</span>
+    <h2>Other sheets in this section</h2>
+    <span class="note"><a href="../../" style="color:var(--ink)">↑ Expedition index</a></span>
+  </div>
+  <div class="sheets">
+    <a class="sheet-card" href="../../in-memory-tokens-vs-cookie-backed-bff-sessions-under-xss/">
+      <div class="sc-d">Survey</div>
+      <div class="sc-t">In-memory tokens vs cookie-backed BFF sessions under XSS</div>
+      <div class="sc-s">httpOnly cookies do not stop XSS — they convert silent exfiltration into loud, tab-bound session riding.</div>
+    </a>
+    <a class="sheet-card" href="../../does-the-ietf-browser-based-apps-bcp-apply-to-an-internal-admin-console/">
+      <div class="sc-d">Recon</div>
+      <div class="sc-t">Does the IETF browser-based-apps BCP apply to an internal admin console?</div>
+      <div class="sc-s">It names "business applications" in its strongest recommendation — a strong prior, not a mandate.</div>
+    </a>
+    <a class="sheet-card" href="../../refresh-tokens-and-silent-renew-in-a-browser-spa-2026/">
+      <div class="sc-d">Survey</div>
+      <div class="sc-t">Refresh tokens and silent renew in a browser SPA (2026)</div>
+      <div class="sc-s">Iframe silent renew is dead cross-site but alive same-site; DPoP only really works on Keycloak.</div>
+    </a>
+    <a class="sheet-card" href="../../greenfield-bff-cost-vs-retrofitting-one-later/">
+      <div class="sc-d">Survey</div>
+      <div class="sc-t">Greenfield BFF vs retrofitting later</div>
+      <div class="sc-s">Adding a BFF later is a two-way door. The one-way door is the API, not the frontend.</div>
+    </a>
+    <a class="sheet-card" href="../../impact-on-openapi-client-codegen-and-local-dev-ergonomics/">
+      <div class="sc-d">Survey</div>
+      <div class="sc-t">What a BFF costs you every day: OpenAPI codegen and the local dev loop</div>
+      <div class="sc-s">A path-preserving BFF leaves codegen untouched — the cost is one extra process.</div>
+    </a>
+  </div>
+</div>
+
+<!-- ============ REFERENCE INDEX ============ -->
+<div class="sec">
+  <div class="sec-head">
+    <span class="sec-no">10</span>
+    <h2>Reference index</h2>
+    <span class="note">50 sources</span>
+  </div>
+  <div class="refs">
+    <div class="ref"><span class="rn">[1]</span><a href="https://duendesoftware.com/pricing">duendesoftware.com/pricing</a></div>
+    <div class="ref"><span class="rn">[2]</span><a href="https://duendesoftware.com/products/communityedition">duendesoftware.com/products/communityedition</a></div>
+    <div class="ref"><span class="rn">[3]</span><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">wrapt.dev/blog/standalone-duende-bff-for-any-spa</a></div>
+    <div class="ref"><span class="rn">[4]</span><a href="https://github.com/DuendeSoftware/foss">github.com/DuendeSoftware/foss</a></div>
+    <div class="ref"><span class="rn">[5]</span><a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/security/blazor-web-app-with-oidc?view=aspnetcore-10.0">learn.microsoft.com/en-us/aspnet/core/blazor/security/blazo…</a></div>
+    <div class="ref"><span class="rn">[6]</span><a href="https://github.com/oidcproxydotnet/OidcProxy.Net">github.com/oidcproxydotnet/OidcProxy.Net</a></div>
+    <div class="ref"><span class="rn">[7]</span><a href="https://github.com/oauth2-proxy/oauth2-proxy">github.com/oauth2-proxy/oauth2-proxy</a></div>
+    <div class="ref"><span class="rn">[8]</span><a href="https://nestenius.se/net/bff-in-asp-net-core-5-automatic-token-renewal/">nestenius.se/net/bff-in-asp-net-core-5-automatic-token-rene…</a></div>
+    <div class="ref"><span class="rn">[9]</span><a href="https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/cookie-authentication-api-endpoints?view=aspnetcore-10.0">learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/c…</a></div>
+    <div class="ref"><span class="rn">[10]</span><a href="https://github.com/dotnet/aspnetcore/issues/8175">github.com/dotnet/aspnetcore/issues/8175</a></div>
+    <div class="ref"><span class="rn">[11]</span><a href="https://docs.duendesoftware.com/general/licensing/">docs.duendesoftware.com/general/licensing/</a></div>
+    <div class="ref"><span class="rn">[12]</span><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">docs.duendesoftware.com/bff/fundamentals/session/server-sid…</a></div>
+    <div class="ref"><span class="rn">[13]</span><a href="https://duendesoftware.com/blog/20250325-understanding-antiforgery-in-aspnetcore">duendesoftware.com/blog/20250325-understanding-antiforgery-…</a></div>
+    <div class="ref"><span class="rn">[14]</span><a href="https://www.nuget.org/packages/Duende.BFF">nuget.org/packages/Duende.BFF</a></div>
+    <div class="ref"><span class="rn">[15]</span><a href="https://github.com/DuendeSoftware/products">github.com/DuendeSoftware/products</a></div>
+    <div class="ref"><span class="rn">[16]</span><a href="https://docs.duendesoftware.com/bff/upgrading/bff-v3-to-v4/">docs.duendesoftware.com/bff/upgrading/bff-v3-to-v4/</a></div>
+    <div class="ref"><span class="rn">[17]</span><a href="https://api.nuget.org/v3/registration5-gz-semver2/duende.bff/index.json">api.nuget.org/v3/registration5-gz-semver2/duende.bff/index.…</a></div>
+    <div class="ref"><span class="rn">[18]</span><a href="https://github.com/dotnet/yarp">github.com/dotnet/yarp</a></div>
+    <div class="ref"><span class="rn">[19]</span><a href="https://docs.duendesoftware.com/accesstokenmanagement/">docs.duendesoftware.com/accesstokenmanagement/</a></div>
+    <div class="ref"><span class="rn">[20]</span><a href="https://damienbod.com/2024/09/09/implement-openid-connect-back-channel-logout-using-asp-net-core-keycloak-and-net-aspire/">damienbod.com/2024/09/09/implement-openid-connect-back-chan…</a></div>
+    <div class="ref"><span class="rn">[21]</span><a href="https://www.nuget.org/packages/Yarp.ReverseProxy">nuget.org/packages/Yarp.ReverseProxy</a></div>
+    <div class="ref"><span class="rn">[22]</span><a href="https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview">oauth2-proxy.github.io/oauth2-proxy/configuration/overview</a></div>
+    <div class="ref"><span class="rn">[23]</span><a href="https://docs.duendesoftware.com/bff/architecture/">docs.duendesoftware.com/bff/architecture/</a></div>
+    <div class="ref"><span class="rn">[24]</span><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">docs.duendesoftware.com/bff/fundamentals/apis/remote/</a></div>
+    <div class="ref"><span class="rn">[25]</span><a href="https://duendesoftware.com/blog/20251202-duende-bffv4-now-available-multi-frontend-opentelemetry-and-simplified-security">duendesoftware.com/blog/20251202-duende-bffv4-now-available…</a></div>
+    <div class="ref"><span class="rn">[26]</span><a href="https://github.com/orgs/DuendeSoftware/discussions/557">github.com/orgs/DuendeSoftware/discussions/557</a></div>
+    <div class="ref"><span class="rn">[27]</span><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/authn-authz?view=aspnetcore-10.0">learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/…</a></div>
+    <div class="ref"><span class="rn">[28]</span><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/transforms?view=aspnetcore-10.0">learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/…</a></div>
+    <div class="ref"><span class="rn">[29]</span><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/Program.cs">github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAp…</a></div>
+    <div class="ref"><span class="rn">[30]</span><a href="https://api.nuget.org/v3/registration5-gz-semver2/duende.accesstokenmanagement.openidconnect/index.json">api.nuget.org/v3/registration5-gz-semver2/duende.accesstoke…</a></div>
+    <div class="ref"><span class="rn">[31]</span><a href="https://timdeschryver.dev/blog/secure-your-yarp-bff-with-cookie-based-authentication">timdeschryver.dev/blog/secure-your-yarp-bff-with-cookie-bas…</a></div>
+    <div class="ref"><span class="rn">[32]</span><a href="https://timdeschryver.dev/blog/forwarding-authenticated-calls-to-a-downstream-api-using-yarp">timdeschryver.dev/blog/forwarding-authenticated-calls-to-a-…</a></div>
+    <div class="ref"><span class="rn">[33]</span><a href="https://timdeschryver.dev/blog/integrating-yarp-within-dotnet-aspire">timdeschryver.dev/blog/integrating-yarp-within-dotnet-aspire</a></div>
+    <div class="ref"><span class="rn">[34]</span><a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/yarp/direct-forwarding?view=aspnetcore-10.0">learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/…</a></div>
+    <div class="ref"><span class="rn">[35]</span><a href="https://github.com/damienbod/bff-aspnetcore-oidc-vuejs">github.com/damienbod/bff-aspnetcore-oidc-vuejs</a></div>
+    <div class="ref"><span class="rn">[36]</span><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/CookieOidcRefresher.cs">github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAp…</a></div>
+    <div class="ref"><span class="rn">[37]</span><a href="https://duendesoftware.com/blog/20260429-aspnet-core-cookie-size-limits">duendesoftware.com/blog/20260429-aspnet-core-cookie-size-li…</a></div>
+    <div class="ref"><span class="rn">[38]</span><a href="https://nestenius.se/net/bff-in-asp-net-core-7-introducing-the-duende-bff-library/">nestenius.se/net/bff-in-asp-net-core-7-introducing-the-duen…</a></div>
+    <div class="ref"><span class="rn">[39]</span><a href="https://github.com/ardalis/BFF">github.com/ardalis/BFF</a></div>
+    <div class="ref"><span class="rn">[40]</span><a href="https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-10.0?view=aspnetcore-10.0">learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetc…</a></div>
+    <div class="ref"><span class="rn">[41]</span><a href="https://auth0.com/blog/authentication-authorization-enhancements-dotnet-10/">auth0.com/blog/authentication-authorization-enhancements-do…</a></div>
+    <div class="ref"><span class="rn">[42]</span><a href="https://github.com/dotnet/aspnetcore/issues/59443">github.com/dotnet/aspnetcore/issues/59443</a></div>
+    <div class="ref"><span class="rn">[43]</span><a href="https://github.com/dotnet/aspnetcore/issues/58016">github.com/dotnet/aspnetcore/issues/58016</a></div>
+    <div class="ref"><span class="rn">[44]</span><a href="https://github.com/pomerium/pomerium">github.com/pomerium/pomerium</a></div>
+    <div class="ref"><span class="rn">[45]</span><a href="https://github.com/thomseddon/traefik-forward-auth">github.com/thomseddon/traefik-forward-auth</a></div>
+    <div class="ref"><span class="rn">[46]</span><a href="https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/">doc.traefik.io/traefik/reference/routing-configuration/http…</a></div>
+    <div class="ref"><span class="rn">[47]</span><a href="https://nginx.org/en/docs/http/ngx_http_auth_request_module.html">nginx.org/en/docs/http/ngx_http_auth_request_module.html</a></div>
+    <div class="ref"><span class="rn">[48]</span><a href="https://github.com/keycloak/keycloak-gatekeeper">github.com/keycloak/keycloak-gatekeeper</a></div>
+    <div class="ref"><span class="rn">[49]</span><a href="https://github.com/gogatekeeper/gatekeeper">github.com/gogatekeeper/gatekeeper</a></div>
+    <div class="ref"><span class="rn">[50]</span><a href="https://docs.duendesoftware.com/bff/fundamentals/session/handlers/">docs.duendesoftware.com/bff/fundamentals/session/handlers/</a></div>
+  </div>
+</div>
+
+<div class="colophon">
+  <span>Itenium.Forge · Component Catalogue · Section 4 · Sheet 1/1</span>
+  <span>Spec-sheet view of <a href="../">the canonical page</a> · <a href="../../">Expedition</a> · <a href="/">Atlas</a></span>
+</div>
+
+</div>
+</div>

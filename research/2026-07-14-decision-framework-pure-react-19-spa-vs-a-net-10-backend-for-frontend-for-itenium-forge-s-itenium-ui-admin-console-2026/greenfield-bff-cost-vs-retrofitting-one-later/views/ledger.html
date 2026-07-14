@@ -1,0 +1,1349 @@
+---
+layout: view
+view_name: "Cost Ledger"
+view_of: ../
+title: "Greenfield BFF vs retrofitting later: where the asymmetry actually is — Cost Ledger"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap');
+
+.lg {
+  --paper: #f4ead6;
+  --paper-2: #ece0c5;
+  --paper-3: #e3d5b6;
+  --ink: #2c2117;
+  --ink-soft: #6f5f4b;
+  --ink-faint: #9b8b74;
+  --rule: #a9bccb;
+  --rule-red: #c15a48;
+  --credit: #1f6b42;
+  --credit-bg: #e4eee0;
+  --mech: #8a6714;
+  --mech-bg: #f2e8cd;
+  --debit: #ab2a1c;
+  --debit-bg: #f6e0da;
+  --board: #43301f;
+
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.lg *, .lg *::before, .lg *::after { box-sizing: border-box; }
+.lg a { color: inherit; }
+
+.lg .wrap { max-width: 1140px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
+
+/* ── ruled paper ─────────────────────────────────────────── */
+.lg .ruled {
+  background-color: var(--paper);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 33px,
+    rgba(169, 188, 203, .55) 33px,
+    rgba(169, 188, 203, .55) 34px
+  );
+}
+
+/* ── masthead ────────────────────────────────────────────── */
+.lg .masthead {
+  position: relative;
+  background: var(--board);
+  overflow: hidden;
+  border-bottom: 6px double var(--rule-red);
+}
+.lg .masthead img.plate {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 22%;
+  filter: sepia(.55) contrast(1.05) brightness(.72);
+  opacity: .5;
+}
+.lg .masthead .scrim {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(30,20,12,.86) 0%, rgba(40,28,17,.62) 45%, rgba(28,19,11,.9) 100%);
+}
+.lg .masthead .mh-inner {
+  position: relative;
+  padding: clamp(3rem, 8vw, 6rem) 0 clamp(2rem, 5vw, 3.5rem);
+}
+.lg .mh-rule {
+  display: flex; align-items: center; gap: 1rem;
+  color: #d9c39a;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem; letter-spacing: .28em; text-transform: uppercase;
+  margin-bottom: 1.6rem;
+}
+.lg .mh-rule::after { content: ""; flex: 1; height: 1px; background: rgba(217,195,154,.4); }
+
+.lg h1.mh-title {
+  font-family: 'Pinyon Script', cursive;
+  font-weight: 400;
+  font-size: clamp(3rem, 9vw, 6.4rem);
+  line-height: .95;
+  color: #f6ead1;
+  margin: 0 0 .4rem;
+  text-shadow: 0 2px 24px rgba(0,0,0,.45);
+}
+.lg .mh-sub {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  font-size: clamp(.85rem, 2vw, 1.15rem);
+  color: #e2c98f;
+  margin: 0 0 1.8rem;
+}
+.lg .mh-lede {
+  font-size: clamp(1rem, 2.2vw, 1.22rem);
+  color: #e8dcc4;
+  max-width: 44ch;
+  line-height: 1.55;
+  margin: 0;
+}
+.lg .mh-meta {
+  display: flex; flex-wrap: wrap; gap: 1.6rem;
+  margin-top: 2.4rem; padding-top: 1.4rem;
+  border-top: 1px solid rgba(217,195,154,.28);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem; letter-spacing: .1em;
+  color: #c3ab7d;
+  text-transform: uppercase;
+}
+.lg .mh-meta b { color: #f2e3c3; font-weight: 600; }
+
+/* ── the stamped verdict ─────────────────────────────────── */
+.lg .verdict {
+  position: relative;
+  margin: clamp(2.5rem, 6vw, 4rem) 0;
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-left: 10px solid var(--credit);
+  padding: clamp(1.6rem, 4vw, 2.6rem) clamp(1.4rem, 4vw, 2.8rem);
+  box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 12px 30px -22px rgba(44,33,23,.5);
+}
+.lg .verdict .vh {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: .24em; text-transform: uppercase;
+  font-size: .74rem; color: var(--ink-soft);
+  margin-bottom: .9rem;
+}
+.lg .verdict p {
+  margin: 0 0 1rem;
+  font-size: clamp(1.05rem, 2.4vw, 1.28rem);
+  line-height: 1.62;
+}
+.lg .verdict p:last-child { margin-bottom: 0; }
+.lg .verdict strong { font-weight: 700; }
+
+.lg .stamp {
+  display: inline-block;
+  transform: rotate(-6deg);
+  border: 3px double var(--debit);
+  color: var(--debit);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: .5rem 1.1rem;
+  font-size: clamp(.9rem, 2.2vw, 1.15rem);
+  opacity: .82;
+  background: rgba(255,255,255,.18);
+  line-height: 1.2;
+  text-align: center;
+}
+.lg .stamp small {
+  display: block;
+  font-size: .58em;
+  letter-spacing: .3em;
+  font-weight: 500;
+  opacity: .85;
+}
+.lg .stamp-row { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
+
+/* ── section furniture ───────────────────────────────────── */
+.lg section { padding: clamp(2rem, 5vw, 3.2rem) 0; }
+.lg .folio {
+  display: flex; align-items: baseline; gap: 1rem;
+  border-bottom: 3px double var(--ink);
+  padding-bottom: .5rem;
+  margin-bottom: 1.8rem;
+}
+.lg .folio .no {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem; font-weight: 600;
+  letter-spacing: .16em;
+  color: var(--rule-red);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.lg .folio h2 {
+  font-family: 'Pinyon Script', cursive;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  line-height: 1.05;
+  margin: 0;
+  flex: 1;
+}
+.lg .folio .aside {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem; letter-spacing: .12em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.lg .intro { max-width: 68ch; color: var(--ink-soft); margin: 0 0 1.6rem; }
+.lg .intro strong { color: var(--ink); }
+
+/* ── chart of accounts (two BFFs) ────────────────────────── */
+.lg .accounts { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.lg .acct {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  padding: 1.4rem 1.5rem;
+  position: relative;
+}
+.lg .acct.two-way { border-top: 5px solid var(--credit); }
+.lg .acct.one-way { border-top: 5px solid var(--debit); }
+.lg .acct .code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: .4rem;
+}
+.lg .acct h3 { margin: 0 0 .7rem; font-size: 1.15rem; }
+.lg .acct p { margin: 0 0 1rem; font-size: .92rem; color: var(--ink-soft); line-height: 1.55; }
+.lg .acct .door {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  font-size: .82rem;
+  padding: .35rem .7rem;
+  display: inline-block;
+}
+.lg .acct.two-way .door { color: var(--credit); background: var(--credit-bg); }
+.lg .acct.one-way .door { color: var(--debit); background: var(--debit-bg); }
+
+/* ── THE LEDGER ──────────────────────────────────────────── */
+.lg .book {
+  border: 1px solid var(--paper-3);
+  border-top: 4px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0 20px 40px -34px rgba(44,33,23,.7);
+  overflow-x: auto;
+}
+.lg table.ledger {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: .92rem;
+}
+.lg table.ledger thead th {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: .68rem;
+  padding: .9rem .7rem;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper-3);
+  vertical-align: bottom;
+  text-align: left;
+}
+.lg table.ledger thead th small {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 400;
+  letter-spacing: .04em;
+  text-transform: none;
+  font-size: .82em;
+  color: var(--ink-soft);
+  margin-top: .2rem;
+}
+.lg th.c-credit { color: var(--credit); background: var(--credit-bg); text-align: right; border-left: 2px solid var(--rule-red); }
+.lg th.c-mech   { color: var(--mech);   background: var(--mech-bg);   text-align: right; border-left: 2px solid var(--rule-red); }
+.lg th.c-debit  { color: var(--debit);  background: var(--debit-bg);  text-align: right; border-left: 2px solid var(--rule-red); }
+.lg th.c-ref { width: 48px; text-align: center; }
+
+.lg table.ledger td {
+  padding: .8rem .7rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.lg table.ledger tbody tr:hover { background: rgba(193,90,72,.05); }
+.lg td.ref {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem; color: var(--ink-faint);
+  text-align: center; border-right: 1px solid var(--rule);
+}
+.lg td.part { width: 42%; }
+.lg td.part .what { font-weight: 700; display: block; margin-bottom: .18rem; }
+.lg td.part .flow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .74rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  display: block;
+}
+.lg td.part .flow .arrow { color: var(--rule-red); padding: 0 .3em; font-weight: 600; }
+
+.lg td.amt {
+  text-align: right;
+  border-left: 2px solid var(--rule-red);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .8rem;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+.lg td.amt .fig {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.lg td.amt .note { display: block; font-size: .7rem; color: var(--ink-soft); white-space: normal; text-align: right; }
+.lg td.amt.credit .fig { color: var(--credit); }
+.lg td.amt.mech .fig { color: var(--mech); }
+.lg td.amt.debit .fig { color: var(--debit); }
+.lg td.amt.empty { color: var(--ink-faint); }
+.lg td.amt.empty::after { content: "—"; color: #cbbda2; }
+
+.lg tr.keystone td { background: #f6edcd; border-top: 2px solid var(--mech); border-bottom: 2px solid var(--mech); }
+.lg tr.keystone td.part .what::after {
+  content: "THE KEYSTONE";
+  display: inline-block;
+  margin-left: .6rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: .58rem;
+  letter-spacing: .18em;
+  background: var(--mech);
+  color: #fdf6e2;
+  padding: .12rem .45rem;
+  vertical-align: middle;
+}
+.lg tr.unbounded td { background: var(--debit-bg); }
+.lg tr.unbounded td.part .what { color: var(--debit); }
+
+.lg tfoot td {
+  border-top: 3px double var(--ink);
+  border-bottom: none;
+  padding: 1rem .7rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem;
+  font-weight: 600;
+  background: var(--paper-3);
+}
+.lg tfoot td.total { text-align: right; border-left: 2px solid var(--rule-red); }
+.lg tfoot td.total .big {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: .02em;
+}
+.lg tfoot td.total.credit .big { color: var(--credit); }
+.lg tfoot td.total.mech .big { color: var(--mech); }
+.lg tfoot td.total.debit .big { color: var(--debit); }
+.lg tfoot td.total small { display: block; font-weight: 400; color: var(--ink-soft); font-size: .68rem; margin-top: .2rem; white-space: normal; }
+.lg tfoot td.label {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: .78rem;
+}
+
+/* ── the unbounded cost callout ──────────────────────────── */
+.lg .suspense {
+  margin-top: 2rem;
+  border: 2px solid var(--debit);
+  background:
+    repeating-linear-gradient(135deg, rgba(171,42,28,.05) 0 10px, transparent 10px 20px),
+    var(--paper);
+  padding: clamp(1.4rem, 4vw, 2rem);
+  display: grid;
+  gap: 1.4rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 760px) { .lg .suspense { grid-template-columns: 190px 1fr; align-items: start; } }
+.lg .suspense .glyph {
+  font-family: 'Oswald', sans-serif;
+  color: var(--debit);
+  text-align: center;
+  line-height: 1;
+}
+.lg .suspense .glyph .inf { font-size: clamp(3.4rem, 10vw, 5.4rem); display: block; }
+.lg .suspense .glyph .cap {
+  display: block; font-size: .66rem; letter-spacing: .2em; text-transform: uppercase;
+  margin-top: .4rem;
+}
+.lg .suspense h3 {
+  margin: 0 0 .6rem;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 1.05rem;
+  color: var(--debit);
+}
+.lg .suspense p { margin: 0 0 .8rem; font-size: .95rem; line-height: 1.6; }
+.lg .suspense p:last-child { margin-bottom: 0; }
+.lg .suspense code, .lg code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .86em;
+  background: rgba(44,33,23,.07);
+  padding: .1em .34em;
+  border-radius: 2px;
+}
+
+/* ── auditor's exceptions ────────────────────────────────── */
+.lg .exceptions { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.lg .exc {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 1rem;
+  padding: .9rem .5rem;
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+.lg .exc .n {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: var(--debit);
+  font-size: 1.2rem;
+  text-align: right;
+}
+.lg .exc .t { font-size: .96rem; line-height: 1.55; }
+.lg .exc .t b { font-family: 'IBM Plex Mono', monospace; font-size: .9em; font-weight: 600; }
+.lg .exc .t span { color: var(--ink-soft); }
+.lg .exc-foot {
+  margin-top: 1.4rem;
+  padding: 1rem 1.2rem;
+  background: var(--credit-bg);
+  border-left: 6px solid var(--credit);
+  font-size: 1.02rem;
+}
+.lg .exc-foot strong { color: var(--credit); }
+
+/* ── standing orders (the checklist) ─────────────────────── */
+.lg .orders-head {
+  background: var(--board);
+  color: #f2e4c9;
+  padding: clamp(1.4rem, 4vw, 2rem) clamp(1.4rem, 4vw, 2.4rem);
+  border-bottom: 4px double var(--rule-red);
+}
+.lg .orders-head h2 {
+  font-family: 'Pinyon Script', cursive;
+  font-weight: 400;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  margin: 0 0 .4rem;
+  color: #f6ead1;
+}
+.lg .orders-head p {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem;
+  letter-spacing: .06em;
+  color: #cdb68b;
+  line-height: 1.6;
+}
+.lg .orders {
+  border: 1px solid var(--paper-3);
+  border-top: none;
+  background: var(--paper);
+  box-shadow: 0 20px 40px -34px rgba(44,33,23,.7);
+}
+.lg .order {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  border-bottom: 1px solid var(--rule);
+}
+.lg .order:last-child { border-bottom: none; }
+.lg .order .num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--rule-red);
+  border-right: 2px solid var(--rule-red);
+  padding: 1rem .6rem;
+  text-align: center;
+  background: var(--paper-2);
+}
+.lg .order .body { padding: 1rem 1.2rem; }
+.lg .order .body h4 {
+  margin: 0 0 .3rem;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  letter-spacing: .04em;
+  font-size: 1.02rem;
+}
+.lg .order .body p { margin: 0; font-size: .92rem; color: var(--ink-soft); line-height: 1.6; }
+.lg .order:hover { background: rgba(31,107,66,.045); }
+.lg .order.realtime .num { color: var(--debit); border-right-color: var(--debit); background: var(--debit-bg); }
+.lg .order.realtime .body h4 { color: var(--debit); }
+
+/* ── silent errors ───────────────────────────────────────── */
+.lg .bells { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.lg .bell {
+  border: 1px dashed var(--debit);
+  background: var(--paper-2);
+  padding: 1.2rem 1.3rem;
+}
+.lg .bell .sig {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink);
+  display: block;
+  margin-bottom: .5rem;
+  line-height: 1.5;
+}
+.lg .bell .out {
+  font-size: .88rem;
+  color: var(--debit);
+  line-height: 1.55;
+  display: block;
+}
+.lg .bell .out::before {
+  content: "→ ";
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ── contra account ──────────────────────────────────────── */
+.lg .contra {
+  display: grid; gap: 0;
+  border: 1px solid var(--paper-3);
+  background: var(--paper-2);
+}
+.lg .contra-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .4rem;
+  padding: 1.1rem 1.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+@media (min-width: 780px) {
+  .lg .contra-row { grid-template-columns: 210px 1fr; gap: 1.4rem; align-items: baseline; }
+}
+.lg .contra-row:last-child { border-bottom: none; }
+.lg .contra-row .k {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: .74rem;
+  color: var(--ink-soft);
+}
+.lg .contra-row .v { font-size: .96rem; line-height: 1.6; }
+.lg .contra-row.easy .k { color: var(--credit); }
+.lg .contra-row.hard .k { color: var(--debit); }
+
+.lg blockquote.gossip {
+  margin: 1.8rem 0 0;
+  padding: 1.2rem 1.4rem;
+  border-left: 6px solid var(--ink-faint);
+  background: var(--paper-2);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.lg blockquote.gossip footer {
+  font-style: normal;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .74rem;
+  color: var(--ink-soft);
+  margin-top: .7rem;
+  letter-spacing: .04em;
+}
+
+/* ── statement of account ────────────────────────────────── */
+.lg .statement { overflow-x: auto; border: 1px solid var(--paper-3); border-top: 4px solid var(--ink); }
+.lg table.stmt { width: 100%; min-width: 700px; border-collapse: collapse; }
+.lg table.stmt th {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase; letter-spacing: .14em;
+  font-size: .66rem; text-align: left;
+  padding: .9rem 1rem;
+  background: var(--paper-3);
+  border-bottom: 2px solid var(--ink);
+}
+.lg table.stmt td { padding: 1rem; border-bottom: 1px solid var(--rule); vertical-align: top; font-size: .92rem; }
+.lg table.stmt tr:last-child td { border-bottom: none; }
+.lg table.stmt .path { font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1rem; white-space: nowrap; }
+.lg table.stmt .cost {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 1.35rem;
+  white-space: nowrap;
+}
+.lg table.stmt .detail { color: var(--ink-soft); font-size: .84rem; line-height: 1.55; }
+.lg table.stmt tr.good td { background: var(--credit-bg); }
+.lg table.stmt tr.good .cost { color: var(--credit); }
+.lg table.stmt tr.bad td { background: var(--debit-bg); }
+.lg table.stmt tr.bad .cost { color: var(--debit); }
+.lg table.stmt tr.neutral .cost { color: var(--ink-soft); }
+
+.lg .multiplier {
+  margin-top: 1.6rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem;
+  padding: 1.2rem 1.4rem;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+}
+.lg .multiplier .x {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 8vw, 4rem);
+  line-height: 1;
+  color: var(--debit);
+}
+.lg .multiplier p { margin: 0; font-size: 1rem; line-height: 1.6; flex: 1; min-width: 240px; }
+
+/* ── closing entry ───────────────────────────────────────── */
+.lg .closing {
+  position: relative;
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  border-top: 6px double var(--ink);
+  border-bottom: 6px double var(--ink);
+  padding: clamp(2.4rem, 6vw, 4rem) 0;
+  background: var(--paper-2);
+}
+.lg .closing .kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--rule-red);
+  margin-bottom: 1.2rem;
+}
+.lg .closing .line {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: clamp(1.35rem, 4vw, 2.2rem);
+  line-height: 1.42;
+  margin: 0 0 1.4rem;
+  max-width: 24ch;
+}
+.lg .closing .line em { font-style: italic; color: var(--debit); }
+.lg .closing .line .ok { color: var(--credit); font-style: italic; }
+.lg .closing .sig {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2rem;
+  margin-top: 2.4rem; padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+}
+.lg .closing .sig .book-cite {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem; color: var(--ink-soft); line-height: 1.7;
+  flex: 1; min-width: 240px;
+}
+.lg .closing figure { margin: 2rem 0 0; }
+.lg .closing figure img {
+  width: 100%; max-width: 100%;
+  border: 1px solid var(--paper-3);
+  box-shadow: 0 18px 34px -28px rgba(44,33,23,.8);
+  display: block;
+  filter: sepia(.12);
+}
+.lg .closing figcaption {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem; color: var(--ink-faint);
+  margin-top: .6rem; line-height: 1.6;
+}
+.lg .closing-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .lg .closing-grid { grid-template-columns: 1.1fr .9fr; align-items: center; } }
+
+/* ── vouchers (sources) ──────────────────────────────────── */
+.lg .vouchers { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.lg .voucher {
+  display: grid;
+  grid-template-columns: 26px 20px 1fr;
+  gap: .55rem;
+  align-items: center;
+  padding: .55rem .6rem;
+  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  color: inherit;
+  font-size: .82rem;
+}
+.lg .voucher:hover { background: var(--paper-2); }
+.lg .voucher .vn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+  color: var(--ink-faint);
+  text-align: right;
+}
+.lg .voucher img { width: 16px; height: 16px; display: block; }
+.lg .voucher .vt { line-height: 1.4; }
+.lg .voucher .vt em {
+  display: block;
+  font-style: normal;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .64rem;
+  color: var(--ink-faint);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-top: .12rem;
+}
+
+/* ── other folios (siblings) ─────────────────────────────── */
+.lg .folios { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.lg .fol {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-left: 5px solid var(--ink-faint);
+  padding: 1rem 1.1rem;
+}
+.lg .fol:hover { border-left-color: var(--rule-red); background: var(--paper-3); }
+.lg .fol .d {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--rule-red);
+  margin-bottom: .4rem;
+}
+.lg .fol h4 { margin: 0 0 .4rem; font-size: .98rem; line-height: 1.4; }
+.lg .fol p { margin: 0; font-size: .82rem; color: var(--ink-soft); line-height: 1.55; }
+
+.lg .up {
+  display: block; text-decoration: none; color: #f2e4c9;
+  background: var(--board);
+  padding: 1.3rem 1.5rem;
+  margin-top: 1.6rem;
+}
+.lg .up:hover { background: #523b26; }
+.lg .up .d {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem; letter-spacing: .22em; text-transform: uppercase;
+  color: #c8ac7c; margin-bottom: .4rem;
+}
+.lg .up h4 { margin: 0; font-size: 1.05rem; line-height: 1.4; font-family: 'Libre Baskerville', serif; }
+
+.lg sup a {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .64em;
+  color: var(--rule-red);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0 .05em;
+}
+.lg sup a:hover { text-decoration: underline; }
+
+.lg .colophon {
+  padding: 2.5rem 0 3.5rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  color: var(--ink-faint);
+  line-height: 1.8;
+  letter-spacing: .04em;
+}
+</style>
+
+<div class="lg">
+
+<!-- ══ MASTHEAD ══════════════════════════════════════════ -->
+<header class="masthead">
+  <img class="plate" src="ledger/images/ledger-page.webp" alt="A page from an 1833 merchant's ledger, ruled in red, entries in copperplate hand">
+  <div class="scrim"></div>
+  <div class="mh-inner">
+    <div class="wrap">
+      <div class="mh-rule">Account No. 4 &nbsp;·&nbsp; Itenium.Forge &nbsp;·&nbsp; itenium-ui</div>
+      <h1 class="mh-title">The Cost Ledger</h1>
+      <div class="mh-sub">Retrofitting a BFF onto a React&nbsp;19 SPA — every line item, booked</div>
+      <p class="mh-lede">Every item that changes when a BFF arrives, entered in one of three columns. Most of them turn out to be <em>credits</em>.</p>
+      <div class="mh-meta">
+        <span>Depth <b>survey</b></span>
+        <span>Vouchers <b>25</b></span>
+        <span>Reading <b>9 min</b></span>
+        <span>Entered <b>14 July 2026</b></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ══ THE BOTTOM LINE ═══════════════════════════════════ -->
+<div class="verdict">
+  <div class="vh">Bottom line, posted first</div>
+  <p><strong>&ldquo;Add the BFF later&rdquo; is a real option, not a one-way door</strong> — provided the SPA is built so the token never escapes one module. The retrofit is <strong>2–5 days of mostly&#8209;<em>deleting</em> work</strong>.</p>
+  <p>The reason the ledger balances: the API's <code>AddJwtBearer</code> <strong>never changes</strong>. The BFF forwards a bearer token to it <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[2]</a></sup><sup><a href="https://curity.io/blog/token-handler-the-single-page-applications-new-bff/">[3]</a></sup>, so the one thing everybody fears rewriting is the one thing that isn't touched.</p>
+  <p>The genuine one-way doors are elsewhere: <strong>BFF-local endpoints that only ever spoke cookie</strong> <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/local/">[4]</a></sup>, <strong>SignalR/WebSockets through the proxy</strong> <sup><a href="https://github.com/DuendeArchive/Support/issues/972">[14]</a></sup>, and <strong>access-token claims read in component code</strong> <sup><a href="https://docs.oidc-spa.dev/resources/jwt-of-the-access-token">[22]</a></sup>.</p>
+  <div class="stamp-row">
+    <div class="stamp">Two-Way Door<small>Retrofit Approved</small></div>
+  </div>
+</div>
+
+<!-- ══ CHART OF ACCOUNTS ═════════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Folio I</div>
+    <h2>Chart of Accounts</h2>
+    <div class="aside">Two things bear the name BFF</div>
+  </div>
+  <p class="intro">The reversibility answer flips depending on which account you are posting to. <strong>Almost all of the internet's BFF-regret literature is filed under the second one.</strong> Don't import that regret into this decision.</p>
+  <div class="accounts">
+    <div class="acct two-way">
+      <div class="code">Acct. 1 · Security BFF / Token Handler</div>
+      <h3>A thin confidential-client host</h3>
+      <p>Owns the OIDC flow, keeps tokens server-side, hands the browser an <code>HttpOnly</code> cookie, proxies <code>/api/*</code> to the real API with the access token re-attached <sup><a href="https://duendesoftware.com/blog/20210326-bff">[1]</a></sup><sup><a href="https://curity.io/blog/token-handler-the-single-page-applications-new-bff/">[3]</a></sup>. It adds <em>no business logic</em>.</p>
+      <span class="door">Two-way door · removable</span>
+    </div>
+    <div class="acct one-way">
+      <div class="code">Acct. 2 · API-shaping BFF (Newman's original)</div>
+      <h3>A per-client backend</h3>
+      <p>Aggregates, trims and reshapes responses; business rules migrate <em>into</em> it <sup><a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends">[12]</a></sup>. Microsoft's own guidance: &ldquo;Code duplication is a probable outcome&rdquo;, and the pattern is unsuitable when &ldquo;only one interface interacts with the backend&rdquo;.</p>
+      <span class="door">One-way door · logic gets stranded</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ THE LEDGER ════════════════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Folio II</div>
+    <h2>The Ledger</h2>
+    <div class="aside">Sorted by cost at retrofit time, not by fright</div>
+  </div>
+  <p class="intro">Each line: what it is <em>before</em> (in-memory-token SPA), what it becomes <em>after</em> (BFF), and which column it lands in. <strong>A credit means you delete code</strong> — the retrofit's dividend, not its cost.</p>
+
+  <div class="book">
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th class="c-ref">Ref</th>
+          <th>Particulars<small>before &rarr; after</small></th>
+          <th class="c-credit">Credit<small>you delete it</small></th>
+          <th class="c-mech">Mechanical<small>hours, one file</small></th>
+          <th class="c-debit">Debit<small>the real bill</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="ref">01</td>
+          <td class="part">
+            <span class="what">Token acquisition</span>
+            <span class="flow"><code>oidc-client-ts</code> / <code>react-oidc-context</code>, silent renew, iframe plumbing<span class="arrow">&rarr;</span>deleted; the BFF does code exchange back-channel <sup><a href="https://timdeschryver.dev/blog/lets-make-our-spa-more-secure-by-consuming-a-duende-bff-with-angular">[5]</a></sup></span>
+          </td>
+          <td class="amt credit"><span class="fig">&minus;1 dep</span><span class="note">ship less JS</span></td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">02</td>
+          <td class="part">
+            <span class="what">Login / logout UX</span>
+            <span class="flow"><code>signinRedirect()</code>, callback route, silent-renew route<span class="arrow">&rarr;</span><code>&lt;a href="/bff/login"&gt;</code> <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/management/">[6]</a></sup></span>
+          </td>
+          <td class="amt credit"><span class="fig">&minus;2 routes</span><span class="note">callback + silent renew</span></td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">03</td>
+          <td class="part">
+            <span class="what">CORS</span>
+            <span class="flow">Allowed origins, headers, preflight on the API<span class="arrow">&rarr;</span>deleted. Same-origin by construction; a CORS error post-BFF means the topology is wrong <sup><a href="https://duendesoftware.com/blog/20210326-bff">[1]</a></sup><sup><a href="https://docs.duendesoftware.com/bff/troubleshooting/">[7]</a></sup></span>
+          </td>
+          <td class="amt credit"><span class="fig">&minus;1 config</span><span class="note">net negative cost</span></td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">04</td>
+          <td class="part">
+            <span class="what">File downloads &amp; protected <code>&lt;img src&gt;</code></span>
+            <span class="flow">Broken by design — <code>&lt;a&gt;</code> and <code>&lt;img&gt;</code> can't carry an <code>Authorization</code> header, so you're already writing blob/objectURL hacks <sup><a href="https://alphahydrae.com/2021/02/how-to-display-an-image-protected-by-header-based-authentication/">[21]</a></sup><span class="arrow">&rarr;</span>just works, the cookie rides along</span>
+          </td>
+          <td class="amt credit"><span class="fig">&minus;1 hack</span><span class="note">the retrofit deletes it</span></td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr class="keystone">
+          <td class="ref">05</td>
+          <td class="part">
+            <span class="what">API auth scheme</span>
+            <span class="flow"><code>AddJwtBearer</code><span class="arrow">&rarr;</span><code>AddJwtBearer</code>. Unchanged. The BFF forwards the user's access token <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[2]</a></sup>; the token-handler pattern &ldquo;requires minimal changes to existing web apps or microservices&rdquo; <sup><a href="https://curity.io/blog/token-handler-the-single-page-applications-new-bff/">[3]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">0.00</span><span class="note">nil. this is why the &ldquo;one-way door&rdquo; framing is overstated</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">06</td>
+          <td class="part">
+            <span class="what">IdP client config</span>
+            <span class="flow">Public client + PKCE, client auth <em>off</em><span class="arrow">&rarr;</span>confidential client + secret, client auth <em>on</em>, new redirect URIs <sup><a href="https://oneuptime.com/blog/post/2026-02-02-keycloak-clients-creation/view">[23]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">minutes</span><span class="note">a toggle and two URIs</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">07</td>
+          <td class="part">
+            <span class="what">HTTP client</span>
+            <span class="flow"><code>Authorization: Bearer …</code> interceptor<span class="arrow">&rarr;</span><code>credentials: 'include'</code> + a static <code>X-CSRF: 1</code> header <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[2]</a></sup>. The new interceptor is <em>strictly simpler</em> than the old one <sup><a href="https://timdeschryver.dev/blog/lets-make-our-spa-more-secure-by-consuming-a-duende-bff-with-angular">[5]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">1 file</span><span class="note">if you own a fetch wrapper</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">08</td>
+          <td class="part">
+            <span class="what">CSRF</span>
+            <span class="flow">Non-issue — bearer tokens aren't ambient<span class="arrow">&rarr;</span>mandatory: <code>SameSite</code> cookie <em>plus</em> a custom header to force preflight <sup><a href="https://duendesoftware.com/blog/20210326-bff">[1]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">1 header</span><span class="note">in the same wrapper</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">09</td>
+          <td class="part">
+            <span class="what">Who am I / claims</span>
+            <span class="flow">Decode the JWT client-side<span class="arrow">&rarr;</span><code>GET /bff/user</code> returns a claims array; one TanStack Query hook <sup><a href="https://wrapt.dev/blog/using-duende-bff-with-react">[24]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">1 hook</span><span class="note"><strong>only if</strong> claims are read in one place — see Folio IV</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">10</td>
+          <td class="part">
+            <span class="what">Session expiry</span>
+            <span class="flow">Refresh fails &rarr; re-login<span class="arrow">&rarr;</span>BFF API endpoints return <strong>401, not a redirect</strong> — the SPA must handle it explicitly <sup><a href="https://docs.duendesoftware.com/bff/troubleshooting/">[7]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">1 branch</span><span class="note">one interceptor</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">11</td>
+          <td class="part">
+            <span class="what">API base URL</span>
+            <span class="flow"><code>https://api.example.com</code> from env<span class="arrow">&rarr;</span><code>/api</code> relative, proxied</span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt mech"><span class="fig">1 const</span><span class="note">annoying if absolute URLs are baked into feature code</span></td>
+          <td class="amt empty"></td>
+        </tr>
+        <tr>
+          <td class="ref">12</td>
+          <td class="part">
+            <span class="what">Deployment topology</span>
+            <span class="flow">Static SPA on a CDN + API<span class="arrow">&rarr;</span>BFF host fronts the SPA; must be <em>same-site</em> — third-party cookies are dead in every major browser <sup><a href="https://duendesoftware.com/blog/20260414-the-cookie-apocalypse-already-happened">[25]</a></sup>. Plus a <a href="https://vite.dev/config/server-options">Vite</a> dev proxy for <code>/bff</code> and <code>/api</code> <sup><a href="https://vite.dev/config/server-options">[17]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+          <td class="amt debit"><span class="fig">+1 deployable</span><span class="note">ingress rules; genuinely new work</span></td>
+        </tr>
+        <tr>
+          <td class="ref">13</td>
+          <td class="part">
+            <span class="what">Session store</span>
+            <span class="flow">None<span class="arrow">&rarr;</span>the cookie holds the tokens unless you enable server-side sessions; with &gt;1 replica you need a shared store <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[8]</a></sup> <em>and</em> a shared Data Protection key ring <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers">[10]</a></sup><sup><a href="https://duendesoftware.com/blog/20260505-beyond-localhost-multi-instance-aspnetcore-deployment-with-dotnet-10">[11]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+          <td class="amt debit"><span class="fig">the real tax</span><span class="note">but the <em>same</em> tax greenfield or retrofit — so not an asymmetry at all</span></td>
+        </tr>
+        <tr class="unbounded">
+          <td class="ref">14</td>
+          <td class="part">
+            <span class="what">SignalR / WebSockets</span>
+            <span class="flow">Bearer via <code>accessTokenFactory</code>, direct to the API<span class="arrow">&rarr;</span>WebSocket handshakes can't set custom headers, so the BFF's anti-forgery check rejects them; reported falling back to long-polling <sup><a href="https://github.com/DuendeArchive/Support/issues/972">[14]</a></sup>. Native support was still an open ask <sup><a href="https://github.com/DuendeArchive/Support/issues/762">[15]</a></sup></span>
+          </td>
+          <td class="amt empty"></td>
+          <td class="amt empty"></td>
+          <td class="amt debit"><span class="fig">&infin;</span><span class="note">unbounded — cannot be totalled</span></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="ref"></td>
+          <td class="label">Carried forward</td>
+          <td class="total credit">
+            <span class="big">6 items</span>
+            <small>OIDC lib, silent renew, callback routes, token storage, CORS, blob hacks. Net lines <strong>negative</strong>.</small>
+          </td>
+          <td class="total mech">
+            <span class="big">hours</span>
+            <small>Not days — <em>if centralised</em>. Six entries, six single files.</small>
+          </td>
+          <td class="total debit">
+            <span class="big">2–5 days<br>+ &infin;</span>
+            <small>Ops build-out (paid whenever you adopt) + one item that cannot be priced.</small>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="suspense">
+    <div class="glyph">
+      <span class="inf">&infin;</span>
+      <span class="cap">Suspense a/c</span>
+    </div>
+    <div>
+      <h3>The one entry that cannot be totalled</h3>
+      <p><strong>SignalR / WebSockets is the single unbounded cost in this ledger.</strong> A WebSocket handshake cannot set a custom header, so the BFF's anti-forgery check — the very mechanism that makes the cookie safe — rejects it. Teams report the transport silently degrading to long-polling <sup><a href="https://github.com/DuendeArchive/Support/issues/972">[14]</a></sup>, and native hub support through the BFF remained an open feature request rather than a shipped capability <sup><a href="https://github.com/DuendeArchive/Support/issues/762">[15]</a></sup>.</p>
+      <p>Everything else on Folio II has a number next to it. This one has a shrug. <strong>If real-time is on the roadmap, decide about it now</strong> — either plan a direct-to-API bearer channel that bypasses the proxy, or price the workaround in before you commit.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ AUDITOR'S EXCEPTIONS ══════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Folio III</div>
+    <h2>Exceptions Noted</h2>
+    <div class="aside">Where &ldquo;it's just one module&rdquo; stops being true</div>
+  </div>
+  <p class="intro">The optimistic claim — <em>it's one HTTP-client file plus one ASP.NET auth block</em> — is <strong>true for a disciplined codebase and false for a typical one</strong>. These are the unposted liabilities. Each one converts a mechanical entry into a debit.</p>
+
+  <div class="exceptions">
+    <div class="exc">
+      <div class="n">1</div>
+      <div class="t"><b>jwtDecode(token)</b> in components. <span>Roles/tenant/name pulled off the decoded access token for UI gating. Post-BFF the token doesn't exist in the browser — every call site is a rewrite against <code>/bff/user</code> <sup><a href="https://wrapt.dev/blog/using-duende-bff-with-react">[24]</a></sup>. Decoding the access token is discouraged anyway: it is meant to be <em>opaque</em> to the client <sup><a href="https://docs.oidc-spa.dev/resources/jwt-of-the-access-token">[22]</a></sup>. <strong>The #1 blast-radius multiplier.</strong></span></div>
+    </div>
+    <div class="exc">
+      <div class="n">2</div>
+      <div class="t"><b>getAccessToken()</b> reachable from app state. <span>Once the token sits in a Zustand/Redux store or a React context, arbitrary code reads it. Every reader is a call site.</span></div>
+    </div>
+    <div class="exc">
+      <div class="n">3</div>
+      <div class="t">Ad-hoc <b>fetch(url, {headers: {Authorization: …}})</b> outside the wrapper. <span>Typically in a &ldquo;quick&rdquo; file-upload or export feature.</span></div>
+    </div>
+    <div class="exc">
+      <div class="n">4</div>
+      <div class="t">Absolute API URLs <span>compiled into feature modules instead of a single base.</span></div>
+    </div>
+    <div class="exc">
+      <div class="n">5</div>
+      <div class="t">Browser &rarr; third-party API calls <span>using the same token. The BFF can't proxy what it doesn't know about; these need their own decision.</span></div>
+    </div>
+    <div class="exc">
+      <div class="n">6</div>
+      <div class="t">Tests that mint a fake JWT into <b>localStorage</b>. <span>Under a BFF the auth fixture is a cookie/session — MSW handlers and E2E login helpers get rewritten.</span></div>
+    </div>
+    <div class="exc">
+      <div class="n">7</div>
+      <div class="t">Real-time. <span>See the suspense account above.</span></div>
+    </div>
+  </div>
+
+  <div class="exc-foot">
+    Every item on that list is <strong>avoidable by construction, for free, today.</strong> That is the whole game.
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<!-- ══ STANDING ORDERS ═══════════════════════════════════ -->
+<section style="padding-bottom:0;">
+  <div class="wrap">
+    <div class="orders-head">
+      <h2>Standing Orders</h2>
+      <p>To be observed from the first commit. Ten items. Every one is free — most are just good practice anyway.<br>Observe them and the retrofit is a <strong>2–5 day, one-PR change</strong> instead of a rewrite.</p>
+    </div>
+    <div class="orders">
+      <div class="order">
+        <div class="num">01</div>
+        <div class="body">
+          <h4>One auth module</h4>
+          <p><code>src/auth/</code> is the <em>only</em> directory that knows the word &ldquo;token&rdquo;. Nothing imports it except the HTTP client.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">02</div>
+        <div class="body">
+          <h4>Never put the access token in app state</h4>
+          <p>No Redux/Zustand/context slot for it. In-memory closure inside the auth module only.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">03</div>
+        <div class="body">
+          <h4>No <code>jwtDecode</code> outside the auth module</h4>
+          <p>Expose a typed <code>useCurrentUser()</code> returning <code>{ name, roles, … }</code>. Its <em>implementation</em> decodes the ID token today; tomorrow it fetches <code>/bff/user</code>. Consumers never notice. Add an ESLint <code>no-restricted-imports</code> rule on <code>jwt-decode</code>.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">04</div>
+        <div class="body">
+          <h4>You own the fetch wrapper</h4>
+          <p>One <code>apiClient</code> file. TanStack Query calls it; components never call <code>fetch</code> directly. This is the file that swaps <code>Authorization</code> for <code>credentials: 'include'</code> + <code>X-CSRF: 1</code> <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[2]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">05</div>
+        <div class="body">
+          <h4>Relative API paths</h4>
+          <p>Always <code>/api/...</code>. Use the <a href="https://vite.dev/config/server-options">Vite</a> dev proxy for local dev <sup><a href="https://vite.dev/config/server-options">[17]</a></sup> — which is exactly how you'll run the BFF locally later.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">06</div>
+        <div class="body">
+          <h4>Keep the API bearer-only and client-agnostic</h4>
+          <p>No cookie auth, no session, no CORS-origin assumptions leaking into handlers. The API must never learn that a browser is talking to it.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">07</div>
+        <div class="body">
+          <h4>Handle 401 centrally</h4>
+          <p>In the wrapper, as &ldquo;session gone &rarr; go to login&rdquo;. Don't distinguish &ldquo;token expired&rdquo; in feature code.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">08</div>
+        <div class="body">
+          <h4>Deploy the SPA and API same-site from day one</h4>
+          <p><code>app.example.com</code> / <code>api.example.com</code>, or better <code>example.com</code> + <code>example.com/api</code>. Cross-<em>site</em> is now a dead end for cookies <sup><a href="https://duendesoftware.com/blog/20260414-the-cookie-apocalypse-already-happened">[25]</a></sup>; getting the origins right up front is free and removes the only genuinely structural retrofit blocker.</p>
+        </div>
+      </div>
+      <div class="order">
+        <div class="num">09</div>
+        <div class="body">
+          <h4>Test fixtures go through the auth module too</h4>
+          <p>One <code>loginAs(role)</code> helper for E2E, one MSW auth handler. Don't hand-mint JWTs into <code>localStorage</code> across 40 spec files.</p>
+        </div>
+      </div>
+      <div class="order realtime">
+        <div class="num">10</div>
+        <div class="body">
+          <h4>Decide about real-time <em>now</em></h4>
+          <p>If SignalR is on the roadmap, that's the one item a BFF makes materially harder <sup><a href="https://github.com/DuendeArchive/Support/issues/972">[14]</a></sup> — either plan a direct-to-API bearer channel for it, or price the workaround in.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+
+<!-- ══ SILENT ERRORS ═════════════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Folio IV</div>
+    <h2>Errors that ring no bell</h2>
+    <div class="aside">Why teams remember the migration as painful</div>
+  </div>
+  <p class="intro">All three of these fail <strong>silently</strong>. None of them is expensive to fix — they are expensive to <em>find</em>, which is not the same thing, but bills the same hours.</p>
+  <div class="bells">
+    <div class="bell">
+      <span class="sig"><code>UseBff()</code> placed after <code>UseAuthorization()</code></span>
+      <span class="out">Anti-forgery enforcement is silently disabled. No error. <sup><a href="https://docs.duendesoftware.com/bff/troubleshooting/">[7]</a></sup></span>
+    </div>
+    <div class="bell">
+      <span class="sig">A typo in a YARP metadata key</span>
+      <span class="out">No token attached, no anti-forgery check, no warning. <sup><a href="https://docs.duendesoftware.com/bff/troubleshooting/">[7]</a></sup></span>
+    </div>
+    <div class="bell">
+      <span class="sig">Enough roles &amp; claims on the identity</span>
+      <span class="out">The auth cookie blows past the browser's 4&nbsp;KB limit; chunking papers over it until it doesn't <sup><a href="https://duendesoftware.com/blog/20260429-aspnet-core-cookie-size-limits">[9]</a></sup>. Fix: server-side sessions, so the cookie carries only a session id <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[8]</a></sup>.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTRA ACCOUNT ════════════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Folio V</div>
+    <h2>Contra Account</h2>
+    <div class="aside">What a BFF costs you if you later don't want it</div>
+  </div>
+  <p class="intro">Symmetry check. Is the <a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">BFF</a> itself a one-way door?</p>
+  <div class="contra">
+    <div class="contra-row easy">
+      <div class="k">Removal — easy</div>
+      <div class="v">…<em>if</em> you kept it a pure security proxy. The API still validates bearer JWTs <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[2]</a></sup>, so a browser SPA can go back to talking to it directly. You'd re-add CORS and an OIDC JS library. <strong>Same 2–5 days, mirrored.</strong></div>
+    </div>
+    <div class="contra-row hard">
+      <div class="k">Removal — hard</div>
+      <div class="v">The moment you use <em>local/embedded</em> BFF endpoints. They are cookie-authenticated and explicitly aimed at &ldquo;single-consumer scenarios&rdquo; <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/local/">[4]</a></sup>. Logic that lands there is logic no other client can reach. <strong>That is where the API-shaping BFF's one-way door quietly opens.</strong></div>
+    </div>
+    <div class="contra-row">
+      <div class="k">A second client</div>
+      <div class="v">A mobile/CLI/service consumer does <em>not</em> force you off the BFF — it forces the <em>API</em> to stay bearer-capable, which it already is under proxy mode. ASP.NET Core supports listing multiple schemes and trying each in order <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/">[16]</a></sup>. Duende BFF v4 also collapses the &ldquo;one BFF per SPA&rdquo; sprawl into one host with many frontends <sup><a href="https://duendesoftware.com/blog/20251202-duende-bffv4-now-available-multi-frontend-opentelemetry-and-simplified-security">[19]</a></sup>.</div>
+    </div>
+    <div class="contra-row hard">
+      <div class="k">Non-refundable</div>
+      <div class="v">One more service to deploy, scale, monitor and patch; an extra network hop; a shared Data Protection key ring; a session store <sup><a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends">[12]</a></sup><sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[8]</a></sup>. For Duende BFF specifically, a licence — free under $1M revenue, paid above <sup><a href="https://docs.duendesoftware.com/general/licensing/">[18]</a></sup>.</div>
+    </div>
+  </div>
+
+  <blockquote class="gossip">
+    &ldquo;If you're a startup, skip it. If you're at scale, it's worth it.&rdquo; &nbsp;/&nbsp; &ldquo;We ended up with four different backends — the maintenance is painful.&rdquo;
+    <footer>dev.to, summarising 2024–25 Reddit/HN threads <sup><a href="https://dev.to/arkhan/backend-for-frontend-bff-in-2025-still-relevant-or-outdated-5dml">[13]</a></sup> — note both quotes are about the <strong>API-shaping</strong> flavour (Acct. 2), not the token handler.</footer>
+  </blockquote>
+</section>
+
+<!-- ══ STATEMENT OF ACCOUNT ══════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Folio VI</div>
+    <h2>Statement of Account</h2>
+    <div class="aside">Numbers a lead can act on</div>
+  </div>
+  <div class="statement">
+    <table class="stmt">
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Cost</th>
+          <th>What gets touched</th>
+          <th>Blast radius</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="neutral">
+          <td class="path">BFF greenfield, now</td>
+          <td class="cost">2–4 days</td>
+          <td class="detail">BFF host, OIDC config, YARP routes, <code>/bff/user</code> hook, deploy pipeline + shared key ring / session store <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[8]</a></sup><sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers">[10]</a></sup>. Wiring a React SPA to it is &lt;100 lines <sup><a href="https://wrapt.dev/blog/using-duende-bff-with-react">[24]</a></sup></td>
+          <td class="detail">New service, permanent</td>
+        </tr>
+        <tr class="good">
+          <td class="path">Retrofit later,<br>standing orders followed</td>
+          <td class="cost">2–5 days</td>
+          <td class="detail"><code>apiClient.ts</code>, <code>auth/*</code>, <code>vite.config.ts</code>, IdP client config, <code>Program.cs</code>, ingress. Net lines <strong>negative</strong></td>
+          <td class="detail">~6 files + 1 new project</td>
+        </tr>
+        <tr class="bad">
+          <td class="path">Retrofit later,<br>standing orders ignored</td>
+          <td class="cost">2–4 weeks</td>
+          <td class="detail">Every <code>jwtDecode</code> call site, every ad-hoc <code>fetch</code>, every test fixture, plus the SignalR problem</td>
+          <td class="detail">Whole app</td>
+        </tr>
+        <tr class="neutral">
+          <td class="path">Never (stay pure SPA)</td>
+          <td class="cost">0</td>
+          <td class="detail">—</td>
+          <td class="detail">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="multiplier">
+    <div class="x">&times;8</div>
+    <p>The gap between the two retrofit rows isn't the BFF. It's the discipline. <strong>A leaky SPA multiplies the same migration by roughly eight</strong> — and every one of the ten standing orders that prevents it costs nothing to adopt on day one.</p>
+  </div>
+</section>
+
+<!-- ══ CLOSING ENTRY ═════════════════════════════════════ -->
+<div class="closing">
+  <div class="wrap">
+    <div class="closing-grid">
+      <div>
+        <div class="kicker">Closing entry · books balanced</div>
+        <p class="line">The asymmetry is <em>not</em> between greenfield and retrofit. It's between a <span class="ok">disciplined</span> SPA and a <em>leaky</em> one.</p>
+        <p style="margin:0;font-size:1.02rem;line-height:1.65;max-width:44ch;">The BFF decision is a two-way door <sup><a href="https://thoughtbot.com/blog/one-way-vs-two-way-door-decisions">[20]</a></sup>. <strong>The discipline decision is the one that's hard to reverse.</strong> Build the pure SPA now — and post the standing orders on the wall.</p>
+        <div class="stamp-row" style="justify-content:flex-start;margin-top:2rem;">
+          <div class="stamp">Ship the SPA<small>Keep the door open</small></div>
+        </div>
+      </div>
+      <figure>
+        <img src="ledger/images/millinery-ledger.webp" alt="A ruled ledger page, columns totalled at the foot in a clerk's hand">
+        <figcaption>The habit this view borrows: every item booked, every column footed, nothing left off the page. Millinery Book Ledger, p.&nbsp;85 — Wikimedia&nbsp;Commons.</figcaption>
+      </figure>
+    </div>
+    <div class="sig">
+      <div class="book-cite">
+        Entered against: <strong>itenium-ui</strong> admin console · React&nbsp;19 + Vite · .NET&nbsp;10 REST · Keycloak/OpenIddict · TanStack Query<br>
+        Ledger plates: 1833 Pittsborough merchant ledger &amp; a millinery account book — Wikimedia Commons (DPLA).
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ VOUCHERS ══════════════════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Appendix A</div>
+    <h2>Vouchers</h2>
+    <div class="aside">25 supporting documents</div>
+  </div>
+  <div class="vouchers">
+    <a class="voucher" href="https://duendesoftware.com/blog/20210326-bff"><span class="vn">01</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><span class="vt">Duende — The BFF Pattern<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/"><span class="vn">02</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="vt">Duende BFF docs — Remote APIs<em>official</em></span></a>
+    <a class="voucher" href="https://curity.io/blog/token-handler-the-single-page-applications-new-bff/"><span class="vn">03</span><img src="https://www.google.com/s2/favicons?domain=curity.io&sz=128" alt=""><span class="vt">Curity — Token Handler: the SPA's new BFF<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://docs.duendesoftware.com/bff/fundamentals/apis/local/"><span class="vn">04</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="vt">Duende BFF docs — Local APIs<em>official</em></span></a>
+    <a class="voucher" href="https://timdeschryver.dev/blog/lets-make-our-spa-more-secure-by-consuming-a-duende-bff-with-angular"><span class="vn">05</span><img src="https://www.google.com/s2/favicons?domain=timdeschryver.dev&sz=128" alt=""><span class="vt">Tim Deschryver — Consuming a Duende BFF<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://docs.duendesoftware.com/bff/fundamentals/session/management/"><span class="vn">06</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="vt">Duende BFF docs — Session management<em>official</em></span></a>
+    <a class="voucher" href="https://docs.duendesoftware.com/bff/troubleshooting/"><span class="vn">07</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="vt">Duende BFF docs — Troubleshooting<em>official</em></span></a>
+    <a class="voucher" href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/"><span class="vn">08</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="vt">Duende BFF docs — Server-side sessions<em>official</em></span></a>
+    <a class="voucher" href="https://duendesoftware.com/blog/20260429-aspnet-core-cookie-size-limits"><span class="vn">09</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><span class="vt">Duende — ASP.NET Core cookie size limits<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers"><span class="vn">10</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><span class="vt">MS Learn — Data Protection key storage<em>official</em></span></a>
+    <a class="voucher" href="https://duendesoftware.com/blog/20260505-beyond-localhost-multi-instance-aspnetcore-deployment-with-dotnet-10"><span class="vn">11</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><span class="vt">Duende — Multi-instance deployment, .NET 10<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://learn.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends"><span class="vn">12</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><span class="vt">MS Learn — Backends for Frontends pattern<em>official</em></span></a>
+    <a class="voucher" href="https://dev.to/arkhan/backend-for-frontend-bff-in-2025-still-relevant-or-outdated-5dml"><span class="vn">13</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><span class="vt">dev.to — BFF in 2025: still relevant?<em>forum</em></span></a>
+    <a class="voucher" href="https://github.com/DuendeArchive/Support/issues/972"><span class="vn">14</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="vt">Duende Support #972 — WebSockets rejected<em>forum · ⭐ 21</em></span></a>
+    <a class="voucher" href="https://github.com/DuendeArchive/Support/issues/762"><span class="vn">15</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="vt">Duende Support #762 — SignalR support for BFF<em>forum · ⭐ 21</em></span></a>
+    <a class="voucher" href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/"><span class="vn">16</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><span class="vt">MS Learn — ASP.NET Core authentication<em>official</em></span></a>
+    <a class="voucher" href="https://vite.dev/config/server-options"><span class="vn">17</span><img src="https://www.google.com/s2/favicons?domain=vite.dev&sz=128" alt=""><span class="vt">Vite — Server options (proxy)<em>official</em></span></a>
+    <a class="voucher" href="https://docs.duendesoftware.com/general/licensing/"><span class="vn">18</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="vt">Duende — Licensing<em>official</em></span></a>
+    <a class="voucher" href="https://duendesoftware.com/blog/20251202-duende-bffv4-now-available-multi-frontend-opentelemetry-and-simplified-security"><span class="vn">19</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><span class="vt">Duende — BFF v4: multi-frontend<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://thoughtbot.com/blog/one-way-vs-two-way-door-decisions"><span class="vn">20</span><img src="https://www.google.com/s2/favicons?domain=thoughtbot.com&sz=128" alt=""><span class="vt">thoughtbot — One-way vs two-way door decisions<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://alphahydrae.com/2021/02/how-to-display-an-image-protected-by-header-based-authentication/"><span class="vn">21</span><img src="https://www.google.com/s2/favicons?domain=alphahydrae.com&sz=128" alt=""><span class="vt">Alpha Hydrae — Images behind header auth<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://docs.oidc-spa.dev/resources/jwt-of-the-access-token"><span class="vn">22</span><img src="https://www.google.com/s2/favicons?domain=docs.oidc-spa.dev&sz=128" alt=""><span class="vt">oidc-spa — The JWT of the access token<em>official</em></span></a>
+    <a class="voucher" href="https://oneuptime.com/blog/post/2026-02-02-keycloak-clients-creation/view"><span class="vn">23</span><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><span class="vt">OneUptime — Keycloak client creation<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://wrapt.dev/blog/using-duende-bff-with-react"><span class="vn">24</span><img src="https://www.google.com/s2/favicons?domain=wrapt.dev&sz=128" alt=""><span class="vt">Wrapt — Using Duende BFF with React<em>vendor blog</em></span></a>
+    <a class="voucher" href="https://duendesoftware.com/blog/20260414-the-cookie-apocalypse-already-happened"><span class="vn">25</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><span class="vt">Duende — The cookie apocalypse already happened<em>vendor blog</em></span></a>
+  </div>
+</section>
+
+<!-- ══ OTHER FOLIOS ══════════════════════════════════════ -->
+<section>
+  <div class="folio">
+    <div class="no">Appendix B</div>
+    <h2>Other folios</h2>
+    <div class="aside">Same book, different accounts</div>
+  </div>
+  <div class="folios">
+    <a class="fol" href="../../in-memory-tokens-vs-cookie-backed-bff-sessions-under-xss/">
+      <div class="d">survey</div>
+      <h4>In-memory tokens vs cookie-backed BFF sessions under XSS</h4>
+      <p>httpOnly cookies do not stop XSS — they convert silent token exfiltration into loud, tab-bound session riding.</p>
+    </a>
+    <a class="fol" href="../../does-the-ietf-browser-based-apps-bcp-apply-to-an-internal-admin-console/">
+      <div class="d">recon</div>
+      <h4>Does the IETF browser-based-apps BCP apply to an internal admin console?</h4>
+      <p>The BCP names &ldquo;business applications&rdquo; in its strongest recommendation — but it's a trade-off, not a normative MUST.</p>
+    </a>
+    <a class="fol" href="../../refresh-tokens-and-silent-renew-in-a-browser-spa-2026/">
+      <div class="d">survey</div>
+      <h4>Refresh tokens and silent renew in a browser SPA (2026)</h4>
+      <p>Iframe silent renew is dead cross-site but alive same-site; TanStack Query needs a single-flight mutex either way.</p>
+    </a>
+    <a class="fol" href="../../impact-on-openapi-client-codegen-and-local-dev-ergonomics/">
+      <div class="d">survey</div>
+      <h4>What a BFF costs you every day: OpenAPI codegen and the local dev loop</h4>
+      <p>A path-preserving BFF leaves codegen essentially untouched — the daily cost is one extra process and a Vite proxy config.</p>
+    </a>
+    <a class="fol" href="../../bff-options-in-net-10-yarp-duende-bff-minimal-custom/">
+      <div class="d">expedition</div>
+      <h4>BFF options in .NET 10: Duende.BFF, YARP, or hand-rolled</h4>
+      <p>YARP + AddOpenIdConnect + the Apache-2.0 Duende.AccessTokenManagement (~250 LOC you own), or Duende.BFF if you qualify.</p>
+    </a>
+  </div>
+
+  <a class="up" href="../../">
+    <div class="d">Back to the expedition</div>
+    <h4>Pure React 19 SPA or a .NET 10 BFF? A decision framework for an internal admin console</h4>
+  </a>
+</section>
+
+<div class="colophon">
+  Cost Ledger — an alternate view of <a href="../">Greenfield BFF vs retrofitting later: where the asymmetry actually is</a>.<br>
+  Canonical page holds the full argument and citation ledger. · <a href="/">Atlas</a>
+</div>
+
+</div><!-- /wrap -->
+</div><!-- /lg -->

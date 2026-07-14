@@ -1,0 +1,1165 @@
+---
+layout: view
+view_name: "Threat Matrix"
+view_of: ../
+title: "In-memory tokens vs cookie-backed BFF sessions under XSS: what each architecture actually buys you — Threat Matrix"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap');
+
+.tm {
+  --ink: #07080a;
+  --panel: #0e1013;
+  --panel-2: #14171c;
+  --line: #262b33;
+  --bone: #e6e4df;
+  --dim: #8b929c;
+  --dimmer: #5c636d;
+  --granted: #e02b1d;
+  --granted-bg: #2a0d0a;
+  --denied: #4d7f96;
+  --denied-bg: #0c1a20;
+  --cond: #b98a2a;
+  --cond-bg: #221a09;
+  --hazard: #d8b43a;
+
+  margin: 0;
+  padding: 0;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.tm *, .tm *::before, .tm *::after { box-sizing: border-box; }
+.tm a { color: inherit; }
+.tm .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+/* ---------- hazard chrome ---------- */
+.tm .hazard {
+  height: 10px;
+  background: repeating-linear-gradient(
+    -45deg, var(--hazard) 0 14px, #0b0c0e 14px 28px
+  );
+}
+.tm .hazard.red {
+  background: repeating-linear-gradient(
+    -45deg, var(--granted) 0 14px, #0b0c0e 14px 28px
+  );
+}
+
+/* ---------- case header ---------- */
+.tm .case {
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 44px 0 34px;
+}
+.tm .stamp {
+  display: inline-block;
+  border: 2px solid var(--granted);
+  color: var(--granted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  padding: 5px 10px;
+  transform: rotate(-1.2deg);
+  margin-bottom: 22px;
+}
+.tm h1.case-title {
+  font-family: 'Archivo Black', 'JetBrains Mono', monospace;
+  font-size: clamp(34px, 6.2vw, 68px);
+  line-height: 0.96;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+.tm h1.case-title .thin {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: clamp(15px, 2vw, 22px);
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-transform: none;
+  color: var(--dim);
+  margin-top: 16px;
+  max-width: 62ch;
+}
+.tm .meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 30px;
+  border: 1px solid var(--line);
+}
+.tm .meta-strip div {
+  flex: 1 1 150px;
+  padding: 10px 14px;
+  border-right: 1px solid var(--line);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--dimmer);
+  text-transform: uppercase;
+}
+.tm .meta-strip div:last-child { border-right: 0; }
+.tm .meta-strip b {
+  display: block;
+  color: var(--bone);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin-top: 3px;
+}
+
+/* ---------- generic section ---------- */
+.tm section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+.tm .sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.tm .sec-num {
+  font-family: 'Archivo Black', monospace;
+  font-size: 13px;
+  color: var(--granted);
+  letter-spacing: 0.1em;
+}
+.tm h2 {
+  font-family: 'Archivo Black', monospace;
+  font-size: clamp(22px, 3vw, 34px);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.tm .sec-sub {
+  color: var(--dim);
+  font-weight: 300;
+  max-width: 78ch;
+  margin: 0 0 34px;
+  font-size: 14px;
+}
+.tm p { max-width: 82ch; }
+.tm sup a {
+  color: var(--denied);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 600;
+}
+.tm sup a:hover { color: var(--bone); }
+
+/* ---------- premise ---------- */
+.tm .premise {
+  border-left: 4px solid var(--granted);
+  background: linear-gradient(90deg, var(--granted-bg), transparent 70%);
+  padding: 26px 28px;
+  margin-bottom: 40px;
+}
+.tm .premise .lede {
+  font-family: 'Archivo Black', monospace;
+  font-size: clamp(19px, 2.8vw, 30px);
+  line-height: 1.18;
+  text-transform: uppercase;
+  margin: 0 0 14px;
+  max-width: 24ch;
+}
+.tm .premise .lede em { color: var(--granted); font-style: normal; }
+.tm .premise p { margin: 0; color: var(--dim); font-size: 14px; font-weight: 300; }
+.tm .premise p + p { margin-top: 10px; }
+
+.tm .pull {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 22px 0;
+  margin: 34px 0 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+.tm .pull q {
+  font-size: clamp(17px, 2.2vw, 24px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.35;
+  quotes: '"' '"';
+}
+.tm .pull .attr {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  text-align: right;
+  white-space: nowrap;
+}
+.tm .pull .attr a { color: var(--denied); text-decoration: none; }
+.tm .pull .attr a:hover { color: var(--bone); }
+
+/* ---------- kill chains ---------- */
+.tm .chains { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.tm .chain {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+}
+.tm .chain > .top {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+}
+.tm .chain .tag {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--dimmer);
+  text-transform: uppercase;
+}
+.tm .chain .arch {
+  font-family: 'Archivo Black', monospace;
+  font-size: 16px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.tm .chain ol {
+  list-style: none;
+  counter-reset: step;
+  margin: 0;
+  padding: 18px;
+  flex: 1;
+}
+.tm .chain li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 18px 40px;
+  font-size: 13.5px;
+  font-weight: 300;
+  color: var(--dim);
+  line-height: 1.55;
+}
+.tm .chain li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--granted);
+  border: 1px solid var(--line);
+  padding: 1px 5px;
+}
+.tm .chain li::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 24px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--line);
+}
+.tm .chain li:last-child::after { display: none; }
+.tm .chain li b { color: var(--bone); font-weight: 600; }
+.tm .chain .outcome {
+  border-top: 1px solid var(--line);
+  padding: 16px 18px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.tm .chain .outcome .k {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--dimmer);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.tm .chain.a .outcome { background: var(--granted-bg); color: #ffb3ac; }
+.tm .chain.b .outcome { background: var(--denied-bg); color: #a8cfdd; }
+.tm .chain.b li::before { color: var(--denied); }
+
+/* ---------- the board ---------- */
+.tm .board-scroll { overflow-x: auto; border: 1px solid var(--line); }
+.tm table.board {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tm .board thead th {
+  background: var(--panel-2);
+  border-bottom: 2px solid var(--line);
+  padding: 16px 14px;
+  text-align: left;
+  vertical-align: bottom;
+  font-weight: 600;
+}
+.tm .board thead th.cap {
+  width: 34%;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+}
+.tm .board thead th .col-id {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--dimmer);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.tm .board thead th .col-name {
+  font-family: 'Archivo Black', monospace;
+  font-size: 14px;
+  line-height: 1.15;
+  text-transform: uppercase;
+  display: block;
+}
+.tm .board thead th .col-note {
+  display: block;
+  font-weight: 300;
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.tm .board tbody td {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  padding: 12px 14px;
+  vertical-align: top;
+}
+.tm .board tbody td:last-child { border-right: 0; }
+.tm .board td.cap {
+  color: var(--bone);
+  font-weight: 400;
+  background: var(--panel);
+}
+.tm .board td.cap .rid {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--dimmer);
+  margin-right: 8px;
+}
+.tm .verdict {
+  display: block;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+.tm .why {
+  display: block;
+  font-weight: 300;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--dim);
+  margin-top: 5px;
+}
+.tm td.g { background: var(--granted-bg); }
+.tm td.g .verdict { color: var(--granted); }
+.tm td.d { background: var(--denied-bg); }
+.tm td.d .verdict { color: var(--denied); }
+.tm td.c { background: var(--cond-bg); }
+.tm td.c .verdict { color: var(--cond); }
+
+/* the row that must not be missed */
+.tm tr.universal td {
+  background: var(--granted);
+  border-bottom: 1px solid #7d1a11;
+  border-right: 1px solid #7d1a11;
+  color: #fff;
+}
+.tm tr.universal td.cap {
+  font-family: 'Archivo Black', monospace;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+.tm tr.universal td.cap .rid { color: #ffb3ac; }
+.tm tr.universal .verdict { color: #fff; }
+.tm tr.universal .why { color: #ffcdc8; }
+.tm tr.universal + tr td { border-top: 2px solid var(--granted); }
+
+.tm tr.signature td {
+  background: #101317;
+  border-top: 1px dashed var(--line);
+}
+.tm tr.signature .sig {
+  font-family: 'Archivo Black', monospace;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.tm tr.signature .sig.silent { color: var(--granted); }
+.tm tr.signature .sig.loud { color: var(--denied); }
+
+.tm .board tfoot td {
+  background: var(--panel-2);
+  border-top: 2px solid var(--line);
+  padding: 14px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+}
+.tm .board tfoot .tally {
+  font-family: 'Archivo Black', monospace;
+  font-size: 26px;
+  letter-spacing: 0;
+  display: block;
+  margin-bottom: 2px;
+}
+.tm .board tfoot .tally.hi { color: var(--granted); }
+.tm .board tfoot .tally.lo { color: var(--denied); }
+
+.tm .board-note {
+  margin-top: 18px;
+  border-left: 4px solid var(--hazard);
+  background: #17140a;
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 300;
+  color: #e2d7ae;
+  max-width: none;
+}
+.tm .board-note b { color: var(--hazard); font-weight: 800; }
+
+/* ---------- the conversion ---------- */
+.tm .conv { display: grid; gap: 12px; }
+.tm .conv-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  align-items: stretch;
+  border: 1px solid var(--line);
+}
+.tm .conv-row .cell {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.tm .conv-row .cell .lbl {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-bottom: 6px;
+}
+.tm .conv-row .cell .val {
+  font-family: 'Archivo Black', monospace;
+  font-size: clamp(15px, 2vw, 21px);
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+.tm .conv-row .from { background: var(--granted-bg); }
+.tm .conv-row .from .val { color: var(--granted); }
+.tm .conv-row .to { background: var(--denied-bg); }
+.tm .conv-row .to .val { color: var(--denied); }
+.tm .conv-row .arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: var(--dimmer);
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+.tm .conv-row.nochange .to { background: var(--granted-bg); }
+.tm .conv-row.nochange .to .val { color: var(--granted); }
+.tm .conv-row.nochange { border-color: var(--granted); }
+.tm .conv-row.nochange .arrow { color: var(--granted); background: var(--granted-bg); border-color: var(--granted); }
+.tm .conv-row .sub {
+  font-weight: 300;
+  font-size: 11.5px;
+  color: var(--dim);
+  margin-top: 6px;
+  text-transform: none;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.45;
+}
+
+/* ---------- countermeasure ---------- */
+.tm .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.tm .bignum {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 28px;
+}
+.tm .bignum .n {
+  font-family: 'Archivo Black', monospace;
+  font-size: clamp(46px, 8vw, 88px);
+  line-height: 0.9;
+  color: var(--granted);
+  letter-spacing: -0.03em;
+}
+.tm .bignum .n.steel { color: var(--denied); }
+.tm .bignum .cap-l {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--dim);
+  margin-top: 14px;
+  line-height: 1.5;
+}
+.tm .cm-list { list-style: none; padding: 0; margin: 0; }
+.tm .cm-list li {
+  border-left: 2px solid var(--line);
+  padding: 0 0 20px 18px;
+  font-weight: 300;
+  color: var(--dim);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.tm .cm-list li b {
+  display: block;
+  font-family: 'Archivo Black', monospace;
+  font-weight: 400;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--bone);
+  margin-bottom: 5px;
+  letter-spacing: 0.02em;
+}
+.tm .cm-list li.warn { border-left-color: var(--hazard); }
+.tm .cm-list li.warn b { color: var(--hazard); }
+
+.tm .breach {
+  border: 2px solid var(--granted);
+  background: var(--granted-bg);
+  padding: 0;
+  margin-top: 10px;
+}
+.tm .breach .bar {
+  background: var(--granted);
+  color: #fff;
+  font-family: 'Archivo Black', monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+}
+.tm .breach .body { padding: 22px 24px; }
+.tm .breach .body p { margin: 0; color: #f0cfcb; font-weight: 300; font-size: 14px; }
+.tm .breach .body p + p { margin-top: 12px; }
+.tm .breach .body strong { color: #fff; font-weight: 600; }
+
+/* ---------- testimony ---------- */
+.tm .testimony { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tm .depo {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+}
+.tm .depo .who {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tm .depo .side {
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.tm .depo.against .side { color: var(--granted); }
+.tm .depo.for .side { color: var(--denied); }
+.tm .depo.hedge .side { color: var(--cond); }
+.tm .depo q {
+  font-size: 14.5px;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.5;
+  flex: 1;
+}
+.tm .depo .src {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--dimmer);
+}
+.tm .depo .src a { color: var(--denied); text-decoration: none; }
+.tm .depo .src a:hover { color: var(--bone); }
+
+/* ---------- calibration ---------- */
+.tm .calib { border: 1px solid var(--line); }
+.tm .calib .row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  border-bottom: 1px solid var(--line);
+}
+.tm .calib .row:last-child { border-bottom: 0; }
+.tm .calib .dir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Archivo Black', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 12px 8px;
+  border-right: 1px solid var(--line);
+  line-height: 1.3;
+}
+.tm .calib .dir.weak { background: var(--granted-bg); color: var(--granted); }
+.tm .calib .dir.strong { background: var(--denied-bg); color: var(--denied); }
+.tm .calib .dir.neutral { background: var(--panel-2); color: var(--dimmer); }
+.tm .calib .txt { padding: 14px 20px; font-size: 13.5px; font-weight: 300; color: var(--dim); }
+.tm .calib .txt b { color: var(--bone); font-weight: 600; display: block; margin-bottom: 4px; font-size: 13px; }
+
+/* ---------- verdict ---------- */
+.tm .verdict-band {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--granted);
+  padding: 40px;
+}
+.tm .verdict-band h3 {
+  font-family: 'Archivo Black', monospace;
+  font-size: clamp(20px, 3.4vw, 38px);
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+  max-width: 26ch;
+}
+.tm .verdict-band h3 em { color: var(--granted); font-style: normal; }
+.tm .verdict-band p { color: var(--dim); font-weight: 300; font-size: 14.5px; }
+.tm .order {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.tm .order .step {
+  border: 1px solid var(--line);
+  padding: 16px 18px;
+  background: var(--ink);
+}
+.tm .order .step .n {
+  font-family: 'Archivo Black', monospace;
+  font-size: 28px;
+  color: var(--granted);
+  line-height: 1;
+}
+.tm .order .step .t {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tm .order .step .d { font-size: 11.5px; font-weight: 300; color: var(--dimmer); margin-top: 5px; line-height: 1.5; }
+
+/* ---------- evidence ledger ---------- */
+.tm .ledger { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border: 1px solid var(--line); }
+.tm .ev {
+  display: grid;
+  grid-template-columns: 22px 26px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  text-decoration: none;
+}
+.tm .ev:hover { background: var(--panel); }
+.tm .ev .n { font-size: 10px; color: var(--dimmer); padding-top: 5px; }
+.tm .ev img { width: 20px; height: 20px; margin-top: 2px; }
+.tm .ev .t { font-size: 12.5px; line-height: 1.4; color: var(--bone); }
+.tm .ev .ty {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-top: 4px;
+}
+.tm .ev .ty.official { color: var(--denied); }
+.tm .ev .ty.peer { color: var(--hazard); }
+.tm .ev .ty.forum { color: var(--cond); }
+
+/* ---------- dossiers ---------- */
+.tm .dossiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.tm .dossier {
+  border: 1px solid var(--line);
+  padding: 18px 20px;
+  text-decoration: none;
+  display: block;
+  background: var(--panel);
+}
+.tm .dossier:hover { border-color: var(--denied); }
+.tm .dossier .depth {
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--denied);
+}
+.tm .dossier .t { font-size: 14px; font-weight: 600; margin: 6px 0 6px; color: var(--bone); line-height: 1.35; }
+.tm .dossier .s { font-size: 12px; font-weight: 300; color: var(--dimmer); line-height: 1.5; }
+.tm .dossier.up { background: var(--panel-2); border-color: var(--dimmer); grid-column: 1 / -1; }
+.tm .dossier.up .depth { color: var(--hazard); }
+
+.tm .colophon {
+  padding: 40px 0 60px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--dimmer);
+  text-transform: uppercase;
+}
+.tm .colophon a { color: var(--denied); text-decoration: none; }
+
+@media (max-width: 860px) {
+  .tm .chains, .tm .cm-grid, .tm .testimony, .tm .ledger, .tm .dossiers { grid-template-columns: 1fr; }
+  .tm .order { grid-template-columns: 1fr; }
+  .tm .conv-row { grid-template-columns: 1fr; }
+  .tm .conv-row .arrow { border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 6px; transform: rotate(90deg); }
+  .tm .pull { grid-template-columns: 1fr; }
+  .tm .pull .attr { text-align: left; }
+  .tm .calib .row { grid-template-columns: 1fr; }
+  .tm .calib .dir { border-right: 0; border-bottom: 1px solid var(--line); justify-content: flex-start; }
+}
+</style>
+
+<div class="tm">
+
+<div class="hazard red"></div>
+
+<header class="case">
+  <div class="wrap">
+    <div class="stamp">POST-COMPROMISE · ASSUME BREACH · NO REASSURANCE</div>
+    <h1 class="case-title">
+      The Attacker<br>Is Already<br>In The Page
+      <span class="thin">A red-team capability board for three token-storage architectures. Every column below is drawn <em>after</em> the payload executes. None of them is a defence — they are three different ways to lose.</span>
+    </h1>
+    <div class="meta-strip">
+      <div>Scenario<b>Script executes in origin</b></div>
+      <div>Subject<b>itenium-ui admin console</b></div>
+      <div>Columns<b>3 architectures</b></div>
+      <div>Evidence<b>17 sources</b></div>
+      <div>Depth<b>survey</b></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="premise">
+      <p class="lede">This is not <em>protected</em> vs <em>unprotected</em>. It is two loss profiles.</p>
+      <p>The slogan under test is "httpOnly cookies protect you from XSS." The defensible version is far narrower: httpOnly prevents JavaScript from <em>reading the cookie value</em>. It does nothing about the browser attaching that cookie to requests the attacker's own script makes — cookies marked HttpOnly "are still automatically included in same-origin requests made by JavaScript (such as <code>fetch</code> or <code>XMLHttpRequest</code> calls)" <sup><a href="https://nestenius.se/net/bff-in-asp-net-core-3-the-bff-pattern-explained/">[14]</a></sup>.</p>
+      <p>The IETF browser-apps BCP says the same in threat language: under a BFF, "Proxying Requests via the User's Browser" remains possible "because the malicious browser-based code still runs within the application's origin" (§6.1.4.1.1) <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup>.</p>
+    </div>
+
+    <div class="pull">
+      <q>A successful XSS attack gives the attacker full control over your application code… In a nutshell, XSS means game over!</q>
+      <div class="attr">Philippe De Ryck<br>co-author, IETF browser-apps BCP<br><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2] pragmaticwebsecurity.com</a></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Kill chains</h2></div>
+    <p class="sec-sub">Same starting condition — arbitrary script in your origin. Two entirely different second halves.</p>
+
+    <div class="chains">
+      <div class="chain a">
+        <div class="top">
+          <div class="tag">Architecture A</div>
+          <div class="arch">In-memory access token</div>
+          <div class="tag" style="margin-top:6px;">React 19 SPA → .NET APIs directly</div>
+        </div>
+        <ol>
+          <li>Payload executes. It patches the app's HTTP layer, reads the token straight out of the module closure, or fires a hidden silent-renew and harvests the result <sup><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2]</a></sup>. "In memory" is not a hiding place from code that <em>is</em> the app.</li>
+          <li><b>One <code>POST</code> to attacker infrastructure.</b> The credential is now off-origin. The attack is over in a single request and everything after it happens somewhere you cannot see.</li>
+          <li>The token is a bearer credential: it works from the attacker's machine, from a script, from anywhere, for its full remaining lifetime <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup>.</li>
+          <li>If a refresh token is browser-reachable, the draft's <b>Persistent Token Theft</b> applies and the attacker just keeps renewing <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup>. The victim closing the tab changes nothing.</li>
+        </ol>
+        <div class="outcome">
+          <span class="k">Loss profile</span>
+          SILENT · OFF-ORIGIN · OUTLIVES THE TAB · PORTABLE
+        </div>
+      </div>
+
+      <div class="chain b">
+        <div class="top">
+          <div class="tag">Architecture B</div>
+          <div class="arch">httpOnly cookie + BFF</div>
+          <div class="tag" style="margin-top:6px;">.NET 10 proxy in front of the APIs</div>
+        </div>
+        <ol>
+          <li>Payload executes. It cannot read the cookie <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup>, cannot see an access token (there isn't one in the browser) <sup><a href="https://docs.duendesoftware.com/bff/">[11]</a></sup>, cannot start a new OAuth flow to mint one — "the BFF is a confidential client" (§6.1.3.1) <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup>.</li>
+          <li><b>So it rides the session instead.</b> Same-origin <code>fetch()</code> to the BFF; the browser attaches the cookie; the BFF swaps it for the real access token server-side and forwards the call. "Using XHR, an attacker can make the victim perform any action within the application" <sup><a href="https://www.schellman.com/blog/demonstrating-impact-with-cross-site-scripting">[6]</a></sup>.</li>
+          <li>Anti-CSRF adds nothing. Same-origin script reads response bodies and lifts the token — "you can create a new variable — <code>ctoken</code> — and set the value to the HTTP response we just made" <sup><a href="https://www.schellman.com/blog/demonstrating-impact-with-cross-site-scripting">[6]</a></sup>. Duende's CSRF defence is a required custom header <sup><a href="https://docs.duendesoftware.com/bff/">[11]</a></sup> — trivially set by same-origin JS.</li>
+          <li><b>But everything must transit the victim's browser, through your BFF, while the tab is open.</b> "The attacker can make requests to your BFF while the user's browser is open. But they can't exfiltrate tokens for offline use" <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[3]</a></sup>.</li>
+        </ol>
+        <div class="outcome">
+          <span class="k">Loss profile</span>
+          LOUD · SAME-ORIGIN · DIES WITH THE TAB · NON-PORTABLE
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>The capability board</h2></div>
+    <p class="sec-sub">Rows are what an attacker with script execution can actually <em>do</em>. <span style="color:var(--granted);font-weight:600;">GRANTED</span> = the attacker has this capability. <span style="color:var(--denied);font-weight:600;">DENIED</span> = the architecture takes it away. Read row 03 before you read the tally.</p>
+
+    <div class="board-scroll">
+    <table class="board">
+      <thead>
+        <tr>
+          <th class="cap">Attacker capability, payload executing</th>
+          <th>
+            <span class="col-id">Column A</span>
+            <span class="col-name">In-memory token</span>
+            <span class="col-note">SPA → API, bearer in a JS closure</span>
+          </th>
+          <th>
+            <span class="col-id">Column B</span>
+            <span class="col-name">local / sessionStorage</span>
+            <span class="col-note">the baseline everyone agrees is bad</span>
+          </th>
+          <th>
+            <span class="col-id">Column C</span>
+            <span class="col-name">httpOnly cookie + BFF</span>
+            <span class="col-note">no bearer credential in the browser at all</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="cap"><span class="rid">01</span>Read the credential out of the page</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Patch the app's own code, or trigger silent-renew and read the response <sup><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2]</a></sup></span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">One line. "A single Cross Site Scripting can be used to steal all the data in these objects" <sup><a href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html">[4]</a></sup></span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">httpOnly hides the value; there is no token in JS reach <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup></span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">02</span>Exfiltrate the credential off-origin</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">One beacon and the bearer token is on attacker infrastructure <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup></span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Same, minus the effort <sup><a href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html">[4]</a></sup></span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">"They can't exfiltrate tokens for offline use" <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[3]</a></sup></span></td>
+        </tr>
+
+        <tr class="universal">
+          <td class="cap"><span class="rid">03</span>Act as the user. Do anything the admin can do.</td>
+          <td><span class="verdict">GRANTED</span><span class="why">It is the user's page and the user's token.</span></td>
+          <td><span class="verdict">GRANTED</span><span class="why">It is the user's page and the user's token.</span></td>
+          <td><span class="verdict">GRANTED</span><span class="why">Session riding. "An attacker can make the victim perform any action within the application" <sup><a href="https://www.schellman.com/blog/demonstrating-impact-with-cross-site-scripting" style="color:#fff;">[6]</a></sup></span></td>
+        </tr>
+
+        <tr>
+          <td class="cap"><span class="rid">04</span>Keep working after the tab closes</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">For the token's TTL — or indefinitely with a stolen refresh token <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup></span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Same</span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">The script dies with the page <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[3]</a></sup></span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">05</span>Survive a page reload</td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">Unless the injection is stored/persistent</span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">A fresh payload re-reads the persisted token</span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">Unless the injection is stored/persistent</span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">06</span>Mint <em>new</em> tokens</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Silent-renew in a hidden iframe <sup><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2]</a></sup></span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Same</span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">The BFF is a confidential client; the browser cannot complete a flow <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup></span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">07</span>Reach the refresh token</td>
+          <td class="c"><span class="verdict">CONDITIONAL</span><span class="why">Depends on your implementation — and in practice, ⚠ often yes</span></td>
+          <td class="c"><span class="verdict">CONDITIONAL</span><span class="why">⚠ Often yes. "Only recommended for low-security use cases" <sup><a href="https://news.ycombinator.com/item?id=42427169">[16]</a></sup></span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">It never leaves the server <sup><a href="https://docs.duendesoftware.com/bff/">[11]</a></sup></span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">08</span>Survive your attempt to revoke</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">A signed JWT is valid until it expires. "Log everyone out" does nothing.</span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Same</span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">"Server can forcibly end sessions" <sup><a href="https://docs.duendesoftware.com/bff/">[11]</a></sup> — instantly, not in 15 minutes</span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">09</span>Operate invisibly to your logs</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Off-origin token use happens somewhere you are not looking</span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Same</span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">Every action transits the BFF as an authenticated request <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26">[1]</a></sup> — you can see it, rate-limit it, kill it</span></td>
+        </tr>
+        <tr>
+          <td class="cap"><span class="rid">10</span>Reuse the credential cross-tab / cross-device</td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">A bearer token is a bearer token</span></td>
+          <td class="g"><span class="verdict">GRANTED</span><span class="why">Same</span></td>
+          <td class="d"><span class="verdict">DENIED</span><span class="why">Bound to the compromised browser</span></td>
+        </tr>
+
+        <tr class="signature">
+          <td class="cap"><span class="rid">—</span>Attack signature</td>
+          <td><span class="sig silent">SILENT</span><span class="why">One beacon, then quiet.</span></td>
+          <td><span class="sig silent">SILENT</span><span class="why">One beacon, then quiet.</span></td>
+          <td><span class="sig loud">LOUD</span><span class="why">N authenticated calls, through your own logs.</span></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Tally — capabilities granted</td>
+          <td><span class="tally hi">8 / 10</span> + 1 conditional</td>
+          <td><span class="tally hi">9 / 10</span> + 1 conditional</td>
+          <td><span class="tally lo">1 / 10</span> — and it is row 03</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <div class="board-note">
+      <b>⚠ Do not read the tally as a scoreboard.</b> Column C denies nine capabilities and grants one — but the one it grants is the one that was ever the point. Row 03 is <b>GRANTED in every column</b>. For an admin console, "everything the admin can do" <em>is</em> the console. If the payload can create a user, grant a role or plant a webhook in the first 400 ms, the tab-lifetime bound buys you exactly nothing <sup><a href="https://www.schellman.com/blog/demonstrating-impact-with-cross-site-scripting">[6]</a></sup>.
+    </div>
+
+    <p style="margin-top:26px;color:var(--dim);font-weight:300;font-size:13.5px;">
+      <b style="color:var(--bone);">On Column B:</b> <code>sessionStorage</code> vs <code>localStorage</code> is a rounding error here — both are "always accessible by JavaScript" <sup><a href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html">[4]</a></sup>. OWASP's preference for <code>sessionStorage</code> is about <em>persistence</em>, not about XSS. In-memory (Column A) is one further notch: it strips persistence and the trivial one-liner read, forcing the attacker to hook the app's own code <sup><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2]</a></sup>. That is real friction against dumb commodity payloads and <em>zero</em> friction against anyone targeting <em>your</em> app. Auth0 puts it flatly: "Tokens in localStorage, sessionStorage, or even JavaScript memory are all reachable by malicious scripts" <sup><a href="https://auth0.com/blog/things-developers-get-wrong-about-the-backend-for-frontend-pattern/">[12]</a></sup>.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>What httpOnly actually converts</h2></div>
+    <p class="sec-sub">Not a wall. A transformer. Here is the exact exchange rate — and the one line it leaves untouched.</p>
+
+    <div class="conv">
+      <div class="conv-row">
+        <div class="cell from"><span class="lbl">In-memory / storage token</span><span class="val">Silent</span><span class="sub">One beacon to attacker infrastructure, then nothing you will ever detect.</span></div>
+        <div class="arrow">→</div>
+        <div class="cell to"><span class="lbl">httpOnly + BFF</span><span class="val">Loud</span><span class="sub">Every attacker action is an authenticated request through your own proxy. Observable, rate-limitable, killable.</span></div>
+      </div>
+      <div class="conv-row">
+        <div class="cell from"><span class="lbl">In-memory / storage token</span><span class="val">Off-origin, portable</span><span class="sub">Works from the attacker's laptop, a cron job, anywhere, for the token's full TTL.</span></div>
+        <div class="arrow">→</div>
+        <div class="cell to"><span class="lbl">httpOnly + BFF</span><span class="val">Bound to the browser</span><span class="sub">No lateral use against other APIs, no use from attacker infrastructure.</span></div>
+      </div>
+      <div class="conv-row">
+        <div class="cell from"><span class="lbl">In-memory / storage token</span><span class="val">Outlives the tab</span><span class="sub">Or outlives everything, if a refresh token came with it.</span></div>
+        <div class="arrow">→</div>
+        <div class="cell to"><span class="lbl">httpOnly + BFF</span><span class="val">Dies with the tab</span><span class="sub">And dies immediately on a server-side session kill.</span></div>
+      </div>
+      <div class="conv-row nochange">
+        <div class="cell from"><span class="lbl">In-memory / storage token</span><span class="val">Attacker acts as the user</span><span class="sub">Full authority of the compromised session.</span></div>
+        <div class="arrow">=</div>
+        <div class="cell to"><span class="lbl">httpOnly + BFF</span><span class="val">Attacker acts as the user</span><span class="sub">Unchanged. The BFF bounds <em>duration</em> and <em>location</em>. It does not bound <em>authority</em>.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>The actual mitigation</h2></div>
+    <p class="sec-sub">If XSS is game over regardless of storage <sup><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2]</a></sup>, the money goes into not having XSS. Token storage is damage-limitation. <b style="color:var(--bone);font-weight:600;">Strict CSP + Trusted Types is the mitigation.</b></p>
+
+    <div class="cm-grid">
+      <div class="bignum">
+        <div class="n">94.68%</div>
+        <div class="cap-l">of script-limiting CSP policies were <b style="color:var(--bone);font-weight:600;">ineffective</b> in Google's internet-scale study; 99.34% of CSP-deploying hosts got "little to no benefit against XSS." Allowlist CSP failed <em>empirically</em>. If you ship an allowlist policy and call it done, you have shipped nothing. <sup><a href="https://research.google/pubs/csp-is-dead-long-live-csp-on-the-insecurity-of-whitelists-and-the-future-of-content-security-policy/">[8]</a></sup></div>
+      </div>
+      <div class="bignum">
+        <div class="n steel">Baseline</div>
+        <div class="cap-l"><b style="color:var(--bone);font-weight:600;">Trusted Types is now available everywhere.</b> Safari 26 landed it in Sept 2025; Firefox completed the picture in Feb 2026 — "it now works across all major browsers." This is the 2026 change that moves the argument. <sup><a href="https://www.uriports.com/blog/csp-trusted-types/">[9]</a></sup></div>
+      </div>
+    </div>
+
+    <ul class="cm-list">
+      <li><b>Strict CSP — nonce/hash + strict-dynamic</b> Blocks "untrusted inline scripts like inline event handlers or <code>javascript:</code> URIs" <sup><a href="https://web.dev/articles/strict-csp">[7]</a></sup>. This is script-<em>loading</em> control.</li>
+      <li class="warn"><b>⚠ Strict CSP's own holes</b> Injection into the body or <code>src</code> of a nonced script; injection into the locations of dynamically-created <code>script</code> nodes; AngularJS template injection; <code>unsafe-eval</code> sinks <sup><a href="https://web.dev/articles/strict-csp">[7]</a></sup>. It does not close DOM sinks.</li>
+      <li><b>Trusted Types closes the sinks</b> <code>require-trusted-types-for 'script'</code> "instructs user agents to control the data passed to DOM XSS sink functions" <sup><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/require-trusted-types-for">[10]</a></sup>, blocking "risky injection points (like <code>.innerHTML</code>) from using unvalidated string values" <sup><a href="https://developer.chrome.com/docs/lighthouse/best-practices/trusted-types-xss">[17]</a></sup>. React apps are near-compliant already; <code>dangerouslySetInnerHTML</code> is the sink you must route through a policy.</li>
+      <li class="warn"><b>⚠ Trusted Types is not magic either</b> <code>createHTML: (input) => input</code> is a technically valid and entirely useless policy. "The browser enforces the mechanism, but what happens inside the funnel is entirely your responsibility" <sup><a href="https://www.uriports.com/blog/csp-trusted-types/">[9]</a></sup>.</li>
+    </ul>
+
+    <div class="breach">
+      <div class="bar">⊠ The hole CSP cannot cover — and the BFF's strongest argument</div>
+      <div class="body">
+        <p>CSP is <strong>a policy on scripts the browser loads</strong>. It cannot distinguish your trojaned npm dependency from your own code. The nonced bundle executes <strong>with full privilege</strong>. Against 2025-style supply-chain compromise, CSP is not the mitigation <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[3]</a></sup>.</p>
+        <p>The Sept 2025 npm compromise (<code>debug</code>, <code>chalk</code>, ~2B weekly downloads) proved malicious dependency code "can steal <em>anything</em> accessible to JavaScript." FusionAuth's argument: had those attackers gone for <strong>OAuth tokens in localStorage instead of crypto wallets, millions of user sessions would have been compromised</strong> <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[3]</a></sup>.</p>
+        <p>This is where the BFF's "nothing to steal" property does genuine work that no CSP can do. Microsoft's framing is the right one: <strong>"Because attacks are composable, defenses must be layered. Treat XSS as a gateway risk, not a standalone bug"</strong> <sup><a href="https://www.microsoft.com/en-us/msrc/blog/2025/11/weaponizing-cross-site-scripting-when-one-bug-isnt-enough">[5]</a></sup>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Testimony, including the dissent</h2></div>
+    <p class="sec-sub">The evidence does not converge. It is worth seeing exactly where the practitioners split — and where a vendor's marketing page and its own documentation split from each other.</p>
+
+    <div class="testimony">
+      <div class="depo against">
+        <div class="who"><span>Hacker News · <code>horsawlarway</code></span><span class="side">AGAINST</span></div>
+        <q>All it does is add a marginal level of complexity… still completely hacked.</q>
+        <div class="src">Dismisses the security case entirely; argues the real BFF benefits are API consolidation and token-scope reduction, not XSS defence. <a href="https://news.ycombinator.com/item?id=42829315">[13] news.ycombinator.com</a></div>
+      </div>
+
+      <div class="depo for">
+        <div class="who"><span>Hacker News · <code>unscaled</code></span><span class="side">FOR</span></div>
+        <q>HttpOnly cookies ARE better in terms of security. Storing Refresh Tokens in local storage is only recommended for low-security use cases…</q>
+        <div class="src">The counter-view from the same discussion space. Both commenters are right about different things — the disagreement is really about whether <em>bounded</em> compromise is worth an architecture. <a href="https://news.ycombinator.com/item?id=42427169">[16] news.ycombinator.com</a></div>
+      </div>
+
+      <div class="depo hedge">
+        <div class="who"><span>Duende — the marketing page</span><span class="side">OVERCLAIM</span></div>
+        <q>If the browser based application is compromised, for example with XSS attacks, there is no risk of the attacker stealing the access tokens.</q>
+        <div class="src">True, and narrow. Now read the same vendor's docs, which concede session hijacking is "very difficult to completely protect against." <a href="https://duendesoftware.com/learn/how-bff-helps-secure-single-page-applications">[15] duendesoftware.com</a> · <a href="https://docs.duendesoftware.com/bff/">[11] docs.duendesoftware.com</a></div>
+      </div>
+
+      <div class="depo hedge">
+        <div class="who"><span>Auth0 — the honest line</span><span class="side">CALIBRATED</span></div>
+        <q>BFF shifts the security boundary. It doesn't eliminate it.</q>
+        <div class="src">"You're trading one attack vector (XSS-based token theft) for a different, more constrained one." <a href="https://auth0.com/blog/things-developers-get-wrong-about-the-backend-for-frontend-pattern/">[12] auth0.com</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Calibration — itenium-ui</h2></div>
+    <p class="sec-sub">The published guidance is written for public consumer SPAs. These are the factors that move the BFF's XSS argument for a first-party, network-restricted, internal admin console.</p>
+
+    <div class="calib">
+      <div class="row">
+        <div class="dir weak">⚠ Weakens</div>
+        <div class="txt"><b>Single-origin, first-party, no third-party ad / analytics / tag-manager scripts</b>The dominant real-world XSS vector — untrusted third-party script — is simply absent. And strict CSP is <em>achievable</em> here in a way it never is on a marketing site <sup><a href="https://web.dev/articles/strict-csp">[7]</a></sup>.</div>
+      </div>
+      <div class="row">
+        <div class="dir weak">⚠ Weakens</div>
+        <div class="txt"><b>React 19, no <code>dangerouslySetInnerHTML</code>, Trusted Types now Baseline</b>The DOM-sink class of XSS is closable at low cost <sup><a href="https://www.uriports.com/blog/csp-trusted-types/">[9]</a></sup> <sup><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/require-trusted-types-for">[10]</a></sup>.</div>
+      </div>
+      <div class="row">
+        <div class="dir neutral">Neutral</div>
+        <div class="txt"><b>Admin privileges = maximum per-action impact</b>Session riding is enough to do all the damage there is. The BFF bounds <em>duration</em>, not <em>authority</em> <sup><a href="https://www.schellman.com/blog/demonstrating-impact-with-cross-site-scripting">[6]</a></sup>.</div>
+      </div>
+      <div class="row">
+        <div class="dir weak">⚠ Weakens</div>
+        <div class="txt"><b>APIs reachable only from the corporate network / VPN</b>This kills the exfiltration delta specifically. A stolen bearer token used from attacker infrastructure fails at the network boundary — the attacker is pushed back into session riding <em>anyway</em>, which is precisely what the BFF was selling you.</div>
+      </div>
+      <div class="row">
+        <div class="dir strong">⚠ Strengthens</div>
+        <div class="txt"><b>npm supply chain</b>The one argument that survives every other mitigation, including a perfect CSP <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[3]</a></sup>.</div>
+      </div>
+      <div class="row">
+        <div class="dir strong">Strengthens</div>
+        <div class="txt"><b>Small user population, internal auditing, ability to force logout</b>Server-side revocation is actually <em>operable</em> here, which it rarely is at consumer scale <sup><a href="https://docs.duendesoftware.com/bff/">[11]</a></sup>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Assessment</h2></div>
+    <div class="verdict-band">
+      <h3>The BFF does not stop XSS. It <em>bounds</em> the loss — and the bound is narrower than it is sold.</h3>
+      <p>For an internet-exposed console the BFF's XSS story is strong. For a <b style="color:var(--bone);">network-restricted internal console with strict CSP and Trusted Types</b>, the incremental XSS benefit over an in-memory token is narrow: it reduces to <b style="color:var(--bone);">supply-chain resilience</b> and <b style="color:var(--bone);">instant revocation</b>. Those are real. They are also a much smaller claim than "httpOnly protects you from XSS," and they should be weighed against the BFF's cost rather than played as a security trump card.</p>
+      <p style="margin-top:14px;color:var(--granted);font-weight:600;">Do not buy a BFF <em>for XSS</em> and then skip the CSP. The ordering the sources support is unambiguous <sup><a href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html">[2]</a></sup> <sup><a href="https://auth0.com/blog/things-developers-get-wrong-about-the-backend-for-frontend-pattern/">[12]</a></sup>:</p>
+
+      <div class="order">
+        <div class="step">
+          <div class="n">1</div>
+          <div class="t">Eliminate the XSS</div>
+          <div class="d">Strict CSP (nonce + strict-dynamic) and <code>require-trusted-types-for 'script'</code>. This is the mitigation. Everything else is triage.</div>
+        </div>
+        <div class="step">
+          <div class="n">2</div>
+          <div class="t">Then choose storage</div>
+          <div class="d">As damage-limitation, knowing exactly which capabilities on the board it removes — and which one it never touches.</div>
+        </div>
+        <div class="step">
+          <div class="n">3</div>
+          <div class="t">Price the supply chain</div>
+          <div class="d">The trojaned dependency is the threat CSP cannot see and the BFF genuinely blunts. That, not "httpOnly," is the argument to make.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Evidence ledger</h2></div>
+    <p class="sec-sub">17 sources. The dissenting ones are in here too — this board is not a case for the prosecution.</p>
+
+    <div class="ledger">
+      <a class="ev" href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-26"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=datatracker.ietf.org&sz=128" alt=""><span class="t">IETF — OAuth 2.0 for Browser-Based Applications (draft-26)<span class="ty official">official</span></span></a>
+      <a class="ev" href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=pragmaticwebsecurity.com&sz=128" alt=""><span class="t">Pragmatic Web Security (Philippe De Ryck) — "XSS means game over"<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://fusionauth.io/blog/backend-for-frontend-security-architecture"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=fusionauth.io&sz=128" alt=""><span class="t">FusionAuth — Backend for Frontend security architecture<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=cheatsheetseries.owasp.org&sz=128" alt=""><span class="t">OWASP — HTML5 Security Cheat Sheet<span class="ty official">official</span></span></a>
+      <a class="ev" href="https://www.microsoft.com/en-us/msrc/blog/2025/11/weaponizing-cross-site-scripting-when-one-bug-isnt-enough"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt=""><span class="t">Microsoft MSRC — Weaponizing XSS: when one bug isn't enough (Nov 2025)<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://www.schellman.com/blog/demonstrating-impact-with-cross-site-scripting"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=schellman.com&sz=128" alt=""><span class="t">Schellman — Demonstrating impact with cross-site scripting<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://web.dev/articles/strict-csp"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=web.dev&sz=128" alt=""><span class="t">web.dev — Mitigate XSS with a strict Content Security Policy<span class="ty official">official</span></span></a>
+      <a class="ev" href="https://research.google/pubs/csp-is-dead-long-live-csp-on-the-insecurity-of-whitelists-and-the-future-of-content-security-policy/"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=research.google&sz=128" alt=""><span class="t">Google Research / ACM CCS 2016 — CSP Is Dead, Long Live CSP!<span class="ty peer">peer-reviewed</span></span></a>
+      <a class="ev" href="https://www.uriports.com/blog/csp-trusted-types/"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=uriports.com&sz=128" alt=""><span class="t">URIports — CSP and Trusted Types (Baseline, Feb 2026)<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/require-trusted-types-for"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=128" alt=""><span class="t">MDN — CSP: require-trusted-types-for<span class="ty official">official</span></span></a>
+      <a class="ev" href="https://docs.duendesoftware.com/bff/"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=128" alt=""><span class="t">Duende — BFF Security Framework documentation<span class="ty official">official</span></span></a>
+      <a class="ev" href="https://auth0.com/blog/things-developers-get-wrong-about-the-backend-for-frontend-pattern/"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=auth0.com&sz=128" alt=""><span class="t">Auth0 — Things developers get wrong about the BFF pattern<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://news.ycombinator.com/item?id=42829315"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><span class="t">Hacker News — Keycloak / Angular / BFF thread (the dissent)<span class="ty forum">forum</span></span></a>
+      <a class="ev" href="https://nestenius.se/net/bff-in-asp-net-core-3-the-bff-pattern-explained/"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=nestenius.se&sz=128" alt=""><span class="t">Tore Nestenius — The BFF pattern explained (ASP.NET Core)<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://duendesoftware.com/learn/how-bff-helps-secure-single-page-applications"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&sz=128" alt=""><span class="t">Duende — How BFF helps secure single-page applications<span class="ty">vendor-blog</span></span></a>
+      <a class="ev" href="https://news.ycombinator.com/item?id=42427169"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><span class="t">Hacker News — token storage thread (the counter-dissent)<span class="ty forum">forum</span></span></a>
+      <a class="ev" href="https://developer.chrome.com/docs/lighthouse/best-practices/trusted-types-xss"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=developer.chrome.com&sz=128" alt=""><span class="t">Chrome for Developers — Trusted Types (Lighthouse)<span class="ty official">official</span></span></a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Related dossiers</h2></div>
+    <p class="sec-sub">This board answers one question. The decision needs five more.</p>
+
+    <div class="dossiers">
+      <a class="dossier up" href="../../">
+        <div class="depth">↑ Parent expedition</div>
+        <div class="t">Pure React 19 SPA or a .NET 10 BFF? A decision framework for an internal admin console</div>
+        <div class="s">Ship the SPA, not the BFF — but build it so the BFF is a 2–5 day retrofit, because the IETF names business apps explicitly and the supply-chain argument is the one that survives scrutiny.</div>
+      </a>
+      <a class="dossier" href="../../does-the-ietf-browser-based-apps-bcp-apply-to-an-internal-admin-console/">
+        <div class="depth">recon</div>
+        <div class="t">Does the IETF browser-based-apps BCP apply to an internal admin console?</div>
+        <div class="s">The BCP names "business applications" in its strongest recommendation, so an internal console is in scope — but the ranking is a security/simplicity trade-off, not a normative MUST.</div>
+      </a>
+      <a class="dossier" href="../../refresh-tokens-and-silent-renew-in-a-browser-spa-2026/">
+        <div class="depth">survey</div>
+        <div class="t">Refresh tokens and silent renew in a browser SPA (2026)</div>
+        <div class="s">Iframe silent renew is dead cross-site but alive same-site; refresh-token rotation works on both stacks, DPoP only really works on Keycloak.</div>
+      </a>
+      <a class="dossier" href="../../greenfield-bff-cost-vs-retrofitting-one-later/">
+        <div class="depth">survey</div>
+        <div class="t">Greenfield BFF vs retrofitting later: where the asymmetry actually is</div>
+        <div class="s">Adding a BFF later is a two-way door — if you build the SPA with one auth module, one fetch wrapper, relative paths and no client-side JWT parsing.</div>
+      </a>
+      <a class="dossier" href="../../impact-on-openapi-client-codegen-and-local-dev-ergonomics/">
+        <div class="depth">survey</div>
+        <div class="t">What a BFF costs you every day: OpenAPI codegen and the local dev loop</div>
+        <div class="s">A path-preserving BFF leaves OpenAPI codegen essentially untouched — the real daily cost is one extra process and a Vite proxy config.</div>
+      </a>
+      <a class="dossier" href="../../bff-options-in-net-10-yarp-duende-bff-minimal-custom/">
+        <div class="depth">expedition</div>
+        <div class="t">BFF options in .NET 10: Duende.BFF, YARP, or hand-rolled</div>
+        <div class="s">YARP + AddOpenIdConnect + the free Apache-2.0 Duende.AccessTokenManagement (~250 LOC you own), or Duende.BFF if you qualify for its free Community Edition; the paid entry point is $5,750/yr.</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="hazard"></div>
+
+<div class="wrap colophon">
+  Threat Matrix — an alternate view of <a href="../">the canonical survey</a> · 17 sources · <a href="/">Atlas</a><br>
+  Assume breach. Row 03 is granted in every column.
+</div>
+
+</div>

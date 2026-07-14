@@ -1,0 +1,822 @@
+---
+layout: view
+view_name: "Compatibility Grid"
+view_of: ../
+title: "Refresh tokens and silent renew in a browser SPA (2026) — Compatibility Grid"
+---
+
+<style>
+  .cig {
+    --ink: #1b2733;
+    --ink-2: #5a6b7b;
+    --line: #d8dee4;
+    --paper: #ffffff;
+    --wash: #f4f6f8;
+    --head: #1b2733;
+
+    --y-bg: #c8e6a0;   --y-ink: #2c5e18;
+    --n-bg: #f6b4b0;   --n-ink: #8f231c;
+    --a-bg: #f8e08e;   --a-ink: #6f5200;
+    --u-bg: #e4e8eb;   --u-ink: #6b7883;
+
+    background: var(--paper);
+    color: var(--ink);
+    margin: 0;
+    padding: 0 0 4rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .cig * { box-sizing: border-box; }
+  .cig .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+  .cig code, .cig .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  .cig code { background: var(--wash); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; font-size: 0.88em; }
+  .cig a { color: #1a5fb4; }
+  .cig sup a { text-decoration: none; color: #1a5fb4; font-weight: 600; }
+
+  /* ---------- masthead ---------- */
+  .cig .masthead { background: var(--head); color: #fff; padding: 2.4rem 0 2rem; }
+  .cig .masthead .wrap { display: flex; align-items: flex-start; gap: 2rem; flex-wrap: wrap; }
+  .cig .mh-main { flex: 1 1 460px; min-width: 300px; }
+  .cig .mh-kicker {
+    font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: #8fb8e0; font-weight: 700; margin-bottom: 0.6rem;
+  }
+  .cig .mh-title { font-size: clamp(1.9rem, 4.2vw, 2.9rem); line-height: 1.08; margin: 0 0 0.7rem; font-weight: 800; letter-spacing: -0.02em; }
+  .cig .mh-title .q { color: #f8e08e; }
+  .cig .mh-sub { color: #b6c3cf; font-size: 1.02rem; max-width: 46ch; margin: 0; }
+  .cig .mh-verdict {
+    flex: 0 1 340px; min-width: 260px;
+    background: #121c26; border: 1px solid #2f3f4d; border-left: 5px solid #f8e08e;
+    border-radius: 4px; padding: 1rem 1.1rem;
+  }
+  .cig .mh-verdict h3 { margin: 0 0 0.45rem; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #f8e08e; }
+  .cig .mh-verdict p { margin: 0; font-size: 0.94rem; color: #d5dee6; line-height: 1.5; }
+  .cig .mh-verdict strong { color: #fff; }
+
+  /* ---------- the fork ---------- */
+  .cig .fork-lead {
+    margin: 2.6rem 0 1rem; text-align: center;
+  }
+  .cig .fork-lead h2 {
+    font-size: 1.55rem; margin: 0 0 0.4rem; font-weight: 800; letter-spacing: -0.01em;
+  }
+  .cig .fork-lead p { margin: 0 auto; color: var(--ink-2); max-width: 62ch; font-size: 0.98rem; }
+
+  .cig .fork { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 1.6rem 0 0; }
+  @media (max-width: 800px) { .cig .fork { grid-template-columns: 1fr; } }
+  .cig .fork-card { border: 2px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--paper); display: flex; flex-direction: column; }
+  .cig .fork-card.alive { border-color: #7cb342; }
+  .cig .fork-card.dead  { border-color: #d4514a; }
+  .cig .fk-head { padding: 0.75rem 1rem; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+  .cig .alive .fk-head { background: var(--y-bg); color: var(--y-ink); }
+  .cig .dead  .fk-head { background: var(--n-bg); color: var(--n-ink); }
+  .cig .fk-body { padding: 1.15rem 1rem 1.25rem; flex: 1; }
+
+  .cig .hosts { font-size: 0.95rem; line-height: 2.05; margin-bottom: 0.9rem; }
+  .cig .host {
+    display: block; padding: 0.28rem 0.6rem; border: 1px solid var(--line);
+    border-radius: 4px; background: var(--wash); white-space: nowrap; overflow-x: auto;
+    font-size: 0.92rem; margin-bottom: 0.4rem;
+  }
+  .cig .host .sub { color: #98a4b0; }
+  .cig .etld { background: #fff2b8; box-shadow: 0 1px 0 #d9b800 inset, 0 -2px 0 #f2d75e inset; border-radius: 2px; padding: 0 2px; font-weight: 700; color: #6b4e00; }
+  .cig .etld-x { background: #ffd9d6; box-shadow: 0 -2px 0 #f0a19c inset; border-radius: 2px; padding: 0 2px; font-weight: 700; color: #8f231c; }
+  .cig .rel { display: block; text-align: center; font-size: 1.35rem; color: var(--ink-2); line-height: 1; margin: 0.15rem 0 0.35rem; }
+
+  .cig .fk-facts { list-style: none; padding: 0; margin: 0 0 1rem; font-size: 0.92rem; }
+  .cig .fk-facts li { padding: 0.4rem 0; border-top: 1px dashed var(--line); display: flex; gap: 0.55rem; }
+  .cig .fk-facts li:first-child { border-top: 0; }
+  .cig .fk-facts .g { color: var(--y-ink); font-weight: 800; }
+  .cig .fk-facts .r { color: var(--n-ink); font-weight: 800; }
+
+  .cig .verdict-strip { padding: 0.7rem 1rem; font-weight: 800; font-size: 1.02rem; display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+  .cig .alive .verdict-strip { background: var(--y-bg); color: var(--y-ink); }
+  .cig .dead  .verdict-strip { background: var(--n-bg); color: var(--n-ink); }
+  .cig .verdict-strip .pct { font-size: 1.5rem; letter-spacing: -0.02em; }
+  .cig .verdict-strip .pct small { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; display: block; font-weight: 700; opacity: 0.8; }
+
+  .cig .fork-note {
+    margin: 1.1rem 0 0; padding: 0.85rem 1.05rem; border-left: 4px solid var(--head);
+    background: var(--wash); font-size: 0.95rem; color: var(--ink);
+  }
+
+  /* ---------- section chrome ---------- */
+  .cig .sec { margin-top: 3.4rem; }
+  .cig .sec-head { display: flex; align-items: baseline; gap: 0.85rem; border-bottom: 3px solid var(--head); padding-bottom: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+  .cig .sec-head h2 { margin: 0; font-size: 1.32rem; font-weight: 800; letter-spacing: -0.01em; }
+  .cig .sec-head .tag { font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 3px; background: var(--head); color: #fff; }
+  .cig .sec-head .tag.warn { background: var(--n-ink); }
+  .cig .sec-sub { color: var(--ink-2); font-size: 0.95rem; margin: 0.6rem 0 1.15rem; max-width: 74ch; }
+
+  /* ---------- support matrix ---------- */
+  .cig .matrix-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+  .cig .matrix { min-width: 880px; display: grid;
+    grid-template-columns:
+      minmax(210px, 1.5fr)
+      minmax(150px, 6.5fr)
+      minmax(104px, 0.5fr)
+      minmax(126px, 1.8fr)
+      minmax(104px, 0.5fr)
+      minmax(104px, 0.3fr)
+      minmax(96px, 0.1fr);
+  }
+  .cig .mx-corner { background: var(--head); color: #fff; padding: 0.85rem 0.9rem; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 800; display: flex; align-items: flex-end; }
+  .cig .mx-bh { background: var(--head); color: #fff; padding: 0.75rem 0.7rem 0.6rem; text-align: center; border-left: 1px solid #33434f; }
+  .cig .mx-bh img { width: 22px; height: 22px; display: block; margin: 0 auto 0.35rem; border-radius: 3px; }
+  .cig .mx-bh .bn { font-size: 0.82rem; font-weight: 700; line-height: 1.2; }
+  .cig .mx-bh .bs { font-size: 0.7rem; color: #8fb8e0; font-weight: 700; margin-top: 0.15rem; }
+  .cig .mx-bh .meter { height: 3px; background: #33434f; border-radius: 2px; margin-top: 0.45rem; overflow: hidden; }
+  .cig .mx-bh .meter i { display: block; height: 100%; background: #8fb8e0; }
+
+  .cig .mx-rh { padding: 0.8rem 0.9rem; border-top: 1px solid var(--line); background: var(--wash); font-size: 0.9rem; font-weight: 600; }
+  .cig .mx-rh .rsub { display: block; font-weight: 400; color: var(--ink-2); font-size: 0.78rem; margin-top: 0.15rem; }
+  .cig .cell { padding: 0.75rem 0.55rem; border-top: 1px solid rgba(0,0,0,0.08); border-left: 1px solid rgba(255,255,255,0.55); text-align: center; font-size: 0.76rem; line-height: 1.35; }
+  .cig .cell .g { display: block; font-size: 1.2rem; font-weight: 800; line-height: 1; margin-bottom: 0.3rem; }
+  .cig .y { background: var(--y-bg); color: var(--y-ink); }
+  .cig .n { background: var(--n-bg); color: var(--n-ink); }
+  .cig .a { background: var(--a-bg); color: var(--a-ink); }
+  .cig .u { background: var(--u-bg); color: var(--u-ink); }
+
+  .cig .mx-band {
+    grid-column: 1 / -1; background: var(--head); color: #fff;
+    padding: 0.55rem 0.9rem; font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 800;
+  }
+  .cig .mx-band.flip { background: #2c5e18; }
+  .cig .mx-band .thin { float: right; letter-spacing: 0.04em; text-transform: none; font-weight: 600; color: #c8e6a0; }
+
+  /* usage bar */
+  .cig .usage { margin-top: 1.4rem; }
+  .cig .usage h4 { margin: 0 0 0.5rem; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-2); font-weight: 800; }
+  .cig .ubar { display: flex; height: 44px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+  .cig .ubar span { display: flex; align-items: center; justify-content: center; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.02em; overflow: hidden; white-space: nowrap; }
+  .cig .ubar .works { background: var(--y-bg); color: var(--y-ink); }
+  .cig .ubar .amber { background: var(--a-bg); color: var(--a-ink); }
+  .cig .ubar .fails { background: var(--n-bg); color: var(--n-ink); }
+  .cig .ubar-caption { font-size: 0.85rem; color: var(--ink-2); margin: 0.55rem 0 0; }
+  .cig .ubar.full .works { flex: 1; }
+
+  /* notes */
+  .cig .notes { margin: 1.2rem 0 0; padding: 0; list-style: none; font-size: 0.87rem; color: var(--ink-2); columns: 2; column-gap: 2rem; }
+  @media (max-width: 720px) { .cig .notes { columns: 1; } }
+  .cig .notes li { break-inside: avoid; padding: 0.25rem 0 0.25rem 1.5rem; text-indent: -1.5rem; }
+  .cig .notes b { color: var(--ink); }
+
+  /* ---------- timeline ---------- */
+  .cig .tl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  @media (max-width: 860px) { .cig .tl { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .cig .tl { grid-template-columns: 1fr; } }
+  .cig .tl-step { padding: 1rem 1rem 1.1rem; border-left: 1px solid var(--line); }
+  .cig .tl-step:first-child { border-left: 0; }
+  .cig .tl-date { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 800; margin-bottom: 0.4rem; }
+  .cig .tl-step h4 { margin: 0 0 0.35rem; font-size: 0.98rem; }
+  .cig .tl-step p { margin: 0; font-size: 0.86rem; color: var(--ink-2); }
+  .cig .tl-step.dead { background: #fdeceb; } .cig .tl-step.dead .tl-date { color: var(--n-ink); }
+  .cig .tl-step.hype { background: var(--wash); } .cig .tl-step.hype .tl-date { color: var(--ink-2); }
+  .cig .tl-step.flip { background: #f2f8ea; } .cig .tl-step.flip .tl-date { color: var(--y-ink); }
+  .cig .tl-step.now  { background: var(--head); color: #fff; } .cig .tl-step.now .tl-date { color: #f8e08e; } .cig .tl-step.now p { color: #b6c3cf; }
+
+  /* ---------- known issues ---------- */
+  .cig .issues { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+  .cig .issue { border: 1px solid var(--line); border-top: 4px solid var(--n-bg); border-radius: 5px; padding: 0.95rem 1rem; background: var(--paper); }
+  .cig .issue.ok { border-top-color: var(--a-bg); }
+  .cig .issue h4 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+  .cig .issue p { margin: 0; font-size: 0.86rem; color: var(--ink-2); }
+
+  /* ---------- stack grid ---------- */
+  .cig .stack-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+  .cig .stack { min-width: 780px; display: grid; grid-template-columns: minmax(230px, 1.2fr) minmax(230px, 1fr) minmax(230px, 1fr); }
+  .cig .st-corner { background: var(--head); color: #fff; padding: 1rem 0.9rem; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 800; display: flex; align-items: flex-end; }
+  .cig .st-bh { background: var(--head); color: #fff; padding: 0.9rem 1rem; border-left: 1px solid #33434f; display: flex; align-items: center; gap: 0.65rem; }
+  .cig .st-bh img { width: 34px; height: 34px; border-radius: 5px; background: #fff; padding: 3px; flex: none; }
+  .cig .st-bh .nm { font-size: 1rem; font-weight: 800; line-height: 1.15; }
+  .cig .st-bh .nm a { color: #fff; text-decoration: none; border-bottom: 1px solid #5a7286; }
+  .cig .st-bh .sm { font-size: 0.7rem; color: #8fb8e0; font-weight: 600; }
+  .cig .st-rh { padding: 0.8rem 0.9rem; background: var(--wash); border-top: 1px solid var(--line); font-size: 0.9rem; font-weight: 600; }
+  .cig .st-rh .rsub { display: block; font-weight: 400; color: var(--ink-2); font-size: 0.78rem; margin-top: 0.1rem; }
+  .cig .st-c { padding: 0.8rem 0.9rem; border-top: 1px solid rgba(0,0,0,0.08); border-left: 1px solid rgba(255,255,255,0.55); font-size: 0.85rem; }
+  .cig .st-c .v { font-weight: 800; display: block; margin-bottom: 0.2rem; font-size: 0.92rem; }
+
+  /* ---------- DPoP caveat ---------- */
+  .cig .caveat { margin-top: 1.4rem; background: #121c26; color: #e6edf3; border-radius: 6px; padding: 1.6rem 1.6rem 1.4rem; display: flex; gap: 1.4rem; align-items: flex-start; }
+  @media (max-width: 760px) { .cig .caveat { flex-direction: column; } }
+  .cig .caveat img { width: 74px; height: 74px; flex: none; filter: brightness(0) invert(1); opacity: 0.85; }
+  .cig .caveat h3 { margin: 0 0 0.55rem; font-size: 1.22rem; color: #f6b4b0; }
+  .cig .caveat p { margin: 0 0 0.7rem; font-size: 0.94rem; color: #c3cdd6; line-height: 1.6; }
+  .cig .caveat p:last-child { margin-bottom: 0; }
+  .cig .caveat code { background: #223040; border-color: #33434f; color: #f8e08e; }
+  .cig .caveat a { color: #8fb8e0; }
+  .cig .caveat strong { color: #fff; }
+  .cig .gates { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.8rem 0; }
+  .cig .gate { font-size: 0.75rem; font-family: ui-monospace, monospace; padding: 0.3rem 0.55rem; border-radius: 3px; font-weight: 700; }
+  .cig .gate.blocked { background: #3a1f1e; color: #f6b4b0; border: 1px solid #6b2f2b; }
+  .cig .gate.open { background: #3a2d10; color: #f8e08e; border: 1px solid #6b5520; }
+
+  /* ---------- libraries ---------- */
+  .cig .libs { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 1rem; }
+  .cig .lib { border: 1px solid var(--line); border-radius: 6px; padding: 0.95rem 1rem 1rem; background: var(--paper); border-top: 4px solid var(--u-bg); }
+  .cig .lib.pick { border-top-color: #7cb342; }
+  .cig .lib.ok { border-top-color: #f8e08e; }
+  .cig .lib.avoid { border-top-color: #d4514a; }
+  .cig .lib-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .cig .lib-top img { width: 18px; height: 18px; border-radius: 3px; }
+  .cig .lib-top .nm { font-weight: 800; font-size: 0.95rem; font-family: ui-monospace, monospace; }
+  .cig .lib .stars { font-size: 0.74rem; font-weight: 700; color: var(--ink-2); margin-left: auto; white-space: nowrap; }
+  .cig .lib .badge { display: inline-block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 800; padding: 0.16rem 0.42rem; border-radius: 3px; margin-bottom: 0.5rem; }
+  .cig .lib.pick .badge { background: var(--y-bg); color: var(--y-ink); }
+  .cig .lib.ok .badge { background: var(--a-bg); color: var(--a-ink); }
+  .cig .lib.avoid .badge { background: var(--n-bg); color: var(--n-ink); }
+  .cig .lib.na .badge { background: var(--u-bg); color: var(--u-ink); }
+  .cig .lib p { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+
+  /* ---------- code ---------- */
+  .cig .code-wrap { background: #121c26; border-radius: 6px; overflow: hidden; margin-top: 1rem; }
+  .cig .code-bar { padding: 0.5rem 0.9rem; background: #0c141c; color: #8fb8e0; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 800; }
+  .cig .code-wrap pre { margin: 0; padding: 1.05rem 1.1rem; overflow-x: auto; color: #dbe4ec; font-size: 0.83rem; line-height: 1.65; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .cig .code-wrap .cm { color: #7d8f9e; }
+  .cig .code-wrap .kw { color: #f8e08e; }
+  .cig .code-wrap .st { color: #c8e6a0; }
+
+  .cig .trap { margin-top: 1.2rem; border: 2px solid var(--n-bg); border-radius: 6px; padding: 1rem 1.1rem; background: #fdeceb; }
+  .cig .trap h4 { margin: 0 0 0.35rem; color: var(--n-ink); font-size: 0.98rem; }
+  .cig .trap p { margin: 0; font-size: 0.9rem; }
+  .cig .chain { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin: 0.75rem 0 0.6rem; font-family: ui-monospace, monospace; font-size: 0.78rem; font-weight: 700; }
+  .cig .chain b { background: #fff; border: 1px solid var(--n-bg); border-radius: 3px; padding: 0.28rem 0.5rem; color: var(--n-ink); }
+  .cig .chain i { color: var(--n-ink); font-style: normal; }
+
+  /* ---------- diverge ---------- */
+  .cig .dv-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+  .cig .dv { min-width: 720px; display: grid; grid-template-columns: minmax(190px, 1fr) minmax(230px, 1.2fr) minmax(230px, 1.2fr); }
+  .cig .dv-h { background: var(--head); color: #fff; padding: 0.85rem 0.9rem; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 800; border-left: 1px solid #33434f; }
+  .cig .dv-h:first-child { border-left: 0; }
+  .cig .dv-rh { padding: 0.75rem 0.9rem; background: var(--wash); border-top: 1px solid var(--line); font-size: 0.88rem; font-weight: 600; }
+  .cig .dv-c { padding: 0.75rem 0.9rem; border-top: 1px solid rgba(0,0,0,0.08); border-left: 1px solid rgba(255,255,255,0.55); font-size: 0.85rem; }
+
+  /* ---------- legend + footer ---------- */
+  .cig .legend { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: 1.1rem; font-size: 0.8rem; color: var(--ink-2); }
+  .cig .legend b { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+  .cig .swatch { width: 15px; height: 15px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.1); }
+
+  .cig .landing { margin-top: 3.4rem; border: 2px solid var(--head); border-radius: 6px; overflow: hidden; }
+  .cig .landing h2 { margin: 0; background: var(--head); color: #fff; padding: 0.85rem 1.1rem; font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 800; }
+  .cig .landing ul { margin: 0; padding: 1.1rem 1.3rem 1.2rem 2.4rem; }
+  .cig .landing li { margin-bottom: 0.7rem; font-size: 0.95rem; }
+  .cig .landing li:last-child { margin-bottom: 0; }
+
+  .cig .srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.55rem; margin-top: 1rem; }
+  .cig .src { display: flex; gap: 0.6rem; align-items: flex-start; border: 1px solid var(--line); border-radius: 4px; padding: 0.55rem 0.7rem; background: var(--paper); font-size: 0.8rem; }
+  .cig .src img { width: 16px; height: 16px; margin-top: 0.15rem; flex: none; }
+  .cig .src .n { font-weight: 800; color: var(--ink-2); flex: none; }
+  .cig .src a { text-decoration: none; font-weight: 600; }
+  .cig .src a:hover { text-decoration: underline; }
+  .cig .src .st { display: block; color: var(--ink-2); font-weight: 400; font-size: 0.74rem; }
+
+  .cig .sibs { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.7rem; margin-top: 1rem; }
+  .cig .sib { border: 1px solid var(--line); border-radius: 5px; padding: 0.75rem 0.85rem; background: var(--wash); }
+  .cig .sib .d { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 800; color: var(--ink-2); }
+  .cig .sib a { font-weight: 700; font-size: 0.88rem; text-decoration: none; display: block; margin: 0.2rem 0 0.25rem; }
+  .cig .sib p { margin: 0; font-size: 0.78rem; color: var(--ink-2); }
+  .cig .colophon { margin-top: 2.4rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-2); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+</style>
+
+<div class="cig">
+
+  <!-- ============ MASTHEAD ============ -->
+  <div class="masthead">
+    <div class="wrap">
+      <div class="mh-main">
+        <div class="mh-kicker">Support tables · updated Jul 2026 · 39 sources</div>
+        <h1 class="mh-title">Can I use&hellip; <span class="q">silent renew?</span></h1>
+        <p class="mh-sub">Hidden-iframe <code style="background:#2b3946;border-color:#3f4f5d;color:#f8e08e">prompt=none</code> renewal, rotating refresh tokens, and DPoP — browser by browser, stack by stack.</p>
+      </div>
+      <div class="mh-verdict">
+        <h3>Answer</h3>
+        <p><strong>It depends on one thing, and it isn't the browser.</strong> Read the fork below before you read the grid. Cross-site, the iframe is dead. Same-site, it still works in every browser shipping today — but you still shouldn't build on it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ============ THE FORK — hero ============ -->
+    <div class="fork-lead">
+      <h2>First, answer this. Everything else follows from it.</h2>
+      <p>A "site" is scheme + eTLD+1. Subdomains don't count <sup><a href="https://web.dev/articles/same-site-same-origin">[5]</a></sup>. Which of these two is your IdP?</p>
+    </div>
+
+    <div class="fork">
+      <div class="fork-card alive">
+        <div class="fk-head"><span>Case A · Same-site IdP</span><span>&#10003; ALIVE</span></div>
+        <div class="fk-body">
+          <div class="hosts">
+            <span class="host mono">https://admin.<span class="etld">itenium.be</span></span>
+            <span class="rel">&#8646;</span>
+            <span class="host mono">https://auth.<span class="etld">itenium.be</span></span>
+          </div>
+          <ul class="fk-facts">
+            <li><span class="g">&#10003;</span><span><b>Different origins, same site.</b> Same scheme, same registrable domain <sup><a href="https://web.dev/articles/same-site-same-origin">[5]</a></sup>.</span></li>
+            <li><span class="g">&#10003;</span><span>The IdP's session cookie inside the iframe is <b>first-party</b>. No cookie policy in any browser touches it.</span></li>
+            <li><span class="g">&#10003;</span><span><code>prompt=none</code> in a hidden iframe <b>still works in 2026</b> — "the preferred approach when possible" <sup><a href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration">[6]</a></sup>.</span></li>
+          </ul>
+        </div>
+        <div class="verdict-strip"><span>Silent renew works</span><span class="pct">100%<small>of users</small></span></div>
+      </div>
+
+      <div class="fork-card dead">
+        <div class="fk-head"><span>Case B · Cross-site IdP</span><span>&#10007; DEAD</span></div>
+        <div class="fk-body">
+          <div class="hosts">
+            <span class="host mono">https://admin.<span class="etld-x">itenium.be</span></span>
+            <span class="rel">&#8646;</span>
+            <span class="host mono">https://login.<span class="etld-x">microsoftonline.com</span> <span class="sub">/ any SaaS IdP</span></span>
+          </div>
+          <ul class="fk-facts">
+            <li><span class="r">&#10007;</span><span><b>Different site.</b> The IdP cookie in the iframe is a <b>third-party</b> cookie <sup><a href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration">[6]</a></sup>.</span></li>
+            <li><span class="r">&#10007;</span><span>Now — and only now — the browser grid below applies.</span></li>
+            <li><span class="r">&#10007;</span><span>The failure is silent: opaque iframe console errors, then a hard page reload <sup><a href="https://github.com/authts/oidc-client-ts/issues/1032">[28]</a></sup>.</span></li>
+          </ul>
+        </div>
+        <div class="verdict-strip"><span>Silent renew works</span><span class="pct">65%<small>of users</small></span></div>
+      </div>
+    </div>
+
+    <p class="fork-note"><strong>The grid everyone quotes is the right-hand card.</strong> "Iframe silent renew is dead" is true of Case B and false of Case A, and almost every blog post since 2023 omits the distinction. For <code>itenium-ui</code>: if you control DNS and put <a href="https://www.keycloak.org">Keycloak</a> on <code>auth.itenium.be</code>, you are in Case A. If the IdP ever moves to a managed host, you fall into Case B overnight — which is exactly why you shouldn't build on it.</p>
+
+    <!-- ============ THE GRID ============ -->
+    <div class="sec">
+      <div class="sec-head">
+        <h2>Browser support — Case B (cross-site IdP)</h2>
+        <span class="tag warn">Cross-site only</span>
+      </div>
+      <p class="sec-sub">Column widths and the usage bar are weighted by 2026 global browser share <sup><a href="https://gs.statcounter.com/browser-market-share">[12]</a></sup>. Chrome is not the web; it is two-thirds of it.</p>
+
+      <div class="matrix-scroll">
+        <div class="matrix">
+          <div class="mx-corner">Feature &nbsp;&#9662;&nbsp; Browser &nbsp;&#9656;</div>
+
+          <div class="mx-bh">
+            <img src="https://www.google.com/s2/favicons?domain=google.com&sz=128" alt="Chrome">
+            <div class="bn">Chrome</div><div class="bs">~65%</div>
+            <div class="meter"><i style="width:100%"></i></div>
+          </div>
+          <div class="mx-bh">
+            <img src="https://www.google.com/s2/favicons?domain=google.com&sz=128" alt="Chrome Incognito" style="filter:grayscale(1);opacity:.65">
+            <div class="bn">Chrome<br>Incognito</div><div class="bs">mode</div>
+            <div class="meter"><i style="width:12%"></i></div>
+          </div>
+          <div class="mx-bh">
+            <img src="https://www.google.com/s2/favicons?domain=apple.com&sz=128" alt="Safari">
+            <div class="bn">Safari</div><div class="bs">~18%</div>
+            <div class="meter"><i style="width:28%"></i></div>
+          </div>
+          <div class="mx-bh">
+            <img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="Edge">
+            <div class="bn">Edge</div><div class="bs">~5%</div>
+            <div class="meter"><i style="width:8%"></i></div>
+          </div>
+          <div class="mx-bh">
+            <img src="https://www.google.com/s2/favicons?domain=mozilla.org&sz=128" alt="Firefox">
+            <div class="bn">Firefox</div><div class="bs">~3%</div>
+            <div class="meter"><i style="width:5%"></i></div>
+          </div>
+          <div class="mx-bh">
+            <img src="https://www.google.com/s2/favicons?domain=brave.com&sz=128" alt="Brave">
+            <div class="bn">Brave</div><div class="bs">&lt;1%</div>
+            <div class="meter"><i style="width:2%"></i></div>
+          </div>
+
+          <!-- row 1 -->
+          <div class="mx-rh">Third-party IdP cookie sent inside an <code>&lt;iframe&gt;</code><span class="rsub">The one primitive everything else rests on</span></div>
+          <div class="cell y"><span class="g">&#10003;</span>Sent. On by default <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies">[3]</a></sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Blocked <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies">[3]</a></sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Blocked outright since 13.1 / iOS 13.4 — 24 Mar 2020 <sup><a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/">[4]</a></sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Tracker heuristics <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies">[3]</a></sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Partitioned per top-level site <sup>1</sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Blocked by default <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies">[3]</a></sup></div>
+
+          <!-- row 2 -->
+          <div class="mx-rh"><code>prompt=none</code> silent renew<span class="rsub">Hidden iframe hits <code>/authorize</code>, expects a fresh code back</span></div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+          <div class="cell n"><span class="g">&#10007;</span>Fails</div>
+          <div class="cell n"><span class="g">&#10007;</span>Fails</div>
+          <div class="cell a"><span class="g">&#9888;</span>Unreliable</div>
+          <div class="cell n"><span class="g">&#10007;</span>Fails <sup>1</sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Fails</div>
+
+          <!-- row 3 -->
+          <div class="mx-rh">Session-status / <code>checkLoginIframe</code><span class="rsub">Polls the IdP for "are we still logged in?"</span></div>
+          <div class="cell a"><span class="g">&#9888;</span>Works, but Keycloak auto-disables it and calls it deprecation-bound <sup><a href="https://www.keycloak.org/securing-apps/javascript-adapter">[7]</a></sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Phantom logouts <sup><a href="https://skycloak.io/blog/keycloak-fedcm-third-party-cookie-deprecation/">[8]</a></sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Phantom logouts <sup><a href="https://skycloak.io/blog/keycloak-fedcm-third-party-cookie-deprecation/">[8]</a></sup></div>
+          <div class="cell n"><span class="g">&#10007;</span>Unreliable</div>
+          <div class="cell n"><span class="g">&#10007;</span>Phantom logouts</div>
+          <div class="cell n"><span class="g">&#10007;</span>Phantom logouts</div>
+
+          <!-- row 4 -->
+          <div class="mx-rh">Storage Access API escape hatch<span class="rsub">Apple's suggested workaround <sup><a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/">[4]</a></sup></span></div>
+          <div class="cell a"><span class="g">&#9888;</span>Needs a click <sup>2</sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Needs a click <sup>2</sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Needs a click <sup>2</sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Needs a click <sup>2</sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Needs a click <sup>2</sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Needs a click <sup>2</sup></div>
+
+          <!-- row 5 -->
+          <div class="mx-rh">FedCM (the intended replacement)<span class="rsub">Browser-native federated sign-in</span></div>
+          <div class="cell a"><span class="g">&#9888;</span>Browser has it — Keycloak doesn't <sup>3</sup></div>
+          <div class="cell a"><span class="g">&#9888;</span>Idem <sup>3</sup></div>
+          <div class="cell u"><span class="g">?</span>Partial / evolving</div>
+          <div class="cell a"><span class="g">&#9888;</span>Idem <sup>3</sup></div>
+          <div class="cell u"><span class="g">?</span>Partial / evolving</div>
+          <div class="cell u"><span class="g">?</span>Partial / evolving</div>
+
+          <!-- SAME-SITE BAND -->
+          <div class="mx-band flip">Case A &nbsp;·&nbsp; Same-site IdP — <code style="background:#3d6f2a;border-color:#5a8f42;color:#e5f5d4">auth.itenium.be</code> under the app's registrable domain <span class="thin">the row nobody puts in the grid</span></div>
+
+          <div class="mx-rh" style="background:#f2f8ea"><code>prompt=none</code> silent renew, first-party cookie<span class="rsub">Same scheme + same eTLD+1 &#8658; not a third-party cookie at all <sup><a href="https://web.dev/articles/same-site-same-origin">[5]</a></sup></span></div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+          <div class="cell y"><span class="g">&#10003;</span>Works</div>
+        </div>
+      </div>
+
+      <div class="usage">
+        <h4>Global usage &mdash; Case B, cross-site IdP</h4>
+        <div class="ubar">
+          <span class="works" style="flex:0 0 65%">65% &nbsp;works (Chrome, default profile)</span>
+          <span class="amber" style="flex:0 0 5%">5%</span>
+          <span class="fails" style="flex:0 0 30%">30% &nbsp;silently fails</span>
+        </div>
+        <p class="ubar-caption">A feature that works for two-thirds of users and <em>silently</em> fails for the rest is not a feature. Every Mac in the office is in the red band.</p>
+      </div>
+
+      <div class="usage" style="margin-top:1.6rem">
+        <h4>Global usage &mdash; Case A, same-site IdP</h4>
+        <div class="ubar full">
+          <span class="works">100% &nbsp;works &mdash; there is no third-party cookie to block</span>
+        </div>
+        <p class="ubar-caption">Same grid, same browsers, one DNS decision apart.</p>
+      </div>
+
+      <ul class="notes">
+        <li><b>1.</b> Firefox's Total Cookie Protection (ETP Standard, on by default) doesn't block the cookie so much as <em>partition</em> it — the IdP gets a different cookie jar per top-level site, so it sees no session <sup><a href="https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies">[3]</a></sup>.</li>
+        <li><b>2.</b> The Storage Access API requires an explicit user gesture before the iframe may read the cookie. The <a href="https://github.com/authts/oidc-client-ts">oidc-client-ts</a> proof-of-concept is still an unmerged issue <sup><a href="https://github.com/authts/oidc-client-ts/issues/1735">[27]</a></sup>. Silent renew that needs a button click is not silent renew.</li>
+        <li><b>3.</b> FedCM is the principled replacement, but in Keycloak 26.x it is "emerging and actively tracked, but not a fully supported, production-ready feature" <sup><a href="https://skycloak.io/blog/keycloak-fedcm-third-party-cookie-deprecation/">[8]</a></sup> — still an open discussion, not a shipped feature <sup><a href="https://github.com/keycloak/keycloak/discussions/20339">[9]</a></sup> &#11088; 36k. Do not plan around it.</li>
+        <li><b>4.</b> Managed Chrome/Edge can force-allow the pair via the <code>CookiesAllowedForUrls</code> enterprise policy <sup><a href="https://support.google.com/chrome/a/answer/14439269?hl=en">[11]</a></sup> — corp devices only. Any contractor laptop on Safari still fails. Depending on MDM to keep auth working is a smell.</li>
+      </ul>
+
+      <div class="legend">
+        <b><i class="swatch" style="background:#c8e6a0"></i> Supported</b>
+        <b><i class="swatch" style="background:#f8e08e"></i> Partial / conditional</b>
+        <b><i class="swatch" style="background:#f6b4b0"></i> Not supported</b>
+        <b><i class="swatch" style="background:#e4e8eb"></i> Unknown / evolving</b>
+      </div>
+    </div>
+
+    <!-- ============ TIMELINE ============ -->
+    <div class="sec">
+      <div class="sec-head">
+        <h2>How we got here — and the reversal everyone missed</h2>
+        <span class="tag">Get the history right</span>
+      </div>
+      <p class="sec-sub">The 2023 narrative ("Chrome is killing third-party cookies") is <em>wrong in 2026</em> — and it never mattered, because the browsers that killed the iframe did it years earlier and unilaterally.</p>
+      <div class="tl">
+        <div class="tl-step dead">
+          <div class="tl-date">24 Mar 2020</div>
+          <h4>Safari blocks, full stop</h4>
+          <p>Safari 13.1 / iOS 13.4: "Cookies for cross-site resources are now blocked by default across the board." <sup><a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/">[4]</a></sup> ~18% of the web, gone, six years ago.</p>
+        </div>
+        <div class="tl-step hype">
+          <div class="tl-date">2023 &ndash; 2024</div>
+          <h4>The deprecation narrative</h4>
+          <p>Chrome announces a phase-out. Every OIDC blog post declares silent renew dead. Duende replaces session management with back-channel logout in the BFF <sup><a href="https://docs.duendesoftware.com/identityserver/v6/bff/architecture/third-party-cookies/">[10]</a></sup>.</p>
+        </div>
+        <div class="tl-step flip">
+          <div class="tl-date">22 Apr 2025</div>
+          <h4>Chrome reverses</h4>
+          <p>Google will "maintain our current approach&hellip; and <b>not</b> be rolling out a new standalone prompt" <sup><a href="https://privacysandbox.google.com/blog/privacy-sandbox-next-steps">[1]</a></sup> <sup><a href="https://www.adexchanger.com/data-privacy/google-isnt-launching-a-user-choice-prompt-for-third-party-cookies-in-chrome/">[2]</a></sup>. Third-party cookies live on in Chrome.</p>
+        </div>
+        <div class="tl-step now">
+          <div class="tl-date">Jul 2026 &mdash; now</div>
+          <h4>Nothing was rescued</h4>
+          <p>Chrome sends them. Safari, Firefox and Brave still don't. The reversal changed the headline and not one cell in the grid above.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ KNOWN ISSUES ============ -->
+    <div class="sec">
+      <div class="sec-head"><h2>Known issues</h2><span class="tag warn">Read before you commit</span></div>
+      <div class="issues">
+        <div class="issue">
+          <h4>The vendor deprecated its own headline feature</h4>
+          <p><a href="https://www.keycloak.org">Keycloak</a>'s JS adapter docs: the Session Status iframe is unsupported and auto-disabled when third-party cookies are blocked, and "the affected adapter features <b>might ultimately be deprecated</b>" <sup><a href="https://www.keycloak.org/securing-apps/javascript-adapter">[7]</a></sup>.</p>
+        </div>
+        <div class="issue">
+          <h4>Failure mode is silence, not an error</h4>
+          <p>Practitioners report opaque iframe console errors and a hard page reload when renewal fails <sup><a href="https://github.com/authts/oidc-client-ts/issues/1032">[28]</a></sup> &#11088; 1.9k. You will not see this in CI; you will see it in a user's Safari.</p>
+        </div>
+        <div class="issue ok">
+          <h4>The Case A trap: it works, so it becomes load-bearing</h4>
+          <p>Same-site silent renew ties your DNS to your auth forever. It dies the day someone fronts the IdP with a SaaS host or moves it off the registrable domain — and by then, ten screens depend on it.</p>
+        </div>
+        <div class="issue ok">
+          <h4>Cross-site fallback costs a visible flash</h4>
+          <p>When the browser refuses the cookies, <a href="https://docs.oidc-spa.dev">oidc-spa</a> falls back to a full-page redirect — roughly 30% slower, with a visible flash <sup><a href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration">[6]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STACK GRID ============ -->
+    <div class="sec">
+      <div class="sec-head">
+        <h2>The supported path: rotating refresh tokens</h2>
+        <span class="tag">Keycloak vs OpenIddict</span>
+      </div>
+      <p class="sec-sub">RFC 9700 (BCP 240, Jan 2025) is <em>permission</em>, not prohibition: <b>"Refresh tokens for public clients MUST be sender-constrained or use refresh token rotation"</b> <sup><a href="https://datatracker.ietf.org/doc/html/rfc9700">[13]</a></sup>. Both stacks can rotate. They are not equally good at it.</p>
+
+      <div class="stack-scroll">
+        <div class="stack">
+          <div class="st-corner">Control &nbsp;&#9662;</div>
+          <div class="st-bh">
+            <img src="compat-grid/images/keycloak.webp" alt="Keycloak">
+            <div><div class="nm"><a href="https://www.keycloak.org">Keycloak</a></div><div class="sm">26.4+ &nbsp;&#11088; 36k</div></div>
+          </div>
+          <div class="st-bh">
+            <img src="compat-grid/images/openiddict.webp" alt="OpenIddict">
+            <div><div class="nm"><a href="https://documentation.openiddict.com">OpenIddict</a></div><div class="sm">.NET 10 &nbsp;&#11088; 5.2k</div></div>
+          </div>
+
+          <div class="st-rh">Refresh-token rotation<span class="rsub">The thing the BCP demands</span></div>
+          <div class="st-c y"><span class="v">&#10003; Supported</span>Realm Settings &rarr; Tokens: <em>Revoke Refresh Token</em> on, <em>Max Reuse</em> = 0 <sup><a href="https://skycloak.io/blog/session-management-in-keycloak-from-refresh-to-idle-timeouts/">[18]</a></sup></div>
+          <div class="st-c y"><span class="v">&#10003; On by default</span>Rolling refresh tokens have been the default since 3.0 <sup><a href="https://kevinchalet.com/2020/10/27/openiddict-3-0-beta6-is-out/">[19]</a></sup></div>
+
+          <div class="st-rh">Concurrency leeway<span class="rsub">Survives two requests racing to redeem</span></div>
+          <div class="st-c n"><span class="v">&#10007; None</span><code>Max Reuse</code> is a blunt counter, not a time window <sup><a href="https://skycloak.io/blog/session-management-in-keycloak-from-refresh-to-idle-timeouts/">[18]</a></sup></div>
+          <div class="st-c y"><span class="v">&#10003; 15 seconds</span><code>SetRefreshTokenReuseLeeway()</code> — explicitly "to avoid revoking entire token chains when concurrent requests are received" <sup><a href="https://kevinchalet.com/2020/10/27/openiddict-3-0-beta6-is-out/">[19]</a></sup></div>
+
+          <div class="st-rh">Multi-tab behaviour<span class="rsub">Your admins keep three tabs open. All of them.</span></div>
+          <div class="st-c n"><span class="v">&#10007; Broken</span>Two tabs = two token families; refreshing one revokes <b>both</b> &rarr; every tab logged out. Closed <b>not planned</b> <sup><a href="https://github.com/keycloak/keycloak/issues/16081">[16]</a></sup> &#11088; 36k</div>
+          <div class="st-c y"><span class="v">&#10003; Survives</span>Redeemed-marking plus the leeway window absorbs it <sup><a href="https://kevinchalet.com/2020/10/27/openiddict-3-0-beta6-is-out/">[19]</a></sup></div>
+
+          <div class="st-rh">Reuse-detection soundness<span class="rsub">Does replay actually get caught?</span></div>
+          <div class="st-c a"><span class="v">&#9888; CVE-2026-9802</span>A server restart resets <code>startupTime</code>, letting <em>every</em> previously rotated refresh token be redeemed again when <code>revokeRefreshToken=true</code>. Fixes targeted at 26.4.13 / 26.6.3 / 26.7.0 <sup><a href="https://github.com/keycloak/keycloak/issues/49426">[17]</a></sup></div>
+          <div class="st-c u"><span class="v">? No public advisory</span>None found as of Jul 2026. Absence of evidence, not evidence of absence.</div>
+
+          <div class="st-rh">Lifetime caps<span class="rsub">BCP also demands a hard maximum <sup><a href="https://datatracker.ietf.org/doc/html/rfc9700">[13]</a></sup></span></div>
+          <div class="st-c y"><span class="v">&#10003; Built in</span>SSO Session Idle 30 min, SSO Session Max 10 h (defaults) <sup><a href="https://skycloak.io/blog/session-management-in-keycloak-from-refresh-to-idle-timeouts/">[18]</a></sup></div>
+          <div class="st-c y"><span class="v">&#10003; Built in</span>Per-client token lifetimes</div>
+
+          <div class="st-rh">Operational cost of rotation<span class="rsub">Rotation is not a checkbox</span></div>
+          <div class="st-c y"><span class="v">&#10003; Free</span>Revocation state already lives in Keycloak's DB</div>
+          <div class="st-c a"><span class="v">&#9888; You run a token table</span>Requires OpenIddict <b>token entries persisted</b> — with its own pruning job</div>
+
+          <div class="st-bh" style="grid-column:1/2;background:#2c5e18;font-size:0.66rem;letter-spacing:0.14em;text-transform:uppercase;font-weight:800;align-items:flex-end">Sender-constraining &nbsp;&#9662;</div>
+          <div class="st-bh" style="background:#2c5e18"><img src="compat-grid/images/oauth.webp" alt="DPoP" style="filter:none"><div><div class="nm">DPoP &mdash; RFC 9449</div><div class="sm" style="color:#c8e6a0">the other leg of the MUST</div></div></div>
+          <div class="st-bh" style="background:#2c5e18"><div><div class="nm">&nbsp;</div><div class="sm" style="color:#c8e6a0">Bind the token to a key the thief can't take</div></div></div>
+
+          <div class="st-rh">DPoP &mdash; issuance side<span class="rsub">Does the IdP mint key-bound tokens?</span></div>
+          <div class="st-c y"><span class="v">&#10003; Officially supported in 26.4</span>Preview since 23.0. Covers all bearer endpoints incl. the Admin REST API; can bind <em>only</em> refresh tokens for public clients while leaving access tokens as bearer; <code>dpop_jkt</code> in the authorization request <sup><a href="https://www.keycloak.org/2025/10/dpop-support-26-4">[20]</a></sup> <sup><a href="https://www.keycloak.org/securing-apps/dpop">[21]</a></sup></div>
+          <div class="st-c y"><span class="v">&#10003; Supported</span>The server (issuance) stack fully supports DPoP <sup><a href="https://github.com/openiddict/openiddict-core/issues/2483">[22]</a></sup></div>
+
+          <div class="st-rh">DPoP &mdash; resource-server side<span class="rsub">Can your .NET 10 APIs <em>validate</em> the proof?</span></div>
+          <div class="st-c y"><span class="v">&#10003; Yes</span>Per-client "Require DPoP bound tokens" switch <sup><a href="https://www.keycloak.org/securing-apps/dpop">[21]</a></sup></div>
+          <div class="st-c n"><span class="v">&#10007; No DPoP at all</span>As of Jun 2026 the validation stack "has no DPoP support at all" — token extraction is <b>Bearer-only</b>, proof-of-possession is <b>mTLS-only</b> <sup><a href="https://github.com/openiddict/openiddict-core/issues/2483">[22]</a></sup> &#11088; 5.2k. mTLS / <code>cnf.x5t#S256</code> is the supported path <sup><a href="https://documentation.openiddict.com/configuration/mutual-tls-authentication">[23]</a></sup> — and mTLS is not a browser-SPA option.</div>
+
+          <div class="st-rh">Net BCP position<span class="rsub">"sender-constrained <b>or</b> rotation" <sup><a href="https://datatracker.ietf.org/doc/html/rfc9700">[13]</a></sup></span></div>
+          <div class="st-c y"><span class="v">&#10003; Both legs</span>Rotation + DPoP. Fully aligned with BCP 240 — budget for the multi-tab defect and CVE-2026-9802.</div>
+          <div class="st-c a"><span class="v">&#9888; One leg only</span>Rotation alone technically satisfies the MUST. But you are on the <b>weaker leg with no upgrade path</b> until the validation stack lands.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DPoP CAVEAT ============ -->
+    <div class="sec">
+      <div class="sec-head"><h2>The DPoP asterisk</h2><span class="tag warn">Not a solution</span></div>
+      <p class="sec-sub">Before you treat the green Keycloak column as a win: DPoP does <em>not</em> make a browser refresh token safe from XSS.</p>
+      <div class="caveat">
+        <img src="compat-grid/images/oauth.webp" alt="OAuth">
+        <div>
+          <h3>A non-extractable key is not an unusable key</h3>
+          <p>A non-extractable WebCrypto key gates exactly two operations. It does not gate the one that matters <sup><a href="https://www.infoq.com/articles/dpop-key-storage-unsolved-problem/">[24]</a></sup>:</p>
+          <div class="gates">
+            <span class="gate blocked">&#10007; exportKey()</span>
+            <span class="gate blocked">&#10007; wrapKey()</span>
+            <span class="gate open">&#10003; sign() &nbsp;&larr; the signing oracle</span>
+          </div>
+          <p>Injected script never needs the key bytes. It calls <code>sign()</code> and mints proofs. RFC 9449 concedes the point: with DPoP "the attacker can only abuse stolen tokens by carrying out an <strong>online</strong> attack, where the proofs are calculated in the user's browser" <sup><a href="https://www.infoq.com/articles/dpop-key-storage-unsolved-problem/">[24]</a></sup>. And in <strong>Firefox you can't even get that far</strong> — it cannot store <code>CryptoKey</code> objects in IndexedDB, forcing extractable keys and defeating non-extractability outright <sup><a href="https://www.infoq.com/articles/dpop-key-storage-unsolved-problem/">[24]</a></sup>.</p>
+          <p>DPoP downgrades <em>exfiltration + offline replay</em> to <em>online abuse for as long as the tab is open</em>. Real, worth having, not a solution. InfoQ's conclusion (30 Apr 2026): <strong>"The BFF pattern is the safest choice today for browser-based applications."</strong> <sup><a href="https://www.infoq.com/articles/dpop-key-storage-unsolved-problem/">[24]</a></sup></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ LIBRARIES ============ -->
+    <div class="sec">
+      <div class="sec-head"><h2>Client libraries</h2><span class="tag">React 19 SPA</span></div>
+      <div class="libs">
+        <div class="lib pick">
+          <div class="lib-top"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="nm">oidc-client-ts</span><span class="stars">&#11088; 1.9k</span></div>
+          <span class="badge">The core</span>
+          <p><a href="https://github.com/authts/oidc-client-ts">oidc-client-ts</a> is the de-facto engine. Works against both stacks. DPoP shipped: <code>IndexedDbDPoPStore</code>, <code>bind_authorization_code</code>, <code>UserManager.dpopProof()</code> <sup><a href="https://github.com/authts/oidc-client-ts/blob/main/docs/protocols/demonstrating-proof-of-possession.md">[25]</a></sup>.</p>
+        </div>
+        <div class="lib pick">
+          <div class="lib-top"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="nm">react-oidc-context</span><span class="stars">&#11088; 1k</span></div>
+          <span class="badge">What you import</span>
+          <p><a href="https://github.com/authts/react-oidc-context">react-oidc-context</a> — thin React binding over the above <sup><a href="https://github.com/authts/react-oidc-context">[29]</a></sup>. This is the one that ends up in <code>package.json</code>.</p>
+        </div>
+        <div class="lib ok">
+          <div class="lib-top"><img src="https://www.google.com/s2/favicons?domain=docs.oidc-spa.dev&sz=128" alt=""><span class="nm">oidc-spa</span><span class="stars">&#11088; 302</span></div>
+          <span class="badge">Best defaults</span>
+          <p><a href="https://docs.oidc-spa.dev">oidc-spa</a> — opinionated: automatic third-party-cookie fallback, <code>dpop: "auto"</code> fetch/XHR interceptors, Keycloak 26.4+ supported <sup><a href="https://docs.oidc-spa.dev/security-features/dpop">[26]</a></sup> <sup><a href="https://github.com/keycloakify/oidc-spa">[38]</a></sup>. Smallest ecosystem.</p>
+        </div>
+        <div class="lib avoid">
+          <div class="lib-top"><img src="https://www.google.com/s2/favicons?domain=keycloak.org&sz=128" alt=""><span class="nm">keycloak-js</span><span class="stars">&#11088; 88</span></div>
+          <span class="badge">Avoid</span>
+          <p><a href="https://github.com/keycloak/keycloak-js">keycloak-js</a> is vendor-locked, and its two headline features (<code>checkLoginIframe</code>, <code>silentCheckSsoRedirectUri</code>) are precisely the ones Keycloak's own docs flag as deprecation-bound <sup><a href="https://www.keycloak.org/securing-apps/javascript-adapter">[7]</a></sup> <sup><a href="https://github.com/keycloak/keycloak-js">[37]</a></sup>.</p>
+        </div>
+        <div class="lib na">
+          <div class="lib-top"><img src="https://www.google.com/s2/favicons?domain=auth0.com&sz=128" alt=""><span class="nm">@auth0/auth0-react</span><span class="stars">&#11088; 988</span></div>
+          <span class="badge">Not applicable</span>
+          <p><a href="https://github.com/auth0/auth0-react">@auth0/auth0-react</a> is Auth0-only <sup><a href="https://github.com/auth0/auth0-react">[39]</a></sup>. Irrelevant unless you switch IdP.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TANSTACK ============ -->
+    <div class="sec">
+      <div class="sec-head">
+        <div style="display:flex;align-items:center;gap:0.6rem"><img src="compat-grid/images/tanstack.webp" alt="TanStack" style="width:28px;height:28px;border-radius:5px"><h2>The 401, and the mutex everyone forgets</h2></div>
+        <span class="tag warn">Required in both architectures</span>
+      </div>
+      <p class="sec-sub"><a href="https://tanstack.com/query">TanStack Query</a> retries a failed query <b>3 times with exponential backoff</b> by default <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-retries">[32]</a></sup>. A 401 is not transient. Left alone, one expired token becomes 4 requests &times; N queries.</p>
+
+      <div class="trap">
+        <h4>&#9888; Ten queries mount &rarr; ten 401s &rarr; ten refresh calls &rarr; you are logged out</h4>
+        <div class="chain">
+          <b>10 parallel queries</b><i>&rarr;</i><b>10 &times; 401</b><i>&rarr;</i><b>10 &times; POST /token</b><i>&rarr;</i><b>9 present a redeemed token</b><i>&rarr;</i><b>reuse detected</b><i>&rarr;</i><b>family revoked</b>
+        </div>
+        <p>The #1 reported pitfall. A real codebase fired the refresh "around 6-10 times at once when reopening the site" <sup><a href="https://akhilaariyachandra.com/blog/refreshing-an-authentication-in-token-in-tanstack-query">[35]</a></sup>; the TanStack discussion asking how to wire <code>async-mutex</code> into this is <em>still unanswered</em> <sup><a href="https://github.com/TanStack/query/discussions/6249">[31]</a></sup> &#11088; 50k. And rotation is exactly what turns a race condition into a logout.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-bar">Fix 1 &mdash; don't retry an auth failure</div>
+<pre>new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) =&gt;
+        error instanceof HttpError &amp;&amp; error.status === 401 ? <span class="kw">false</span> : failureCount &lt; 3,
+    },
+  },
+})</pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-bar">Fix 2 &mdash; single-flight refresh, below the query layer</div>
+<pre><span class="kw">let</span> inFlight: Promise&lt;string&gt; | <span class="kw">null</span> = <span class="kw">null</span>
+
+<span class="cm">// Everyone awaits the same promise; exactly one /token call leaves the tab.</span>
+<span class="kw">function</span> refreshOnce(): Promise&lt;string&gt; {
+  inFlight ??= doRefresh().finally(() =&gt; { inFlight = <span class="kw">null</span> })
+  <span class="kw">return</span> inFlight
+}
+
+api.interceptors.response.use(<span class="kw">undefined</span>, <span class="kw">async</span> (error) =&gt; {
+  <span class="kw">const</span> req = error.config
+  <span class="kw">if</span> (error.response?.status !== 401 || req._retried) <span class="kw">throw</span> error
+  req._retried = <span class="kw">true</span>                        <span class="cm">// one replay per request, or you loop forever</span>
+  <span class="kw">try</span> {
+    <span class="kw">const</span> token = <span class="kw">await</span> refreshOnce()
+    req.headers.Authorization = <span class="st">`Bearer ${token}`</span>
+    <span class="kw">return</span> api(req)
+  } <span class="kw">catch</span> {
+    queryClient.clear()
+    redirectToLogin({ returnTo: location.pathname + location.search })
+    <span class="kw">throw</span> error
+  }
+})</pre>
+      </div>
+
+      <p style="font-size:0.92rem;color:#5a6b7b;margin-top:1rem">Put it in the HTTP interceptor, not in <code>QueryCache</code>/<code>MutationCache</code> <code>onError</code>. TkDodo's answer is one line: <b>"I would rather use an interceptor on the API layer for that."</b> <sup><a href="https://github.com/TanStack/query/discussions/7617">[30]</a></sup> &#11088; 50k — cache callbacks fire <em>after</em> retries, can't transparently replay the original request, and mix auth into cache concerns <sup><a href="https://tkdodo.eu/blog/react-query-error-handling">[33]</a></sup>. And note: the mutex is <b>per-tab</b>. It does not protect you across tabs — and on Keycloak a <code>BroadcastChannel</code> wouldn't save you either, because two tabs already mean two token families <sup><a href="https://github.com/keycloak/keycloak/issues/16081">[16]</a></sup>.</p>
+    </div>
+
+    <!-- ============ DIVERGE ============ -->
+    <div class="sec">
+      <div class="sec-head"><h2>Where the two architectures diverge</h2><span class="tag">Same 401, different meaning</span></div>
+      <div class="dv-scroll">
+        <div class="dv">
+          <div class="dv-h">Concern</div>
+          <div class="dv-h">Bearer token in the SPA</div>
+          <div class="dv-h">Opaque cookie session (BFF)</div>
+
+          <div class="dv-rh">401 semantics</div>
+          <div class="dv-c a">Ambiguous: expired access token <b>or</b> dead session</div>
+          <div class="dv-c y">Unambiguous: the session is gone</div>
+
+          <div class="dv-rh">Correct reaction</div>
+          <div class="dv-c">Try refresh &rarr; replay original request &rarr; only then log out</div>
+          <div class="dv-c">Hard redirect to <code>/bff/login?returnUrl=&hellip;</code></div>
+
+          <div class="dv-rh">Single-flight mutex</div>
+          <div class="dv-c n"><b>Required.</b> Rotation makes duplicate refreshes destructive.</div>
+          <div class="dv-c y">Not needed in the browser — the BFF serialises it server-side <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/">[36]</a></sup></div>
+
+          <div class="dv-rh"><code>retry</code> on 401</div>
+          <div class="dv-c n">Must be disabled <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-retries">[32]</a></sup></div>
+          <div class="dv-c n">Must be disabled <sup><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-retries">[32]</a></sup></div>
+
+          <div class="dv-rh">Proactive renewal<span class="rsub"></span></div>
+          <div class="dv-c y"><b>Yes.</b> Read <code>exp</code> from the JWT, refresh at ~80% of lifetime &rarr; most 401s never happen.</div>
+          <div class="dv-c n"><b>Impossible.</b> The cookie is opaque. You learn on the 401.</div>
+
+          <div class="dv-rh">In-flight mutations on logout</div>
+          <div class="dv-c y">Replayable after refresh; on hard failure, serialise the variables and re-run post-login</div>
+          <div class="dv-c a">Lost. Persist optimistic state (<code>persistQueryClient</code> + <code>MutationCache</code>) or accept the loss.</div>
+
+          <div class="dv-rh">CSRF</div>
+          <div class="dv-c y">None — bearer header</div>
+          <div class="dv-c a">Cookie session &rarr; needs anti-forgery (<code>X-CSRF: 1</code> custom header + <code>SameSite</code>)</div>
+        </div>
+      </div>
+      <p style="font-size:0.92rem;color:#5a6b7b;margin-top:1rem"><b>Proactive renewal is the single biggest UX asymmetry, and it favours the SPA.</b> A bearer client can see <code>exp</code> and refresh <em>before</em> anything 401s, so the failure path is rare. A cookie client is blind and must treat every 401 as a possible session death. That is why BFF apps show "your session expired" modals and SPAs usually don't. The BFF's honest pitch is not "more secure" — it is <b>"less to get right"</b>: it deletes the cookie matrix, the mutex, rotation semantics and the DPoP key-storage paradox, and charges you a session store, a sliding-expiry policy, CSRF, and a worse expiry UX <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/">[36]</a></sup>.</p>
+    </div>
+
+    <!-- ============ LANDING ============ -->
+    <div class="landing">
+      <h2>Where this lands for itenium-ui</h2>
+      <ul>
+        <li><b>Do not build on the iframe.</b> Even if <code>auth.itenium.be</code> makes it work today <sup><a href="https://web.dev/articles/same-site-same-origin">[5]</a></sup> <sup><a href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration">[6]</a></sup>, it constrains your DNS forever and dies the day someone moves the IdP or fronts it with a SaaS.</li>
+        <li><b>Pure SPA is viable.</b> <a href="https://github.com/authts/react-oidc-context">react-oidc-context</a> + a rotating refresh token in memory/<code>sessionStorage</code>, <code>retry: false</code> on 401, one refresh mutex. On <a href="https://www.keycloak.org">Keycloak</a>, add DPoP (26.4+) and you are aligned with BCP 240 <sup><a href="https://datatracker.ietf.org/doc/html/rfc9700">[13]</a></sup> <sup><a href="https://www.keycloak.org/2025/10/dpop-support-26-4">[20]</a></sup> — budget for the multi-tab rotation defect <sup><a href="https://github.com/keycloak/keycloak/issues/16081">[16]</a></sup> and for tracking CVE-2026-9802 <sup><a href="https://github.com/keycloak/keycloak/issues/49426">[17]</a></sup>.</li>
+        <li><b>On <a href="https://documentation.openiddict.com">OpenIddict</a>, the pure SPA cannot be fully BCP-compliant today.</b> Rotation &#10003; (with a 15 s leeway that beats Keycloak's <sup><a href="https://kevinchalet.com/2020/10/27/openiddict-3-0-beta6-is-out/">[19]</a></sup>), sender-constraining &#10007; — your .NET 10 resource servers can't validate a DPoP-bound token <sup><a href="https://github.com/openiddict/openiddict-core/issues/2483">[22]</a></sup>.</li>
+      </ul>
+    </div>
+
+    <!-- ============ SIBLINGS ============ -->
+    <div class="sec">
+      <div class="sec-head"><h2>The rest of the expedition</h2></div>
+      <p class="sec-sub">This grid is one angle of <a href="../../">Pure React 19 SPA or a .NET 10 BFF? A decision framework for an internal admin console</a>. The full prose version of this page lives at <a href="../">the default view</a>.</p>
+      <div class="sibs">
+        <div class="sib"><div class="d">survey</div><a href="../../in-memory-tokens-vs-cookie-backed-bff-sessions-under-xss/">In-memory tokens vs cookie-backed BFF sessions under XSS</a><p>httpOnly cookies do not stop XSS — they convert silent exfiltration into loud, tab-bound session riding.</p></div>
+        <div class="sib"><div class="d">recon</div><a href="../../does-the-ietf-browser-based-apps-bcp-apply-to-an-internal-admin-console/">Does the IETF browser-based-apps BCP apply to an internal admin console?</a><p>The BCP names "business applications" in its strongest recommendation, so an internal console is in scope.</p></div>
+        <div class="sib"><div class="d">survey</div><a href="../../greenfield-bff-cost-vs-retrofitting-one-later/">Greenfield BFF vs retrofitting later</a><p>Adding a BFF later is a two-way door — the one-way door is the API, not the frontend.</p></div>
+        <div class="sib"><div class="d">survey</div><a href="../../impact-on-openapi-client-codegen-and-local-dev-ergonomics/">What a BFF costs you every day</a><p>A path-preserving BFF leaves OpenAPI codegen essentially untouched; the cost is the daily dev loop.</p></div>
+        <div class="sib"><div class="d">expedition</div><a href="../../bff-options-in-net-10-yarp-duende-bff-minimal-custom/">BFF options in .NET 10: Duende.BFF, YARP, or hand-rolled</a><p>YARP + AddOpenIdConnect + Duende.AccessTokenManagement (~250 LOC), or Duende.BFF at $5,750/yr.</p></div>
+      </div>
+    </div>
+
+    <!-- ============ SOURCES ============ -->
+    <div class="sec">
+      <div class="sec-head"><h2>Sources</h2><span class="tag">39 cited</span></div>
+      <div class="srcs">
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=privacysandbox.google.com&sz=64" alt=""><span class="n">1</span><a href="https://privacysandbox.google.com/blog/privacy-sandbox-next-steps">Privacy Sandbox: next steps<span class="st">Chrome keeps third-party cookies — 22 Apr 2025</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=adexchanger.com&sz=64" alt=""><span class="n">2</span><a href="https://www.adexchanger.com/data-privacy/google-isnt-launching-a-user-choice-prompt-for-third-party-cookies-in-chrome/">AdExchanger<span class="st">Trade-press corroboration of the reversal</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=64" alt=""><span class="n">3</span><a href="https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies">MDN: Third-party cookies<span class="st">Per-browser default state</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=webkit.org&sz=64" alt=""><span class="n">4</span><a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/">WebKit: Full Third-Party Cookie Blocking<span class="st">Safari 13.1 / iOS 13.4, 24 Mar 2020</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=web.dev&sz=64" alt=""><span class="n">5</span><a href="https://web.dev/articles/same-site-same-origin">web.dev: same-site vs same-origin<span class="st">"different subdomains don't matter"</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.oidc-spa.dev&sz=64" alt=""><span class="n">6</span><a href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration">oidc-spa: cookies &amp; session restoration<span class="st">Same registrable domain &rarr; iframe restoration works</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=keycloak.org&sz=64" alt=""><span class="n">7</span><a href="https://www.keycloak.org/securing-apps/javascript-adapter">Keycloak: JavaScript adapter<span class="st">"might ultimately be deprecated"</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=skycloak.io&sz=64" alt=""><span class="n">8</span><a href="https://skycloak.io/blog/keycloak-fedcm-third-party-cookie-deprecation/">Skycloak: Keycloak, FedCM &amp; 3p cookies<span class="st">Phantom logouts; FedCM not production-ready</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">9</span><a href="https://github.com/keycloak/keycloak/discussions/20339">keycloak#20339: FedCM<span class="st">Still a discussion &#11088; 36k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=64" alt=""><span class="n">10</span><a href="https://docs.duendesoftware.com/identityserver/v6/bff/architecture/third-party-cookies/">Duende: Third-party cookies<span class="st">Session management &rarr; back-channel logout</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=support.google.com&sz=64" alt=""><span class="n">11</span><a href="https://support.google.com/chrome/a/answer/14439269?hl=en">Chrome Enterprise: CookiesAllowedForUrls<span class="st">The MDM escape hatch</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=gs.statcounter.com&sz=64" alt=""><span class="n">12</span><a href="https://gs.statcounter.com/browser-market-share">StatCounter: Browser Market Share<span class="st">The weights in this grid</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=datatracker.ietf.org&sz=64" alt=""><span class="n">13</span><a href="https://datatracker.ietf.org/doc/html/rfc9700">RFC 9700 — OAuth 2.0 Security BCP<span class="st">"MUST be sender-constrained or use rotation"</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=datatracker.ietf.org&sz=64" alt=""><span class="n">14</span><a href="https://datatracker.ietf.org/doc/html/rfc9449">RFC 9449 — DPoP<span class="st">Refresh tokens MUST be key-bound</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=auth0.com&sz=64" alt=""><span class="n">15</span><a href="https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation">Auth0: Refresh Token Rotation<span class="st">Canonical shape of family revocation</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">16</span><a href="https://github.com/keycloak/keycloak/issues/16081">keycloak#16081: multi-tab revocation<span class="st">Closed "not planned" &#11088; 36k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">17</span><a href="https://github.com/keycloak/keycloak/issues/49426">keycloak#49426: CVE-2026-9802<span class="st">Restart bypasses stale-token validation &#11088; 36k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=skycloak.io&sz=64" alt=""><span class="n">18</span><a href="https://skycloak.io/blog/session-management-in-keycloak-from-refresh-to-idle-timeouts/">Skycloak: Session management in Keycloak<span class="st">Revoke Refresh Token + Max Reuse = 0</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=kevinchalet.com&sz=64" alt=""><span class="n">19</span><a href="https://kevinchalet.com/2020/10/27/openiddict-3-0-beta6-is-out/">Kévin Chalet: OpenIddict 3.0 beta6<span class="st">Rolling tokens + 15 s reuse leeway</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=keycloak.org&sz=64" alt=""><span class="n">20</span><a href="https://www.keycloak.org/2025/10/dpop-support-26-4">Keycloak: DPoP support in 26.4<span class="st">Officially supported, no longer preview</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=keycloak.org&sz=64" alt=""><span class="n">21</span><a href="https://www.keycloak.org/securing-apps/dpop">Keycloak: Securing apps with DPoP<span class="st">"Require DPoP bound tokens"</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">22</span><a href="https://github.com/openiddict/openiddict-core/issues/2483">openiddict-core#2483<span class="st">Validation stack: "no DPoP support at all" &#11088; 5.2k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=documentation.openiddict.com&sz=64" alt=""><span class="n">23</span><a href="https://documentation.openiddict.com/configuration/mutual-tls-authentication">OpenIddict: Mutual TLS<span class="st">cnf.x5t#S256 — the supported PoP path</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=infoq.com&sz=64" alt=""><span class="n">24</span><a href="https://www.infoq.com/articles/dpop-key-storage-unsolved-problem/">InfoQ: DPoP key storage<span class="st">The signing oracle; Firefox IndexedDB; "BFF is safest"</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">25</span><a href="https://github.com/authts/oidc-client-ts/blob/main/docs/protocols/demonstrating-proof-of-possession.md">oidc-client-ts: DPoP docs<span class="st">IndexedDbDPoPStore &#11088; 1.9k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.oidc-spa.dev&sz=64" alt=""><span class="n">26</span><a href="https://docs.oidc-spa.dev/security-features/dpop">oidc-spa: DPoP<span class="st">dpop: "auto"; Entra ID unsupported</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">27</span><a href="https://github.com/authts/oidc-client-ts/issues/1735">oidc-client-ts#1735: Storage Access API<span class="st">Needs a button click &#11088; 1.9k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">28</span><a href="https://github.com/authts/oidc-client-ts/issues/1032">oidc-client-ts#1032: iframes in modern browsers<span class="st">Opaque errors, hard reloads &#11088; 1.9k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">29</span><a href="https://github.com/authts/react-oidc-context">react-oidc-context<span class="st">&#11088; 1k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">30</span><a href="https://github.com/TanStack/query/discussions/7617">TanStack Query #7617<span class="st">TkDodo: use an API-layer interceptor &#11088; 50k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">31</span><a href="https://github.com/TanStack/query/discussions/6249">TanStack Query #6249<span class="st">async-mutex question, still unanswered &#11088; 50k</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=64" alt=""><span class="n">32</span><a href="https://tanstack.com/query/latest/docs/framework/react/guides/query-retries">TanStack Query: Query Retries<span class="st">3 retries by default</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=tkdodo.eu&sz=64" alt=""><span class="n">33</span><a href="https://tkdodo.eu/blog/react-query-error-handling">TkDodo: React Query Error Handling<span class="st">onError removed in v5</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=64" alt=""><span class="n">34</span><a href="https://dev.to/elmehdiamlou/efficient-refresh-token-implementation-with-react-query-and-axios-f8d">dev.to: refresh tokens with React Query + Axios<span class="st">The failed-queue pattern</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=akhilaariyachandra.com&sz=64" alt=""><span class="n">35</span><a href="https://akhilaariyachandra.com/blog/refreshing-an-authentication-in-token-in-tanstack-query">Akhila Ariyachandra: refreshing a token<span class="st">"6-10 times at once when reopening the site"</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&sz=64" alt=""><span class="n">36</span><a href="https://docs.duendesoftware.com/bff/fundamentals/session/">Duende BFF: Session management<span class="st">Server-side session, automatic refresh</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">37</span><a href="https://github.com/keycloak/keycloak-js">keycloak-js<span class="st">&#11088; 88</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">38</span><a href="https://github.com/keycloakify/oidc-spa">oidc-spa<span class="st">&#11088; 302</span></a></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><span class="n">39</span><a href="https://github.com/auth0/auth0-react">@auth0/auth0-react<span class="st">&#11088; 988</span></a></div>
+      </div>
+    </div>
+
+    <div class="colophon">
+      <span>Support grid compiled 14 Jul 2026 · survey depth · 39 sources · browser weights from StatCounter <sup><a href="https://gs.statcounter.com/browser-market-share">[12]</a></sup></span>
+      <span><a href="../">Default view</a> &nbsp;·&nbsp; <a href="../../">Expedition</a> &nbsp;·&nbsp; <a href="/">Atlas</a></span>
+    </div>
+
+  </div>
+</div>
