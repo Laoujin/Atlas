@@ -1,0 +1,998 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "Pure React 19 SPA or a .NET 10 BFF? A decision framework for an internal admin console — Blueprint"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+.bp {
+  --paper: #f2efe6;
+  --paper-2: #e9e5d8;
+  --ink: #23252a;
+  --graphite: #6f6d66;
+  --rule: #c9c3b2;
+  --rule-fine: #dcd7c8;
+  --built: #1d3f57;
+  --defer: #9c6613;
+  --rev: #a8321c;
+  --stamp: #a8321c;
+
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Drafting grid: 8px fine, 40px coarse. Decorative only. */
+.bp__sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 72px 28px 0;
+  background-image:
+    linear-gradient(to right, rgba(120,115,95,.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120,115,95,.07) 1px, transparent 1px),
+    linear-gradient(to right, rgba(120,115,95,.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120,115,95,.16) 1px, transparent 1px);
+  background-size: 8px 8px, 8px 8px, 40px 40px, 40px 40px;
+}
+
+.bp a { color: inherit; }
+.bp sup a {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62em;
+  font-weight: 600;
+  color: var(--built);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.bp sup a:hover { text-decoration: underline; }
+
+.bp__lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+/* ── Title block ─────────────────────────────────────────── */
+.tb {
+  border: 1.5px solid var(--ink);
+  background: rgba(255,255,255,.42);
+  display: grid;
+  grid-template-columns: 1fr 190px 150px;
+}
+.tb__main { padding: 20px 22px 18px; border-right: 1px solid var(--rule); }
+.tb__side { border-right: 1px solid var(--rule); }
+.tb__side:last-child { border-right: 0; }
+.tb__cell {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--rule-fine);
+}
+.tb__cell:last-child { border-bottom: 0; }
+.tb__k {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--graphite);
+  display: block; margin-bottom: 2px;
+}
+.tb__v {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; font-weight: 600; color: var(--ink);
+}
+.tb h1 {
+  font-size: clamp(26px, 3.6vw, 42px);
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -.02em;
+  margin: 8px 0 10px;
+  max-width: 22ch;
+}
+.tb__sub {
+  font-size: 14.5px;
+  color: #4c4e52;
+  max-width: 58ch;
+  margin: 0;
+}
+
+/* ── Decision stamp ──────────────────────────────────────── */
+.stamp {
+  margin: 34px 0 0;
+  border: 3px double var(--stamp);
+  background: rgba(255,255,255,.5);
+  padding: 26px 30px 24px;
+  position: relative;
+}
+.stamp__tag {
+  position: absolute; top: -10px; left: 24px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: .2em;
+  color: var(--stamp);
+}
+.stamp__head {
+  font-size: clamp(24px, 3.4vw, 40px);
+  font-weight: 900;
+  letter-spacing: -.015em;
+  line-height: 1.1;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.stamp__head em { font-style: normal; color: var(--stamp); }
+.stamp__body {
+  font-size: 16px;
+  max-width: 74ch;
+  margin: 12px 0 0;
+  color: #3b3d41;
+}
+.stamp__body strong { font-weight: 700; color: var(--ink); }
+.stamp__rule {
+  height: 1px; background: var(--rule);
+  margin: 18px 0 14px;
+}
+.stamp__why {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; line-height: 1.7;
+  color: #3b3d41;
+  max-width: 82ch;
+}
+.stamp__why b { color: var(--ink); }
+
+/* ── Section headers ─────────────────────────────────────── */
+.sec { margin: 56px 0 0; }
+.sec__bar {
+  display: flex; align-items: baseline; gap: 14px;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 6px; margin-bottom: 22px;
+}
+.sec__no {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--paper);
+  background: var(--ink);
+  padding: 3px 8px;
+  letter-spacing: .08em;
+}
+.sec__t {
+  font-size: 19px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  margin: 0;
+}
+.sec__note {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px; letter-spacing: .1em;
+  color: var(--graphite);
+  text-transform: uppercase;
+}
+
+/* ── Drawing frame ───────────────────────────────────────── */
+.dwg {
+  border: 1.5px solid var(--ink);
+  background: rgba(255,255,255,.5);
+  overflow-x: auto;
+}
+.dwg svg { display: block; width: 100%; min-width: 900px; height: auto; }
+.dwg__cap {
+  border-top: 1px solid var(--rule);
+  padding: 10px 16px;
+  display: flex; flex-wrap: wrap; gap: 8px 26px; align-items: center;
+}
+.key { display: flex; align-items: center; gap: 8px; }
+.key__swatch { width: 30px; height: 0; border-top-width: 3px; }
+.key__t {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--graphite);
+}
+
+/* ── Load-path argument cards ────────────────────────────── */
+.args { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 0; border: 1.5px solid var(--ink); }
+.arg {
+  padding: 22px 22px 24px;
+  border-right: 1px solid var(--rule);
+  background: rgba(255,255,255,.36);
+  position: relative;
+}
+.arg:last-child { border-right: 0; }
+.arg--carries { background: rgba(168,50,28,.06); }
+.arg__load {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .16em;
+  text-transform: uppercase;
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid var(--graphite);
+  color: var(--graphite);
+  margin-bottom: 12px;
+}
+.arg--carries .arg__load { border-color: var(--stamp); color: var(--stamp); background: rgba(168,50,28,.08); }
+.arg__t { font-size: 17px; font-weight: 700; line-height: 1.25; margin: 0 0 8px; letter-spacing: -.01em; }
+.arg__p { font-size: 14px; color: #46484c; margin: 0; }
+.arg__p strong { color: var(--ink); }
+.arg__fig {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--stamp);
+  display: block;
+  margin: 14px 0 2px;
+  letter-spacing: -.02em;
+}
+.arg__figc {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--graphite);
+}
+
+/* ── Callout schedule (the six angles) ───────────────────── */
+.sched { border: 1.5px solid var(--ink); background: rgba(255,255,255,.42); }
+.sched__row {
+  display: grid;
+  grid-template-columns: 62px 1fr 190px;
+  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  color: inherit;
+  transition: background .12s ease;
+}
+.sched__row:last-child { border-bottom: 0; }
+.sched__row:hover { background: rgba(29,63,87,.055); }
+.sched__no {
+  border-right: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px; font-weight: 600;
+  color: var(--built);
+  background: rgba(29,63,87,.05);
+}
+.sched__mid { padding: 16px 20px; }
+.sched__t { font-size: 16px; font-weight: 700; line-height: 1.3; margin: 0 0 5px; letter-spacing: -.01em; }
+.sched__s { font-size: 13.5px; color: #4c4e52; margin: 0; }
+.sched__meta {
+  border-left: 1px solid var(--rule);
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 6px;
+  align-items: flex-start;
+}
+.pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--rule);
+  color: var(--graphite);
+}
+.pill--expedition { border-color: var(--stamp); color: var(--stamp); }
+.pill--survey { border-color: var(--built); color: var(--built); }
+.pill--recon { border-color: var(--graphite); color: var(--graphite); }
+.sched__num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--graphite); letter-spacing: .06em;
+}
+
+/* ── Detail / foundation ─────────────────────────────────── */
+.detail {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1.5px solid var(--ink);
+}
+.detail__l { padding: 24px 26px; border-right: 1px solid var(--rule); background: rgba(255,255,255,.42); }
+.detail__r { padding: 24px 26px; background: rgba(168,50,28,.05); }
+.detail h3 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 14px; }
+.piles { list-style: none; padding: 0; margin: 0; counter-reset: pile; }
+.piles li {
+  counter-increment: pile;
+  display: grid; grid-template-columns: 26px 1fr; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--rule);
+  font-size: 14px;
+}
+.piles li:last-child { border-bottom: 0; }
+.piles li::before {
+  content: "P" counter(pile);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--graphite);
+  padding-top: 3px;
+}
+.piles code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  background: rgba(29,63,87,.09);
+  padding: 1px 5px;
+}
+.crack {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13.5px; line-height: 1.75;
+  color: #3b3d41;
+}
+.crack b { color: var(--rev); }
+.crack code {
+  background: rgba(168,50,28,.1);
+  padding: 1px 5px; font-size: 12.5px;
+}
+
+/* ── Non-conformance note ────────────────────────────────── */
+.ncr {
+  border: 1.5px solid var(--rev);
+  background:
+    repeating-linear-gradient(45deg, rgba(168,50,28,.06) 0 10px, transparent 10px 20px),
+    rgba(255,255,255,.5);
+  padding: 22px 26px;
+  display: grid; grid-template-columns: 92px 1fr; gap: 22px; align-items: start;
+}
+.ncr__glyph {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 50px; font-weight: 600;
+  color: var(--rev);
+  line-height: 1;
+  text-align: center;
+  border: 2px solid var(--rev);
+  padding: 10px 0 12px;
+}
+.ncr__k {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--rev); display: block; margin-top: 6px;
+}
+.ncr h3 { margin: 0 0 8px; font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+.ncr p { margin: 0; font-size: 14.5px; color: #3b3d41; max-width: 76ch; }
+.ncr p strong { color: var(--ink); }
+
+/* ── Bill of materials ──────────────────────────────────── */
+.bom { border: 1.5px solid var(--ink); background: rgba(255,255,255,.42); overflow-x: auto; }
+.bom table { border-collapse: collapse; width: 100%; min-width: 720px; }
+.bom th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--graphite);
+  text-align: left;
+  padding: 10px 16px;
+  border-bottom: 1.5px solid var(--ink);
+  white-space: nowrap;
+}
+.bom td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--rule-fine);
+  font-size: 14px;
+  vertical-align: top;
+}
+.bom tr:last-child td { border-bottom: 0; }
+.bom tr.bom--pick td { background: rgba(29,63,87,.06); }
+.bom__part { font-weight: 700; letter-spacing: -.01em; }
+.bom__part a { text-decoration: none; border-bottom: 1.5px solid var(--built); }
+.bom__part a:hover { background: rgba(29,63,87,.1); }
+.bom__stars {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--graphite); white-space: nowrap;
+}
+.bom__cost {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600; font-size: 14px; white-space: nowrap;
+}
+.bom__cost--free { color: var(--built); }
+.bom__cost--paid { color: var(--stamp); }
+.bom__note { font-size: 13px; color: #4c4e52; }
+
+/* ── Revision schedule ──────────────────────────────────── */
+.rev { border: 1.5px solid var(--ink); background: rgba(255,255,255,.42); }
+.rev__row {
+  display: grid; grid-template-columns: 74px 1fr;
+  border-bottom: 1px solid var(--rule);
+}
+.rev__row:last-child { border-bottom: 0; }
+.rev__tri {
+  border-right: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  color: var(--rev);
+  background: rgba(168,50,28,.05);
+}
+.rev__body { padding: 15px 20px; font-size: 14.5px; }
+.rev__body b { display: block; font-size: 15px; font-weight: 700; margin-bottom: 3px; letter-spacing: -.01em; }
+.rev__body span { color: #4c4e52; font-size: 13.5px; }
+
+/* ── References ─────────────────────────────────────────── */
+.refs {
+  columns: 2;
+  column-gap: 34px;
+  border-top: 1.5px solid var(--ink);
+  padding-top: 18px;
+}
+.ref {
+  break-inside: avoid;
+  display: grid;
+  grid-template-columns: 22px 18px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 5px 0;
+  text-decoration: none;
+  color: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.ref:hover .ref__t { text-decoration: underline; }
+.ref__n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600; color: var(--graphite);
+  padding-top: 2px;
+}
+.ref img { width: 14px; height: 14px; margin-top: 2px; opacity: .75; }
+.ref__t { color: #3b3d41; }
+
+/* ── Colophon ───────────────────────────────────────────── */
+.colo {
+  margin-top: 56px;
+  border-top: 3px double var(--ink);
+  padding: 20px 0 60px;
+  display: flex; flex-wrap: wrap; gap: 10px 30px; align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--graphite);
+}
+.colo a { color: var(--built); text-decoration: none; border-bottom: 1px solid var(--built); }
+
+@media (max-width: 760px) {
+  .tb { grid-template-columns: 1fr; }
+  .tb__main { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .tb__side { border-right: 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; }
+  .tb__side .tb__cell { border-bottom: 0; border-right: 1px solid var(--rule-fine); }
+  .detail { grid-template-columns: 1fr; }
+  .detail__l { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .sched__row { grid-template-columns: 48px 1fr; }
+  .sched__meta { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rule-fine); flex-direction: row; align-items: center; padding: 10px 18px; }
+  .refs { columns: 1; }
+  .ncr { grid-template-columns: 1fr; }
+  .ncr__glyph { width: 92px; }
+}
+</style>
+
+<div class="bp">
+<div class="bp__sheet">
+
+  <!-- ══ TITLE BLOCK ══════════════════════════════════════ -->
+  <div class="tb">
+    <div class="tb__main">
+      <span class="bp__lbl">Itenium.Forge · itenium-ui admin console</span>
+      <h1>Draw the BFF.<br>Don't build it.</h1>
+      <p class="tb__sub">A general arrangement for browser auth in an internal admin console: React 19 + Vite in front, .NET 10 REST behind, Keycloak beside — and the backend-for-frontend drawn in dashed line, because it is specified but not issued for construction.</p>
+    </div>
+    <div class="tb__side">
+      <div class="tb__cell"><span class="tb__k">Drawing</span><span class="tb__v">GA-01 · AUTH</span></div>
+      <div class="tb__cell"><span class="tb__k">Sheets</span><span class="tb__v">1 + 6 details</span></div>
+      <div class="tb__cell"><span class="tb__k">Governing doc</span><span class="tb__v">BCP rev −27</span></div>
+      <div class="tb__cell"><span class="tb__k">Status</span><span class="tb__v" style="color:var(--stamp)">ISSUED</span></div>
+    </div>
+    <div class="tb__side">
+      <div class="tb__cell"><span class="tb__k">Date</span><span class="tb__v">2026-07-14</span></div>
+      <div class="tb__cell"><span class="tb__k">Refs cited</span><span class="tb__v">166</span></div>
+      <div class="tb__cell"><span class="tb__k">Reading</span><span class="tb__v">65 min</span></div>
+      <div class="tb__cell"><span class="tb__k">Retrofit</span><span class="tb__v">2–5 days</span></div>
+    </div>
+  </div>
+
+  <!-- ══ DECISION STAMP ═══════════════════════════════════ -->
+  <div class="stamp">
+    <span class="stamp__tag">DECISION · APPROVED FOR CONSTRUCTION</span>
+    <p class="stamp__head">Build the SPA now. <em>Do not build the BFF yet.</em></p>
+    <p class="stamp__body">But build the SPA so that adding one is a <strong>2–5 day change</strong>, and treat that discipline as non-negotiable rather than aspirational. The retrofit is a two-way door <sup><a href="https://thoughtbot.com/blog/one-way-vs-two-way-door-decisions">[24]</a></sup> precisely because <strong>the API never changes</strong>: a BFF forwards a bearer token to it, so <code style="font-family:'IBM Plex Mono',monospace;font-size:.88em;background:rgba(29,63,87,.09);padding:1px 5px">AddJwtBearer</code> stays exactly as it is <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/">[1]</a></sup><sup><a href="https://curity.io/blog/token-handler-the-single-page-applications-new-bff/">[2]</a></sup>.</p>
+    <div class="stamp__rule"></div>
+    <p class="stamp__why"><b>The honest cost comparison is not “BFF now vs BFF later”.</b> The session store and the shared Data Protection key ring <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers">[23]</a></sup> are paid whenever you adopt, not extra for adopting late <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[12]</a></sup>. So the real question on this sheet is <b>“BFF ever, or never?”</b> — and today the answer is <b>not yet</b>.</p>
+  </div>
+
+  <!-- ══ GENERAL ARRANGEMENT ══════════════════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">GA</span>
+      <h2 class="sec__t">General arrangement</h2>
+      <span class="sec__note">Both routes terminate on the same API contract</span>
+    </div>
+
+    <div class="dwg">
+      <svg viewBox="0 0 1200 660" role="img" aria-label="Architecture drawing: the browser reaches the .NET 10 API directly with a bearer token today; a dashed, unbuilt BFF layer would sit between them and forward the same bearer token to the same unchanged API. Keycloak sits on a same-site subdomain above the browser. Six numbered callouts key to the six research angles.">
+        <defs>
+          <marker id="bpArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#1d3f57"/>
+          </marker>
+          <marker id="bpArrowD" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#9c6613"/>
+          </marker>
+          <marker id="bpArrowG" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#6f6d66"/>
+          </marker>
+          <pattern id="bpHatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="7" stroke="#9c6613" stroke-width="1" opacity=".28"/>
+          </pattern>
+        </defs>
+
+        <!-- ─ Keycloak (IdP) ─ -->
+        <rect x="392" y="28" width="300" height="76" fill="#ffffff" fill-opacity=".65" stroke="#23252a" stroke-width="1.5"/>
+        <text x="406" y="50" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" letter-spacing="1.6" fill="#6f6d66">IDENTITY PROVIDER</text>
+        <text x="406" y="72" font-family="Archivo,sans-serif" font-size="17" font-weight="700" fill="#23252a">Keycloak / OpenIddict</text>
+        <text x="406" y="92" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#1d3f57">auth.itenium.be</text>
+
+        <!-- same-site annotation between IdP and browser -->
+        <path d="M 392 66 L 240 66 L 240 160" fill="none" stroke="#6f6d66" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#bpArrowG)"/>
+        <text x="60" y="52" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#23252a">SAME SITE (eTLD+1)</text>
+        <text x="60" y="70" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#6f6d66">→ IdP cookie is first-party</text>
+        <text x="60" y="86" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#6f6d66">→ prompt=none still works</text>
+        <text x="60" y="102" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#6f6d66">→ iframe silent renew alive</text>
+
+        <!-- ─ BROWSER ─ -->
+        <rect x="60" y="160" width="300" height="270" fill="#ffffff" fill-opacity=".72" stroke="#23252a" stroke-width="2"/>
+        <rect x="60" y="160" width="300" height="30" fill="#23252a"/>
+        <text x="74" y="181" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1.6" fill="#f2efe6">BROWSER · admin.itenium.be</text>
+
+        <text x="78" y="222" font-family="Archivo,sans-serif" font-size="17" font-weight="700" fill="#23252a">React 19 + Vite SPA</text>
+        <line x1="78" y1="234" x2="342" y2="234" stroke="#c9c3b2" stroke-width="1"/>
+        <text x="78" y="258" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#3b3d41">TanStack Query · server state</text>
+        <text x="78" y="280" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#3b3d41">one auth module</text>
+        <text x="78" y="302" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#3b3d41">one fetch wrapper</text>
+
+        <rect x="78" y="322" width="264" height="42" fill="#1d3f57" fill-opacity=".08" stroke="#1d3f57" stroke-width="1.2"/>
+        <text x="90" y="340" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1" fill="#1d3f57">ACCESS TOKEN — IN MEMORY</text>
+        <text x="90" y="356" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">reachable by any script in this origin</text>
+
+        <text x="78" y="390" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1" fill="#a8321c">STRICT CSP + TRUSTED TYPES</text>
+        <text x="78" y="406" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">the actual mitigation — Baseline Feb 2026</text>
+
+        <!-- ─ BFF (ghosted / not built) ─ -->
+        <rect x="452" y="160" width="256" height="270" fill="url(#bpHatch)" stroke="#9c6613" stroke-width="2" stroke-dasharray="9 6"/>
+        <rect x="452" y="160" width="256" height="30" fill="#9c6613" fill-opacity=".16"/>
+        <text x="466" y="181" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1.6" fill="#9c6613">BFF · SPECIFIED, NOT ISSUED</text>
+
+        <text x="470" y="222" font-family="Archivo,sans-serif" font-size="17" font-weight="700" fill="#9c6613">.NET 10 BFF</text>
+        <line x1="470" y1="234" x2="690" y2="234" stroke="#9c6613" stroke-width="1" stroke-dasharray="4 3" opacity=".55"/>
+        <text x="470" y="258" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#7d5310">YARP forwarder</text>
+        <text x="470" y="280" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#7d5310">AddOpenIdConnect</text>
+        <text x="470" y="302" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#7d5310">httpOnly cookie session</text>
+        <text x="470" y="324" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#7d5310">X-CSRF header required</text>
+
+        <rect x="470" y="342" width="220" height="46" fill="#9c6613" fill-opacity=".1" stroke="#9c6613" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="482" y="360" font-family="'IBM Plex Mono',monospace" font-size="10.5" font-weight="600" letter-spacing="1" fill="#7d5310">SESSION STORE + DP KEY RING</text>
+        <text x="482" y="376" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#9c6613">paid whenever you adopt — not an asymmetry</text>
+
+        <text x="470" y="412" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1" fill="#9c6613">EST. RETROFIT: 2–5 DAYS</text>
+
+        <!-- ─ API ─ -->
+        <rect x="800" y="160" width="340" height="270" fill="#ffffff" fill-opacity=".72" stroke="#23252a" stroke-width="2"/>
+        <rect x="800" y="160" width="340" height="30" fill="#1d3f57"/>
+        <text x="814" y="181" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1.6" fill="#f2efe6">.NET 10 REST API — UNCHANGED</text>
+
+        <text x="818" y="224" font-family="Archivo,sans-serif" font-size="19" font-weight="800" fill="#23252a">AddJwtBearer</text>
+        <line x1="818" y1="236" x2="1122" y2="236" stroke="#c9c3b2" stroke-width="1"/>
+        <text x="818" y="260" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#3b3d41">accepts Authorization: Bearer</text>
+        <text x="818" y="282" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#3b3d41">OpenAPI 3.1 document</text>
+        <text x="818" y="304" font-family="'IBM Plex Mono',monospace" font-size="12.5" fill="#3b3d41">generated TS client</text>
+
+        <rect x="818" y="326" width="304" height="62" fill="#1d3f57" fill-opacity=".08" stroke="#1d3f57" stroke-width="1.4"/>
+        <text x="832" y="346" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1" fill="#1d3f57">THE ONE-WAY DOOR IS HERE —</text>
+        <text x="832" y="363" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" letter-spacing="1" fill="#1d3f57">AND WE ARE NOT OPENING IT.</text>
+        <text x="832" y="380" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">the frontend is the reversible side</text>
+
+        <text x="818" y="414" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#6f6d66">cookie + bearer schemes can coexist</text>
+
+        <!-- ─ ROUTE A: built. Browser → API direct, routed below ─ -->
+        <path d="M 360 400 L 400 400 L 400 500 L 1000 500 L 1000 430"
+              fill="none" stroke="#1d3f57" stroke-width="3" marker-end="url(#bpArrow)"/>
+        <rect x="520" y="484" width="360" height="32" fill="#f2efe6"/>
+        <text x="540" y="506" font-family="'IBM Plex Mono',monospace" font-size="13" font-weight="600" fill="#1d3f57">ROUTE A — BUILT · Authorization: Bearer &lt;jwt&gt;</text>
+
+        <!-- ─ ROUTE B: deferred. Browser → BFF → API ─ -->
+        <path d="M 360 230 L 452 230" fill="none" stroke="#9c6613" stroke-width="2.5" stroke-dasharray="8 5" marker-end="url(#bpArrowD)"/>
+        <rect x="352" y="192" width="112" height="18" fill="#f2efe6"/>
+        <text x="356" y="206" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" fill="#9c6613">cookie + X-CSRF</text>
+
+        <path d="M 708 230 L 800 230" fill="none" stroke="#9c6613" stroke-width="2.5" stroke-dasharray="8 5" marker-end="url(#bpArrowD)"/>
+        <rect x="698" y="192" width="116" height="18" fill="#f2efe6"/>
+        <text x="702" y="206" font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="600" fill="#9c6613">Bearer &lt;jwt&gt;</text>
+
+        <text x="452" y="452" font-family="'IBM Plex Mono',monospace" font-size="13" font-weight="600" fill="#9c6613">ROUTE B — DEFERRED · same terminus, same contract</text>
+
+        <!-- ─ Callout balloons ①..⑥ ─ -->
+        <!-- 1 · XSS / token storage → browser token box -->
+        <line x1="196" y1="322" x2="176" y2="596" stroke="#6f6d66" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="176" cy="606" r="17" fill="#ffffff" stroke="#1d3f57" stroke-width="1.6"/>
+        <text x="176" y="612" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="600" fill="#1d3f57">1</text>
+        <text x="204" y="600" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#23252a">XSS &amp; TOKEN STORAGE</text>
+        <text x="204" y="616" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">httpOnly ≠ XSS-proof — it bounds the blast</text>
+
+        <!-- 2 · BCP → the dashed BFF header -->
+        <line x1="560" y1="160" x2="560" y2="128" stroke="#6f6d66" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="560" cy="118" r="17" fill="#ffffff" stroke="#1d3f57" stroke-width="1.6"/>
+        <text x="560" y="124" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="600" fill="#1d3f57">2</text>
+        <text x="588" y="115" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#23252a">IETF BCP −27</text>
+        <text x="588" y="130" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">names “business applications” — strong prior, no MUST</text>
+
+        <!-- 3 · refresh/silent renew → the IdP link -->
+        <line x1="240" y1="110" x2="374" y2="110" stroke="#6f6d66" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="374" cy="110" r="17" fill="#ffffff" stroke="#1d3f57" stroke-width="1.6"/>
+        <text x="374" y="116" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="600" fill="#1d3f57">3</text>
+
+        <!-- 4 · greenfield vs retrofit → the gap between browser and BFF -->
+        <line x1="406" y1="270" x2="406" y2="560" stroke="#6f6d66" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="406" cy="572" r="17" fill="#ffffff" stroke="#9c6613" stroke-width="1.6"/>
+        <text x="406" y="578" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="600" fill="#9c6613">4</text>
+        <text x="434" y="566" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#23252a">THE TWO-WAY DOOR</text>
+        <text x="434" y="582" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">this seam is the whole 2–5 day estimate</text>
+
+        <!-- 5 · codegen / dev loop → API -->
+        <line x1="970" y1="290" x2="1010" y2="596" stroke="#6f6d66" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="1010" cy="606" r="17" fill="#ffffff" stroke="#1d3f57" stroke-width="1.6"/>
+        <text x="1010" y="612" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="600" fill="#1d3f57">5</text>
+        <text x="756" y="600" text-anchor="end" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#23252a">CODEGEN &amp; THE DEV LOOP</text>
+        <text x="988" y="600" text-anchor="end" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">path-preserving proxy → spec untouched</text>
+        <text x="988" y="616" text-anchor="end" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">real cost: one more process, no “Try it out”</text>
+
+        <!-- 6 · BFF options → inside the ghosted box -->
+        <line x1="690" y1="300" x2="762" y2="128" stroke="#6f6d66" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="766" cy="118" r="17" fill="#ffffff" stroke="#9c6613" stroke-width="1.6"/>
+        <text x="766" y="124" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="600" fill="#9c6613">6</text>
+        <text x="794" y="115" font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" fill="#23252a">WHAT THE BFF WOULD BE MADE OF</text>
+        <text x="794" y="130" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#6f6d66">Duende.BFF $5,750/yr · or YARP + ~250 LOC you own</text>
+
+        <!-- drawing edge ticks -->
+        <line x1="60" y1="640" x2="1140" y2="640" stroke="#c9c3b2" stroke-width="1"/>
+        <text x="60" y="656" font-family="'IBM Plex Mono',monospace" font-size="9.5" letter-spacing="1.4" fill="#6f6d66">GA-01 · AUTH · REV −27 · SCALE: NTS</text>
+        <text x="1140" y="656" text-anchor="end" font-family="'IBM Plex Mono',monospace" font-size="9.5" letter-spacing="1.4" fill="#6f6d66">CALLOUTS 1–6 KEY TO THE SCHEDULE BELOW</text>
+      </svg>
+
+      <div class="dwg__cap">
+        <span class="key"><span class="key__swatch" style="border-top:3px solid #1d3f57"></span><span class="key__t">Route A — built today</span></span>
+        <span class="key"><span class="key__swatch" style="border-top:3px dashed #9c6613"></span><span class="key__t">Route B — specified, deferred</span></span>
+        <span class="key"><span class="key__swatch" style="border-top:1.5px dashed #6f6d66"></span><span class="key__t">Callout leader</span></span>
+        <span class="key__t" style="margin-left:auto">Every drawn element corresponds to a cited claim</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LOAD PATH — THE THREE ARGUMENTS ══════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">LP</span>
+      <h2 class="sec__t">Load path — which argument actually carries</h2>
+      <span class="sec__note">Two of three do not</span>
+    </div>
+
+    <div class="args">
+      <div class="arg">
+        <span class="arg__load">Non-load-bearing</span>
+        <p class="arg__t">“It's internal, the BCP isn't about us”</p>
+        <p class="arg__p">This defence fails. The draft's strongest sentence names the case to its face — <strong>strongly recommended for business applications</strong> — and its threat model assumes only that attacker code runs in your origin <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-27">[3]</a></sup>. But it prices its own advice honestly as <strong>“a different trade-off between security and simplicity”</strong>, with no RFC 2119 keyword <sup><a href="https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-27.html">[4]</a></sup>. A strong prior, not a mandate.</p>
+      </div>
+
+      <div class="arg">
+        <span class="arg__load">Load-bearing · bounded</span>
+        <p class="arg__t">“A BFF stops XSS”</p>
+        <p class="arg__p">It doesn't. It converts <strong>silent, off-origin, outlives-the-tab token exfiltration</strong> into <strong>loud, tab-bound session riding</strong> through your own logs <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[5]</a></sup>. For an admin console that matters less than elsewhere — if the payload can grant itself a role in the first 400 ms, the tab-lifetime bound bought you nothing. <strong>“BFF shifts the security boundary. It doesn't eliminate it.”</strong> <sup><a href="https://auth0.com/blog/things-developers-get-wrong-about-the-backend-for-frontend-pattern/">[6]</a></sup></p>
+      </div>
+
+      <div class="arg arg--carries">
+        <span class="arg__load">★ Carries the whole load</span>
+        <p class="arg__t">Supply chain</p>
+        <p class="arg__p">The one pro-BFF argument that survives all six angles. Strict CSP + Trusted Types genuinely closes injected-script XSS <sup><a href="https://www.uriports.com/blog/csp-trusted-types/">[7]</a></sup> — but <strong>CSP cannot distinguish your trojaned npm dependency from your own code</strong>. The nonced bundle executes with full privilege <sup><a href="https://web.dev/articles/strict-csp">[37]</a></sup>. Against a September-2025-style compromise, <em>“there is no token in the browser to steal”</em> does work no CSP can do <sup><a href="https://fusionauth.io/blog/backend-for-frontend-security-architecture">[5]</a></sup>.</p>
+        <span class="arg__fig">94.68%</span>
+        <span class="arg__figc">of script-limiting CSP policies measured ineffective — Google, ACM CCS <sup><a href="https://research.google/pubs/csp-is-dead-long-live-csp-on-the-insecurity-of-whitelists-and-the-future-of-content-security-policy/">[8]</a></sup></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CALLOUT SCHEDULE — THE SIX ANGLES ════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">CS</span>
+      <h2 class="sec__t">Callout schedule — the six annotated components</h2>
+      <span class="sec__note">Keys 1–6 on the drawing above</span>
+    </div>
+
+    <div class="sched">
+      <a class="sched__row" href="../in-memory-tokens-vs-cookie-backed-bff-sessions-under-xss/">
+        <div class="sched__no">1</div>
+        <div class="sched__mid">
+          <p class="sched__t">In-memory tokens vs cookie-backed BFF sessions under XSS</p>
+          <p class="sched__s">httpOnly cookies do not stop XSS — they convert silent token exfiltration into loud, tab-bound session riding. That's a real but bounded win; CSP + Trusted Types is the actual mitigation.</p>
+        </div>
+        <div class="sched__meta">
+          <span class="pill pill--survey">survey</span>
+          <span class="sched__num">17 refs · 8 min</span>
+        </div>
+      </a>
+
+      <a class="sched__row" href="../does-the-ietf-browser-based-apps-bcp-apply-to-an-internal-admin-console/">
+        <div class="sched__no">2</div>
+        <div class="sched__mid">
+          <p class="sched__t">Does the IETF browser-based-apps BCP apply to an internal admin console?</p>
+          <p class="sched__s">The BCP names “business applications” in its strongest recommendation, so an internal console is in scope — but the ranking is a security/simplicity trade-off, not a normative MUST.</p>
+        </div>
+        <div class="sched__meta">
+          <span class="pill pill--recon">recon</span>
+          <span class="sched__num">8 refs · 4 min</span>
+        </div>
+      </a>
+
+      <a class="sched__row" href="../refresh-tokens-and-silent-renew-in-a-browser-spa-2026/">
+        <div class="sched__no">3</div>
+        <div class="sched__mid">
+          <p class="sched__t">Refresh tokens and silent renew in a browser SPA (2026)</p>
+          <p class="sched__s">Iframe silent renew is dead cross-site but alive same-site; refresh-token rotation works on both stacks, DPoP only really works on Keycloak, and TanStack Query needs a single-flight mutex either way.</p>
+        </div>
+        <div class="sched__meta">
+          <span class="pill pill--survey">survey</span>
+          <span class="sched__num">39 refs · 12 min</span>
+        </div>
+      </a>
+
+      <a class="sched__row" href="../greenfield-bff-cost-vs-retrofitting-one-later/">
+        <div class="sched__no">4</div>
+        <div class="sched__mid">
+          <p class="sched__t">Greenfield BFF vs retrofitting later: where the asymmetry actually is</p>
+          <p class="sched__s">Adding a BFF later is a two-way door — if you build the SPA with one auth module, one fetch wrapper, relative paths and no client-side JWT parsing. The one-way door is the API, not the frontend.</p>
+        </div>
+        <div class="sched__meta">
+          <span class="pill pill--survey">survey</span>
+          <span class="sched__num">25 refs · 9 min</span>
+        </div>
+      </a>
+
+      <a class="sched__row" href="../impact-on-openapi-client-codegen-and-local-dev-ergonomics/">
+        <div class="sched__no">5</div>
+        <div class="sched__mid">
+          <p class="sched__t">What a BFF costs you every day: OpenAPI codegen and the local dev loop</p>
+          <p class="sched__s">A path-preserving BFF leaves OpenAPI codegen essentially untouched — the real daily cost is one extra process, a Vite proxy config, and losing Swagger UI “Try it out”.</p>
+        </div>
+        <div class="sched__meta">
+          <span class="pill pill--survey">survey</span>
+          <span class="sched__num">27 refs · 13 min</span>
+        </div>
+      </a>
+
+      <a class="sched__row" href="../bff-options-in-net-10-yarp-duende-bff-minimal-custom/">
+        <div class="sched__no">6</div>
+        <div class="sched__mid">
+          <p class="sched__t">BFF options in .NET 10: Duende.BFF, YARP, or hand-rolled</p>
+          <p class="sched__s">The realistic .NET 10 choice is YARP + AddOpenIdConnect + the free Apache-2.0 Duende.AccessTokenManagement (~250 LOC you own), or Duende.BFF if you qualify for its free Community Edition.</p>
+        </div>
+        <div class="sched__meta">
+          <span class="pill pill--expedition">expedition</span>
+          <span class="sched__num">50 refs · 16 min</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ SITE NOTE — THE DNS DECISION ═════════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">SN</span>
+      <h2 class="sec__t">Site note — a DNS choice moves the needle most</h2>
+      <span class="sec__note">Not a security choice</span>
+    </div>
+    <div class="ncr" style="border-color:var(--built);background:repeating-linear-gradient(45deg,rgba(29,63,87,.05) 0 10px,transparent 10px 20px),rgba(255,255,255,.5)">
+      <div class="ncr__glyph" style="color:var(--built);border-color:var(--built)">⌖<span class="ncr__k" style="color:var(--built)">Setting out</span></div>
+      <div>
+        <h3>Put Keycloak on a subdomain of the app's registrable domain.</h3>
+        <p>Iframe silent renew is not dead — it is dead <strong>cross-site</strong>. <code style="font-family:'IBM Plex Mono',monospace;font-size:.86em;background:rgba(29,63,87,.09);padding:1px 5px">auth.itenium.be</code> and <code style="font-family:'IBM Plex Mono',monospace;font-size:.86em;background:rgba(29,63,87,.09);padding:1px 5px">admin.itenium.be</code> are different origins but the <strong>same site</strong>, so the IdP cookie is first-party and <code style="font-family:'IBM Plex Mono',monospace;font-size:.86em;background:rgba(29,63,87,.09);padding:1px 5px">prompt=none</code> still works in 2026 <sup><a href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration">[9]</a></sup><sup><a href="https://web.dev/articles/same-site-same-origin">[10]</a></sup>. Put it on a foreign host and Keycloak's own adapter tells you the session iframe and silent check-sso are unsupported <sup><a href="https://www.keycloak.org/securing-apps/javascript-adapter">[33]</a></sup> — the SPA's renewal story degrades into full-page redirects, which is <em>where the BFF starts winning on ergonomics rather than on security</em>. Either way, rotate refresh tokens with reuse detection <sup><a href="https://datatracker.ietf.org/doc/html/rfc9700">[32]</a></sup> and put a single-flight mutex in the fetch wrapper — concurrent 401s otherwise fire duplicate refreshes <sup><a href="https://github.com/TanStack/query/discussions/6249">[31]</a></sup>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FOUNDATION DETAIL — THE DISCIPLINE ═══════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">FD</span>
+      <h2 class="sec__t">Foundation detail — what the 2–5 day estimate stands on</h2>
+      <span class="sec__note">Four piles. Pull one and the estimate is fiction.</span>
+    </div>
+
+    <div class="detail">
+      <div class="detail__l">
+        <h3>Load-bearing piles</h3>
+        <ul class="piles">
+          <li><span><strong>One auth module.</strong> A single place that knows how a request is authenticated — swapping bearer for cookie is an edit to one file, not a search across the app.</span></li>
+          <li><span><strong>One fetch wrapper.</strong> Every call goes through it. Adding <code>credentials: 'include'</code> and the CSRF header is a two-line change <sup><a href="https://openapi-ts.dev/openapi-fetch/api">[28]</a></sup>.</span></li>
+          <li><span><strong>Relative paths only.</strong> No absolute API host baked into the client — a Vite proxy then routes <code>/api</code> and <code>/bff</code> locally without touching app code <sup><a href="https://vite.dev/config/server-options">[26]</a></sup>.</span></li>
+          <li><span><strong>No client-side JWT parsing.</strong> The access token is meant to be opaque to the client; decoding it to read claims is discouraged <sup><a href="https://docs.oidc-spa.dev/resources/jwt-of-the-access-token">[25]</a></sup>. Under a BFF there is no token to decode at all.</span></li>
+        </ul>
+      </div>
+      <div class="detail__r">
+        <h3 style="color:var(--rev)">Where it cracks</h3>
+        <p class="crack">The sharpest open question on this sheet is not whether the BFF is worth it. It is <b>whether the discipline it depends on will hold.</b></p>
+        <p class="crack" style="margin-top:14px">The entire 2–5 day retrofit estimate rests on nobody ever calling <code>jwtDecode()</code> in a component, or reaching for <code>getAccessToken()</code> from app state.</p>
+        <p class="crack" style="margin-top:14px"><b>Every team that missed that estimate missed it there.</b></p>
+        <p class="crack" style="margin-top:18px;color:var(--graphite);font-size:12px;letter-spacing:.06em;text-transform:uppercase">Treat P1–P4 as a lint rule, not a code review preference.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ NON-CONFORMANCE — REAL TIME ══════════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">NC</span>
+      <h2 class="sec__t">Non-conformance — the one unbounded retrofit</h2>
+      <span class="sec__note">Decide this before you build, not after</span>
+    </div>
+
+    <div class="ncr">
+      <div class="ncr__glyph">⚠<span class="ncr__k">NCR-01</span></div>
+      <div>
+        <h3>Real-time does not pass through a BFF cleanly.</h3>
+        <p>SignalR and WebSockets are the single genuinely painful item in the whole retrofit: <strong>a WebSocket handshake cannot set the anti-forgery header the BFF requires</strong>, and teams report falling back to long-polling <sup><a href="https://github.com/DuendeArchive/Support/issues/972">[13]</a></sup>. Everything else on this sheet is a two-way door. This is not. If <code style="font-family:'IBM Plex Mono',monospace;font-size:.86em;background:rgba(168,50,28,.1);padding:1px 5px">itenium-ui</code> will carry live updates, <strong>decide before you build</strong> — that is the one place where “later” is expensive.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BILL OF MATERIALS ════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">BM</span>
+      <h2 class="sec__t">Bill of materials — if and when you issue Route B</h2>
+      <span class="sec__note">Duende.BFF's forwarder <em>is</em> YARP — the choice is whether to buy the auth layer on top</span>
+    </div>
+
+    <div class="bom">
+      <table>
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Licence / cost</th>
+            <th>What you actually own</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bom--pick">
+            <td class="bom__part">
+              <a href="https://github.com/dotnet/yarp">YARP</a> <span class="bom__stars">⭐ 9.6k</span><br>
+              + <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">AddOpenIdConnect</code><br>
+              + <a href="https://github.com/DuendeSoftware/foss">Duende.AccessTokenManagement</a> <span class="bom__stars">⭐ 168</span>
+            </td>
+            <td><span class="bom__cost bom__cost--free">MIT + Apache-2.0</span><br><span class="bom__note">free, forever</span></td>
+            <td class="bom__note"><strong>~250 lines of security-critical code you own forever</strong> — Microsoft's own documented recipe <sup><a href="https://github.com/DuendeSoftware/foss">[16]</a></sup>. Note Microsoft's reference <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">CookieOidcRefresher</code> is 102 lines with <em>no single-flight locking</em> <sup><a href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/CookieOidcRefresher.cs">[22]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="bom__part"><a href="https://duendesoftware.com/products/communityedition">Duende.BFF — Community Edition</a></td>
+            <td><span class="bom__cost bom__cost--free">$0</span><br><span class="bom__note">if org &lt;$1M revenue</span></td>
+            <td class="bom__note">The reference implementation, ~50 lines of <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">Program.cs</code> against Keycloak <sup><a href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa">[21]</a></sup>. <strong>The gate is org revenue, not app audience</strong> — “it's just an internal tool” does not qualify you <sup><a href="https://duendesoftware.com/products/communityedition">[15]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="bom__part"><a href="https://duendesoftware.com/pricing">Duende.BFF — Lite</a></td>
+            <td><span class="bom__cost bom__cost--paid">$5,750/yr</span><br><span class="bom__note">Standard $12,500 · Advanced $24,900</span></td>
+            <td class="bom__note">Production use needs a licence; trial mode caps at five sessions per host <sup><a href="https://docs.duendesoftware.com/general/licensing/">[20]</a></sup>. This is the number the supply-chain argument has to clear <sup><a href="https://duendesoftware.com/pricing">[14]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="bom__part">.NET 10 platform<br><span class="bom__note" style="font-weight:400">— what it gives you free</span></td>
+            <td><span class="bom__cost bom__cost--free">in-box</span></td>
+            <td class="bom__note">Cookie auth now returns <strong>401 instead of a login redirect</strong> for API endpoints <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/cookie-authentication-api-endpoints?view=aspnetcore-10.0">[17]</a></sup>, and cookie + bearer schemes can coexist on one API <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/">[39]</a></sup>. But first-party OAuth <strong>refresh-token support is still unshipped</strong> and has slipped to .NET 11 planning <sup><a href="https://github.com/dotnet/aspnetcore/issues/8175">[18]</a></sup> — as has DPoP <sup><a href="https://github.com/dotnet/aspnetcore/issues/58016">[38]</a></sup>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ DAILY COST — WHAT ROUTE B TAXES ══════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">DC</span>
+      <h2 class="sec__t">Daily cost — the tax is not where people expect</h2>
+      <span class="sec__note">Codegen is a non-issue; the dev loop is the bill</span>
+    </div>
+    <div class="args">
+      <div class="arg">
+        <span class="arg__load">Feared</span>
+        <p class="arg__t">OpenAPI codegen breaks</p>
+        <p class="arg__p">It doesn't. A <strong>path-preserving</strong> proxy leaves the OpenAPI document and the generated client untouched — only <code style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:rgba(29,63,87,.09);padding:1px 4px">baseUrl</code> and <code style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:rgba(29,63,87,.09);padding:1px 4px">credentials:&nbsp;'include'</code> change <sup><a href="https://openapi-ts.dev/openapi-fetch/api">[28]</a></sup>. Only a <em>composing</em> BFF turns codegen into a project — and Duende's default <code style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:rgba(29,63,87,.09);padding:1px 4px">MapRemoteBffApiEndpoint</code> shape is what quietly creates that problem <sup><a href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui">[11]</a></sup>. NSwag users pay a small toll: <code style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:rgba(29,63,87,.09);padding:1px 4px">WithCredentials</code> never reaches the generated client <sup><a href="https://github.com/RicoSuter/NSwag/issues/5229">[29]</a></sup>.</p>
+      </div>
+      <div class="arg">
+        <span class="arg__load">Actual</span>
+        <p class="arg__t">One more process, and no “Try it out”</p>
+        <p class="arg__p">The genuine daily tax: <strong>a second process in the dev loop</strong>, a Vite proxy config <sup><a href="https://vite.dev/config/server-options">[26]</a></sup>, an HTTPS scheme both servers agree on — and <strong>Swagger UI can no longer exercise cookie-authenticated endpoints</strong> via “Try it out” <sup><a href="https://swagger.io/docs/specification/v3_0/authentication/cookie-authentication/">[27]</a></sup>. Small, but paid every single day by every developer.</p>
+      </div>
+      <div class="arg">
+        <span class="arg__load">Mispriced</span>
+        <p class="arg__t">The session store</p>
+        <p class="arg__p">Server-side sessions plus a shared Data Protection key ring, the moment you run more than one replica <sup><a href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/">[12]</a></sup><sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers">[23]</a></sup>. Real operational weight — but <strong>you pay it whenever you adopt</strong>. It is not an asymmetry between now and later, which is exactly why it does not argue for building the BFF today.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REVISION SCHEDULE ════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">RS</span>
+      <h2 class="sec__t">Revision schedule — what would reissue this drawing</h2>
+      <span class="sec__note">Absent these, the marginal security a BFF buys is the tail of the risk, not the body</span>
+    </div>
+
+    <div class="rev">
+      <div class="rev__row">
+        <div class="rev__tri">△ A</div>
+        <div class="rev__body"><b>The console needs real-time.</b><span>The only unbounded retrofit on the sheet. SignalR through a BFF forces long-polling <sup><a href="https://github.com/DuendeArchive/Support/issues/972">[13]</a></sup>. Reissue <em>before</em> construction, not after.</span></div>
+      </div>
+      <div class="rev__row">
+        <div class="rev__tri">△ B</div>
+        <div class="rev__body"><b>It starts handling customer PII, or becomes reachable from outside the corporate perimeter.</b><span>This moves the console squarely into the BCP's “sensitive applications … personal data” clause <sup><a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-27">[3]</a></sup>.</span></div>
+      </div>
+      <div class="rev__row">
+        <div class="rev__tri">△ C</div>
+        <div class="rev__body"><b>A second client appears.</b><span>Mobile, native, or a partner integration — all of which want bearer tokens anyway. One API can serve both schemes, but the BFF's value proposition changes shape <sup><a href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/">[39]</a></sup>.</span></div>
+      </div>
+      <div class="rev__row">
+        <div class="rev__tri">△ D</div>
+        <div class="rev__body"><b>A supply-chain incident lands close enough.</b><span>Close enough to make “nothing in the browser to steal” worth $5,750 a year <sup><a href="https://duendesoftware.com/pricing">[14]</a></sup>. This is the trigger the whole load path hangs from.</span></div>
+      </div>
+      <div class="rev__row">
+        <div class="rev__tri">△ E</div>
+        <div class="rev__body"><b>Keycloak ends up off the registrable domain.</b><span>Then silent renew degrades to full-page redirects <sup><a href="https://www.keycloak.org/securing-apps/javascript-adapter">[33]</a></sup> and the BFF starts winning on ergonomics — a weaker argument than security, but a real one.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REFERENCES ═══════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec__bar">
+      <span class="sec__no">RF</span>
+      <h2 class="sec__t">Reference documents</h2>
+      <span class="sec__note">39 of 166 cited on this sheet</span>
+    </div>
+
+    <div class="refs">
+      <a class="ref" href="https://docs.duendesoftware.com/bff/fundamentals/apis/remote/"><span class="ref__n">01</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&amp;sz=128" alt=""><span class="ref__t">Duende BFF — Remote APIs: the forwarder is YARP; the API keeps its bearer contract</span></a>
+      <a class="ref" href="https://curity.io/blog/token-handler-the-single-page-applications-new-bff/"><span class="ref__n">02</span><img src="https://www.google.com/s2/favicons?domain=curity.io&amp;sz=128" alt=""><span class="ref__t">Curity — Token Handler: minimal changes to existing APIs</span></a>
+      <a class="ref" href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-27"><span class="ref__n">03</span><img src="https://www.google.com/s2/favicons?domain=datatracker.ietf.org&amp;sz=128" alt=""><span class="ref__t">IETF draft-ietf-oauth-browser-based-apps-27 — “strongly recommended for business applications”</span></a>
+      <a class="ref" href="https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-27.html"><span class="ref__n">04</span><img src="https://www.google.com/s2/favicons?domain=ietf.org&amp;sz=128" alt=""><span class="ref__t">IETF BCP — “a different trade-off between security and simplicity”</span></a>
+      <a class="ref" href="https://fusionauth.io/blog/backend-for-frontend-security-architecture"><span class="ref__n">05</span><img src="https://www.google.com/s2/favicons?domain=fusionauth.io&amp;sz=128" alt=""><span class="ref__t">FusionAuth — BFF's only remaining vector is request proxying; no offline exfiltration</span></a>
+      <a class="ref" href="https://auth0.com/blog/things-developers-get-wrong-about-the-backend-for-frontend-pattern/"><span class="ref__n">06</span><img src="https://www.google.com/s2/favicons?domain=auth0.com&amp;sz=128" alt=""><span class="ref__t">Auth0 — “BFF shifts the security boundary. It doesn't eliminate it.”</span></a>
+      <a class="ref" href="https://www.uriports.com/blog/csp-trusted-types/"><span class="ref__n">07</span><img src="https://www.google.com/s2/favicons?domain=uriports.com&amp;sz=128" alt=""><span class="ref__t">URIports — Trusted Types reached Baseline when Firefox shipped, Feb 2026</span></a>
+      <a class="ref" href="https://research.google/pubs/csp-is-dead-long-live-csp-on-the-insecurity-of-whitelists-and-the-future-of-content-security-policy/"><span class="ref__n">08</span><img src="https://www.google.com/s2/favicons?domain=research.google&amp;sz=128" alt=""><span class="ref__t">Google / ACM CCS — 94.68% of script-limiting CSP policies ineffective</span></a>
+      <a class="ref" href="https://docs.oidc-spa.dev/resources/third-party-cookies-and-session-restoration"><span class="ref__n">09</span><img src="https://www.google.com/s2/favicons?domain=docs.oidc-spa.dev&amp;sz=128" alt=""><span class="ref__t">oidc-spa — same registrable domain keeps the IdP first-party</span></a>
+      <a class="ref" href="https://web.dev/articles/same-site-same-origin"><span class="ref__n">10</span><img src="https://www.google.com/s2/favicons?domain=web.dev&amp;sz=128" alt=""><span class="ref__t">web.dev — a “site” is scheme + eTLD+1; subdomains are same-site</span></a>
+      <a class="ref" href="https://duendesoftware.com/blog/20250430-managing-openapi-specifications-with-backend-for-frontend-and-swagger-ui"><span class="ref__n">11</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&amp;sz=128" alt=""><span class="ref__t">Duende — a composing BFF forces you to transform the OpenAPI spec</span></a>
+      <a class="ref" href="https://docs.duendesoftware.com/bff/fundamentals/session/server-side-sessions/"><span class="ref__n">12</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&amp;sz=128" alt=""><span class="ref__t">Duende BFF — server-side sessions require a store</span></a>
+      <a class="ref" href="https://github.com/DuendeArchive/Support/issues/972"><span class="ref__n">13</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">Duende Support #972 — WebSocket handshake cannot carry X-CSRF ⭐ 21</span></a>
+      <a class="ref" href="https://duendesoftware.com/pricing"><span class="ref__n">14</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&amp;sz=128" alt=""><span class="ref__t">Duende — pricing: Lite $5,750/yr, Standard $12,500, Advanced $24,900</span></a>
+      <a class="ref" href="https://duendesoftware.com/products/communityedition"><span class="ref__n">15</span><img src="https://www.google.com/s2/favicons?domain=duendesoftware.com&amp;sz=128" alt=""><span class="ref__t">Duende — Community Edition: gated on org revenue &lt;$1M, not app audience</span></a>
+      <a class="ref" href="https://github.com/DuendeSoftware/foss"><span class="ref__n">16</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">DuendeSoftware/foss — AccessTokenManagement is Apache-2.0 and free ⭐ 168</span></a>
+      <a class="ref" href="https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/cookie-authentication-api-endpoints?view=aspnetcore-10.0"><span class="ref__n">17</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&amp;sz=128" alt=""><span class="ref__t">Microsoft — .NET 10: cookie auth returns 401/403 for API endpoints</span></a>
+      <a class="ref" href="https://github.com/dotnet/aspnetcore/issues/8175"><span class="ref__n">18</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">dotnet/aspnetcore #8175 — OAuth 2 refresh tokens, open since 2019, now .NET 11 ⭐ 38.3k</span></a>
+      <a class="ref" href="https://github.com/dotnet/yarp"><span class="ref__n">19</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">dotnet/yarp — MIT reverse-proxy toolkit; README does not cover auth ⭐ 9.6k</span></a>
+      <a class="ref" href="https://docs.duendesoftware.com/general/licensing/"><span class="ref__n">20</span><img src="https://www.google.com/s2/favicons?domain=docs.duendesoftware.com&amp;sz=128" alt=""><span class="ref__t">Duende — licensing: production needs a key; trial caps at five sessions</span></a>
+      <a class="ref" href="https://wrapt.dev/blog/standalone-duende-bff-for-any-spa"><span class="ref__n">21</span><img src="https://www.google.com/s2/favicons?domain=wrapt.dev&amp;sz=128" alt=""><span class="ref__t">Wrapt — a standalone Duende BFF for a React SPA is ~50 lines of Program.cs</span></a>
+      <a class="ref" href="https://github.com/dotnet/blazor-samples/blob/main/10.0/BlazorWebAppOidcBffAutoYarpAspire/BlazorWebAppOidc/CookieOidcRefresher.cs"><span class="ref__n">22</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">Microsoft's CookieOidcRefresher — 102 lines, no single-flight locking ⭐ 1.1k</span></a>
+      <a class="ref" href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/implementation/key-storage-providers"><span class="ref__n">23</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&amp;sz=128" alt=""><span class="ref__t">Microsoft — multi-instance cookie auth needs a shared Data Protection key ring</span></a>
+      <a class="ref" href="https://thoughtbot.com/blog/one-way-vs-two-way-door-decisions"><span class="ref__n">24</span><img src="https://www.google.com/s2/favicons?domain=thoughtbot.com&amp;sz=128" alt=""><span class="ref__t">thoughtbot — one-way vs two-way door decisions</span></a>
+      <a class="ref" href="https://docs.oidc-spa.dev/resources/jwt-of-the-access-token"><span class="ref__n">25</span><img src="https://www.google.com/s2/favicons?domain=docs.oidc-spa.dev&amp;sz=128" alt=""><span class="ref__t">oidc-spa — the access token is opaque to the client; don't decode it</span></a>
+      <a class="ref" href="https://vite.dev/config/server-options"><span class="ref__n">26</span><img src="https://www.google.com/s2/favicons?domain=vite.dev&amp;sz=128" alt=""><span class="ref__t">Vite — server.proxy: how a relative-path SPA runs against a BFF locally</span></a>
+      <a class="ref" href="https://swagger.io/docs/specification/v3_0/authentication/cookie-authentication/"><span class="ref__n">27</span><img src="https://www.google.com/s2/favicons?domain=swagger.io&amp;sz=128" alt=""><span class="ref__t">Swagger — “Try it out” cannot exercise cookie-authenticated endpoints</span></a>
+      <a class="ref" href="https://openapi-ts.dev/openapi-fetch/api"><span class="ref__n">28</span><img src="https://www.google.com/s2/favicons?domain=openapi-ts.dev&amp;sz=128" alt=""><span class="ref__t">openapi-fetch — cookie auth under a BFF is a two-line change</span></a>
+      <a class="ref" href="https://github.com/RicoSuter/NSwag/issues/5229"><span class="ref__n">29</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">NSwag #5229 — WithCredentials never reaches the generated client ⭐ 7.3k</span></a>
+      <a class="ref" href="https://www.keycloak.org/2025/10/dpop-support-26-4"><span class="ref__n">30</span><img src="https://www.google.com/s2/favicons?domain=keycloak.org&amp;sz=128" alt=""><span class="ref__t">Keycloak — DPoP officially supported from 26.4</span></a>
+      <a class="ref" href="https://github.com/TanStack/query/discussions/6249"><span class="ref__n">31</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">TanStack Query #6249 — concurrent 401s fire duplicate refreshes ⭐ 50k</span></a>
+      <a class="ref" href="https://datatracker.ietf.org/doc/html/rfc9700"><span class="ref__n">32</span><img src="https://www.google.com/s2/favicons?domain=datatracker.ietf.org&amp;sz=128" alt=""><span class="ref__t">RFC 9700 (BCP 240) — refresh tokens must be sender-constrained or rotated</span></a>
+      <a class="ref" href="https://www.keycloak.org/securing-apps/javascript-adapter"><span class="ref__n">33</span><img src="https://www.google.com/s2/favicons?domain=keycloak.org&amp;sz=128" alt=""><span class="ref__t">Keycloak — silent check-sso unsupported when third-party cookies are blocked</span></a>
+      <a class="ref" href="https://www.infoq.com/articles/dpop-key-storage-unsolved-problem/"><span class="ref__n">34</span><img src="https://www.google.com/s2/favicons?domain=infoq.com&amp;sz=128" alt=""><span class="ref__t">InfoQ — a non-extractable DPoP key still leaves a signing oracle reachable from XSS</span></a>
+      <a class="ref" href="https://pragmaticwebsecurity.com/articles/oauthoidc/localstorage-xss.html"><span class="ref__n">35</span><img src="https://www.google.com/s2/favicons?domain=pragmaticwebsecurity.com&amp;sz=128" alt=""><span class="ref__t">De Ryck — avoiding localStorage is the wrong fix; XSS owns the app either way</span></a>
+      <a class="ref" href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html"><span class="ref__n">36</span><img src="https://www.google.com/s2/favicons?domain=owasp.org&amp;sz=128" alt=""><span class="ref__t">OWASP — do not store session identifiers in Web Storage</span></a>
+      <a class="ref" href="https://web.dev/articles/strict-csp"><span class="ref__n">37</span><img src="https://www.google.com/s2/favicons?domain=web.dev&amp;sz=128" alt=""><span class="ref__t">web.dev — strict CSP does not stop injection into an already-nonced bundle</span></a>
+      <a class="ref" href="https://github.com/dotnet/aspnetcore/issues/58016"><span class="ref__n">38</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span class="ref__t">dotnet/aspnetcore #58016 — DPoP still open, milestoned .NET 11 ⭐ 38.3k</span></a>
+      <a class="ref" href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/"><span class="ref__n">39</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&amp;sz=128" alt=""><span class="ref__t">Microsoft — cookie and bearer schemes can coexist on one API</span></a>
+    </div>
+  </div>
+
+  <!-- ══ COLOPHON ═════════════════════════════════════════ -->
+  <div class="colo">
+    <span>GA-01 · AUTH · itenium-ui</span>
+    <span>166 references · 6 detail sheets · 65 min</span>
+    <span>Scale: NTS · Rev −27 · 2026-07-14</span>
+    <a href="../">Read the full expedition →</a>
+  </div>
+
+</div>
+</div>
