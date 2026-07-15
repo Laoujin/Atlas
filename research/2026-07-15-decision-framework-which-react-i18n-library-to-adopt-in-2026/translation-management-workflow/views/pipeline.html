@@ -1,0 +1,813 @@
+---
+layout: view
+view_name: "Pipeline"
+view_of: ../
+title: "React i18n 2026: the translation pipeline, not just the library — Pipeline"
+---
+
+<style>
+  .lm {
+    --ink: #12161d;
+    --paper: #f4f1ea;
+    --panel: #ffffff;
+    --hair: #d9d3c6;
+    --muted: #5f6570;
+    --board-bg: #14181f;
+    --board-amber: #ffb64a;
+    --board-green: #57e08a;
+    --board-dim: #8b93a1;
+    /* service line colors — one per coupling */
+    --l-i18next: #e0483c;   /* i18next ↔ Locize */
+    --l-lingui:  #2fa96b;   /* Lingui ↔ PO ↔ Crowdin */
+    --l-para:    #8a5cf6;   /* Paraglide ↔ inlang/Fink */
+    --l-next:    #2f7de0;   /* next-intl ↔ Crowdin */
+    --l-tolgee:  #f0a020;   /* Tolgee (standalone / in-context) */
+    --l-formatjs:#d64f9c;   /* react-intl ↔ vendor formatters */
+    --l-typesafe:#8b93a1;   /* typesafe-i18n ↔ nothing */
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    margin: 0;
+    overflow-x: hidden;
+  }
+  .lm * { box-sizing: border-box; }
+  .lm .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+  .lm a { color: inherit; }
+  .lm .mono { font-family: "SFMono-Regular", ui-monospace, "JetBrains Mono", "Fira Code", Consolas, monospace; }
+
+  /* ---------- MASTHEAD ---------- */
+  .lm .mast {
+    background: var(--board-bg);
+    color: #f4f1ea;
+    padding: 46px 0 40px;
+    border-bottom: 6px solid var(--board-amber);
+  }
+  .lm .mast .kicker {
+    font-size: 12px; letter-spacing: .32em; text-transform: uppercase;
+    color: var(--board-amber); font-weight: 700; margin: 0 0 14px;
+  }
+  .lm .mast h1 {
+    font-size: clamp(34px, 6vw, 62px); line-height: 1.02; margin: 0 0 16px;
+    font-weight: 800; letter-spacing: -.02em; max-width: 15ch;
+  }
+  .lm .mast .lede { font-size: clamp(16px, 2.2vw, 20px); color: #cfd4dc; max-width: 64ch; margin: 0; }
+  .lm .mast .metaline {
+    margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px 18px;
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--board-dim);
+  }
+  .lm .mast .metaline b { color: #f4f1ea; font-weight: 700; }
+
+  /* ---------- TRUNK LINE ---------- */
+  .lm .trunk { padding: 40px 0 8px; }
+  .lm .trunk-rail {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    position: relative; margin-top: 8px;
+  }
+  .lm .trunk-rail::before {
+    content: ""; position: absolute; left: 8%; right: 8%; top: 21px; height: 8px;
+    background: var(--ink); border-radius: 4px; z-index: 0;
+  }
+  .lm .stn { position: relative; z-index: 1; text-align: center; padding: 0 6px; }
+  .lm .stn .dot {
+    width: 42px; height: 42px; border-radius: 50%; background: var(--panel);
+    border: 8px solid var(--ink); margin: 0 auto 12px; display: grid; place-items: center;
+    font-weight: 800; font-size: 15px;
+  }
+  .lm .stn .sname { font-weight: 800; font-size: 15px; letter-spacing: -.01em; }
+  .lm .stn .snum { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .lm .stn .sdesc { font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  .lm .legend {
+    margin: 34px 0 6px; display: flex; flex-wrap: wrap; gap: 8px 10px;
+    padding: 16px; background: var(--panel); border: 1px solid var(--hair); border-radius: 12px;
+  }
+  .lm .legend .lg-title { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); width: 100%; margin-bottom: 4px; }
+  .lm .lchip { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 4px 4px; }
+  .lm .lchip .swatch { width: 26px; height: 8px; border-radius: 4px; }
+  .lm .lchip.dashed .swatch { background-image: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px); }
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  .lm section { padding: 44px 0; border-top: 1px solid var(--hair); }
+  .lm .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
+  .lm .sec-head .no { font-family: inherit; font-weight: 800; font-size: 13px; color: var(--muted); letter-spacing: .2em; }
+  .lm h2 { font-size: clamp(24px, 3.4vw, 34px); margin: 0; font-weight: 800; letter-spacing: -.02em; }
+  .lm .sec-sub { color: var(--muted); max-width: 68ch; margin: 8px 0 26px; font-size: 15.5px; }
+
+  /* ---------- DEPARTURES BOARD (verdict) ---------- */
+  .lm .board {
+    background: var(--board-bg); border-radius: 14px; overflow: hidden;
+    border: 1px solid #262c36;
+  }
+  .lm .board .bhead {
+    display: grid; grid-template-columns: 1.5fr 1.2fr 1fr;
+    gap: 12px; padding: 14px 22px; background: #0d1116;
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--board-dim); font-weight: 700;
+  }
+  .lm .board .brow {
+    display: grid; grid-template-columns: 1.5fr 1.2fr 1fr;
+    gap: 12px; padding: 16px 22px; align-items: center; border-top: 1px solid #222833;
+  }
+  .lm .board .brow .cond { color: #e6e9ee; font-size: 15px; font-weight: 600; }
+  .lm .board .brow .cond small { display: block; color: var(--board-dim); font-weight: 400; font-size: 12.5px; margin-top: 2px; }
+  .lm .board .line-tag {
+    display: inline-flex; align-items: center; gap: 9px; color: var(--board-amber);
+    font-weight: 800; font-size: 15px; letter-spacing: .01em;
+  }
+  .lm .board .line-tag .bead { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  .lm .board .platform { color: var(--board-green); font-weight: 700; }
+  .lm .board .platform .mono { font-size: 13.5px; }
+  .lm .board a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+
+  /* ---------- STAGE STATION CARDS ---------- */
+  .lm .stages { display: grid; gap: 16px; }
+  .lm .stage {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 14px;
+    padding: 22px 24px; display: grid; grid-template-columns: 54px 1fr; gap: 20px; align-items: start;
+  }
+  .lm .stage .marker {
+    width: 54px; height: 54px; border-radius: 50%; background: var(--ink); color: #fff;
+    display: grid; place-items: center; font-weight: 800; font-size: 20px;
+  }
+  .lm .stage h3 { margin: 2px 0 8px; font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+  .lm .stage p { margin: 0 0 10px; font-size: 15px; }
+  .lm .stage ul { margin: 8px 0 0; padding-left: 0; list-style: none; }
+  .lm .stage li { position: relative; padding-left: 22px; margin-bottom: 9px; font-size: 14.5px; }
+  .lm .stage li::before {
+    content: ""; position: absolute; left: 0; top: 7px; width: 10px; height: 10px;
+    border-radius: 50%; border: 3px solid var(--ink);
+  }
+  .lm .stage li.philo::before { border-color: var(--accent, var(--ink)); background: var(--accent, #fff); }
+  .lm .tag { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 20px; background: #ece7dc; color: #3a3f48; margin-left: 6px; letter-spacing: .02em; }
+
+  /* ---------- FORMAT SIGNAGE ---------- */
+  .lm .fmt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 12px; margin-top: 6px; }
+  .lm .fmt {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 12px; padding: 16px 16px 14px;
+    border-top: 6px solid var(--accent, var(--ink));
+  }
+  .lm .fmt .lib { font-weight: 800; font-size: 15.5px; margin-bottom: 6px; }
+  .lm .fmt .native { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .lm .fmt .native b { color: var(--ink); }
+  .lm .fmt .tms-fit { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; display: inline-block; }
+  .lm .fit-high { background: #dcf3e6; color: #17703f; }
+  .lm .fit-med  { background: #fdeecd; color: #8a5c00; }
+  .lm .fit-low  { background: #f5dede; color: #9a2c2c; }
+
+  /* ---------- COUPLING TRACKS ---------- */
+  .lm .tracks { display: grid; gap: 18px; }
+  .lm .track {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 16px; overflow: hidden;
+    border-left: 10px solid var(--line);
+  }
+  .lm .track .thead { padding: 16px 22px 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .lm .track .thead .bead { width: 16px; height: 16px; border-radius: 50%; background: var(--line); flex: none; }
+  .lm .track .thead h3 { margin: 0; font-size: 18px; font-weight: 800; }
+  .lm .track .thead h3 a { text-decoration: none; border-bottom: 2px solid var(--line); }
+  .lm .track .stars { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+  .lm .track .thead .role { font-size: 12px; color: var(--muted); margin-left: auto; letter-spacing: .04em; text-transform: uppercase; font-weight: 700; }
+  .lm .track .tbody { padding: 4px 22px 20px; font-size: 14.5px; }
+  .lm .track .tbody p { margin: 0 0 10px; }
+
+  /* the little station-run inside a track */
+  .lm .run { display: flex; align-items: stretch; flex-wrap: wrap; gap: 0; margin: 6px 0 16px; }
+  .lm .run .hop { display: flex; align-items: center; gap: 0; }
+  .lm .run .node {
+    font-family: "SFMono-Regular", ui-monospace, monospace; font-size: 12.5px; font-weight: 700;
+    padding: 7px 13px; background: #f0ebe0; border: 2px solid var(--line); border-radius: 22px; white-space: nowrap;
+  }
+  .lm .run .node.terminus { background: var(--line); color: #fff; border-color: var(--line); }
+  .lm .run .seg { width: 26px; height: 4px; background: var(--line); align-self: center; }
+
+  /* product platform card with og image */
+  .lm .platform-card { display: flex; gap: 16px; align-items: center; background: #faf7f0; border: 1px solid var(--hair); border-radius: 12px; padding: 12px 14px; margin-top: 4px; }
+  .lm .platform-card img.shot { width: 132px; height: 82px; object-fit: cover; border-radius: 8px; flex: none; border: 1px solid var(--hair); background: #fff; }
+  .lm .platform-card img.fav { width: 46px; height: 46px; border-radius: 9px; flex: none; background: #fff; padding: 6px; border: 1px solid var(--hair); }
+  .lm .platform-card .pc-body { font-size: 13.5px; }
+  .lm .platform-card .pc-body .pc-name { font-weight: 800; font-size: 15px; margin-bottom: 3px; }
+  .lm .platform-card .pc-body .pc-name a { text-decoration: none; border-bottom: 2px solid var(--line); }
+
+  /* ---------- 2026 SIGNALS ---------- */
+  .lm .signals { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; }
+  .lm .sig {
+    border-radius: 16px; padding: 24px 26px; color: #fff; position: relative; overflow: hidden;
+  }
+  .lm .sig.altclick { background: linear-gradient(135deg, #f0a020 0%, #d97706 100%); }
+  .lm .sig.mcp { background: linear-gradient(135deg, #14181f 0%, #2b3340 100%); }
+  .lm .sig .badge { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; font-weight: 800; opacity: .85; }
+  .lm .sig h3 { margin: 10px 0 10px; font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+  .lm .sig p { margin: 0 0 10px; font-size: 15px; opacity: .96; }
+  .lm .sig .keycombo { display: inline-flex; gap: 6px; margin: 6px 0 12px; }
+  .lm .sig .kbd {
+    font-family: ui-monospace, monospace; font-weight: 700; font-size: 14px;
+    background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.5);
+    border-radius: 7px; padding: 6px 12px; box-shadow: 0 2px 0 rgba(0,0,0,.18);
+  }
+  .lm .sig a { color: #fff; }
+  .lm .sig ul { margin: 6px 0 0; padding-left: 18px; }
+  .lm .sig li { font-size: 14px; margin-bottom: 6px; opacity: .95; }
+  .lm .sig .byok { font-family: ui-monospace, monospace; font-size: 12.5px; opacity: .9; margin-top: 8px; }
+
+  /* ---------- CI GATES ---------- */
+  .lm .gates { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  .lm .gate {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 14px; padding: 22px 24px;
+    border-top: 6px solid var(--gc);
+  }
+  .lm .gate .gnum { font-family: ui-monospace, monospace; font-weight: 800; color: var(--gc); font-size: 13px; letter-spacing: .1em; }
+  .lm .gate h3 { margin: 6px 0 8px; font-size: 20px; font-weight: 800; }
+  .lm .gate p { margin: 0 0 10px; font-size: 14.5px; }
+  .lm .gate .cost { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+  .lm .gate .tools { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .lm .gate .tools a, .lm .gate .tools span { font-family: ui-monospace, monospace; font-size: 12px; background: #f0ebe0; border: 1px solid var(--hair); border-radius: 6px; padding: 4px 9px; text-decoration: none; }
+
+  /* ---------- COMPARISON RAIL ---------- */
+  .lm .cmp-scroll { overflow-x: auto; }
+  .lm table.cmp { border-collapse: collapse; width: 100%; min-width: 820px; font-size: 13.5px; background: var(--panel); border-radius: 12px; overflow: hidden; }
+  .lm table.cmp th, .lm table.cmp td { text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  .lm table.cmp thead th { background: var(--board-bg); color: #fff; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+  .lm table.cmp tbody tr td:first-child { border-left: 8px solid var(--line); font-weight: 800; }
+  .lm table.cmp .lib-cell a { text-decoration: none; border-bottom: 2px solid var(--line); }
+  .lm table.cmp .lib-cell .stars { display: block; font-weight: 600; color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .lm table.cmp .yes { color: #17703f; font-weight: 800; }
+  .lm table.cmp .no { color: #9a2c2c; font-weight: 700; }
+  .lm table.cmp sup a { text-decoration: none; color: var(--muted); }
+
+  /* ---------- SIBLINGS ---------- */
+  .lm .sibs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .lm .sib { background: var(--panel); border: 1px solid var(--hair); border-radius: 12px; padding: 18px 20px; text-decoration: none; color: inherit; display: block; transition: transform .12s; }
+  .lm .sib:hover { transform: translateY(-3px); }
+  .lm .sib .depth { font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 800; color: var(--muted); }
+  .lm .sib h4 { margin: 6px 0 7px; font-size: 16px; font-weight: 800; line-height: 1.25; }
+  .lm .sib p { margin: 0; font-size: 13px; color: var(--muted); }
+
+  /* ---------- SOURCES ---------- */
+  .lm .sources { columns: 2; column-gap: 26px; }
+  .lm .src { break-inside: avoid; display: flex; gap: 10px; align-items: baseline; margin-bottom: 12px; font-size: 12.5px; }
+  .lm .src .n { font-family: ui-monospace, monospace; font-weight: 800; color: var(--muted); flex: none; }
+  .lm .src img { width: 16px; height: 16px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+  .lm .src a { text-decoration: none; font-weight: 700; border-bottom: 1px dotted var(--muted); }
+  .lm .src .claim { color: var(--muted); display: block; margin-top: 2px; font-weight: 400; }
+  .lm .src .st { font-family: ui-monospace, monospace; font-size: 10.5px; color: #97907f; }
+
+  /* ---------- COLOPHON ---------- */
+  .lm .colophon { background: var(--board-bg); color: #cfd4dc; padding: 34px 0; border-top: 6px solid var(--board-amber); }
+  .lm .colophon .wrap { display: flex; flex-wrap: wrap; gap: 18px 40px; align-items: baseline; justify-content: space-between; }
+  .lm .colophon a { color: var(--board-amber); text-decoration: none; font-weight: 700; }
+  .lm .colophon .cnav { display: flex; gap: 22px; flex-wrap: wrap; font-size: 14px; }
+  .lm .colophon .fine { font-size: 12px; color: var(--board-dim); }
+
+  @media (max-width: 760px) {
+    .lm .trunk-rail { grid-template-columns: 1fr 1fr; gap: 24px 6px; }
+    .lm .trunk-rail::before { display: none; }
+    .lm .board .bhead, .lm .board .brow { grid-template-columns: 1fr; gap: 6px; }
+    .lm .board .bhead { display: none; }
+    .lm .board .brow { padding: 16px 18px; }
+    .lm .signals, .lm .gates { grid-template-columns: 1fr; }
+    .lm .sources { columns: 1; }
+    .lm .stage { grid-template-columns: 1fr; }
+    .lm .stage .marker { display: none; }
+  }
+</style>
+
+<div class="lm">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="mast">
+    <div class="wrap">
+      <p class="kicker">The Localization Line · React i18n · 2026</p>
+      <h1>Ship a string, five stops down the line.</h1>
+      <p class="lede">The i18n library you pick decides your <b>extraction model</b> and <b>file format</b>. The TMS you pair it with decides your actual <b>workflow</b>. This is the route map — every service line, and the platform it terminates at.</p>
+      <div class="metaline">
+        <span>Survey depth · <b>survey</b></span>
+        <span>Stages · <b>5</b></span>
+        <span>Service lines · <b>7</b></span>
+        <span>Sources · <b>30</b></span>
+        <span>Read · <b>8 min</b></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ TRUNK LINE ============ -->
+  <div class="trunk">
+    <div class="wrap">
+      <div class="trunk-rail">
+        <div class="stn">
+          <div class="dot">01</div>
+          <div class="snum">Stop 01</div>
+          <div class="sname">Source strings</div>
+          <div class="sdesc">Author messages in code (or key files)</div>
+        </div>
+        <div class="stn">
+          <div class="dot">02</div>
+          <div class="snum">Stop 02</div>
+          <div class="sname">Extraction</div>
+          <div class="sdesc">CLI, none, or compiler — three philosophies</div>
+        </div>
+        <div class="stn">
+          <div class="dot">03</div>
+          <div class="snum">Stop 03</div>
+          <div class="sname">TMS</div>
+          <div class="sdesc">Where the coupling is decided</div>
+        </div>
+        <div class="stn">
+          <div class="dot">04</div>
+          <div class="snum">Stop 04</div>
+          <div class="sname">CI gates</div>
+          <div class="sdesc">Parity lint + TMS sync</div>
+        </div>
+        <div class="stn">
+          <div class="dot">05</div>
+          <div class="snum">Stop 05</div>
+          <div class="sname">Shipped locales</div>
+          <div class="sdesc">Translations live in the app</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span class="lg-title">Service lines — library → format → TMS coupling</span>
+        <span class="lchip"><span class="swatch" style="background:var(--l-i18next)"></span>i18next ↔ Locize</span>
+        <span class="lchip"><span class="swatch" style="background:var(--l-lingui)"></span>Lingui ↔ PO ↔ Crowdin</span>
+        <span class="lchip"><span class="swatch" style="background:var(--l-para)"></span>Paraglide ↔ inlang/Fink</span>
+        <span class="lchip"><span class="swatch" style="background:var(--l-next)"></span>next-intl ↔ Crowdin</span>
+        <span class="lchip"><span class="swatch" style="background:var(--l-formatjs)"></span>react-intl ↔ vendor formatters</span>
+        <span class="lchip"><span class="swatch" style="background:var(--l-tolgee)"></span>Tolgee ↔ (its own platform)</span>
+        <span class="lchip dashed" style="color:var(--l-typesafe)"><span class="swatch"></span>typesafe-i18n ↔ nothing</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DEPARTURES BOARD / VERDICT ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">A · VERDICT</span><h2>Board by team, not by benchmark</h2></div>
+      <p class="sec-sub">Choose the <b>pairing</b>, not the library alone. Read the condition on the left, ride the line, arrive at the platform.</p>
+
+      <div class="board">
+        <div class="bhead">
+          <div>If your team is…</div>
+          <div>Board this line</div>
+          <div>Terminates at</div>
+        </div>
+        <div class="brow">
+          <div class="cond">Non-engineer reviewers editing live copy<small>In-context editing that survives to production; self-hostable</small></div>
+          <div class="line-tag"><span class="bead" style="background:var(--l-tolgee)"></span><a href="https://tolgee.io/features/in-context">Tolgee</a></div>
+          <div class="platform"><span class="mono">Tolgee platform (OSS)</span></div>
+        </div>
+        <div class="brow">
+          <div class="cond">Bundle-obsessed, git-native, translators in a web editor<small>Tree-shaken output, agent-friendly, ⭐ 567 ecosystem</small></div>
+          <div class="line-tag"><span class="bead" style="background:var(--l-para)"></span><a href="https://github.com/opral/paraglide-js">Paraglide</a></div>
+          <div class="platform"><span class="mono">inlang / Fink</span></div>
+        </div>
+        <div class="brow">
+          <div class="cond">OSS community translation or widest integration surface<small>PO is the friction-free path</small></div>
+          <div class="line-tag"><span class="bead" style="background:var(--l-lingui)"></span><a href="https://lingui.dev/guides/message-extraction">Lingui</a> / <a href="https://www.i18next.com/overview/translation-management-systems">react-i18next</a></div>
+          <div class="platform"><span class="mono">Crowdin</span></div>
+        </div>
+        <div class="brow">
+          <div class="cond">Wanting the vendor to own the whole loop<small>Official, deepest CLI/runtime integration, AI auto-translate</small></div>
+          <div class="line-tag"><span class="bead" style="background:var(--l-i18next)"></span><a href="https://www.i18next.com/overview/translation-management-systems">react-i18next</a></div>
+          <div class="platform"><span class="mono">Locize (official)</span></div>
+        </div>
+        <div class="brow">
+          <div class="cond">Next.js, keep it lean<small>Watch useExtracted mature out of experimental</small></div>
+          <div class="line-tag"><span class="bead" style="background:var(--l-next)"></span><a href="https://next-intl.dev/docs/workflows/localization-management">next-intl</a></div>
+          <div class="platform"><span class="mono">Crowdin</span></div>
+        </div>
+        <div class="brow">
+          <div class="cond">Small app, TS-first, no translators, no TMS<small>The lack of a TMS bridge is the point</small></div>
+          <div class="line-tag" style="color:var(--board-dim)"><span class="bead" style="background:var(--l-typesafe)"></span><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a></div>
+          <div class="platform" style="color:var(--board-dim)"><span class="mono">— none, by design —</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE FIVE STOPS ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">B · THE LINE</span><h2>Five stops, and where each library sits</h2></div>
+      <p class="sec-sub">Every workflow is the same trunk line — <b>author → extract → hand off to TMS → translate → sync back → ship</b>. Libraries differ mostly at stop 02. The TMS is usually <em>implied</em> by the format, not freely chosen.</p>
+
+      <div class="stages">
+        <div class="stage">
+          <div class="marker">02</div>
+          <div>
+            <h3>Extraction — three philosophies <span class="tag">stop 02</span></h3>
+            <ul>
+              <li class="philo" style="--accent:var(--l-lingui)"><b>CLI extract-and-compile.</b> <a href="https://lingui.dev/guides/message-extraction">Lingui</a> (<span class="mono">lingui extract</span> → PO, <span class="mono">lingui compile</span> → JS) and <a href="https://formatjs.github.io/docs/react-intl/">FormatJS</a> (<span class="mono">@formatjs/cli</span> → JSON, babel/AST auto-IDs). Lingui's extract <em>merges</em> so translations survive re-runs <sup><a href="https://lingui.dev/guides/message-extraction">[4]</a></sup>; FormatJS is "powerful but fiddly" <sup><a href="https://tolgee.io/blog/react-i18n-libraries-comparison">[3]</a></sup>.</li>
+              <li class="philo" style="--accent:var(--l-i18next)"><b>No extraction — you own the key files.</b> <a href="https://www.i18next.com/overview/translation-management-systems">react-i18next</a>, next-intl (classic), <a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a>. You hand-author JSON; extraction is a TMS or lint concern. i18next's <span class="mono">i18next-cli</span> can instrument and extract, but it's Locize-oriented <sup><a href="https://www.locize.com/blog/i18next-cli-instrument">[2]</a></sup>.</li>
+              <li class="philo" style="--accent:var(--l-para)"><b>Compiler / build-time.</b> <a href="https://github.com/opral/paraglide-js">Paraglide</a> compiles messages from the <span class="mono">.inlang</span> project into tree-shakable functions <sup><a href="https://github.com/opral/paraglide-js">[9]</a></sup>; next-intl's <b>experimental</b> <span class="mono">useExtracted</span> (v4.5, Next 16+) extracts during <span class="mono">next dev/build</span> via a Turbopack/Webpack loader — no key naming, no CLI <sup><a href="https://next-intl.dev/docs/usage/extraction">[12]</a></sup><sup><a href="https://next-intl.dev/blog/use-extracted">[13]</a></sup>.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="marker">03</div>
+          <div>
+            <h3>File format decides interoperability <span class="tag">stop 03 hand-off</span></h3>
+            <p>The format is the coupling — it's what the TMS station platform is built to receive.</p>
+            <div class="fmt-grid">
+              <div class="fmt" style="--accent:var(--l-i18next)">
+                <div class="lib">react-i18next</div>
+                <div class="native">i18next JSON <span>(v3/v4 plurals)</span>, ICU optional add-on</div>
+                <span class="tms-fit fit-high">TMS-friendly · high</span>
+              </div>
+              <div class="fmt" style="--accent:var(--l-formatjs)">
+                <div class="lib">react-intl</div>
+                <div class="native">JSON, <b>ICU native</b> — most complete <sup><a href="https://formatjs.github.io/docs/react-intl/">[30]</a></sup></div>
+                <span class="tms-fit fit-high">TMS-friendly · high</span>
+              </div>
+              <div class="fmt" style="--accent:var(--l-lingui)">
+                <div class="lib">Lingui</div>
+                <div class="native"><b>PO</b> (default), JSON, CSV — carries comments &amp; contexts <sup><a href="https://lingui.dev/ref/catalog-formats">[5]</a></sup></div>
+                <span class="tms-fit fit-high">TMS-friendly · high</span>
+              </div>
+              <div class="fmt" style="--accent:var(--l-next)">
+                <div class="lib">next-intl</div>
+                <div class="native">JSON, ICU native — Crowdin-recommended</div>
+                <span class="tms-fit fit-high">TMS-friendly · high</span>
+              </div>
+              <div class="fmt" style="--accent:var(--l-para)">
+                <div class="lib">Paraglide</div>
+                <div class="native">inlang message format <span class="mono">.inlang</span> — needs inlang tooling to bridge</div>
+                <span class="tms-fit fit-med">TMS-friendly · medium</span>
+              </div>
+              <div class="fmt" style="--accent:var(--l-typesafe)">
+                <div class="lib">typesafe-i18n</div>
+                <div class="native">TS/JS objects, own parser — no TMS bridge <sup><a href="https://github.com/codingcommons/typesafe-i18n">[14]</a></sup></div>
+                <span class="tms-fit fit-low">TMS-friendly · low</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COUPLING TRACKS ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">C · SERVICE LINES</span><h2>The tight couplings, drawn as track</h2></div>
+      <p class="sec-sub">The couplings <em>are</em> the story: <b>i18next↔Locize</b>, <b>Lingui↔PO↔Crowdin</b>, <b>Paraglide↔inlang/Fink</b>. Each line runs its own way from code to shipped locale.</p>
+
+      <div class="tracks">
+
+        <!-- i18next ↔ Locize -->
+        <div class="track" style="--line:var(--l-i18next)">
+          <div class="thead">
+            <span class="bead"></span>
+            <h3><a href="https://www.i18next.com/overview/translation-management-systems">react-i18next</a></h3>
+            <span class="stars">⭐ 10k</span>
+            <span class="role">official TMS coupling</span>
+          </div>
+          <div class="tbody">
+            <div class="run">
+              <div class="hop"><span class="node">hand-authored JSON</span><span class="seg"></span></div>
+              <div class="hop"><span class="node mono">i18next-cli</span><span class="seg"></span></div>
+              <div class="hop"><span class="node terminus">Locize</span></div>
+            </div>
+            <p>Locize is the <b>official</b> TMS, built by the i18next team — the only one with a runtime backend (<span class="mono">i18next-locize-backend</span>) and native <span class="mono">locize-sync / locize-download / locize-migrate</span> commands <sup><a href="https://www.i18next.com/overview/translation-management-systems">[1]</a></sup>. The 2026 <span class="mono">i18next-cli</span> chains instrument → extract → Locize setup → AI auto-translate in one run, collapsing the old export/email/import loop <sup><a href="https://www.locize.com/blog/i18next-cli-instrument">[2]</a></sup>. Eleven other TMSes integrate, none as deeply.</p>
+            <div class="platform-card">
+              <img class="shot" src="pipeline/images/locize.webp" alt="Locize">
+              <div class="pc-body">
+                <div class="pc-name"><a href="https://www.locize.com/blog/i18next-cli-instrument">Locize</a></div>
+                Official i18next TMS · runtime backend · AI auto-translate in <span class="mono">i18next-cli</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lingui ↔ PO ↔ Crowdin -->
+        <div class="track" style="--line:var(--l-lingui)">
+          <div class="thead">
+            <span class="bead"></span>
+            <h3><a href="https://lingui.dev/guides/message-extraction">Lingui</a></h3>
+            <span class="stars">⭐ 5.8k</span>
+            <span class="role">PO lingua franca</span>
+          </div>
+          <div class="tbody">
+            <div class="run">
+              <div class="hop"><span class="node mono">lingui extract</span><span class="seg"></span></div>
+              <div class="hop"><span class="node">PO catalog</span><span class="seg"></span></div>
+              <div class="hop"><span class="node terminus">Crowdin</span></div>
+            </div>
+            <p>Lingui defaults to <b>PO</b>, and Crowdin consumes PO directly (plus a dedicated Lingui String Exporter app <sup><a href="https://store.crowdin.com/lingui-string-exporter">[7]</a></sup>). Canonical CI task: <span class="mono">lingui extract &amp;&amp; crowdin upload</span>, compiled JS catalogs at runtime <sup><a href="https://crowdin.com/blog/lingui-i18n">[6]</a></sup>. Auto-generated IDs need the <span class="mono">X-Crowdin-SourceKey</span> PO header so Crowdin knows where source strings live <sup><a href="https://tolgee.io/blog/react-i18n-libraries-comparison">[3]</a></sup>.</p>
+            <div class="platform-card">
+              <img class="shot" src="pipeline/images/crowdin.webp" alt="Crowdin">
+              <div class="pc-body">
+                <div class="pc-name"><a href="https://crowdin.com/blog/lingui-i18n">Crowdin</a></div>
+                Consumes PO directly · git-style Branches native · GitHub app auto-PRs
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paraglide ↔ inlang/Fink -->
+        <div class="track" style="--line:var(--l-para)">
+          <div class="thead">
+            <span class="bead"></span>
+            <h3><a href="https://github.com/opral/paraglide-js">Paraglide</a></h3>
+            <span class="stars">⭐ 567</span>
+            <span class="role">git-native, compiler-based</span>
+          </div>
+          <div class="tbody">
+            <div class="run">
+              <div class="hop"><span class="node mono">.inlang</span><span class="seg"></span></div>
+              <div class="hop"><span class="node">compiler</span><span class="seg"></span></div>
+              <div class="hop"><span class="node terminus">inlang / Fink</span></div>
+            </div>
+            <p>Paraglide is the compiler; the <span class="mono">.inlang</span> project is the shared source of truth; <a href="https://inlang.com/m/tdozzpar/app-inlang-finkLocalizationEditor">Fink</a> is the web CAT editor that lets translators edit messages in the git repo <em>without cloning or touching git</em> <sup><a href="https://inlang.com/m/tdozzpar/app-inlang-finkLocalizationEditor">[10]</a></sup>. The ecosystem also ships <b>Sherlock</b> (VS Code inline edit/lint/extract), the <a href="https://inlang.com/c/tools">inlang CLI</a> (CI machine-translation + validation, plugins for JSON/i18next/next-intl), and <b>Ninja i18n</b> (a GitHub lint action) <sup><a href="https://inlang.com/m/3gk8n4n4/app-inlang-githubLintAction">[21]</a></sup>. inlang and i18next can even interoperate <sup><a href="https://www.locize.com/blog/inlang-interop">[28]</a></sup>.</p>
+            <div class="platform-card">
+              <img class="fav" src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt="inlang">
+              <div class="pc-body">
+                <div class="pc-name"><a href="https://inlang.com/c/tools">inlang · Fink · Sherlock · Ninja i18n</a></div>
+                Open TMS ecosystem · translators edit in-repo, no git CLI
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- next-intl ↔ Crowdin -->
+        <div class="track" style="--line:var(--l-next)">
+          <div class="thead">
+            <span class="bead"></span>
+            <h3><a href="https://next-intl.dev/docs/workflows/localization-management">next-intl</a></h3>
+            <span class="stars">⭐ 4.3k</span>
+            <span class="role">Next.js, JSON-only</span>
+          </div>
+          <div class="tbody">
+            <div class="run">
+              <div class="hop"><span class="node">JSON messages</span><span class="seg"></span></div>
+              <div class="hop"><span class="node mono">Crowdin CLI / GitHub app</span><span class="seg"></span></div>
+              <div class="hop"><span class="node terminus">Crowdin</span></div>
+            </div>
+            <p>next-intl is JSON-only and officially recommends Crowdin, integrating via Crowdin CLI, GitHub app (auto-PRs), webhooks, over-the-air SDK, or manual up/download <sup><a href="https://next-intl.dev/docs/workflows/localization-management">[11]</a></sup>. Watch the experimental <span class="mono">useExtracted</span> path mature to kill manual key management <sup><a href="https://next-intl.dev/docs/usage/extraction">[12]</a></sup>.</p>
+          </div>
+        </div>
+
+        <!-- react-intl ↔ vendor formatters -->
+        <div class="track" style="--line:var(--l-formatjs)">
+          <div class="thead">
+            <span class="bead"></span>
+            <h3><a href="https://formatjs.github.io/docs/react-intl/">react-intl / FormatJS</a></h3>
+            <span class="stars">⭐ 14.7k</span>
+            <span class="role">emit vendor formats directly</span>
+          </div>
+          <div class="tbody">
+            <div class="run">
+              <div class="hop"><span class="node mono">@formatjs/cli</span><span class="seg"></span></div>
+              <div class="hop"><span class="node">ICU JSON</span><span class="seg"></span></div>
+              <div class="hop"><span class="node terminus">Crowdin / Lokalise / Smartling / Transifex</span></div>
+            </div>
+            <p>FormatJS's ICU is the most complete, and its CLI emits vendor-specific formats directly — built-in formatters for <span class="mono">crowdin, lokalise, smartling, transifex</span> <sup><a href="https://formatjs.github.io/docs/tooling/cli/">[16]</a></sup>, plus Phrase Strings for the extract-translate-import cycle <sup><a href="https://phrase.com/blog/posts/react-i18n-format-js/">[29]</a></sup>. The extract-and-compile pipeline is capable but "fiddly" <sup><a href="https://tolgee.io/blog/react-i18n-libraries-comparison">[3]</a></sup>.</p>
+            <div class="platform-card">
+              <img class="shot" src="pipeline/images/lokalise.webp" alt="Lokalise">
+              <div class="pc-body">
+                <div class="pc-name"><a href="https://lokalise.com/blog/mcp-for-localization/">Lokalise</a></div>
+                One of FormatJS's built-in formatter targets · MCP for localization
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- typesafe-i18n ↔ nothing -->
+        <div class="track" style="--line:var(--l-typesafe)">
+          <div class="thead">
+            <span class="bead"></span>
+            <h3><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a></h3>
+            <span class="stars">⭐ 2.5k</span>
+            <span class="role">terminus: none, by design</span>
+          </div>
+          <div class="tbody">
+            <div class="run">
+              <div class="hop"><span class="node mono">codegen (dev)</span><span class="seg"></span></div>
+              <div class="hop"><span class="node terminus" style="opacity:.75">— DIY / no TMS —</span></div>
+            </div>
+            <p>By design. You get parameter-level type checking and codegen; you build the TMS pipeline yourself or skip a TMS entirely — extraction and distribution are "left to you" <sup><a href="https://github.com/codingcommons/typesafe-i18n">[14]</a></sup>. Adopt a real workflow the day you hire a translator.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2026 SIGNALS ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">D · 2026 SIGNALS</span><h2>What changed at the platform this year</h2></div>
+      <p class="sec-sub">Two shifts define the 2026 line: in-context editing that reaches production, and AI/MCP moving the smarts to the <em>TMS side</em>.</p>
+
+      <div class="signals">
+        <div class="sig altclick">
+          <span class="badge">Stop 03 · in-context</span>
+          <h3>Tolgee: Alt-click the running app</h3>
+          <div class="keycombo"><span class="kbd">⌥ Alt</span><span class="kbd">+ click</span></div>
+          <p>Hold <b>Alt/Option + click</b> any rendered string in the running app to open an edit dialog — <b>works even in production</b>, with one-click Canvas-API screenshots for translator context <sup><a href="https://tolgee.io/features/in-context">[17]</a></sup>.</p>
+          <p>Open-source and self-hostable, native React SDK, works standalone against static JSON with no server. You can bolt it onto an existing i18next/react-intl setup <sup><a href="https://tolgee.io/tolgee-vs-crowdin">[27]</a></sup>.</p>
+          <div class="platform-card" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)">
+            <img class="shot" src="pipeline/images/tolgee.webp" alt="Tolgee">
+            <div class="pc-body" style="color:#fff">
+              <div class="pc-name"><a href="https://tolgee.io/features/in-context">Tolgee</a> <span style="font-weight:400">⭐ 4k React SDK</span></div>
+              The only line with native in-context editing that survives to production
+            </div>
+          </div>
+        </div>
+
+        <div class="sig mcp">
+          <span class="badge">Stops 03–04 · AI &amp; MCP</span>
+          <h3>The smarts moved TMS-side</h3>
+          <p>MT/AI is a <b>TMS feature, not a library feature</b> — the library only decides how easily keys reach the platform.</p>
+          <ul>
+            <li><b>MCP servers everywhere.</b> Official Model Context Protocol servers ship for Locize, Crowdin, <a href="https://lokalise.com/blog/mcp-for-localization/">Lokalise</a>, Phrase, POEditor, Tolgee, SimpleLocalize — agents add keys, trigger MT, check progress without leaving the editor <sup><a href="https://docs.i18n-keyless.com/blog/best-i18next-alternatives-2026">[19]</a></sup><sup><a href="https://lokalise.com/blog/mcp-for-localization/">[20]</a></sup>.</li>
+            <li><b>BYOK LLM keys.</b> Locize (OpenAI/Gemini/Mistral/DeepL), Crowdin (OpenAI/Gemini/Azure), POEditor and Tolgee (incl. Anthropic), SimpleLocalize <sup><a href="https://docs.i18n-keyless.com/blog/best-i18next-alternatives-2026">[19]</a></sup>.</li>
+            <li><b>Library-side exception:</b> inlang's CLI runs machine translation as a CI step against the <span class="mono">.inlang</span> project <sup><a href="https://inlang.com/c/tools">[8]</a></sup>.</li>
+          </ul>
+          <div class="byok">// differentiation now = how many tools the MCP server exposes</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CI GATES ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">E · STOP 04</span><h2>Two CI gates, cheap to expensive</h2></div>
+      <p class="sec-sub">Wire both on day one — they're library-agnostic and the single biggest quality lever. Version-control-native TMSes (<a href="https://weblate.org/en/features/">Weblate</a>) fold both into one git round-trip.</p>
+
+      <div class="gates">
+        <div class="gate" style="--gc:var(--l-lingui)">
+          <span class="gnum">GATE 1</span>
+          <h3>Structural parity lint</h3>
+          <p>Compare key sets across locale files; fail the build if a key exists in <span class="mono">en</span> but not <span class="mono">de</span>.</p>
+          <p class="cost">~5 min to configure · runs in &lt;1s <sup><a href="https://getautonoma.com/blog/i18n-testing-catching-missing-translations">[23]</a></sup></p>
+          <div class="tools">
+            <a href="https://github.com/lingualdev/i18n-check">i18n-check ⭐ 183</a>
+            <a href="https://inlang.com/m/3gk8n4n4/app-inlang-githubLintAction">Ninja i18n PR action</a>
+            <span>custom key-diff</span>
+          </div>
+        </div>
+        <div class="gate" style="--gc:var(--l-i18next)">
+          <span class="gnum">GATE 2</span>
+          <h3>TMS sync gate</h3>
+          <p>Push new source strings to the TMS, pull completed translations back — usually on merge to main.</p>
+          <p class="cost">Crowdin GitHub app auto-PRs · Lingui <span class="mono">crowdin upload</span> · Locize <span class="mono">locize-sync</span></p>
+          <div class="tools">
+            <a href="https://localhero.ai/blog/automate-i18n-github-actions">GitHub Actions patterns</a>
+            <a href="https://weblate.org/en/features/">Weblate git round-trip ⭐ 6k</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARISON RAIL ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">F · TIMETABLE</span><h2>Workflow per library</h2></div>
+      <p class="sec-sub">The full timetable — extraction, tightest TMS coupling, in-context editing, and CI story, one row per service line.</p>
+      <div class="cmp-scroll">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Library</th><th>Extraction</th><th>TMS (tightest)</th><th>In-context</th><th>CI story</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="--line:var(--l-i18next)">
+              <td class="lib-cell"><a href="https://www.i18next.com/overview/translation-management-systems">react-i18next</a><span class="stars">⭐ 10k</span></td>
+              <td><span class="no">✗</span> hand-authored JSON; <span class="mono">i18next-cli</span> (Locize) <sup><a href="https://www.locize.com/blog/i18next-cli-instrument">[2]</a></sup></td>
+              <td><b>Locize (official)</b> — runtime backend + native CLI <sup><a href="https://www.i18next.com/overview/translation-management-systems">[1]</a></sup></td>
+              <td class="no">✗ via TMS only</td>
+              <td><span class="mono">locize-sync</span>; key-diff lint</td>
+            </tr>
+            <tr style="--line:var(--l-formatjs)">
+              <td class="lib-cell"><a href="https://formatjs.github.io/docs/react-intl/">react-intl / FormatJS</a><span class="stars">⭐ 14.7k</span></td>
+              <td class="yes">✓ <span class="mono">@formatjs/cli</span>, auto-ID via babel/AST <sup><a href="https://formatjs.github.io/docs/getting-started/message-extraction/">[15]</a></sup></td>
+              <td>vendor formatters: Crowdin/Lokalise/Smartling/Transifex/Phrase <sup><a href="https://formatjs.github.io/docs/tooling/cli/">[16]</a></sup></td>
+              <td class="no">✗</td>
+              <td>extract + compile; ⚠ "fiddly" <sup><a href="https://tolgee.io/blog/react-i18n-libraries-comparison">[3]</a></sup></td>
+            </tr>
+            <tr style="--line:var(--l-lingui)">
+              <td class="lib-cell"><a href="https://lingui.dev/guides/message-extraction">Lingui</a><span class="stars">⭐ 5.8k</span></td>
+              <td class="yes">✓ <span class="mono">lingui extract</span> → <b>PO</b>, merges <sup><a href="https://lingui.dev/guides/message-extraction">[4]</a></sup></td>
+              <td><b>Crowdin</b> (PO + exporter app) <sup><a href="https://store.crowdin.com/lingui-string-exporter">[7]</a></sup></td>
+              <td class="no">✗</td>
+              <td><span class="mono">extract &amp;&amp; crowdin upload &amp;&amp; compile</span></td>
+            </tr>
+            <tr style="--line:var(--l-next)">
+              <td class="lib-cell"><a href="https://next-intl.dev/docs/workflows/localization-management">next-intl</a><span class="stars">⭐ 4.3k</span></td>
+              <td><span class="no">✗</span> classic; <span class="yes">✓</span> experimental <span class="mono">useExtracted</span> <sup><a href="https://next-intl.dev/docs/usage/extraction">[12]</a></sup></td>
+              <td><b>Crowdin</b> — CLI/GitHub app/webhooks/OTA <sup><a href="https://next-intl.dev/docs/workflows/localization-management">[11]</a></sup></td>
+              <td class="no">✗ via TMS only</td>
+              <td>Crowdin GitHub app auto-PRs</td>
+            </tr>
+            <tr style="--line:var(--l-para)">
+              <td class="lib-cell"><a href="https://github.com/opral/paraglide-js">Paraglide</a><span class="stars">⭐ 567</span></td>
+              <td class="yes">✓ compiler from <span class="mono">.inlang</span> <sup><a href="https://github.com/opral/paraglide-js">[9]</a></sup></td>
+              <td><b>inlang / Fink</b> (open TMS) <sup><a href="https://inlang.com/m/tdozzpar/app-inlang-finkLocalizationEditor">[10]</a></sup></td>
+              <td>in-editor (Sherlock) <sup><a href="https://inlang.com/c/tools">[8]</a></sup></td>
+              <td>inlang CLI: MT + validate + Ninja <sup><a href="https://inlang.com/m/3gk8n4n4/app-inlang-githubLintAction">[21]</a></sup></td>
+            </tr>
+            <tr style="--line:var(--l-typesafe)">
+              <td class="lib-cell"><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a><span class="stars">⭐ 2.5k</span></td>
+              <td>codegen in dev; no string extraction <sup><a href="https://github.com/codingcommons/typesafe-i18n">[14]</a></sup></td>
+              <td class="no">✗ none — DIY</td>
+              <td class="no">✗</td>
+              <td>type-check only; roll your own</td>
+            </tr>
+            <tr style="--line:var(--l-tolgee)">
+              <td class="lib-cell"><a href="https://tolgee.io/features/in-context">+ Tolgee SDK</a><span class="stars">⭐ 4k (React)</span></td>
+              <td>works on static JSON standalone <sup><a href="https://tolgee.io/blog/react-i18n-libraries-comparison">[3]</a></sup></td>
+              <td><b>Tolgee platform</b> (OSS, self-host) <sup><a href="https://tolgee.io/tolgee-vs-crowdin">[27]</a></sup></td>
+              <td class="yes">✓ Alt-click, incl. production <sup><a href="https://tolgee.io/features/in-context">[17]</a></sup></td>
+              <td>MT (DeepL/Google/AWS) + MCP <sup><a href="https://tolgee.io/features/ai-translation">[18]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIBLINGS / INTERCHANGE ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">G · INTERCHANGE</span><h2>Connecting lines — the other four angles</h2></div>
+      <p class="sec-sub">This page is the translation-pipeline stop on the <a href="../../">Decision framework: which React i18n library to adopt in 2026</a> expedition. Change here for:</p>
+      <div class="sibs">
+        <a class="sib" href="../../core-library-landscape-head-to-head/">
+          <span class="depth">expedition</span>
+          <h4>The Core Library Head-to-Head</h4>
+          <p>react-i18next the safe default; next-intl owns the App Router; Paraglide &amp; Lingui the compile-time challengers.</p>
+        </a>
+        <a class="sib" href="../../message-format-pluralization-icu/">
+          <span class="depth">survey</span>
+          <h4>Message format, pluralization &amp; ICU</h4>
+          <p>ICU-first vs interpolation-first vs MF2-inspired — how each authors plurals, gender and Intl formatting.</p>
+        </a>
+        <a class="sib" href="../../type-safety-extraction-developer-tooling/">
+          <span class="depth">survey</span>
+          <h4>Type safety, extraction &amp; tooling</h4>
+          <p>Compile-first libraries and next-intl give type safety for free; i18next &amp; react-intl bolt it on.</p>
+        </a>
+        <a class="sib" href="../../framework-runtime-fit/">
+          <span class="depth">survey</span>
+          <h4>Framework &amp; runtime fit</h4>
+          <p>next-intl or Lingui for the App Router; Paraglide or react-i18next for a Vite SPA.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><span class="no">H · MANIFEST</span><h2>Sources · 30 citations</h2></div>
+      <div class="sources">
+        <div class="src"><span class="n">1</span><span><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt=""><a href="https://www.i18next.com/overview/translation-management-systems">i18next — Translation Management Systems</a> <span class="st">official</span><span class="claim">Locize is the official i18next TMS with a runtime backend and native CLI; 11 others integrate less deeply.</span></span></div>
+        <div class="src"><span class="n">2</span><span><img src="https://www.google.com/s2/favicons?domain=locize.com&sz=128" alt=""><a href="https://www.locize.com/blog/i18next-cli-instrument">locize — i18next-cli instrument</a> <span class="st">vendor-blog</span><span class="claim">A 2026 i18next-cli command chains instrument, extract, Locize setup, and AI auto-translation in one run.</span></span></div>
+        <div class="src"><span class="n">3</span><span><img src="https://www.google.com/s2/favicons?domain=tolgee.io&sz=128" alt=""><a href="https://tolgee.io/blog/react-i18n-libraries-comparison">Tolgee — React i18n libraries comparison</a> <span class="st">vendor-blog</span><span class="claim">react-intl fiddly; Lingui extract → PO; Tolgee SDK wraps rendered strings for Alt-click editing.</span></span></div>
+        <div class="src"><span class="n">4</span><span><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><a href="https://lingui.dev/guides/message-extraction">Lingui — Message extraction</a> <span class="st">official</span><span class="claim">lingui extract merges with existing catalogs so translations survive re-runs.</span></span></div>
+        <div class="src"><span class="n">5</span><span><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><a href="https://lingui.dev/ref/catalog-formats">Lingui — Catalog formats</a> <span class="st">official</span><span class="claim">PO (default), JSON, CSV; PO carries translator comments, metadata, and contexts.</span></span></div>
+        <div class="src"><span class="n">6</span><span><img src="https://www.google.com/s2/favicons?domain=crowdin.com&sz=128" alt=""><a href="https://crowdin.com/blog/lingui-i18n">Crowdin — Lingui i18n</a> <span class="st">vendor-blog</span><span class="claim">Lingui CLI extracts to PO, translated via Crowdin, compiled to JSON/JS with automated CI/CD sync.</span></span></div>
+        <div class="src"><span class="n">7</span><span><img src="https://www.google.com/s2/favicons?domain=crowdin.com&sz=128" alt=""><a href="https://store.crowdin.com/lingui-string-exporter">Crowdin Store — Lingui String Exporter</a> <span class="st">vendor-blog</span><span class="claim">Crowdin ships a Lingui String Exporter app to handle Lingui PO catalogs.</span></span></div>
+        <div class="src"><span class="n">8</span><span><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt=""><a href="https://inlang.com/c/tools">inlang — Tools</a> <span class="st">official</span><span class="claim">Paraglide, inlang CLI (MT + validation, plugins for JSON/i18next/next-intl), Sherlock, Fink, macOS editor.</span></span></div>
+        <div class="src"><span class="n">9</span><span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/opral/paraglide-js">Paraglide JS</a> <span class="st">official · ⭐ 567</span><span class="claim">Compiler-based i18n emitting tree-shakable translations for up to 70% smaller bundles.</span></span></div>
+        <div class="src"><span class="n">10</span><span><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt=""><a href="https://inlang.com/m/tdozzpar/app-inlang-finkLocalizationEditor">inlang — Fink Localization Editor</a> <span class="st">official</span><span class="claim">Fink lets translators edit messages in a git repo via a web app without cloning or using git CLI.</span></span></div>
+        <div class="src"><span class="n">11</span><span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><a href="https://next-intl.dev/docs/workflows/localization-management">next-intl — Localization management</a> <span class="st">official</span><span class="claim">JSON files, recommends Crowdin via CLI, GitHub app, webhooks, OTA SDK, or manual up/download.</span></span></div>
+        <div class="src"><span class="n">12</span><span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><a href="https://next-intl.dev/docs/usage/extraction">next-intl — Extraction (useExtracted)</a> <span class="st">official</span><span class="claim">Experimental useExtracted auto-extracts with no key naming and no CLI, via a Turbopack/Webpack loader.</span></span></div>
+        <div class="src"><span class="n">13</span><span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><a href="https://next-intl.dev/blog/use-extracted">next-intl — useExtracted announcement</a> <span class="st">official</span><span class="claim">Experimental in next-intl@4.5, needs Next.js 16+.</span></span></div>
+        <div class="src"><span class="n">14</span><span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a> <span class="st">official · ⭐ 2.5k</span><span class="claim">Fully type-safe zero-dependency i18n with dev-mode codegen and no built-in TMS.</span></span></div>
+        <div class="src"><span class="n">15</span><span><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><a href="https://formatjs.github.io/docs/getting-started/message-extraction/">FormatJS — Message extraction</a> <span class="st">official</span><span class="claim">CLI extracts message IDs into JSON; babel/AST auto-inserts IDs.</span></span></div>
+        <div class="src"><span class="n">16</span><span><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><a href="https://formatjs.github.io/docs/tooling/cli/">FormatJS — CLI</a> <span class="st">official</span><span class="claim">Built-in formatters for crowdin, lokalise, smartling, transifex, plus custom.</span></span></div>
+        <div class="src"><span class="n">17</span><span><img src="https://www.google.com/s2/favicons?domain=tolgee.io&sz=128" alt=""><a href="https://tolgee.io/features/in-context">Tolgee — In-context translating</a> <span class="st">vendor-blog</span><span class="claim">Alt+click any text in the running app to edit; works even in production, with screenshot capture.</span></span></div>
+        <div class="src"><span class="n">18</span><span><img src="https://www.google.com/s2/favicons?domain=tolgee.io&sz=128" alt=""><a href="https://tolgee.io/features/ai-translation">Tolgee — AI translation</a> <span class="st">vendor-blog</span><span class="claim">Integrates DeepL, Google Translate, and AWS Translate out of the box with app-extracted context.</span></span></div>
+        <div class="src"><span class="n">19</span><span><img src="https://www.google.com/s2/favicons?domain=i18n-keyless.com&sz=128" alt=""><a href="https://docs.i18n-keyless.com/blog/best-i18next-alternatives-2026">i18n-keyless — Best i18next alternatives 2026</a> <span class="st">vendor-blog</span><span class="claim">By mid-2026 official MCP servers ship for Locize, Crowdin, Lokalise, Phrase, POEditor, Tolgee, SimpleLocalize.</span></span></div>
+        <div class="src"><span class="n">20</span><span><img src="https://www.google.com/s2/favicons?domain=lokalise.com&sz=128" alt=""><a href="https://lokalise.com/blog/mcp-for-localization/">Lokalise — MCP for localization</a> <span class="st">vendor-blog</span><span class="claim">MCP lets AI agents add keys, create tasks, and check progress in a TMS without API scripts.</span></span></div>
+        <div class="src"><span class="n">21</span><span><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt=""><a href="https://inlang.com/m/3gk8n4n4/app-inlang-githubLintAction">inlang — Ninja i18n GitHub Lint Action</a> <span class="st">official</span><span class="claim">Ninja i18n automates i18n linting for pull requests.</span></span></div>
+        <div class="src"><span class="n">22</span><span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/lingualdev/i18n-check">i18n-check</a> <span class="st">official · ⭐ 183</span><span class="claim">Validates ICU and i18next translation files, finding missing and broken translations in CI.</span></span></div>
+        <div class="src"><span class="n">23</span><span><img src="https://www.google.com/s2/favicons?domain=getautonoma.com&sz=128" alt=""><a href="https://getautonoma.com/blog/i18n-testing-catching-missing-translations">Autonoma — Catching missing translations</a> <span class="st">vendor-blog</span><span class="claim">A build-time lint comparing key sets is the cheap first CI gate, running in under a second.</span></span></div>
+        <div class="src"><span class="n">24</span><span><img src="https://www.google.com/s2/favicons?domain=localhero.ai&sz=128" alt=""><a href="https://localhero.ai/blog/automate-i18n-github-actions">Localhero — Automate i18n with GitHub Actions</a> <span class="st">vendor-blog</span><span class="claim">Three GitHub Actions approaches including missing-translation health checks.</span></span></div>
+        <div class="src"><span class="n">25</span><span><img src="https://www.google.com/s2/favicons?domain=weblate.org&sz=128" alt=""><a href="https://weblate.org/en/features/">Weblate — Features</a> <span class="st">official</span><span class="claim">Self-hostable continuous localization with tight git integration, 2500+ libre projects, supports React Intl JSON.</span></span></div>
+        <div class="src"><span class="n">26</span><span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/WeblateOrg/weblate">Weblate (repo)</a> <span class="st">official · ⭐ 6k</span><span class="claim">Web-based localization tool with tight version control integration.</span></span></div>
+        <div class="src"><span class="n">27</span><span><img src="https://www.google.com/s2/favicons?domain=tolgee.io&sz=128" alt=""><a href="https://tolgee.io/tolgee-vs-crowdin">Tolgee vs Crowdin</a> <span class="st">vendor-blog</span><span class="claim">Open-source, self-hostable Lokalise/Crowdin alternative with native React SDK and in-context editing.</span></span></div>
+        <div class="src"><span class="n">28</span><span><img src="https://www.google.com/s2/favicons?domain=locize.com&sz=128" alt=""><a href="https://www.locize.com/blog/inlang-interop">locize — i18next and inlang interop</a> <span class="st">vendor-blog</span><span class="claim">i18next and inlang can interoperate, keeping i18next runtime while using inlang tooling.</span></span></div>
+        <div class="src"><span class="n">29</span><span><img src="https://www.google.com/s2/favicons?domain=phrase.com&sz=128" alt=""><a href="https://phrase.com/blog/posts/react-i18n-format-js/">Phrase — React i18n with FormatJS</a> <span class="st">vendor-blog</span><span class="claim">react-intl/FormatJS integrates with Phrase Strings for the extract-translate-import cycle.</span></span></div>
+        <div class="src"><span class="n">30</span><span><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><a href="https://formatjs.github.io/docs/react-intl/">FormatJS — react-intl</a> <span class="st">official</span><span class="claim">Formats strings/numbers/dates/plurals using ICU MessageFormat natively.</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COLOPHON ============ -->
+  <footer class="colophon">
+    <div class="wrap">
+      <div class="cnav">
+        <a href="../">← Default view</a>
+        <a href="../../">↑ Expedition: Decision framework</a>
+        <a href="/">Atlas</a>
+      </div>
+      <div class="fine">The Localization Line · React i18n translation pipeline · 2026 · survey depth · 30 sources</div>
+    </div>
+  </footer>
+
+</div>

@@ -1,0 +1,154 @@
+---
+title: "Message format, pluralization & ICU across React i18n libraries (2026)"
+date: 2026-07-15
+depth: standard
+format: html
+topic: "Message format, pluralization & ICU for React i18n in 2026 — how messages are authored and formatted across react-i18next/i18next, FormatJS/react-intl, Lingui, next-intl, Paraglide and typesafe-i18n: ICU support, plural/gender/select, interpolation, and Intl number/date/currency/relative-time formatting."
+topic_raw: "react dependencies which i18n to use for translations in 2026"
+tags: [react, i18n, icu, pluralization, messageformat, intl]
+summary: "ICU-first (react-intl, next-intl, Lingui) vs interpolation-first (i18next default, typesafe-i18n) vs MF2-inspired (Paraglide) — how each authors plurals, gender and Intl-formatted numbers/dates."
+citations: 21
+reading_time_min: 6
+cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 279
+issue: 9
+---
+
+<style>
+  .tldr { border-left: 4px solid #b5502a; background: rgba(181,80,42,.07); padding: .8rem 1.1rem; margin: 0 0 1.4rem; border-radius: 0 6px 6px 0; }
+  .tldr b { color: #b5502a; }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  table.cmp th, table.cmp td { border: 1px solid rgba(128,128,128,.3); padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  table.cmp th { background: rgba(128,128,128,.1); }
+  .win { color: #2e7d32; font-weight: 600; }
+  .lose { color: #b23c3c; }
+  .warn { color: #b5502a; }
+  code { background: rgba(128,128,128,.14); padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+  pre { background: rgba(128,128,128,.1); padding: .7rem .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; }
+  .scroll { overflow-x: auto; }
+  h3 { margin-top: 1.6rem; }
+</style>
+
+<div class="tldr">
+<b>Decision.</b> Want ICU MessageFormat inline in your strings (the localization-industry lingua franca every TMS speaks)? Use <b>react-intl</b>, <b>next-intl</b>, or <b>Lingui</b> — all three parse ICU natively and format numbers/dates via the platform <code>Intl</code> APIs.<sup><a href="#c4">[4]</a></sup><sup><a href="#c9">[9]</a></sup><sup><a href="#c7">[7]</a></sup> Prefer a simpler interpolation syntax and CLDR plurals via suffixed JSON keys? <b>i18next/react-i18next</b> is that by default, with ICU available only through a small plugin.<sup><a href="#c3">[3]</a></sup><sup><a href="#c2">[2]</a></sup> <b>typesafe-i18n</b> uses its own compact plural/formatter syntax (no ICU).<sup><a href="#c15">[15]</a></sup> <b>Paraglide</b> deliberately skips ICU for a MessageFormat-2.0-inspired variants model, with an optional ICU plugin.<sup><a href="#c11">[11]</a></sup><sup><a href="#c13">[13]</a></sup>
+</div>
+
+<p>Every candidate resolves plurals through the same CLDR categories (<code>zero/one/two/few/many/other</code>) because they all delegate to <code>Intl.PluralRules</code> — the divergence is purely in <em>how you author the message</em>, and how well that syntax survives a round-trip through translators and a translation-management system (TMS).<sup><a href="#c18">[18]</a></sup><sup><a href="#c19">[19]</a></sup></p>
+
+<h3>Comparison</h3>
+<div class="scroll">
+<table class="cmp">
+  <tr>
+    <th>Library ⭐</th>
+    <th>ICU MessageFormat</th>
+    <th>Plurals / ordinal</th>
+    <th>Gender / select</th>
+    <th>Intl number / date / currency / relative-time</th>
+    <th>Authoring model</th>
+  </tr>
+  <tr>
+    <td><a href="https://formatjs.github.io/docs/react-intl/">react-intl</a> (FormatJS) ⭐ 15k</td>
+    <td class="win">✓ native</td>
+    <td class="win">✓ <code>plural</code> + <code>selectordinal</code>, <code>=0</code> exact, offset</td>
+    <td class="win">✓ <code>select</code></td>
+    <td class="win">✓ <code>Intl.NumberFormat/DateTimeFormat/PluralRules</code>; number/date skeletons (<code>::currency/EUR</code>)</td>
+    <td>ICU strings inline in <code>defaultMessage</code></td>
+  </tr>
+  <tr>
+    <td><a href="https://next-intl.dev/">next-intl</a> ⭐ 4.3k</td>
+    <td class="win">✓ native (wraps intl-messageformat)</td>
+    <td class="win">✓ <code>plural</code> + <code>selectordinal</code>, <code>#</code> marker</td>
+    <td class="win">✓ <code>select</code> (<code>other</code> required)</td>
+    <td class="win">✓ same FormatJS core; <code>::currency/USD</code>, <code>::percent</code> skeletons</td>
+    <td>ICU strings in JSON messages</td>
+  </tr>
+  <tr>
+    <td><a href="https://lingui.dev/">Lingui</a> ⭐ 5.8k</td>
+    <td class="win">✓ native runtime; ICU is the catalog format</td>
+    <td class="win">✓ <code>plural</code>/<code>selectOrdinal</code> macros → ICU</td>
+    <td class="win">✓ <code>select</code> macro</td>
+    <td class="win">✓ <code>i18n.number/date</code> via <code>Intl.*</code></td>
+    <td>Build-time macros compile to ICU</td>
+  </tr>
+  <tr>
+    <td><a href="https://react.i18next.com/">react-i18next</a> ⭐ 10k / <a href="https://www.i18next.com/">i18next</a> ⭐ 8.6k</td>
+    <td class="warn">△ plugin only (<a href="https://github.com/i18next/i18next-icu">i18next-icu</a> ⭐ 98)</td>
+    <td class="win">✓ default: suffixed keys (<code>key_one</code>) via <code>Intl.PluralRules</code></td>
+    <td class="warn">△ via <code>context</code> suffix, or ICU plugin <code>select</code></td>
+    <td class="win">✓ <code>Intl</code>-backed <code>format()</code> interpolation</td>
+    <td>Interpolation <code>{{count}}</code> + suffixed JSON keys</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a> ⭐ 2.5k</td>
+    <td class="lose">✗ (custom syntax)</td>
+    <td class="win">✓ <code>{{sing|plur}}</code> shorthand via <code>Intl.PluralRules</code></td>
+    <td class="warn">△ via multi-branch <code>{{...}}</code> switch</td>
+    <td class="win">✓ pipe formatters over <code>Intl.*</code></td>
+    <td>Custom compact syntax, fully typed</td>
+  </tr>
+  <tr>
+    <td><a href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs">Paraglide</a> ⭐ 567</td>
+    <td class="warn">△ not native; MF2-inspired variants, optional ICU plugin</td>
+    <td class="win">✓ variants + <code>plural</code> declaration via <code>Intl.PluralRules</code></td>
+    <td class="win">✓ variant selectors (any dimension)</td>
+    <td class="win">✓ built-in <code>number/datetime/relativetime</code> over <code>Intl.*</code></td>
+    <td>Compiled functions from JSON variants</td>
+  </tr>
+</table>
+</div>
+<p style="font-size:.8rem;opacity:.75">All sources: <a href="#cites">citations below</a>. Stars fetched Jul 2026.</p>
+
+<h3>ICU-first: react-intl, next-intl, Lingui</h3>
+<p>These treat <a href="https://formatjs.github.io/docs/intl-messageformat/">ICU MessageFormat</a> as the source of truth — react-intl formats "strings, numbers, dates, and plurals using the ICU MessageFormat standard."<sup><a href="#c5">[5]</a></sup> The whole plural/select/interpolation decision lives in one string, which is exactly what commercial TMSs (Crowdin, Phrase, Lokalise) parse and validate.<sup><a href="#c18">[18]</a></sup><sup><a href="#c20">[20]</a></sup> Canonical forms:</p>
+<pre>{count, plural, =0 {no items} one {# item} other {# items}}
+{year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday
+{gender, select, female {She} male {He} other {They}} replied
+The price is {price, number, ::currency/EUR}</pre>
+<p><b>react-intl</b> and <b>next-intl</b> share the FormatJS <code>intl-messageformat</code> engine; next-intl is explicitly "a thin wrapper around battle-tested FormatJS building blocks."<sup><a href="#c10">[10]</a></sup> Both support ICU number/date <em>skeletons</em> (the <code>::</code> prefix) so currency and percent formatting stay inside the message and remain translator-adjustable.<sup><a href="#c4">[4]</a></sup><sup><a href="#c10">[10]</a></sup> <b>Lingui</b> is ICU under the hood but you rarely hand-write it: <code>plural()</code>, <code>select()</code> and <code>&lt;Trans&gt;</code> <a href="https://lingui.dev/ref/macro">macros</a> compile your JSX/TS to ICU at build time, and <code>i18n.number()</code>/<code>i18n.date()</code> pass straight through to <code>Intl.NumberFormat</code>/<code>DateTimeFormat</code>.<sup><a href="#c6">[6]</a></sup><sup><a href="#c8">[8]</a></sup></p>
+
+<h3>Interpolation-first: i18next / react-i18next</h3>
+<p>The default i18next model is <em>not</em> ICU — it is interpolation-first with ICU available only opt-in, the core syntax split versus react-intl.<sup><a href="#c21">[21]</a></sup> Interpolation uses <code>{{count}}</code>, and pluralization uses CLDR-named <b>suffixed keys</b> resolved by <code>Intl.PluralRules</code>:<sup><a href="#c3">[3]</a></sup></p>
+<pre>{ "item_one": "{{count}} item", "item_other": "{{count}} items" }
+// Polish needs item_one / item_few / item_many / item_other</pre>
+<p>Tradeoffs vs ICU: suffixed keys are self-documenting and produce clean version-control diffs (one string per form), but the plural logic is spread across keys rather than co-located, and gender lives in a separate <code>context</code> suffix rather than a <code>select</code>.<sup><a href="#c3">[3]</a></sup> If you want the ICU inline syntax you add the <a href="https://github.com/i18next/i18next-icu">i18next-icu</a> plugin ⭐ 98 (or the <a href="https://react.i18next.com/latest/icu-trans-component">IcuTrans</a> component / <code>icu.macro</code>); both resolve to the same CLDR categories.<sup><a href="#c2">[2]</a></sup><sup><a href="#c1">[1]</a></sup> Locale-aware number/date/currency formatting is available through <code>Intl</code>-backed <code>format()</code> interpolation without the ICU plugin.<sup><a href="#c17">[17]</a></sup></p>
+
+<h3>Custom syntax: typesafe-i18n</h3>
+<p>No ICU. Plurals use a compact inline shorthand — <code>'{{zero|one|two|a few|many|a lot}} apple{{s}}'</code> — selected via <code>Intl.PluralRules</code>, and value formatting is done with pipe formatters (<code>{amount|currency}</code>) over the <code>Intl</code> namespace.<sup><a href="#c16">[16]</a></sup><sup><a href="#c15">[15]</a></sup> The payoff is end-to-end TypeScript type-safety on keys and argument types; the cost is a bespoke format most TMS tooling does not natively parse, and a known rough edge combining formatters <em>inside</em> plural branches (workaround: a custom plural-aware formatter).<sup><a href="#c16">[16]</a></sup></p>
+
+<h3>MF2-inspired: Paraglide (inlang)</h3>
+<p>Paraglide compiles messages into tree-shakable functions<sup><a href="#c22">[22]</a></sup> and models plurals/gender as <b>variants</b> with declared selectors, a design "inspired by the upcoming MessageFormat 2.0 draft" rather than ICU.<sup><a href="#c11">[11]</a></sup><sup><a href="#c13">[13]</a></sup> Plural category selection still uses <code>Intl.PluralRules</code>, and built-in formatters <code>number</code> / <code>datetime</code> / <code>relativetime</code> map onto <code>Intl.NumberFormat</code> / <code>DateTimeFormat</code> / <code>RelativeTimeFormat</code>.<sup><a href="#c12">[12]</a></sup> Teams who need the familiar ICU string syntax (or want to keep existing i18next JSON) can swap in the ICU message-format plugin instead of the default inlang format.<sup><a href="#c11">[11]</a></sup></p>
+
+<h3>Guidance</h3>
+<ul>
+  <li><b>Complex grammatical languages (Arabic 6 forms, Polish/Russian 4, Slavic gender):</b> all six select the correct CLDR category, so the real question is authoring ergonomics. ICU keeps every form of a sentence in one translatable unit — the safest for translators handling agreement and gender.<sup><a href="#c19">[19]</a></sup></li>
+  <li><b>External translators / a TMS in the loop:</b> favour ICU-native (react-intl, next-intl, Lingui) — ICU is the format professional localization tools understand and validate.<sup><a href="#c20">[20]</a></sup> A custom or MF2-inspired format means fewer off-the-shelf integrations today.</li>
+  <li><b>Developers author strings, few languages, simple plurals:</b> i18next's suffixed keys or typesafe-i18n's shorthand are lighter to write and read; add ICU only if grammar demands it.<sup><a href="#c3">[3]</a></sup></li>
+  <li><b>Relative-time (<code>2 days ago</code>):</b> only Paraglide ships a first-class <code>relativetime</code> formatter; elsewhere use <code>Intl.RelativeTimeFormat</code> as a custom formatter — ICU MessageFormat has no native relative-time argument.<sup><a href="#c12">[12]</a></sup></li>
+</ul>
+
+<h3 id="cites">Citations</h3>
+<ol style="font-size:.85rem">
+  <li id="c1"><a href="https://react.i18next.com/misc/using-with-icu-format">react-i18next — Using with ICU format</a> (official)</li>
+  <li id="c2"><a href="https://github.com/i18next/i18next-icu">i18next-icu plugin</a> ⭐ 98 (official)</li>
+  <li id="c3"><a href="https://www.locize.com/blog/i18n-pluralization">Locize — i18n Pluralization: CLDR, i18next & ICU (2026)</a> (vendor-blog)</li>
+  <li id="c4"><a href="https://formatjs.github.io/docs/intl-messageformat/">FormatJS — Intl MessageFormat</a> (official)</li>
+  <li id="c5"><a href="https://formatjs.github.io/docs/react-intl/">FormatJS — React Intl</a> (official)</li>
+  <li id="c6"><a href="https://lingui.dev/ref/macro">Lingui — Macros reference</a> (official)</li>
+  <li id="c7"><a href="https://lingui.dev/guides/message-format">Lingui — ICU MessageFormat guide</a> (official)</li>
+  <li id="c8"><a href="https://lingui.dev/ref/core">Lingui — Core API (i18n.number / i18n.date)</a> (official)</li>
+  <li id="c9"><a href="https://next-intl.dev/docs/usage/messages">next-intl — Messages (plural/select/rich text)</a> (official)</li>
+  <li id="c10"><a href="https://next-intl.dev/docs/usage/numbers">next-intl — Number formatting (skeletons)</a> (official)</li>
+  <li id="c11"><a href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs/variants">Paraglide JS — Variants (plurals/gender)</a> (official)</li>
+  <li id="c12"><a href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs/formatting">Paraglide JS — Formatting (Intl formatters)</a> (official)</li>
+  <li id="c13"><a href="https://inlang.com/m/reootnfj/plugin-inlang-messageFormat">inlang Message Format plugin (MF2-inspired)</a> (official)</li>
+  <li id="c15"><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a> ⭐ 2.5k (official)</li>
+  <li id="c16"><a href="https://github.com/codingcommons/typesafe-i18n/discussions/737">typesafe-i18n — Using formatters in plural syntax (discussion)</a> ⭐ 2.5k (forum)</li>
+  <li id="c17"><a href="https://www.i18next.com/translation-function/formatting">i18next — Formatting (Intl-backed format())</a> (official)</li>
+  <li id="c18"><a href="https://crowdin.com/blog/icu-guide">Crowdin — ICU Message Format Guide (2026)</a> (vendor-blog)</li>
+  <li id="c19"><a href="https://simplelocalize.io/blog/posts/what-is-icu/">SimpleLocalize — What is ICU message format</a> (vendor-blog)</li>
+  <li id="c20"><a href="https://phrase.com/blog/posts/guide-to-the-icu-message-format/">Phrase — Practical Guide to the ICU Message Format</a> (vendor-blog)</li>
+  <li id="c21"><a href="https://intlpull.com/blog/react-i18next-vs-react-intl-comparison-2026">IntlPull — react-i18next vs react-intl (2026)</a> (vendor-blog)</li>
+  <li id="c22"><a href="https://github.com/opral/paraglide-js">opral/paraglide-js</a> ⭐ 567 (official)</li>
+</ol>

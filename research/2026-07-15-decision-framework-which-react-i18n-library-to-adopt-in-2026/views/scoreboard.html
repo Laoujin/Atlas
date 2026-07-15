@@ -1,0 +1,441 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Decision framework: which React i18n library to adopt in 2026 — Scoreboard"
+---
+
+<style>
+  .console{
+    --bg:#14100c; --panel:#1e1811; --panel2:#261e15; --rule:#3a2e20;
+    --ink:#f5ede1; --dim:#b7a58c; --faint:#8a7a63;
+    --rust:#e2662c; --rustDark:#c2410c; --amber:#fbbf24; --amberDeep:#d97706;
+    --go:#4ade80; --wait:#fbbf24; --stop:#f87171;
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    margin:0; padding:0 clamp(1rem,4vw,3rem) 4rem; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .console *{box-sizing:border-box}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace}
+  .console a{color:inherit}
+
+  /* ---- masthead ---- */
+  .mast{
+    display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding:2rem 0 1.4rem; margin-bottom:2rem;
+    position:relative;
+  }
+  .mast .cover{
+    width:88px;height:88px;border-radius:12px;object-fit:cover;flex:0 0 auto;
+    box-shadow:0 0 0 1px var(--rule),0 10px 30px rgba(0,0,0,.5);
+  }
+  .mast .txt{flex:1 1 320px;min-width:260px}
+  .kicker{
+    font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--amber);margin:0 0 .5rem;font-weight:700;
+  }
+  .mast h1{
+    font-size:clamp(1.7rem,3.6vw,2.7rem);line-height:1.08;margin:0;font-weight:800;
+    letter-spacing:-.02em;
+  }
+  .mast h1 em{font-style:normal;color:var(--rust)}
+  .breadcrumb{font-size:.78rem;color:var(--faint);margin:.9rem 0 0}
+  .breadcrumb a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--rule)}
+  .breadcrumb a:hover{color:var(--amber)}
+
+  /* ---- verdict banner ---- */
+  .verdict{
+    display:grid;grid-template-columns:auto 1fr;gap:1.3rem;align-items:center;
+    background:
+      radial-gradient(120% 140% at 100% 0%,rgba(226,102,44,.16),transparent 60%),
+      var(--panel);
+    border:1px solid var(--rule);border-left:5px solid var(--rust);
+    border-radius:14px;padding:1.5rem 1.6rem;margin:0 0 2.4rem;
+  }
+  .verdict .glyph{font-size:2.6rem;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
+  .verdict h2{margin:0 0 .35rem;font-size:1.28rem;font-weight:800;letter-spacing:-.01em}
+  .verdict p{margin:0;color:var(--dim);font-size:.96rem}
+  .verdict strong{color:var(--ink)}
+  .verdict .hl{color:var(--amber);font-weight:700}
+
+  .sec-h{
+    display:flex;align-items:baseline;gap:.7rem;margin:2.8rem 0 1.1rem;
+  }
+  .sec-h .no{font-family:ui-monospace,monospace;color:var(--rust);font-weight:700;font-size:.85rem}
+  .sec-h h2{margin:0;font-size:1.15rem;font-weight:800;letter-spacing:-.01em}
+  .sec-h .sub{color:var(--faint);font-size:.82rem;margin-left:auto}
+
+  /* ---- decision tree ---- */
+  .tree{
+    background:var(--panel);border:1px solid var(--rule);border-radius:14px;
+    padding:1.6rem;margin:0 0 1rem;
+  }
+  .q0{
+    text-align:center;font-weight:800;font-size:1.05rem;
+    padding:.7rem 1rem;border:1px dashed var(--rust);border-radius:10px;
+    max-width:520px;margin:0 auto 1.4rem;color:var(--ink);
+    background:rgba(226,102,44,.07);
+  }
+  .q0 .mono{color:var(--amber);font-size:.82rem;display:block;margin-top:.25rem;font-weight:600;letter-spacing:.04em}
+  .branches{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+  @media(max-width:640px){.branches{grid-template-columns:1fr}}
+  .branch{border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--panel2)}
+  .branch>.head{
+    padding:.75rem 1rem;font-weight:700;font-size:.9rem;display:flex;gap:.5rem;align-items:center;
+    border-bottom:1px solid var(--rule);
+  }
+  .branch.a>.head{background:linear-gradient(90deg,rgba(74,222,128,.14),transparent)}
+  .branch.b>.head{background:linear-gradient(90deg,rgba(251,191,36,.14),transparent)}
+  .branch .head .tag{font-family:ui-monospace,monospace;font-size:.68rem;letter-spacing:.08em;
+    padding:.15rem .5rem;border-radius:5px;text-transform:uppercase}
+  .branch.a .head .tag{background:rgba(74,222,128,.16);color:var(--go)}
+  .branch.b .head .tag{background:rgba(251,191,36,.16);color:var(--wait)}
+  .leaf{padding:.7rem 1rem;border-top:1px dotted var(--rule);font-size:.88rem;color:var(--dim)}
+  .leaf:first-of-type{border-top:none}
+  .leaf .arrow{color:var(--faint);margin:0 .3rem}
+  .leaf .pick{font-weight:800;color:var(--ink)}
+  .leaf .pick a{color:var(--rust);text-decoration:none;border-bottom:1px solid rgba(226,102,44,.4)}
+  .leaf .pick a:hover{color:var(--amber);border-color:var(--amber)}
+  .leaf .why{display:block;color:var(--faint);font-size:.78rem;margin-top:.15rem}
+
+  /* ---- KPI board ---- */
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem}
+  .lib{
+    position:relative;background:var(--panel);border:1px solid var(--rule);
+    border-top:3px solid var(--role);border-radius:13px;padding:1.15rem 1.2rem 1.25rem;
+    display:flex;flex-direction:column;
+  }
+  .lib.go{--role:var(--go)} .lib.wait{--role:var(--wait)} .lib.stop{--role:var(--stop)}
+  .lib .rank{
+    position:absolute;top:-.7rem;right:1rem;font-family:ui-monospace,monospace;
+    font-size:.72rem;font-weight:700;background:var(--panel2);border:1px solid var(--rule);
+    color:var(--faint);padding:.15rem .5rem;border-radius:20px;
+  }
+  .lib .name{display:flex;align-items:center;gap:.55rem;margin:.1rem 0 .15rem}
+  .lib .name img{width:22px;height:22px;border-radius:5px;flex:0 0 auto;background:#fff2}
+  .lib .name h3{margin:0;font-size:1.12rem;font-weight:800;letter-spacing:-.01em}
+  .lib .name h3 a{color:var(--ink);text-decoration:none}
+  .lib .name h3 a:hover{color:var(--amber)}
+  .lib .stars{font-family:ui-monospace,monospace;font-size:.78rem;color:var(--amber);white-space:nowrap;margin-left:auto}
+  .lib .role{
+    display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    padding:.2rem .55rem;border-radius:6px;margin:.15rem 0 .9rem;width:max-content;
+    background:color-mix(in srgb,var(--role) 18%,transparent);color:var(--role);
+  }
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin:0 0 .85rem}
+  .kpi{background:var(--panel2);border:1px solid var(--rule);border-radius:9px;padding:.55rem .65rem}
+  .kpi .k{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:.15rem}
+  .kpi .v{font-family:ui-monospace,monospace;font-weight:700;font-size:1.02rem;color:var(--ink);line-height:1.15}
+  .kpi.big .v{font-size:1.35rem;color:var(--amber)}
+  .kpi .u{font-size:.66rem;color:var(--faint);font-weight:400}
+  .lib .note{font-size:.82rem;color:var(--dim);margin:auto 0 0;padding-top:.3rem}
+  .lib .note .warn{color:var(--stop)}
+  .lib sup a{color:var(--faint);text-decoration:none;font-size:.62rem}
+
+  /* ---- axis matrix ---- */
+  .scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:13px;background:var(--panel)}
+  table.mx{border-collapse:collapse;width:100%;min-width:720px;font-size:.8rem}
+  table.mx th,table.mx td{padding:.55rem .6rem;text-align:left;border-bottom:1px solid var(--rule);vertical-align:middle}
+  table.mx thead th{
+    position:sticky;top:0;background:var(--panel2);font-size:.68rem;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--dim);font-weight:700;border-bottom:1px solid var(--rule);
+  }
+  table.mx tbody th{font-weight:700;color:var(--ink);white-space:nowrap;background:var(--panel2)}
+  table.mx td{color:var(--dim);font-family:ui-monospace,monospace;font-size:.74rem}
+  table.mx td.win{color:var(--go);background:rgba(74,222,128,.09)}
+  table.mx td.lose{color:var(--stop);background:rgba(248,113,113,.08)}
+  table.mx tr:last-child td,table.mx tr:last-child th{border-bottom:none}
+
+  /* ---- sources + siblings ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .src{display:flex;gap:.6rem;align-items:flex-start;padding:.55rem 0;border-bottom:1px solid var(--rule);font-size:.82rem}
+  .src:last-child{border-bottom:none}
+  .src img{width:18px;height:18px;border-radius:4px;margin-top:.15rem;flex:0 0 auto;background:#fff2}
+  .src .n{font-family:ui-monospace,monospace;color:var(--rust);font-weight:700;flex:0 0 auto;font-size:.72rem;margin-top:.1rem}
+  .src a{color:var(--ink);text-decoration:none}
+  .src a:hover{color:var(--amber)}
+  .src .c{display:block;color:var(--faint);font-size:.74rem;margin-top:.1rem}
+  .sib{display:block;background:var(--panel);border:1px solid var(--rule);border-radius:11px;
+    padding:.85rem 1rem;margin-bottom:.7rem;text-decoration:none;transition:border-color .15s}
+  .sib:hover{border-color:var(--rust)}
+  .sib .d{font-family:ui-monospace,monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--amber)}
+  .sib h4{margin:.2rem 0 .25rem;font-size:.92rem;color:var(--ink);font-weight:700}
+  .sib p{margin:0;font-size:.78rem;color:var(--faint);line-height:1.4}
+
+  .foot{margin-top:2.6rem;padding-top:1.3rem;border-top:1px solid var(--rule);
+    font-size:.78rem;color:var(--faint)}
+  .foot .open{color:var(--dim)}
+  .foot .open b{color:var(--rust)}
+</style>
+
+<div class="console">
+
+  <header class="mast">
+    <img class="cover" src="../cover.svg" alt="">
+    <div class="txt">
+      <p class="kicker">i18n Decision Console · 2026</p>
+      <h1>Six React i18n libraries, <em>one runtime question</em></h1>
+      <p class="breadcrumb">
+        <a href="/">Atlas</a> / <a href="../">Decision framework: which React i18n library to adopt in 2026</a> / Scoreboard
+      </p>
+    </div>
+  </header>
+
+  <section class="verdict">
+    <div class="glyph">⚖</div>
+    <div>
+      <h2>The runtime decides — not taste.</h2>
+      <p>
+        <strong><a href="https://react.i18next.com/misc/using-with-icu-format" style="color:var(--rust);text-decoration:none">react-i18next</a></strong>
+        is still the boring, universal <span class="hl">safe default</span> by an order-of-magnitude download lead <sup><a href="https://api.npmjs.org/downloads/point/last-week/react-i18next">[9]</a></sup> — but the momentum, the tiny bundles and the free type-safety live in the
+        <span class="hl">compile-time cohort</span>: Paraglide, Lingui, and next-intl's ahead-of-time path.
+        Pick by where you ship: <strong>Next.js App Router → next-intl</strong>, <strong>Vite SPA → Paraglide / react-i18next</strong>.
+      </p>
+    </div>
+  </section>
+
+  <div class="sec-h">
+    <span class="no">01</span><h2>The decision tree</h2>
+    <span class="sub">start at the runtime, not the feature list</span>
+  </div>
+  <div class="tree">
+    <div class="q0">
+      What runtime are you shipping to?
+      <span class="mono">the split is compile-time (tree-shakeable) vs runtime-dictionary</span>
+    </div>
+    <div class="branches">
+      <div class="branch a">
+        <div class="head"><span class="tag">Server-first</span> Next.js App Router / RSC</div>
+        <div class="leaf">
+          <span class="arrow">→</span><span class="pick"><a href="https://next-intl.dev/docs/getting-started/app-router">next-intl</a></span>
+          <span class="why">RSC-native, resolves on the server with no <code>use client</code> boundary; 457&nbsp;B server-only.<sup><a href="https://next-intl.dev/docs/getting-started/app-router">[2]</a></sup></span>
+        </div>
+        <div class="leaf">
+          <span class="arrow">→</span><span class="pick"><a href="https://lingui.dev/tutorials/react-rsc">Lingui</a></span>
+          <span class="why">Alternative App-Router pick — RSC support since v5, automatic extraction.<sup><a href="https://lingui.dev/tutorials/react-rsc">[3]</a></sup></span>
+        </div>
+      </div>
+      <div class="branch b">
+        <div class="head"><span class="tag">Client-first</span> Vite SPA / framework-agnostic</div>
+        <div class="leaf">
+          <span class="arrow">→</span><span class="pick"><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">Paraglide</a></span>
+          <span class="why">Bundle + types lead — the aggressive bet: 47&nbsp;kB vs 205&nbsp;kB, flat as the catalog grows.<sup><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">[8]</a></sup></span>
+        </div>
+        <div class="leaf">
+          <span class="arrow">→</span><span class="pick"><a href="https://react.i18next.com/misc/using-with-icu-format">react-i18next</a></span>
+          <span class="why">React Native, several frameworks, or a large existing team — proven and universal.<sup><a href="https://dev.to/erayg/best-i18n-libraries-for-nextjs-react-react-native-in-2026-honest-comparison-3m8f">[11]</a></sup></span>
+        </div>
+        <div class="leaf">
+          <span class="arrow">→</span><span class="pick"><a href="https://formatjs.github.io/docs/react-intl/">react-intl</a></span>
+          <span class="why">Translators live in ICU / you need the richest formatting.<sup><a href="https://formatjs.github.io/docs/react-intl/">[4]</a></sup></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-h">
+    <span class="no">02</span><h2>The scoreboard</h2>
+    <span class="sub">stars · weekly npm · bundle · runtime model — Jul 2026</span>
+  </div>
+  <div class="board">
+
+    <div class="lib go">
+      <span class="rank">#1 · DEFAULT</span>
+      <div class="name">
+        <img src="https://www.google.com/s2/favicons?domain=react.i18next.com&sz=128" alt="">
+        <h3><a href="https://react.i18next.com/misc/using-with-icu-format">react-i18next</a></h3>
+        <span class="stars">⭐ 10k</span>
+      </div>
+      <span class="role">Safe default</span>
+      <div class="kpis">
+        <div class="kpi big"><div class="k">Weekly npm</div><div class="v">10.5M</div></div>
+        <div class="kpi"><div class="k">Bundle min+gz</div><div class="v">15–22<span class="u"> kB</span></div></div>
+        <div class="kpi"><div class="k">Runtime model</div><div class="v" style="font-size:.8rem">Runtime resolver</div></div>
+        <div class="kpi"><div class="k">Reach</div><div class="v" style="font-size:.8rem">RN · Node · vanilla</div></div>
+      </div>
+      <p class="note">Biggest ecosystem and every TMS — but ships the whole catalog to the client and <span class="warn">types nothing by default</span>.<sup><a href="https://www.i18next.com/overview/typescript">[1]</a></sup></p>
+    </div>
+
+    <div class="lib go">
+      <span class="rank">#2 · APP ROUTER</span>
+      <div class="name">
+        <img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt="">
+        <h3><a href="https://next-intl.dev/docs/getting-started/app-router">next-intl</a></h3>
+        <span class="stars">⭐ 4.3k</span>
+      </div>
+      <span class="role">Next.js pick</span>
+      <div class="kpis">
+        <div class="kpi big"><div class="k">Weekly npm</div><div class="v">4.0M</div></div>
+        <div class="kpi"><div class="k">Bundle</div><div class="v">457<span class="u"> B server</span></div></div>
+        <div class="kpi"><div class="k">Runtime model</div><div class="v" style="font-size:.8rem">Runtime + AOT · RSC</div></div>
+        <div class="kpi"><div class="k">Reach</div><div class="v" style="font-size:.8rem">Next.js only</div></div>
+      </div>
+      <p class="note">RSC-native default, ICU + typed keys out of the box — but Next-only and <span class="warn">effectively single-maintainer</span>.<sup><a href="https://github.com/amannn/next-intl">[10]</a></sup></p>
+    </div>
+
+    <div class="lib go">
+      <span class="rank">#3 · COMPILE-TIME</span>
+      <div class="name">
+        <img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt="">
+        <h3><a href="https://lingui.dev/tutorials/react-rsc">Lingui</a></h3>
+        <span class="stars">⭐ 5.8k</span>
+      </div>
+      <span class="role">Safe compile-time pick</span>
+      <div class="kpis">
+        <div class="kpi big"><div class="k">Weekly npm</div><div class="v">1.05M</div></div>
+        <div class="kpi"><div class="k">Bundle</div><div class="v">~10<span class="u"> kB · 2–3 rt</span></div></div>
+        <div class="kpi"><div class="k">Runtime model</div><div class="v" style="font-size:.8rem">Compile macros · RSC</div></div>
+        <div class="kpi"><div class="k">Reach</div><div class="v" style="font-size:.8rem">Multi-framework</div></div>
+      </div>
+      <p class="note">Automatic extraction, compile-time types, RSC since v5 — catalog accuracy depends on how tree-shakeably you write.<sup><a href="https://crowdin.com/blog/lingui-i18n">[7]</a></sup></p>
+    </div>
+
+    <div class="lib wait">
+      <span class="rank">#4 · THE BET</span>
+      <div class="name">
+        <img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt="">
+        <h3><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">Paraglide-JS</a></h3>
+        <span class="stars">⭐ 567</span>
+      </div>
+      <span class="role">Aggressive bet</span>
+      <div class="kpis">
+        <div class="kpi big"><div class="k">Weekly npm</div><div class="v">395k</div></div>
+        <div class="kpi"><div class="k">Bundle</div><div class="v">~1<span class="u"> kB / locale</span></div></div>
+        <div class="kpi"><div class="k">Runtime model</div><div class="v" style="font-size:.8rem">Compile · typed fns</div></div>
+        <div class="kpi"><div class="k">Reach</div><div class="v" style="font-size:.8rem">Vite · Astro · Vue…</div></div>
+      </div>
+      <p class="note">Wins bundle + type-safety decisively; missing key = compile error — but youngest of the set and <span class="warn">no React Native adapter</span>.<sup><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">[8]</a></sup></p>
+    </div>
+
+    <div class="lib wait">
+      <span class="rank">#5 · ICU PURIST</span>
+      <div class="name">
+        <img src="https://www.google.com/s2/favicons?domain=formatjs.io&sz=128" alt="">
+        <h3><a href="https://formatjs.github.io/docs/react-intl/">react-intl</a></h3>
+        <span class="stars">⭐ 15k</span>
+      </div>
+      <span class="role">ICU purist</span>
+      <div class="kpis">
+        <div class="kpi big"><div class="k">Weekly npm</div><div class="v">3.4M</div></div>
+        <div class="kpi"><div class="k">Bundle</div><div class="v">13–20<span class="u"> kB</span></div></div>
+        <div class="kpi"><div class="k">Runtime model</div><div class="v" style="font-size:.8rem">Runtime · full ICU</div></div>
+        <div class="kpi"><div class="k">Reach</div><div class="v" style="font-size:.8rem">React-focused</div></div>
+      </div>
+      <p class="note">Most complete ICU MessageFormat on native <code>Intl</code> — the pick when strict ICU is non-negotiable; verbose API, largest mainstream bundle.<sup><a href="https://formatjs.github.io/docs/react-intl/">[4]</a></sup></p>
+    </div>
+
+    <div class="lib stop">
+      <span class="rank">#6 · SKIP</span>
+      <div class="name">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <h3><a href="https://www.npmjs.com/package/typesafe-i18n">typesafe-i18n</a></h3>
+        <span class="stars">⭐ 2.5k</span>
+      </div>
+      <span class="role">Stalled</span>
+      <div class="kpis">
+        <div class="kpi big"><div class="k">Weekly npm</div><div class="v" style="color:var(--stop)">48k</div></div>
+        <div class="kpi"><div class="k">Bundle</div><div class="v">~1<span class="u"> kB + gen</span></div></div>
+        <div class="kpi"><div class="k">Runtime model</div><div class="v" style="font-size:.8rem">Codegen dictionary</div></div>
+        <div class="kpi"><div class="k">Cadence</div><div class="v" style="font-size:.8rem;color:var(--stop)">slowing</div></div>
+      </div>
+      <p class="note">Pioneered typed i18n, but downloads sit an order of magnitude below the pack. <span class="warn">Prefer Paraglide</span> for the same promise on a healthier project.<sup><a href="https://www.npmjs.com/package/typesafe-i18n">[12]</a></sup></p>
+    </div>
+
+  </div>
+
+  <div class="sec-h">
+    <span class="no">03</span><h2>Head-to-head on the axes that decide it</h2>
+    <span class="sub">green = wins the axis · red = weak spot</span>
+  </div>
+  <div class="scroll">
+    <table class="mx">
+      <thead>
+        <tr>
+          <th>Axis</th><th>react-i18next</th><th>react-intl</th><th>Lingui</th><th>next-intl</th><th>Paraglide</th><th>typesafe-i18n</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Message format</th>
+          <td>Custom {{x}} · ICU via plugin</td><td class="win">Full ICU</td><td>ICU macros</td><td>ICU inline</td><td>ICU-style</td><td>Custom typed</td>
+        </tr>
+        <tr>
+          <th>Type safety (keys)</th>
+          <td class="lose">Opt-in TS augment</td><td>Moderate</td><td class="win">Compile-time</td><td class="win">Autocomplete + checks</td><td class="win">Missing key = error</td><td class="win">Best-in-class codegen</td>
+        </tr>
+        <tr>
+          <th>Tree-shakes strings</th>
+          <td class="lose">✗ full catalog</td><td class="lose">✗</td><td>✓ extraction-dep</td><td>Partial (AOT)</td><td class="win">✓ per-message</td><td>✓</td>
+        </tr>
+        <tr>
+          <th>RSC / App Router</th>
+          <td class="lose">Needs setup</td><td>Manual</td><td class="win">✓ v5+</td><td class="win">✓ native</td><td>✓ adapters</td><td>Limited</td>
+        </tr>
+        <tr>
+          <th>Beyond React</th>
+          <td class="win">✓ RN · Node · vanilla</td><td>React-focused</td><td>✓ multi-FW</td><td class="lose">Next.js only</td><td>✓ Vite · Astro · Vue</td><td>✓ multi-FW</td>
+        </tr>
+        <tr>
+          <th>Auto extraction</th>
+          <td>Manual + tools</td><td>CLI</td><td class="win">✓ CLI</td><td>Manual</td><td>Compiler</td><td>Codegen watcher</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <div class="sec-h"><span class="no">04</span><h2>Dig into an angle</h2></div>
+      <a class="sib" href="../core-library-landscape-head-to-head/">
+        <span class="d">Expedition</span>
+        <h4>The Core Library Head-to-Head</h4>
+        <p>react-i18next is still the safe default; next-intl owns the App Router; Paraglide and Lingui are the compile-time challengers.</p>
+      </a>
+      <a class="sib" href="../message-format-pluralization-icu/">
+        <span class="d">Survey</span>
+        <h4>Message format, pluralization &amp; ICU</h4>
+        <p>ICU-first vs interpolation-first vs MF2-inspired — how each authors plurals, gender and Intl-formatted numbers/dates.</p>
+      </a>
+      <a class="sib" href="../type-safety-extraction-developer-tooling/">
+        <span class="d">Survey</span>
+        <h4>Type safety, extraction &amp; tooling</h4>
+        <p>Compile-first libraries and next-intl give type safety for free; i18next and react-intl bolt it on.</p>
+      </a>
+      <a class="sib" href="../framework-runtime-fit/">
+        <span class="d">Survey</span>
+        <h4>Framework &amp; runtime fit</h4>
+        <p>next-intl or Lingui for the App Router; Paraglide or react-i18next for a Vite SPA — compile-time vs runtime-dictionary.</p>
+      </a>
+      <a class="sib" href="../translation-management-workflow/">
+        <span class="d">Survey</span>
+        <h4>The translation pipeline</h4>
+        <p>The library pins your extraction model and file format; the TMS you pair it with decides your actual workflow.</p>
+      </a>
+    </div>
+
+    <div>
+      <div class="sec-h"><span class="no">05</span><h2>Sources</h2></div>
+      <div class="src"><span class="n">1</span><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt=""><span><a href="https://www.i18next.com/overview/typescript">i18next — TypeScript</a><span class="c">Types bolted on via hand-maintained d.ts augmentation.</span></span></div>
+      <div class="src"><span class="n">2</span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><span><a href="https://next-intl.dev/docs/getting-started/app-router">next-intl — App Router</a><span class="c">Resolves on the server, no <code>use client</code> boundary.</span></span></div>
+      <div class="src"><span class="n">3</span><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><span><a href="https://lingui.dev/tutorials/react-rsc">Lingui — React Server Components</a><span class="c">Server-side resolution since v5+.</span></span></div>
+      <div class="src"><span class="n">4</span><img src="https://www.google.com/s2/favicons?domain=formatjs.io&sz=128" alt=""><span><a href="https://formatjs.github.io/docs/react-intl/">FormatJS — react-intl</a><span class="c">Full ICU MessageFormat on native Intl.</span></span></div>
+      <div class="src"><span class="n">5</span><img src="https://www.google.com/s2/favicons?domain=react.i18next.com&sz=128" alt=""><span><a href="https://react.i18next.com/misc/using-with-icu-format">react-i18next — ICU format</a><span class="c">Custom interpolation; ICU only via plugin.</span></span></div>
+      <div class="src"><span class="n">6</span><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt=""><span><a href="https://www.i18next.com/overview/translation-management-systems">i18next — TMS</a><span class="c">Leans on Locize / Crowdin / Phrase.</span></span></div>
+      <div class="src"><span class="n">7</span><img src="https://www.google.com/s2/favicons?domain=crowdin.com&sz=128" alt=""><span><a href="https://crowdin.com/blog/lingui-i18n">Crowdin — Lingui</a><span class="c">Lingui commits you to gettext PO through Crowdin.</span></span></div>
+      <div class="src"><span class="n">8</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">Paraglide vs react-i18next</a><span class="c">47 kB vs 205 kB at 5 locales × 100 messages. ⭐ 567</span></span></div>
+      <div class="src"><span class="n">9</span><img src="https://www.google.com/s2/favicons?domain=npmjs.org&sz=128" alt=""><span><a href="https://api.npmjs.org/downloads/point/last-week/react-i18next">npm — react-i18next downloads</a><span class="c">Order-of-magnitude download lead.</span></span></div>
+      <div class="src"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/amannn/next-intl">next-intl (amannn)</a><span class="c">Wins App Router; Next-only, single-maintainer. ⭐ 4.3k</span></span></div>
+      <div class="src"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><span><a href="https://dev.to/erayg/best-i18n-libraries-for-nextjs-react-react-native-in-2026-honest-comparison-3m8f">Best i18n libraries 2026 — honest comparison</a><span class="c">RN / multi-FW / big team → react-i18next.</span></span></div>
+      <div class="src"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><span><a href="https://www.npmjs.com/package/typesafe-i18n">npm — typesafe-i18n</a><span class="c">Stalled; prefer Paraglide.</span></span></div>
+      <div class="src"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><span><a href="https://gundogmuseray.medium.com/the-definitive-guide-to-i18n-libraries-for-next-js-react-in-2026-8102c7f68a77">Definitive guide to i18n libraries 2026</a><span class="c">Mid-project i18n switch is among the most painful refactors.</span></span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <p class="open"><b>The bet:</b> this run did not quantify migration cost — and a mid-project i18n switch is one of the most painful frontend refactors, which is exactly what makes the compile-time choice a bet. The question upstream of every card above: is the target a Vite SPA or a Next.js App Router app?</p>
+    <p style="margin:.6rem 0 0">Stars in ⭐ format, weekly downloads and bundle figures restated from the head-to-head child (fetched 2026-07-15); bundle numbers are min+gz ranges, not guarantees.</p>
+  </div>
+
+</div>
