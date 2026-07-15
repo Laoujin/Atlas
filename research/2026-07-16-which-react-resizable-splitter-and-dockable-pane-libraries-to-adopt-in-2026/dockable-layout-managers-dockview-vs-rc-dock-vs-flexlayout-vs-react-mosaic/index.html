@@ -1,0 +1,235 @@
+---
+title: "Draggable VS Code-style panes in React: Dockview vs rc-dock vs FlexLayout vs react-mosaic (2026)"
+date: 2026-07-16
+depth: deep
+format: html
+topic: "Dockable / draggable pane layout managers for React (2026): Dockview vs rc-dock vs FlexLayout vs react-mosaic — decision framework for VS Code-style docking (drag to dock, tab-stack, split, float, serialize)."
+topic_raw: "Something that \"panes\" can be drag & dropped like in Visual Studio — does it exist for React?"
+tags: [react, ui, docking-layout, dockview, typescript]
+summary: "Yes: Dockview is the default modern pick for VS Code-style pane docking in React; three real alternatives fit narrower cases."
+citations: 40
+reading_time_min: 9
+cover: cover.svg
+model: "Opus 4.8"
+cost_usd: "sub"
+duration_sec: 550
+issue: 10
+---
+
+<style>
+  .tldr { border-left: 4px solid #b5533a; background: rgba(181,83,58,.07); padding: .9rem 1.1rem; margin: 0 0 1.6rem; border-radius: 4px; }
+  .tldr strong { letter-spacing: .04em; }
+  .matrix { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: .4rem 0 1.4rem; }
+  th, td { border: 1px solid rgba(128,128,128,.35); padding: .42rem .6rem; text-align: left; vertical-align: top; }
+  th { background: rgba(128,128,128,.12); }
+  td.win { color: #2e7d32; font-weight: 600; }
+  td.lose { color: #b5533a; }
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 1rem 0 1.6rem; }
+  .card { border: 1px solid rgba(128,128,128,.35); border-radius: 6px; padding: .9rem 1rem; }
+  .card h3 { margin: 0 0 .2rem; }
+  .card .stars { font-size: .82rem; opacity: .8; }
+  sup a { text-decoration: none; }
+  .verdict { font-weight: 600; }
+</style>
+
+<div class="tldr">
+<strong>DECISION.</strong> Yes — the Visual Studio / VS Code "drag a pane, dock it to an edge, stack it as a tab, float it, pop it into another window" experience exists for React, and the default answer is <a href="https://dockview.dev/">Dockview</a><sup><a href="https://dockview.dev/">[1]</a></sup>. Pick <strong>Dockview</strong> for a full IDE-grade dock (tabs + tiling + floating + popout, framework-agnostic core, best TypeScript)<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup>; <strong>rc-dock</strong> for the fastest drop-in five-way tab docking in a React-only app<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup>; <strong>FlexLayout</strong> when a clean serializable JSON tree and multi-monitor popouts matter most (it's the library golden-layout itself now points React users to)<sup><a href="https://golden-layout.github.io/golden-layout/version-2/">[6]</a></sup>; <strong>react-mosaic</strong> for i3-style tiling dashboards — and, new in v7, tab-stacking too<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup>. <strong>golden-layout</strong> is historical context only: it dropped React in v2 and last shipped in 2022<sup><a href="https://github.com/golden-layout/golden-layout">[22]</a></sup>.
+</div>
+
+<h2>What you're actually asking for</h2>
+
+<p>"Drag panes like in Visual Studio" is a <em>docking layout manager</em>: panels you grab by the tab, drag to a dock zone (left/right/top/bottom/center), stack into tab groups, split, resize, tear off into floating overlays or separate OS windows, and serialize the whole arrangement to restore later. That is a different, heavier thing than a resizable splitter (<a href="https://github.com/bvaughn/react-resizable-panels">react-resizable-panels</a> ⭐ 5.3k, <a href="https://github.com/johnwalley/allotment">Allotment</a> ⭐ 1.3k) — if you only need adjustable split panes with no tabs/floating, use those instead and stop reading<sup><a href="https://viprasol.com/blog/react-resizable-panels/">[31]</a></sup><sup><a href="https://github.com/bvaughn/react-resizable-panels">[32]</a></sup><sup><a href="https://github.com/johnwalley/allotment">[33]</a></sup><sup><a href="https://npm-compare.com/react-dock,react-resize-panel,react-split-pane">[34]</a></sup>. Four libraries genuinely deliver the full docking experience in React.</p>
+
+<h2>The candidates</h2>
+
+<div class="cards">
+  <div class="card">
+    <h3><a href="https://dockview.dev/">Dockview</a></h3>
+    <div class="stars">⭐ 3.3k (Jul 2026) · MIT · npm <code>dockview-react</code></div>
+    <p>Framework-agnostic vanilla-TS core with first-party React/Vue/Angular wrappers. Tabs, groups, grid/splitview, drag-dock, floating groups, and popout windows — the closest modern successor to golden-layout<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup><sup><a href="https://dockview.dev/docs/overview/introduction/">[8]</a></sup><sup><a href="https://portalzine.de/docker-layouts-with-goldenlayout/">[23]</a></sup>.</p>
+  </div>
+  <div class="card">
+    <h3><a href="https://github.com/ticlo/rc-dock">rc-dock</a></h3>
+    <div class="stars">⭐ 812 (Jul 2026) · Apache-2.0 · npm <code>rc-dock</code></div>
+    <p>React-only. Effortless five-position drag docking, float boxes, max box, popup-to-new-window, and <code>saveLayout</code>/<code>loadLayout</code>. Minimal setup, gets working fast<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup><sup><a href="https://github.com/ticlo/rc-dock">[15]</a></sup>.</p>
+  </div>
+  <div class="card">
+    <h3><a href="https://github.com/caplin/FlexLayout">FlexLayout</a></h3>
+    <div class="stars">⭐ 1.3k (Jul 2026) · MIT · npm <code>flexlayout-react</code></div>
+    <p>React-only, zero deps but React. Layout is a predictable JSON model (<code>Model.toJson/fromJson</code>); nested tabsets, border panels, popout-to-external-window. golden-layout's official React recommendation<sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup><sup><a href="https://golden-layout.github.io/golden-layout/version-2/">[6]</a></sup>.</p>
+  </div>
+  <div class="card">
+    <h3><a href="https://github.com/nomcopter/react-mosaic">react-mosaic</a></h3>
+    <div class="stars">⭐ 4.8k (Jul 2026) · Apache-2.0 · npm <code>react-mosaic-component</code></div>
+    <p>React tiling window manager (i3-style). v7 (Jul 2026) rewrote the engine to an n-ary tree and added first-class tab nodes, closing its biggest historical gap<sup><a href="https://github.com/nomcopter/react-mosaic">[7]</a></sup><sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup>.</p>
+  </div>
+</div>
+
+<h2>Feature matrix</h2>
+
+<div class="matrix">
+<table>
+<thead>
+<tr><th>Capability</th><th>Dockview</th><th>rc-dock</th><th>FlexLayout</th><th>react-mosaic</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Docking model</td>
+  <td>Tabs + groups + grid/splitview (full VS Code dock)<sup><a href="https://dockview.dev/docs/overview/introduction/">[8]</a></sup></td>
+  <td>Tabs + 5-position dock zones<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup></td>
+  <td>Nested tabsets + border panels<sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup></td>
+  <td>N-ary tiling; tabs added v7<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup></td>
+</tr>
+<tr>
+  <td>Tab-stack groups</td>
+  <td class="win">✓ core</td>
+  <td class="win">✓ core</td>
+  <td class="win">✓ core</td>
+  <td>✓ v7+ only<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup></td>
+</tr>
+<tr>
+  <td>Floating / detached groups (in-app overlay)</td>
+  <td class="win">✓ floating groups w/ nested grid<sup><a href="https://dockview.dev/docs/overview/whats-new-v7/">[9]</a></sup></td>
+  <td class="win">✓ float box<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup></td>
+  <td class="lose">✗ (borders/overlays only)</td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Popout / separate browser window</td>
+  <td class="win">✓ + lifecycle events<sup><a href="https://dockview.dev/docs/core/groups/popoutGroups/">[10]</a></sup></td>
+  <td class="win">✓ popup window<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup></td>
+  <td class="win">✓ <code>enablePopout</code><sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup></td>
+  <td class="lose">✗</td>
+</tr>
+<tr>
+  <td>Serialize + restore layout</td>
+  <td class="win">✓ <code>toJSON/fromJSON</code><sup><a href="https://dockview.dev/docs/overview/introduction/">[8]</a></sup></td>
+  <td class="win">✓ <code>saveLayout/loadLayout</code><sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup></td>
+  <td class="win">✓ <code>Model.toJson/fromJson</code><sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup></td>
+  <td class="win">✓ plain JSON tree → localStorage<sup><a href="https://www.dhiwise.com/post/ways-react-mosaic-enhances-dynamic-layouts-in-your-react-app">[30]</a></sup></td>
+</tr>
+<tr>
+  <td>Framework coupling</td>
+  <td class="win">Agnostic TS core + React/Vue/Angular<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></td>
+  <td>React-only<sup><a href="https://github.com/ticlo/rc-dock">[15]</a></sup></td>
+  <td>React-only<sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup></td>
+  <td>React-only<sup><a href="https://github.com/nomcopter/react-mosaic/blob/master/README.md">[20]</a></sup></td>
+</tr>
+<tr>
+  <td>React 19 peer dep</td>
+  <td class="win">16.8–19<sup><a href="https://www.npmjs.com/package/dockview-react">[12]</a></sup></td>
+  <td>≥17 (latest is 4.0 alpha)<sup><a href="https://www.npmjs.com/package/rc-dock">[16]</a></sup></td>
+  <td>18–19<sup><a href="https://www.npmjs.com/package/flexlayout-react">[18]</a></sup></td>
+  <td class="win">16–19 (v7 fixed)<sup><a href="https://www.npmjs.com/package/react-mosaic-component">[21]</a></sup></td>
+</tr>
+<tr>
+  <td>Runtime dependencies</td>
+  <td class="win">0 (core)<sup><a href="https://dockview.dev/docs/overview/introduction/">[8]</a></sup></td>
+  <td>6 (lodash, rc-component…)<sup><a href="https://www.npmjs.com/package/rc-dock">[16]</a></sup></td>
+  <td class="win">0 (React only)<sup><a href="https://www.npmjs.com/package/flexlayout-react">[18]</a></sup></td>
+  <td class="lose">11 (react-dnd stack)<sup><a href="https://www.npmjs.com/package/react-mosaic-component">[21]</a></sup></td>
+</tr>
+<tr>
+  <td>Bundle (min+gzip)</td>
+  <td>~80 KB<sup><a href="https://bundlephobia.com/package/dockview-react@7.0.2">[25]</a></sup></td>
+  <td>~61 KB<sup><a href="https://bundlephobia.com/package/rc-dock@4.0.0-alpha.2">[26]</a></sup></td>
+  <td class="win">~40 KB<sup><a href="https://bundlephobia.com/package/flexlayout-react@0.10.0">[27]</a></sup></td>
+  <td class="win">~37 KB<sup><a href="https://bundlephobia.com/package/react-mosaic-component@7.0.0">[28]</a></sup></td>
+</tr>
+<tr>
+  <td>Theming</td>
+  <td class="win">6 built-in themes + CSS vars<sup><a href="https://dockview.dev/llms-full.txt">[11]</a></sup></td>
+  <td>Light/dark, CSS<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup></td>
+  <td class="win">9 built-in themes<sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup></td>
+  <td>Default CSS + Blueprint optional<sup><a href="https://github.com/nomcopter/react-mosaic/blob/master/README.md">[20]</a></sup></td>
+</tr>
+<tr>
+  <td>License</td>
+  <td>MIT<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></td>
+  <td>Apache-2.0<sup><a href="https://github.com/ticlo/rc-dock">[15]</a></sup></td>
+  <td>MIT<sup><a href="https://github.com/caplin/FlexLayout">[17]</a></sup></td>
+  <td>Apache-2.0<sup><a href="https://github.com/nomcopter/react-mosaic/blob/master/README.md">[20]</a></sup></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h2>Popularity &amp; maintenance (Jul 2026)</h2>
+
+<div class="matrix">
+<table>
+<thead>
+<tr><th>Metric</th><th>Dockview</th><th>rc-dock</th><th>FlexLayout</th><th>react-mosaic</th><th>golden-layout</th></tr>
+</thead>
+<tbody>
+<tr><td>⭐ Stars</td><td>3.3k<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></td><td>812<sup><a href="https://github.com/ticlo/rc-dock">[15]</a></sup></td><td>1.3k<sup><a href="https://github.com/caplin/FlexLayout">[17]</a></sup></td><td>4.8k<sup><a href="https://github.com/nomcopter/react-mosaic">[7]</a></sup></td><td>6.7k<sup><a href="https://github.com/golden-layout/golden-layout">[22]</a></sup></td></tr>
+<tr><td>Weekly npm downloads</td><td>139k core / 55k react<sup><a href="https://www.npmjs.com/package/dockview">[36]</a></sup></td><td>~20k<sup><a href="https://npmtrends.com/dockview-vs-flexlayout-react-vs-golden-layout-vs-rc-dock">[24]</a></sup></td><td>~58k<sup><a href="https://npmtrends.com/dockview-vs-flexlayout-react-vs-golden-layout-vs-rc-dock">[24]</a></sup></td><td>~76k<sup><a href="https://npmtrends.com/dockview-vs-flexlayout-react-vs-golden-layout-vs-rc-dock">[24]</a></sup></td><td>~37k<sup><a href="https://npmtrends.com/dockview-vs-flexlayout-react-vs-golden-layout-vs-rc-dock">[24]</a></sup></td></tr>
+<tr><td>Latest release</td><td class="win">v7.0.2, Jun 2026<sup><a href="https://dockview.dev/docs/overview/whats-new-v7/">[9]</a></sup></td><td>4.0.0-alpha.2<sup><a href="https://www.npmjs.com/package/rc-dock">[16]</a></sup></td><td>v0.10.0, Jul 2026<sup><a href="https://www.npmjs.com/package/flexlayout-react">[18]</a></sup></td><td class="win">v7.0.0, Jul 2026<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup></td><td class="lose">v2.6.0, Sep 2022<sup><a href="https://github.com/golden-layout/golden-layout">[22]</a></sup></td></tr>
+<tr><td>Release cadence</td><td class="win">~biweekly through 2025<sup><a href="https://dockview.dev/blog/">[35]</a></sup></td><td>Sporadic</td><td>Active, slower on major React<sup><a href="https://github.com/caplin/FlexLayout/issues/314">[40]</a></sup></td><td>Active (big v7 rewrite)<sup><a href="https://github.com/nomcopter/react-mosaic/discussions/241">[29]</a></sup></td><td class="lose">Effectively dormant</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Drag-and-drop UX &amp; TypeScript quality</h2>
+
+<p>Dockview draws the strongest community praise: the <a href="https://news.ycombinator.com/item?id=42666492">Show HN thread</a> called it "one of the coolest things I've seen on HN recently" and singled out the TypeScript ("looks really proper"), zero dependencies, and docs; a commenter who tried several libraries still put Dockview "in the top," while noting FlexLayout's "vertical tabs and predefined behavior" as a strength<sup><a href="https://news.ycombinator.com/item?id=42666492">[14]</a></sup>. Dockview is TypeScript-first with full type definitions<sup><a href="https://github.com/mathuo/dockview/blob/master/llms.txt">[39]</a></sup>. All four ship types; react-mosaic and Dockview have the most polished DnD, but react-mosaic's drag rests on the react-dnd stack (11 transitive deps), which is why its bundle stays small but its dependency surface is the largest<sup><a href="https://www.npmjs.com/package/react-mosaic-component">[21]</a></sup>.</p>
+
+<h2>React 19 / StrictMode caveats</h2>
+
+<ul>
+<li><strong>Dockview</strong> — peer dep spans React 16.8–19<sup><a href="https://www.npmjs.com/package/dockview-react">[12]</a></sup>, but there's an open issue where <code>SplitviewReact</code> renders twice under <code>StrictMode</code> (dev-only double-render); works fine outside StrictMode<sup><a href="https://github.com/mathuo/dockview/issues/866">[13]</a></sup>. As of v7 the React bindings live in the separate <code>dockview-react</code> package<sup><a href="https://dockview.dev/docs/overview/whats-new-v7/">[9]</a></sup>.</li>
+<li><strong>react-mosaic</strong> — v7 explicitly fixed React 19 (JSX namespace, removed <code>React.ReactFragment</code>, upgraded <code>react-dnd-multi-backend</code>) and expanded the peer dep to 16–19<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup>. If you're on React 19, use v7, not v6.</li>
+<li><strong>FlexLayout</strong> — current peer dep is React 18/19<sup><a href="https://www.npmjs.com/package/flexlayout-react">[18]</a></sup>, but early React 19 / Next.js 15 users hit install-time errors on older releases<sup><a href="https://github.com/caplin/FlexLayout/issues/467">[19]</a></sup>; pin ≥0.9.</li>
+<li><strong>rc-dock</strong> — peer dep is React ≥17<sup><a href="https://www.npmjs.com/package/rc-dock">[16]</a></sup>; the current 4.x line is still published as an alpha, the main maintenance flag against it.</li>
+</ul>
+
+<h2>golden-layout — historical context</h2>
+
+<p>golden-layout is the ancestor everything here imitates and, at ⭐ 6.7k, still the most-starred<sup><a href="https://github.com/golden-layout/golden-layout">[22]</a></sup> — but it is not a 2026 choice for React. v2 deliberately <em>dropped React support</em> during its TypeScript rewrite and its own docs tell React developers to use FlexLayout instead<sup><a href="https://golden-layout.github.io/golden-layout/version-2/">[6]</a></sup>. Its last release was September 2022<sup><a href="https://github.com/golden-layout/golden-layout">[22]</a></sup>, and community wrappers are stale. HN consensus mirrors this: v2 "drops react support and has no documentation… it's not that great"<sup><a href="https://news.ycombinator.com/item?id=42666492">[14]</a></sup>. Treat Dockview as its spiritual successor<sup><a href="https://portalzine.de/docker-layouts-with-goldenlayout/">[23]</a></sup>.</p>
+
+<h2>Recommendation by use case</h2>
+
+<div class="matrix">
+<table>
+<thead>
+<tr><th>Your situation</th><th>Pick</th><th>Why</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Full VS Code / Visual Studio dock: tabs, tiling, float, popout, restore</td>
+  <td class="verdict">Dockview</td>
+  <td>Only one covering every axis; agnostic core, best TS, active releases, MIT<sup><a href="https://dockview.dev/docs/overview/introduction/">[8]</a></sup><sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></td>
+</tr>
+<tr>
+  <td>React-only app, want tab docking working this afternoon</td>
+  <td class="verdict">rc-dock</td>
+  <td>Five-position drag docking + float + popup with minimal setup; watch the alpha status<sup><a href="https://github.com/ticlo/rc-dock/blob/master/README.md">[5]</a></sup><sup><a href="https://www.npmjs.com/package/rc-dock">[16]</a></sup></td>
+</tr>
+<tr>
+  <td>Trading terminal / admin cockpit; layout state is sacred; multi-monitor</td>
+  <td class="verdict">FlexLayout</td>
+  <td>Cleanest serializable JSON model, popout windows, zero deps, MIT; golden-layout's own React pick<sup><a href="https://github.com/caplin/FlexLayout/blob/master/README.md">[4]</a></sup><sup><a href="https://golden-layout.github.io/golden-layout/version-2/">[6]</a></sup></td>
+</tr>
+<tr>
+  <td>Tiling dashboard, i3 vibe, minimal chrome; don't need popout windows</td>
+  <td class="verdict">react-mosaic</td>
+  <td>Smallest bundle, cleanest JSON tree; v7 adds tabs but no floating/popout<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[3]</a></sup><sup><a href="https://bundlephobia.com/package/react-mosaic-component@7.0.0">[28]</a></sup></td>
+</tr>
+<tr>
+  <td>Need Vue/Angular too, or a vanilla-TS core shared across frameworks</td>
+  <td class="verdict">Dockview</td>
+  <td>Only framework-agnostic option; wrappers for React, Vue, Angular, vanilla<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></td>
+</tr>
+<tr>
+  <td>Just resizable split panes, no tabs/floating</td>
+  <td class="verdict">Not a dock manager</td>
+  <td>Use react-resizable-panels or Allotment — far lighter<sup><a href="https://github.com/bvaughn/react-resizable-panels">[32]</a></sup><sup><a href="https://github.com/johnwalley/allotment">[33]</a></sup></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<p>Niche/edge options if the big four don't fit: <a href="https://github.com/DanFessler/react-dockable">react-dockable</a> ⭐ 26 (small, dynamic dockable tabs)<sup><a href="https://github.com/DanFessler/react-dockable">[37]</a></sup> and the <a href="https://github.com/aperturerobotics/flex-layout">aperturerobotics/flex-layout</a> ⭐ 4 fork of FlexLayout (perf tweaks, OptimizedLayout)<sup><a href="https://github.com/aperturerobotics/flex-layout">[38]</a></sup>. Neither is a mainstream bet.</p>
+
+<p class="verdict">Bottom line: default to Dockview; deviate only for the specific reasons above.</p>

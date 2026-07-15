@@ -1,0 +1,477 @@
+---
+layout: view
+view_name: "Scorecard"
+view_of: ../
+title: "Resizable split panes in React (2026): react-resizable-panels vs Allotment — Scorecard"
+---
+
+<style>
+  .sc {
+    --paper: #f4eee1;
+    --paper-2: #faf6ec;
+    --ink: #2b2118;
+    --ink-2: #5c4c3a;
+    --muted: #8a7a68;
+    --rust: #c2410c;
+    --amber: #d97706;
+    --deep: #9a3309;
+    --line: #d8cbb4;
+    --line-2: #cbb89b;
+    --win: #166534;
+    --win-bg: #e7f0e4;
+    --star: #d97706;
+    --star-off: #d3c6ae;
+    color: var(--ink);
+    background:
+      repeating-linear-gradient(0deg, transparent 0 31px, rgba(120,53,15,0.035) 31px 32px),
+      var(--paper);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+  }
+  .sc * { box-sizing: border-box; }
+  .sc .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 24px 72px; }
+  .sc a { color: var(--deep); text-decoration: none; border-bottom: 1px solid rgba(154,51,9,0.28); }
+  .sc a:hover { border-bottom-color: var(--deep); }
+  .sc .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---- Masthead ---- */
+  .sc .masthead {
+    display: flex; align-items: flex-start; gap: 22px;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 18px; margin-bottom: 6px;
+  }
+  .sc .crest { flex: 0 0 92px; }
+  .sc .crest img { width: 92px; height: auto; border-radius: 10px; border: 2px solid var(--ink); display: block; }
+  .sc .mh-text { flex: 1; }
+  .sc .kicker {
+    font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: .22em;
+    font-size: 11px; color: var(--rust); font-weight: 700; margin-bottom: 8px;
+  }
+  .sc h1 {
+    font-size: clamp(26px, 4.4vw, 44px); line-height: 1.03; margin: 0 0 10px;
+    font-weight: 800; letter-spacing: -0.015em; color: var(--ink);
+  }
+  .sc .dek { font-size: 15px; color: var(--ink-2); max-width: 62ch; margin: 0; }
+  .sc .stamp {
+    flex: 0 0 auto; text-align: right; font-family: ui-monospace, monospace;
+    font-size: 11px; color: var(--muted); line-height: 1.7; padding-top: 4px;
+  }
+  .sc .stamp b { color: var(--ink); }
+
+  /* ---- Verdict ribbon ---- */
+  .sc .verdict {
+    margin: 26px 0 34px; border: 2px solid var(--ink); background: var(--paper-2);
+    box-shadow: 6px 6px 0 rgba(43,33,24,0.12);
+    display: grid; grid-template-columns: auto 1fr; align-items: stretch;
+  }
+  .sc .verdict .tab {
+    background: var(--ink); color: var(--paper); writing-mode: vertical-rl; text-orientation: mixed;
+    transform: rotate(180deg); font-family: ui-monospace, monospace; font-weight: 700;
+    letter-spacing: .28em; font-size: 12px; padding: 14px 8px; text-transform: uppercase;
+  }
+  .sc .verdict .vbody { padding: 18px 22px; }
+  .sc .verdict .vbody p { margin: 0; font-size: 16px; }
+  .sc .verdict .vbody .lead { font-size: 19px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .sc .verdict .vbody .lead .win { color: var(--win); }
+
+  /* ---- Section headers ---- */
+  .sc .sec-h {
+    display: flex; align-items: baseline; gap: 12px; margin: 44px 0 18px;
+    border-bottom: 2px solid var(--line-2); padding-bottom: 8px;
+  }
+  .sc .sec-h .no { font-family: ui-monospace, monospace; color: var(--rust); font-weight: 700; font-size: 13px; }
+  .sc .sec-h h2 { font-size: 20px; margin: 0; font-weight: 800; letter-spacing: -0.01em; }
+  .sc .sec-h .aside { margin-left: auto; font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+
+  /* ---- Head-to-head cards ---- */
+  .sc .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .sc .card {
+    position: relative; background: var(--paper-2); border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 rgba(43,33,24,0.10); padding: 20px 20px 22px; overflow: hidden;
+  }
+  .sc .card.winner { border-color: var(--win); box-shadow: 6px 6px 0 rgba(22,101,52,0.16); }
+  .sc .ribbon {
+    position: absolute; top: 16px; right: -42px; transform: rotate(45deg);
+    background: var(--win); color: #fff; font-family: ui-monospace, monospace; font-weight: 700;
+    letter-spacing: .18em; font-size: 11px; padding: 5px 52px; text-transform: uppercase;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .sc .card-head { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
+  .sc .card-head img { width: 28px; height: 28px; border-radius: 6px; }
+  .sc .card-head .nm { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+  .sc .card-head .nm a { border: none; color: var(--ink); }
+  .sc .card-head .nm a:hover { color: var(--deep); }
+  .sc .card-role { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 16px; }
+  .sc .card.winner .card-role { color: var(--win); }
+
+  .sc .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 16px; }
+  .sc .spec { background: var(--paper-2); padding: 9px 11px; }
+  .sc .spec .lbl { font-family: ui-monospace, monospace; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .sc .spec .val { font-family: ui-monospace, monospace; font-size: 17px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  .sc .spec .val.good { color: var(--win); }
+  .sc .spec .val.warn { color: var(--rust); }
+  .sc .spec .sub { font-size: 10px; color: var(--muted); font-family: ui-monospace, monospace; }
+
+  .sc .tally { display: flex; align-items: baseline; justify-content: space-between; border-top: 2px solid var(--ink); padding-top: 12px; margin-top: 4px; }
+  .sc .tally .lbl { font-family: ui-monospace, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+  .sc .tally .score { font-family: ui-monospace, monospace; font-size: 30px; font-weight: 800; color: var(--ink); }
+  .sc .tally .score .of { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .sc .card.winner .tally .score { color: var(--win); }
+
+  /* ---- Axis scoreboard ---- */
+  .sc .board { border: 2px solid var(--ink); background: var(--paper-2); box-shadow: 6px 6px 0 rgba(43,33,24,0.10); }
+  .sc .board .brow { display: grid; grid-template-columns: 1fr 148px 148px; align-items: center; border-bottom: 1px solid var(--line); }
+  .sc .board .brow:last-child { border-bottom: none; }
+  .sc .board .bhead { background: var(--ink); color: var(--paper); }
+  .sc .board .bhead > div { font-family: ui-monospace, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; padding: 11px 14px; font-weight: 700; }
+  .sc .board .bhead .h-lib { text-align: center; }
+  .sc .board .axis { padding: 11px 14px; }
+  .sc .board .axis .a-nm { font-weight: 700; font-size: 14px; }
+  .sc .board .axis .a-note { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .sc .board .cell { padding: 11px 14px; text-align: center; border-left: 1px solid var(--line); }
+  .sc .board .brow:nth-child(even of .brow) { background: rgba(120,53,15,0.02); }
+  .sc .stars { font-size: 15px; letter-spacing: 1px; white-space: nowrap; }
+  .sc .stars .on { color: var(--star); }
+  .sc .stars .off { color: var(--star-off); }
+  .sc .cval { font-family: ui-monospace, monospace; font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .sc .cval.na { color: var(--rust); }
+  .sc .win-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--win); margin-left: 5px; vertical-align: middle; }
+
+  /* ---- Pick-which cards ---- */
+  .sc .picks { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .sc .pick { border: 2px solid var(--ink); background: var(--paper-2); padding: 18px 20px; box-shadow: 6px 6px 0 rgba(43,33,24,0.10); }
+  .sc .pick h3 { margin: 0 0 4px; font-size: 16px; }
+  .sc .pick h3 a { border: none; color: var(--ink); }
+  .sc .pick .when { font-family: ui-monospace, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--rust); margin-bottom: 12px; }
+  .sc .pick ul { margin: 0; padding: 0; list-style: none; }
+  .sc .pick li { position: relative; padding-left: 22px; margin-bottom: 9px; font-size: 13.5px; color: var(--ink-2); }
+  .sc .pick li .g { position: absolute; left: 0; top: 0; font-weight: 700; }
+  .sc .pick li.pro .g { color: var(--win); }
+  .sc .pick li.con .g { color: var(--rust); }
+
+  /* ---- Warning strip ---- */
+  .sc .warn-strip {
+    margin: 24px 0 0; border: 2px solid var(--rust); background: #fbeee4;
+    padding: 14px 18px; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .sc .warn-strip .bang { font-size: 26px; line-height: 1; color: var(--rust); }
+  .sc .warn-strip .wt { font-size: 13.5px; color: var(--ink-2); }
+  .sc .warn-strip .wt b { color: var(--deep); }
+  .sc .warn-strip .wt code { font-family: ui-monospace, monospace; background: rgba(154,51,9,0.1); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+  /* ---- Also-rans bench ---- */
+  .sc .bench { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .sc .ar { border: 2px dashed var(--line-2); background: transparent; padding: 16px 18px; }
+  .sc .ar .ar-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .sc .ar .ar-head img { width: 22px; height: 22px; border-radius: 5px; }
+  .sc .ar .ar-head .nm { font-weight: 800; font-size: 15px; }
+  .sc .ar .ar-head .nm a { border: none; color: var(--ink); }
+  .sc .ar .ar-head .stars { font-family: ui-monospace, monospace; font-size: 12px; color: var(--amber); font-weight: 700; margin-left: auto; }
+  .sc .ar .verdict-tag { font-family: ui-monospace, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--rust); border: 1px solid var(--rust); border-radius: 3px; padding: 1px 6px; display: inline-block; margin-bottom: 9px; }
+  .sc .ar p { margin: 0; font-size: 13px; color: var(--ink-2); }
+  .sc .ar .arspecs { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+
+  /* ---- Sources ---- */
+  .sc .sources { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 20px; }
+  .sc .src { display: flex; gap: 9px; align-items: baseline; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .sc .src .n { font-family: ui-monospace, monospace; color: var(--rust); font-weight: 700; flex: 0 0 22px; }
+  .sc .src img { width: 14px; height: 14px; border-radius: 3px; align-self: center; }
+  .sc .src .st { color: var(--ink-2); }
+  .sc .src .st .tp { font-family: ui-monospace, monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ---- Nav footer ---- */
+  .sc .nav-h { margin: 48px 0 16px; border-top: 3px solid var(--ink); padding-top: 14px; font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--rust); font-weight: 700; }
+  .sc .sibs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .sc .sib { border: 1px solid var(--line-2); background: var(--paper-2); padding: 14px 15px; }
+  .sc .sib a { border: none; }
+  .sc .sib .depth { font-family: ui-monospace, monospace; font-size: 9.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--rust); }
+  .sc .sib .t { font-weight: 700; font-size: 13.5px; margin: 5px 0 6px; color: var(--ink); line-height: 1.25; }
+  .sc .sib .s { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .sc .footlinks { margin-top: 28px; font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .sc .footlinks a { color: var(--deep); }
+
+  @media (max-width: 760px) {
+    .sc .cards, .sc .picks, .sc .bench, .sc .sources { grid-template-columns: 1fr; }
+    .sc .sibs { grid-template-columns: 1fr; }
+    .sc .board .brow { grid-template-columns: 1fr 96px 96px; }
+    .sc .masthead { flex-wrap: wrap; }
+    .sc .stamp { text-align: left; }
+  }
+</style>
+
+<div class="sc">
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="crest"><img src="../cover.svg" alt="Split-pane layout diagram"></div>
+    <div class="mh-text">
+      <div class="kicker">Spec Sheet · React Split Panes · 2026</div>
+      <h1>Splitter Scorecard</h1>
+      <p class="dek">Two libraries for dividing a screen into draggable, resizable regions — grades and forms side by side — judged axis by axis. Two bench players scored below the fold.</p>
+    </div>
+    <div class="stamp">
+      SURVEY<br>
+      <b>14</b> citations<br>
+      <b>5</b> min read<br>
+      2026-07-16
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="tab">Verdict</div>
+    <div class="vbody">
+      <p class="lead"><span class="win">react-resizable-panels</span> takes the default slot.</p>
+      <p>Unstyled, accessible, <b>zero-dependency</b> and the de-facto standard for app-shell splits. Reach for <a href="https://github.com/johnwalley/allotment">Allotment</a> only when you want a VS Code look-and-feel with <b>snap-to-zero</b> and styled sashes out of the box — and can accept 6 transitive deps plus browser-only rendering. <sup><a href="https://www.pkgpulse.com/guides/react-resizable-panels-vs-split-js-vs-allotment-2026">[1]</a></sup> <sup><a href="https://github.com/johnwalley/allotment">[5]</a></sup></p>
+    </div>
+  </div>
+
+  <div class="sec-h">
+    <span class="no">01</span>
+    <h2>The two contenders</h2>
+    <span class="aside">stars · bundle · deps · license</span>
+  </div>
+
+  <div class="cards">
+
+    <div class="card winner">
+      <div class="ribbon">Winner</div>
+      <div class="card-head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="nm"><a href="https://github.com/bvaughn/react-resizable-panels">react-resizable-panels</a></div>
+      </div>
+      <div class="card-role">The default · app-shell splits</div>
+      <div class="specs">
+        <div class="spec"><div class="lbl">GitHub</div><div class="val">⭐ 5.3k</div></div>
+        <div class="spec"><div class="lbl">Bundle (gzip)</div><div class="val">10.8 kB</div></div>
+        <div class="spec"><div class="lbl">Dependencies</div><div class="val good">0</div><div class="sub">zero-dep</div></div>
+        <div class="spec"><div class="lbl">License</div><div class="val">MIT</div></div>
+        <div class="spec"><div class="lbl">Latest</div><div class="val">v4.12.2</div><div class="sub">Jul 2026 · 3 open</div></div>
+        <div class="spec"><div class="lbl">Downloads/wk</div><div class="val">~33.7M</div><div class="sub">rides shadcn/ui</div></div>
+      </div>
+      <div class="tally">
+        <span class="lbl">Axis wins</span>
+        <span class="score">8<span class="of"> / 11</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="nm"><a href="https://github.com/johnwalley/allotment">Allotment</a></div>
+      </div>
+      <div class="card-role">The IDE feel · least CSS</div>
+      <div class="specs">
+        <div class="spec"><div class="lbl">GitHub</div><div class="val">⭐ 1.3k</div></div>
+        <div class="spec"><div class="lbl">Bundle (gzip)</div><div class="val good">9.4 kB</div></div>
+        <div class="spec"><div class="lbl">Dependencies</div><div class="val warn">6</div><div class="sub">transitive</div></div>
+        <div class="spec"><div class="lbl">License</div><div class="val">MIT</div></div>
+        <div class="spec"><div class="lbl">Latest</div><div class="val">v1.20.5</div><div class="sub">Dec 2025 · ~100 open</div></div>
+        <div class="spec"><div class="lbl">Downloads/wk</div><div class="val">~171k</div><div class="sub">niche</div></div>
+      </div>
+      <div class="tally">
+        <span class="lbl">Axis wins</span>
+        <span class="score">3<span class="of"> / 11</span></span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sec-h">
+    <span class="no">02</span>
+    <h2>Axis-by-axis scoreboard</h2>
+    <span class="aside">★ = capability grade · ● = axis winner</span>
+  </div>
+
+  <div class="board">
+    <div class="brow bhead">
+      <div>Axis</div>
+      <div class="h-lib">react-resizable-panels</div>
+      <div class="h-lib">Allotment</div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Model</div><div class="a-note">flexbox %/px, sibling panes + handle vs VS Code sash engine</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span></div><div class="cval">flexbox</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span></div><div class="cval">VS Code sash</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Nested splits</div><div class="a-note">nest a Group / Allotment inside a pane</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span></div><div class="cval">✓ Group in Panel</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span></div><div class="cval">✓ nested Allotment</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Collapsible</div><div class="a-note">panel collapses to a rail or zero</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">collapsible + collapsedSize</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★</span><span class="off">★</span></div><div class="cval">via snap / visible</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Snapping</div><div class="a-note">snap-to-zero when dragged near an edge</div></div>
+      <div class="cell"><div class="stars"><span class="off">★★★</span></div><div class="cval na">✗ none</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">✓ standout feature</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Min / max</div><div class="a-note">per-pane size clamps in px/%/rem</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span></div><div class="cval">minSize / maxSize</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span></div><div class="cval">minSize / maxSize</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Imperative API</div><div class="a-note">resize / collapse from a ref</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">resize/collapse/expand + getLayout</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★</span><span class="off">★</span></div><div class="cval">reset() / resize([sizes])</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Persistence hook</div><div class="a-note">serialize + restore a saved layout</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★</span><span class="off">★</span><span class="win-dot"></span></div><div class="cval">useDefaultLayout + onLayoutChanged</div></div>
+      <div class="cell"><div class="stars"><span class="on">★</span><span class="off">★★</span></div><div class="cval">manual: onChange → store</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Styling out of box</div><div class="a-note">how much CSS you write yourself</div></div>
+      <div class="cell"><div class="stars"><span class="on">★</span><span class="off">★★</span></div><div class="cval na">unstyled — you build handles</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">ships CSS + CSS vars</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Keyboard / ARIA</div><div class="a-note">accessible separators, keyboard resize</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">ARIA separator + keyboard</div></div>
+      <div class="cell"><div class="stars"><span class="on">★</span><span class="off">★★</span></div><div class="cval">weaker, sash-focused</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">SSR</div><div class="a-note">renders server-side / Server Components</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">✓ incl. Server Components (v4)</div></div>
+      <div class="cell"><div class="stars"><span class="off">★★★</span></div><div class="cval na">✗ browser-only</div></div>
+    </div>
+
+    <div class="brow">
+      <div class="axis"><div class="a-nm">Activity / cadence</div><div class="a-note">release freshness &amp; open-issue load</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★★</span><span class="win-dot"></span></div><div class="cval">pushed Jul 2026</div></div>
+      <div class="cell"><div class="stars"><span class="on">★★</span><span class="off">★</span></div><div class="cval">last publish Dec 2025</div></div>
+    </div>
+  </div>
+
+  <div class="warn-strip">
+    <div class="bang">⚠</div>
+    <div class="wt"><b>v4 is a breaking rename.</b> <code>PanelGroup→Group</code>, <code>PanelResizeHandle→Separator</code>, <code>direction→orientation</code>, and internal <code>data-*</code> attributes moved to <code>aria-*</code>. shadcn/ui's Resizable broke on the bump <sup><a href="https://github.com/shadcn-ui/ui/issues/9136">[12]</a></sup>. Most tutorials still show the v3 API — check which major you install. <sup><a href="https://github.com/bvaughn/react-resizable-panels/blob/main/CHANGELOG.md">[4]</a></sup></div>
+  </div>
+
+  <div class="sec-h">
+    <span class="no">03</span>
+    <h2>When to pick which</h2>
+  </div>
+
+  <div class="picks">
+    <div class="pick">
+      <h3><a href="https://github.com/bvaughn/react-resizable-panels">react-resizable-panels</a> ⭐ 5.3k</h3>
+      <div class="when">Pick when — app shells &amp; dashboards</div>
+      <ul>
+        <li class="pro"><span class="g">+</span>Flexbox percentage model fits grid-on-one-side, form-on-the-other layouts and nests cleanly.</li>
+        <li class="pro"><span class="g">+</span>Imperative handle collapses the form panel or restores a saved layout from a button. <sup><a href="https://react-resizable-panels.vercel.app/examples/imperative-panel-api">[13]</a></sup></li>
+        <li class="pro"><span class="g">+</span>You control storage: <code>useDefaultLayout</code> seeds the layout, you persist via <code>onLayoutChanged</code>.</li>
+        <li class="con"><span class="g">−</span>Ships unstyled — you build the drag-handle visuals yourself. <sup><a href="https://github.com/bvaughn/react-resizable-panels">[2]</a></sup></li>
+        <li class="con"><span class="g">−</span>No snapping at all. <sup><a href="https://github.com/bvaughn/react-resizable-panels/blob/main/CHANGELOG.md">[4]</a></sup></li>
+      </ul>
+    </div>
+
+    <div class="pick">
+      <h3><a href="https://github.com/johnwalley/allotment">Allotment</a> ⭐ 1.3k</h3>
+      <div class="when">Pick when — you want IDE feel, least CSS</div>
+      <ul>
+        <li class="pro"><span class="g">+</span>Derived from VS Code split-view: styled sashes, proportional layout, snap-to-zero and double-click-reset all work out of the box. <sup><a href="https://allotment.mulberryhousesoftware.com/">[7]</a></sup></li>
+        <li class="pro"><span class="g">+</span>Snapping is its standout feature — the one react-resizable-panels lacks.</li>
+        <li class="con"><span class="g">−</span>Browser-only: Next.js needs <code>dynamic(…, { ssr:false })</code>.</li>
+        <li class="con"><span class="g">−</span>Pulls 6 transitive deps and carries ~100 open issues. <sup><a href="https://www.npmjs.com/package/allotment">[6]</a></sup></li>
+        <li class="con"><span class="g">−</span>Slower cadence — last release Dec 2025. <sup><a href="https://github.com/johnwalley/allotment">[5]</a></sup></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec-h">
+    <span class="no">04</span>
+    <h2>On the bench</h2>
+    <span class="aside">also-rans — right idea, wrong fit</span>
+  </div>
+
+  <div class="bench">
+    <div class="ar">
+      <div class="ar-head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="nm"><a href="https://github.com/tomkp/react-split-pane">react-split-pane</a></div>
+        <div class="stars">⭐ 3.4k</div>
+      </div>
+      <span class="verdict-tag">Viable · simple splits</span>
+      <p>Long the "legacy" answer, but a <b>v3.2.0 rewrite landed Feb 2026</b> — React 17/18/19, TypeScript-first, hooks-based. Fine for a plain draggable divider; thinner feature set (no built-in collapse/snap parity) and a smaller ecosystem. <sup><a href="https://github.com/tomkp/react-split-pane">[8]</a></sup> <sup><a href="https://www.npmjs.com/package/react-split-pane">[9]</a></sup></p>
+      <div class="arspecs">3.8 kB gzip · 0 deps · MIT · ~201k dl/wk</div>
+    </div>
+
+    <div class="ar">
+      <div class="ar-head">
+        <img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">
+        <div class="nm"><a href="https://github.com/bokuweb/re-resizable">re-resizable</a></div>
+        <div class="stars">⭐ 2.7k</div>
+      </div>
+      <span class="verdict-tag">Wrong tool · not a splitter</span>
+      <p>Resizes a <b>single</b> element via edge/corner handles — not the boundary <em>between</em> two siblings a grid-vs-form layout needs. Popular and maintained, but use it for individually resizable widgets, not screen division. <sup><a href="https://github.com/bokuweb/re-resizable">[10]</a></sup></p>
+      <div class="arspecs">~2M dl/wk · MIT · edge-handle resize</div>
+    </div>
+  </div>
+
+  <div class="sec-h">
+    <span class="no">05</span>
+    <h2>Sources</h2>
+    <span class="aside">14 citations</span>
+  </div>
+
+  <div class="sources">
+    <div class="src"><span class="n">1</span><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=128" alt=""><span class="st"><span class="tp">vendor-blog · </span><a href="https://www.pkgpulse.com/guides/react-resizable-panels-vs-split-js-vs-allotment-2026">pkgpulse: rrp vs split.js vs Allotment</a></span></div>
+    <div class="src"><span class="n">2</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://github.com/bvaughn/react-resizable-panels">bvaughn/react-resizable-panels</a></span></div>
+    <div class="src"><span class="n">3</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://www.npmjs.com/package/react-resizable-panels">npm: react-resizable-panels</a></span></div>
+    <div class="src"><span class="n">4</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://github.com/bvaughn/react-resizable-panels/blob/main/CHANGELOG.md">react-resizable-panels CHANGELOG</a></span></div>
+    <div class="src"><span class="n">5</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://github.com/johnwalley/allotment">johnwalley/allotment</a></span></div>
+    <div class="src"><span class="n">6</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://www.npmjs.com/package/allotment">npm: allotment</a></span></div>
+    <div class="src"><span class="n">7</span><img src="https://www.google.com/s2/favicons?domain=allotment.mulberryhousesoftware.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://allotment.mulberryhousesoftware.com/">Allotment docs</a></span></div>
+    <div class="src"><span class="n">8</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://github.com/tomkp/react-split-pane">tomkp/react-split-pane</a></span></div>
+    <div class="src"><span class="n">9</span><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://www.npmjs.com/package/react-split-pane">npm: react-split-pane</a></span></div>
+    <div class="src"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://github.com/bokuweb/re-resizable">bokuweb/re-resizable</a></span></div>
+    <div class="src"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=npmtrends.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://npmtrends.com/allotment-vs-react-resizable-vs-react-split-pane-vs-react-splitter-layout">npmtrends comparison</a></span></div>
+    <div class="src"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="st"><span class="tp">forum · </span><a href="https://github.com/shadcn-ui/ui/issues/9136">shadcn-ui/ui #9136</a></span></div>
+    <div class="src"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=react-resizable-panels.vercel.app&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://react-resizable-panels.vercel.app/examples/imperative-panel-api">Imperative Panel API example</a></span></div>
+    <div class="src"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=bundlephobia.com&sz=128" alt=""><span class="st"><span class="tp">official · </span><a href="https://bundlephobia.com/package/react-resizable-panels">Bundlephobia: react-resizable-panels</a></span></div>
+  </div>
+
+  <div class="nav-h">Part of the expedition · Splitters &amp; dockable panes in React (2026)</div>
+  <div class="sibs">
+    <div class="sib">
+      <div class="depth">Expedition</div>
+      <div class="t"><a href="../../dockable-layout-managers-dockview-vs-rc-dock-vs-flexlayout-vs-react-mosaic/">Draggable VS Code-style panes: Dockview vs rc-dock vs FlexLayout vs react-mosaic</a></div>
+      <div class="s">Dockview is the default modern pick for VS Code-style pane docking; three alternatives fit narrower cases.</div>
+    </div>
+    <div class="sib">
+      <div class="depth">Survey</div>
+      <div class="t"><a href="../../layout-persistence-and-restoration/">Persisting and restoring pane layouts in React</a></div>
+      <div class="s">How each library serializes layouts, where to persist them, and surviving a layout that references a deleted panel.</div>
+    </div>
+    <div class="sib">
+      <div class="depth">Survey</div>
+      <div class="t"><a href="../../hosting-grids-and-forms-inside-panes/">Hosting grids and forms inside resizable/dockable panes</a></div>
+      <div class="s">Per-library patterns and pitfalls for AG Grid / TanStack Table and forms inside panes without thrash or lost state.</div>
+    </div>
+  </div>
+
+  <div class="footlinks">
+    <a href="../../">↑ Expedition hub</a>
+    <a href="../">Default view of this page</a>
+    <a href="/">Atlas</a>
+  </div>
+
+</div>
+</div>

@@ -1,0 +1,599 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Splitters and dockable panes in React (2026): which libraries to adopt — Dashboard"
+---
+
+<style>
+  .console {
+    --paper: #faf8f2;
+    --paper-2: #f0eadb;
+    --pane: #fef3ec;
+    --pane-2: #f6e6d6;
+    --rust: #9a3309;
+    --rust-2: #c2410c;
+    --orange: #ea580c;
+    --amber: #fbbf24;
+    --ink: #431407;
+    --ink-2: #78350f;
+    --espresso: #2a1608;
+    --espresso-2: #3c2410;
+    --line: rgba(120, 53, 15, .18);
+    --line-2: rgba(120, 53, 15, .32);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 0 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  .console * { box-sizing: border-box; }
+  .console a { color: var(--rust); text-decoration: none; }
+  .console a:hover { text-decoration: underline; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2.25rem); }
+  sup a { font-family: var(--mono); font-size: .62em; color: var(--rust-2); padding: 0 .05em; }
+
+  /* ---- topbar : the console chrome ---- */
+  .topbar {
+    background: var(--espresso);
+    color: var(--pane);
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .06em;
+    border-bottom: 2px solid var(--rust);
+  }
+  .topbar .wrap {
+    display: flex; align-items: center; gap: 1rem 1.4rem;
+    flex-wrap: wrap; padding-top: .7rem; padding-bottom: .7rem;
+  }
+  .crumb { color: var(--amber); text-transform: uppercase; }
+  .crumb span { opacity: .5; padding: 0 .3rem; }
+  .topbar .spacer { flex: 1 1 auto; }
+  .livepill { display: inline-flex; align-items: center; gap: .45rem; opacity: .9; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, .7);
+    animation: pulse 2.2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, .6); }
+    70% { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  }
+
+  /* ---- masthead ---- */
+  .head { padding-top: 2.6rem; }
+  .kicker {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--rust-2); margin: 0 0 .8rem;
+  }
+  .head h1 {
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(2.1rem, 5.4vw, 3.7rem); line-height: 1.04;
+    margin: 0 0 1rem; color: var(--ink); letter-spacing: -.01em;
+  }
+  .head .lede {
+    font-size: clamp(1.02rem, 1.7vw, 1.2rem); max-width: 60ch;
+    color: var(--ink-2); margin: 0;
+  }
+  .head .lede b { color: var(--ink); }
+
+  /* ---- KPI tiles ---- */
+  .kpis {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: .7rem;
+    margin: 2rem 0 .5rem;
+  }
+  .kpi {
+    background: linear-gradient(180deg, var(--pane), var(--pane-2));
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 1rem .9rem; text-align: left;
+  }
+  .kpi .num {
+    font-family: var(--serif); font-weight: 700; font-size: 2.05rem;
+    line-height: 1; color: var(--rust); letter-spacing: -.02em;
+  }
+  .kpi .num small { font-size: 1rem; color: var(--ink-2); font-family: var(--serif); }
+  .kpi .lab {
+    font-family: var(--mono); font-size: .62rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-2); margin-top: .5rem; line-height: 1.35;
+  }
+
+  /* ---- section scaffolding ---- */
+  .sec { margin-top: 3.2rem; }
+  .sec-h {
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--rust-2);
+    display: flex; align-items: center; gap: .8rem; margin: 0 0 1.1rem;
+  }
+  .sec-h::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+
+  /* ---- verdict panels ---- */
+  .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+  .verdict {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg, var(--espresso), var(--espresso-2));
+    color: var(--pane); border-radius: 16px; padding: 1.6rem 1.5rem 1.5rem;
+    border: 1px solid rgba(0,0,0,.2);
+  }
+  .verdict .tier {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--amber); margin-bottom: .2rem;
+  }
+  .verdict .need { font-size: .92rem; color: rgba(254, 243, 236, .72); margin-bottom: 1.1rem; }
+  .verdict .pick {
+    font-family: var(--serif); font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+    line-height: 1.05; margin: 0 0 .5rem;
+  }
+  .verdict .pick a { color: #ffd9a8; }
+  .verdict .stars {
+    display: inline-block; font-family: var(--mono); font-size: .72rem;
+    background: rgba(251, 191, 36, .16); color: var(--amber);
+    padding: .12rem .5rem; border-radius: 20px; margin-bottom: .9rem;
+  }
+  .verdict .why { font-size: .93rem; color: rgba(254, 243, 236, .88); margin: 0; }
+  .verdict .glyph {
+    position: absolute; right: -.3rem; top: -1.2rem; font-size: 8rem;
+    color: rgba(234, 88, 12, .16); font-family: var(--serif); line-height: 1;
+    pointer-events: none;
+  }
+  .verdict.alt-note {
+    margin-top: .9rem; padding: .75rem .95rem; background: var(--pane);
+    color: var(--ink-2); border: 1px dashed var(--line-2); border-radius: 10px;
+    font-size: .85rem;
+  }
+  .verdict.alt-note b { color: var(--ink); }
+
+  /* ---- decision axis strip ---- */
+  .axis {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 0;
+    border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden;
+    background: var(--pane);
+  }
+  .axis .side { padding: 1.3rem 1.4rem; }
+  .axis .side.left { background: linear-gradient(180deg, #fef3ec, #f7e7d5); }
+  .axis .side.right { background: linear-gradient(180deg, #f2e9db, #ece0cc); }
+  .axis .q { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); margin: 0 0 .5rem; font-style: italic; }
+  .axis .tag {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+    color: #fff; padding: .22rem .6rem; border-radius: 6px; display: inline-block;
+  }
+  .axis .tag.split { background: var(--rust-2); }
+  .axis .tag.dock { background: var(--ink-2); }
+  .axis .mid {
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-weight: 700; font-size: 1.4rem;
+    color: var(--rust); background: var(--espresso); padding: 0 1rem;
+  }
+
+  /* ---- recommendation matrix ---- */
+  .tiergrid { margin-top: 1rem; }
+  .tierlabel {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-2); margin: 1.3rem 0 .6rem; display: flex; align-items: center; gap: .6rem;
+  }
+  .tierlabel::before {
+    content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--rust-2);
+  }
+  .tierlabel.t2::before { background: var(--ink-2); }
+  .matrix { display: grid; gap: .7rem; }
+  .matrix.two { grid-template-columns: repeat(2, 1fr); }
+  .matrix.four { grid-template-columns: repeat(4, 1fr); }
+  .lib {
+    background: var(--pane); border: 1px solid var(--line);
+    border-top: 4px solid var(--line-2); border-radius: 12px; padding: 1rem 1rem 1.1rem;
+    display: flex; flex-direction: column;
+  }
+  .lib.pick { border-top-color: var(--rust-2); background: linear-gradient(180deg, #fff, var(--pane)); }
+  .lib.alt { border-top-color: var(--amber); }
+  .lib .name { font-family: var(--serif); font-size: 1.28rem; margin: 0 0 .1rem; color: var(--ink); }
+  .lib .meta { font-family: var(--mono); font-size: .66rem; color: var(--ink-2); opacity: .85; margin-bottom: .7rem; }
+  .lib .fit {
+    align-self: flex-start; font-family: var(--mono); font-size: .62rem; font-weight: 700;
+    letter-spacing: .08em; padding: .2rem .55rem; border-radius: 5px; margin-bottom: .7rem;
+    text-transform: uppercase;
+  }
+  .fit.f-pick { background: var(--rust-2); color: #fff; }
+  .fit.f-alt { background: rgba(251,191,36,.22); color: #92400e; }
+  .fit.f-narrow { background: rgba(120,53,15,.1); color: var(--ink-2); }
+  .lib .for { font-size: .86rem; color: var(--ink); margin: 0 0 .7rem; flex: 1; }
+  .lib .watch {
+    font-size: .78rem; color: var(--ink-2); border-top: 1px dashed var(--line);
+    padding-top: .55rem; margin: 0;
+  }
+  .lib .watch b { color: var(--rust); font-family: var(--mono); font-size: .6rem; letter-spacing: .06em; }
+
+  /* ---- breaking majors ---- */
+  .breaks { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+  .brk {
+    background: var(--pane); border: 1px solid var(--line); border-radius: 11px;
+    padding: 1rem; position: relative;
+  }
+  .brk .ver { font-family: var(--mono); font-weight: 700; font-size: 1.5rem; color: var(--rust); line-height: 1; }
+  .brk .lib { all: unset; font-family: var(--serif); font-size: 1rem; color: var(--ink); display: block; margin: .35rem 0 .5rem; }
+  .brk p { font-size: .82rem; color: var(--ink-2); margin: 0; }
+  .brk.open { border-color: var(--rust-2); background: linear-gradient(180deg, #fff2ea, var(--pane)); }
+  .brk.open .ver { color: var(--rust-2); }
+  .brk .flag {
+    position: absolute; top: .7rem; right: .8rem; font-family: var(--mono);
+    font-size: .56rem; letter-spacing: .08em; text-transform: uppercase;
+    background: var(--rust-2); color: #fff; padding: .15rem .45rem; border-radius: 5px;
+  }
+
+  /* ---- seam : splitter vs docker persistence ---- */
+  .seam { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+  .seam .col {
+    border: 1px solid var(--line-2); border-radius: 14px; padding: 1.3rem 1.4rem; background: var(--pane);
+  }
+  .seam .col.docker { background: linear-gradient(180deg, var(--espresso), var(--espresso-2)); color: var(--pane); border-color: rgba(0,0,0,.2); }
+  .seam .col h3 { font-family: var(--serif); font-size: 1.25rem; margin: 0 0 .2rem; }
+  .seam .col .sub { font-family: var(--mono); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; opacity: .7; margin-bottom: .9rem; }
+  .seam .col.docker .sub { color: var(--amber); opacity: 1; }
+  .seam .col code {
+    font-family: var(--mono); font-size: .82rem; background: rgba(120,53,15,.09);
+    padding: .08rem .35rem; border-radius: 4px;
+  }
+  .seam .col.docker code { background: rgba(251,191,36,.14); color: #ffd9a8; }
+  .seam .col p { font-size: .9rem; margin: 0 0 .7rem; }
+  .seam .col.splitter p { color: var(--ink-2); }
+  .seam .col.docker p { color: rgba(254,243,236,.88); }
+  .nonneg {
+    margin-top: 1.1rem; background: #fff2ea; border: 1px solid var(--rust-2);
+    border-radius: 12px; padding: 1rem 1.2rem;
+  }
+  .nonneg .lab { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--rust-2); margin-bottom: .5rem; }
+  .nonneg ul { margin: 0; padding-left: 1.1rem; }
+  .nonneg li { font-size: .88rem; color: var(--ink); margin: .25rem 0; }
+  .nonneg code { font-family: var(--mono); font-size: .8rem; }
+
+  /* ---- pitfalls ---- */
+  .pits { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
+  .pit { background: var(--pane); border: 1px solid var(--line); border-radius: 11px; padding: 1rem 1.05rem; }
+  .pit .g { font-size: 1.7rem; line-height: 1; color: var(--rust-2); }
+  .pit h4 { font-family: var(--serif); font-size: 1.05rem; margin: .5rem 0 .35rem; color: var(--ink); }
+  .pit p { font-size: .84rem; color: var(--ink-2); margin: 0; }
+  .pit code { font-family: var(--mono); font-size: .78rem; background: rgba(120,53,15,.09); padding: .05rem .3rem; border-radius: 4px; }
+  .pit.sharp { border-color: var(--rust-2); }
+
+  /* ---- closing verdict ---- */
+  .close {
+    background: linear-gradient(160deg, var(--espresso), var(--espresso-2));
+    color: var(--pane); border-radius: 18px; padding: clamp(1.6rem, 4vw, 2.6rem);
+    display: grid; grid-template-columns: auto 1fr; gap: 1.6rem; align-items: center;
+  }
+  .close .big {
+    font-family: var(--serif); font-weight: 700; font-size: clamp(3.5rem, 9vw, 6rem);
+    line-height: .9; color: var(--amber); text-align: center;
+  }
+  .close .big small { display: block; font-size: .9rem; font-family: var(--mono); letter-spacing: .1em; color: rgba(254,243,236,.7); margin-top: .5rem; text-transform: uppercase; }
+  .close .txt h3 { font-family: var(--serif); font-size: 1.5rem; margin: 0 0 .6rem; }
+  .close .txt p { font-size: .98rem; color: rgba(254,243,236,.9); margin: 0; }
+  .close .txt b { color: #ffd9a8; }
+
+  /* ---- sources ---- */
+  .srcgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: .6rem; }
+  .src {
+    display: flex; gap: .7rem; align-items: flex-start; background: var(--pane);
+    border: 1px solid var(--line); border-radius: 10px; padding: .7rem .8rem;
+  }
+  .src img { width: 20px; height: 20px; border-radius: 4px; flex: none; margin-top: .1rem; }
+  .src .n { font-family: var(--mono); font-size: .7rem; color: var(--rust-2); font-weight: 700; }
+  .src .t { font-size: .82rem; color: var(--ink); line-height: 1.35; }
+  .src .t .cl { display: block; color: var(--ink-2); font-size: .74rem; margin-top: .15rem; }
+  .src .badge { font-family: var(--mono); font-size: .6rem; color: var(--ink-2); opacity: .7; }
+
+  /* ---- siblings ---- */
+  .sibs { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; }
+  .sib {
+    display: block; background: var(--pane); border: 1px solid var(--line);
+    border-left: 4px solid var(--rust-2); border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .sib:hover { text-decoration: none; background: #fff; }
+  .sib .d { font-family: var(--mono); font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; color: var(--rust-2); }
+  .sib .st { font-family: var(--serif); font-size: 1.08rem; color: var(--ink); margin: .2rem 0 .3rem; }
+  .sib .ss { font-size: .82rem; color: var(--ink-2); margin: 0; }
+
+  .backrow { margin-top: 2.4rem; font-family: var(--mono); font-size: .78rem; }
+
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+    .verdicts, .verdict.verdicts, .seam, .close { grid-template-columns: 1fr; }
+    .verdicts { grid-template-columns: 1fr; }
+    .matrix.four { grid-template-columns: repeat(2, 1fr); }
+    .breaks { grid-template-columns: repeat(2, 1fr); }
+    .pits { grid-template-columns: 1fr; }
+    .sibs { grid-template-columns: 1fr; }
+    .close { grid-template-columns: 1fr; }
+    .close .big { text-align: left; }
+  }
+  @media (max-width: 560px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .matrix.two, .matrix.four { grid-template-columns: 1fr; }
+    .axis { grid-template-columns: 1fr; }
+    .axis .mid { padding: .6rem; }
+  }
+</style>
+
+<div class="console">
+
+  <div class="topbar">
+    <div class="wrap">
+      <span class="crumb">Atlas<span>/</span>Expedition</span>
+      <span class="livepill"><span class="dot"></span>DECISION&nbsp;CONSOLE</span>
+      <span class="spacer"></span>
+      <span class="livepill">4&nbsp;ANGLES</span>
+      <span class="livepill">90&nbsp;CITATIONS</span>
+      <span class="livepill">UPDATED&nbsp;2026-07-16</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <header class="head">
+      <p class="kicker">React · UI Layout · 2026 Adoption Brief</p>
+      <h1>Splitters &amp; dockable panes in React: which libraries to adopt</h1>
+      <p class="lede">Two different needs, two different libraries. A <b>splitter</b> for the app shell; a <b>docking</b> layer on top only if users need to rearrange the workspace itself. They aren't competitors — they answer different questions.</p>
+    </header>
+
+    <div class="kpis">
+      <div class="kpi"><div class="num">4</div><div class="lab">Angles converged</div></div>
+      <div class="kpi"><div class="num">6</div><div class="lab">Libraries evaluated</div></div>
+      <div class="kpi"><div class="num">2</div><div class="lab">Winners named</div></div>
+      <div class="kpi"><div class="num">0</div><div class="lab">Runtime deps (both winners)</div></div>
+      <div class="kpi"><div class="num">90</div><div class="lab">Citations across angles</div></div>
+      <div class="kpi"><div class="num">3<small>×</small></div><div class="lab">Breaking majors in 2026</div></div>
+    </div>
+
+    <!-- VERDICTS -->
+    <section class="sec">
+      <h2 class="sec-h">The verdict</h2>
+      <div class="verdicts">
+        <div class="verdict">
+          <span class="glyph">&#9707;</span>
+          <div class="tier">Tier 1 · Splitter</div>
+          <div class="need">"I want a grid next to a form."</div>
+          <p class="pick"><a href="https://github.com/bvaughn/react-resizable-panels">react-resizable-panels</a></p>
+          <span class="stars">&#9733; 5.3k · MIT · zero-dep</span>
+          <p class="why">Unstyled, zero-dependency, TypeScript-first — the de-facto standard for fixed side-by-side splits with draggable dividers.<sup><a href="https://www.pkgpulse.com/guides/react-resizable-panels-vs-split-js-vs-allotment-2026">[1]</a></sup></p>
+        </div>
+        <div class="verdict">
+          <span class="glyph">&#9635;</span>
+          <div class="tier">Tier 2 · Docking</div>
+          <div class="need">"Let the user drag the form into a tab beside the grid, then pop it into its own window."</div>
+          <p class="pick"><a href="https://dockview.dev/">Dockview</a></p>
+          <span class="stars">&#9733; 3.3k · MIT · zero-dep</span>
+          <p class="why">The one modern, actively-maintained, framework-agnostic docker — VS Code-style drag, tab-stack, split, float and popout.<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></p>
+        </div>
+      </div>
+      <div class="verdict alt-note">
+        <b>Sequencing.</b> Start with the splitter and add the docker later without ripping anything out — a splitter for the app shell (boundaries move, contents fixed), a docking layer only for screens where users genuinely rearrange the workspace.
+      </div>
+    </section>
+
+    <!-- DECISION AXIS -->
+    <section class="sec">
+      <h2 class="sec-h">Which problem are you actually solving?</h2>
+      <div class="axis">
+        <div class="side left">
+          <p class="q">"A grid next to a form."</p>
+          <span class="tag split">Splitter problem</span>
+        </div>
+        <div class="mid">vs</div>
+        <div class="side right">
+          <p class="q">"Drag the form into a tab beside the grid, then tear it into its own OS window."</p>
+          <span class="tag dock">Docking problem</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECOMMENDATION MATRIX -->
+    <section class="sec">
+      <h2 class="sec-h">Two-tier recommendation matrix</h2>
+
+      <div class="tiergrid">
+        <div class="tierlabel">Tier 1 — Draggable splitters · boundaries move, contents fixed</div>
+        <div class="matrix two">
+          <div class="lib pick">
+            <p class="name"><a href="https://github.com/bvaughn/react-resizable-panels">react-resizable-panels</a></p>
+            <div class="meta">&#9733; 5.3k · MIT · npm react-resizable-panels</div>
+            <span class="fit f-pick">Default pick</span>
+            <p class="for">Unstyled, zero-dependency app-shell splits. Serializes a trivial size array via <code>autoSaveId</code> + a swappable <code>storage</code> prop.<sup><a href="https://github.com/bvaughn/react-resizable-panels">[8]</a></sup></p>
+            <p class="watch"><b>Watch</b> — v4 renamed the whole public API; broke shadcn/ui's Resizable.<sup><a href="https://github.com/shadcn-ui/ui/issues/9136">[4]</a></sup></p>
+          </div>
+          <div class="lib alt">
+            <p class="name"><a href="https://github.com/johnwalley/allotment">Allotment</a></p>
+            <div class="meta">&#9733; 1.3k · MIT · npm allotment</div>
+            <span class="fit f-alt">Reach-for</span>
+            <p class="for">Only when you want VS Code look-and-feel with snapping out of the box.<sup><a href="https://github.com/johnwalley/allotment">[15]</a></sup></p>
+            <p class="watch"><b>Scope</b> — split panes only; no tabs or floating.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tiergrid">
+        <div class="tierlabel t2">Tier 2 — VS Code-style docking · users rearrange the workspace</div>
+        <div class="matrix four">
+          <div class="lib pick">
+            <p class="name"><a href="https://dockview.dev/">Dockview</a></p>
+            <div class="meta">&#9733; 3.3k · MIT · dockview-react</div>
+            <span class="fit f-pick">Default pick</span>
+            <p class="for">Framework-agnostic core; tabs, groups, grid/splitview, drag-dock, floating groups, popout windows — closest modern successor to golden-layout.<sup><a href="https://github.com/mathuo/dockview">[2]</a></sup></p>
+            <p class="watch"><b>Watch</b> — open StrictMode double-render under React 19.<sup><a href="https://github.com/mathuo/dockview/issues/866">[7]</a></sup></p>
+          </div>
+          <div class="lib">
+            <p class="name"><a href="https://github.com/ticlo/rc-dock">rc-dock</a></p>
+            <div class="meta">&#9733; 812 · Apache-2.0 · rc-dock</div>
+            <span class="fit f-narrow">Narrower fit</span>
+            <p class="for">Fastest drop-in five-way tab docking in a React-only app; float boxes, popup-to-window, <code>saveLayout</code>/<code>loadLayout</code>.<sup><a href="https://github.com/ticlo/rc-dock">[16]</a></sup></p>
+            <p class="watch"><b>Scope</b> — React-only.</p>
+          </div>
+          <div class="lib">
+            <p class="name"><a href="https://github.com/caplin/FlexLayout">FlexLayout</a></p>
+            <div class="meta">&#9733; 1.3k · MIT · flexlayout-react</div>
+            <span class="fit f-narrow">Narrower fit</span>
+            <p class="for">Clean serializable JSON tree + multi-monitor popouts; golden-layout's official React recommendation.<sup><a href="https://golden-layout.github.io/golden-layout/version-2/">[18]</a></sup></p>
+            <p class="watch"><b>Scope</b> — React-only.</p>
+          </div>
+          <div class="lib">
+            <p class="name"><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">react-mosaic</a></p>
+            <div class="meta">&#9733; 4.8k · Apache-2.0 · react-mosaic-component</div>
+            <span class="fit f-narrow">Narrower fit</span>
+            <p class="for">i3-style tiling dashboards — and, new in v7, an n-ary tree with first-class tab-stacking.<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[6]</a></sup></p>
+            <p class="watch"><b>Note</b> — v7 invalidates the old "mosaic can't tab-stack" lore.</p>
+          </div>
+        </div>
+        <div class="verdict alt-note" style="margin-top:.9rem">
+          <b>Retired.</b> <a href="https://github.com/golden-layout/golden-layout">golden-layout</a> is historical context only — it dropped React in v2 and last shipped in 2022.
+        </div>
+      </div>
+    </section>
+
+    <!-- BREAKING MAJORS -->
+    <section class="sec">
+      <h2 class="sec-h">2026 — the year of breaking majors</h2>
+      <p class="lede" style="font-size:.95rem;margin:-.4rem 0 1.1rem;color:var(--ink-2);max-width:70ch">Both winners are zero-dependency and TypeScript-first — and both shipped disruptive rewrites the tutorials haven't caught up to. <b style="color:var(--ink)">Pin versions and read the changelog, not the blog posts.</b></p>
+      <div class="breaks">
+        <div class="brk">
+          <div class="ver">v4</div>
+          <span class="lib">react-resizable-panels</span>
+          <p>Renamed the whole public API: <code style="font-family:var(--mono);font-size:.76rem">PanelGroup&rarr;Group</code>, <code style="font-family:var(--mono);font-size:.76rem">PanelResizeHandle&rarr;Separator</code>, <code style="font-family:var(--mono);font-size:.76rem">data-*&rarr;aria-*</code>.<sup><a href="https://github.com/bvaughn/react-resizable-panels/blob/main/CHANGELOG.md">[3]</a></sup></p>
+        </div>
+        <div class="brk">
+          <div class="ver">v7</div>
+          <span class="lib">Dockview</span>
+          <p>Split its React bindings into a separate <code style="font-family:var(--mono);font-size:.76rem">dockview-react</code> package.<sup><a href="https://dockview.dev/docs/overview/whats-new-v7/">[5]</a></sup></p>
+        </div>
+        <div class="brk">
+          <div class="ver">v7</div>
+          <span class="lib">react-mosaic</span>
+          <p>Moved to an n-ary tree with first-class tabs — invalidating the old "can't tab-stack" lore.<sup><a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">[6]</a></sup></p>
+        </div>
+        <div class="brk open">
+          <span class="flag">Open</span>
+          <div class="ver">#866</div>
+          <span class="lib">Dockview</span>
+          <p>Still an open StrictMode double-render issue under React 19.<sup><a href="https://github.com/mathuo/dockview/issues/866">[7]</a></sup></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERSISTENCE SEAM -->
+    <section class="sec">
+      <h2 class="sec-h">The persistence seam — where the tiers diverge, and where it bites</h2>
+      <div class="seam">
+        <div class="col splitter">
+          <h3>Splitter</h3>
+          <div class="sub">trivial &middot; a size array</div>
+          <p>Serializes a plain array of sizes. Set <code>autoSaveId</code>, swap the <code>storage</code> prop for where it lives, done.<sup><a href="https://github.com/bvaughn/react-resizable-panels">[8]</a></sup></p>
+        </div>
+        <div class="col docker">
+          <h3>Docker</h3>
+          <div class="sub">fragile &middot; a keyed panel tree</div>
+          <p>Serializes a panel tree keyed by <b>string component name</b>.<sup><a href="https://dockview.dev/docs/core/state/save/">[9]</a></sup> Remove a panel in a later release and a restored layout references a component that no longer exists — <code>fromJSON</code> throws and wedges the dock.<sup><a href="https://github.com/mathuo/dockview/issues/341">[10]</a></sup></p>
+        </div>
+      </div>
+      <div class="nonneg">
+        <div class="lab">Non-negotiable for any docking deployment</div>
+        <ul>
+          <li>Version-stamped layouts</li>
+          <li>Unknown-panel pruning</li>
+          <li>A <code>try/catch</code> fallback to a default layout</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- HOSTING PITFALLS -->
+    <section class="sec">
+      <h2 class="sec-h">Hosting the actual grids &amp; forms — where naive setups break</h2>
+      <div class="pits">
+        <div class="pit">
+          <div class="g">&#8597;</div>
+          <h4>The flex chain</h4>
+          <p>A grid only fills a resizing pane if <b>every ancestor</b> in the flex chain has <code>min-height: 0</code>.<sup><a href="https://github.com/philipwalton/flexbugs/issues/241">[11]</a></sup></p>
+        </div>
+        <div class="pit">
+          <div class="g">&#9707;</div>
+          <h4>Let the grid resize itself</h4>
+          <p>Prefer AG Grid <code>flex</code> columns over calling <code>sizeColumnsToFit</code> on every resize event.<sup><a href="https://www.ag-grid.com/react-data-grid/column-sizing/">[12]</a></sup></p>
+        </div>
+        <div class="pit sharp">
+          <div class="g">&#9888;</div>
+          <h4>The sharpest trap</h4>
+          <p>Dockview's default <code>onlyWhenVisible</code> renderer removes hidden panels from the DOM — switching tabs <b>unmounts your form and loses its state</b>. Fix with <code>renderer: 'always'</code> or lift form state out of the pane tree.<sup><a href="https://dockview.dev/docs/core/panels/rendering/">[13]</a></sup></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSING VERDICT -->
+    <section class="sec">
+      <div class="close">
+        <div class="big">2<small>libraries<br>not six</small></div>
+        <div class="txt">
+          <h3>The open question isn't <i>which library</i>.</h3>
+          <p>It's <b>where user-controlled layout stops paying for itself</b>. Every docking feature you enable — float, popout, tab-stack — multiplies the persistence and unmount edge cases. Start with fixed splits; add docking only for the screens that genuinely earn it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANGLES -->
+    <section class="sec">
+      <h2 class="sec-h">The four angles</h2>
+      <div class="sibs">
+        <a class="sib" href="../../resizable-split-panes-react-resizable-panels-vs-allotment/">
+          <span class="d">Survey</span>
+          <div class="st">Resizable split panes: react-resizable-panels vs Allotment</div>
+          <p class="ss">The default pick for app-shell splits; reach for Allotment only for VS Code look-and-feel with snapping.</p>
+        </a>
+        <a class="sib" href="../../dockable-layout-managers-dockview-vs-rc-dock-vs-flexlayout-vs-react-mosaic/">
+          <span class="d">Expedition</span>
+          <div class="st">VS Code-style panes: Dockview vs rc-dock vs FlexLayout vs react-mosaic</div>
+          <p class="ss">Dockview is the default modern pick for VS Code-style pane docking; three real alternatives fit narrower cases.</p>
+        </a>
+        <a class="sib" href="../../layout-persistence-and-restoration/">
+          <span class="d">Survey</span>
+          <div class="st">Persisting and restoring pane layouts</div>
+          <p class="ss">How each library serializes layouts, where to persist them, and how to survive a saved layout that references a deleted panel.</p>
+        </a>
+        <a class="sib" href="../../hosting-grids-and-forms-inside-panes/">
+          <span class="d">Survey</span>
+          <div class="st">Hosting grids and forms inside panes</div>
+          <p class="ss">Per-library patterns and pitfalls for AG Grid / TanStack Table and forms in resizable and dockable panes without layout thrash or lost state.</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- SOURCES -->
+    <section class="sec">
+      <h2 class="sec-h">Source console</h2>
+      <div class="srgrid srcgrid">
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[2]</span> <a href="https://github.com/mathuo/dockview">mathuo/dockview</a> <span class="badge">&#9733; 3.3k · official</span><span class="cl">The one modern, framework-agnostic docker.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[8]</span> <a href="https://github.com/bvaughn/react-resizable-panels">bvaughn/react-resizable-panels</a> <span class="badge">&#9733; 5.3k · official</span><span class="cl">autoSaveId + a swappable storage prop.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=128" alt=""><span class="t"><span class="n">[1]</span> <a href="https://www.pkgpulse.com/guides/react-resizable-panels-vs-split-js-vs-allotment-2026">pkgpulse: splitters compared (2026)</a> <span class="badge">news</span><span class="cl">The de-facto standard splitter.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[3]</span> <a href="https://github.com/bvaughn/react-resizable-panels/blob/main/CHANGELOG.md">react-resizable-panels CHANGELOG</a> <span class="badge">official</span><span class="cl">v4 renamed the whole public API.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[4]</span> <a href="https://github.com/shadcn-ui/ui/issues/9136">shadcn/ui #9136</a> <span class="badge">forum</span><span class="cl">v4 rename broke the Resizable component.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dockview.dev&sz=128" alt=""><span class="t"><span class="n">[5]</span> <a href="https://dockview.dev/docs/overview/whats-new-v7/">Dockview — What's new in v7</a> <span class="badge">official</span><span class="cl">React bindings split into dockview-react.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[6]</span> <a href="https://github.com/nomcopter/react-mosaic/releases/tag/v7.0.0">react-mosaic v7.0.0</a> <span class="badge">&#9733; 4.8k · official</span><span class="cl">n-ary tree with first-class tabs.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[7]</span> <a href="https://github.com/mathuo/dockview/issues/866">dockview #866</a> <span class="badge">forum</span><span class="cl">Open StrictMode double-render under React 19.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dockview.dev&sz=128" alt=""><span class="t"><span class="n">[9]</span> <a href="https://dockview.dev/docs/core/state/save/">Dockview — Save &amp; restore state</a> <span class="badge">official</span><span class="cl">Serializes a panel tree keyed by component name.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[10]</span> <a href="https://github.com/mathuo/dockview/issues/341">dockview #341</a> <span class="badge">forum</span><span class="cl">fromJSON throws on a removed panel; wedges the dock.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[11]</span> <a href="https://github.com/philipwalton/flexbugs/issues/241">flexbugs #241</a> <span class="badge">forum</span><span class="cl">Every flex ancestor needs min-height: 0.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=ag-grid.com&sz=128" alt=""><span class="t"><span class="n">[12]</span> <a href="https://www.ag-grid.com/react-data-grid/column-sizing/">AG Grid — Column Sizing</a> <span class="badge">official</span><span class="cl">Prefer flex columns over sizeColumnsToFit.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dockview.dev&sz=128" alt=""><span class="t"><span class="n">[13]</span> <a href="https://dockview.dev/docs/core/panels/rendering/">Dockview — Panel rendering</a> <span class="badge">official</span><span class="cl">onlyWhenVisible unmounts hidden panels.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[15]</span> <a href="https://github.com/johnwalley/allotment">johnwalley/allotment</a> <span class="badge">&#9733; 1.3k · official</span><span class="cl">VS Code look-and-feel with snapping.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[16]</span> <a href="https://github.com/ticlo/rc-dock">ticlo/rc-dock</a> <span class="badge">&#9733; 812 · official</span><span class="cl">Fast drop-in five-way tab docking, React-only.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[17]</span> <a href="https://github.com/caplin/FlexLayout">caplin/FlexLayout</a> <span class="badge">&#9733; 1.3k · official</span><span class="cl">Serializable JSON tree + multi-monitor popouts.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=golden-layout.github.io&sz=128" alt=""><span class="t"><span class="n">[18]</span> <a href="https://golden-layout.github.io/golden-layout/version-2/">golden-layout v2</a> <span class="badge">official</span><span class="cl">Points React users to FlexLayout.</span></span></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="t"><span class="n">[19]</span> <a href="https://github.com/golden-layout/golden-layout">golden-layout/golden-layout</a> <span class="badge">official</span><span class="cl">Dropped React in v2; last shipped 2022.</span></span></div>
+      </div>
+    </section>
+
+    <div class="backrow">
+      &larr; <a href="../">Back to the canonical expedition</a> &nbsp;·&nbsp; <a href="/">Atlas</a>
+    </div>
+
+  </div>
+</div>
