@@ -1,0 +1,701 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "React i18n in 2026: framework & runtime fit (React 19, RSC, Vite vs Next.js) — Blueprint"
+---
+
+<style>
+  .bp {
+    --paper: #f4efe3;
+    --paper2: #efe7d6;
+    --ink: #33281c;
+    --ink-soft: #6d6150;
+    --rule: #b6a888;
+    --rule-strong: #8c7d60;
+    --grid: rgba(51, 40, 28, 0.055);
+    --rust: #ab4526;   /* red-line · server / RSC path */
+    --slate: #2f5c6d;  /* blue-line · client / Vite path */
+    --amber: #b45309;
+    --gold: #d97706;
+    --ct: #b45309;     /* compile-time */
+    --rt: #2f5c6d;     /* runtime-dictionary */
+    --sans: "Helvetica Neue", Arial, system-ui, sans-serif;
+    --cond: "Arial Narrow", "Helvetica Neue", Arial, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 26px 26px;
+    font-family: var(--sans);
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .bp * { box-sizing: border-box; }
+  .bp a { color: inherit; }
+
+  .sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 34px clamp(16px, 4vw, 52px) 72px;
+    position: relative;
+  }
+  /* registration corner ticks */
+  .sheet::before, .sheet::after {
+    content: "";
+    position: absolute;
+    width: 26px; height: 26px;
+    border: 1.5px solid var(--rule-strong);
+    pointer-events: none;
+  }
+  .sheet::before { top: 14px; left: 10px; border-right: none; border-bottom: none; }
+  .sheet::after { bottom: 40px; right: 10px; border-left: none; border-top: none; }
+
+  .mono { font-family: var(--mono); }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- TITLE BLOCK / CARTOUCHE ---------- */
+  .cartouche {
+    border: 1.5px solid var(--ink);
+    background: rgba(255,255,255,0.35);
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+  }
+  .cart-main { padding: 22px 26px; border-right: 1.5px solid var(--ink); }
+  .cart-emblem {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 12px;
+  }
+  .cart-emblem img {
+    width: 62px; height: 62px; object-fit: cover;
+    border: 1px solid var(--rule-strong);
+    filter: saturate(0.9);
+  }
+  .cart-emblem .tagset { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; color: var(--ink-soft); text-transform: uppercase; }
+  h1.title {
+    font-family: var(--cond);
+    font-stretch: condensed;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    line-height: 0.94;
+    font-size: clamp(38px, 7.4vw, 76px);
+    margin: 4px 0 10px;
+  }
+  h1.title .amp { color: var(--rust); font-weight: 400; }
+  .subtitle { font-family: var(--mono); font-size: 12.5px; color: var(--ink); letter-spacing: 0.02em; }
+  .subtitle b { color: var(--rust); }
+
+  .cart-meta { display: grid; grid-template-columns: 1fr 1fr; }
+  .cart-meta .cell {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+  }
+  .cart-meta .cell:nth-child(2n) { border-right: none; }
+  .cart-meta .cell:nth-last-child(-n+2) { border-bottom: none; }
+  .cart-meta .lbl { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+  .cart-meta .val { font-family: var(--cond); font-stretch: condensed; font-weight: 700; font-size: 21px; text-transform: uppercase; margin-top: 3px; }
+
+  .general-note {
+    border: 1.5px solid var(--ink);
+    border-top: none;
+    padding: 14px 26px;
+    background: rgba(212,119,6,0.06);
+    display: flex; gap: 16px; align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .general-note .gn-tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: #fff; background: var(--rust); padding: 3px 8px; white-space: nowrap;
+  }
+  .general-note p { margin: 0; font-size: 14.5px; }
+  .general-note b { color: var(--rust); }
+
+  /* ---------- SECTION HEADS ---------- */
+  .plate { margin-top: 46px; }
+  .plate-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .detail-mark {
+    width: 30px; height: 30px; flex: none;
+    border: 1.5px solid var(--ink); border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--cond); font-weight: 800; font-size: 17px;
+  }
+  .plate-head h2 {
+    font-family: var(--cond); font-stretch: condensed; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.03em;
+    font-size: clamp(20px, 3.4vw, 28px); margin: 0; line-height: 1;
+  }
+  .plate-head .h-sub { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin-left: auto; text-align: right; }
+
+  /* ---------- MASTER AXIS ---------- */
+  .axis-frame { border: 1.5px solid var(--ink); background: rgba(255,255,255,0.32); padding: 30px clamp(14px,3vw,34px) 22px; }
+  .poles { display: flex; justify-content: space-between; font-family: var(--cond); font-stretch: condensed; font-weight: 800; text-transform: uppercase; font-size: clamp(13px,2.4vw,19px); letter-spacing: 0.04em; margin-bottom: 6px; }
+  .poles .pL { color: var(--rt); }
+  .poles .pR { color: var(--ct); }
+  .axis-track {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding-top: 26px;
+  }
+  .axis-track::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 12px;
+    height: 0; border-top: 2px solid var(--ink);
+  }
+  /* center divider between architectures */
+  .axis-track::after {
+    content: "";
+    position: absolute; top: -4px; bottom: -6px;
+    left: calc(33.33% + 3px);
+    border-left: 1.5px dashed var(--rust);
+  }
+  .node { position: relative; text-align: center; padding-top: 22px; }
+  .node .dot {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--paper); border: 2.5px solid var(--rt);
+  }
+  .node.ct .dot { border-color: var(--ct); background: var(--ct); }
+  .node .nm { font-family: var(--mono); font-weight: 600; font-size: 11.5px; }
+  .node .bd { font-family: var(--cond); font-stretch: condensed; font-weight: 800; font-size: clamp(15px,2.6vw,22px); margin-top: 2px; }
+  .node.ct .bd { color: var(--ct); }
+  .node.rt .bd { color: var(--rt); }
+  .node .st { font-family: var(--mono); font-size: 9.5px; color: var(--ink-soft); margin-top: 1px; }
+  .axis-legend { margin-top: 20px; display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em; color: var(--ink-soft); }
+  .axis-legend b { color: var(--ink); }
+  .swatch { display: inline-block; width: 11px; height: 11px; vertical-align: middle; margin-right: 5px; }
+  .swatch.rt { background: var(--paper); border: 2.5px solid var(--rt); border-radius: 50%; }
+  .swatch.ct { background: var(--ct); border-radius: 50%; }
+
+  /* ---------- TWO-PATH SCHEMATIC ---------- */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(14px, 3vw, 30px); }
+  .col { border: 1.5px solid var(--ink); background: rgba(255,255,255,0.30); }
+  .col.vite { border-top: 6px solid var(--slate); }
+  .col.next { border-top: 6px solid var(--rust); }
+  .col-head { padding: 16px 20px 14px; border-bottom: 1.5px solid var(--ink); }
+  .col-head .badge { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: #fff; }
+  .col.vite .badge { background: var(--slate); }
+  .col.next .badge { background: var(--rust); }
+  .col-head h3 { font-family: var(--cond); font-stretch: condensed; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-size: clamp(19px,3vw,26px); margin: 9px 0 2px; }
+  .col-head p { margin: 0; font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+
+  .stack { list-style: none; margin: 0; padding: 18px 20px 22px; }
+  .layer { border: 1px solid var(--rule-strong); background: var(--paper); padding: 12px 14px; position: relative; }
+  .layer .lyr-no { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
+  .layer h4 { font-family: var(--sans); font-weight: 700; font-size: 14.5px; margin: 3px 0 5px; }
+  .layer p { margin: 0; font-size: 12.5px; color: var(--ink); }
+  .layer.flag-server { border-color: var(--rust); border-left-width: 4px; background: rgba(171,69,38,0.05); }
+  .layer.flag-client { border-color: var(--slate); border-left-width: 4px; background: rgba(47,92,109,0.05); }
+  .layer.zero { text-align: center; border-style: dashed; }
+  .layer.zero .big { font-family: var(--cond); font-stretch: condensed; font-weight: 800; font-size: 26px; text-transform: uppercase; color: var(--rust); line-height: 1; }
+  .layer.zero .big small { display: block; font-family: var(--mono); font-weight: 400; font-size: 10px; letter-spacing: 0.14em; color: var(--ink-soft); margin-top: 4px; }
+
+  .chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.02em;
+    padding: 2px 7px; border-radius: 2px; white-space: nowrap; text-decoration: none;
+  }
+  .chip.ct { background: rgba(180,83,9,0.13); color: #7c3a06; border: 1px solid rgba(180,83,9,0.4); }
+  .chip.rt { background: rgba(47,92,109,0.12); color: #244a58; border: 1px solid rgba(47,92,109,0.4); }
+  .chip.warn { background: rgba(171,69,38,0.10); color: var(--rust); border: 1px dashed var(--rust); }
+  a.chip:hover { filter: brightness(0.94); }
+
+  .flow { height: 26px; position: relative; }
+  .flow::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 8px; border-left: 1.5px solid var(--rule-strong); }
+  .flow::after {
+    content: ""; position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%);
+    border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--rule-strong);
+  }
+  .flow.split::before { border-left-style: dashed; }
+
+  .col-note { padding: 0 20px 20px; }
+  .note {
+    font-family: var(--mono); font-size: 11px; line-height: 1.55;
+    border-left: 3px dashed var(--ink-soft); padding: 6px 0 6px 12px; color: var(--ink);
+    margin-top: 10px;
+  }
+  .note .warn-g { color: var(--rust); font-weight: 700; }
+  .note b { color: var(--ink); }
+
+  /* ---------- BILL OF MATERIALS ---------- */
+  .bom { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 14px; }
+  .part { border: 1.5px solid var(--ink); background: rgba(255,255,255,0.34); display: flex; flex-direction: column; }
+  .part-top { padding: 13px 15px 11px; border-bottom: 1px solid var(--rule); }
+  .part-top .arch { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; padding: 2px 6px; float: right; color: #fff; }
+  .part.rt .arch { background: var(--rt); }
+  .part.ct .arch { background: var(--ct); }
+  .part-name { font-family: var(--cond); font-stretch: condensed; font-weight: 800; font-size: 22px; text-transform: uppercase; line-height: 1; }
+  .part-name a { text-decoration: none; }
+  .part-name a:hover { color: var(--rust); }
+  .part-stars { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+  .spec { display: grid; grid-template-columns: auto 1fr; gap: 0; font-size: 12px; }
+  .spec dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 7px 14px 7px 15px; border-top: 1px solid var(--rule); }
+  .spec dd { margin: 0; padding: 7px 15px 7px 0; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 11.5px; text-align: right; }
+  .spec dd.ok { color: #3f6b34; font-weight: 600; }
+  .spec dd.warn { color: var(--rust); font-weight: 600; }
+  .part-fit { margin-top: auto; padding: 11px 15px; background: var(--ink); color: var(--paper); font-size: 11.5px; }
+  .part-fit b { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 2px; }
+  .part.rt .part-fit { background: #1f3d47; }
+  .part.ct .part-fit { background: #5a3410; }
+
+  /* ---------- VERDICTS ---------- */
+  .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(14px,3vw,30px); }
+  .verdict { border: 1.5px solid var(--ink); padding: 20px 22px; }
+  .verdict.vite { border-left: 6px solid var(--slate); background: rgba(47,92,109,0.05); }
+  .verdict.next { border-left: 6px solid var(--rust); background: rgba(171,69,38,0.05); }
+  .verdict .v-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+  .verdict h3 { font-family: var(--cond); font-stretch: condensed; font-weight: 800; text-transform: uppercase; font-size: 24px; margin: 5px 0 12px; }
+  .verdict ul { margin: 0; padding: 0; list-style: none; }
+  .verdict li { padding: 8px 0; border-top: 1px solid var(--rule); font-size: 13.5px; }
+  .verdict li:first-child { border-top: none; }
+  .verdict li .pick { font-family: var(--cond); font-stretch: condensed; font-weight: 800; font-size: 17px; text-transform: uppercase; }
+  .verdict.vite li .pick a { color: var(--slate); text-decoration: none; }
+  .verdict.next li .pick a { color: var(--rust); text-decoration: none; }
+  .verdict li .pick a:hover { text-decoration: underline; }
+  .verdict li .why { display: block; font-size: 12.5px; color: var(--ink); margin-top: 2px; }
+
+  /* ---------- SHEET INDEX (siblings) ---------- */
+  .sheets { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .sheet-card { border: 1px solid var(--rule-strong); background: rgba(255,255,255,0.30); padding: 14px 16px; text-decoration: none; display: block; }
+  .sheet-card:hover { border-color: var(--ink); background: rgba(212,119,6,0.06); }
+  .sheet-card .sc-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .sheet-card .sc-no { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-soft); }
+  .sheet-card .dpill { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--rule-strong); color: var(--ink-soft); }
+  .sheet-card h4 { font-family: var(--sans); font-weight: 700; font-size: 14px; margin: 8px 0 5px; line-height: 1.25; }
+  .sheet-card p { margin: 0; font-size: 11.5px; color: var(--ink-soft); }
+  .this-sheet { border: 1.5px solid var(--ink); background: rgba(212,119,6,0.10); padding: 14px 16px; }
+  .this-sheet .sc-no { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--rust); }
+  .this-sheet h4 { font-family: var(--sans); font-weight: 700; font-size: 14px; margin: 8px 0 0; }
+
+  /* ---------- REFERENCES ---------- */
+  .refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+  .ref { display: flex; gap: 10px; align-items: center; border: 1px solid var(--rule); background: rgba(255,255,255,0.28); padding: 9px 11px; text-decoration: none; }
+  .ref:hover { border-color: var(--ink); }
+  .ref .rn { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--rust); flex: none; width: 20px; }
+  .ref img { width: 20px; height: 20px; flex: none; border: 1px solid var(--rule); background: #fff; }
+  .ref .rbody { min-width: 0; }
+  .ref .rtitle { font-size: 12px; font-weight: 600; line-height: 1.25; overflow: hidden; }
+  .ref .rmeta { font-family: var(--mono); font-size: 9.5px; color: var(--ink-soft); letter-spacing: 0.04em; margin-top: 2px; text-transform: uppercase; }
+
+  .colophon { margin-top: 48px; border-top: 1.5px solid var(--ink); padding-top: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  .colophon a { color: var(--rust); }
+
+  sup a { text-decoration: none; color: var(--rust); font-family: var(--mono); font-size: 0.72em; }
+
+  @media (max-width: 720px) {
+    .cartouche { grid-template-columns: 1fr; }
+    .cart-main { border-right: none; border-bottom: 1.5px solid var(--ink); }
+    .paths, .verdicts { grid-template-columns: 1fr; }
+    .axis-track { grid-template-columns: repeat(3, 1fr); row-gap: 30px; }
+    .axis-track::after { display: none; }
+    .axis-track::before { display: none; }
+    .node .dot { display: none; }
+  }
+</style>
+
+<div class="bp">
+<div class="sheet">
+
+  <!-- ====== TITLE BLOCK ====== -->
+  <header class="cartouche">
+    <div class="cart-main">
+      <div class="cart-emblem">
+        <img src="../cover.svg" alt="Runtime core with locale chunks splitting off — schematic emblem">
+        <div class="tagset">React&nbsp;·&nbsp;i18n&nbsp;·&nbsp;RSC&nbsp;·&nbsp;Vite&nbsp;·&nbsp;Next.js<br>Bundle&nbsp;·&nbsp;Tree-shake&nbsp;·&nbsp;Lazy&nbsp;locale&nbsp;chunks</div>
+      </div>
+      <div class="kicker">Sheet 04 / 05 — Decision framework: React i18n · 2026</div>
+      <h1 class="title">Framework <span class="amp">&amp;</span> Runtime Fit</h1>
+      <div class="subtitle">Where six libraries sit in the runtime — <b>compile-time</b> vs <b>runtime-dictionary</b>, plotted across the Vite SPA and Next.js App&nbsp;Router / RSC paths.</div>
+    </div>
+    <div class="cart-meta">
+      <div class="cell"><div class="lbl">Drawing</div><div class="val">Runtime-Fit</div></div>
+      <div class="cell"><div class="lbl">Depth</div><div class="val">Survey</div></div>
+      <div class="cell"><div class="lbl">Libraries</div><div class="val">Six</div></div>
+      <div class="cell"><div class="lbl">References</div><div class="val">19</div></div>
+      <div class="cell"><div class="lbl">React</div><div class="val">19 · RSC</div></div>
+      <div class="cell"><div class="lbl">Rev</div><div class="val">2026·07·15</div></div>
+    </div>
+  </header>
+  <div class="general-note">
+    <span class="gn-tag">General note</span>
+    <p><b>The runtime dictates the choice more than features do.</b> React 19 is a non-issue — all six work with it. The real axis is RSC, bundle, and lazy-loading. Next.js App Router / RSC → <b>next-intl</b> or <b>Lingui</b>; Vite SPA → <b>Paraglide</b> (smallest) or <b>react-i18next</b> (ecosystem).</p>
+  </div>
+
+  <!-- ====== A · MASTER AXIS ====== -->
+  <section class="plate">
+    <div class="plate-head">
+      <span class="detail-mark">A</span>
+      <h2>The controlling axis</h2>
+      <span class="h-sub">Architecture &rarr; client bundle<br>plotted by weight</span>
+    </div>
+    <div class="axis-frame">
+      <div class="poles">
+        <span class="pL">&larr; Runtime-dictionary</span>
+        <span class="pR">Compile-time &rarr;</span>
+      </div>
+      <div class="axis-track">
+        <div class="node rt">
+          <span class="dot"></span>
+          <div class="nm">react-intl</div>
+          <div class="bd">~20 KB+</div>
+          <div class="st">ICU runtime · heaviest</div>
+        </div>
+        <div class="node rt">
+          <span class="dot"></span>
+          <div class="nm">react-i18next</div>
+          <div class="bd">~6 KB</div>
+          <div class="st">+ full namespace</div>
+        </div>
+        <div class="node ct">
+          <span class="dot"></span>
+          <div class="nm">Lingui</div>
+          <div class="bd">~3 KB</div>
+          <div class="st">+ compiled catalog</div>
+        </div>
+        <div class="node ct">
+          <span class="dot"></span>
+          <div class="nm">next-intl</div>
+          <div class="bd">~4 KB</div>
+          <div class="st">457 B server-only</div>
+        </div>
+        <div class="node ct">
+          <span class="dot"></span>
+          <div class="nm">typesafe-i18n</div>
+          <div class="bd">~1 KB</div>
+          <div class="st">+ codegen</div>
+        </div>
+        <div class="node ct">
+          <span class="dot"></span>
+          <div class="nm">Paraglide</div>
+          <div class="bd">~1 KB<span style="font-size:.6em">/loc</span></div>
+          <div class="st">flat as catalog grows</div>
+        </div>
+      </div>
+      <div class="axis-legend">
+        <span><span class="swatch rt"></span><b>Runtime-dictionary</b> — load a JSON/ICU catalog, resolve keys through a lookup layer at runtime. Bundle scales with the catalog; RSC needs workarounds.</span>
+        <span><span class="swatch ct"></span><b>Compile-time</b> — emit typed functions ahead of time. Unused messages tree-shake; Server Components call plain functions, no React context.<sup><a href="https://simplelocalize.io/blog/posts/the-most-popular-react-localization-libraries/">[1]</a></sup><sup><a href="https://paraglidejs.com/benchmark">[7]</a></sup></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== B · TWO-PATH SCHEMATIC ====== -->
+  <section class="plate">
+    <div class="plate-head">
+      <span class="detail-mark">B</span>
+      <h2>Two runtimes, two paths</h2>
+      <span class="h-sub">Where the translation<br>resolves &amp; what ships</span>
+    </div>
+    <div class="paths">
+
+      <!-- VITE PATH -->
+      <div class="col vite">
+        <div class="col-head">
+          <span class="badge">Path 1 · Client</span>
+          <h3>Vite SPA</h3>
+          <p>No RSC — everything is client-side, hydrates normally. Axis = bundle + DX.</p>
+        </div>
+        <ol class="stack">
+          <li class="layer">
+            <div class="lyr-no">01 · Source</div>
+            <h4>Locale catalogs</h4>
+            <p>JSON / ICU / message files, one per locale, in the repo.</p>
+          </li>
+          <div class="flow split"></div>
+          <li class="layer flag-client">
+            <div class="lyr-no">02 · Build (Vite)</div>
+            <h4>Compile vs. bundle</h4>
+            <p>Compile-time libs emit tree-shaken typed functions; runtime-dictionary libs bundle the catalog behind a lookup layer.</p>
+            <div class="chips">
+              <a class="chip ct" href="https://github.com/opral/paraglide-js">Paraglide ⇢ ESM fns</a>
+              <a class="chip ct" href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n ⇢ codegen</a>
+              <a class="chip rt" href="https://github.com/i18next/react-i18next">react-i18next ⇢ dict</a>
+              <a class="chip rt" href="https://github.com/formatjs/formatjs">react-intl ⇢ ICU dict</a>
+            </div>
+          </li>
+          <div class="flow"></div>
+          <li class="layer flag-client">
+            <div class="lyr-no">03 · Ship</div>
+            <h4>One client bundle + lazy chunks</h4>
+            <p>Vite splits locales natively via dynamic <span class="mono">import()</span> — the initial bundle carries one locale, others load on demand as chunks.<sup><a href="https://simplelocalize.io/blog/posts/lazy-loading-resources/">[11]</a></sup></p>
+          </li>
+          <div class="flow"></div>
+          <li class="layer">
+            <div class="lyr-no">04 · Browser</div>
+            <h4>Hydrate &rarr; DOM</h4>
+            <p>All translation work happens in the client; the payload is what the axis in Detail&nbsp;A measures.</p>
+          </li>
+        </ol>
+        <div class="col-note">
+          <div class="note"><b>Smallest, catalog-independent:</b> Paraglide — 47 KB where i18next ships 205 KB, and stays flat 200→1000 messages.<sup><a href="https://paraglidejs.com/benchmark">[7]</a></sup> A real migration dropped ~40 KB of i18next to ~2 KB.<sup><a href="https://dropanote.de/en/blog/20250726-why-i-replaced-i18next-with-paraglide-js/">[14]</a></sup></div>
+          <div class="note"><span class="warn-g">⚠ Skip next-intl</span> here — it isn't built for a standalone Vite SPA; the docs make no mention of non-Next.js usage.<sup><a href="https://next-intl.dev/docs/getting-started/app-router">[4]</a></sup></div>
+        </div>
+      </div>
+
+      <!-- NEXT PATH -->
+      <div class="col next">
+        <div class="col-head">
+          <span class="badge">Path 2 · Server</span>
+          <h3>Next.js App Router / RSC</h3>
+          <p>RSC is the Next.js 16 default. Resolve on the server → ship translated HTML.</p>
+        </div>
+        <ol class="stack">
+          <li class="layer">
+            <div class="lyr-no">01 · Source</div>
+            <h4>Locale files or remote source</h4>
+            <p>File-based default assumes locales live in the repo — updates ride deployments unless you wire a remote source.<sup><a href="https://better-i18n.com/en/blog/nextjs-app-router-i18n-server-components/">[3]</a></sup></p>
+          </li>
+          <div class="flow"></div>
+          <li class="layer flag-server">
+            <div class="lyr-no">02 · Server render</div>
+            <h4>Resolve in async Server Components</h4>
+            <p>Awaitable <span class="mono">getTranslations</span> (next-intl) or server <span class="mono">useLingui</span> reading a per-request instance from React <span class="mono">cache</span> — <b>no <span class="mono">use client</span></b>.<sup><a href="https://next-intl.dev/docs/getting-started/app-router">[4]</a></sup><sup><a href="https://lingui.dev/tutorials/react-rsc">[8]</a></sup></p>
+            <div class="chips">
+              <a class="chip ct" href="https://github.com/amannn/next-intl">next-intl ✓ native</a>
+              <a class="chip ct" href="https://github.com/lingui/js-lingui">Lingui ✓ native</a>
+              <a class="chip warn" href="https://github.com/i18next/react-i18next/issues/1616">react-i18next ⚠ createInstance</a>
+              <a class="chip warn" href="https://github.com/formatjs/formatjs">react-intl ⚠ use client</a>
+            </div>
+          </li>
+          <div class="flow"></div>
+          <li class="layer zero">
+            <div class="lyr-no">03 · Output</div>
+            <div class="big">Zero translation JS<small>final HTML · no hydration step for server strings</small></div>
+          </li>
+          <div class="flow split"></div>
+          <li class="layer flag-client">
+            <div class="lyr-no">04 · Client islands</div>
+            <h4><span class="mono">use client</span> — interactive bits only</h4>
+            <p>Client Components use the <span class="mono">useTranslations</span> / <span class="mono">useLingui</span> hook for the parts that need runtime state.<sup><a href="https://next-intl.dev/docs/getting-started/app-router">[4]</a></sup></p>
+          </li>
+        </ol>
+        <div class="col-note">
+          <div class="note"><b>Why RSC-native wins payload:</b> Server Components send only rendered output — no component JS — so server-resolved strings ship nothing to the client.<sup><a href="https://react.dev/reference/rsc/server-components">[16]</a></sup><sup><a href="https://better-i18n.com/en/blog/nextjs-app-router-i18n-server-components/">[3]</a></sup></div>
+          <div class="note"><span class="warn-g">⚠ Lingui sharp edge:</span> call <span class="mono">setI18n()</span> in <b>every page and layout</b>, not just the root; static rendering needs <span class="mono">generateStaticParams</span> for all locales.<sup><a href="https://lingui.dev/tutorials/react-rsc">[8]</a></sup></div>
+          <div class="note"><span class="warn-g">⚠ Run Next as a pure client SPA?</span> The RSC advantage disappears — the Vite guidance applies.<sup><a href="https://nextjs.org/docs/app/guides/single-page-applications">[17]</a></sup></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== C · BILL OF MATERIALS ====== -->
+  <section class="plate">
+    <div class="plate-head">
+      <span class="detail-mark">C</span>
+      <h2>Parts list</h2>
+      <span class="h-sub">Per-library spec plates<br>runtime · ssr · lazy · bundle</span>
+    </div>
+    <div class="bom">
+
+      <div class="part rt">
+        <div class="part-top">
+          <span class="arch">Runtime-dict</span>
+          <div class="part-name"><a href="https://github.com/i18next/react-i18next">react-i18next</a></div>
+          <div class="part-stars">⭐ 10k · core i18next ⭐ 8.6k</div>
+        </div>
+        <dl class="spec">
+          <dt>React 19</dt><dd class="ok">✓</dd>
+          <dt>RSC-native</dt><dd class="warn">⚠ createInstance / wrapper</dd>
+          <dt>SSR</dt><dd class="ok">✓ mature</dd>
+          <dt>Lazy locales</dt><dd>✓ manual · http-backend / import()</dd>
+          <dt>Client bundle</dt><dd>~6 KB + namespace</dd>
+        </dl>
+        <div class="part-fit"><b>Best fit</b>Vite SPA &amp; Pages Router; the deepest plugin ecosystem.<sup><a href="https://simplelocalize.io/blog/posts/the-most-popular-react-localization-libraries/">[1]</a></sup></div>
+      </div>
+
+      <div class="part rt">
+        <div class="part-top">
+          <span class="arch">Runtime-dict</span>
+          <div class="part-name"><a href="https://github.com/formatjs/formatjs">react-intl</a></div>
+          <div class="part-stars">⭐ 15k · FormatJS · highest-starred</div>
+        </div>
+        <dl class="spec">
+          <dt>React 19</dt><dd class="ok">✓</dd>
+          <dt>RSC-native</dt><dd class="warn">⚠ needs use client</dd>
+          <dt>SSR</dt><dd class="ok">✓</dd>
+          <dt>Lazy locales</dt><dd>⚠ manual dynamic import</dd>
+          <dt>Client bundle</dt><dd class="warn">~20 KB+ ICU runtime</dd>
+        </dl>
+        <div class="part-fit"><b>Best fit</b>Apps that genuinely need rich ICU (plurals/dates/currency) and can absorb the weight.<sup><a href="https://intlayer.org/blog/react-i18next-vs-react-intl-vs-intlayer">[15]</a></sup></div>
+      </div>
+
+      <div class="part ct">
+        <div class="part-top">
+          <span class="arch">Compile-time</span>
+          <div class="part-name"><a href="https://github.com/lingui/js-lingui">Lingui</a></div>
+          <div class="part-stars">⭐ 5.8k · macro extraction</div>
+        </div>
+        <dl class="spec">
+          <dt>React 19</dt><dd class="ok">✓</dd>
+          <dt>RSC-native</dt><dd class="ok">✓ React cache</dd>
+          <dt>SSR</dt><dd class="ok">✓</dd>
+          <dt>Lazy locales</dt><dd>✓ compiled catalogs</dd>
+          <dt>Client bundle</dt><dd>~3 KB + catalog</dd>
+        </dl>
+        <div class="part-fit"><b>Best fit</b>One identical <span class="mono">Trans</span>/<span class="mono">useLingui</span> API across RSC + client — if you'll wire the SWC macro.<sup><a href="https://lingui.dev/tutorials/react-rsc">[8]</a></sup></div>
+      </div>
+
+      <div class="part ct">
+        <div class="part-top">
+          <span class="arch">Compile-time</span>
+          <div class="part-name"><a href="https://github.com/amannn/next-intl">next-intl</a></div>
+          <div class="part-stars">⭐ 4.3k · App Router native</div>
+        </div>
+        <dl class="spec">
+          <dt>React 19</dt><dd class="ok">✓</dd>
+          <dt>RSC-native</dt><dd class="ok">✓ getTranslations</dd>
+          <dt>SSR</dt><dd class="ok">✓</dd>
+          <dt>Lazy locales</dt><dd>✓ per-locale · AOT server</dd>
+          <dt>Client bundle</dt><dd class="ok">~4 KB / 457 B server-only</dd>
+        </dl>
+        <div class="part-fit"><b>Best fit</b>Next.js App Router — the reference choice. ⚠ Not for a standalone Vite SPA.<sup><a href="https://next-intl.dev/docs/getting-started/app-router">[4]</a></sup></div>
+      </div>
+
+      <div class="part ct">
+        <div class="part-top">
+          <span class="arch">Compile-time</span>
+          <div class="part-name"><a href="https://github.com/opral/paraglide-js">Paraglide</a></div>
+          <div class="part-stars">⭐ 567 · opral/paraglide-js</div>
+        </div>
+        <dl class="spec">
+          <dt>React 19</dt><dd class="ok">✓</dd>
+          <dt>RSC-native</dt><dd class="ok">✓ pure functions</dd>
+          <dt>SSR</dt><dd class="ok">✓</dd>
+          <dt>Lazy locales</dt><dd>✓ compile-time tree-shake</dd>
+          <dt>Client bundle</dt><dd class="ok">~1 KB/locale · 47–144 KB total</dd>
+        </dl>
+        <div class="part-fit"><b>Best fit</b>Vite SPA where bundle size is the priority — size stays flat as the catalog grows.<sup><a href="https://paraglidejs.com/benchmark">[7]</a></sup></div>
+      </div>
+
+      <div class="part ct">
+        <div class="part-top">
+          <span class="arch">Compile-time</span>
+          <div class="part-name"><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a></div>
+          <div class="part-stars">⭐ 2.5k · codegen-first</div>
+        </div>
+        <dl class="spec">
+          <dt>React 19</dt><dd class="ok">✓</dd>
+          <dt>RSC-native</dt><dd class="ok">✓ plain TS fns</dd>
+          <dt>SSR</dt><dd class="ok">✓</dd>
+          <dt>Lazy locales</dt><dd>✓ generated per-locale import</dd>
+          <dt>Client bundle</dt><dd class="ok">~1 KB + codegen</dd>
+        </dl>
+        <div class="part-fit"><b>Best fit</b>TS Vite SPA valuing codegen + strict param checking. ⚠ Momentum thin — last major release 2023.<sup><a href="https://github.com/codingcommons/typesafe-i18n">[12]</a></sup></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====== D · VERDICTS ====== -->
+  <section class="plate">
+    <div class="plate-head">
+      <span class="detail-mark">D</span>
+      <h2>Specification by runtime</h2>
+      <span class="h-sub">Pick the path first,<br>then the library</span>
+    </div>
+    <div class="verdicts">
+      <div class="verdict vite">
+        <div class="v-lbl">If the target is a</div>
+        <h3>Vite SPA</h3>
+        <ul>
+          <li><span class="pick"><a href="https://github.com/opral/paraglide-js">Paraglide</a></span><span class="why">Smallest, catalog-independent bundle via compile-time tree-shaking.</span></li>
+          <li><span class="pick"><a href="https://github.com/i18next/react-i18next">react-i18next</a></span><span class="why">The deepest ecosystem — if you'll manage namespace splitting yourself.</span></li>
+          <li><span class="pick"><a href="https://github.com/codingcommons/typesafe-i18n">typesafe-i18n</a></span><span class="why">When you want codegen type-safety. Vite handles all three's lazy locale chunks natively.</span></li>
+        </ul>
+      </div>
+      <div class="verdict next">
+        <div class="v-lbl">If the target is the</div>
+        <h3>Next.js App Router</h3>
+        <ul>
+          <li><span class="pick"><a href="https://github.com/amannn/next-intl">next-intl</a></span><span class="why">The reference choice — async <span class="mono">getTranslations</span>, request-scoped config, 457 B server-only path.</span></li>
+          <li><span class="pick"><a href="https://github.com/lingui/js-lingui">Lingui</a></span><span class="why">The alternative when you want one identical API across server + client.</span></li>
+          <li><span class="pick">react-i18next / next-i18next</span><span class="why">Reserve for migrating an existing Pages Router app — not greenfield.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== SHEET INDEX ====== -->
+  <section class="plate">
+    <div class="plate-head">
+      <span class="detail-mark">▦</span>
+      <h2>Drawing set</h2>
+      <span class="h-sub"><a href="../../" style="color:var(--rust);text-decoration:none;">Decision framework: which React i18n library to adopt in 2026 &rarr;</a></span>
+    </div>
+    <div class="sheets">
+      <a class="sheet-card" href="../../core-library-landscape-head-to-head/">
+        <div class="sc-top"><span class="sc-no">Sheet 01</span><span class="dpill">Expedition</span></div>
+        <h4>The Core Library Head-to-Head</h4>
+        <p>react-i18next the safe default; next-intl owns the App Router; Paraglide &amp; Lingui the compile-time challengers.</p>
+      </a>
+      <a class="sheet-card" href="../../message-format-pluralization-icu/">
+        <div class="sc-top"><span class="sc-no">Sheet 02</span><span class="dpill">Survey</span></div>
+        <h4>Message format, pluralization &amp; ICU</h4>
+        <p>ICU-first vs interpolation-first vs MF2-inspired — how each authors plurals, gender and Intl formatting.</p>
+      </a>
+      <a class="sheet-card" href="../../type-safety-extraction-developer-tooling/">
+        <div class="sc-top"><span class="sc-no">Sheet 03</span><span class="dpill">Survey</span></div>
+        <h4>Type safety, extraction &amp; tooling</h4>
+        <p>Compile-first libs and next-intl give type safety for free; i18next and react-intl bolt it on.</p>
+      </a>
+      <div class="this-sheet">
+        <div class="sc-top"><span class="sc-no">Sheet 04 · you are here</span><span class="dpill" style="border-color:var(--rust);color:var(--rust);">Survey</span></div>
+        <h4>Framework &amp; runtime fit</h4>
+      </div>
+      <a class="sheet-card" href="../../translation-management-workflow/">
+        <div class="sc-top"><span class="sc-no">Sheet 05</span><span class="dpill">Survey</span></div>
+        <h4>The translation pipeline, not just the library</h4>
+        <p>The library pins your extraction model &amp; file format; the TMS you pair it with decides the workflow.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ====== REFERENCES ====== -->
+  <section class="plate">
+    <div class="plate-head">
+      <span class="detail-mark">§</span>
+      <h2>References</h2>
+      <span class="h-sub">19 sources</span>
+    </div>
+    <div class="refs">
+      <a class="ref" href="https://simplelocalize.io/blog/posts/the-most-popular-react-localization-libraries/"><span class="rn">1</span><img src="https://www.google.com/s2/favicons?domain=simplelocalize.io&sz=128" alt=""><span class="rbody"><span class="rtitle">Most popular React localization libraries</span><span class="rmeta">simplelocalize.io · vendor-blog</span></span></a>
+      <a class="ref" href="https://github.com/i18next/react-i18next/issues/1616"><span class="rn">2</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">react-i18next #1616 — RSC support</span><span class="rmeta">github.com · forum · ⭐ 10k</span></span></a>
+      <a class="ref" href="https://better-i18n.com/en/blog/nextjs-app-router-i18n-server-components/"><span class="rn">3</span><img src="https://www.google.com/s2/favicons?domain=better-i18n.com&sz=128" alt=""><span class="rbody"><span class="rtitle">Next.js App Router i18n &amp; Server Components</span><span class="rmeta">better-i18n.com · vendor-blog</span></span></a>
+      <a class="ref" href="https://next-intl.dev/docs/getting-started/app-router"><span class="rn">4</span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><span class="rbody"><span class="rtitle">next-intl — App Router getting started</span><span class="rmeta">next-intl.dev · official</span></span></a>
+      <a class="ref" href="https://github.com/amannn/next-intl"><span class="rn">5</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">amannn/next-intl</span><span class="rmeta">github.com · official · ⭐ 4.3k</span></span></a>
+      <a class="ref" href="https://github.com/opral/paraglide-js"><span class="rn">6</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">opral/paraglide-js</span><span class="rmeta">github.com · official · ⭐ 567</span></span></a>
+      <a class="ref" href="https://paraglidejs.com/benchmark"><span class="rn">7</span><img src="https://www.google.com/s2/favicons?domain=paraglidejs.com&sz=128" alt=""><span class="rbody"><span class="rtitle">Paraglide benchmark</span><span class="rmeta">paraglidejs.com · vendor-blog</span></span></a>
+      <a class="ref" href="https://lingui.dev/tutorials/react-rsc"><span class="rn">8</span><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><span class="rbody"><span class="rtitle">Lingui — React Server Components</span><span class="rmeta">lingui.dev · official</span></span></a>
+      <a class="ref" href="https://github.com/lingui/js-lingui"><span class="rn">9</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">lingui/js-lingui</span><span class="rmeta">github.com · official · ⭐ 5.8k</span></span></a>
+      <a class="ref" href="https://github.com/formatjs/formatjs"><span class="rn">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">formatjs/formatjs</span><span class="rmeta">github.com · official · ⭐ 15k</span></span></a>
+      <a class="ref" href="https://simplelocalize.io/blog/posts/lazy-loading-resources/"><span class="rn">11</span><img src="https://www.google.com/s2/favicons?domain=simplelocalize.io&sz=128" alt=""><span class="rbody"><span class="rtitle">Lazy-loading i18n resources</span><span class="rmeta">simplelocalize.io · vendor-blog</span></span></a>
+      <a class="ref" href="https://github.com/codingcommons/typesafe-i18n"><span class="rn">12</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">codingcommons/typesafe-i18n</span><span class="rmeta">github.com · official · ⭐ 2.5k</span></span></a>
+      <a class="ref" href="https://react.i18next.com/latest/ssr"><span class="rn">13</span><img src="https://www.google.com/s2/favicons?domain=react.i18next.com&sz=128" alt=""><span class="rbody"><span class="rtitle">react-i18next — SSR docs</span><span class="rmeta">react.i18next.com · official</span></span></a>
+      <a class="ref" href="https://dropanote.de/en/blog/20250726-why-i-replaced-i18next-with-paraglide-js/"><span class="rn">14</span><img src="https://www.google.com/s2/favicons?domain=dropanote.de&sz=128" alt=""><span class="rbody"><span class="rtitle">Why I replaced i18next with Paraglide.js</span><span class="rmeta">dropanote.de · vendor-blog</span></span></a>
+      <a class="ref" href="https://intlayer.org/blog/react-i18next-vs-react-intl-vs-intlayer"><span class="rn">15</span><img src="https://www.google.com/s2/favicons?domain=intlayer.org&sz=128" alt=""><span class="rbody"><span class="rtitle">react-i18next vs react-intl vs Intlayer</span><span class="rmeta">intlayer.org · vendor-blog</span></span></a>
+      <a class="ref" href="https://react.dev/reference/rsc/server-components"><span class="rn">16</span><img src="https://www.google.com/s2/favicons?domain=react.dev&sz=128" alt=""><span class="rbody"><span class="rtitle">React — Server Components reference</span><span class="rmeta">react.dev · official</span></span></a>
+      <a class="ref" href="https://nextjs.org/docs/app/guides/single-page-applications"><span class="rn">17</span><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt=""><span class="rbody"><span class="rtitle">Next.js — Single-Page Applications</span><span class="rmeta">nextjs.org · official</span></span></a>
+      <a class="ref" href="https://github.com/i18next/react-i18next"><span class="rn">18</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="rbody"><span class="rtitle">i18next/react-i18next</span><span class="rmeta">github.com · official · ⭐ 10k</span></span></a>
+      <a class="ref" href="https://gundogmuseray.medium.com/the-definitive-guide-to-i18n-libraries-for-next-js-react-in-2026-8102c7f68a77"><span class="rn">19</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><span class="rbody"><span class="rtitle">Definitive Guide to i18n Libraries · 2026</span><span class="rmeta">medium.com · news</span></span></a>
+    </div>
+  </section>
+
+  <div class="colophon">
+    <span>Blueprint view · Atlas · <a href="../">canonical &rarr;</a></span>
+    <span>Runtime-Fit · Sheet 04/05 · Rev 2026·07·15</span>
+  </div>
+
+</div>
+</div>

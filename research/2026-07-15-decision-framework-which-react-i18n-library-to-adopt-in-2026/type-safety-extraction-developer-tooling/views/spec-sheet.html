@@ -1,0 +1,498 @@
+---
+layout: view
+view_name: "Spec Sheet"
+view_of: ../
+title: "Type safety, extraction & developer tooling for React i18n in 2026 — Spec Sheet"
+---
+
+<style>
+  .ds {
+    --paper: #f6f3ec;
+    --paper-2: #efeadf;
+    --ink: #1b1a17;
+    --ink-2: #47433a;
+    --ink-3: #7d776a;
+    --rule: #d9d2c2;
+    --rule-2: #c7bfab;
+    --blueprint: #1b3fb0;
+    --pass-fg: #146c43; --pass-bg: #dcefe2; --pass-br: #a7d2b6;
+    --part-fg: #9a6700; --part-bg: #f8eecb; --part-br: #e3ca87;
+    --absent-fg: #928c7d; --absent-bg: #e9e4d7; --absent-br: #d3cbb8;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+      linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 28px,
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 0 / 28px 100%,
+      var(--paper);
+    background-blend-mode: soft-light, soft-light, normal;
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 0 4rem;
+  }
+  .ds * { box-sizing: border-box; }
+  .ds .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .ds a { color: var(--blueprint); text-decoration: none; border-bottom: 1px solid rgba(27,63,176,.28); }
+  .ds a:hover { border-bottom-color: var(--blueprint); }
+  .ds sup a { border: none; font-family: var(--mono); font-size: .68em; padding: 0 1px; }
+  .ds .mono { font-family: var(--mono); }
+  .ds .kick { font-family: var(--mono); font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---- title block ---- */
+  .ds .titleblock {
+    border-bottom: 3px solid var(--ink);
+    padding: 30px 0 20px;
+    display: grid; grid-template-columns: 1.55fr 1fr; gap: 28px; align-items: end;
+  }
+  .ds .titleblock::before {
+    content: ""; display: block; height: 6px; margin: 0 0 20px;
+    background: linear-gradient(90deg, var(--blueprint) 0 33%, var(--part-fg) 33% 66%, var(--pass-fg) 66% 100%);
+    grid-column: 1 / -1;
+  }
+  .ds h1 { font-size: clamp(1.9rem, 4.4vw, 3.05rem); line-height: 1.02; margin: 0 0 10px; letter-spacing: -.015em; font-weight: 800; }
+  .ds h1 .sub2 { display: block; font-size: .42em; letter-spacing: .04em; color: var(--ink-2); font-weight: 600; margin-top: 8px; }
+  .ds .lede { color: var(--ink-2); font-size: 1.02rem; max-width: 46ch; margin: 0; }
+  .ds .specbox { border: 1.5px solid var(--ink); background: rgba(255,255,255,.35); }
+  .ds .specbox .sbhead { font-family: var(--mono); font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; background: var(--ink); color: var(--paper); padding: 6px 10px; }
+  .ds .specbox dl { margin: 0; display: grid; grid-template-columns: auto 1fr; }
+  .ds .specbox dt, .ds .specbox dd { font-family: var(--mono); font-size: .74rem; padding: 5px 10px; border-top: 1px solid var(--rule-2); margin: 0; }
+  .ds .specbox dt { color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; border-right: 1px solid var(--rule-2); }
+  .ds .specbox dd { text-align: right; font-weight: 600; }
+
+  /* ---- section scaffolding ---- */
+  .ds section { margin-top: 46px; }
+  .ds .shead { display: flex; align-items: baseline; gap: 12px; border-bottom: 1.5px solid var(--ink); padding-bottom: 7px; margin-bottom: 20px; }
+  .ds .shead .no { font-family: var(--mono); font-size: .8rem; color: var(--blueprint); font-weight: 700; }
+  .ds .shead h2 { font-size: 1.18rem; margin: 0; letter-spacing: .01em; font-weight: 750; }
+  .ds .shead .tag { margin-left: auto; font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---- description / verdict ---- */
+  .ds .desc {
+    border: 1.5px solid var(--rule-2); border-left: 5px solid var(--blueprint);
+    background: rgba(255,255,255,.4); padding: 18px 22px; font-size: 1.02rem;
+  }
+  .ds .desc strong { font-weight: 700; }
+  .ds .desc .pick { font-family: var(--mono); font-weight: 700; background: var(--pass-bg); border: 1px solid var(--pass-br); color: var(--pass-fg); padding: 0 5px; border-radius: 3px; }
+
+  /* ---- the two bins ---- */
+  .ds .bins { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ds .bin { border: 1.5px solid var(--ink); background: rgba(255,255,255,.34); display: flex; flex-direction: column; }
+  .ds .bin .binhead { padding: 12px 16px 13px; color: #fff; }
+  .ds .bin.a .binhead { background: linear-gradient(135deg, #167a4d, #0f5c39); }
+  .ds .bin.b .binhead { background: linear-gradient(135deg, #b07d10, #8a5c07); }
+  .ds .bin .binhead .lab { font-family: var(--mono); font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
+  .ds .bin .binhead .name { font-size: 1.12rem; font-weight: 750; margin-top: 3px; }
+  .ds .bin .binbody { padding: 15px 16px; font-size: .92rem; color: var(--ink-2); }
+  .ds .bin .binbody p { margin: 0 0 12px; }
+  .ds .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+  .ds .chip { font-family: var(--mono); font-size: .74rem; font-weight: 600; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--rule-2); background: var(--paper-2); }
+  .ds .chip img { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; border-radius: 2px; }
+  .ds .straddle { text-align: center; font-family: var(--mono); font-size: .78rem; color: var(--ink-3); margin-top: 16px; }
+  .ds .straddle b { color: var(--blueprint); }
+
+  /* ---- feature matrix ---- */
+  .ds .matrixscroll { overflow-x: auto; border: 1.5px solid var(--ink); background: rgba(255,255,255,.4); }
+  .ds table.mx { border-collapse: collapse; width: 100%; min-width: 760px; font-size: .84rem; }
+  .ds table.mx th, .ds table.mx td { border: 1px solid var(--rule-2); padding: 9px 10px; text-align: center; }
+  .ds table.mx thead th { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: .66rem; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; vertical-align: bottom; }
+  .ds table.mx tbody th { text-align: left; font-family: var(--mono); font-weight: 700; font-size: .8rem; white-space: nowrap; background: var(--paper-2); }
+  .ds table.mx tbody th img { width: 15px; height: 15px; vertical-align: -3px; margin-right: 6px; border-radius: 3px; }
+  .ds table.mx tbody th a { border: none; color: var(--ink); }
+  .ds table.mx tbody th .st { display: block; font-family: var(--mono); font-weight: 500; font-size: .68rem; color: var(--ink-3); margin-top: 2px; }
+  .ds .cell { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-weight: 700; font-family: var(--mono); }
+  .ds .c-pass { background: var(--pass-bg); border: 1px solid var(--pass-br); color: var(--pass-fg); }
+  .ds .c-part { background: var(--part-bg); border: 1px solid var(--part-br); color: var(--part-fg); }
+  .ds .c-abs  { background: var(--absent-bg); border: 1px solid var(--absent-br); color: var(--absent-fg); }
+  .ds td .note { display: block; font-family: var(--mono); font-size: .6rem; color: var(--ink-3); margin-top: 3px; letter-spacing: .01em; }
+  .ds .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-family: var(--mono); font-size: .72rem; color: var(--ink-2); }
+  .ds .legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ---- spec cards ---- */
+  .ds .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .ds .card { border: 1.5px solid var(--ink); background: rgba(255,255,255,.42); display: flex; flex-direction: column; }
+  .ds .card .ch { display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-bottom: 1.5px solid var(--ink); }
+  .ds .card .ch img.fav { width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--rule-2); background: #fff; }
+  .ds .card .ch .nm { font-weight: 750; font-size: 1.02rem; }
+  .ds .card .ch .nm a { border: none; color: var(--ink); }
+  .ds .card .ch .stars { margin-left: auto; font-family: var(--mono); font-size: .78rem; font-weight: 600; white-space: nowrap; }
+  .ds .card .cbadge { font-family: var(--mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; padding: 3px 7px; border-radius: 3px; font-weight: 700; }
+  .ds .cbadge.design { background: var(--pass-bg); color: var(--pass-fg); border: 1px solid var(--pass-br); }
+  .ds .cbadge.bolt { background: var(--part-bg); color: var(--part-fg); border: 1px solid var(--part-br); }
+  .ds .cbadge.hybrid { background: #e5ecfb; color: var(--blueprint); border: 1px solid #b9caf3; }
+  .ds .card dl.rows { margin: 0; display: grid; grid-template-columns: auto 1fr; }
+  .ds .card dl.rows dt { font-family: var(--mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding: 8px 12px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+  .ds .card dl.rows dd { margin: 0; padding: 8px 12px; border-bottom: 1px solid var(--rule); font-size: .82rem; color: var(--ink-2); }
+  .ds .card dl.rows dd code { font-family: var(--mono); font-size: .92em; background: var(--paper-2); padding: 1px 4px; border-radius: 3px; }
+  .ds .card .verdict { margin-top: auto; padding: 11px 12px; background: var(--paper-2); font-size: .82rem; font-weight: 600; color: var(--ink); display: flex; gap: 8px; align-items: baseline; }
+  .ds .card .verdict::before { content: "DX"; font-family: var(--mono); font-size: .58rem; letter-spacing: .1em; color: var(--ink-3); border: 1px solid var(--rule-2); padding: 1px 4px; border-radius: 3px; }
+
+  /* ---- ide band ---- */
+  .ds .ide { border: 1.5px solid var(--ink); background: linear-gradient(120deg, rgba(27,63,176,.06), rgba(20,108,67,.05)), rgba(255,255,255,.4); padding: 20px 22px; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; }
+  .ds .ide .glyph { font-family: var(--mono); font-size: 3.4rem; line-height: 1; color: var(--blueprint); text-align: center; }
+  .ds .ide .glyph .lab { display: block; font-size: .8rem; letter-spacing: .12em; margin-top: 8px; color: var(--ink-3); }
+  .ds .ide h3 { margin: 0 0 6px; font-size: 1.05rem; }
+  .ds .ide ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  .ds .ide li { font-size: .85rem; color: var(--ink-2); padding-left: 18px; position: relative; }
+  .ds .ide li::before { content: "▸"; position: absolute; left: 0; color: var(--pass-fg); }
+
+  /* ---- selection guide ---- */
+  .ds .guidescroll { overflow-x: auto; }
+  .ds table.guide { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .88rem; }
+  .ds table.guide th { text-align: left; font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--paper); background: var(--ink); padding: 8px 12px; }
+  .ds table.guide td { border-bottom: 1px solid var(--rule-2); padding: 11px 12px; vertical-align: top; }
+  .ds table.guide td.pick { white-space: nowrap; }
+  .ds table.guide .pin { font-family: var(--mono); font-weight: 700; font-size: .84rem; background: var(--pass-bg); border: 1px solid var(--pass-br); color: var(--pass-fg); padding: 2px 7px; border-radius: 3px; }
+  .ds table.guide .pin img { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; border-radius: 2px; }
+  .ds table.guide td.why { color: var(--ink-2); }
+
+  /* ---- cross refs ---- */
+  .ds .xrefs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .ds .xref { border: 1px solid var(--rule-2); background: rgba(255,255,255,.4); padding: 13px 15px; display: block; border-left: 4px solid var(--blueprint); }
+  .ds a.xref { color: inherit; border-bottom: none; }
+  .ds a.xref:hover { background: rgba(255,255,255,.7); }
+  .ds .xref .depth { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--blueprint); }
+  .ds .xref .xt { font-weight: 700; font-size: .92rem; margin: 4px 0 5px; line-height: 1.25; }
+  .ds .xref .xs { font-size: .78rem; color: var(--ink-3); line-height: 1.4; }
+
+  /* ---- sources ---- */
+  .ds .srcgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px 18px; }
+  .ds .src { display: grid; grid-template-columns: auto auto 1fr; gap: 9px; align-items: start; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: .8rem; }
+  .ds .src .n { font-family: var(--mono); font-size: .68rem; color: var(--ink-3); padding-top: 2px; }
+  .ds .src img { width: 16px; height: 16px; border-radius: 3px; margin-top: 1px; }
+  .ds .src .st { color: var(--ink); border-bottom: none; }
+  .ds .src .st:hover { color: var(--blueprint); }
+  .ds .src .meta { display: block; font-family: var(--mono); font-size: .62rem; color: var(--ink-3); margin-top: 1px; text-transform: uppercase; letter-spacing: .04em; }
+
+  .ds .colophon { margin-top: 44px; border-top: 3px double var(--rule-2); padding-top: 16px; font-family: var(--mono); font-size: .7rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 20px; justify-content: space-between; }
+
+  @media (max-width: 720px) {
+    .ds .titleblock { grid-template-columns: 1fr; }
+    .ds .bins, .ds .cards { grid-template-columns: 1fr; }
+    .ds .ide { grid-template-columns: 1fr; }
+    .ds .ide ul { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="ds">
+<div class="wrap">
+
+  <header class="titleblock">
+    <div>
+      <div class="kick">Datasheet · React i18n · DX &amp; Type-Safety</div>
+      <h1>Type Safety, Extraction &amp; Tooling
+        <span class="sub2">Six React i18n libraries, measured on typed keys, extraction CLIs &amp; IDE support</span>
+      </h1>
+    </div>
+    <div class="specbox">
+      <div class="sbhead">Document control</div>
+      <dl>
+        <dt>Rev.</dt><dd>2026-07-15</dd>
+        <dt>Class</dt><dd>Survey</dd>
+        <dt>Parts</dt><dd>6</dd>
+        <dt>Refs</dt><dd>26 cited</dd>
+        <dt>Read</dt><dd>6 min</dd>
+      </dl>
+    </div>
+  </header>
+
+  <p class="lede" style="margin-top:20px;">One architectural fault line sets every downstream property: whether type safety is <em>generated by the build</em> or <em>hand-wired after the fact</em>. This sheet reads that split as a feature matrix, not prose.</p>
+
+  <section>
+    <div class="shead"><span class="no">§0</span><h2>Description &amp; recommended part</h2><span class="tag">DX lens</span></div>
+    <div class="desc">
+      For type safety you don't maintain, pick a compile-first part: <a href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs" class="pick">Paraglide</a> or <a href="https://typesafe-i18n.pages.dev/" class="pick">typesafe-i18n</a> emit typed message artifacts where a renamed or missing key is a compile error <em>by design</em><sup><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">[8]</a></sup><sup><a href="https://dev.to/erayg/best-i18n-libraries-for-nextjs-react-react-native-in-2026-honest-comparison-3m8f">[20]</a></sup>. On Next.js, <a href="https://next-intl.dev/docs/workflows/typescript" class="pick">next-intl</a> ships typed keys + typed navigation from a single generated declaration<sup><a href="https://next-intl.dev/docs/workflows/typescript">[12]</a></sup>. <a href="https://lingui.dev/guides/message-extraction" class="pick">Lingui</a> wins catalog-management DX (co-located macros + <code>lingui extract</code>)<sup><a href="https://lingui.dev/guides/message-extraction">[4]</a></sup>. <strong>i18next</strong> and <strong>react-intl</strong> are type-safe only after you bolt on declaration files / CLI extraction — the mature-but-manual option<sup><a href="https://www.auto18n.com/en/blog/react-i18n-2026">[3]</a></sup>.
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§1</span><h2>The core split — two architectures</h2><span class="tag">bin classification</span></div>
+    <div class="bins">
+      <div class="bin a">
+        <div class="binhead"><div class="lab">Bin A · pass by construction</div><div class="name">Type-safe by design</div></div>
+        <div class="binbody">
+          <p>A generator or compiler reads the source catalog and emits typed artifacts — message <em>functions</em> or <code class="mono">.d.ts</code>. Keys, params and plural args are typed as a build side-effect. You <strong>cannot</strong> ship an app that references a key that doesn't exist<sup><a href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs">[9]</a></sup><sup><a href="https://github.com/ivanhofer/typesafe-i18n">[10]</a></sup>.</p>
+          <div class="chips">
+            <span class="chip"><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt="">Paraglide</span>
+            <span class="chip"><img src="https://www.google.com/s2/favicons?domain=typesafe-i18n.pages.dev&sz=128" alt="">typesafe-i18n</span>
+            <span class="chip"><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt="">Lingui</span>
+          </div>
+        </div>
+      </div>
+      <div class="bin b">
+        <div class="binhead"><div class="lab">Bin B · pass after setup</div><div class="name">Bolted-on (runtime + augmentation)</div></div>
+        <div class="binbody">
+          <p>The library ships a generic <code class="mono">t()</code> / <code class="mono">formatMessage()</code>; you <em>opt in</em> to type safety by hand-writing or generating a declaration file that augments the library's types. Works well — but it's setup you own and maintain<sup><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">[8]</a></sup><sup><a href="https://www.auto18n.com/en/blog/react-i18n-2026">[3]</a></sup>.</p>
+          <div class="chips">
+            <span class="chip"><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt="">i18next</span>
+            <span class="chip"><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt="">react-intl</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="straddle">◈ <b>next-intl</b> straddles both: runtime hooks, but a first-class codegen step (<code class="mono">createMessagesDeclaration</code>) makes typing a one-liner rather than a hand-rolled augmentation<sup><a href="https://next-intl.dev/docs/workflows/typescript">[12]</a></sup>.</p>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§2</span><h2>Feature matrix</h2><span class="tag">✓ present · ◑ partial · ✗ absent</span></div>
+    <div class="matrixscroll">
+      <table class="mx">
+        <thead>
+          <tr>
+            <th style="text-align:left">Part</th>
+            <th>Typed<br>keys</th>
+            <th>Typed args<br>/ plurals</th>
+            <th>Missing key<br>= build error</th>
+            <th>First-party<br>extractor</th>
+            <th>i18n Ally<br>support</th>
+            <th>Zero manual<br>type setup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt=""><a href="https://github.com/i18next/i18next">i18next</a><span class="st">module augmentation</span></th>
+            <td><span class="cell c-part">◑</span><span class="note">opt-in .d.ts</span></td>
+            <td><span class="cell c-abs">✗</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">once typed</span></td>
+            <td><span class="cell c-abs">✗</span><span class="note">community scanner</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-abs">✗</span></td>
+          </tr>
+          <tr>
+            <th><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><a href="https://github.com/formatjs/formatjs">react-intl</a><span class="st">FormatjsIntl override</span></th>
+            <td><span class="cell c-part">◑</span><span class="note">weak / manual</span></td>
+            <td><span class="cell c-abs">✗</span></td>
+            <td><span class="cell c-abs">✗</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">@formatjs/cli</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-abs">✗</span></td>
+          </tr>
+          <tr>
+            <th><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><a href="https://github.com/lingui/js-lingui">Lingui</a><span class="st">macros + catalog types</span></th>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">at macro site</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">extract + merge</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">+ ESLint</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">needs plugin</span></td>
+          </tr>
+          <tr>
+            <th><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><a href="https://github.com/amannn/next-intl">next-intl</a><span class="st">createMessagesDeclaration</span></th>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">ICU</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-abs">✗</span><span class="note">hand-authored JSON</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">+ official</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">one codegen</span></td>
+          </tr>
+          <tr>
+            <th><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt=""><a href="https://github.com/opral/paraglide-js">Paraglide</a><span class="st">compiler → message fns</span></th>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">inlang catalog</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">inlang tooling</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+          </tr>
+          <tr>
+            <th><img src="https://www.google.com/s2/favicons?domain=typesafe-i18n.pages.dev&sz=128" alt=""><a href="https://github.com/ivanhofer/typesafe-i18n">typesafe-i18n</a><span class="st">generator from base locale</span></th>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-pass">✓</span><span class="note">best-in-class</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">watcher (dev)</span></td>
+            <td><span class="cell c-part">◑</span><span class="note">editor-agnostic</span></td>
+            <td><span class="cell c-pass">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><span class="cell c-pass">✓</span> present / strong</span>
+      <span><span class="cell c-part">◑</span> partial / with caveat</span>
+      <span><span class="cell c-abs">✗</span> absent by design or unshipped</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§3</span><h2>Electrical characteristics — per part</h2><span class="tag">mechanism · extraction · IDE</span></div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="ch"><img class="fav" src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt=""><span class="nm"><a href="https://github.com/i18next/i18next">i18next / react-i18next</a></span><span class="stars mono">⭐ 8.6k</span></div>
+        <span class="cbadge bolt" style="margin:10px 12px -2px;align-self:flex-start;">Bolted-on</span>
+        <dl class="rows">
+          <dt>Type mech.</dt><dd>Module augmentation of <code>CustomTypeOptions</code>; add an <code>i18next.d.ts</code> with a <code>resources</code> type<sup><a href="https://www.i18next.com/overview/typescript">[1]</a></sup><sup><a href="https://react.i18next.com/latest/typescript">[2]</a></sup>. Generate it with <code>i18next-resources-for-ts</code> for large catalogs<sup><a href="https://lingual.dev/blog/making-your-translation-keys-type-safe-in-react-typescript/">[25]</a></sup>.</dd>
+          <dt>Extraction</dt><dd>No first-party extractor; community <code>i18next-scanner</code> reads <code>t()</code> calls<sup><a href="https://www.auto18n.com/en/blog/react-i18n-2026">[3]</a></sup>.</dd>
+          <dt>Perf note</dt><dd>v25.4+ adds <code>enableSelector</code> to fix TS/IDE lag on big resource unions<sup><a href="https://www.i18next.com/overview/typescript">[1]</a></sup>.</dd>
+        </dl>
+        <div class="verdict">Mature, flexible — most boilerplate.</div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><img class="fav" src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><span class="nm"><a href="https://github.com/formatjs/formatjs">react-intl / FormatJS</a></span><span class="stars mono">⭐ 14.7k</span></div>
+        <span class="cbadge bolt" style="margin:10px 12px -2px;align-self:flex-start;">Bolted-on</span>
+        <dl class="rows">
+          <dt>Type mech.</dt><dd><code>defineMessages()</code> returns <code>Record&lt;string, MessageDescriptor&gt;</code>; key typing via a global <code>FormatjsIntl</code> namespace override<sup><a href="https://formatjs.github.io/docs/getting-started/message-declaration/">[18]</a></sup>. Better <code>defineMessages</code> typings are a years-old open ask<sup><a href="https://github.com/formatjs/formatjs/issues/1677">[26]</a></sup>.</dd>
+          <dt>Extraction</dt><dd><code>@formatjs/cli extract</code> + <code>babel-plugin-formatjs</code>; you merge output yourself<sup><a href="https://formatjs.github.io/docs/tooling/cli/">[19]</a></sup>.</dd>
+          <dt>Verify</dt><dd><code>formatjs verify</code> with <code>--missing-keys</code> / <code>--extra-keys</code><sup><a href="https://formatjs.github.io/docs/tooling/cli/">[19]</a></sup>.</dd>
+        </dl>
+        <div class="verdict">Canonical ICU tooling — verbose, manual merge.</div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><img class="fav" src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/lingui/js-lingui">Lingui</a></span><span class="stars mono">⭐ 5.8k</span></div>
+        <span class="cbadge design" style="margin:10px 12px -2px;align-self:flex-start;">By design</span>
+        <dl class="rows">
+          <dt>Type mech.</dt><dd>Inline <code>t</code>/<code>&lt;Trans&gt;</code> macros compiled by the SWC/Babel plugin; type-safe at the component call site via macros + generated catalog types — rated "excellent"<sup><a href="https://simplelocalize.io/blog/posts/the-most-popular-react-localization-libraries/">[21]</a></sup>.</dd>
+          <dt>Extraction</dt><dd><code>lingui extract</code> extracts <strong>and merges</strong> into PO catalogs; experimental dep-tree crawl for per-page catalogs<sup><a href="https://lingui.dev/guides/message-extraction">[4]</a></sup><sup><a href="https://lingui.dev/misc/react-intl">[5]</a></sup>.</dd>
+          <dt>Constraint</dt><dd>Requires the compiler plugin — no plugin, macros throw<sup><a href="https://www.auto18n.com/en/blog/react-i18n-2026">[3]</a></sup>.</dd>
+        </dl>
+        <div class="verdict">Best catalog DX; needs the compiler plugin.</div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><img class="fav" src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/amannn/next-intl">next-intl</a></span><span class="stars mono">⭐ 4.3k</span></div>
+        <span class="cbadge hybrid" style="margin:10px 12px -2px;align-self:flex-start;">Hybrid</span>
+        <dl class="rows">
+          <dt>Type mech.</dt><dd>Point <code>createMessagesDeclaration</code> at the default-locale JSON; it emits a <code>.d.json.ts</code> and every <code>t('…')</code> becomes typed — no manual augmentation<sup><a href="https://next-intl.dev/docs/workflows/typescript">[12]</a></sup>.</dd>
+          <dt>Navigation</dt><dd>v4 declares a <code>Locale</code> type in <code>AppConfig</code>; <code>useLocale()</code> and <code>createNavigation()</code> are locale-typed end to end<sup><a href="https://next-intl.dev/blog/next-intl-4-0">[13]</a></sup>.</dd>
+          <dt>Extraction</dt><dd>None — JSON hand-authored; missing keys are compile errors once typed<sup><a href="https://next-intl.dev/docs/workflows/typescript">[12]</a></sup>.</dd>
+        </dl>
+        <div class="verdict">Top-tier on Next.js, fast setup.</div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><img class="fav" src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt=""><span class="nm"><a href="https://github.com/opral/paraglide-js">Paraglide</a></span><span class="stars mono">⭐ 567</span></div>
+        <span class="cbadge design" style="margin:10px 12px -2px;align-self:flex-start;">By design</span>
+        <dl class="rows">
+          <dt>Type mech.</dt><dd>Compiler turns each message into a typed ESM function (<code>m.greeting({ name })</code>). Keys + params typed by default; unused messages tree-shake out (up to ~70% smaller bundles)<sup><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">[8]</a></sup>.</dd>
+          <dt>Extraction</dt><dd>Messages live in the inlang catalog; the compiler regenerates functions on change<sup><a href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs">[9]</a></sup>. No provider/context — one Vite plugin.</dd>
+          <dt>Extra</dt><dd><code>LocalizedString</code> branded type distinguishes a translated string from a raw one at the type level<sup><a href="https://github.com/opral/paraglide-js">[7]</a></sup>.</dd>
+        </dl>
+        <div class="verdict">Exceptional; tree-shaking, no context. Youngest ecosystem.</div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><img class="fav" src="https://www.google.com/s2/favicons?domain=typesafe-i18n.pages.dev&sz=128" alt=""><span class="nm"><a href="https://github.com/ivanhofer/typesafe-i18n">typesafe-i18n</a></span><span class="stars mono">⭐ 2.5k</span></div>
+        <span class="cbadge design" style="margin:10px 12px -2px;align-self:flex-start;">By design</span>
+        <dl class="rows">
+          <dt>Type mech.</dt><dd>Watcher/generator reads the base locale, emits <code>.ts</code> definitions + React adapter wrappers. Types keys <em>and</em> args/formatters; other locales are diffed against the base type<sup><a href="https://github.com/ivanhofer/typesafe-i18n">[10]</a></sup><sup><a href="https://typesafe-i18n.pages.dev/">[11]</a></sup>.</dd>
+          <dt>Strength</dt><dd>Best-in-class parameter-level checking (plural forms, message args); zero runtime deps<sup><a href="https://dev.to/erayg/best-i18n-libraries-for-nextjs-react-react-native-in-2026-honest-comparison-3m8f">[20]</a></sup>.</dd>
+          <dt>Trade-off</dt><dd>Custom (non-ICU) message syntax.</dd>
+        </dl>
+        <div class="verdict">Strongest arg-level types; custom syntax.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§4</span><h2>Shared IDE layer</h2><span class="tag">editor tooling</span></div>
+    <div class="ide">
+      <div class="glyph">⌘<span class="lab">VS Code</span></div>
+      <div>
+        <h3><a href="https://github.com/lokalise/i18n-ally">i18n Ally</a> ⭐ 4.9k — the common VS Code layer</h3>
+        <p style="margin:0;color:var(--ink-2);font-size:.9rem;">Supports i18next, react-intl and Lingui among others<sup><a href="https://github.com/lokalise/i18n-ally">[15]</a></sup>. Compile-first libraries lean less on the editor extension because the compiler is the source of truth.</p>
+        <ul>
+          <li>Inline translation annotations after each key<sup><a href="https://github.com/lokalise/i18n-ally/wiki/Configurations">[16]</a></sup></li>
+          <li>One-click translate of missing / stale keys</li>
+          <li>Stale-translation detection</li>
+          <li>Regex-based usage matching</li>
+          <li>next-intl documents its own <a href="https://next-intl.dev/docs/workflows/vscode-integration">official VS Code integration</a><sup><a href="https://next-intl.dev/docs/workflows/vscode-integration">[14]</a></sup></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§5</span><h2>Selection guide</h2><span class="tag">use-case → part</span></div>
+    <div class="guidescroll">
+      <table class="guide">
+        <thead><tr><th>Requirement profile</th><th>Recommended part</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Greenfield; care about type safety + bundle size</td>
+            <td class="pick"><span class="pin"><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt="">Paraglide</span></td>
+            <td class="why">Typed message functions, compile-error safety, tree-shaking, minimal setup. Youngest ecosystem (⭐ 567) is the main risk<sup><a href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">[8]</a></sup><sup><a href="https://github.com/opral/paraglide-js">[7]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td>Next.js App Router</td>
+            <td class="pick"><span class="pin"><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt="">next-intl</span></td>
+            <td class="why">Typed keys + typed navigation for near-zero effort<sup><a href="https://next-intl.dev/docs/workflows/typescript">[12]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td>Strongest argument / plural typing, without ICU</td>
+            <td class="pick"><span class="pin"><img src="https://www.google.com/s2/favicons?domain=typesafe-i18n.pages.dev&sz=128" alt="">typesafe-i18n</span></td>
+            <td class="why">Best-in-class parameter-level checking of plural forms and message args<sup><a href="https://dev.to/erayg/best-i18n-libraries-for-nextjs-react-react-native-in-2026-honest-comparison-3m8f">[20]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td>Translator-heavy workflow / prize catalog DX</td>
+            <td class="pick"><span class="pin"><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt="">Lingui</span></td>
+            <td class="why">Co-located macros + one-command <code class="mono">extract</code>-and-merge; PO catalogs translators expect<sup><a href="https://lingui.dev/guides/message-extraction">[4]</a></sup><sup><a href="https://lingui.dev/misc/react-intl">[5]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td>Maximum ecosystem maturity; willing to wire types yourself</td>
+            <td class="pick"><span class="pin"><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt="">i18next</span></td>
+            <td class="why">Augmentation + <code class="mono">i18next-resources-for-ts</code><sup><a href="https://www.i18next.com/overview/typescript">[1]</a></sup><sup><a href="https://lingual.dev/blog/making-your-translation-keys-type-safe-in-react-typescript/">[25]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td>Need canonical ICU tooling + <code class="mono">verify</code> completeness checks</td>
+            <td class="pick"><span class="pin"><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt="">react-intl</span></td>
+            <td class="why">Full ICU message syntax plus the <code class="mono">formatjs verify</code> missing/extra-key checks<sup><a href="https://formatjs.github.io/docs/tooling/cli/">[19]</a></sup>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§6</span><h2>Related datasheets</h2><span class="tag">same expedition</span></div>
+    <div class="xrefs">
+      <a class="xref" href="../../"><span class="depth">▲ parent · synthesis</span><div class="xt">Decision framework: which React i18n library to adopt in 2026</div><div class="xs">Five angles converging on react-i18next as the safe default and the compile-time cohort as the momentum.</div></a>
+      <a class="xref" href="../../core-library-landscape-head-to-head/"><span class="depth">expedition</span><div class="xt">The Core Library Head-to-Head</div><div class="xs">react-i18next the safe default; next-intl owns the App Router; Paraglide &amp; Lingui the challengers.</div></a>
+      <a class="xref" href="../../message-format-pluralization-icu/"><span class="depth">survey</span><div class="xt">Message format, pluralization &amp; ICU</div><div class="xs">ICU-first vs interpolation-first vs MF2-inspired — how each authors plurals, gender and Intl formats.</div></a>
+      <a class="xref" href="../../framework-runtime-fit/"><span class="depth">survey</span><div class="xt">Framework &amp; runtime fit (React 19, RSC)</div><div class="xs">next-intl or Lingui on the App Router; Paraglide or react-i18next on a Vite SPA.</div></a>
+      <a class="xref" href="../../translation-management-workflow/"><span class="depth">survey</span><div class="xt">The translation pipeline, not just the library</div><div class="xs">The library pins your extraction model; the TMS you pair it with decides the workflow.</div></a>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§7</span><h2>References</h2><span class="tag">26 sources</span></div>
+    <div class="srcgrid">
+      <div class="src"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=i18next.com&sz=128" alt=""><span><a class="st" href="https://www.i18next.com/overview/typescript">i18next — TypeScript</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=react.i18next.com&sz=128" alt=""><span><a class="st" href="https://react.i18next.com/latest/typescript">react-i18next — TypeScript</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=auto18n.com&sz=128" alt=""><span><a class="st" href="https://www.auto18n.com/en/blog/react-i18n-2026">auto18n — React i18n 2026</a><span class="meta">vendor-blog</span></span></div>
+      <div class="src"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><span><a class="st" href="https://lingui.dev/guides/message-extraction">Lingui — Message Extraction</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=lingui.dev&sz=128" alt=""><span><a class="st" href="https://lingui.dev/misc/react-intl">Lingui vs react-intl</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/lingui/js-lingui">js-lingui (GitHub)</a><span class="meta">official · ⭐ 5.8k</span></span></div>
+      <div class="src"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/opral/paraglide-js">paraglide-js (GitHub)</a><span class="meta">official · ⭐ 567</span></span></div>
+      <div class="src"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/opral/paraglide-js/blob/main/docs/paraglide-vs-react-i18next.md">Paraglide vs react-i18next</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=inlang.com&sz=128" alt=""><span><a class="st" href="https://inlang.com/m/gerre34r/library-inlang-paraglideJs">inlang — Paraglide JS</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/ivanhofer/typesafe-i18n">typesafe-i18n (GitHub)</a><span class="meta">official · ⭐ 2.5k</span></span></div>
+      <div class="src"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=typesafe-i18n.pages.dev&sz=128" alt=""><span><a class="st" href="https://typesafe-i18n.pages.dev/">typesafe-i18n — docs</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><span><a class="st" href="https://next-intl.dev/docs/workflows/typescript">next-intl — TypeScript workflow</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><span><a class="st" href="https://next-intl.dev/blog/next-intl-4-0">next-intl 4.0</a><span class="meta">vendor-blog</span></span></div>
+      <div class="src"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=next-intl.dev&sz=128" alt=""><span><a class="st" href="https://next-intl.dev/docs/workflows/vscode-integration">next-intl — VSCode integration</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/lokalise/i18n-ally">i18n Ally (GitHub)</a><span class="meta">official · ⭐ 4.9k</span></span></div>
+      <div class="src"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/lokalise/i18n-ally/wiki/Configurations">i18n Ally — Configurations</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><span><a class="st" href="https://formatjs.github.io/docs/react-intl/">React Intl | FormatJS</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><span><a class="st" href="https://formatjs.github.io/docs/getting-started/message-declaration/">FormatJS — Message Declaration</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=formatjs.github.io&sz=128" alt=""><span><a class="st" href="https://formatjs.github.io/docs/tooling/cli/">FormatJS — CLI</a><span class="meta">official</span></span></div>
+      <div class="src"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><span><a class="st" href="https://dev.to/erayg/best-i18n-libraries-for-nextjs-react-react-native-in-2026-honest-comparison-3m8f">dev.to — Best i18n libraries 2026</a><span class="meta">forum</span></span></div>
+      <div class="src"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=simplelocalize.io&sz=128" alt=""><span><a class="st" href="https://simplelocalize.io/blog/posts/the-most-popular-react-localization-libraries/">simplelocalize — Popular React i18n libraries</a><span class="meta">vendor-blog</span></span></div>
+      <div class="src"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/formatjs/formatjs">formatjs (GitHub)</a><span class="meta">official · ⭐ 14.7k</span></span></div>
+      <div class="src"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/i18next/i18next">i18next (GitHub)</a><span class="meta">official · ⭐ 8.6k</span></span></div>
+      <div class="src"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/amannn/next-intl">next-intl (GitHub)</a><span class="meta">official · ⭐ 4.3k</span></span></div>
+      <div class="src"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=lingual.dev&sz=128" alt=""><span><a class="st" href="https://lingual.dev/blog/making-your-translation-keys-type-safe-in-react-typescript/">lingual.dev — type-safe keys</a><span class="meta">vendor-blog</span></span></div>
+      <div class="src"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a class="st" href="https://github.com/formatjs/formatjs/issues/1677">formatjs #1677 — defineMessages typings</a><span class="meta">official</span></span></div>
+    </div>
+  </section>
+
+  <div class="colophon">
+    <span>ATLAS · REACT-i18N-DX · SPEC-SHEET REV 2026-07-15</span>
+    <span>Source of truth: <a href="../">canonical survey ↩</a></span>
+    <span>6 parts · 26 refs · ✓◑✗</span>
+  </div>
+
+</div>
+</div>
