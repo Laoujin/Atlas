@@ -1,0 +1,542 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "Router-driven data loading in React (2026): who owns the cache? — Blueprint"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+  .bp {
+    --ink: #dbe7ff;
+    --ink-dim: #7f97c4;
+    --line: #4d6ea8;
+    --line-soft: #2f4676;
+    --paper: #0d1f3c;
+    --paper-2: #10254a;
+    --paper-3: #0a1830;
+    --cyan: #6fe3ff;
+    --amber: #ffcf6b;
+    --lime: #8ff0a4;
+    --coral: #ff8f8f;
+    --grid: rgba(120,160,220,0.11);
+    color: var(--ink);
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 26px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 26px 100%,
+      radial-gradient(120% 120% at 50% 0%, #14305e 0%, var(--paper) 55%, var(--paper-3) 100%);
+    font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 0;
+    margin: 0;
+  }
+  .bp *{ box-sizing: border-box; }
+  .bp a{ color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(111,227,255,0.5); }
+  .bp a:hover{ border-bottom-style: solid; }
+  .bp sup a{ border-bottom: none; color: var(--cyan); font-size: 0.72em; }
+  .bp-wrap{ max-width: 1120px; margin: 0 auto; padding: 34px 24px 90px; }
+
+  .disp{ font-family:'Space Grotesk', system-ui, sans-serif; }
+  .mono-label{ font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+
+  /* ---- titleblock ---- */
+  .titleblock{
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(20,44,86,0.6), rgba(9,24,48,0.6));
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .tb-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
+    padding: 20px 22px 16px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap;
+  }
+  .tb-top .kicker{ font-size:11px; letter-spacing:0.28em; text-transform:uppercase; color:var(--cyan); }
+  .tb-top h1{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; color:#fff;
+    font-size: clamp(24px, 4.4vw, 40px); line-height:1.08; margin:10px 0 0; letter-spacing:-0.01em;
+  }
+  .tb-stamp{ text-align:right; min-width: 150px; }
+  .tb-stamp .no{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30px; color:var(--amber); line-height:1; }
+  .tb-meta{
+    display:grid; grid-template-columns: repeat(4, 1fr); border-top: none;
+  }
+  .tb-meta > div{ padding: 9px 16px; border-right: 1px solid var(--line-soft); }
+  .tb-meta > div:last-child{ border-right: none; }
+  .tb-meta .k{ font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-dim); }
+  .tb-meta .v{ font-size:13px; color:var(--ink); margin-top:3px; }
+
+  /* ---- verdict ---- */
+  .verdict{
+    margin: 28px 0 8px; border:1px solid var(--cyan);
+    box-shadow: 0 0 0 4px rgba(111,227,255,0.06);
+    background: rgba(14,40,78,0.55); padding: 22px 24px; position:relative;
+  }
+  .verdict::before{
+    content:"VERDICT"; position:absolute; top:-9px; left:18px; background:var(--paper);
+    padding:0 8px; font-size:10px; letter-spacing:0.24em; color:var(--cyan);
+  }
+  .verdict .big{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; color:#fff;
+    font-size: clamp(20px, 3.2vw, 30px); line-height:1.2; margin:0 0 8px;
+  }
+  .verdict .big em{ font-style:normal; color:var(--amber); }
+  .verdict p{ margin:8px 0 0; color:var(--ink); font-size:14px; }
+
+  .section-h{
+    display:flex; align-items:baseline; gap:14px; margin: 46px 0 6px;
+    border-bottom:1px solid var(--line-soft); padding-bottom:8px;
+  }
+  .section-h .idx{ font-family:'Space Grotesk',sans-serif; font-weight:700; color:var(--cyan); font-size:15px; }
+  .section-h h2{ font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff; font-size:20px; margin:0; }
+  .section-h .note{ margin-left:auto; font-size:11px; color:var(--ink-dim); letter-spacing:0.06em; }
+
+  /* ---- schematic panels ---- */
+  .panels{ display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; margin-top:22px; }
+  .panel{
+    border:1px solid var(--line); background: rgba(9,22,46,0.6);
+    display:flex; flex-direction:column; position:relative;
+  }
+  .panel .p-head{ padding:14px 16px 10px; border-bottom:1px dashed var(--line-soft); }
+  .panel .tag{
+    display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
+    border:1px solid var(--cyan); color:var(--cyan); font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:15px; border-radius:2px;
+  }
+  .panel .p-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff; font-size:14px; margin-top:9px; line-height:1.25; }
+  .panel .p-sub{ font-size:11.5px; color:var(--ink-dim); margin-top:4px; }
+  .flow{ padding:16px; display:flex; flex-direction:column; gap:0; flex:1; }
+  .node{
+    border:1px solid var(--line); background: rgba(18,40,78,0.5);
+    padding:9px 11px; font-size:12px; text-align:center; color:var(--ink);
+  }
+  .node small{ display:block; font-size:10px; color:var(--ink-dim); margin-top:2px; }
+  .node.owner{
+    border:2px double var(--amber); background: rgba(255,207,107,0.09); color:#fff; font-weight:500;
+    box-shadow: 0 0 0 3px rgba(255,207,107,0.05);
+  }
+  .node.owner .badge{ display:block; font-size:9px; letter-spacing:0.16em; color:var(--amber); margin-top:3px; }
+  .node.muted{ border-style:dotted; color:var(--ink-dim); background:transparent; }
+  .arrow{ text-align:center; color:var(--line); font-size:15px; line-height:1; padding:5px 0; }
+  .arrow.bi::after{ content:"↕"; }
+  .arrow.dn::after{ content:"↓"; }
+  .p-foot{
+    margin-top:auto; padding:11px 16px 13px; border-top:1px dashed var(--line-soft);
+    font-size:11px; color:var(--ink-dim);
+  }
+  .p-foot b{ color:var(--ink); font-weight:600; }
+  .p-verdict{ font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; margin-top:8px; }
+  .p-verdict.ok{ color:var(--lime); }
+  .p-verdict.warn{ color:var(--amber); }
+  .p-verdict.no{ color:var(--coral); }
+
+  /* ---- matrix ---- */
+  .matrix-wrap{ overflow-x:auto; margin-top:22px; border:1px solid var(--line); }
+  table.matrix{ border-collapse:collapse; width:100%; min-width:680px; font-size:12.5px; }
+  table.matrix th, table.matrix td{ border:1px solid var(--line-soft); padding:10px 12px; text-align:left; vertical-align:top; }
+  table.matrix thead th{ background: rgba(20,44,86,0.7); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px; }
+  table.matrix thead th:first-child{ background: rgba(9,22,46,0.7); }
+  table.matrix tbody th{ background: rgba(9,22,46,0.55); color:var(--ink); font-weight:500; white-space:nowrap; }
+  table.matrix td small{ color:var(--ink-dim); }
+  .yes{ color:var(--lime); font-weight:600; }
+  .no{ color:var(--coral); font-weight:600; }
+  .col-owner{ background: rgba(255,207,107,0.06); }
+
+  /* ---- annotated callouts ---- */
+  .annot{
+    margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:18px;
+  }
+  .callout{
+    border-left:2px solid var(--cyan); background: rgba(14,40,78,0.4); padding:14px 16px; position:relative;
+  }
+  .callout.warn{ border-left-color: var(--amber); }
+  .callout .q{ color:#fff; font-size:13.5px; line-height:1.5; }
+  .callout .q::before{ content:"“"; color:var(--cyan); }
+  .callout .q::after{ content:"”"; color:var(--cyan); }
+  .callout .who{ margin-top:9px; font-size:11px; color:var(--ink-dim); }
+  .callout.warn .q::before, .callout.warn .q::after{ color:var(--amber); }
+
+  .notecard{
+    border:1px solid var(--line-soft); background: rgba(9,22,46,0.5); padding:16px 18px; margin-top:18px;
+  }
+  .notecard h3{ font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff; font-size:15px; margin:0 0 6px; }
+  .notecard p{ margin:0 0 8px; font-size:13px; color:var(--ink); }
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+
+  /* ---- ladder ---- */
+  .ladder{ counter-reset: step; margin-top:22px; display:flex; flex-direction:column; gap:12px; }
+  .rung{
+    display:grid; grid-template-columns:44px 1fr; gap:14px; align-items:start;
+    border:1px solid var(--line-soft); background: rgba(14,40,78,0.35); padding:14px 16px;
+  }
+  .rung .num{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; color:var(--paper); background:var(--cyan);
+    width:34px; height:34px; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .rung h4{ font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff; font-size:14.5px; margin:0 0 4px; }
+  .rung p{ margin:0; font-size:12.5px; color:var(--ink); }
+
+  /* ---- parts list / sources ---- */
+  .parts{ margin-top:20px; border:1px solid var(--line); }
+  .parts .ph{ display:grid; grid-template-columns:44px 1fr 90px; gap:0; background:rgba(20,44,86,0.6); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-dim); }
+  .parts .ph > div{ padding:8px 12px; border-right:1px solid var(--line-soft); }
+  .part{ display:grid; grid-template-columns:44px 1fr 90px; border-top:1px solid var(--line-soft); align-items:center; }
+  .part > div{ padding:10px 12px; border-right:1px solid var(--line-soft); font-size:12px; }
+  .part .n{ color:var(--cyan); font-weight:600; text-align:center; }
+  .part .d{ display:flex; align-items:center; gap:9px; min-width:0; }
+  .part .d img{ width:16px; height:16px; flex:none; border-radius:2px; }
+  .part .d a{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:none; }
+  .part .d .claim{ display:block; color:var(--ink-dim); font-size:11px; white-space:normal; }
+  .part .t{ font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-dim); text-align:right; }
+
+  /* ---- related sheets ---- */
+  .sheets{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:22px; }
+  .sheet{ border:1px solid var(--line-soft); background:rgba(9,22,46,0.5); padding:14px 16px; display:block; border-bottom:1px solid var(--line-soft); }
+  .sheet:hover{ border-color:var(--cyan); }
+  .sheet .depth{ font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--amber); }
+  .sheet h4{ font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff; font-size:13.5px; margin:5px 0 5px; line-height:1.3; }
+  .sheet p{ margin:0; font-size:11.5px; color:var(--ink-dim); line-height:1.45; }
+
+  .footer-block{ margin-top:40px; padding-top:16px; border-top:1px solid var(--line-soft); font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .footer-block a{ color:var(--cyan); }
+
+  @media (max-width: 860px){
+    .panels{ grid-template-columns:1fr; }
+    .annot, .two, .sheets{ grid-template-columns:1fr; }
+    .tb-meta{ grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+
+<div class="bp">
+<div class="bp-wrap">
+
+  <!-- TITLEBLOCK -->
+  <div class="titleblock">
+    <div class="tb-top">
+      <div>
+        <div class="kicker">Data-flow schematic · React 19 · CSR admin SPA</div>
+        <h1>Router-driven data loading: who owns the cache?</h1>
+      </div>
+      <div class="tb-stamp">
+        <div class="mono-label">Sheet</div>
+        <div class="no">DL-03</div>
+        <div class="mono-label" style="margin-top:6px">Rev 2026.07</div>
+      </div>
+    </div>
+    <div class="tb-meta">
+      <div><div class="k">Backend</div><div class="v">REST / OpenAPI</div></div>
+      <div><div class="k">Render</div><div class="v">Client only (no SSR)</div></div>
+      <div><div class="k">Depth</div><div class="v">survey · 7 min</div></div>
+      <div><div class="k">Refs</div><div class="v">12 sources</div></div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="verdict">
+    <div class="big">The <em>query library owns the cache</em>. The router stays thin.</div>
+    <p>Framework-style <code>loader</code>/<code>clientLoader</code> route data only pays for itself with SSR/streaming — which a pure SPA doesn't have <sup><a href="https://github.com/remix-run/react-router/discussions/14037">[6]</a></sup>. Pick <a href="https://www.npmjs.com/package/@rtk-query/codegen-openapi">RTK Query</a> if you want OpenAPI codegen, else <a href="https://tanstack.com/router/latest/docs/integrations/query">TanStack Query</a> for the lighter footprint <sup><a href="https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query">[9]</a></sup>. Choose the router for its <em style="color:#fff;font-style:normal">routing</em> — and if it's <a href="https://tanstack.com/router/latest/docs/framework/react/guide/data-loading">TanStack Router</a> ⭐ 15k, use loaders only to prime the query cache with the router's own cache turned off <sup><a href="https://tkdodo.eu/blog/tan-stack-router-and-query">[3]</a></sup>.</p>
+  </div>
+
+  <!-- THREE MODELS -->
+  <div class="section-h">
+    <span class="idx">01</span>
+    <h2>Three cache-ownership models</h2>
+    <span class="note">follow the arrows — the double-bordered node owns the cache</span>
+  </div>
+
+  <div class="panels">
+
+    <!-- A -->
+    <div class="panel">
+      <div class="p-head">
+        <span class="tag">A</span>
+        <div class="p-title">Router owns the data</div>
+        <div class="p-sub"><a href="https://reactrouter.com/start/framework/data-loading">React Router</a> ⭐ 56k · framework mode</div>
+      </div>
+      <div class="flow">
+        <div class="node">Route match<small>before render</small></div>
+        <div class="arrow dn"></div>
+        <div class="node"><code>loader</code> / <code>clientLoader</code><small>fetch route data</small></div>
+        <div class="arrow dn"></div>
+        <div class="node owner">THE ROUTER<span class="badge">is the cache · per-route</span></div>
+        <div class="arrow dn"></div>
+        <div class="node"><code>useLoaderData</code> → Component</div>
+        <div class="arrow dn"></div>
+        <div class="node muted"><code>action</code> + <code>&lt;Form&gt;</code><small>auto-revalidates every loader on the page</small></div>
+      </div>
+      <div class="p-foot">
+        <b>Trigger:</b> route match, pre-render <sup><a href="https://reactrouter.com/start/framework/data-loading">[1]</a></sup>. Cache is per-route — no cross-route sharing.
+        <div class="p-verdict no">✗ SPA: second cache, no streaming payoff</div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="panel">
+      <div class="p-head">
+        <span class="tag">B</span>
+        <div class="p-title">Router primes an external cache</div>
+        <div class="p-sub"><a href="https://tanstack.com/router/latest/docs/framework/react/guide/data-loading">TanStack Router</a> + Query</div>
+      </div>
+      <div class="flow">
+        <div class="node">Route match<small>QueryClient in router context</small></div>
+        <div class="arrow dn"></div>
+        <div class="node muted"><code>loader</code>: <code>ensureQueryData</code><small>fire-and-forget · don't await</small></div>
+        <div class="arrow dn"></div>
+        <div class="node owner">TANSTACK QUERY<span class="badge">owns cache · dedup · invalidation</span></div>
+        <div class="arrow bi"></div>
+        <div class="node"><code>useSuspenseQuery</code> → Component<small>reads the primed query</small></div>
+        <div class="arrow dn"></div>
+        <div class="node muted">Router cache OFF<small><code>defaultPreloadStaleTime: 0</code></small></div>
+      </div>
+      <div class="p-foot">
+        <b>One request:</b> dedup latches prime + read onto a single fetch <sup><a href="https://master.dev/blog/tanstack-router-data-loading-2/">[5]</a></sup>. One player controls caching.
+        <div class="p-verdict warn">△ works, but loaders are optional in CSR</div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="panel">
+      <div class="p-head">
+        <span class="tag">C</span>
+        <div class="p-title">Router does no data</div>
+        <div class="p-sub">Query lib + thin router (wouter ⭐ 7.9k)</div>
+      </div>
+      <div class="flow">
+        <div class="node muted">Router: URL → component<small>no loaders, no data contract</small></div>
+        <div class="arrow dn"></div>
+        <div class="node">Component mounts<small>requests what it needs</small></div>
+        <div class="arrow dn"></div>
+        <div class="node"><code>useQuery</code> / RTK hook<small>on mount</small></div>
+        <div class="arrow bi"></div>
+        <div class="node owner">QUERY LIBRARY<span class="badge">owns everything data</span></div>
+      </div>
+      <div class="p-foot">
+        <b>Simplest wiring:</b> <a href="https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query">TanStack Query</a> ⭐ 50k or RTK Query, cross-route shared cache, tag/key invalidation.
+        <div class="p-verdict ok">✓ the CSR-SPA fit</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WHO OWNS WHAT MATRIX -->
+  <div class="section-h">
+    <span class="idx">02</span>
+    <h2>Who owns what</h2>
+    <span class="note">comparison band · amber column = the recommended owner</span>
+  </div>
+
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>Concern</th>
+          <th>A · Router loaders</th>
+          <th>B · TanStack Router + Query</th>
+          <th class="col-owner">C · Query lib + thin router</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Fetch trigger</th>
+          <td>Route match, before render</td>
+          <td>Loader primes, component reads</td>
+          <td class="col-owner">Component (hook) mount</td>
+        </tr>
+        <tr>
+          <th>Cache owner</th>
+          <td>The router</td>
+          <td>TanStack Query</td>
+          <td class="col-owner">Query lib</td>
+        </tr>
+        <tr>
+          <th>Cross-route sharing</th>
+          <td><span class="no">✗</span> per-route only</td>
+          <td><span class="yes">✓</span> shared query cache</td>
+          <td class="col-owner"><span class="yes">✓</span> shared query cache</td>
+        </tr>
+        <tr>
+          <th>Invalidation</th>
+          <td>Auto-revalidate all loaders on mutation</td>
+          <td><code>invalidateQueries</code> / tags</td>
+          <td class="col-owner">Tags (RTK) / keys (TSQ)</td>
+        </tr>
+        <tr>
+          <th>OpenAPI codegen</th>
+          <td><span class="no">✗</span> hand-wired</td>
+          <td>community (orval / openapi)</td>
+          <td class="col-owner"><span class="yes">✓</span> RTK Query official</td>
+        </tr>
+        <tr>
+          <th>Pays off mainly with</th>
+          <td>SSR / streaming</td>
+          <td>either, best with SSR</td>
+          <td class="col-owner"><span class="yes">CSR SPA</span></td>
+        </tr>
+        <tr>
+          <th>Router footprint</th>
+          <td>⭐ 56k</td>
+          <td>⭐ 15k</td>
+          <td class="col-owner">⭐ 7.9k (wouter)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DUPLICATION TRAP -->
+  <div class="section-h">
+    <span class="idx">03</span>
+    <h2>The duplication trap</h2>
+    <span class="note">loaders and a query cache both want to be the source of truth</span>
+  </div>
+
+  <div class="annot">
+    <div class="callout">
+      <div class="q">when using external caching libraries like TanStack Query, it's best to just turn this off completely because we'd only want one player to control caching</div>
+      <div class="who">TkDodo — set <code>defaultPreloadStaleTime: 0</code> so the router never caches <sup><a href="https://tkdodo.eu/blog/tan-stack-router-and-query">[3]</a></sup></div>
+    </div>
+    <div class="callout">
+      <div class="q">Treat the loader like a simple fire-and-forget event handler that only primes our cache without actually returning any data</div>
+      <div class="who">Don't <code>await</code>, don't read <code>useLoaderData</code> — read via <code>useSuspenseQuery</code> so the query is GC/refetch-eligible <sup><a href="https://tkdodo.eu/blog/tan-stack-router-and-query">[3]</a></sup></div>
+    </div>
+    <div class="callout warn">
+      <div class="q">No shared caching/deduping between routes. No built-in mutation APIs. Works great for apps that share little data between routes.</div>
+      <div class="who">TanStack Router's built-in cache — exactly the things a data-heavy admin app needs, so you delegate them to Query <sup><a href="https://tanstack.com/router/latest/docs/framework/react/guide/data-loading">[2]</a></sup></div>
+    </div>
+    <div class="callout warn">
+      <div class="q">clean integration requires choosing one primary data-fetching strategy rather than running both in parallel</div>
+      <div class="who">Running framework loaders <em>and</em> Query together is the anti-pattern — CSR: Query alone; SSR: embrace loaders <sup><a href="https://github.com/remix-run/react-router/discussions/14037">[6]</a></sup></div>
+    </div>
+  </div>
+
+  <!-- TECHNICAL NOTES -->
+  <div class="section-h">
+    <span class="idx">04</span>
+    <h2>Annotations · race conditions &amp; streaming</h2>
+    <span class="note">two failure classes both models must answer</span>
+  </div>
+
+  <div class="two">
+    <div class="notecard">
+      <h3>Race conditions</h3>
+      <p><b>React Router</b> mirrors the browser — <em>“interrupted navigations … cancel in-flight data requests”</em> and it <em>“commits all fresh revalidation responses and cancels stale requests”</em> <sup><a href="https://reactrouter.com/explanation/race-conditions">[7]</a></sup>. A type-ahead via <code>fetcher.submit</code> never shows stale results.</p>
+      <p><b>Caveats:</b> v7 re-runs loaders by default after mutations — add <code>shouldRevalidate</code> to stop unwanted refetches <sup><a href="https://programmingarehard.com/2026/04/11/contributing-to-react-router.html/">[12]</a></sup>; fetcher revalidation still has documented race edge-cases <sup><a href="https://github.com/remix-run/react-router/issues/10473">[8]</a></sup>; backend integrity is out of scope <sup><a href="https://reactrouter.com/explanation/race-conditions">[7]</a></sup>.</p>
+      <p><b>TanStack Query</b> handles the same class structurally: keys identify data, in-flight requests dedupe, stale responses are ignored, and mutation → invalidation is explicit and cross-route <sup><a href="https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query">[9]</a></sup>.</p>
+    </div>
+    <div class="notecard">
+      <h3>Suspense &amp; streaming</h3>
+      <p>Loader-based streaming (deferred data + <code>Await</code>) is a <b>server-rendering</b> feature — its value is flushing HTML while data resolves. TanStack's Query integration exists largely to <em>“automate SSR dehydration/hydration and streaming”</em> <sup><a href="https://tanstack.com/router/latest/docs/integrations/query">[4]</a></sup>.</p>
+      <p>In a <b>CSR SPA there is no HTML stream</b>, so this benefit evaporates. You're left with client Suspense boundaries — which <code>useSuspenseQuery</code> gives you without any router loader at all <sup><a href="https://tkdodo.eu/blog/tan-stack-router-and-query">[3]</a></sup>.</p>
+      <p>Waterfalls in model B are avoided by not suspending in the loader and using <code>useDeferredValue</code> to keep old UI while new data loads <sup><a href="https://master.dev/blog/tanstack-router-data-loading-2/">[5]</a></sup>.</p>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATION LADDER -->
+  <div class="section-h">
+    <span class="idx">05</span>
+    <h2>Build spec · data-heavy CSR admin SPA</h2>
+    <span class="note">one cache, owned by the query layer</span>
+  </div>
+
+  <div class="ladder">
+    <div class="rung">
+      <div class="num">1</div>
+      <div>
+        <h4>Query library owns the data</h4>
+        <p><a href="https://www.npmjs.com/package/@rtk-query/codegen-openapi">RTK Query</a> if OpenAPI codegen matters (official generator → typed endpoints + tag invalidation) <sup><a href="https://www.npmjs.com/package/@rtk-query/codegen-openapi">[10]</a></sup>, else <a href="https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query">TanStack Query</a> for the lighter footprint and strongest cache <sup><a href="https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query">[9]</a></sup>. Both command large 2026 adoption — Query ~12M weekly npm downloads <sup><a href="https://byteiota.com/tanstack-2026-full-stack-revolution-with-query-router/">[11]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="rung">
+      <div class="num">2</div>
+      <div>
+        <h4>Don't adopt React Router framework loaders for a pure SPA</h4>
+        <p>With no SSR, <code>loader</code>/<code>clientLoader</code> add a second cache and a route-data contract with no streaming payoff — and v7's default revalidation becomes tuning overhead <sup><a href="https://github.com/remix-run/react-router/discussions/14037">[6]</a></sup><sup><a href="https://programmingarehard.com/2026/04/11/contributing-to-react-router.html/">[12]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="rung">
+      <div class="num">3</div>
+      <div>
+        <h4>Router chosen for routing, not data</h4>
+        <p><a href="https://tanstack.com/router/latest/docs/framework/react/guide/data-loading">TanStack Router</a> ⭐ 15k gives type-safe params/search you feed straight into query keys. If you use its loaders, use them <em>only</em> to <code>ensureQueryData</code> with <code>defaultPreloadStaleTime: 0</code>, and read via <code>useSuspenseQuery</code> — never <code>useLoaderData</code> for the payload <sup><a href="https://tkdodo.eu/blog/tan-stack-router-and-query">[3]</a></sup>. A minimal router (wouter ⭐ 7.9k) is a fine model-C pick if you don't need loader-level prefetch.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTS LIST / SOURCES -->
+  <div class="section-h">
+    <span class="idx">06</span>
+    <h2>Parts list · sources</h2>
+    <span class="note">12 references</span>
+  </div>
+
+  <div class="parts">
+    <div class="ph"><div>Ref</div><div>Source · claim</div><div>Type</div></div>
+
+    <div class="part"><div class="n">1</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=reactrouter.com&sz=128" alt=""><span style="min-width:0"><a href="https://reactrouter.com/start/framework/data-loading">React Router — Data Loading</a><span class="claim">Loaders fetch before render; actions auto-revalidate all loaders after a mutation.</span></span></div><div class="t">official</div></div>
+
+    <div class="part"><div class="n">2</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span style="min-width:0"><a href="https://tanstack.com/router/latest/docs/framework/react/guide/data-loading">TanStack Router — Data Loading</a><span class="claim">Built-in cache suits low-sharing apps; no cross-route dedup, no mutation APIs.</span></span></div><div class="t">official</div></div>
+
+    <div class="part"><div class="n">3</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=tkdodo.eu&sz=128" alt=""><span style="min-width:0"><a href="https://tkdodo.eu/blog/tan-stack-router-and-query">TkDodo — Router and Query</a><span class="claim">Disable router cache; loaders fire-and-forget prime; read via useSuspenseQuery.</span></span></div><div class="t">vendor-blog</div></div>
+
+    <div class="part"><div class="n">4</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span style="min-width:0"><a href="https://tanstack.com/router/latest/docs/integrations/query">TanStack — Query integration</a><span class="claim">Integration automates SSR dehydration/hydration and streaming.</span></span></div><div class="t">official</div></div>
+
+    <div class="part"><div class="n">5</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=master.dev&sz=128" alt=""><span style="min-width:0"><a href="https://master.dev/blog/tanstack-router-data-loading-2/">master.dev — Data loading (pt 2)</a><span class="claim">Prefetch + useSuspenseQuery dedupe to one request; useDeferredValue avoids waterfalls.</span></span></div><div class="t">vendor-blog</div></div>
+
+    <div class="part"><div class="n">6</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span style="min-width:0"><a href="https://github.com/remix-run/react-router/discussions/14037">react-router · discussion #14037</a><span class="claim">CSR: Query alone works; running loaders + Query in parallel is an anti-pattern. ⭐ 56k</span></span></div><div class="t">forum</div></div>
+
+    <div class="part"><div class="n">7</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=reactrouter.com&sz=128" alt=""><span style="min-width:0"><a href="https://reactrouter.com/explanation/race-conditions">React Router — Race Conditions</a><span class="claim">Cancels interrupted requests, commits only fresh responses; backend integrity out of scope.</span></span></div><div class="t">official</div></div>
+
+    <div class="part"><div class="n">8</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span style="min-width:0"><a href="https://github.com/remix-run/react-router/issues/10473">react-router · issue #10473</a><span class="claim">Fetcher revalidation still has documented race-condition edge cases. ⭐ 56k</span></span></div><div class="t">forum</div></div>
+
+    <div class="part"><div class="n">9</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=theroadtoenterprise.com&sz=128" alt=""><span style="min-width:0"><a href="https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query">RTK Query vs TanStack Query</a><span class="claim">Same caching/dedup problems; RTK Query tags auto-refetch related queries on mutation.</span></span></div><div class="t">vendor-blog</div></div>
+
+    <div class="part"><div class="n">10</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=npmjs.com&sz=128" alt=""><span style="min-width:0"><a href="https://www.npmjs.com/package/@rtk-query/codegen-openapi">@rtk-query/codegen-openapi</a><span class="claim">Official OpenAPI code generator → fully-typed endpoints from a spec.</span></span></div><div class="t">official</div></div>
+
+    <div class="part"><div class="n">11</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=byteiota.com&sz=128" alt=""><span style="min-width:0"><a href="https://byteiota.com/tanstack-2026-full-stack-revolution-with-query-router/">byteiota — TanStack 2026</a><span class="claim">By early 2026 TanStack Query reached ~12M weekly npm downloads.</span></span></div><div class="t">vendor-blog</div></div>
+
+    <div class="part"><div class="n">12</div><div class="d"><img src="https://www.google.com/s2/favicons?domain=programmingarehard.com&sz=128" alt=""><span style="min-width:0"><a href="https://programmingarehard.com/2026/04/11/contributing-to-react-router.html/">Contributing to React Router</a><span class="claim">v7 re-runs loaders by default after mutations; use shouldRevalidate to opt out.</span></span></div><div class="t">vendor-blog</div></div>
+
+  </div>
+
+  <!-- RELATED SHEETS -->
+  <div class="section-h">
+    <span class="idx">07</span>
+    <h2>Related sheets</h2>
+    <span class="note">part of a 5-angle decision framework</span>
+  </div>
+
+  <div class="notecard" style="margin-top:22px">
+    <h3>↑ Parent expedition</h3>
+    <p style="margin-bottom:0"><a href="../../">Which React router to adopt in 2026: a decision framework for a client-rendered admin SPA</a> — across five angles, one recurring fact: keep data-fetching out of the router either way.</p>
+  </div>
+
+  <div class="sheets">
+    <a class="sheet" href="../../the-2026-candidate-landscape-head-to-head/">
+      <div class="depth">survey</div>
+      <h4>The 2026 React Router Landscape</h4>
+      <p>TanStack Router is the sharpest fit, React Router the safest default; Wouter for simple apps, Next.js App Router the wrong grain.</p>
+    </a>
+    <a class="sheet" href="../../type-safe-routing-search-param-state/">
+      <div class="depth">survey</div>
+      <h4>Type-Safe Routing &amp; Typed Search-Param State</h4>
+      <p>TanStack Router is the only router with typed, schema-validated search-param state end to end.</p>
+    </a>
+    <a class="sheet" href="../../library-vs-framework-rsc/">
+      <div class="depth">survey</div>
+      <h4>Library-mode router vs meta-framework (and RSC)</h4>
+      <p>A standalone router on Vite is still a first-class 2026 choice; RSC solves problems this app doesn't have.</p>
+    </a>
+    <a class="sheet" href="../../migration-effort-lock-in/">
+      <div class="depth">recon</div>
+      <h4>Migration Effort &amp; Lock-In</h4>
+      <p>Already on React Router? Staying is near-drop-in. Greenfield SPA? The math tilts toward TanStack Router.</p>
+    </a>
+  </div>
+
+  <div class="footer-block">
+    <span>Sheet DL-03 · <a href="../">read the default view</a> · <a href="/">Atlas</a></span>
+    <span>Net: one cache, owned by the query layer; the router routes.</span>
+  </div>
+
+</div>
+</div>

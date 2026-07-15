@@ -1,0 +1,453 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "The 2026 React Router Landscape: TanStack Router vs React Router vs Wouter vs Next.js — Scoreboard"
+---
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #07090d;
+    --board: #0b0f16;
+    --panel: #121824;
+    --panel-2: #161d2b;
+    --line: #263042;
+    --ink: #eef3fb;
+    --ink-dim: #9fb0c6;
+    --ink-faint: #64748b;
+    --led-amber: #ffb020;
+    --win: #35d67a;
+    --win-bg: rgba(53,214,122,.12);
+    --warn: #ffc043;
+    --warn-bg: rgba(255,192,67,.12);
+    --lose: #ff5470;
+    --lose-bg: rgba(255,84,112,.10);
+    --tan: #2dd4a7;
+    --rr: #f44250;
+    --wou: #b98bff;
+    --next: #e7edf7;
+  }
+
+  .sb {
+    background:
+      radial-gradient(120% 80% at 50% -10%, #10192b 0%, transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Oswald', system-ui, sans-serif;
+    font-weight: 300;
+    letter-spacing: .01em;
+    padding: 0 0 4rem;
+    overflow-x: hidden;
+  }
+  .sb * { box-sizing: border-box; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 1.25rem; }
+
+  /* ---------- Marquee / masthead ---------- */
+  .marquee {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.015) 0 2px, transparent 2px 4px),
+      linear-gradient(180deg, #0a1220, #07090d);
+    padding: 2.6rem 0 2.2rem;
+  }
+  .kicker {
+    font-family: 'Oswald'; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .42em; font-size: .74rem; color: var(--led-amber);
+    display: flex; align-items: center; gap: .6rem; justify-content: center;
+  }
+  .kicker::before, .kicker::after { content: ""; height: 1px; width: 42px; background: linear-gradient(90deg, transparent, var(--led-amber)); }
+  .kicker::after { background: linear-gradient(90deg, var(--led-amber), transparent); }
+  h1.title {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    text-transform: uppercase; text-align: center;
+    font-size: clamp(2.4rem, 7vw, 5.4rem); line-height: .92;
+    margin: 1rem 0 .5rem; letter-spacing: .005em;
+    background: linear-gradient(180deg, #ffffff 30%, #9fb6d6 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 40px rgba(120,170,255,.18);
+  }
+  .subtitle {
+    text-align: center; color: var(--ink-dim); max-width: 640px; margin: 0 auto;
+    font-size: 1.02rem; font-weight: 300;
+  }
+  .fixture {
+    display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; justify-content: center;
+    margin-top: 1.4rem; font-family: 'Oswald'; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; color: var(--ink-faint);
+  }
+  .fixture b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Verdict band ---------- */
+  .verdict {
+    margin-top: 2.4rem;
+    background: linear-gradient(135deg, #101a2b, #0c1119);
+    border: 1px solid var(--line); border-radius: 16px;
+    padding: 1.6rem 1.7rem; position: relative; overflow: hidden;
+  }
+  .verdict::before {
+    content: "FINAL"; position: absolute; right: -.4rem; top: -1.2rem;
+    font-family: 'Anton'; font-size: 7rem; color: rgba(255,255,255,.03);
+    letter-spacing: .05em; pointer-events: none;
+  }
+  .verdict-label {
+    font-family: 'Oswald'; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .3em; font-size: .72rem; color: var(--led-amber); margin-bottom: .7rem;
+  }
+  .verdict p { margin: 0; font-size: 1.24rem; line-height: 1.5; color: var(--ink); font-weight: 300; max-width: 62ch; }
+  .verdict a { color: #7fd7ff; text-decoration: none; border-bottom: 1px solid rgba(127,215,255,.35); }
+  .verdict a:hover { border-bottom-color: #7fd7ff; }
+  sup a { color: var(--led-amber); text-decoration: none; font-size: .62em; border: none; }
+  sup a:hover { text-decoration: underline; }
+
+  /* ---------- Standings ladder ---------- */
+  .section-h {
+    font-family: 'Oswald'; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .26em; font-size: .82rem; color: var(--ink-dim);
+    margin: 3.2rem 0 1.1rem; display: flex; align-items: center; gap: .8rem;
+  }
+  .section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .ladder { display: grid; gap: .55rem; }
+  .rung {
+    display: grid; grid-template-columns: 3.2rem minmax(0,1fr) auto;
+    align-items: center; gap: 1rem;
+    background: var(--panel); border: 1px solid var(--line);
+    border-left-width: 5px; border-radius: 12px; padding: .85rem 1.1rem;
+  }
+  .rung.t1 { border-left-color: var(--tan); }
+  .rung.t2 { border-left-color: var(--rr); }
+  .rung.t3 { border-left-color: var(--wou); }
+  .rung.t4 { border-left-color: var(--next); }
+  .pos { font-family: 'Anton'; font-size: 2rem; line-height: 1; color: var(--ink-faint); text-align: center; }
+  .rung.t1 .pos { color: var(--led-amber); }
+  .medal { font-size: 1.1rem; }
+  .rung .who { display: flex; align-items: center; gap: .7rem; min-width: 0; }
+  .rung .who img { width: 26px; height: 26px; border-radius: 6px; background: #fff1; padding: 2px; flex: none; }
+  .rung .who .nm { font-family: 'Oswald'; font-weight: 600; font-size: 1.12rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rung .who a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+  .rung .who a:hover { border-bottom-color: currentColor; }
+  .rung .verdict-pill {
+    font-family: 'Oswald'; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .12em; font-size: .72rem; padding: .32rem .7rem; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .vp-gold { background: rgba(255,176,32,.14); color: var(--led-amber); border: 1px solid rgba(255,176,32,.4); }
+  .vp-silver { background: rgba(160,180,210,.12); color: #c5d2e6; border: 1px solid rgba(160,180,210,.35); }
+  .vp-bronze { background: rgba(185,139,255,.12); color: var(--wou); border: 1px solid rgba(185,139,255,.35); }
+  .vp-out { background: rgba(255,84,112,.10); color: var(--lose); border: 1px solid rgba(255,84,112,.32); }
+
+  /* ---------- The board ---------- */
+  .board-scroll { overflow-x: auto; margin: 0 -1.25rem; padding: 0 1.25rem 1rem; }
+  .board {
+    min-width: 720px;
+    display: grid;
+    grid-template-columns: 15rem repeat(4, 1fr);
+    background: var(--board); border: 1px solid var(--line);
+    border-radius: 16px; overflow: hidden;
+  }
+  .cell { padding: .9rem .8rem; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .board > .cell:nth-child(5n) { border-right: none; }
+
+  .head-corner {
+    background: linear-gradient(180deg, #0e1626, #0b1017);
+    display: flex; align-items: flex-end;
+  }
+  .head-corner span {
+    font-family: 'Oswald'; font-weight: 500; text-transform: uppercase;
+    letter-spacing: .2em; font-size: .68rem; color: var(--ink-faint);
+  }
+  .team {
+    background: linear-gradient(180deg, #0f1826, #0b1017);
+    text-align: center; padding: 1.1rem .7rem 1.15rem;
+  }
+  .team .badge { width: 40px; height: 40px; border-radius: 9px; background: #fff; padding: 4px; margin: 0 auto .55rem; display: block; }
+  .team .tname { font-family: 'Oswald'; font-weight: 600; font-size: 1.02rem; line-height: 1.1; }
+  .team .tname a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+  .team .tname a:hover { border-bottom-color: currentColor; }
+  .team .stars {
+    font-family: 'Anton'; font-size: 2.15rem; line-height: 1; margin-top: .5rem;
+    letter-spacing: .01em;
+  }
+  .team.c-tan .stars { color: var(--tan); }
+  .team.c-rr .stars { color: var(--rr); }
+  .team.c-wou .stars { color: var(--wou); }
+  .team.c-next .stars { color: var(--next); }
+  .team .starlbl { display: block; font-size: .62rem; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-faint); margin-top: .25rem; font-weight: 500; }
+  .team .subnote { font-size: .68rem; color: var(--ink-faint); margin-top: .35rem; letter-spacing: .04em; }
+
+  .crit {
+    background: var(--panel);
+    display: flex; flex-direction: column; justify-content: center; gap: .18rem;
+  }
+  .crit .cn { font-family: 'Oswald'; font-weight: 600; font-size: .96rem; color: var(--ink); }
+  .crit .cd { font-size: .74rem; color: var(--ink-faint); font-weight: 300; line-height: 1.25; }
+
+  .score { text-align: center; display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+  .glyph { font-family: 'Anton'; font-size: 1.9rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+  .g-win { color: var(--win); background: var(--win-bg); box-shadow: inset 0 0 0 1px rgba(53,214,122,.3); }
+  .g-warn { color: var(--warn); background: var(--warn-bg); box-shadow: inset 0 0 0 1px rgba(255,192,67,.3); }
+  .g-lose { color: var(--lose); background: var(--lose-bg); box-shadow: inset 0 0 0 1px rgba(255,84,112,.28); }
+  .score .note { font-size: .7rem; color: var(--ink-dim); font-weight: 300; line-height: 1.25; max-width: 12rem; }
+
+  .board .tally { background: linear-gradient(180deg, #0d1420, #0a0f18); }
+  .tally.crit .cn { color: var(--led-amber); text-transform: uppercase; letter-spacing: .12em; font-size: .82rem; }
+  .tallybox { text-align: center; }
+  .tallybox .rank { font-family: 'Anton'; font-size: 1.7rem; line-height: 1; }
+  .tallybox .rank.r1 { color: var(--led-amber); }
+  .tallybox .mix { font-size: .72rem; color: var(--ink-dim); margin-top: .3rem; letter-spacing: .06em; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-top: 1rem; font-size: .78rem; color: var(--ink-dim); }
+  .legend span { display: inline-flex; align-items: center; gap: .45rem; }
+  .legend .lg { font-family: 'Anton'; font-size: 1rem; width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; }
+  .context-note { margin-top: .9rem; font-size: .8rem; color: var(--ink-faint); font-weight: 300; line-height: 1.4; }
+
+  /* ---------- Contender dossiers ---------- */
+  .dossiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 1rem; }
+  .dossier { background: var(--panel); border: 1px solid var(--line); border-top-width: 4px; border-radius: 14px; padding: 1.1rem 1.2rem; }
+  .dossier.d-tan { border-top-color: var(--tan); }
+  .dossier.d-rr { border-top-color: var(--rr); }
+  .dossier.d-wou { border-top-color: var(--wou); }
+  .dossier.d-next { border-top-color: var(--next); }
+  .dossier h3 { font-family: 'Oswald'; font-weight: 600; font-size: 1.14rem; margin: 0 0 .2rem; }
+  .dossier h3 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+  .dossier h3 a:hover { border-bottom-color: currentColor; }
+  .dossier .tag { font-family: 'Oswald'; text-transform: uppercase; letter-spacing: .14em; font-size: .68rem; font-weight: 600; margin-bottom: .7rem; }
+  .d-tan .tag { color: var(--tan); } .d-rr .tag { color: var(--rr); } .d-wou .tag { color: var(--wou); } .d-next .tag { color: var(--next); }
+  .dossier p { margin: 0 0 .6rem; font-size: .9rem; line-height: 1.5; color: var(--ink-dim); font-weight: 300; }
+  .dossier .pro, .dossier .con { font-size: .84rem; color: var(--ink-dim); display: flex; gap: .5rem; margin-top: .35rem; font-weight: 300; }
+  .dossier .pro b { color: var(--win); font-family: 'Anton'; font-weight: 400; }
+  .dossier .con b { color: var(--lose); font-family: 'Anton'; font-weight: 400; }
+  .dossier a { color: #7fd7ff; text-decoration: none; }
+
+  /* ---------- Sources + nav ---------- */
+  .sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .7rem; }
+  .src { display: flex; gap: .7rem; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .7rem .8rem; text-decoration: none; }
+  .src:hover { border-color: var(--led-amber); }
+  .src img { width: 22px; height: 22px; border-radius: 5px; flex: none; margin-top: .1rem; background: #fff2; }
+  .src .st { font-size: .84rem; color: var(--ink); font-weight: 400; line-height: 1.25; }
+  .src .sn { font-size: .68rem; color: var(--ink-faint); font-family: 'Oswald'; text-transform: uppercase; letter-spacing: .12em; }
+  .src .stars-mini { color: var(--led-amber); font-size: .72rem; }
+
+  .nav-rail { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: .7rem; }
+  .nav-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1rem; text-decoration: none; display: block; }
+  .nav-card:hover { border-color: var(--led-amber); }
+  .nav-card .depth { font-family: 'Oswald'; text-transform: uppercase; letter-spacing: .18em; font-size: .64rem; color: var(--led-amber); font-weight: 600; }
+  .nav-card .nt { color: var(--ink); font-weight: 500; font-size: .96rem; margin: .3rem 0 .35rem; line-height: 1.25; }
+  .nav-card .ns { color: var(--ink-faint); font-size: .8rem; font-weight: 300; line-height: 1.4; }
+  .parent-card { background: linear-gradient(135deg, #14203a, #0e1421); border-color: #24406a; }
+  .parent-card .depth { color: #7fd7ff; }
+
+  .colophon { margin-top: 3rem; padding-top: 1.4rem; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .8rem; font-weight: 300; text-align: center; letter-spacing: .04em; }
+</style>
+
+<div class="sb">
+
+  <div class="marquee">
+    <div class="wrap">
+      <div class="kicker">Head-to-Head · Survey</div>
+      <h1 class="title">The Routing Scoreboard</h1>
+      <p class="subtitle">Four React routers, one fixture: a deliberately client-rendered React&nbsp;19 admin console where the URL carries filters, sorting and pagination.</p>
+      <div class="fixture">
+        <span><b>TanStack Router</b></span><span>vs</span>
+        <span><b>React Router</b></span><span>vs</span>
+        <span><b>Wouter</b></span><span>vs</span>
+        <span><b>Next.js App Router</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="verdict">
+      <div class="verdict-label">The Result</div>
+      <p><a href="https://tanstack.com/router/latest">TanStack Router</a> takes it on the URL-as-state axis — full type safety and schema-validated search params in pure SPA mode, no server required <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup><sup><a href="https://www.pkgpulse.com/guides/react-router-v7-vs-tanstack-router-2026">[1]</a></sup>. <a href="https://github.com/remix-run/react-router">React Router</a> is the safe runner-up: biggest ecosystem, least drama — but its type-safety edge lives in <em>framework mode</em>, a server, so a pure SPA gets less of it <sup><a href="https://blog.logrocket.com/react-router-v7-modes/">[8]</a></sup>. <a href="https://github.com/molefrog/wouter">Wouter</a> only for simple consoles; <a href="https://nextjs.org/docs/app/guides/single-page-applications">Next.js App Router</a> is the wrong grain for a client-rendered SPA <sup><a href="https://nextjs.org/docs/app/guides/single-page-applications">[7]</a></sup>.</p>
+    </div>
+
+    <div class="section-h">Final Standings</div>
+    <div class="ladder">
+      <div class="rung t1">
+        <div class="pos">1<span class="medal"> 🥇</span></div>
+        <div class="who"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="TanStack Router"><span class="nm"><a href="https://tanstack.com/router/latest">TanStack Router</a> &nbsp;⭐ 15k</span></div>
+        <div class="verdict-pill vp-gold">Sharpest Fit</div>
+      </div>
+      <div class="rung t2">
+        <div class="pos">2<span class="medal"> 🥈</span></div>
+        <div class="who"><img src="https://www.google.com/s2/favicons?domain=reactrouter.com&sz=128" alt="React Router"><span class="nm"><a href="https://github.com/remix-run/react-router">React Router</a> &nbsp;⭐ 56k</span></div>
+        <div class="verdict-pill vp-silver">Safest Default</div>
+      </div>
+      <div class="rung t3">
+        <div class="pos">3<span class="medal"> 🥉</span></div>
+        <div class="who"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="Wouter"><span class="nm"><a href="https://github.com/molefrog/wouter">Wouter</a> &nbsp;⭐ 7.9k</span></div>
+        <div class="verdict-pill vp-bronze">Simple Apps Only</div>
+      </div>
+      <div class="rung t4">
+        <div class="pos">4</div>
+        <div class="who"><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt="Next.js"><span class="nm"><a href="https://nextjs.org/docs/app/guides/single-page-applications">Next.js App Router</a> &nbsp;⭐ 141k</span></div>
+        <div class="verdict-pill vp-out">Wrong Grain</div>
+      </div>
+    </div>
+
+    <div class="section-h">The Board · scored for a client-rendered admin SPA</div>
+    <div class="board-scroll">
+      <div class="board">
+        <!-- header row -->
+        <div class="cell head-corner"><span>Criterion</span></div>
+        <div class="cell team c-tan">
+          <img class="badge" src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt="TanStack Router">
+          <div class="tname"><a href="https://tanstack.com/router/latest">TanStack Router</a></div>
+          <div class="stars">⭐ 15k</div><span class="starlbl">GitHub stars</span>
+          <div class="subnote">~12.7M weekly dl · stable since Dec 2023</div>
+        </div>
+        <div class="cell team c-rr">
+          <img class="badge" src="https://www.google.com/s2/favicons?domain=reactrouter.com&sz=128" alt="React Router">
+          <div class="tname"><a href="https://github.com/remix-run/react-router">React Router</a></div>
+          <div class="stars">⭐ 56k</div><span class="starlbl">GitHub stars</span>
+          <div class="subnote">v8 · merged Remix · yearly majors</div>
+        </div>
+        <div class="cell team c-wou">
+          <img class="badge" src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="Wouter">
+          <div class="tname"><a href="https://github.com/molefrog/wouter">Wouter</a></div>
+          <div class="stars">⭐ 7.9k</div><span class="starlbl">GitHub stars</span>
+          <div class="subnote">~2.2KB · hooks-based · stable API</div>
+        </div>
+        <div class="cell team c-next">
+          <img class="badge" src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt="Next.js">
+          <div class="tname"><a href="https://nextjs.org/docs/app/guides/single-page-applications">Next.js App Router</a></div>
+          <div class="stars">⭐ 141k</div><span class="starlbl">GitHub stars</span>
+          <div class="subnote">Vercel-backed · file-based only</div>
+        </div>
+
+        <!-- Row 1 -->
+        <div class="cell crit"><div class="cn">Typed search-param state</div><div class="cd">Filters · sort · pagination validated at the type boundary</div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Full, schema-validated — end to end <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-warn">⚠</div><div class="note">Partial — the edge needs framework mode <sup><a href="https://www.pkgpulse.com/guides/react-router-v7-vs-tanstack-router-2026">[1]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-lose">✗</div><div class="note">Minimal — reimplement it yourself</div></div>
+        <div class="cell score"><div class="glyph g-lose">✗</div><div class="note">Limited <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup></div></div>
+
+        <!-- Row 2 -->
+        <div class="cell crit"><div class="cn">Runs as a pure client SPA</div><div class="cd">No server assumed, no build-time coercion</div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Its home turf <sup><a href="https://www.pkgpulse.com/guides/react-router-v7-vs-tanstack-router-2026">[1]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Declarative / data mode <sup><a href="https://blog.logrocket.com/react-router-v7-modes/">[8]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Yes, natively</div></div>
+        <div class="cell score"><div class="glyph g-warn">⚠</div><div class="note">Fights the grain <sup><a href="https://nextjs.org/docs/app/guides/single-page-applications">[7]</a></sup></div></div>
+
+        <!-- Row 3 -->
+        <div class="cell crit"><div class="cn">No server for best features</div><div class="cd">Full capability without a full-stack runtime</div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Same typing, SSR or not</div></div>
+        <div class="cell score"><div class="glyph g-warn">⚠</div><div class="note">Best bits need framework mode <sup><a href="https://blog.logrocket.com/react-router-v7-modes/">[8]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">No server needed</div></div>
+        <div class="cell score"><div class="glyph g-lose">✗</div><div class="note">Server-first by design <sup><a href="https://nextjs.org/docs/app/guides/single-page-applications">[7]</a></sup></div></div>
+
+        <!-- Row 4 -->
+        <div class="cell crit"><div class="cn">Ecosystem &amp; safety of default</div><div class="cd">Community mass, onboarding, stability of the bet</div></div>
+        <div class="cell score"><div class="glyph g-warn">⚠</div><div class="note">Smaller; steep curve; May-26 npm scare <sup><a href="https://tanstack.com/router/latest">[6]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Biggest ecosystem, least drama <sup><a href="https://www.pkgpulse.com/guides/react-router-v7-vs-tanstack-router-2026">[1]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-warn">⚠</div><div class="note">Solid but niche <sup><a href="https://github.com/molefrog/wouter">[3]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Huge, Vercel-backed <sup><a href="https://github.com/vercel/next.js">[12]</a></sup></div></div>
+
+        <!-- Row 5 -->
+        <div class="cell crit"><div class="cn">Routing model for a filter-heavy console</div><div class="cd">Code-based, programmatic, expressive enough</div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">Code-based route tree, type-safe <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-win">✓</div><div class="note">JSX / route objects / file-based <sup><a href="https://blog.logrocket.com/react-router-v7-modes/">[8]</a></sup></div></div>
+        <div class="cell score"><div class="glyph g-warn">⚠</div><div class="note">Tiny but underpowered here</div></div>
+        <div class="cell score"><div class="glyph g-lose">✗</div><div class="note">File-based only, no code routes <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup></div></div>
+
+        <!-- Tally row -->
+        <div class="cell crit tally"><div class="cn">Final tally</div></div>
+        <div class="cell tally tallybox"><div class="rank r1">1st</div><div class="mix">4 ✓ · 1 ⚠</div></div>
+        <div class="cell tally tallybox"><div class="rank">2nd</div><div class="mix">3 ✓ · 2 ⚠</div></div>
+        <div class="cell tally tallybox"><div class="rank">3rd</div><div class="mix">2 ✓ · 2 ⚠ · 1 ✗</div></div>
+        <div class="cell tally tallybox"><div class="rank">4th</div><div class="mix">1 ✓ · 1 ⚠ · 3 ✗</div></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><span class="lg g-win">✓</span> Wins it for this use case</span>
+      <span><span class="lg g-warn">⚠</span> Works, with a catch</span>
+      <span><span class="lg g-lose">✗</span> Loses it here</span>
+    </div>
+    <p class="context-note">Cells are scored <em>for a client-rendered React&nbsp;19 admin SPA</em> — not in the abstract. Next.js's 141k stars and server-first design are strengths in general; here, "server-first" is exactly what this deliberately client-only app doesn't want.</p>
+
+    <div class="section-h">Contender Cards</div>
+    <div class="dossiers">
+      <div class="dossier d-tan">
+        <h3><a href="https://tanstack.com/router/latest">TanStack Router</a> ⭐ 15k</h3>
+        <div class="tag">🥇 Sharpest Fit</div>
+        <p>State-first routing (URL → state → data → UI). Purpose-built for client-heavy SPAs, dashboards and internal tools where the URL carries rich state, all validated at the type boundary.</p>
+        <div class="pro"><b>+</b><span>100% type-safe params &amp; loaders in plain SPA mode, no server <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup></span></div>
+        <div class="con"><b>−</b><span>Smaller ecosystem, steeper curve, and a May 2026 npm supply-chain compromise (84 bad versions, ~20 min) that dented trust <sup><a href="https://tanstack.com/router/latest">[6]</a></sup></span></div>
+      </div>
+      <div class="dossier d-rr">
+        <h3><a href="https://github.com/remix-run/react-router">React Router</a> ⭐ 56k</h3>
+        <div class="tag">🥈 Safest Default</div>
+        <p>UI-first routing (URL → component). The default React answer with the biggest ecosystem and least migration friction. Three additive modes — declarative, data, framework.</p>
+        <div class="pro"><b>+</b><span>Easiest onboarding; v8 (June 2026) brought open governance and a yearly major cadence <sup><a href="https://remix.run/blog/react-router-v8">[4]</a></sup><sup><a href="https://stackmaven.io/news/react-router-8-ga">[5]</a></sup></span></div>
+        <div class="con"><b>−</b><span>Most enhanced typing only materialises in framework mode — a server — so a pure SPA gives up the typed-search edge <sup><a href="https://blog.logrocket.com/react-router-v7-modes/">[8]</a></sup></span></div>
+      </div>
+      <div class="dossier d-wou">
+        <h3><a href="https://github.com/molefrog/wouter">Wouter</a> ⭐ 7.9k</h3>
+        <div class="tag">🥉 Simple Apps Only</div>
+        <p>~2.2KB, hooks-based, mimics React Router's <code>Route</code>/<code>Link</code>/<code>Switch</code> with an optional top-level router. Excellent when routing should be near-invisible.</p>
+        <div class="pro"><b>+</b><span>Featherweight and stable — ideal for a genuinely simple console <sup><a href="https://github.com/molefrog/wouter">[3]</a></sup></span></div>
+        <div class="con"><b>−</b><span>Deliberately omits data loading and type-safe search params — a filter-heavy admin would reimplement what TanStack gives free</span></div>
+      </div>
+      <div class="dossier d-next">
+        <h3><a href="https://nextjs.org/docs/app/guides/single-page-applications">Next.js App Router</a> ⭐ 141k</h3>
+        <div class="tag">Wrong Grain</div>
+        <p>The "do you even need a standalone router" foil. It can be coerced into a static-export SPA with instant client transitions, but it is server-first by design and file-based only.</p>
+        <div class="pro"><b>+</b><span>Dominant framework, instant SPA-like transitions once configured <sup><a href="https://nextjs.org/docs/app/guides/single-page-applications">[7]</a></sup></span></div>
+        <div class="con"><b>−</b><span>No code-based or programmatic routes; adopting it for a client-rendered SPA means fighting the framework's grain <sup><a href="https://tanstack.com/router/latest/docs/comparison">[2]</a></sup></span></div>
+      </div>
+    </div>
+
+    <div class="section-h">The Rest of the Tournament</div>
+    <div class="nav-rail">
+      <a class="nav-card parent-card" href="../../">
+        <div class="depth">↑ Parent expedition</div>
+        <div class="nt">Which React router to adopt in 2026: a decision framework for a client-rendered admin SPA</div>
+        <div class="ns">Across five angles the answer converges: TanStack Router for a URL-as-state admin console, React Router as the safe default.</div>
+      </a>
+      <a class="nav-card" href="../../type-safe-routing-search-param-state/">
+        <div class="depth">Survey · sibling</div>
+        <div class="nt">Type-Safe Routing &amp; Typed Search-Param State in React (2026)</div>
+        <div class="ns">TanStack Router is the only router with typed, schema-validated search-param state end to end.</div>
+      </a>
+      <a class="nav-card" href="../../router-driven-data-loading/">
+        <div class="depth">Survey · sibling</div>
+        <div class="nt">Router-driven data loading in React (2026): who owns the cache?</div>
+        <div class="ns">For a CSR-only admin SPA, let a query library own the cache and keep the router thin.</div>
+      </a>
+      <a class="nav-card" href="../../library-vs-framework-rsc/">
+        <div class="depth">Survey · sibling</div>
+        <div class="nt">Library-mode router vs meta-framework (and RSC) for a React 19 admin SPA</div>
+        <div class="ns">A standalone router on Vite is still a first-class 2026 choice; RSC solves problems this app doesn't have.</div>
+      </a>
+      <a class="nav-card" href="../../migration-effort-lock-in/">
+        <div class="depth">Recon · sibling</div>
+        <div class="nt">Migration Effort &amp; Lock-In: Choosing a React Router in 2026</div>
+        <div class="ns">Already on React Router? Staying is near-drop-in. Greenfield SPA? The math tilts toward TanStack Router.</div>
+      </a>
+    </div>
+
+    <div class="section-h">Match Officials · 12 sources</div>
+    <div class="sources">
+      <a class="src" href="https://www.pkgpulse.com/guides/react-router-v7-vs-tanstack-router-2026"><img src="https://www.google.com/s2/favicons?domain=pkgpulse.com&sz=128" alt=""><span><span class="st">RRv7 vs TanStack Router (2026)</span><br><span class="sn">vendor-blog · [1]</span></span></a>
+      <a class="src" href="https://tanstack.com/router/latest/docs/comparison"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span><span class="st">TanStack Router — feature matrix</span><br><span class="sn">official · [2]</span></span></a>
+      <a class="src" href="https://github.com/molefrog/wouter"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><span class="st">molefrog/wouter</span><br><span class="sn">official · [3] · <span class="stars-mini">⭐ 7.9k</span></span></span></a>
+      <a class="src" href="https://remix.run/blog/react-router-v8"><img src="https://www.google.com/s2/favicons?domain=remix.run&sz=128" alt=""><span><span class="st">React Router v8 announcement</span><br><span class="sn">official · [4]</span></span></a>
+      <a class="src" href="https://stackmaven.io/news/react-router-8-ga"><img src="https://www.google.com/s2/favicons?domain=stackmaven.io&sz=128" alt=""><span><span class="st">React Router 8 GA — cadence</span><br><span class="sn">news · [5]</span></span></a>
+      <a class="src" href="https://tanstack.com/router/latest"><img src="https://www.google.com/s2/favicons?domain=tanstack.com&sz=128" alt=""><span><span class="st">TanStack Router — downloads &amp; npm incident</span><br><span class="sn">official · [6]</span></span></a>
+      <a class="src" href="https://nextjs.org/docs/app/guides/single-page-applications"><img src="https://www.google.com/s2/favicons?domain=nextjs.org&sz=128" alt=""><span><span class="st">Next.js — Single-Page Applications</span><br><span class="sn">official · [7]</span></span></a>
+      <a class="src" href="https://blog.logrocket.com/react-router-v7-modes/"><img src="https://www.google.com/s2/favicons?domain=blog.logrocket.com&sz=128" alt=""><span><span class="st">React Router v7's three modes</span><br><span class="sn">vendor-blog · [8]</span></span></a>
+      <a class="src" href="https://github.com/remix-run/react-router"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><span class="st">remix-run/react-router</span><br><span class="sn">official · [10] · <span class="stars-mini">⭐ 56k</span></span></span></a>
+      <a class="src" href="https://github.com/TanStack/router"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><span class="st">TanStack/router</span><br><span class="sn">official · [11] · <span class="stars-mini">⭐ 15k</span></span></span></a>
+      <a class="src" href="https://github.com/vercel/next.js"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><span class="st">vercel/next.js</span><br><span class="sn">official · [12] · <span class="stars-mini">⭐ 141k</span></span></span></a>
+    </div>
+
+    <div class="colophon">A view of the canonical survey · scored for a client-rendered React&nbsp;19 admin SPA · glyphs read "wins/works-with-a-catch/loses" for <em>this</em> fixture, not in the abstract.</div>
+
+  </div>
+</div>
