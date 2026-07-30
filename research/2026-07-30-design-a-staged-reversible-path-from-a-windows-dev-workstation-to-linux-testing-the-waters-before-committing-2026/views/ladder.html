@@ -1,0 +1,1127 @@
+---
+layout: view
+view_name: "Ladder"
+view_of: ../
+title: "Testing the waters: a staged, reversible path from a Windows dev workstation to Linux — Ladder"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+.topo {
+  --rock:    #0e1218;
+  --rock-2:  #141a22;
+  --rock-3:  #1b232d;
+  --granite: #26313e;
+  --line:    rgba(174,196,216,.16);
+  --line-2:  rgba(174,196,216,.28);
+  --snow:    #eaf1f7;
+  --mist:    #93a5b6;
+  --dim:     #6a7d8f;
+  --topo:    #e2542a;
+  --amber:   #edad3f;
+  --glacier: #52c3d6;
+  --go:      #6ed08e;
+  --win:     #3f8fe3;
+
+  margin: 0;
+  background: var(--rock);
+  color: var(--snow);
+  font: 400 16px/1.6 Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.topo *, .topo *::before, .topo *::after { box-sizing: border-box; }
+.topo a { color: inherit; }
+.topo h1, .topo h2, .topo h3, .topo h4 {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  letter-spacing: .012em;
+  line-height: 1.02;
+  margin: 0;
+  text-transform: uppercase;
+}
+.topo p { margin: 0 0 .7em; }
+.topo p:last-child { margin-bottom: 0; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+/* ---------- shared micro-type ---------- */
+.mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+.tag {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--dim);
+}
+.rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+sup a {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: .62em; text-decoration: none; color: var(--topo);
+  padding: 0 .08em; vertical-align: super; opacity: .85;
+}
+sup a:hover { opacity: 1; text-decoration: underline; }
+.topo a.ent { color: var(--snow); text-decoration: none; border-bottom: 1px solid var(--topo); }
+.topo a.ent:hover { color: var(--topo); }
+
+/* ---------- HERO: a route topo card ---------- */
+.hero {
+  position: relative;
+  padding: 92px 0 54px;
+  background:
+    radial-gradient(120% 90% at 78% 8%, rgba(226,84,42,.16), transparent 58%),
+    repeating-radial-gradient(circle at 76% 6%,
+      transparent 0 26px, rgba(174,196,216,.075) 26px 27px),
+    linear-gradient(180deg, #0b0f14 0%, var(--rock) 78%);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: auto 0 0 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--topo), transparent);
+  opacity: .6;
+}
+.hero-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 58% 28%;
+  opacity: .34; filter: grayscale(.55) brightness(.62) contrast(1.08);
+  -webkit-mask-image: linear-gradient(190deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.45) 52%, transparent 90%);
+  mask-image: linear-gradient(190deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.45) 52%, transparent 90%);
+  pointer-events: none;
+}
+.hero > .wrap { position: relative; z-index: 1; }
+.hero-grid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 46px; align-items: end; }
+.kicker { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 22px; }
+.kicker span {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+  padding: 4px 9px; border: 1px solid var(--line-2); border-radius: 2px; color: var(--mist);
+}
+.kicker span.hot { border-color: var(--topo); color: var(--topo); }
+.hero h1 { font-size: clamp(48px, 7.4vw, 104px); letter-spacing: -.01em; }
+.hero h1 em { font-style: normal; color: var(--topo); }
+.hero .sub {
+  font-size: clamp(16px, 1.6vw, 19px); color: var(--mist);
+  max-width: 46ch; margin-top: 18px;
+}
+
+/* route string */
+.routeline { margin-top: 34px; display: flex; flex-wrap: wrap; align-items: center; gap: 0; }
+.routeline b, .routeline s {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: 19px; letter-spacing: .05em; padding: 7px 13px; border: 1px solid var(--line-2);
+  border-radius: 2px; white-space: nowrap; margin: 4px 0;
+}
+.routeline b { color: var(--snow); border-color: var(--topo); background: rgba(226,84,42,.1); }
+.routeline b.base { border-color: var(--win); background: rgba(63,143,227,.1); color: var(--win); }
+.routeline b.top  { border-color: var(--snow); background: var(--snow); color: #0b0f14; }
+.routeline s {
+  text-decoration: line-through; color: var(--dim); border-style: dashed;
+  text-decoration-color: var(--topo); text-decoration-thickness: 2px;
+}
+.routeline i { color: var(--dim); font-style: normal; padding: 0 9px; font-size: 17px; }
+
+.verdict {
+  border: 1px solid var(--line-2); border-left: 3px solid var(--topo);
+  background: linear-gradient(90deg, rgba(226,84,42,.09), transparent 70%);
+  padding: 20px 22px; border-radius: 3px;
+}
+.verdict .tag { display: block; margin-bottom: 9px; color: var(--topo); }
+.verdict p { font-size: 16px; line-height: 1.55; color: var(--snow); }
+.verdict strong { color: var(--amber); font-weight: 600; }
+
+.hero-stats { display: grid; gap: 0; border-top: 1px solid var(--line); margin-top: 46px; }
+.hero-stats { grid-template-columns: repeat(5, 1fr); }
+.hstat { padding: 18px 0 4px; border-right: 1px solid var(--line); }
+.hstat:last-child { border-right: 0; }
+.hstat b {
+  display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 38px; line-height: 1; color: var(--snow);
+}
+.hstat b.acc { color: var(--topo); }
+.hstat .tag { display: block; margin-top: 7px; }
+
+/* ---------- section frame ---------- */
+.sec { padding: 74px 0 0; }
+.sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
+.sec-head h2 { font-size: clamp(28px, 3.4vw, 44px); }
+.sec-head .tag { flex: 1; text-align: right; min-width: 120px; }
+.lede { color: var(--mist); max-width: 74ch; font-size: 16.5px; }
+
+/* ---------- the two questions ---------- */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.q { background: var(--rock-2); padding: 28px 26px; }
+.q .letter {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 74px; font-weight: 700;
+  line-height: .8; color: var(--granite);
+}
+.q h3 { font-size: 25px; margin: 6px 0 12px; }
+.q p { color: var(--mist); font-size: 15px; }
+.q .verdict-line {
+  margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line-2);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: .04em;
+}
+.q.a .letter { color: rgba(237,173,63,.28); }
+.q.a h3 { color: var(--amber); }
+.q.a .verdict-line { color: var(--amber); }
+.q.b .letter { color: rgba(82,195,214,.24); }
+.q.b h3 { color: var(--glacier); }
+.q.b .verdict-line { color: var(--glacier); }
+
+/* ---------- THE ROUTE ---------- */
+.route { position: relative; margin-top: 34px; }
+
+.pitch {
+  position: relative; display: grid;
+  grid-template-columns: 128px minmax(0,1fr) 132px;
+  gap: 0; margin-bottom: 18px;
+  border: 1px solid var(--line); border-radius: 3px;
+  background: var(--rock-2);
+}
+.pitch.lift1 { background: #151c25; }
+.pitch.lift2 { background: #18202b; }
+.pitch.lift3 { background: #1c2531; }
+.pitch.crux { border-color: var(--topo); box-shadow: 0 0 0 1px rgba(226,84,42,.24), 0 18px 44px -26px rgba(226,84,42,.7); }
+.pitch.summit { border-color: var(--snow); background: #202b38; }
+.pitch.closed { border-style: dashed; border-color: rgba(226,84,42,.5); background: #12171e; }
+.pitch.detour { border-style: dashed; border-color: var(--line-2); background: #11161d; }
+
+/* left: altimeter, with the rope segment running through it */
+.alt {
+  position: relative;
+  border-right: 1px solid var(--line); padding: 20px 14px 18px 18px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+}
+.alt::before {
+  content: ""; position: absolute; left: 48px; top: 34px; bottom: -20px; width: 2px;
+  background: rgba(226,84,42,.5);
+}
+.route > .pitch:first-child .alt::before { background: linear-gradient(180deg, var(--win), var(--topo)); }
+.route > .pitch:last-child .alt::before { display: none; }
+.pitch.closed .alt::before, .pitch.detour .alt::before { background: rgba(174,196,216,.2); }
+.node {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--topo); background: var(--rock);
+  display: grid; place-items: center;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: var(--topo);
+  margin-left: 18px;
+}
+.pitch.summit .node { border-color: var(--snow); color: #0b0f14; background: var(--snow); }
+.pitch.closed .node, .pitch.detour .node { border-color: var(--dim); color: var(--dim); }
+.gauge { display: flex; gap: 9px; align-items: flex-end; height: 96px; width: 100%; padding-left: 6px; }
+.bar { position: relative; width: 20px; height: 100%; background: rgba(174,196,216,.09); border-radius: 1px; }
+.bar > i { position: absolute; left: 0; right: 0; bottom: 0; display: block; border-radius: 1px; }
+.bar.sw > i { background: linear-gradient(180deg, var(--amber), rgba(237,173,63,.45)); }
+.bar.hw > i { background: linear-gradient(180deg, var(--glacier), rgba(82,195,214,.4)); }
+.bar > u {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: -17px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .12em;
+  color: var(--dim); text-decoration: none;
+}
+.gauge-wrap { padding-bottom: 18px; }
+.zero { color: var(--dim); font-size: 9px; }
+
+/* middle: body */
+.body { padding: 20px 24px 22px; min-width: 0; }
+.body > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.body h3 { font-size: 30px; }
+.pitch.crux h3 { color: var(--topo); }
+.pitch.summit h3 { color: var(--snow); }
+.pitch.closed h3, .pitch.detour h3 { color: var(--dim); }
+.stamp {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 2px;
+}
+.stamp.crux { background: var(--topo); color: #0b0f14; }
+.stamp.skip { background: rgba(226,84,42,.14); color: var(--topo); border: 1px solid rgba(226,84,42,.5); }
+.stamp.side { background: rgba(174,196,216,.1); color: var(--mist); border: 1px solid var(--line-2); }
+.stamp.summit { background: var(--snow); color: #0b0f14; }
+
+.specs { display: flex; flex-wrap: wrap; gap: 0 22px; margin: 12px 0 16px; }
+.specs div { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--mist); }
+.specs div b { color: var(--snow); font-weight: 600; }
+.specs div span { color: var(--dim); letter-spacing: .12em; text-transform: uppercase; font-size: 9.5px; display: block; }
+
+.pv { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 2px; }
+.pv > div { background: rgba(11,15,20,.42); padding: 14px 16px; }
+.pv h4 { font-size: 13px; letter-spacing: .16em; margin-bottom: 7px; }
+.pv .proves h4 { color: var(--go); }
+.pv .hides h4 { color: var(--dim); }
+.pv p { font-size: 14.2px; line-height: 1.5; color: var(--mist); }
+.pv .proves p { color: #cfdbe6; }
+
+.sig { margin-top: 14px; display: grid; gap: 7px; }
+.sig div { font-size: 14px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.45; }
+.sig div span {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .14em;
+  padding: 3px 7px; border-radius: 2px; white-space: nowrap; margin-top: 1px;
+}
+.sig .up span { background: rgba(110,208,142,.14); color: var(--go); border: 1px solid rgba(110,208,142,.35); }
+.sig .down span { background: rgba(226,84,42,.12); color: var(--topo); border: 1px solid rgba(226,84,42,.4); }
+.sig p { color: var(--mist); font-size: 14px; margin: 0; }
+
+.hazard {
+  margin-top: 16px; border-radius: 2px; padding: 14px 16px;
+  background:
+    repeating-linear-gradient(45deg, rgba(237,173,63,.1) 0 10px, rgba(237,173,63,.03) 10px 20px);
+  border: 1px solid rgba(237,173,63,.42);
+}
+.hazard h4 { color: var(--amber); font-size: 13.5px; letter-spacing: .14em; margin-bottom: 6px; }
+.hazard p { font-size: 14px; color: #dfe7ee; }
+
+.logbox { margin-top: 16px; border: 1px dashed var(--line-2); border-radius: 2px; padding: 14px 16px; }
+.logbox h4 { font-size: 12.5px; letter-spacing: .16em; color: var(--mist); margin-bottom: 9px; }
+.logbox ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.logbox li {
+  font-size: 13.6px; color: var(--mist); padding-left: 20px; position: relative; line-height: 1.45;
+}
+.logbox li::before {
+  content: "▸"; position: absolute; left: 2px; top: 0; color: var(--topo); font-size: 11px;
+}
+.logbox li b { color: var(--snow); font-weight: 600; }
+
+.pitch-photo { margin-top: 16px; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.pitch-photo img { display: block; width: 100%; height: 150px; object-fit: cover; filter: saturate(.82) contrast(1.04); }
+.pitch-photo figcaption {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--dim); padding: 7px 10px; background: rgba(11,15,20,.6);
+}
+
+/* right: retreat rail */
+.retreat {
+  border-left: 1px solid var(--line); padding: 20px 16px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+  background: rgba(11,15,20,.3);
+}
+.retreat .tag { letter-spacing: .16em; font-size: 9px; }
+.arrow { font-size: 26px; line-height: 1; color: var(--go); }
+.arrow.warn { color: var(--amber); }
+.arrow.bad  { color: var(--topo); }
+.retreat .how {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--snow);
+  line-height: 1.4; word-break: break-word;
+}
+.retreat .cost {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: 19px; line-height: 1.05; color: var(--go);
+}
+.retreat .cost.warn { color: var(--amber); }
+.retreat .cost.bad  { color: var(--topo); }
+
+/* ---------- retreat profile chart ---------- */
+.profile {
+  border: 1px solid var(--line); background: var(--rock-2); border-radius: 3px;
+  padding: 28px 26px 22px; margin-top: 30px;
+}
+.pchart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; height: 210px; }
+.pcol { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; text-align: center; }
+.pcol .val {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mist); margin-bottom: 6px;
+  min-height: 30px; display: flex; align-items: flex-end; justify-content: center; line-height: 1.25;
+}
+.pcol .stem { border-radius: 2px 2px 0 0; background: rgba(110,208,142,.55); }
+.pcol.warn .stem { background: rgba(237,173,63,.7); }
+.pcol.bad  .stem { background: var(--topo); }
+.pcol .lab {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--dim); padding-top: 9px; border-top: 1px solid var(--line-2); margin-top: 0;
+}
+.pcol.bad .lab, .pcol.bad .val { color: var(--topo); }
+.pnote { margin-top: 18px; font-size: 14.5px; color: var(--mist); }
+.pnote strong { color: var(--snow); font-weight: 600; }
+
+/* ---------- calendar ---------- */
+.cal { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; margin-top: 26px; }
+.wk { padding: 12px 6px 14px; border-radius: 2px; text-align: center; border: 1px solid var(--line); }
+.wk .n { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--dim); }
+.wk .b { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; text-transform: uppercase; margin-top: 6px; line-height: 1.1; }
+.wk.w0 { background: rgba(63,143,227,.12); border-color: rgba(63,143,227,.35); }
+.wk.w0 .b { color: var(--win); }
+.wk.w1 { background: rgba(237,173,63,.14); border-color: rgba(237,173,63,.4); }
+.wk.w1 .b { color: var(--amber); }
+.wk.w3 { background: rgba(226,84,42,.14); border-color: rgba(226,84,42,.45); }
+.wk.w3 .b { color: var(--topo); }
+.wk.w6 { background: var(--snow); border-color: var(--snow); }
+.wk.w6 .b { color: #0b0f14; }
+.wk.w6 .n { color: #45525f; }
+.callabel { display: flex; justify-content: space-between; margin-top: 10px; }
+
+/* ---------- checklist ---------- */
+.check { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
+.check li {
+  background: var(--rock-2); padding: 16px 18px 16px 46px; position: relative;
+  font-size: 15px; color: #d6e0ea; list-style: none; line-height: 1.45;
+}
+.check li::before {
+  content: "☐"; position: absolute; left: 16px; top: 12px; font-size: 20px; color: var(--topo);
+}
+.check li b { color: var(--snow); font-weight: 600; }
+.check { padding: 0; margin-left: 0; }
+ul.check { margin-block: 24px 0; padding-inline-start: 0; }
+
+/* ---------- crevasse (repeated theme) ---------- */
+.crev { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
+.crev > div { background: var(--rock-2); padding: 22px 20px; }
+.crev .num {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 46px; line-height: .85;
+  color: rgba(226,84,42,.32);
+}
+.crev h4 { font-size: 17px; margin: 8px 0 8px; color: var(--snow); }
+.crev p { font-size: 14.2px; color: var(--mist); }
+.crev .hit {
+  margin-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--topo); letter-spacing: .06em;
+}
+
+/* ---------- disagreement ---------- */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 24px; }
+.side { border: 1px solid var(--line); border-radius: 3px; padding: 22px; background: var(--rock-2); }
+.side .who { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.side .num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 52px; line-height: 1; margin: 8px 0 4px; }
+.side.long .num { color: var(--glacier); }
+.side.short .num { color: var(--amber); }
+.side p { font-size: 14.4px; color: var(--mist); margin-top: 8px; }
+.tiebreak { margin-top: 20px; border-left: 3px solid var(--snow); padding: 14px 18px; background: var(--rock-3); font-size: 15px; }
+
+/* ---------- supply lines ---------- */
+.supply { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
+.supply > div { background: var(--rock-2); padding: 18px 18px 20px; }
+.supply h4 { font-size: 15px; color: var(--snow); margin-bottom: 6px; }
+.supply .src { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--glacier); letter-spacing: .04em; }
+.supply p { font-size: 13.6px; color: var(--mist); margin-top: 8px; }
+
+/* ---------- kit ---------- */
+.kit { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 18px; margin-top: 24px; }
+.kititem { border: 1px solid var(--line); border-radius: 3px; overflow: hidden; background: var(--rock-2); }
+.kititem img { display: block; width: 100%; height: 132px; object-fit: cover; filter: saturate(.8) contrast(1.05); }
+.kititem .pad { padding: 14px 16px 16px; }
+.kititem h4 { font-size: 17px; }
+.kititem .price {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; color: var(--amber); line-height: 1; margin: 6px 0 8px;
+}
+.kititem p { font-size: 13.4px; color: var(--mist); }
+.kititem.mascot img { object-fit: contain; background: #fff; padding: 12px; filter: none; }
+
+/* ---------- route reports (children) ---------- */
+.reports { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
+.rep {
+  background: var(--rock-2); padding: 20px 20px 22px; display: block; text-decoration: none;
+  transition: background .15s ease;
+}
+.rep:hover { background: var(--rock-3); }
+.rep .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.rep .idx { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 30px; color: var(--granite); line-height: 1; }
+.rep:hover .idx { color: var(--topo); }
+.rep .depth {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
+  border: 1px solid var(--line-2); padding: 3px 7px; border-radius: 2px; color: var(--mist);
+}
+.rep h4 { font-size: 19px; margin: 12px 0 9px; color: var(--snow); line-height: 1.12; }
+.rep p { font-size: 13.6px; color: var(--mist); }
+.rep .meta { margin-top: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; }
+
+/* ---------- conditions ---------- */
+.cond { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
+.cond > div { background: var(--rock-2); padding: 20px 18px; }
+.cond b { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; line-height: 1; color: var(--glacier); }
+.cond .tag { display: block; margin-top: 8px; line-height: 1.5; letter-spacing: .1em; }
+
+/* ---------- closing ---------- */
+.close {
+  margin-top: 74px; padding: 62px 0 78px;
+  border-top: 1px solid var(--line);
+  background: radial-gradient(90% 140% at 50% 0%, rgba(226,84,42,.11), transparent 62%);
+  text-align: center;
+}
+.close h2 { font-size: clamp(28px, 4.2vw, 54px); max-width: 22ch; margin: 0 auto 18px; }
+.close p { color: var(--mist); max-width: 58ch; margin: 0 auto; font-size: 16.5px; }
+.close .cta { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.close .cta a {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  border: 1px solid var(--line-2); padding: 11px 18px; border-radius: 2px; text-decoration: none; color: var(--mist);
+}
+.close .cta a:hover { border-color: var(--topo); color: var(--topo); }
+
+.colophon {
+  padding: 22px 0 46px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+  letter-spacing: .1em; color: var(--dim); text-transform: uppercase;
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 30px; align-items: start; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .hstat { border-right: 0; border-bottom: 1px solid var(--line); }
+  .two, .check, .crev, .split { grid-template-columns: 1fr; }
+  .pitch { grid-template-columns: 1fr; }
+  .alt::before { display: none; }
+  .alt { border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; align-items: center; gap: 22px; }
+  .node { margin-left: 0; }
+  .gauge { height: 62px; width: auto; }
+  .retreat { border-left: 0; border-top: 1px solid var(--line); flex-direction: row; align-items: center; justify-content: flex-start; text-align: left; gap: 14px; flex-wrap: wrap; }
+  .pv { grid-template-columns: 1fr; }
+  .cal { grid-template-columns: repeat(4, 1fr); }
+  .pchart { height: 170px; }
+}
+@media (max-width: 560px) {
+  .wrap { padding: 0 18px; }
+  .pchart { grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .pcol .lab { font-size: 8.5px; }
+  .cal { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
+<div class="topo">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <img class="hero-bg" src="ladder/images/face.webp" alt="">
+  <div class="wrap">
+    <div class="kicker">
+      <span>Route topo</span>
+      <span>Windows → Linux</span>
+      <span>2026</span>
+      <span class="hot">Retreat possible at every pitch</span>
+    </div>
+
+    <div class="hero-grid">
+      <div>
+        <h1>Testing<br>the <em>waters</em></h1>
+        <p class="sub">A staged, reversible ascent from a Windows dev workstation to Linux. Seven pitches surveyed, two of them closed. Each one marked with what it proves, what it can't see, and the cost of coming back down.</p>
+
+        <div class="routeline">
+          <b class="base">Base camp · Windows</b><i>→</i>
+          <b>0 · WSL2</b><i>→</i>
+          <b>1 · Live USB</b><i>→</i>
+          <s>2 · VM</s><i>→</i>
+          <b>3 · External SSD</b><i>→</i>
+          <s>4 · Dual-boot</s><i>→</i>
+          <b class="top">6 · Commit</b>
+        </div>
+      </div>
+
+      <div class="verdict">
+        <span class="tag">The line the angles converged on</span>
+        <p>The external SSD is the <strong>only pitch that is simultaneously full-fidelity and zero-commitment</strong> — real kernel, real drivers, a real four-week trial, and undo means unplugging <sup><a href="https://www.ghacks.net/2025/07/11/how-to-install-linux-on-an-external-ssd/">[3]</a></sup>. Single-disk dual-boot buys nothing it doesn't, at the price of partition surgery and a bootloader Windows has broken before <sup><a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-august-updates-break-linux-boot-in-dual-boot-systems/">[5]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hstat"><b>7</b><span class="tag">Route reports</span></div>
+      <div class="hstat"><b>223</b><span class="tag">Citations</span></div>
+      <div class="hstat"><b class="acc">~3 mo</b><span class="tag">Elapsed, start to decision</span></div>
+      <div class="hstat"><b>€70–160</b><span class="tag">Total spend</span></div>
+      <div class="hstat"><b class="acc">€0</b><span class="tag">Retreat cost thru pitch 3</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE TWO QUESTIONS ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Two questions, one rope</h2>
+      <span class="tag">Why the ladder exists</span>
+    </div>
+    <p class="lede">A migration asks two independent questions, and almost every "try Linux safely" option answers only one. That single split is what decides which pitches are worth climbing — and which are scenery.</p>
+
+    <div class="two" style="margin-top:26px">
+      <div class="q a">
+        <div class="letter">A</div>
+        <h3>Does my software survive?</h3>
+        <p>.NET SDK, Node and the TypeScript toolchain, Docker, editors, git, shell. Everything that lives above the kernel and travels with your repo.</p>
+        <div class="verdict-line">Virtualised answers this at near-perfect fidelity <sup><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a></sup></div>
+      </div>
+      <div class="q b">
+        <div class="letter">B</div>
+        <h3>Does my machine survive?</h3>
+        <p>Suspend and resume, Wi-Fi, Bluetooth, GPU and external monitors, the dock, the fingerprint reader, battery, fractional scaling, the desktop itself.</p>
+        <div class="verdict-line">Virtualised answers this at exactly zero <sup><a href="https://www.xda-developers.com/wsl-great-run-linux-natively-instead/">[14]</a></sup></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE ROUTE ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>The route, pitch by pitch</h2>
+      <span class="tag">Altimeter: <span style="color:var(--amber)">■</span> software fidelity · <span style="color:var(--glacier)">■</span> hardware fidelity</span>
+    </div>
+
+    <div class="route">
+
+      <!-- PITCH 0 -->
+      <article class="pitch">
+        <div class="alt">
+          <div class="node">0</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:95%"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:2%"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>WSL2</h3><span class="stamp side">Free 80% of question A</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€0</b></div>
+            <div><span>Setup</span><b>15 min</b></div>
+            <div><span>Stay</span><b>2–4 weeks</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>The whole Linux <em>userland</em> dev loop: bash, apt, git, the <code class="mono">dotnet</code> CLI, Node, Docker, systemd units — on a real Microsoft-built kernel with full syscall compatibility <sup><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a></sup> <sup><a href="https://github.com/microsoft/WSL">[34]</a></sup>.</p></div>
+            <div class="hides"><h4>Structurally blind to</h4><p>Anything hardware or desktop. Kernel modules, custom boot and raw NIC access are blocked; USB needs <code class="mono">usbipd</code> forwarding; networking is NAT, handing the distro a fresh IP on every restart — a real annoyance if your homelab expects LAN-visible services <sup><a href="https://www.xda-developers.com/wsl-great-run-linux-natively-instead/">[14]</a></sup>.</p></div>
+          </div>
+          <div class="sig">
+            <div class="up"><span>Advance when</span><p>Your whole build/test/run loop lives in WSL and you stop opening PowerShell for anything but launching it.</p></div>
+            <div class="down"><span>Retreat when</span><p>The toolchain has a hard Windows dependency — WPF/WinForms designers, IIS <sup><a href="https://learn.microsoft.com/en-us/answers/questions/696985/wpf-and-winforms-on-macos-and-linux">[20]</a></sup>.</p></div>
+          </div>
+          <div class="hazard">
+            <h4>⚠ Keep repos on the ext4 side</h4>
+            <p>Under <code class="mono">/mnt/c</code> a git working tree is ~34× slower on random reads <sup><a href="https://github.com/webbertakken/wsl-filesystem-benchmark">[8]</a></sup>, and Microsoft's own guidance is to store files in the WSL file system when you work from a Linux command line <sup><a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems">[30]</a></sup>. This is exactly where a Dropbox-synced Windows folder would put them.</p>
+          </div>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow">↓</div>
+          <div class="how">wsl&nbsp;--unregister</div>
+          <div class="cost">Seconds</div>
+        </div>
+      </article>
+
+      <!-- PITCH 1 -->
+      <article class="pitch lift1">
+        <div class="alt">
+          <div class="node">1</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:35%"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:60%"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>Live USB</h3><span class="stamp side">One evening · non-negotiable</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€10</b></div>
+            <div><span>Setup</span><b>20 min</b></div>
+            <div><span>Stay</span><b>1 evening</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>A real kernel on <em>your</em> silicon. Wi-Fi association, Bluetooth pairing, external monitor over the dock, brightness keys, audio in and out, webcam, trackpad gestures. Cross-check the model against Canonical's certified list — certification runs 500+ compatibility tests per machine <sup><a href="https://ubuntu.com/certified">[7]</a></sup> <sup><a href="https://certification.canonical.com/docs/programmes/desktop/">[35]</a></sup>.</p></div>
+            <div class="hides"><h4>Structurally blind to</h4><p>Anything needing a driver install or a kernel update — persistent live media chokes on initramfs regeneration, which is exactly what a proprietary NVIDIA module needs <sup><a href="https://forum.endeavouros.com/t/live-usb-ventoy-user-and-missing-persistence-please-support-this-request/70462">[18]</a></sup>. Also long-run stability, suspend, battery and updates.</p></div>
+          </div>
+          <div class="sig">
+            <div class="up"><span>Advance when</span><p>Wi-Fi, display, trackpad and the external monitor all come up unaided.</p></div>
+            <div class="down"><span>Retreat when</span><p>A core device is dead — Wi-Fi chipset with no driver, GPU won't initialise. "GPU stuck on nouveau in the live session" is <em>not</em> a no-go signal; the live medium can't load the proprietary module anyway.</p></div>
+          </div>
+          <figure class="pitch-photo">
+            <img src="ladder/images/usb-stick.webp" alt="USB flash drives">
+            <figcaption>€10 of hardware, and the only thing that answers question B before you spend anything</figcaption>
+          </figure>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow">↓</div>
+          <div class="how">Pull the stick,<br>reboot</div>
+          <div class="cost">Zero</div>
+          <span class="tag" style="font-size:8.5px;line-height:1.5">"Doesn't alter your computer's configuration in any way" <sup><a href="https://ubuntu.com/tutorials/try-ubuntu-before-you-install">[2]</a></sup></span>
+        </div>
+      </article>
+
+      <!-- PITCH 2 — detour -->
+      <article class="pitch detour">
+        <div class="alt">
+          <div class="node">2</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:95%;opacity:.45"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:2%"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>Virtual machine</h3><span class="stamp side">Detour · no elevation gained</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€0</b></div>
+            <div><span>Setup</span><b>30 min</b></div>
+            <div><span>Stay</span><b>0–1 week, optional</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>A distro and desktop-environment <em>shopping trip</em>: package-manager muscle memory, .NET and TypeScript build/test/debug end to end. Nothing pitch 0 didn't already cover.</p></div>
+            <div class="hides"><h4>Worse — it misleads</h4><p>Same blind spots as WSL2, plus it actively misrepresents desktop feel. Without PCI passthrough — a second GPU dedicated to the guest and cooperative IOMMU grouping <sup><a href="https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF">[19]</a></sup> — you are benchmarking a software rasteriser and calling it Wayland.</p></div>
+          </div>
+          <div class="sig">
+            <div class="down"><span>Verdict</span><p>If you already did pitch 0, a VM adds little. Spend the evening on pitch 1 instead.</p></div>
+          </div>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow">↓</div>
+          <div class="how">Delete the<br>VM file</div>
+          <div class="cost">Seconds</div>
+        </div>
+      </article>
+
+      <!-- PITCH 3 — CRUX -->
+      <article class="pitch lift2 crux">
+        <div class="alt">
+          <div class="node">3</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:100%"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:95%"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>External NVMe SSD</h3><span class="stamp crux">The crux</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€60–150</b></div>
+            <div><span>Setup</span><b>1–2 h</b></div>
+            <div><span>Stay</span><b>4–8 weeks — the real trial</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>Effectively everything: real drivers, real suspend, real docking, real battery, real update cycles across weeks. The Windows disk is never written to <sup><a href="https://www.ghacks.net/2025/07/11/how-to-install-linux-on-an-external-ssd/">[3]</a></sup>. <em>"The idea with running Linux on a separate disk is the ability to basically press delete, and the Linux system is gone."</em> <sup><a href="https://dspdev.io/en/posts/portable-linux-ssd/">[15]</a></sup></p></div>
+            <div class="hides"><h4>Structurally blind to</h4><p>Only the USB-bus I/O ceiling, and the fact you're carrying a dongle. Buy USB 3.2 Gen2 with an NVMe-in-enclosure — TRIM and UASP support depends on the bridge controller <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[32]</a></sup>. Nothing else material.</p></div>
+          </div>
+          <div class="sig">
+            <div class="up"><span>Advance when</span><p>You have gone 2–3 weeks without booting Windows for anything but one known app.</p></div>
+            <div class="down"><span>Retreat when</span><p>Suspend, docking or battery is unfixable after two weekends of trying.</p></div>
+          </div>
+          <div class="hazard">
+            <h4>⚠ Crevasse — the one thing that makes this pitch irreversible</h4>
+            <p>Installers happily write the bootloader to your <em>internal</em> ESP. Then unplugging the SSD undoes nothing, and the EFI partition may have been overwritten. The fix is blunt: disable the internal drives in BIOS/UEFI before installing, so the installer can only see the external disk <sup><a href="https://medium.com/geekculture/installing-linux-ubuntu-20-04-on-an-external-portable-ssd-and-pitfalls-to-be-aware-of-388294e701b5">[16]</a></sup>. Do this and retreat really is "unplug it."</p>
+          </div>
+          <div class="logbox">
+            <h4>Log this — it is your go/no-go evidence, not your mood</h4>
+            <ul>
+              <li><b>Suspend/resume success rate</b> over ~30 lid-closes.</li>
+              <li><b>Idle battery drain</b> vs the Windows baseline. Expect it worse out of the box — vendor drivers are OEM-tuned — and to need <a class="ent" href="https://linrunner.de/tlp/index.html">TLP</a> or auto-cpufreq to close the gap <sup><a href="https://linrunner.de/tlp/index.html">[26]</a></sup>.</li>
+              <li><b>Dock/undock cycles</b> with monitors, Ethernet and peripherals attached.</li>
+              <li><b>On NVIDIA:</b> flicker and frame pacing under Wayland — verify explicit sync on <em>your</em> card rather than assuming.</li>
+              <li><b>Windows-boot tally.</b> The single best advance signal. When it hits zero for 2–3 weeks, you have stopped trialling.</li>
+            </ul>
+          </div>
+          <figure class="pitch-photo">
+            <img src="ladder/images/ssd-enclosure.webp" alt="An M.2 SSD on an adapter board beside a 2.5-inch enclosure shell">
+            <figcaption>Week 1 is the trough — printer drivers, Bluetooth audio latency, missing apps — then it lifts <sup><a href="https://windowspost.com/linux-vs-windows-experience/">[21]</a></sup></figcaption>
+          </figure>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow">↓</div>
+          <div class="how">Unplug it</div>
+          <div class="cost">Zero</div>
+          <span class="tag" style="font-size:8.5px;line-height:1.5;color:var(--amber)">Only if you protected the ESP</span>
+        </div>
+      </article>
+
+      <!-- PITCH 4 — CLOSED -->
+      <article class="pitch closed">
+        <div class="alt">
+          <div class="node">4</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:100%;opacity:.4"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:95%;opacity:.4"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>Single-disk dual-boot</h3><span class="stamp skip">Route closed</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€0</b></div>
+            <div><span>Setup</span><b>1–2 h + risk</b></div>
+            <div><span>Stay</span><b>Skip it</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>Nothing pitch 3 doesn't — identical altimeter, strictly higher risk. It is the default advice and it is the wrong one.</p></div>
+            <div class="hides"><h4>What it adds instead</h4><p>Partition surgery under BitLocker, where "changes to the NTFS partition table" is a documented recovery trigger <sup><a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/recovery-overview">[4]</a></sup>. Fast Startup leaving NTFS hibernated. Clock skew. And Windows updates that have bricked the Linux bootloader before — the August 2024 SBAT event took roughly nine months to fix <sup><a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-august-updates-break-linux-boot-in-dual-boot-systems/">[5]</a></sup>.</p></div>
+          </div>
+          <div class="sig">
+            <div class="down"><span>The behavioural failure</span><p>Every switch costs a reboot, so you stop switching and stay in Windows. That, not the partition table, is what kills most dual-boot trials.</p></div>
+          </div>
+          <div class="hazard">
+            <h4>If you insist on Linux inside the chassis</h4>
+            <p>Second <em>physical</em> disk, its own ESP on that disk, F12 from the firmware boot menu rather than a shared loader, Secure Boot left on with a shim-signed distro, and the Windows drive physically disconnected during install. There is only one ESP per drive, so hibernating Windows and still booting Linux requires two ESPs on two physical disks — no exceptions <sup><a href="https://wiki.archlinux.org/title/Dual_boot_with_Windows">[6]</a></sup>. That is pitch 3 with better I/O and the same reversibility.</p>
+          </div>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow bad">↓</div>
+          <div class="how">Repartition +<br>bootloader repair</div>
+          <div class="cost bad">Hours,<br>data at stake</div>
+        </div>
+      </article>
+
+      <!-- PITCH 5 — side track -->
+      <article class="pitch detour">
+        <div class="alt">
+          <div class="node">5</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:90%;opacity:.5"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:2%"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>Spare mini PC</h3><span class="stamp side">Parallel track, not a pitch</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€150–300 used</b></div>
+            <div><span>Setup</span><b>1 h</b></div>
+            <div><span>Stay</span><b>Indefinite, alongside</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>Linux <em>reflexes</em> — systemd, journalctl, Docker Compose, reverse proxies — with a safe blast radius, and it dovetails with a homelab you already run.</p></div>
+            <div class="hides"><h4>Structurally blind to</h4><p>Everything about <em>your</em> workstation's hardware. Different chipset, different Wi-Fi card, different everything. It cannot substitute for pitch 3.</p></div>
+          </div>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow">↓</div>
+          <div class="how">It's a separate<br>box</div>
+          <div class="cost">Zero</div>
+        </div>
+      </article>
+
+      <!-- PITCH 6 — SUMMIT -->
+      <article class="pitch lift3 summit">
+        <div class="alt">
+          <div class="node">6</div>
+          <div class="gauge">
+            <div class="bar sw"><i style="height:100%"></i><u>SW</u></div>
+            <div class="bar hw"><i style="height:100%"></i><u>HW</u></div>
+          </div>
+        </div>
+        <div class="body">
+          <header><h3>Wipe and commit</h3><span class="stamp summit">Summit</span></header>
+          <div class="specs">
+            <div><span>Spend</span><b>€0</b></div>
+            <div><span>Setup</span><b>2 h</b></div>
+            <div><span>Stay</span><b>Forever</b></div>
+          </div>
+          <div class="pv">
+            <div class="proves"><h4>Proves</h4><p>The last 10% — the workflows you only notice when there is no escape hatch. Commit criterion: <strong>30 consecutive days with zero Windows boots</strong>.</p></div>
+            <div class="hides"><h4>Before you wipe</h4><p>Image the Windows disk, verify a Windows install USB actually boots, and confirm you hold the BitLocker recovery key. That trio is what keeps the retreat cost at half a day rather than a lost weekend.</p></div>
+          </div>
+          <div class="sig">
+            <div class="up"><span>Keep, don't dual-boot</span><p>A Windows VM for the one or two apps that never ported — WPF/WinForms designers and IIS have no Linux port and Microsoft has announced none <sup><a href="https://learn.microsoft.com/en-us/answers/questions/696985/wpf-and-winforms-on-macos-and-linux">[20]</a></sup>. Visual Studio proper was reconfirmed in 2025 as never shipping on Linux <sup><a href="https://visualstudiomagazine.com/articles/2025/09/22/confirmed-finally-again-no-visual-studio-ide-for-linux-macos.aspx">[36]</a></sup>; <a class="ent" href="https://www.jetbrains.com/rider/">Rider</a> covers the cross-platform .NET IDE gap <sup><a href="https://www.jetbrains.com/rider/">[24]</a></sup>.</p></div>
+          </div>
+          <figure class="pitch-photo">
+            <img src="ladder/images/ubuntu-desktop.webp" alt="An Ubuntu GNOME desktop">
+            <figcaption>The summit is unremarkable — which is the point</figcaption>
+          </figure>
+        </div>
+        <div class="retreat">
+          <span class="tag">Retreat</span>
+          <div class="arrow warn">↓</div>
+          <div class="how">Reinstall Windows<br>from USB + restore</div>
+          <div class="cost warn">Half a day</div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ RETREAT PROFILE ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>The descent profile</h2>
+      <span class="tag">Cost of undoing each pitch</span>
+    </div>
+    <p class="lede">Read it as one shape rather than seven numbers. Retreat is free — genuinely, structurally free — all the way to the crux. Then one closed route spikes, for information you already had.</p>
+
+    <div class="profile">
+      <div class="pchart">
+        <div class="pcol"><div class="val">seconds</div><div class="stem" style="height:5%"></div><div class="lab">0 WSL2</div></div>
+        <div class="pcol"><div class="val">0</div><div class="stem" style="height:3%"></div><div class="lab">1 USB</div></div>
+        <div class="pcol"><div class="val">seconds</div><div class="stem" style="height:5%"></div><div class="lab">2 VM</div></div>
+        <div class="pcol"><div class="val">0</div><div class="stem" style="height:3%"></div><div class="lab">3 SSD</div></div>
+        <div class="pcol bad"><div class="val">hours +<br>data at stake</div><div class="stem" style="height:88%"></div><div class="lab">4 Dual-boot</div></div>
+        <div class="pcol"><div class="val">0</div><div class="stem" style="height:3%"></div><div class="lab">5 Mini PC</div></div>
+        <div class="pcol warn"><div class="val">half a day</div><div class="stem" style="height:44%"></div><div class="lab">6 Commit</div></div>
+      </div>
+      <p class="pnote"><strong>The whole argument, in one silhouette.</strong> Pitch 4 has the same altimeter as pitch 3 and twenty times the descent cost. Pitch 6's cost is the only one you should ever pay — and only after the tally has read zero for a month.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CALENDAR ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Thirteen weeks</h2>
+      <span class="tag">Only weeks 5–12 involve real friction</span>
+    </div>
+    <div class="cal">
+      <div class="wk w0"><div class="n">W1</div><div class="b">WSL2</div></div>
+      <div class="wk w0"><div class="n">W2</div><div class="b">WSL2</div></div>
+      <div class="wk w0"><div class="n">W3</div><div class="b">WSL2</div></div>
+      <div class="wk w1"><div class="n">W4</div><div class="b">Live USB</div></div>
+      <div class="wk w1"><div class="n">W5</div><div class="b">Buy + install</div></div>
+      <div class="wk w3"><div class="n">W6</div><div class="b">Daily drive</div></div>
+      <div class="wk w3"><div class="n">W7</div><div class="b">Daily drive</div></div>
+      <div class="wk w3"><div class="n">W8</div><div class="b">Daily drive</div></div>
+      <div class="wk w3"><div class="n">W9</div><div class="b">Daily drive</div></div>
+      <div class="wk w3"><div class="n">W10</div><div class="b">Daily drive</div></div>
+      <div class="wk w3"><div class="n">W11</div><div class="b">Daily drive</div></div>
+      <div class="wk w3"><div class="n">W12</div><div class="b">Daily drive</div></div>
+      <div class="wk w6"><div class="n">W13</div><div class="b">Decide</div></div>
+    </div>
+    <div class="callabel">
+      <span class="tag">Deliverable W1–4: list of Windows-only dependencies</span>
+      <span class="tag">Deliverable W12: suspend/battery/dock log</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUMMIT CHECKLIST ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Summit checklist</h2>
+      <span class="tag">Tick, don't feel</span>
+    </div>
+    <p class="lede">Fix a rollback date before you start, and decide against this list on the day. Retrospectives that succeeded treated the switch as a tool-selection problem with a per-app verdict, not a conversion.</p>
+    <ul class="check">
+      <li>Zero unresolved <b>hard blockers</b>. Exactly one class qualifies in 2026: kernel anti-cheat <sup><a href="https://en.wikipedia.org/wiki/Kernel-level_anti-cheat">[29]</a></sup> and locked-down corporate MDM <sup><a href="https://learn.microsoft.com/en-us/intune/fundamentals/platform-guide-linux">[28]</a></sup>. A VM or a retained partition counts as resolved only if you accept it permanently.</li>
+      <li><b>21 consecutive days</b> without booting Windows for anything unplanned.</li>
+      <li>Suspend/resume survives <b>20 cycles</b> including dock and external display, with no black screen.</li>
+      <li>Full solution build plus test suite green, wall-clock within <b>110%</b> of the Windows baseline you measured <em>before</em> wiping.</li>
+      <li>Every app in the inventory has a working replacement or an explicit <b>decided-to-drop</b> mark. No blanks.</li>
+      <li>One real deploy to the homelab done end-to-end from Linux.</li>
+      <li>Zero unrecovered data-loss or "couldn't work today" incidents.</li>
+      <li>A <b>pre-committed rollback date</b> written down before pitch 3 starts — so the decision is a date, not a mood.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ THE SAME CREVASSE ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>One crevasse, three approaches</h2>
+      <span class="tag">The theme that repeats across the angles</span>
+    </div>
+    <p class="lede">A git working tree belongs on a native Linux filesystem owned by one OS. Three independent angles reached that rule from three different directions — and each found a different way to fall in.</p>
+    <div class="crev">
+      <div>
+        <div class="num">01</div>
+        <h4>Across the WSL boundary</h4>
+        <p>Files under <code class="mono">/mnt/c</code> cross a plan9 protocol, one round-trip per operation. Roughly <strong>34× slower</strong> on random reads than the WSL ext4 VHDX.</p>
+        <div class="hit">Failure mode: it just feels broken <sup><a href="https://github.com/webbertakken/wsl-filesystem-benchmark">[8]</a></sup></div>
+      </div>
+      <div>
+        <div class="num">02</div>
+        <h4>On a shared NTFS partition</h4>
+        <p>The tree loses the exec bit, case-sensitivity and symlinks — semantics you cannot reconcile from either side. The in-kernel <code class="mono">ntfs3</code> driver is being actively re-litigated on LKML in 2026.</p>
+        <div class="hit">Failure mode: silent divergence <sup><a href="https://lkml.iu.edu/2601.1/06496.html">[9]</a></sup></div>
+      </div>
+      <div>
+        <div class="num">03</div>
+        <h4>Inside a sync folder</h4>
+        <p>Dropbox has no idea what git's on-disk format is. Concurrent changes <em>"can result in a corrupted Git repository."</em></p>
+        <div class="hit">Failure mode: actual data loss <sup><a href="https://github.com/anishathalye/git-remote-dropbox">[10]</a></sup></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DISAGREEMENT ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Where the rope team disagrees</h2>
+      <span class="tag">How long to sit on pitch 0</span>
+    </div>
+    <div class="split">
+      <div class="side long">
+        <div class="who">The WSL2 deep-dive says</div>
+        <div class="num">3–6 months</div>
+        <p>Long enough to fully retire the userland risk — bash, coreutils, apt, git, Docker, <code class="mono">dotnet</code> and <code class="mono">bun</code> on Linux — because that part is genuinely identical, and it costs nothing to be sure.</p>
+      </div>
+      <div class="side short">
+        <div class="who">The ladder angle says</div>
+        <div class="num">2–4 weeks</div>
+        <p>WSL2 cannot begin to answer question B. Every extra week there is a week the actual risk stays untested, and the tooling answer stops changing after the first fortnight.</p>
+      </div>
+    </div>
+    <div class="tiebreak">
+      <strong>Tiebreak:</strong> take the shorter number if your hardware is unknown, the longer one if the machine is on Canonical's certified list <sup><a href="https://ubuntu.com/certified">[7]</a></sup>. The disagreement is really about how much question-B risk you are already carrying.
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUPPLY LINES ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Supply lines</h2>
+      <span class="tag">Living in both OSes for months without your setup rotting</span>
+    </div>
+    <p class="lede">One source of truth per asset class, replicated by a tool that understands the OS difference. Never a shared partition, and never two hand-edited copies. Where a config genuinely must differ per OS, it is not two files — it is one templated file with a per-OS branch.</p>
+    <div class="supply">
+      <div>
+        <h4>Code and repos</h4>
+        <div class="src">→ git remote</div>
+        <p>Clone natively on each OS into a native filesystem. Repo-level behaviour goes in a committed <code class="mono">.gitattributes</code>, not a per-machine setting.</p>
+      </div>
+      <div>
+        <h4>Dotfiles</h4>
+        <div class="src">→ <a class="ent" href="https://www.chezmoi.io/">chezmoi</a> ⭐ 21k</div>
+        <p>The only mature manager with first-class Windows support, templating and password-manager integration <sup><a href="https://www.chezmoi.io/">[25]</a></sup>. Windows symlinks need developer mode.</p>
+      </div>
+      <div>
+        <h4>Secrets and SSH</h4>
+        <div class="src">→ password vault</div>
+        <p>The only truly OS-neutral secret store. One SSH key per install, both enrolled — or one FIDO2 resident key you physically carry.</p>
+      </div>
+      <div>
+        <h4>Docs and media</h4>
+        <div class="src">→ Dropbox, natively both sides</div>
+        <p>btrfs, zfs and xfs have been officially supported since 2019 <sup><a href="https://help.dropbox.com/installs/system-requirements">[11]</a></sup> — the ext4-only rule is history, so btrfs snapshots are not blocked.</p>
+      </div>
+      <div>
+        <h4>⚠ The Dropbox trap</h4>
+        <div class="src" style="color:var(--topo)">→ two linked installs, never one folder</div>
+        <p>You cannot point Windows Dropbox and Linux Dropbox at one partition <sup><a href="https://community.dropbox.com/en/discussion/793218/how-to-share-a-dropbox-folder-between-windows-and-linux-installs-on-the-same-pc">[13]</a></sup>. And rolling back a btrfs subvolume containing <code class="mono">~/Dropbox</code> looks like mass deletion to the client — in a <em>shared</em> folder those deletions propagate to everyone <sup><a href="https://help.dropbox.com/delete-restore/delete-files">[12]</a></sup>. Keep it on a subvolume Timeshift doesn't touch.</p>
+      </div>
+      <div>
+        <h4>Escape hatches that closed</h4>
+        <div class="src" style="color:var(--dim)">→ plan around them</div>
+        <p><a class="ent" href="https://github.com/samschott/maestral">Maestral</a> ⭐ 3.3k, the main open-source Dropbox client, was archived in July 2026 <sup><a href="https://github.com/samschott/maestral">[31]</a></sup>. The official client is the path.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KIT ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Kit list</h2>
+      <span class="tag">Everything the ascent actually costs</span>
+    </div>
+    <div class="kit">
+      <div class="kititem">
+        <img src="ladder/images/usb-stick.webp" alt="USB flash drives">
+        <div class="pad">
+          <h4>USB stick</h4>
+          <div class="price">€10</div>
+          <p>Pitch 1. The single highest-yield purchase on the route — it is the only thing that answers question B before you spend anything else.</p>
+        </div>
+      </div>
+      <div class="kititem">
+        <img src="ladder/images/nvme-ssd.webp" alt="An NVMe solid-state drive">
+        <div class="pad">
+          <h4>1 TB NVMe + USB 3.2 Gen2 enclosure</h4>
+          <div class="price">€60–150</div>
+          <p>Pitch 3. Not a thumb drive — the OS is bottlenecked by the disk. Check the bridge chip for UASP and TRIM support <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[32]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="kititem mascot">
+        <img src="ladder/images/mini-pc.webp" alt="A small form-factor mini PC">
+        <div class="pad">
+          <h4>Used mini PC <span class="tag">optional</span></h4>
+          <div class="price">€150–300</div>
+          <p>Pitch 5. A parallel track for building server reflexes next to the homelab. Never a substitute for the crux.</p>
+        </div>
+      </div>
+      <div class="kititem mascot">
+        <img src="ladder/images/tux.webp" alt="Tux, the Linux mascot">
+        <div class="pad">
+          <h4>Software</h4>
+          <div class="price">€0</div>
+          <p><a class="ent" href="https://www.jetbrains.com/rider/">Rider</a> or VS Code for .NET, <a class="ent" href="https://www.chezmoi.io/">chezmoi</a> for dotfiles, <a class="ent" href="https://linrunner.de/tlp/index.html">TLP</a> for battery. SQL Server runs in Docker; SSMS does not travel.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROUTE REPORTS ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Route reports</h2>
+      <span class="tag">Seven angles · one spine</span>
+    </div>
+    <div class="reports">
+      <a class="rep" href="../the-staged-ladder-what-each-rung-proves/">
+        <div class="top"><span class="idx">01</span><span class="depth">survey</span></div>
+        <h4>The staged ladder: what each rung actually proves</h4>
+        <p>Rung by rung, with what each one proves, what it structurally hides, the go/no-go signal and the cost of retreating.</p>
+        <div class="meta">31 citations · 9 min</div>
+      </a>
+      <a class="rep" href="../wsl2-as-rung-zero-and-its-ceiling/">
+        <div class="top"><span class="idx">02</span><span class="depth">survey</span></div>
+        <h4>WSL2 as rung zero — and the exact wall it hits</h4>
+        <p>Retires every userland risk and none of the machine-ownership risks. Where the line falls in 2026, with the filesystem numbers.</p>
+        <div class="meta">38 citations · 7 min</div>
+      </a>
+      <a class="rep" href="../trial-hardware-and-vm-paths/">
+        <div class="top"><span class="idx">03</span><span class="depth">survey</span></div>
+        <h4>Trial hardware and VM paths before you commit</h4>
+        <p>Live USB first at €10 and 15 minutes, then a full install on an external NVMe at €90–150. Everything else is a detour.</p>
+        <div class="meta">45 citations · 12 min</div>
+      </a>
+      <a class="rep" href="../dual-boot-without-wrecking-windows/">
+        <div class="top"><span class="idx">04</span><span class="depth">survey</span></div>
+        <h4>Dual-boot without wrecking the Windows install</h4>
+        <p>If you insist: a second NVMe, two OSes ignorant of each other, and Linux picked from the firmware boot menu.</p>
+        <div class="meta">30 citations · 13 min</div>
+      </a>
+      <a class="rep" href="../living-in-both-oses-during-the-overlap/">
+        <div class="top"><span class="idx">05</span><span class="depth">survey</span></div>
+        <h4>Living in both OSes without your setup rotting</h4>
+        <p>One source of truth per asset class, replicated by a tool that knows the OS difference. Never a shared partition.</p>
+        <div class="meta">37 citations · 14 min</div>
+      </a>
+      <a class="rep" href="../dropbox-on-linux-and-shared-folders/">
+        <div class="top"><span class="idx">06</span><span class="depth">survey</span></div>
+        <h4>Dropbox on Linux and shared folders</h4>
+        <p>btrfs/zfs/xfs are supported, one folder cannot span two installs, and code repos do not belong in Dropbox at all.</p>
+        <div class="meta">34 citations · 11 min</div>
+      </a>
+      <a class="rep" href="../exit-criteria-and-the-blocker-inventory/">
+        <div class="top"><span class="idx">07</span><span class="depth">recon</span></div>
+        <h4>Exit criteria and the blocker inventory</h4>
+        <p>A fill-in blocker inventory, tickable go/no-go criteria, and a pre-committed rollback date.</p>
+        <div class="meta">8 citations · 3 min</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONDITIONS ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Conditions report, 2026</h2>
+      <span class="tag">The tailwind is real but modest</span>
+    </div>
+    <div class="cond">
+      <div><b>14 Oct 2025</b><span class="tag">Windows 10 support ended <sup><a href="https://www.aboutchromebooks.com/windows-11-adoption-rate-statistics/">[37]</a></sup></span></div>
+      <div><b>2.8% → 4.7%</b><span class="tag">Desktop Linux share, 2022 → 2025; ~6% projected by late 2026 <sup><a href="https://fosspost.org/linux-market-share-statistics/">[27]</a></sup></span></div>
+      <div><b>10–20%</b><span class="tag">WSL2 overhead vs bare metal — CPU low end, I/O high end <sup><a href="https://www.phoronix.com/review/windows-11-wsl2-2025">[33]</a></sup></span></div>
+      <div><b>3 months</b><span class="tag">"I haven't booted into Windows in over 3 months on my tower" <sup><a href="https://xeiaso.net/notes/2026/year-linux-desktop/">[22]</a></sup></span></div>
+      <div><b>639</b><span class="tag">Comments on the thread arguing about it — still contested <sup><a href="https://news.ycombinator.com/item?id=46471199">[23]</a></sup></span></div>
+    </div>
+    <p class="lede" style="margin-top:20px">More recent, better-tested hardware support — not an answer to the hardware question. Practitioner consensus on the AnandTech thread lands in the same place the ladder does: a VM first, then a real machine <sup><a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[17]</a></sup>.</p>
+  </div>
+</section>
+
+<!-- ============ CLOSE ============ -->
+<section class="close">
+  <div class="wrap">
+    <h2>The one thing none of this resolves</h2>
+    <p>Whether <em>your specific machine</em> suspends, docks and drives external displays cleanly. That is empirical, it costs one evening and a USB stick, and every downstream decision on this route is gated on it.</p>
+    <div class="cta">
+      <a href="../">Read the full expedition</a>
+      <a href="../the-staged-ladder-what-each-rung-proves/">The ladder in detail</a>
+      <a href="../exit-criteria-and-the-blocker-inventory/">Fill in the blocker inventory</a>
+      <a href="/">Atlas</a>
+    </div>
+  </div>
+  <div class="wrap colophon">
+    <span>Ladder view · route topo</span>
+    <span>Seven angles · 223 citations · 30 July 2026</span>
+  </div>
+</section>
+
+</div>

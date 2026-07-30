@@ -1,0 +1,949 @@
+---
+layout: view
+view_name: "Matrix"
+view_of: ../
+title: "Dropbox on Linux and shared folders: what actually works in 2026 — Matrix"
+---
+
+<style>
+  .mx {
+    --bg: #090d12;
+    --panel: #10161e;
+    --panel2: #141c26;
+    --line: #22303d;
+    --line2: #2f4152;
+    --ink: #e8eff6;
+    --dim: #8296a8;
+    --dimmer: #56687a;
+    --blue: #0061ff;
+    --blue-lit: #4f93ff;
+    --amber: #f0a63a;
+    --red: #ff4d5e;
+    --green: #2fd39b;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    margin: 0;
+    padding: 0 0 5rem;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mx *, .mx *::before, .mx *::after { box-sizing: border-box; }
+
+  .mx .wrap { max-width: 1160px; margin: 0 auto; padding: 0 1.5rem; }
+
+  .mx a { color: var(--blue-lit); text-decoration: none; border-bottom: 1px solid rgba(79,147,255,.3); }
+  .mx a:hover { border-bottom-color: var(--blue-lit); }
+  .mx sup a { border-bottom: none; font-family: var(--mono); font-size: .62em; color: var(--dimmer); padding: 0 .1em; }
+  .mx sup a:hover { color: var(--blue-lit); }
+
+  .mx code {
+    font-family: var(--mono); font-size: .86em; color: #b9cbdd;
+    background: #0b1118; border: 1px solid var(--line); border-radius: 2px;
+    padding: .06em .32em; overflow-wrap: anywhere;
+  }
+
+  /* ── header rails ───────────────────────────────────── */
+  .mx .rail {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--dimmer);
+  }
+
+  /* ── masthead ───────────────────────────────────────── */
+  .mx .masthead {
+    border-bottom: 1px solid var(--line);
+    background:
+      repeating-linear-gradient(90deg, rgba(0,97,255,.055) 0 1px, transparent 1px 34px),
+      radial-gradient(1000px 340px at 18% -30%, rgba(0,97,255,.20), transparent 70%);
+    padding: 3.2rem 0 2.4rem;
+  }
+  .mx .mast-top {
+    display: flex; flex-wrap: wrap; gap: .6rem 1.4rem;
+    align-items: baseline; justify-content: space-between;
+    padding-bottom: 1.6rem;
+  }
+  .mx .mast-grid { display: grid; grid-template-columns: 1fr 132px; gap: 2rem; align-items: center; }
+  .mx .mast-grid img { width: 100%; border-radius: 10px; border: 1px solid var(--line); opacity: .72; }
+  .mx h1 {
+    font-size: clamp(2.1rem, 5.6vw, 3.9rem);
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    font-weight: 800;
+    margin: 0 0 .9rem;
+  }
+  .mx h1 em { font-style: normal; color: var(--blue-lit); }
+  .mx .dek { font-size: 1.06rem; color: var(--dim); max-width: 62ch; margin: 0; }
+
+  .mx .legend {
+    display: flex; flex-wrap: wrap; gap: 1.4rem;
+    margin-top: 1.9rem; padding-top: 1.3rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .1em; color: var(--dim);
+    text-transform: uppercase;
+  }
+  .mx .legend span { display: inline-flex; align-items: center; gap: .5rem; }
+
+  /* ── lamps ──────────────────────────────────────────── */
+  .mx .lamp {
+    width: 13px; height: 13px; border-radius: 50%;
+    display: inline-block; flex: none;
+    border: 1px solid var(--line2); background: #0c1219;
+  }
+  .mx .lamp.on   { background: var(--blue); border-color: var(--blue-lit); box-shadow: 0 0 0 3px rgba(0,97,255,.16), 0 0 14px rgba(79,147,255,.65); }
+  .mx .lamp.part { background: var(--amber); border-color: var(--amber); box-shadow: 0 0 0 3px rgba(240,166,58,.13), 0 0 12px rgba(240,166,58,.45); }
+  .mx .lamp.off  { background: #131a22; border-color: #33414f; box-shadow: inset 0 0 6px rgba(0,0,0,.9); }
+  .mx .lamp.bad  { background: #2a1119; border-color: var(--red); box-shadow: 0 0 10px rgba(255,77,94,.3); }
+
+  /* ── section furniture ──────────────────────────────── */
+  .mx section { padding-top: 4.2rem; }
+  .mx .shead {
+    display: flex; align-items: baseline; gap: 1rem;
+    border-bottom: 1px solid var(--line); padding-bottom: .7rem; margin-bottom: 1.9rem;
+  }
+  .mx .shead .idx {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .2em;
+    color: var(--blue-lit); border: 1px solid rgba(0,97,255,.4);
+    padding: .18rem .5rem; border-radius: 3px; background: rgba(0,97,255,.08);
+    white-space: nowrap;
+  }
+  .mx .shead h2 { font-size: 1.35rem; letter-spacing: -.015em; margin: 0; font-weight: 700; }
+  .mx .shead .tail { margin-left: auto; font-family: var(--mono); font-size: .68rem; color: var(--dimmer); letter-spacing: .12em; text-transform: uppercase; }
+
+  /* ── verdict tiles ──────────────────────────────────── */
+  .mx .verdicts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .mx .vt { background: var(--panel); padding: 1.6rem 1.5rem 1.5rem; position: relative; }
+  .mx .vt::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; }
+  .mx .vt.yes::before { background: var(--blue); box-shadow: 0 0 16px rgba(0,97,255,.8); }
+  .mx .vt.no::before  { background: var(--red); box-shadow: 0 0 16px rgba(255,77,94,.55); }
+  .mx .vt .glyph { font-family: var(--mono); font-size: 2.6rem; line-height: 1; display: block; margin-bottom: .7rem; }
+  .mx .vt.yes .glyph { color: var(--blue-lit); }
+  .mx .vt.no .glyph  { color: var(--red); }
+  .mx .vt h3 { margin: 0 0 .5rem; font-size: 1.02rem; letter-spacing: -.01em; }
+  .mx .vt p { margin: 0; font-size: .87rem; color: var(--dim); }
+
+  /* ── filesystem cells ───────────────────────────────── */
+  .mx .fsgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .mx .fs { background: var(--panel); padding: 1.15rem 1.1rem 1.05rem; min-height: 148px; display: flex; flex-direction: column; }
+  .mx .fs .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: .85rem; }
+  .mx .fs .name { font-family: var(--mono); font-size: 1.22rem; font-weight: 600; letter-spacing: -.02em; }
+  .mx .fs .verdict { font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--blue-lit); }
+  .mx .fs .note { font-size: .79rem; color: var(--dim); margin-top: auto; }
+  .mx .fs.dead { background: repeating-linear-gradient(135deg, #0d131a 0 7px, #101720 7px 14px); }
+  .mx .fs.dead .name { color: var(--dimmer); text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 2px; }
+  .mx .fs.dead .verdict { color: var(--red); }
+  .mx .fs.wide { grid-column: 1 / -1; min-height: 0; }
+  .mx .fs.wide .names { display: flex; flex-wrap: wrap; gap: .5rem .95rem; margin-bottom: .7rem; }
+  .mx .fs.wide .names b { font-family: var(--mono); font-size: 1.02rem; font-weight: 600; color: var(--dimmer); text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 2px; }
+
+  /* ── history strip ──────────────────────────────────── */
+  .mx .hist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; margin-top: 1.6rem; }
+  .mx .hist div { border-top: 2px solid var(--line2); padding-top: .8rem; }
+  .mx .hist .yr { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em; display: block; }
+  .mx .hist .yr.now { color: var(--blue-lit); }
+  .mx .hist p { margin: .3rem 0 0; font-size: .82rem; color: var(--dim); }
+
+  /* ── alarm ──────────────────────────────────────────── */
+  .mx .alarm {
+    margin-top: 2rem; border: 1px solid rgba(255,77,94,.42); border-left: 4px solid var(--red);
+    background: linear-gradient(180deg, rgba(255,77,94,.07), rgba(255,77,94,.02));
+    padding: 1.5rem 1.6rem;
+  }
+  .mx .alarm .tag { font-family: var(--mono); font-size: .66rem; letter-spacing: .2em; color: var(--red); text-transform: uppercase; }
+  .mx .alarm h3 { margin: .5rem 0 .7rem; font-size: 1.15rem; letter-spacing: -.015em; }
+  .mx .alarm p { margin: 0 0 .7rem; font-size: .92rem; color: #c6d4e0; }
+  .mx .alarm p:last-child { margin-bottom: 0; }
+  .mx .alarm .fix { border-top: 1px dashed rgba(255,77,94,.3); padding-top: .8rem; font-size: .88rem; }
+  .mx .alarm .fix b { color: var(--green); font-family: var(--mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; display: block; margin-bottom: .25rem; }
+
+  /* ── parity matrix ──────────────────────────────────── */
+  .mx .parity-scroll { overflow-x: auto; border: 1px solid var(--line); }
+  .mx .parity { min-width: 640px; }
+  .mx .prow { display: grid; grid-template-columns: minmax(230px,1.5fr) 96px 96px minmax(250px,1.7fr); align-items: stretch; border-top: 1px solid var(--line); }
+  .mx .prow:first-child { border-top: none; }
+  .mx .prow > * { padding: .82rem 1rem; }
+  .mx .phead { background: var(--panel2); }
+  .mx .phead > * { font-family: var(--mono); font-size: .64rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+  .mx .prow:not(.phead) { background: var(--panel); }
+  .mx .pfeat { font-size: .9rem; font-weight: 500; }
+  .mx .pcell { display: flex; flex-direction: column; align-items: center; gap: .35rem; justify-content: center; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .mx .prow.phead .pcell { border-color: var(--line); }
+  .mx .pcell small { font-family: var(--mono); font-size: .58rem; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); }
+  .mx .pcell.gap { background: repeating-linear-gradient(135deg, rgba(255,77,94,.06) 0 6px, transparent 6px 12px); }
+  .mx .pcell.gap small { color: var(--red); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .mx .pcell.na small { color: var(--dimmer); }
+  .mx .pnote { font-size: .8rem; color: var(--dim); }
+
+  .mx .net {
+    margin-top: 1.7rem; padding: 1.4rem 1.6rem;
+    border: 1px solid var(--line); border-left: 4px solid var(--blue);
+    background: rgba(0,97,255,.06);
+    font-size: 1.06rem; letter-spacing: -.01em;
+  }
+  .mx .net b { color: var(--blue-lit); }
+
+  /* ── impossible intersection ────────────────────────── */
+  .mx .venn { display: grid; grid-template-columns: 1fr 120px 1fr; align-items: stretch; gap: 0; border: 1px solid var(--line); }
+  .mx .venn .side { background: var(--panel); padding: 1.7rem 1.5rem; }
+  .mx .venn .side .os { font-family: var(--mono); font-size: .66rem; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); }
+  .mx .venn .side .fss { margin-top: .7rem; font-family: var(--mono); font-size: 1.2rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.5; }
+  .mx .venn .side p { margin: .8rem 0 0; font-size: .82rem; color: var(--dim); }
+  .mx .venn .mid {
+    background: repeating-linear-gradient(135deg, #0c1219 0 8px, #0f151d 8px 16px);
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem;
+  }
+  .mx .venn .mid .sym { font-family: var(--mono); font-size: 3rem; line-height: 1; color: var(--red); }
+  .mx .venn .mid small { font-family: var(--mono); font-size: .55rem; letter-spacing: .16em; color: var(--red); text-transform: uppercase; text-align: center; }
+  .mx .arrangement { margin-top: 1.4rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .mx .arrangement div { background: var(--panel); padding: 1.1rem 1.2rem; }
+  .mx .arrangement code { font-family: var(--mono); font-size: .84rem; color: var(--blue-lit); }
+  .mx .arrangement p { margin: .45rem 0 0; font-size: .8rem; color: var(--dim); }
+
+  /* ── hazards ────────────────────────────────────────── */
+  .mx .hz { border: 1px solid var(--line); }
+  .mx .hzrow { display: grid; grid-template-columns: 54px 1fr 132px; gap: 0; border-top: 1px solid var(--line); background: var(--panel); }
+  .mx .hzrow:first-child { border-top: none; }
+  .mx .hzrow .n { font-family: var(--mono); font-size: 1.1rem; color: var(--dimmer); display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line); }
+  .mx .hzrow .body { padding: 1.05rem 1.2rem; }
+  .mx .hzrow .body h4 { margin: 0 0 .3rem; font-size: .95rem; }
+  .mx .hzrow .body p { margin: 0; font-size: .84rem; color: var(--dim); }
+  .mx .hzrow .sev { display: flex; align-items: center; justify-content: flex-end; padding-right: 1.2rem; }
+  .mx .sevpill { font-family: var(--mono); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; padding: .25rem .55rem; border-radius: 2px; white-space: nowrap; }
+  .mx .sevpill.hi   { color: var(--red);   border: 1px solid rgba(255,77,94,.45);  background: rgba(255,77,94,.09); }
+  .mx .sevpill.med  { color: var(--amber); border: 1px solid rgba(240,166,58,.4);  background: rgba(240,166,58,.08); }
+  .mx .sevpill.lo   { color: var(--dim);   border: 1px solid var(--line2); }
+
+  /* ── code failure tiles ─────────────────────────────── */
+  .mx .fails { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .mx .fail { background: var(--panel); padding: 1.4rem 1.3rem; }
+  .mx .fail .g { font-family: var(--mono); font-size: 2.1rem; line-height: 1; color: var(--red); opacity: .85; display: block; margin-bottom: .7rem; }
+  .mx .fail h4 { margin: 0 0 .45rem; font-size: .96rem; }
+  .mx .fail p { margin: 0; font-size: .82rem; color: var(--dim); }
+  .mx .fail code { font-family: var(--mono); font-size: .78rem; color: #b9cbdd; background: #0b1118; padding: .08rem .3rem; border-radius: 2px; border: 1px solid var(--line); }
+
+  /* ── morgue ─────────────────────────────────────────── */
+  .mx .morgue { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px,1fr)); gap: 1.1rem; }
+  .mx .tomb { border: 1px solid var(--line); background: var(--panel); overflow: hidden; position: relative; }
+  .mx .tomb img { width: 100%; display: block; filter: grayscale(1) contrast(.82) brightness(.62); }
+  .mx .tomb .stamp {
+    position: absolute; top: 14px; left: 14px;
+    font-family: var(--mono); font-size: .6rem; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--red); border: 2px solid var(--red); padding: .28rem .6rem;
+    transform: rotate(-6deg); background: rgba(9,13,18,.82);
+  }
+  .mx .tomb .cap { padding: .95rem 1.1rem 1.1rem; }
+  .mx .tomb .cap h4 { margin: 0 0 .35rem; font-size: .93rem; font-family: var(--mono); }
+  .mx .tomb .cap p { margin: 0; font-size: .8rem; color: var(--dim); }
+
+  /* ── alternatives ranked ────────────────────────────── */
+  .mx .alts { border: 1px solid var(--line); }
+  .mx .alt { border-top: 1px solid var(--line); background: var(--panel); display: grid; grid-template-columns: 62px minmax(190px, 1fr) 300px minmax(200px, 1.15fr); align-items: center; }
+  .mx .alt:first-child { border-top: none; }
+  .mx .alt.top { background: linear-gradient(90deg, rgba(0,97,255,.10), rgba(0,97,255,0) 55%); }
+  .mx .alt.out { background: repeating-linear-gradient(135deg, #0c1218 0 8px, #0e151d 8px 16px); }
+  .mx .alt .rank { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--dimmer); text-align: center; letter-spacing: -.03em; }
+  .mx .alt.top .rank { color: var(--blue-lit); }
+  .mx .alt .id { padding: 1.1rem 1rem 1.1rem 0; display: flex; gap: .8rem; align-items: flex-start; }
+  .mx .alt .id img { width: 30px; height: 30px; border-radius: 6px; background: #fff; padding: 3px; flex: none; }
+  .mx .alt.out .id img { filter: grayscale(1); opacity: .5; }
+  .mx .alt .id .nm { font-size: 1.02rem; font-weight: 650; letter-spacing: -.015em; }
+  .mx .alt .id .meta { font-family: var(--mono); font-size: .66rem; color: var(--dimmer); letter-spacing: .06em; margin-top: .2rem; }
+  .mx .alt .caps { display: flex; gap: .35rem; padding: .9rem .8rem; }
+  .mx .alt .cap5 { flex: 1; text-align: center; padding: .45rem .1rem .4rem; border: 1px solid var(--line); background: #0c1219; }
+  .mx .alt .cap5 small { display: block; font-family: var(--mono); font-size: .49rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dimmer); margin-top: .35rem; }
+  .mx .alt .say { padding: 1.05rem 1.2rem; border-left: 1px solid var(--line); font-size: .83rem; color: var(--dim); }
+  .mx .alt .say b { display: block; font-family: var(--mono); font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; margin-bottom: .3rem; }
+  .mx .alt.top .say b { color: var(--blue-lit); }
+  .mx .alt.out .say b { color: var(--red); }
+  .mx .alt.mid .say b { color: var(--amber); }
+  .mx .altshead { display: grid; grid-template-columns: 62px minmax(190px, 1fr) 300px minmax(200px, 1.15fr); background: var(--panel2); }
+  .mx .altshead > * { font-family: var(--mono); font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); padding: .6rem 1rem; }
+  .mx .alts-scroll { overflow-x: auto; }
+  .mx .alts-inner { min-width: 820px; }
+
+  /* ── the arrangement checklist ──────────────────────── */
+  .mx .steps { counter-reset: st; border: 1px solid var(--line); }
+  .mx .step { display: grid; grid-template-columns: 58px 1fr; border-top: 1px solid var(--line); background: var(--panel); }
+  .mx .step:first-child { border-top: none; }
+  .mx .step::before {
+    counter-increment: st; content: counter(st, decimal-leading-zero);
+    font-family: var(--mono); font-size: .82rem; color: var(--blue-lit);
+    display: flex; align-items: center; justify-content: center;
+    border-right: 1px solid var(--line); background: rgba(0,97,255,.05);
+  }
+  .mx .step .txt { padding: .95rem 1.2rem; font-size: .9rem; }
+  .mx .step .txt b { font-weight: 650; }
+  .mx .step .txt span { color: var(--dim); }
+
+  /* ── ledger ─────────────────────────────────────────── */
+  .mx .ledger { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .mx .src { background: var(--panel); padding: .8rem .95rem; display: grid; grid-template-columns: 20px 1fr; gap: .65rem; align-items: start; }
+  .mx .src img { width: 16px; height: 16px; border-radius: 3px; margin-top: .22rem; }
+  .mx .src .t { font-size: .8rem; line-height: 1.35; }
+  .mx .src .t a { border-bottom: none; color: var(--ink); }
+  .mx .src .t a:hover { color: var(--blue-lit); }
+  .mx .src .c { font-size: .71rem; color: var(--dimmer); margin-top: .18rem; }
+  .mx .src .num { font-family: var(--mono); font-size: .62rem; color: var(--dimmer); }
+
+  /* ── siblings ───────────────────────────────────────── */
+  .mx .sibs { display: grid; grid-template-columns: repeat(auto-fit, minmax(276px,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .mx .sib { background: var(--panel); padding: 1.1rem 1.2rem; }
+  .mx .sib .d { font-family: var(--mono); font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; color: var(--blue-lit); }
+  .mx .sib h4 { margin: .4rem 0 .35rem; font-size: .92rem; letter-spacing: -.01em; }
+  .mx .sib h4 a { color: var(--ink); border-bottom: none; }
+  .mx .sib h4 a:hover { color: var(--blue-lit); }
+  .mx .sib p { margin: 0; font-size: .78rem; color: var(--dim); }
+
+  .mx .colophon { margin-top: 3.4rem; border-top: 1px solid var(--line); padding-top: 1.3rem; display: flex; flex-wrap: wrap; gap: .6rem 1.6rem; justify-content: space-between; }
+
+  @media (max-width: 760px) {
+    .mx .mast-grid { grid-template-columns: 1fr; }
+    .mx .mast-grid img { display: none; }
+    .mx .verdicts { grid-template-columns: 1fr; }
+    .mx .hist { grid-template-columns: 1fr; }
+    .mx .venn { grid-template-columns: 1fr; }
+    .mx .venn .mid { padding: 1rem 0; border-left: none; border-right: none; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); flex-direction: row; gap: .8rem; }
+    .mx .hzrow { grid-template-columns: 42px 1fr; }
+    .mx .hzrow .sev { grid-column: 2; padding: 0 1.2rem 1rem; justify-content: flex-start; }
+  }
+</style>
+
+<div class="mx">
+
+  <!-- ══ MASTHEAD ══════════════════════════════════════ -->
+  <header class="masthead">
+    <div class="wrap">
+      <div class="mast-top">
+        <span class="rail">Support Matrix · Dropbox × Linux · 2026</span>
+        <span class="rail">Survey · 34 sources · 11 min</span>
+      </div>
+      <div class="mast-grid">
+        <div>
+          <h1>Which cells are <em>lit</em>, and which are dead</h1>
+          <p class="dek">The ext4-only rule died in 2019 — btrfs, zfs and xfs all sync. What is actually dark in 2026 is online-only files, one shared on-disk folder across a dual boot, and every escape hatch that used to route around the official client.</p>
+        </div>
+        <img src="../cover.svg" alt="Cover mark for the Dropbox on Linux research page">
+      </div>
+      <div class="legend">
+        <span><i class="lamp on"></i> supported</span>
+        <span><i class="lamp part"></i> partial / conditional</span>
+        <span><i class="lamp off"></i> absent</span>
+        <span><i class="lamp bad"></i> refuses / destroys</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- ══ VERDICT ═════════════════════════════════════ -->
+    <section style="padding-top:2.6rem">
+      <div class="verdicts">
+        <div class="vt yes">
+          <span class="glyph">✓</span>
+          <h3>Run the official client on Linux</h3>
+          <p>btrfs, zfs and xfs are supported filesystem types in 2026 — a btrfs root is not a blocker <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></p>
+        </div>
+        <div class="vt no">
+          <span class="glyph">✗</span>
+          <h3>One Dropbox folder across the dual boot</h3>
+          <p>Not "unsupported" — arithmetically impossible. The two clients share no filesystem <sup><a href="https://community.dropbox.com/en/discussion/793218/how-to-share-a-dropbox-folder-between-windows-and-linux-installs-on-the-same-pc">[2]</a></sup></p>
+        </div>
+        <div class="vt no">
+          <span class="glyph">✗</span>
+          <h3>Source repos inside Dropbox</h3>
+          <p>Concurrent changes "can result in a corrupted Git repository" <sup><a href="https://github.com/anishathalye/git-remote-dropbox">[3]</a></sup> — move them to <code>~/code</code></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ MATRIX 01 — FILESYSTEMS ═════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Matrix 01</span>
+        <h2>Filesystems the client will place its folder on</h2>
+        <span class="tail">Checked at the folder path, not at /</span>
+      </div>
+
+      <div class="fsgrid">
+        <div class="fs">
+          <div class="top"><span class="name">ext4</span><i class="lamp on"></i></div>
+          <span class="verdict">Official</span>
+          <p class="note">The reference case; every other entry is measured against it <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></p>
+        </div>
+        <div class="fs">
+          <div class="top"><span class="name">btrfs</span><i class="lamp on"></i></div>
+          <span class="verdict">Official</span>
+          <p class="note">Restored 2019 <sup><a href="https://itsfoss.com/dropbox-brings-back-linux-filesystem-support/">[7]</a></sup> — but see the snapshot alarm below</p>
+        </div>
+        <div class="fs">
+          <div class="top"><span class="name">xfs</span><i class="lamp on"></i></div>
+          <span class="verdict">Official · 64-bit</span>
+          <p class="note">64-bit only when reinstated in build 77.3.127 <sup><a href="https://itsfoss.com/dropbox-brings-back-linux-filesystem-support/">[7]</a></sup></p>
+        </div>
+        <div class="fs">
+          <div class="top"><span class="name">zfs</span><i class="lamp on"></i></div>
+          <span class="verdict">Official · 64-bit</span>
+          <p class="note">Same restoration wave as xfs <sup><a href="https://itsfoss.com/dropbox-brings-back-linux-filesystem-support/">[7]</a></sup></p>
+        </div>
+        <div class="fs">
+          <div class="top"><span class="name">eCryptFS</span><i class="lamp part"></i></div>
+          <span class="verdict">Official · conditional</span>
+          <p class="note">Listed only when "backed by ext4" <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></p>
+        </div>
+        <div class="fs">
+          <div class="top"><span class="name">LUKS</span><i class="lamp part"></i></div>
+          <span class="verdict">Implied</span>
+          <p class="note">Block-level encryption; the visible filesystem is ext4 or btrfs, and that is what gets checked <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></p>
+        </div>
+        <div class="fs wide dead">
+          <div class="top"><span class="verdict">Refused — client will not start syncing</span><i class="lamp bad"></i></div>
+          <div class="names"><b>NTFS</b><b>exFAT</b><b>FAT32</b><b>NFS</b><b>overlayfs</b><b>tmpfs</b></div>
+          <p class="note">Not on the list, so the client refuses the folder outright rather than degrading. The community shim <a href="https://github.com/dark/dropbox-filesystem-fix">dropbox-filesystem-fix</a> ⭐ 141 patched the detection call via <code>LD_PRELOAD</code> — treat it as dead <sup><a href="https://github.com/dark/dropbox-filesystem-fix">[8]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="hist">
+        <div>
+          <span class="yr">2018</span>
+          <p>Dropbox announces ext4-only from 7 November — file identity lives in extended attributes and it wanted one guaranteed xattr implementation <sup><a href="https://itsfoss.com/dropbox-linux-ext4-only/">[5]</a></sup><sup><a href="https://www.theregister.com/2018/08/14/dropbox_encrypted_linux_support/">[6]</a></sup></p>
+        </div>
+        <div>
+          <span class="yr">2019</span>
+          <p>Build 77.3.127 reverses it: zfs, xfs, btrfs and eCryptFS come back <sup><a href="https://itsfoss.com/dropbox-brings-back-linux-filesystem-support/">[7]</a></sup></p>
+        </div>
+        <div>
+          <span class="yr now">2026</span>
+          <p>Five types listed, requirement is on the partition holding the Dropbox folder — not on <code>/</code> <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="alarm">
+        <span class="tag">⚠ Cell lit, mechanism hostile</span>
+        <h3>btrfs is supported. Snapshot rollback is still the thing that hurts you.</h3>
+        <p>Dropbox has no notion of "this whole tree just went back in time." Rolling back a subvolume containing <code>~/Dropbox</code> presents the client with a mass of deletions and reverted files, which it dutifully pushes upstream. Inside a <em>shared</em> folder that is not a local event — "If you delete a file inside a shared folder… that file disappears from the shared folder for everyone" <sup><a href="https://help.dropbox.com/delete-restore/delete-files">[9]</a></sup>.</p>
+        <p style="font-size:.82rem;color:var(--dimmer)">This is an inference from documented delete semantics rather than a Dropbox statement — but the failure mode is exactly what makes it dangerous.</p>
+        <p class="fix"><b>Mitigation</b>Put <code>~/Dropbox</code> on its own btrfs subvolume that Timeshift and snapper do <em>not</em> snapshot, and use Dropbox's own version history / Rewind as the time machine for that tree <sup><a href="https://help.dropbox.com/delete-restore/recover-deleted-files-folders">[10]</a></sup>.</p>
+      </div>
+    </section>
+
+    <!-- ══ MATRIX 02 — PARITY ══════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Matrix 02</span>
+        <h2>Windows ↔ Linux feature parity</h2>
+        <span class="tail">Struck cells = the gap</span>
+      </div>
+
+      <div class="parity-scroll">
+        <div class="parity">
+          <div class="prow phead">
+            <div>Feature</div>
+            <div class="pcell">Windows</div>
+            <div class="pcell">Linux</div>
+            <div class="pnote">Evidence</div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">Smart Sync / online-only files</div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pcell gap"><i class="lamp off"></i><small>absent</small></div>
+            <div class="pnote">Documented for Windows 7+ and macOS 10.12+ only <sup><a href="https://help.dropbox.com/installs-integrations/sync-uploads/smart-sync">[11]</a></sup>; long-standing unanswered request <sup><a href="https://www.dropboxforum.com/discussions/101001014/when-will-online-only-files-work-on-linux/262171">[12]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">Selective sync</div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pnote">Per-device, folders only — individual files cannot be excluded <sup><a href="https://help.dropbox.com/sync/selective-sync-overview">[13]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">Ignore (keep local, drop from cloud)</div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pnote"><code>attr -s com.dropbox.ignored -V 1 &lt;path&gt;</code> <sup><a href="https://help.dropbox.com/sync/ignored-files">[14]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">CLI (<code>dropbox</code> / <code>dropbox.py</code>)</div>
+            <div class="pcell gap"><i class="lamp off"></i><small>absent</small></div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pnote">13 commands including <code>status</code>, <code>filestatus</code>, <code>exclude</code>, <code>lansync</code>, <code>throttle</code>, <code>sharelink</code> <sup><a href="https://help.dropbox.com/installs/linux-commands">[15]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">Headless / no-GUI operation</div>
+            <div class="pcell gap"><i class="lamp off"></i><small>absent</small></div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pnote">Tarball plus <code>~/.dropbox-dist/dropboxd</code>, linked via a pasted URL <sup><a href="https://www.techrepublic.com/article/how-to-install-and-run-dropbox-from-a-headless-linux-server/">[17]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">File-manager overlay icons</div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pcell"><i class="lamp part"></i><small>nautilus only</small></div>
+            <div class="pnote"><a href="https://github.com/dropbox/nautilus-dropbox">nautilus-dropbox</a> ⭐ 274 builds against GTK4 Nautilus; no official Dolphin or Thunar extension <sup><a href="https://github.com/dropbox/nautilus-dropbox">[16]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">Tray icon</div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pcell"><i class="lamp part"></i><small>conditional</small></div>
+            <div class="pnote">Requires LibAppIndicator 12.10+; "LXDE… can't be supported" <sup><a href="https://help.dropbox.com/installs/dropbox-desktop-app-for-linux">[18]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">LAN sync</div>
+            <div class="pcell"><i class="lamp on"></i><small>yes</small></div>
+            <div class="pcell"><i class="lamp on"></i><small>IPv4 only</small></div>
+            <div class="pnote">"If your network only supports IPv6, then you can't use LAN sync" <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">ARM processors</div>
+            <div class="pcell na"><i class="lamp off"></i><small>n/a</small></div>
+            <div class="pcell gap"><i class="lamp bad"></i><small>refused</small></div>
+            <div class="pnote">"Dropbox doesn't support ARM processors for Linux" <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></div>
+          </div>
+
+          <div class="prow">
+            <div class="pfeat">Officially supported distributions</div>
+            <div class="pcell na"><i class="lamp off"></i><small>n/a</small></div>
+            <div class="pcell"><i class="lamp part"></i><small>two</small></div>
+            <div class="pnote">Ubuntu 18.04+ and Fedora 28+, 64-bit only <sup><a href="https://help.dropbox.com/installs/dropbox-desktop-app-for-linux">[18]</a></sup></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="net"><b>Net:</b> the Linux client's sync <em>engine</em> is at parity. What is missing is online-only files — which matters exactly when a shared folder is bigger than your disk.</p>
+
+      <p style="font-size:.85rem;color:var(--dim);margin-top:1.2rem">The Linux app page carries a live warning — "The Dropbox desktop app for Linux is changing" — with dependency floors of GTK 2.24, GDK 2.24, Glib 2.40 and LibAppIndicator 12.10, last updated 9 February 2026 <sup><a href="https://help.dropbox.com/installs/dropbox-desktop-app-for-linux">[18]</a></sup>. There is no systemd unit; <code>dropbox autostart y</code> writes an XDG autostart entry <sup><a href="https://help.dropbox.com/installs/linux-commands">[15]</a></sup>, and a user unit calling <code>dropboxd</code> is the standard headless pattern <sup><a href="https://www.techrepublic.com/article/how-to-install-and-run-dropbox-from-a-headless-linux-server/">[17]</a></sup>.</p>
+    </section>
+
+    <!-- ══ THE EMPTY INTERSECTION ══════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Matrix 03</span>
+        <h2>The dual-boot intersection is empty</h2>
+        <span class="tail">Not unsupported — impossible</span>
+      </div>
+
+      <div class="venn">
+        <div class="side">
+          <span class="os">Dropbox for Windows accepts</span>
+          <div class="fss">NTFS</div>
+          <p>Refuses to write to ext4 <sup><a href="https://community.dropbox.com/en/discussion/793218/how-to-share-a-dropbox-folder-between-windows-and-linux-installs-on-the-same-pc">[2]</a></sup></p>
+        </div>
+        <div class="mid">
+          <span class="sym">∅</span>
+          <small>no common<br>filesystem</small>
+        </div>
+        <div class="side" style="text-align:right">
+          <span class="os">Dropbox for Linux accepts</span>
+          <div class="fss">ext4 · zfs · xfs<br>btrfs · eCryptFS</div>
+          <p>NTFS is not on the list <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup></p>
+        </div>
+      </div>
+
+      <div class="arrangement">
+        <div>
+          <code>C:\Users\you\Dropbox</code>
+          <p>On NTFS, linked as device 1 of 3.</p>
+        </div>
+        <div>
+          <code>/home/you/Dropbox</code>
+          <p>On ext4 or btrfs, linked as device 2 of 3 <sup><a href="https://help.dropbox.com/account-access/computer-limit">[21]</a></sup>.</p>
+        </div>
+        <div>
+          <code>↑ ↓ both sync via the cloud</code>
+          <p>Two independent folders, one account. Costs a second full local copy — and never reboot with unsaved editors open.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SHARED-FOLDER HAZARDS ═══════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Hazards</span>
+        <h2>What a shared folder does that a private one doesn't</h2>
+        <span class="tail">Blast radius includes other people</span>
+      </div>
+
+      <div class="hz">
+        <div class="hzrow">
+          <div class="n">01</div>
+          <div class="body">
+            <h4>Quota is charged to everyone</h4>
+            <p>A shared folder counts against the quota of <em>every</em> member, unless all members sit on the same Standard / Advanced / Enterprise team or Family plan <sup><a href="https://help.dropbox.com/storage-space/shared-folder-count-against-storage">[19]</a></sup>.</p>
+          </div>
+          <div class="sev"><span class="sevpill med">Cost</span></div>
+        </div>
+        <div class="hzrow">
+          <div class="n">02</div>
+          <div class="body">
+            <h4>A folder bigger than your disk is all-or-nothing</h4>
+            <p>With no online-only files on Linux <sup><a href="https://help.dropbox.com/installs-integrations/sync-uploads/smart-sync">[11]</a></sup>, selective sync is the only lever — and it is folder-granular <sup><a href="https://help.dropbox.com/sync/selective-sync-overview">[13]</a></sup>. It <em>is</em> per-device, so Windows can keep the full copy.</p>
+          </div>
+          <div class="sev"><span class="sevpill med">Capacity</span></div>
+        </div>
+        <div class="hzrow">
+          <div class="n">03</div>
+          <div class="body">
+            <h4>Your delete is everyone's delete</h4>
+            <p>Edit permission means a local removal propagates to all members; permanent deletion requires folder ownership <sup><a href="https://help.dropbox.com/delete-restore/delete-files">[9]</a></sup>.</p>
+          </div>
+          <div class="sev"><span class="sevpill hi">Data loss</span></div>
+        </div>
+        <div class="hzrow">
+          <div class="n">04</div>
+          <div class="body">
+            <h4>A dual-booter counts as two members</h4>
+            <p>Conflicted copies come from simultaneous edits, offline edits, or a file left open in an auto-saving app <sup><a href="https://help.dropbox.com/organize/conflicted-copy">[20]</a></sup>. An editor open in Windows when you reboot into Linux <em>is</em> the "left open on another user's computer" case.</p>
+          </div>
+          <div class="sev"><span class="sevpill hi">Conflicts</span></div>
+        </div>
+        <div class="hzrow">
+          <div class="n">05</div>
+          <div class="body">
+            <h4>Two of your three device slots</h4>
+            <p>Dropbox Basic caps at three linked devices — one machine dual-booting consumes two of them <sup><a href="https://help.dropbox.com/account-access/computer-limit">[21]</a></sup>.</p>
+          </div>
+          <div class="sev"><span class="sevpill lo">Budget</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CODE IN DROPBOX ═════════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Do not</span>
+        <h2>Five ways a repo inside Dropbox breaks</h2>
+        <span class="tail">All five worsen in a shared folder</span>
+      </div>
+
+      <div class="fails">
+        <div class="fail">
+          <span class="g">⇢</span>
+          <h4>Symlinks</h4>
+          <p>A symlink pointing outside Dropbox syncs as "individual symlink files, and don't sync the files referenced by the symlink". Windows Dropbox supports neither symlinks nor junctions and flags them with error indicators <sup><a href="https://help.dropbox.com/sync/symlinks">[22]</a></sup> — so the classic "symlink <code>node_modules</code> out" trick hands your Windows collaborator a broken artefact.</p>
+        </div>
+        <div class="fail">
+          <span class="g">Aa</span>
+          <h4>Case collisions</h4>
+          <p>Dropbox's namespace is case-insensitive — "you can't have a file called <code>Hello.doc</code> and one called <code>hello.doc</code>" <sup><a href="https://rclone.org/dropbox/">[24]</a></sup>. Linux is case-sensitive, so <code>Makefile</code> alongside <code>makefile</code>, or a case-only rename, gets mangled in transit <sup><a href="https://shkspr.mobi/blog/2013/12/case-conflicts-in-dropbox-for-linux/">[23]</a></sup>. <code>\ / : * ? " &lt; &gt; |</code> are restricted and names cap near 255 characters including path <sup><a href="https://help.dropbox.com/organize/file-names">[34]</a></sup>.</p>
+        </div>
+        <div class="fail">
+          <span class="g">⌥</span>
+          <h4><code>.git</code> corruption</h4>
+          <p>"The desktop client is not aware of how Git manages it's on-disk format, so if there are concurrent changes or delays in syncing, it's possible to have conflicts that result in a corrupted Git repository" <sup><a href="https://github.com/anishathalye/git-remote-dropbox">[3]</a></sup>. Packfile rewrites during <code>gc</code>, HEAD/index churn and ref updates are all racy against a background syncer.</p>
+        </div>
+        <div class="fail">
+          <span class="g">∞</span>
+          <h4>Churn and inotify watches</h4>
+          <p><code>node_modules</code>, <code>bin/</code>, <code>obj/</code> and <code>.next/</code> generate thousands of short-lived files, one inotify watch per directory. The historic default <code>max_user_watches</code> was 8192; Dropbox support recommends 100000; kernels 5.11+ auto-scale to 1048576 with ≥8 GB RAM <sup><a href="https://maestral.app/docs/inotify-limits">[25]</a></sup>.</p>
+        </div>
+        <div class="fail">
+          <span class="g">⊠</span>
+          <h4>Exclusion is blunt</h4>
+          <p>There is no <code>.dropboxignore</code>. Selective sync is folder-granular and per-device <sup><a href="https://help.dropbox.com/sync/selective-sync-overview">[13]</a></sup>; <code>com.dropbox.ignored</code> is per file or folder, not pattern-based, needs the default folder location, and the ignored content "will be deleted from the Dropbox server and your other devices" <sup><a href="https://help.dropbox.com/sync/ignored-files">[14]</a></sup> — inside a shared folder, your collaborators lose it too <sup><a href="https://help.dropbox.com/delete-restore/delete-files">[9]</a></sup>.</p>
+        </div>
+        <div class="fail" style="background:rgba(0,97,255,.07)">
+          <span class="g" style="color:var(--blue-lit)">✓</span>
+          <h4>The arrangement that avoids all five</h4>
+          <p>Code lives in git, hosted on a remote, cloned to <code>~/code</code> <b>outside</b> Dropbox on every machine. If a repo genuinely must live in a shared folder, use <a href="https://github.com/anishathalye/git-remote-dropbox">git-remote-dropbox</a> ⭐ 3.1k, which talks to the API directly and never touches the desktop client <sup><a href="https://github.com/anishathalye/git-remote-dropbox">[3]</a></sup>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ MORGUE ══════════════════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Closed</span>
+        <h2>The escape hatches that shut</h2>
+        <span class="tail">All three archived</span>
+      </div>
+
+      <div class="morgue">
+        <div class="tomb">
+          <img src="matrix/images/maestral-archived.webp" alt="GitHub social card for the samschott/maestral repository">
+          <span class="stamp">Archived 2026-07-28</span>
+          <div class="cap">
+            <h4>samschott/maestral ⭐ 3.3k</h4>
+            <p>The answer to both "the official client won't run on my filesystem" and the 3-device cap. The site now reads "As of June 2026, Maestral is no longer actively maintained" and warns it works only until certificates expire <sup><a href="https://maestral.app/">[26]</a></sup><sup><a href="https://github.com/samschott/maestral">[4]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="tomb">
+          <img src="matrix/images/dbfsfix-archived.webp" alt="GitHub social card for the dark/dropbox-filesystem-fix repository">
+          <span class="stamp">Archived Nov 2025</span>
+          <div class="cap">
+            <h4>dark/dropbox-filesystem-fix ⭐ 141</h4>
+            <p>The <code>LD_PRELOAD</code> shim that patched the filesystem check. Tested only to client 89.4.278; its author's own advice was to switch to Maestral <sup><a href="https://github.com/dark/dropbox-filesystem-fix">[8]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="tomb">
+          <img src="matrix/images/dbxfs-archived.webp" alt="GitHub social card for the rianhunter/dbxfs repository">
+          <span class="stamp">Mirror archived 2021</span>
+          <div class="cap">
+            <h4>rianhunter/dbxfs ⭐ 690</h4>
+            <p>The FUSE mount still works and is still the only online-only route on Linux, but the GitHub mirror was archived and development moved off-platform <sup><a href="https://github.com/rianhunter/dbxfs">[31]</a></sup>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ ALTERNATIVES RANKED ═════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Panel</span>
+        <h2>Alternative clients, ranked for a shared-folder workload</h2>
+        <span class="tail">FS · Shared · Selective · Headless · Maintained</span>
+      </div>
+
+      <div class="alts-scroll">
+        <div class="alts-inner">
+          <div class="altshead">
+            <div>Rank</div><div>Client</div><div>Capabilities</div><div>Verdict &amp; cost</div>
+          </div>
+          <div class="alts">
+
+            <div class="alt top">
+              <div class="rank">01</div>
+              <div class="id">
+                <img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=128" alt="">
+                <div><div class="nm">Official Dropbox client</div><div class="meta">closed source · ext4/zfs/xfs/btrfs</div></div>
+              </div>
+              <div class="caps">
+                <div class="cap5"><i class="lamp part"></i><small>FS</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Shared</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Select</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Head</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Maint</small></div>
+              </div>
+              <div class="say">
+                <b>Use this</b>
+                Full shared-folder semantics, folder-level selective sync <sup><a href="https://help.dropbox.com/sync/selective-sync-overview">[13]</a></sup> and a real CLI. Free tier, three devices <sup><a href="https://help.dropbox.com/account-access/computer-limit">[21]</a></sup>.
+              </div>
+            </div>
+
+            <div class="alt mid">
+              <div class="rank">02</div>
+              <div class="id">
+                <img src="https://www.google.com/s2/favicons?domain=rclone.org&sz=128" alt="">
+                <div><div class="nm"><a href="https://rclone.org/dropbox/">rclone</a> ⭐ 58.8k</div><div class="meta">MIT · any filesystem</div></div>
+              </div>
+              <div class="caps">
+                <div class="cap5"><i class="lamp on"></i><small>FS</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Shared</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Select</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Head</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Maint</small></div>
+              </div>
+              <div class="say">
+                <b>Copier, not a client</b>
+                Reaches shared folders via <code>--dropbox-shared-folders</code> <sup><a href="https://rclone.org/dropbox/">[24]</a></sup>, but "Bisync is considered an advanced command, so use with care… or data loss can result" <sup><a href="https://rclone.org/bisync/">[28]</a></sup>. Right for scheduled one-way backup. Free.
+              </div>
+            </div>
+
+            <div class="alt mid">
+              <div class="rank">03</div>
+              <div class="id">
+                <img src="https://www.google.com/s2/favicons?domain=insynchq.com&sz=128" alt="">
+                <div><div class="nm"><a href="https://www.insynchq.com/linux">Insync</a></div><div class="meta">closed source · any filesystem</div></div>
+              </div>
+              <div class="caps">
+                <div class="cap5"><i class="lamp on"></i><small>FS</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Shared</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Select</small></div>
+                <div class="cap5"><i class="lamp part"></i><small>Head</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Maint</small></div>
+              </div>
+              <div class="say">
+                <b>The paid escape hatch</b>
+                Filesystem freedom plus real shared and team-folder support <sup><a href="https://www.insynchq.com/linux">[33]</a></sup>. $39.99 one-time per cloud account, unlimited machines; headless needs the Server plan <sup><a href="https://www.insynchq.com/pricing">[32]</a></sup>.
+              </div>
+            </div>
+
+            <div class="alt mid">
+              <div class="rank">04</div>
+              <div class="id">
+                <img src="https://www.google.com/s2/favicons?domain=thelig.ht&sz=128" alt="">
+                <div><div class="nm"><a href="https://thelig.ht/code/dbxfs/">dbxfs</a> ⭐ 690</div><div class="meta">GPLv3 · FUSE mount</div></div>
+              </div>
+              <div class="caps">
+                <div class="cap5"><i class="lamp on"></i><small>FS</small></div>
+                <div class="cap5"><i class="lamp part"></i><small>Shared</small></div>
+                <div class="cap5"><i class="lamp off"></i><small>Select</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Head</small></div>
+                <div class="cap5"><i class="lamp part"></i><small>Maint</small></div>
+              </div>
+              <div class="say">
+                <b>The only online-only answer</b>
+                Mounts the whole account with nothing stored locally — precisely the Smart Sync gap <sup><a href="https://thelig.ht/code/dbxfs/">[30]</a></sup>. Latency makes it unusable as a working directory. Free.
+              </div>
+            </div>
+
+            <div class="alt mid">
+              <div class="rank">05</div>
+              <div class="id">
+                <img src="https://www.google.com/s2/favicons?domain=syncthing.net&sz=128" alt="">
+                <div><div class="nm"><a href="https://syncthing.net/">Syncthing</a> ⭐ 87.1k</div><div class="meta">MPL-2.0 · peer-to-peer</div></div>
+              </div>
+              <div class="caps">
+                <div class="cap5"><i class="lamp on"></i><small>FS</small></div>
+                <div class="cap5"><i class="lamp bad"></i><small>Shared</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Select</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Head</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Maint</small></div>
+              </div>
+              <div class="say">
+                <b>Different problem entirely</b>
+                Does not touch Dropbox at all — "none of your data is ever stored anywhere else other than on your computers" <sup><a href="https://syncthing.net/">[29]</a></sup>. Excellent for <em>your own</em> machines, useless for a folder shared with someone else's Dropbox account. Free.
+              </div>
+            </div>
+
+            <div class="alt out">
+              <div class="rank">✕</div>
+              <div class="id">
+                <img src="https://www.google.com/s2/favicons?domain=maestral.app&sz=128" alt="">
+                <div><div class="nm"><a href="https://maestral.app/">Maestral</a> ⭐ 3.3k</div><div class="meta">MIT · archived 2026-07-28</div></div>
+              </div>
+              <div class="caps">
+                <div class="cap5"><i class="lamp on"></i><small>FS</small></div>
+                <div class="cap5"><i class="lamp part"></i><small>Shared</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Select</small></div>
+                <div class="cap5"><i class="lamp on"></i><small>Head</small></div>
+                <div class="cap5"><i class="lamp bad"></i><small>Maint</small></div>
+              </div>
+              <div class="say">
+                <b>Do not build on it</b>
+                Any filesystem, no xattr requirement, <code>.mignore</code> gitignore patterns, no device cap <sup><a href="https://maestral.app/">[26]</a></sup> — and it syncs shared folders but cannot manage their settings <sup><a href="https://maestral.app/about/">[27]</a></sup>. Archived; works only until certificates expire <sup><a href="https://github.com/samschott/maestral">[4]</a></sup>.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ THE ARRANGEMENT ═════════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Setup</span>
+        <h2>The recommended arrangement</h2>
+        <span class="tail">Eight decisions</span>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="txt"><b>Official Dropbox client on Linux.</b> <span>A btrfs root is fine <sup><a href="https://help.dropbox.com/installs/system-requirements">[1]</a></sup>. Stick to Ubuntu or Fedora if you want supportability <sup><a href="https://help.dropbox.com/installs/dropbox-desktop-app-for-linux">[18]</a></sup>.</span></div></div>
+        <div class="step"><div class="txt"><b><code>~/Dropbox</code> on its own btrfs subvolume, excluded from Timeshift and snapper.</b> <span>Snapshot rollback of a shared folder deletes files for collaborators <sup><a href="https://help.dropbox.com/delete-restore/delete-files">[9]</a></sup>; use Dropbox version history for that tree <sup><a href="https://help.dropbox.com/delete-restore/recover-deleted-files-folders">[10]</a></sup>.</span></div></div>
+        <div class="step"><div class="txt"><b>Two separate Dropbox folders across the dual boot,</b> <span>syncing through the cloud. One shared on-disk folder is not possible <sup><a href="https://community.dropbox.com/en/discussion/793218/how-to-share-a-dropbox-folder-between-windows-and-linux-installs-on-the-same-pc">[2]</a></sup>. Budget two of the three Basic device slots <sup><a href="https://help.dropbox.com/account-access/computer-limit">[21]</a></sup>.</span></div></div>
+        <div class="step"><div class="txt"><b>Never leave editors open across a reboot.</b> <span>That is the documented conflicted-copy trigger <sup><a href="https://help.dropbox.com/organize/conflicted-copy">[20]</a></sup>.</span></div></div>
+        <div class="step"><div class="txt"><b>Move all repos to <code>~/code</code>, outside Dropbox,</b> <span>and push to a git remote. Case collisions <sup><a href="https://shkspr.mobi/blog/2013/12/case-conflicts-in-dropbox-for-linux/">[23]</a></sup>, broken symlinks on Windows peers <sup><a href="https://help.dropbox.com/sync/symlinks">[22]</a></sup> and <code>.git</code> corruption <sup><a href="https://github.com/anishathalye/git-remote-dropbox">[3]</a></sup> are all avoided at once.</span></div></div>
+        <div class="step"><div class="txt"><b>Selective-sync away oversized shared folders on the Linux side</b> <span>while Windows keeps the full copy — it is per-device <sup><a href="https://help.dropbox.com/sync/selective-sync-overview">[13]</a></sup>. Add <a href="https://thelig.ht/code/dbxfs/">dbxfs</a> as a read-mostly window onto what you excluded <sup><a href="https://thelig.ht/code/dbxfs/">[30]</a></sup>.</span></div></div>
+        <div class="step"><div class="txt"><b><a href="https://syncthing.net/">Syncthing</a> ⭐ 87.1k for <code>~/code</code> and dotfiles between your own machines</b> <span><sup><a href="https://syncthing.net/">[29]</a></sup>, plus a nightly <a href="https://rclone.org/dropbox/">rclone</a> ⭐ 58.8k one-way copy of <code>~/Dropbox</code> to homelab storage as an independent backup <sup><a href="https://rclone.org/dropbox/">[24]</a></sup>. Reserve <code>bisync</code> for cases whose limitations you have read <sup><a href="https://rclone.org/bisync/">[28]</a></sup>.</span></div></div>
+        <div class="step"><div class="txt"><b>Budget for <a href="https://www.insynchq.com/linux">Insync</a></b> <span>only if you later need Dropbox on an unsupported filesystem or a distro Dropbox won't run on <sup><a href="https://www.insynchq.com/pricing">[32]</a></sup>.</span></div></div>
+      </div>
+    </section>
+
+    <!-- ══ LEDGER ══════════════════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Ledger</span>
+        <h2>Sources</h2>
+        <span class="tail">34 citations</span>
+      </div>
+
+      <div class="ledger">
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">01</span> <a href="https://help.dropbox.com/installs/system-requirements">Dropbox system requirements</a></div><div class="c">The five accepted filesystem types; IPv4-only LAN sync; no ARM.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=community.dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">02</span> <a href="https://community.dropbox.com/en/discussion/793218/how-to-share-a-dropbox-folder-between-windows-and-linux-installs-on-the-same-pc">Sharing one folder between Windows and Linux installs</a></div><div class="c">The clients have no supported filesystem in common.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><div><div class="t"><span class="num">03</span> <a href="https://github.com/anishathalye/git-remote-dropbox">git-remote-dropbox</a> ⭐ 3.1k</div><div class="c">The desktop client can corrupt git repositories.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><div><div class="t"><span class="num">04</span> <a href="https://github.com/samschott/maestral">maestral</a> ⭐ 3.3k</div><div class="c">Archived 2026-07-28.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=itsfoss.com&sz=64" alt=""><div><div class="t"><span class="num">05</span> <a href="https://itsfoss.com/dropbox-linux-ext4-only/">It's FOSS — Dropbox to support ext4 only</a></div><div class="c">The November 2018 restriction announcement.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=theregister.com&sz=64" alt=""><div><div class="t"><span class="num">06</span> <a href="https://www.theregister.com/2018/08/14/dropbox_encrypted_linux_support/">The Register — encrypted Linux support</a></div><div class="c">Why: file identity lives in extended attributes.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=itsfoss.com&sz=64" alt=""><div><div class="t"><span class="num">07</span> <a href="https://itsfoss.com/dropbox-brings-back-linux-filesystem-support/">It's FOSS — filesystem support restored</a></div><div class="c">Build 77.3.127, July 2019.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><div><div class="t"><span class="num">08</span> <a href="https://github.com/dark/dropbox-filesystem-fix">dropbox-filesystem-fix</a> ⭐ 141</div><div class="c">LD_PRELOAD shim; archived November 2025.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">09</span> <a href="https://help.dropbox.com/delete-restore/delete-files">Dropbox Help — delete files</a></div><div class="c">Deletes inside a shared folder propagate to everyone.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">10</span> <a href="https://help.dropbox.com/delete-restore/recover-deleted-files-folders">Dropbox Help — recover deleted files</a></div><div class="c">30–365 days of history; Rewind for mass deletions.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">11</span> <a href="https://help.dropbox.com/installs-integrations/sync-uploads/smart-sync">Dropbox Help — Smart Sync</a></div><div class="c">Windows and macOS only.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropboxforum.com&sz=64" alt=""><div><div class="t"><span class="num">12</span> <a href="https://www.dropboxforum.com/discussions/101001014/when-will-online-only-files-work-on-linux/262171">Dropbox Forum — online-only on Linux</a></div><div class="c">No Dropbox commitment.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">13</span> <a href="https://help.dropbox.com/sync/selective-sync-overview">Dropbox Help — selective sync</a></div><div class="c">Per-device and folder-granular.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">14</span> <a href="https://help.dropbox.com/sync/ignored-files">Dropbox Help — ignored files</a></div><div class="c">The com.dropbox.ignored xattr, and what it deletes.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">15</span> <a href="https://help.dropbox.com/installs/linux-commands">Dropbox Help — Linux commands</a></div><div class="c">The 13-command CLI.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><div><div class="t"><span class="num">16</span> <a href="https://github.com/dropbox/nautilus-dropbox">nautilus-dropbox</a> ⭐ 274</div><div class="c">The only official file-manager integration.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=techrepublic.com&sz=64" alt=""><div><div class="t"><span class="num">17</span> <a href="https://www.techrepublic.com/article/how-to-install-and-run-dropbox-from-a-headless-linux-server/">TechRepublic — headless Dropbox</a></div><div class="c">The dropboxd tarball pattern.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">18</span> <a href="https://help.dropbox.com/installs/dropbox-desktop-app-for-linux">Dropbox Help — desktop app for Linux</a></div><div class="c">Dependency floors, two supported distros, page updated 9 Feb 2026.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">19</span> <a href="https://help.dropbox.com/storage-space/shared-folder-count-against-storage">Dropbox Help — shared folders and storage</a></div><div class="c">Counts against every member's quota.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">20</span> <a href="https://help.dropbox.com/organize/conflicted-copy">Dropbox Help — conflicted copy</a></div><div class="c">The three documented causes.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">21</span> <a href="https://help.dropbox.com/account-access/computer-limit">Dropbox Help — computer limit</a></div><div class="c">Three linked devices on Basic.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">22</span> <a href="https://help.dropbox.com/sync/symlinks">Dropbox Help — symlinks</a></div><div class="c">Link files only; unsupported on Windows.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=shkspr.mobi&sz=64" alt=""><div><div class="t"><span class="num">23</span> <a href="https://shkspr.mobi/blog/2013/12/case-conflicts-in-dropbox-for-linux/">Case conflicts in Dropbox for Linux</a></div><div class="c">What happens to case-only-differing names.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=rclone.org&sz=64" alt=""><div><div class="t"><span class="num">24</span> <a href="https://rclone.org/dropbox/">rclone — Dropbox backend</a> ⭐ 58.8k</div><div class="c">Case-insensitivity, restricted names, purge limits, shared folders.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=maestral.app&sz=64" alt=""><div><div class="t"><span class="num">25</span> <a href="https://maestral.app/docs/inotify-limits">Maestral docs — inotify limits</a></div><div class="c">8192 → 100000 → 1048576.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=maestral.app&sz=64" alt=""><div><div class="t"><span class="num">26</span> <a href="https://maestral.app/">Maestral</a> ⭐ 3.3k</div><div class="c">Unmaintained since June 2026; works until certificates expire.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=maestral.app&sz=64" alt=""><div><div class="t"><span class="num">27</span> <a href="https://maestral.app/about/">Maestral — about</a></div><div class="c">Syncs shared folders, cannot manage their settings.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=rclone.org&sz=64" alt=""><div><div class="t"><span class="num">28</span> <a href="https://rclone.org/bisync/">rclone — bisync</a></div><div class="c">Advanced command; data loss possible.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=syncthing.net&sz=64" alt=""><div><div class="t"><span class="num">29</span> <a href="https://syncthing.net/">Syncthing</a> ⭐ 87.1k</div><div class="c">Peer-to-peer, no central server.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=thelig.ht&sz=64" alt=""><div><div class="t"><span class="num">30</span> <a href="https://thelig.ht/code/dbxfs/">dbxfs</a></div><div class="c">FUSE mount of a Dropbox account; v2.0.1, GPLv3.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt=""><div><div class="t"><span class="num">31</span> <a href="https://github.com/rianhunter/dbxfs">dbxfs (GitHub mirror)</a> ⭐ 690</div><div class="c">Archived July 2021.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=insynchq.com&sz=64" alt=""><div><div class="t"><span class="num">32</span> <a href="https://www.insynchq.com/pricing">Insync — pricing</a></div><div class="c">$39.99 one-time per cloud account; Server plan $159.99/yr.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=insynchq.com&sz=64" alt=""><div><div class="t"><span class="num">33</span> <a href="https://www.insynchq.com/linux">Insync for Linux</a></div><div class="c">Dropbox including team folders.</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" alt=""><div><div class="t"><span class="num">34</span> <a href="https://help.dropbox.com/organize/file-names">Dropbox Help — file names</a></div><div class="c">Restricted characters and the ~255-character cap.</div></div></div>
+      </div>
+    </section>
+
+    <!-- ══ SIBLINGS ════════════════════════════════════ -->
+    <section>
+      <div class="shead">
+        <span class="idx">Expedition</span>
+        <h2>Other angles on the same migration</h2>
+        <span class="tail"><a href="../../">Back to the expedition</a></span>
+      </div>
+
+      <div class="sibs">
+        <div class="sib">
+          <span class="d">Survey</span>
+          <h4><a href="../../the-staged-ladder-what-each-rung-proves/">The staged ladder: what each rung of a Windows→Linux move actually proves</a></h4>
+          <p>What each rung proves, what it structurally hides, the go/no-go signal, and the cost of retreating.</p>
+        </div>
+        <div class="sib">
+          <span class="d">Survey</span>
+          <h4><a href="../../wsl2-as-rung-zero-and-its-ceiling/">WSL2 as rung zero — what it proves, and the exact wall it hits</a></h4>
+          <p>WSL2 retires every userland risk and none of the machine-ownership risks; here is where the line falls.</p>
+        </div>
+        <div class="sib">
+          <span class="d">Survey</span>
+          <h4><a href="../../dual-boot-without-wrecking-windows/">Dual-boot Linux next to Windows in 2026 without wrecking the Windows install</a></h4>
+          <p>A second NVMe, two OSes ignorant of each other, and Linux picked from the firmware boot menu.</p>
+        </div>
+        <div class="sib">
+          <span class="d">Survey</span>
+          <h4><a href="../../trial-hardware-and-vm-paths/">Trial hardware and VM paths for evaluating Linux before you commit</a></h4>
+          <p>Live USB first, then a full install on an external NVMe SSD — everything else is a detour.</p>
+        </div>
+        <div class="sib">
+          <span class="d">Survey</span>
+          <h4><a href="../../living-in-both-oses-during-the-overlap/">Living in both OSes: running Windows and Linux for months without your setup rotting</a></h4>
+          <p>One source of truth per asset class, replicated by a tool that knows the OS difference.</p>
+        </div>
+        <div class="sib">
+          <span class="d">Recon</span>
+          <h4><a href="../../exit-criteria-and-the-blocker-inventory/">Exit criteria and the blocker inventory: decide the Linux switch on evidence, not vibes</a></h4>
+          <p>A fill-in blocker inventory, tickable go/no-go criteria, and a pre-committed rollback date.</p>
+        </div>
+      </div>
+
+      <div class="colophon">
+        <span class="rail">Matrix view · derived from <a href="../">the survey page</a></span>
+        <span class="rail"><a href="/">Atlas</a></span>
+      </div>
+    </section>
+
+  </div>
+</div>

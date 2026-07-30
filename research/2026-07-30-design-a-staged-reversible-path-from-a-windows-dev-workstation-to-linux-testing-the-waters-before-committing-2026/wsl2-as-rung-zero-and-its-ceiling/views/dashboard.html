@@ -1,0 +1,918 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "WSL2 as rung zero — what it proves, and the exact wall it hits — Dashboard"
+---
+
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     Rung Zero Test Console — a rack-mounted bench instrument.
+     Channels below the ceiling read live. Above it, nothing reads.
+     ───────────────────────────────────────────────────────────── */
+  :root {
+    --rack:      #0c0e0d;
+    --panel:     #151816;
+    --panel-2:   #1c211e;
+    --panel-3:   #232926;
+    --edge:      #2e3531;
+    --edge-hi:   #414a45;
+    --steel:     #6d7873;
+    --label:     #8e9b95;
+    --text:      #cdd8d2;
+    --grn:       #58f39a;
+    --grn-dim:   #1e5c3c;
+    --amb:       #ffb02e;
+    --amb-dim:   #6b4a10;
+    --red:       #ff4a3a;
+    --red-dim:   #5e1c16;
+    --ice:       #6fd0ff;
+    --lcd:       #0a1410;
+    --lcd-txt:   #7dffb2;
+    --mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .rig {
+    margin: 0;
+    padding: 0 0 64px;
+    background-color: var(--rack);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at 50% -10%, rgba(88,243,154,0.07), transparent 60%);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .rig * { box-sizing: border-box; }
+  .rig a { color: var(--ice); text-decoration: none; border-bottom: 1px solid rgba(111,208,255,0.32); }
+  .rig a:hover { color: #b8e9ff; border-bottom-color: #b8e9ff; }
+  .rig sup { font-size: 9.5px; letter-spacing: 0.02em; }
+  .rig sup a { border-bottom: none; color: var(--label); }
+  .rig sup a:hover { color: var(--grn); }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+  /* ─── generic panel ─── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 3px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 28px rgba(0,0,0,0.45);
+  }
+  .screw {
+    position: absolute; width: 9px; height: 9px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 32%, #8b948e 0 38%, #464e49 39% 72%, #222926 73% 100%);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.7);
+  }
+  .screw::after {
+    content: ""; position: absolute; inset: 3px 1px; border-top: 1px solid rgba(0,0,0,0.55);
+  }
+
+  /* ─── section headers ─── */
+  .bar-head {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    margin: 56px 0 16px; padding-bottom: 9px;
+    border-bottom: 1px solid var(--edge);
+  }
+  .bar-head h2 {
+    margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--text);
+  }
+  .bar-head .sub { font-size: 11px; letter-spacing: 0.13em; color: var(--label); text-transform: uppercase; }
+  .bar-head .idx {
+    font-size: 11px; letter-spacing: 0.1em; color: var(--rack); background: var(--steel);
+    padding: 2px 7px; border-radius: 2px; font-weight: 700;
+  }
+
+  /* ─── LEDs ─── */
+  .led { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .led.on  { background: var(--grn); box-shadow: 0 0 5px var(--grn), 0 0 13px rgba(88,243,154,0.55), inset 0 0 2px #fff; }
+  .led.amb { background: var(--amb); box-shadow: 0 0 5px var(--amb), 0 0 13px rgba(255,176,46,0.5), inset 0 0 2px #fff; }
+  .led.dead{ background: #2a1512; box-shadow: inset 0 0 3px #000, 0 0 0 1px var(--red-dim); }
+  .led.alarm { background: var(--red); box-shadow: 0 0 5px var(--red), 0 0 13px rgba(255,74,58,0.5), inset 0 0 2px #fff; }
+
+  /* ─── FACEPLATE ─── */
+  .face {
+    position: relative; margin: 28px 0 0; padding: 26px 30px 24px;
+    background:
+      linear-gradient(180deg, #242b27 0%, #191e1b 46%, #141815 100%);
+    border: 1px solid var(--edge-hi);
+    border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 16px 40px rgba(0,0,0,0.6);
+  }
+  .face .screw:nth-of-type(1) { top: 9px; left: 9px; }
+  .face .screw:nth-of-type(2) { top: 9px; right: 9px; }
+  .face .screw:nth-of-type(3) { bottom: 9px; left: 9px; }
+  .face .screw:nth-of-type(4) { bottom: 9px; right: 9px; }
+  .face-grid { display: grid; grid-template-columns: minmax(0,1fr) 236px; gap: 26px; align-items: start; }
+  @media (max-width: 780px) { .face-grid { grid-template-columns: 1fr; } }
+
+  .plate-kicker {
+    font-size: 10.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--grn);
+    margin-bottom: 12px;
+  }
+  .face h1 {
+    margin: 0 0 6px; font-size: clamp(27px, 4.6vw, 46px); line-height: 1.03;
+    letter-spacing: -0.015em; font-weight: 800; color: #f0f5f2;
+  }
+  .face h1 em { font-style: normal; color: var(--amb); }
+  .model {
+    margin: 14px 0 0; font-size: 11px; letter-spacing: 0.09em; color: var(--label);
+    border-top: 1px dashed var(--edge-hi); padding-top: 11px;
+  }
+  .model b { color: var(--text); font-weight: 600; }
+
+  .unit-photo { position: relative; border: 1px solid var(--edge-hi); border-radius: 2px; overflow: hidden; }
+  .unit-photo img { display: block; width: 100%; height: 152px; object-fit: cover; filter: grayscale(0.35) contrast(1.12) brightness(0.82); }
+  .unit-photo::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.34) 0 1px, transparent 1px 3px),
+      linear-gradient(160deg, rgba(88,243,154,0.16), transparent 55%);
+    pointer-events: none;
+  }
+  .unit-cap { font-size: 9.5px; letter-spacing: 0.13em; color: var(--label); text-transform: uppercase; margin-top: 7px; }
+
+  /* ─── LCD verdict ─── */
+  .lcd {
+    margin-top: 20px; padding: 18px 20px;
+    background: var(--lcd);
+    border: 1px solid #16352a;
+    border-radius: 2px;
+    box-shadow: inset 0 0 40px rgba(88,243,154,0.10), inset 0 0 0 1px rgba(0,0,0,0.6);
+    position: relative; overflow: hidden;
+  }
+  .lcd::after {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.30) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+  .lcd .lcd-lbl { font-size: 10px; letter-spacing: 0.26em; color: #3f7d5f; text-transform: uppercase; }
+  .lcd p { margin: 8px 0 0; color: var(--lcd-txt); font-size: 15px; line-height: 1.62; text-shadow: 0 0 10px rgba(125,255,178,0.35); }
+  .lcd p + p { margin-top: 10px; }
+  .lcd strong { color: #d4ffe6; }
+  .lcd a { color: #9effc6; border-bottom-color: rgba(158,255,198,0.3); }
+
+  /* ─── readout strip ─── */
+  .strip {
+    display: flex; flex-wrap: wrap; gap: 1px; margin-top: 18px;
+    background: var(--edge); border: 1px solid var(--edge);
+  }
+  .readout { flex: 1 1 130px; background: var(--panel-2); padding: 11px 14px; }
+  .readout .k { font-size: 9.5px; letter-spacing: 0.2em; color: var(--label); text-transform: uppercase; }
+  .readout .v { font-size: 20px; font-weight: 700; color: var(--grn); letter-spacing: -0.01em; margin-top: 2px; }
+  .readout .v.amber { color: var(--amb); }
+  .readout .v.small { font-size: 14px; letter-spacing: 0.04em; }
+
+  /* ─── channel rows ─── */
+  .chan {
+    display: grid; grid-template-columns: 62px 22px minmax(0,1.05fr) minmax(0,1.7fr);
+    gap: 0 14px; align-items: start;
+    padding: 13px 16px;
+    background: var(--panel); border: 1px solid var(--edge); border-top: none;
+  }
+  .chan:first-of-type { border-top: 1px solid var(--edge); }
+  .chan:nth-child(even) { background: var(--panel-2); }
+  .chan .no { font-size: 10.5px; letter-spacing: 0.1em; color: var(--steel); padding-top: 3px; }
+  .chan .ledcell { padding-top: 6px; }
+  .chan .name { font-weight: 700; color: #eaf3ee; font-size: 13.5px; }
+  .chan .val { color: var(--text); }
+  .chan .val .tag {
+    display: inline-block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 1px 6px; border-radius: 2px; margin-right: 7px; vertical-align: 1px;
+    background: rgba(88,243,154,0.13); color: var(--grn); border: 1px solid var(--grn-dim);
+  }
+  .chan .val .tag.amber { background: rgba(255,176,46,0.12); color: var(--amb); border-color: var(--amb-dim); }
+  @media (max-width: 720px) {
+    .chan { grid-template-columns: 46px 20px 1fr; }
+    .chan .val { grid-column: 3 / -1; margin-top: 5px; }
+  }
+
+  /* ─── hazard ceiling ─── */
+  .ceiling { margin: 66px 0 0; }
+  .hazard {
+    height: 22px;
+    background: repeating-linear-gradient(-45deg, var(--amb) 0 13px, #14170f 13px 26px);
+    opacity: 0.88;
+  }
+  .ceiling-body {
+    background: #16100c; border-left: 1px solid var(--amb-dim); border-right: 1px solid var(--amb-dim);
+    padding: 26px 24px; text-align: center;
+  }
+  .ceiling-body .big {
+    font-size: clamp(20px, 3.6vw, 36px); font-weight: 800; letter-spacing: 0.04em;
+    color: var(--amb); margin: 0; line-height: 1.15;
+  }
+  .ceiling-body .small {
+    margin: 12px auto 0; max-width: 720px; font-size: 13px; color: #d6c39c;
+  }
+
+  /* ─── dead channel grid ─── */
+  .dead-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(276px, 1fr)); gap: 14px; margin-top: 20px; }
+  .dead-card {
+    background: var(--panel); border: 1px solid var(--edge); border-radius: 3px; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .dead-thumb { position: relative; height: 118px; overflow: hidden; background: #0a0c0b; }
+  .dead-thumb img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    filter: grayscale(1) contrast(1.25) brightness(0.34);
+  }
+  .dead-thumb::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.45) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at 50% 120%, rgba(255,74,58,0.20), transparent 62%);
+  }
+  .nosig {
+    position: absolute; left: 10px; top: 10px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 9.5px; letter-spacing: 0.19em; text-transform: uppercase;
+    color: #ffb3aa; background: rgba(24,8,6,0.82); border: 1px solid var(--red-dim);
+    padding: 3px 8px; border-radius: 2px;
+  }
+  .dead-body { padding: 13px 15px 15px; }
+  .dead-body h3 { margin: 0 0 7px; font-size: 13.5px; color: #eaf3ee; letter-spacing: 0.01em; }
+  .dead-body .sub-line {
+    font-size: 11.5px; color: var(--label); border-left: 2px solid var(--steel);
+    padding-left: 9px; margin-bottom: 9px;
+  }
+  .dead-body p { margin: 0; font-size: 12.5px; color: var(--text); }
+
+  /* ─── gauges ─── */
+  .gauge-panel { position: relative; padding: 22px 24px 24px; margin-top: 20px; }
+  .gauge-panel .screw:nth-of-type(1) { top: 8px; left: 8px; }
+  .gauge-panel .screw:nth-of-type(2) { top: 8px; right: 8px; }
+  .gauge-block + .gauge-block { margin-top: 22px; padding-top: 20px; border-top: 1px dashed var(--edge); }
+  .gauge-title {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label);
+    margin-bottom: 12px;
+  }
+  .gauge-title b { color: var(--text); font-weight: 700; letter-spacing: 0.15em; }
+  .g-row { display: grid; grid-template-columns: 128px minmax(0,1fr) 122px; gap: 12px; align-items: center; margin-bottom: 7px; }
+  .g-lbl { font-size: 11.5px; color: var(--label); letter-spacing: 0.03em; text-align: right; }
+  .g-lbl.native { color: var(--grn); }
+  .g-track {
+    position: relative; height: 20px; background: #0a0d0b;
+    border: 1px solid var(--edge); border-radius: 2px; overflow: hidden;
+    background-image: repeating-linear-gradient(90deg, transparent 0 9.9%, rgba(255,255,255,0.055) 9.9% 10%);
+  }
+  .g-fill { position: absolute; left: 0; top: 0; bottom: 0; min-width: 3px; }
+  .g-fill.native { background: linear-gradient(90deg, #1f8a55, var(--grn)); box-shadow: 0 0 14px rgba(88,243,154,0.35); }
+  .g-fill.mnt    { background: linear-gradient(90deg, #7a4a08, var(--amb)); box-shadow: 0 0 10px rgba(255,176,46,0.3); }
+  .g-fill.wslx   { background: linear-gradient(90deg, #6a1d16, var(--red)); box-shadow: 0 0 10px rgba(255,74,58,0.3); }
+  .g-val { font-size: 12.5px; font-weight: 700; letter-spacing: 0.01em; }
+  .g-val.native { color: var(--grn); }
+  .g-val.mnt { color: var(--amb); }
+  .g-val.wslx { color: var(--red); }
+  @media (max-width: 660px) {
+    .g-row { grid-template-columns: 92px minmax(0,1fr) 92px; gap: 8px; }
+    .g-lbl { font-size: 10px; }
+    .g-val { font-size: 11px; }
+  }
+
+  /* ─── poster numbers ─── */
+  .poster { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 20px; }
+  .poster-cell {
+    position: relative; padding: 24px 22px 22px; border: 1px solid var(--edge);
+    background: var(--panel-2); border-radius: 3px; overflow: hidden;
+  }
+  .poster-cell .num {
+    font-size: clamp(52px, 9vw, 92px); font-weight: 800; line-height: 0.88;
+    letter-spacing: -0.045em; color: var(--red); text-shadow: 0 0 34px rgba(255,74,58,0.28);
+  }
+  .poster-cell.amberish .num { color: var(--amb); text-shadow: 0 0 34px rgba(255,176,46,0.25); }
+  .poster-cell .cap { margin-top: 10px; font-size: 12px; color: var(--text); }
+  .poster-cell .cap b { color: #f0f5f2; }
+
+  /* ─── annunciator ─── */
+  .annun {
+    display: grid; grid-template-columns: 60px minmax(0,1fr); gap: 18px; align-items: start;
+    margin-top: 20px; padding: 20px 22px;
+    background: linear-gradient(180deg, #241708, #170f06);
+    border: 1px solid var(--amb-dim); border-left: 4px solid var(--amb); border-radius: 3px;
+  }
+  .annun .lamp {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #ffe4a8 0 16%, var(--amb) 17% 62%, #a86d0d 63% 100%);
+    box-shadow: 0 0 22px rgba(255,176,46,0.55), inset 0 -3px 8px rgba(0,0,0,0.45);
+  }
+  .annun h3 { margin: 0 0 8px; font-size: 15px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--amb); }
+  .annun p { margin: 0 0 9px; color: #e8dcc4; font-size: 13px; }
+  .annun p:last-child { margin-bottom: 0; }
+  .annun code { background: rgba(0,0,0,0.42); padding: 1px 5px; border-radius: 2px; color: #ffd68f; }
+  @media (max-width: 560px) { .annun { grid-template-columns: 1fr; } }
+
+  /* ─── fault log ─── */
+  .faults { margin-top: 20px; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; }
+  .fault {
+    display: grid; grid-template-columns: 108px minmax(0,1fr); gap: 16px;
+    padding: 14px 18px; background: var(--panel);
+    border-bottom: 1px solid var(--edge);
+  }
+  .fault:last-child { border-bottom: none; }
+  .fault:nth-child(even) { background: var(--panel-2); }
+  .fault .code {
+    font-size: 10.5px; letter-spacing: 0.11em; color: var(--amb);
+    border: 1px solid var(--amb-dim); border-radius: 2px; padding: 2px 6px;
+    height: fit-content; text-align: center; background: rgba(255,176,46,0.06);
+  }
+  .fault h4 { margin: 0 0 5px; font-size: 13px; color: #eaf3ee; letter-spacing: 0.02em; }
+  .fault p { margin: 0; font-size: 12.5px; color: var(--text); }
+  .fault code { background: rgba(0,0,0,0.42); padding: 1px 5px; border-radius: 2px; color: #b8f0d1; font-size: 12px; }
+  @media (max-width: 560px) { .fault { grid-template-columns: 1fr; gap: 8px; } .fault .code { justify-self: start; } }
+
+  /* ─── config terminal ─── */
+  .term {
+    margin-top: 20px; border: 1px solid var(--edge); border-radius: 3px; overflow: hidden;
+    background: #080b09;
+  }
+  .term-bar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+    background: var(--panel-3); border-bottom: 1px solid var(--edge);
+    font-size: 10.5px; letter-spacing: 0.16em; color: var(--label); text-transform: uppercase;
+  }
+  .term pre {
+    margin: 0; padding: 18px 20px; font-family: var(--mono); font-size: 13px; line-height: 1.75;
+    color: #cfe6da; overflow-x: auto;
+  }
+  .term .sec { color: var(--ice); }
+  .term .key { color: var(--grn); }
+  .term .num { color: var(--amb); }
+  .term-note { padding: 12px 20px; border-top: 1px solid var(--edge); font-size: 11.5px; color: var(--label); background: var(--panel); }
+
+  /* ─── verdict matrix ─── */
+  .matrix { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 20px; }
+  .mx { border: 1px solid var(--edge); border-radius: 3px; overflow: hidden; }
+  .mx-head { padding: 11px 16px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; }
+  .mx.pass .mx-head { background: rgba(88,243,154,0.10); color: var(--grn); border-bottom: 1px solid var(--grn-dim); }
+  .mx.fail .mx-head { background: rgba(255,74,58,0.10); color: var(--red); border-bottom: 1px solid var(--red-dim); }
+  .mx ul { list-style: none; margin: 0; padding: 0; }
+  .mx li {
+    display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 11px; align-items: start;
+    padding: 11px 16px; background: var(--panel); border-bottom: 1px solid var(--edge);
+    font-size: 12.5px;
+  }
+  .mx li:last-child { border-bottom: none; }
+  .mx li:nth-child(even) { background: var(--panel-2); }
+  .mx .ledcell { padding-top: 5px; }
+
+  /* ─── shutdown card ─── */
+  .shutdown { margin-top: 22px; padding: 26px 26px 24px; position: relative; }
+  .shutdown .screw:nth-of-type(1) { top: 8px; left: 8px; }
+  .shutdown .screw:nth-of-type(2) { bottom: 8px; right: 8px; }
+  .shutdown h3 { margin: 0 0 10px; font-size: 18px; letter-spacing: 0.06em; color: var(--amb); }
+  .shutdown p { margin: 0 0 16px; font-size: 13.5px; }
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+  .checks li { display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 11px; align-items: start; font-size: 13px; }
+  .checks .box {
+    width: 20px; height: 20px; border: 1px solid var(--steel); border-radius: 2px;
+    background: #0a0d0b; color: var(--label); font-size: 11px; text-align: center; line-height: 18px;
+  }
+
+  /* ─── patch bay ─── */
+  .bay { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 1px; margin-top: 20px; background: var(--edge); border: 1px solid var(--edge); }
+  .jack {
+    display: grid; grid-template-columns: 26px 18px minmax(0,1fr); gap: 9px; align-items: center;
+    padding: 9px 11px; background: var(--panel);
+  }
+  .jack:hover { background: var(--panel-3); }
+  .jack .n { font-size: 10px; color: var(--steel); letter-spacing: 0.06em; }
+  .jack img { width: 16px; height: 16px; display: block; border-radius: 2px; opacity: 0.9; }
+  .jack a { font-size: 11.5px; color: var(--text); border-bottom: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jack a:hover { color: var(--grn); }
+
+  /* ─── bench neighbours ─── */
+  .bench { display: grid; grid-template-columns: repeat(auto-fill, minmax(292px, 1fr)); gap: 14px; margin-top: 20px; }
+  .slot { padding: 16px 18px; background: var(--panel); border: 1px solid var(--edge); border-radius: 3px; border-top: 2px solid var(--steel); }
+  .slot .dep { font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--steel); }
+  .slot h4 { margin: 6px 0 7px; font-size: 13.5px; line-height: 1.35; }
+  .slot h4 a { color: #eaf3ee; border-bottom: none; }
+  .slot h4 a:hover { color: var(--grn); }
+  .slot p { margin: 0; font-size: 12px; color: var(--label); }
+
+  .colophon {
+    margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--edge);
+    font-size: 11px; letter-spacing: 0.09em; color: var(--steel); text-transform: uppercase;
+    display: flex; gap: 18px; flex-wrap: wrap; justify-content: space-between;
+  }
+</style>
+
+<div class="rig">
+  <div class="wrap">
+
+    <!-- ══════════════ FACEPLATE ══════════════ -->
+    <div class="face">
+      <span class="screw"></span><span class="screw"></span><span class="screw"></span><span class="screw"></span>
+      <div class="face-grid">
+        <div>
+          <div class="plate-kicker">Rung Zero · Bench Test Console</div>
+          <h1>WSL2 measures your <em>userland</em>. It has no probe for your <em>machine</em>.</h1>
+          <div class="model">
+            MOD. <b>WSL 2.9.3</b> &nbsp;·&nbsp; KERNEL <b>linux-msft-wsl-6.18.y</b> &nbsp;·&nbsp; TRANSPORT <b>plan9 (default) / virtiofs (opt-in)</b> &nbsp;·&nbsp; CAL. <b>Jul 2026</b>
+          </div>
+        </div>
+        <div>
+          <div class="unit-photo">
+            <img src="dashboard/images/scope.webp" alt="Analog CRT oscilloscope beside a digital storage oscilloscope on a bench">
+          </div>
+          <div class="unit-cap">Unit under test · 38 probes attached</div>
+        </div>
+      </div>
+
+      <div class="lcd">
+        <div class="lcd-lbl">▸ Primary readout</div>
+        <p>Spend <strong>3–6 months</strong> in WSL2 to retire the <strong>userland</strong> risk — bash, coreutils, apt, git, Docker, <code>dotnet</code>/<code>bun</code> on Linux. That part is genuinely identical, and WSL2 now runs a real Microsoft-built Linux 6.18 kernel with systemd<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a><a href="https://github.com/microsoft/WSL2-Linux-Kernel">[2]</a><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">[3]</a></sup>.</p>
+        <p>Then stop. WSL2 cannot teach you a display server, a bootloader, drivers, suspend/resume, or package-manager-owns-the-machine — and it hides the one decision that dominates day-one pain: <strong>your repos must live on ext4, not <code>/mnt/c</code></strong>, which is exactly where a Dropbox-synced Windows folder puts them<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems">[4]</a><a href="https://github.com/webbertakken/wsl-filesystem-benchmark">[5]</a></sup>.</p>
+      </div>
+
+      <div class="strip">
+        <div class="readout"><div class="k">Channels live</div><div class="v">8</div></div>
+        <div class="readout"><div class="k">Channels dead</div><div class="v amber">9</div></div>
+        <div class="readout"><div class="k">Worst penalty</div><div class="v amber">34×</div></div>
+        <div class="readout"><div class="k">Probes</div><div class="v small">38 sources</div></div>
+        <div class="readout"><div class="k">Depth</div><div class="v small">survey · 7 min</div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ BANK A ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">BANK A</span>
+      <h2>Live channels</h2>
+      <span class="sub">what WSL2 genuinely validates — transfers 1:1 to bare metal</span>
+    </div>
+
+    <div>
+      <div class="chan">
+        <div class="no">CH 01</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">Kernel + syscall compatibility</div>
+        <div class="val"><span class="tag">reading</span>Microsoft-built kernel, branch <a href="https://github.com/microsoft/WSL2-Linux-Kernel">linux-msft-wsl-6.18.y</a> ⭐ 10k, serviced by Windows Update<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a><a href="https://github.com/microsoft/WSL2-Linux-Kernel">[2]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 02</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">bash / coreutils / apt / man</div>
+        <div class="val"><span class="tag">reading</span>Unmodified distro userland — the shell you learn here is the shell you keep<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 03</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">systemd</div>
+        <div class="val"><span class="tag">reading</span>Since WSL 0.67.6. Set <code>[boot] systemd=true</code> in <code>/etc/wsl.conf</code>, then <code>wsl --shutdown</code><sup><a href="https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/">[6]</a><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">[3]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 04</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">Docker / containers</div>
+        <div class="val"><span class="tag">reading</span>Full syscall compat; native <code>wslc</code> runtime in public preview since 29 Jun 2026 (WSL 2.9.3), GA targeted autumn 2026<sup><a href="https://devblogs.microsoft.com/commandline/wsl-container-is-now-available-for-public-preview/">[7]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 05</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">.NET CLI + debugging on Linux</div>
+        <div class="val"><span class="tag">reading</span>Visual Studio ships a WSL launch profile; the runtime is the real linux-x64 runtime<sup><a href="https://learn.microsoft.com/en-us/visualstudio/debugger/debug-dotnet-core-in-wsl-2?view=vs-2022">[8]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 06</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">GPU compute (CUDA)</div>
+        <div class="val"><span class="tag">compute only</span>Via GPU-PV and <code>/dev/dxg</code>; <code>nvidia-smi</code> works with only the <b>Windows</b> driver installed<sup><a href="https://developer.nvidia.com/cuda/wsl">[9]</a><a href="https://www.cicoria.com/cuda-on-wsl2-how-it-works-how-to-set-it-up-and-a-rust-tui-to-prove-it/">[10]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 07</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">Linux GUI apps (WSLg)</div>
+        <div class="val"><span class="tag amber">windows only</span><a href="https://github.com/microsoft/wslg">WSLg</a> ⭐ 12k — Wayland + XWayland, Weston with an RDP backend, PulseAudio in/out, GPU accel via Mesa d3d12<sup><a href="https://github.com/microsoft/wslg">[11]</a></sup></div>
+      </div>
+      <div class="chan">
+        <div class="no">CH 08</div><div class="ledcell"><span class="led on"></span></div>
+        <div class="name">Raw CPU / IO ceiling</div>
+        <div class="val"><span class="tag">85–95% of native</span>Phoronix, 15 Sep 2025, Ryzen 9 9950X3D, Ubuntu 24.04 vs bare metal: ~10–15% CPU overhead, up to ~20% on I/O<sup><a href="https://www.phoronix.com/review/windows-11-wsl2-2025">[12]</a><a href="https://www.webpronews.com/microsoft-wsl2-on-windows-11-25h2-10-20-overhead-in-benchmarks/">[13]</a></sup></div>
+      </div>
+    </div>
+
+    <div class="annun" style="border-left-color: var(--grn); border-color: var(--grn-dim); background: linear-gradient(180deg, #0d1f16, #0a1410);">
+      <div class="lamp" style="background: radial-gradient(circle at 38% 34%, #d8ffe9 0 16%, var(--grn) 17% 62%, #16643f 63% 100%); box-shadow: 0 0 22px rgba(88,243,154,0.45), inset 0 -3px 8px rgba(0,0,0,0.45);"></div>
+      <div>
+        <h3 style="color: var(--grn);">Access panel open</h3>
+        <p style="color: #cfe8da;">WSL went open source at Build 2025 under MIT, so the seams are now inspectable: <code>wsl.exe</code>, <code>wslservice.exe</code>, the Linux-side <code>init</code>/<code>gns</code>/<code>localhost</code> daemons and the plan9 server<sup><a href="https://blogs.windows.com/windowsdeveloper/2025/05/19/the-windows-subsystem-for-linux-is-now-open-source/">[14]</a><a href="https://learn.microsoft.com/en-us/windows/wsl/opensource">[15]</a></sup> — <a href="https://github.com/microsoft/WSL">microsoft/WSL</a> ⭐ 33k (Jul 2026)<sup><a href="https://github.com/microsoft/WSL">[16]</a></sup>.</p>
+        <p style="color: #cfe8da;">Still sealed: <code>lxcore.sys</code> (WSL1) and <code>p9rdr.sys</code>/<code>p9np.dll</code>, the <code>\\wsl.localhost</code> redirector<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/opensource">[15]</a></sup>.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ THE GAUGES ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">BENCH TEST</span>
+      <h2>Filesystem throughput</h2>
+      <span class="sub">the number that decides your setup</span>
+    </div>
+
+    <p style="margin: 0 0 4px; color: var(--text); max-width: 860px;">
+      Microsoft's own guidance: <em>"We recommend against working across operating systems with your files… store your files in the WSL file system if you are working in a Linux command line."</em><sup><a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems">[4]</a></sup>
+      The mechanism is a plan9 file server inside <code>wslservice.exe</code> reached over a Hyper-V socket — one round-trip per operation<sup><a href="https://wsl.dev/technical-documentation/drvfs/">[17]</a></sup>.
+    </p>
+
+    <div class="panel gauge-panel">
+      <span class="screw"></span><span class="screw"></span>
+
+      <div class="gauge-block">
+        <div class="gauge-title"><b>Sequential read · 1 MB</b><span>full scale 2400 MB/s</span></div>
+        <div class="g-row"><div class="g-lbl native">WSL ext4 (VHDX)</div><div class="g-track"><div class="g-fill native" style="width:100%"></div></div><div class="g-val native">2393 MB/s</div></div>
+        <div class="g-row"><div class="g-lbl">WSL → /mnt/c</div><div class="g-track"><div class="g-fill mnt" style="width:3.6%"></div></div><div class="g-val mnt">86 MB/s</div></div>
+        <div class="g-row"><div class="g-lbl">Windows → \\wsl$</div><div class="g-track"><div class="g-fill wslx" style="width:6.5%"></div></div><div class="g-val wslx">156 MB/s</div></div>
+      </div>
+
+      <div class="gauge-block">
+        <div class="gauge-title"><b>Sequential write · 100 MB</b><span>full scale 2830 MB/s</span></div>
+        <div class="g-row"><div class="g-lbl native">WSL ext4 (VHDX)</div><div class="g-track"><div class="g-fill native" style="width:100%"></div></div><div class="g-val native">2827 MB/s</div></div>
+        <div class="g-row"><div class="g-lbl">WSL → /mnt/c</div><div class="g-track"><div class="g-fill mnt" style="width:10.4%"></div></div><div class="g-val mnt">294 MB/s</div></div>
+        <div class="g-row"><div class="g-lbl">Windows → \\wsl$</div><div class="g-track"><div class="g-fill wslx" style="width:0.4%"></div></div><div class="g-val wslx">10 MB/s</div></div>
+      </div>
+
+      <div class="gauge-block">
+        <div class="gauge-title"><b>Random read</b><span>full scale 24 600 IOPS</span></div>
+        <div class="g-row"><div class="g-lbl native">WSL ext4 (VHDX)</div><div class="g-track"><div class="g-fill native" style="width:100%"></div></div><div class="g-val native">24 554 IOPS</div></div>
+        <div class="g-row"><div class="g-lbl">WSL → /mnt/c</div><div class="g-track"><div class="g-fill mnt" style="width:3.0%"></div></div><div class="g-val mnt">725 IOPS</div></div>
+        <div class="g-row"><div class="g-lbl">Windows → \\wsl$</div><div class="g-track"><div class="g-fill wslx" style="width:5.2%"></div></div><div class="g-val wslx">1271 IOPS</div></div>
+      </div>
+
+      <div class="gauge-block">
+        <div class="gauge-title"><b>Directory traversal</b><span>full scale 343 000 files/s</span></div>
+        <div class="g-row"><div class="g-lbl native">WSL ext4 (VHDX)</div><div class="g-track"><div class="g-fill native" style="width:100%"></div></div><div class="g-val native">343 338 f/s</div></div>
+        <div class="g-row"><div class="g-lbl">WSL → /mnt/c</div><div class="g-track"><div class="g-fill mnt" style="width:3.9%"></div></div><div class="g-val mnt">13 561 f/s</div></div>
+        <div class="g-row"><div class="g-lbl">Windows → \\wsl$</div><div class="g-track"><div class="g-fill wslx" style="width:8.2%"></div></div><div class="g-val wslx">28 045 f/s</div></div>
+      </div>
+
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--edge); font-size: 11.5px; color: var(--label);">
+        Source: <a href="https://github.com/webbertakken/wsl-filesystem-benchmark">wsl-filesystem-benchmark</a> ⭐ 3 (Jul 2026)<sup><a href="https://github.com/webbertakken/wsl-filesystem-benchmark">[5]</a></sup>. The canonical bug — <a href="https://github.com/microsoft/WSL/issues/4197">microsoft/WSL#4197</a>, 40.4 MB/s on <code>/mnt</code> under WSL2 vs 442 MB/s under WSL1 — is <b style="color: var(--red);">still open</b><sup><a href="https://github.com/microsoft/WSL/issues/4197">[18]</a></sup>.
+      </div>
+    </div>
+
+    <div class="poster">
+      <div class="poster-cell">
+        <div class="num">34×</div>
+        <div class="cap"><b>slower on random reads</b> the moment your repo sits under <code>/mnt/c</code> instead of <code>~/code</code>.</div>
+      </div>
+      <div class="poster-cell">
+        <div class="num">&lt;1%</div>
+        <div class="cap"><b>of native write throughput</b> when Windows writes into <code>\\wsl$</code> — 10 MB/s against 2827.</div>
+      </div>
+      <div class="poster-cell amberish">
+        <div class="num">50<span style="font-size:0.42em; letter-spacing:0; margin-left:2px;">s</span></div>
+        <div class="cap">Hugo build on native ext4 · <b style="color: var(--amb);">75 s</b> on virtiofs · <b style="color: var(--red);">3–5 m or more</b> on plan9<sup><a href="https://news.ycombinator.com/item?id=48403377">[20]</a></sup></div>
+      </div>
+    </div>
+
+    <div class="annun">
+      <div class="lamp"></div>
+      <div>
+        <h3>⚠ 2026 change · virtiofs is selectable, not default</h3>
+        <p>Set <code>virtiofs=true</code> under <code>[wsl2]</code> with kernel 6.18.26.3-1+ and <code>/mnt/*</code> stops going through plan9. A PR merged 27 May 2026 gave each virtio device its own DMA pool, removing the last SWIOTLB contention point. <b>plan9 remains the default</b><sup><a href="https://www.boxofcables.dev/wsl2-per-device-swiotlb-pools-for-virtiofs-and-virtioproxy/">[19]</a><a href="https://wsl.dev/technical-documentation/drvfs/">[17]</a></sup>.</p>
+        <p>virtiofs closes most of the gap. It does not close it — see the build-time gauge above.</p>
+      </div>
+    </div>
+
+    <div class="annun" style="border-left-color: var(--red); border-color: var(--red-dim); background: linear-gradient(180deg, #24100c, #170a08);">
+      <div class="lamp" style="background: radial-gradient(circle at 38% 34%, #ffcfc9 0 16%, var(--red) 17% 62%, #8d211a 63% 100%); box-shadow: 0 0 22px rgba(255,74,58,0.5), inset 0 -3px 8px rgba(0,0,0,0.45);"></div>
+      <div>
+        <h3 style="color: var(--red);">Alarm · the Dropbox trap</h3>
+        <p style="color: #f0d8d4;">A repo under <code>C:\Users\you\Dropbox\…</code> is doubly penalised. Every <code>git status</code>, <code>dotnet build</code> and <code>node_modules</code> walk pays the cross-OS tax on the gauges above — <em>and</em> the sync client indexes tens of thousands of dependency files it cannot exclude per-directory<sup><a href="https://medium.com/@bozzified/solving-painful-syncing-of-node-modules-when-using-dropbox-or-google-drive-a77c2ab0c97c">[21]</a></sup>.</p>
+        <p style="color: #f0d8d4;">The fix is not tuning. It is <code>git clone</code> into <code>~/code</code>, and letting the remote be the sync mechanism. This is a rehearsal for bare metal, where <code>/mnt/c</code> does not exist at all.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ THE CEILING ══════════════ -->
+    <div class="ceiling">
+      <div class="hazard"></div>
+      <div class="ceiling-body">
+        <p class="big">▲ MEASUREMENT CEILING ▲</p>
+        <p class="small">No instrument in this rack reads above this line. Every channel below is a real migration risk that WSL2 <b style="color: var(--amb);">cannot retire</b> — not badly, not partially. Structurally.</p>
+      </div>
+      <div class="hazard"></div>
+    </div>
+
+    <!-- ══════════════ BANK B ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">BANK B</span>
+      <h2>Dead channels</h2>
+      <span class="sub">substituted, simulated, or simply absent</span>
+    </div>
+
+    <div class="dead-grid">
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/desktop.webp" alt="A GNOME Shell desktop session on Fedora Workstation">
+        </div>
+        <div class="dead-body">
+          <h3>Display server</h3>
+          <div class="sub-line">Substitute: WSLg remotes <em>individual windows</em> onto the Windows desktop via Weston + RDP</div>
+          <p>You never pick Wayland vs X11, never configure a compositor, never hit fractional scaling or multi-monitor bugs. A real DE needs an XRDP hack; GNOME Shell wants 3D accel XRDP can't give, and KDE Plasma 6.8 is Wayland-only<sup><a href="https://wsl-ui.octasoft.co.uk/blog/wsl2-ubuntu-desktop-xrdp">[22]</a><a href="https://gist.github.com/tdcosta100/e28636c216515ca88d1f2e7a2e188912">[23]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/gpu.webp" alt="An NVIDIA discrete graphics card">
+        </div>
+        <div class="dead-body">
+          <h3>GPU drivers</h3>
+          <div class="sub-line">Substitute: <code>/dev/dxg</code> + stub <code>libcuda.so</code> in <code>/usr/lib/wsl/lib</code>, forwarding to the Windows driver</div>
+          <p>Installing a real Linux GPU driver <b style="color: var(--red);">breaks</b> it — the stub symlinks get overridden and passthrough stops. You never do DKMS, kernel-module signing, or a Nouveau→proprietary switch<sup><a href="https://www.cicoria.com/cuda-on-wsl2-how-it-works-how-to-set-it-up-and-a-rust-tui-to-prove-it/">[10]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/tux.webp" alt="Tux, the Linux kernel mascot">
+        </div>
+        <div class="dead-body">
+          <h3>Kernel ownership</h3>
+          <div class="sub-line">Substitute: a Microsoft-built kernel, serviced by Windows Update</div>
+          <p>No <code>apt</code>-owned kernel, no headers or module rebuild, no bad-kernel rollback. The one thing that makes Linux <em>yours</em> is the one thing Windows keeps<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/bootloader.webp" alt="A Linux distribution boot menu on a black screen">
+        </div>
+        <div class="dead-body">
+          <h3>Bootloader / firmware</h3>
+          <div class="sub-line">Substitute: none — the VM simply boots</div>
+          <p>No GRUB, no Secure Boot, no UEFI, and — the one that actually costs you a weekend — no "it doesn't boot" recovery drill.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/suspend.webp" alt="A closed laptop resting on a patterned surface">
+        </div>
+        <div class="dead-body">
+          <h3>Suspend / resume</h3>
+          <div class="sub-line">Substitute: none — Windows sleeps, the VM doesn't notice</div>
+          <p>Surfaces only as clock skew: "the VM for the WSL Linux distro doesn't have its clock updated when the host resumes." Fix is <code>sudo hwclock -s</code> — a symptom, not the test<sup><a href="https://stuartleeks.com/posts/fixing-clock-skew-with-wsl-2/">[24]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/battery.webp" alt="A lithium-ion laptop battery pack">
+        </div>
+        <div class="dead-body">
+          <h3>Battery / thermal / power</h3>
+          <div class="sub-line">Substitute: Windows owns all of it</div>
+          <p>TLP, <code>powertop</code>, CPU governors, lid actions: untested, in every direction. On a laptop this is usually the deciding channel — and it reads nothing here.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/usb.webp" alt="USB flash drives">
+        </div>
+        <div class="dead-body">
+          <h3>Peripherals</h3>
+          <div class="sub-line">Substitute: USB only via <a href="https://github.com/dorssel/usbipd-win">usbipd-win</a> ⭐ 6.0k — attach-by-busid, exclusive to WSL while attached</div>
+          <p>Serial ports are <b style="color: var(--red);">unsupported outright</b>. No udev-rules-for-a-real-device, no printer/scanner/webcam/fingerprint reality check<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/connect-usb">[25]</a><a href="https://github.com/dorssel/usbipd-win">[26]</a><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/network.webp" alt="An Ethernet switch with populated ports">
+        </div>
+        <div class="dead-body">
+          <h3>Networking</h3>
+          <div class="sub-line">Substitute: NAT by default — own virtual adapter, unique IP that changes on restart</div>
+          <p>LAN exposure needs <code>netsh portproxy</code>. <code>mirrored</code> mode fixes most of it but IPv6 <code>::1</code> is unsupported and it <em>silently</em> falls back to NAT on builds lacking the feature. You never touch NetworkManager, <code>nmcli</code>, or Wi-Fi/VPN driver reality<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/networking">[27]</a><a href="https://github.com/microsoft/WSL/issues/13068">[28]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="dead-card">
+        <div class="dead-thumb">
+          <span class="nosig"><span class="led dead"></span> No signal</span>
+          <img src="dashboard/images/services.webp" alt="A row of installed circuit breakers in a distribution board">
+        </div>
+        <div class="dead-body">
+          <h3>Init / service ownership</h3>
+          <div class="sub-line">Substitute: systemd runs — inside a distro cgroup managed by WSL</div>
+          <p><code>snapd</code> still doesn't work<sup><a href="https://github.com/microsoft/WSL/issues/9026">[29]</a></sup>, and systemd ≥ 256 needed plain cgroup v2 support that WSL's hybrid hierarchy lacked<sup><a href="https://github.com/microsoft/WSL/issues/11857">[30]</a></sup>. You get the syntax, not the ownership.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ FAULT LOG ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">LOG</span>
+      <h2>2026 sharp edges</h2>
+      <span class="sub">known faults · read before first power-on</span>
+    </div>
+
+    <div class="faults">
+      <div class="fault">
+        <div class="code">F-01 · MEM</div>
+        <div>
+          <h4>Memory ballooning</h4>
+          <p>The Linux page cache grows and Windows can't see it as reclaimable — Microsoft's own example shows 2 GB attributed to the VM while Linux is using 50 MB<sup><a href="https://devblogs.microsoft.com/commandline/memory-reclaim-in-the-windows-subsystem-for-linux-2/">[31]</a></sup>. <code>autoMemoryReclaim</code> now defaults to <code>dropCache</code>; <code>gradual</code> is the gentler option<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">[3]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="fault">
+        <div class="code">F-02 · VHD</div>
+        <div>
+          <h4>The disk only grows</h4>
+          <p>Default max is 1 TB and deleting files does not shrink the file. Enable <code>sparseVhd=true</code> (or <code>wsl --manage &lt;distro&gt; --set-sparse true</code>) — but once sparse, <code>Optimize-VHD</code> refuses to compact it, so you are committed to automatic reclaim<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">[3]</a><a href="https://www.ashn.dev/blog/2025-08-14-how-to-fix-wsl2-disk-space-bloat.html">[32]</a><a href="https://learn.microsoft.com/en-us/answers/questions/1526083/in-wsl2-with-sparse-vhd-the-storage-usage-does-not">[33]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="fault">
+        <div class="code">F-03 · FS</div>
+        <div>
+          <h4>inotify does not cross the boundary</h4>
+          <p>File-watching on <code>/mnt/c</code> doesn't fire, so Vite / Angular / <code>dotnet watch</code> HMR silently dies. The workaround is polling — or, correctly, moving the repo to ext4<sup><a href="https://github.com/microsoft/WSL/issues/5424">[34]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="fault">
+        <div class="code">F-04 · FS</div>
+        <div>
+          <h4>Case sensitivity inverts per tree</h4>
+          <p>Windows drives mount case-<b>insensitive</b> by default (<code>case=off</code>); ext4 is case-sensitive. Mixed-case files created in WSL become unopenable from Windows tools, and <code>git config core.ignorecase</code> disagreements produce phantom conflicts<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity">[35]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="fault">
+        <div class="code">F-05 · INIT</div>
+        <div>
+          <h4>cgroup v1 is gone</h4>
+          <p>WSL now isolates each distro's systemd into its own cgroup v2 hierarchy. <code>IsolateDistroCgroup</code> (default <code>true</code>) is the escape hatch for legacy v1 workloads<sup><a href="https://github.com/microsoft/WSL/pull/40519">[36]</a><a href="https://www.neowin.net/news/microsoft-makes-windows-subsystem-for-linux-more-stable-with-architecture-tweak/">[37]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="fault">
+        <div class="code">F-06 · CFG</div>
+        <div>
+          <h4>The 8-second rule</h4>
+          <p>Config edits need the VM fully stopped (<code>wsl --shutdown</code>), not just the terminal closed<sup><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">[3]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ CONFIG ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">CFG</span>
+      <h2>Panel settings</h2>
+      <span class="sub">%UserProfile%\.wslconfig · sane baseline for a 32 GB dev box</span>
+    </div>
+
+    <div class="term">
+      <div class="term-bar"><span class="led on"></span> %UserProfile%\.wslconfig</div>
+      <pre><span class="sec">[wsl2]</span>
+<span class="key">memory</span>=<span class="num">16GB</span>
+<span class="key">processors</span>=<span class="num">8</span>
+<span class="key">networkingMode</span>=<span class="num">mirrored</span>
+<span class="key">virtiofs</span>=<span class="num">true</span>
+
+<span class="sec">[experimental]</span>
+<span class="key">autoMemoryReclaim</span>=<span class="num">gradual</span>
+<span class="key">sparseVhd</span>=<span class="num">true</span>
+<span class="key">hostAddressLoopback</span>=<span class="num">true</span></pre>
+      <div class="term-note"><code>hostAddressLoopback</code> and <code>ignoredPorts</code> only apply under <code>mirrored</code><sup><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">[3]</a></sup>; <code>virtiofs</code> needs kernel 6.18.26.3-1+<sup><a href="https://www.boxofcables.dev/wsl2-per-device-swiotlb-pools-for-virtiofs-and-virtioproxy/">[19]</a></sup>.</div>
+    </div>
+
+    <!-- ══════════════ MATRIX ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">VERDICT</span>
+      <h2>Risk matrix</h2>
+      <span class="sub">which questions the console can answer at all</span>
+    </div>
+
+    <div class="matrix">
+      <div class="mx pass">
+        <div class="mx-head">✓ Retired by WSL2</div>
+        <ul>
+          <li><span class="ledcell"><span class="led on"></span></span><span>Will my .NET/TS toolchain build and debug on Linux?</span></li>
+          <li><span class="ledcell"><span class="led on"></span></span><span>Can I live in bash instead of PowerShell?</span></li>
+          <li><span class="ledcell"><span class="led on"></span></span><span>Do my Docker/compose/homelab deploy scripts work?</span></li>
+          <li><span class="ledcell"><span class="led amb"></span></span><span>Will my ML/CUDA work run? <span style="color: var(--amb);">— compute only</span></span></li>
+        </ul>
+      </div>
+      <div class="mx fail">
+        <div class="mx-head">✗ Untouched by WSL2</div>
+        <ul>
+          <li><span class="ledcell"><span class="led alarm"></span></span><span>Can I package-manage my own machine?</span></li>
+          <li><span class="ledcell"><span class="led alarm"></span></span><span>Will my laptop suspend, wake, and hold charge?</span></li>
+          <li><span class="ledcell"><span class="led alarm"></span></span><span>Will my GPU / Wi-Fi / fingerprint / dock work?</span></li>
+          <li><span class="ledcell"><span class="led alarm"></span></span><span>Which desktop environment do I actually want?</span></li>
+          <li><span class="ledcell"><span class="led alarm"></span></span><span>Can I recover an unbootable system?</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ══════════════ SHUTDOWN ══════════════ -->
+    <div class="panel shutdown">
+      <span class="screw"></span><span class="screw"></span>
+      <h3>Power-down condition</h3>
+      <p>Stop learning from WSL2 when your friction stops being <em>"how do I do X in Linux"</em> and becomes <em>"I want Linux to <b>be</b> the machine"</em> — the point where WSL2 mistakes are still trivially unwound but the questions it can answer have run out<sup><a href="https://www.vecosys.com/wsl2-vs-dual-boot-learning-linux/">[38]</a></sup>. Concretely, when all three read true:</p>
+      <ul class="checks">
+        <li><span class="box">a</span><span>All repos on ext4, with no <code>/mnt/c</code> dependency left anywhere in your workflow.</span></li>
+        <li><span class="box">b</span><span>systemd units you wrote yourself — not units a tutorial pasted for you.</span></li>
+        <li><span class="box">c</span><span>A dotfiles repo you can <code>git clone</code> onto a fresh box and be at home in minutes.</span></li>
+      </ul>
+      <p style="margin: 16px 0 0; color: var(--label);">At that point the next rung is a machine WSL2 can't simulate, and everything on the ✗ column has to be learned on real hardware.</p>
+    </div>
+
+    <!-- ══════════════ PATCH BAY ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">PATCH BAY</span>
+      <h2>38 probes</h2>
+      <span class="sub">every reading on this console traces to one of these</span>
+    </div>
+
+    <div class="bay">
+      <div class="jack"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">Comparing WSL versions</a></div>
+      <div class="jack"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL2-Linux-Kernel">microsoft/WSL2-Linux-Kernel</a></div>
+      <div class="jack"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-config">Advanced settings configuration</a></div>
+      <div class="jack"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems">File storage and performance</a></div>
+      <div class="jack"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/webbertakken/wsl-filesystem-benchmark">wsl-filesystem-benchmark</a></div>
+      <div class="jack"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=devblogs.microsoft.com&sz=128" alt=""><a href="https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/">systemd support in WSL</a></div>
+      <div class="jack"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=devblogs.microsoft.com&sz=128" alt=""><a href="https://devblogs.microsoft.com/commandline/wsl-container-is-now-available-for-public-preview/">WSL Container public preview</a></div>
+      <div class="jack"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/visualstudio/debugger/debug-dotnet-core-in-wsl-2?view=vs-2022">Debug .NET Core in WSL 2</a></div>
+      <div class="jack"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=developer.nvidia.com&sz=128" alt=""><a href="https://developer.nvidia.com/cuda/wsl">NVIDIA CUDA on WSL 2</a></div>
+      <div class="jack"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=cicoria.com&sz=128" alt=""><a href="https://www.cicoria.com/cuda-on-wsl2-how-it-works-how-to-set-it-up-and-a-rust-tui-to-prove-it/">CUDA on WSL2: how it works</a></div>
+      <div class="jack"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/wslg">microsoft/wslg</a></div>
+      <div class="jack"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><a href="https://www.phoronix.com/review/windows-11-wsl2-2025">Phoronix: WSL2 vs bare metal</a></div>
+      <div class="jack"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=webpronews.com&sz=128" alt=""><a href="https://www.webpronews.com/microsoft-wsl2-on-windows-11-25h2-10-20-overhead-in-benchmarks/">10–20% overhead in benchmarks</a></div>
+      <div class="jack"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=blogs.windows.com&sz=128" alt=""><a href="https://blogs.windows.com/windowsdeveloper/2025/05/19/the-windows-subsystem-for-linux-is-now-open-source/">WSL is now open source</a></div>
+      <div class="jack"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/opensource">WSL open source components</a></div>
+      <div class="jack"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL">microsoft/WSL</a></div>
+      <div class="jack"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=wsl.dev&sz=128" alt=""><a href="https://wsl.dev/technical-documentation/drvfs/">DrvFs technical documentation</a></div>
+      <div class="jack"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL/issues/4197">WSL#4197 · /mnt slower than WSL1</a></div>
+      <div class="jack"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=boxofcables.dev&sz=128" alt=""><a href="https://www.boxofcables.dev/wsl2-per-device-swiotlb-pools-for-virtiofs-and-virtioproxy/">Per-device SWIOTLB pools</a></div>
+      <div class="jack"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><a href="https://news.ycombinator.com/item?id=48403377">HN · faster Windows file access</a></div>
+      <div class="jack"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><a href="https://medium.com/@bozzified/solving-painful-syncing-of-node-modules-when-using-dropbox-or-google-drive-a77c2ab0c97c">node_modules in Dropbox</a></div>
+      <div class="jack"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=wsl-ui.octasoft.co.uk&sz=128" alt=""><a href="https://wsl-ui.octasoft.co.uk/blog/wsl2-ubuntu-desktop-xrdp">Ubuntu desktop on WSL2 via XRDP</a></div>
+      <div class="jack"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=gist.github.com&sz=128" alt=""><a href="https://gist.github.com/tdcosta100/e28636c216515ca88d1f2e7a2e188912">Full desktop shell in WSL2</a></div>
+      <div class="jack"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=stuartleeks.com&sz=128" alt=""><a href="https://stuartleeks.com/posts/fixing-clock-skew-with-wsl-2/">Fixing clock skew with WSL 2</a></div>
+      <div class="jack"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/connect-usb">Connect USB devices to WSL</a></div>
+      <div class="jack"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/dorssel/usbipd-win">dorssel/usbipd-win</a></div>
+      <div class="jack"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/networking">Accessing network applications</a></div>
+      <div class="jack"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL/issues/13068">WSL#13068 · mirrored falls back to NAT</a></div>
+      <div class="jack"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL/issues/9026">WSL#9026 · snapd does not work</a></div>
+      <div class="jack"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL/issues/11857">WSL#11857 · systemd needs cgroup v2</a></div>
+      <div class="jack"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=devblogs.microsoft.com&sz=128" alt=""><a href="https://devblogs.microsoft.com/commandline/memory-reclaim-in-the-windows-subsystem-for-linux-2/">Memory reclaim in WSL 2</a></div>
+      <div class="jack"><span class="n">32</span><img src="https://www.google.com/s2/favicons?domain=ashn.dev&sz=128" alt=""><a href="https://www.ashn.dev/blog/2025-08-14-how-to-fix-wsl2-disk-space-bloat.html">Fixing WSL2 disk space bloat</a></div>
+      <div class="jack"><span class="n">33</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/answers/questions/1526083/in-wsl2-with-sparse-vhd-the-storage-usage-does-not">Sparse VHD does not shrink</a></div>
+      <div class="jack"><span class="n">34</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL/issues/5424">WSL#5424 · inotify on mounted folders</a></div>
+      <div class="jack"><span class="n">35</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity">Adjust case sensitivity</a></div>
+      <div class="jack"><span class="n">36</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/microsoft/WSL/pull/40519">WSL#40519 · isolate distro cgroups</a></div>
+      <div class="jack"><span class="n">37</span><img src="https://www.google.com/s2/favicons?domain=neowin.net&sz=128" alt=""><a href="https://www.neowin.net/news/microsoft-makes-windows-subsystem-for-linux-more-stable-with-architecture-tweak/">WSL architecture tweak</a></div>
+      <div class="jack"><span class="n">38</span><img src="https://www.google.com/s2/favicons?domain=vecosys.com&sz=128" alt=""><a href="https://www.vecosys.com/wsl2-vs-dual-boot-learning-linux/">WSL2 vs dual boot for learning</a></div>
+    </div>
+
+    <!-- ══════════════ BENCH ══════════════ -->
+    <div class="bar-head">
+      <span class="idx">RACK</span>
+      <h2>Other instruments on the bench</h2>
+      <span class="sub"><a href="../../">Testing the waters: a staged, reversible path from a Windows dev workstation to Linux</a></span>
+    </div>
+
+    <div class="bench">
+      <div class="slot">
+        <div class="dep">survey</div>
+        <h4><a href="../../the-staged-ladder-what-each-rung-proves/">The staged ladder: what each rung of a Windows→Linux move actually proves</a></h4>
+        <p>What each rung proves, what it structurally hides, the go/no-go signal, and the cost of retreating.</p>
+      </div>
+      <div class="slot">
+        <div class="dep">survey</div>
+        <h4><a href="../../trial-hardware-and-vm-paths/">Trial hardware and VM paths for evaluating Linux before you commit (2026)</a></h4>
+        <p>Live USB first (€10, 15 minutes, proves your actual hardware), then a full install on an external NVMe SSD.</p>
+      </div>
+      <div class="slot">
+        <div class="dep">survey</div>
+        <h4><a href="../../dual-boot-without-wrecking-windows/">Dual-boot Linux next to Windows in 2026 without wrecking the Windows install</a></h4>
+        <p>Buy a second NVMe, keep the two OSes ignorant of each other, and pick Linux from the firmware boot menu.</p>
+      </div>
+      <div class="slot">
+        <div class="dep">survey</div>
+        <h4><a href="../../dropbox-on-linux-and-shared-folders/">Dropbox on Linux and shared folders: what actually works in 2026</a></h4>
+        <p>btrfs/zfs/xfs are supported now — but you cannot share one Dropbox folder between a Windows and a Linux install.</p>
+      </div>
+      <div class="slot">
+        <div class="dep">survey</div>
+        <h4><a href="../../living-in-both-oses-during-the-overlap/">Living in both OSes: running Windows and Linux for months without your setup rotting</a></h4>
+        <p>One source of truth per asset class, replicated by a tool that knows the OS difference.</p>
+      </div>
+      <div class="slot">
+        <div class="dep">recon</div>
+        <h4><a href="../../exit-criteria-and-the-blocker-inventory/">Exit criteria and the blocker inventory: decide the Linux switch on evidence, not vibes</a></h4>
+        <p>A fill-in blocker inventory plus tickable go/no-go criteria and a pre-committed rollback date.</p>
+      </div>
+    </div>
+
+    <div class="colophon">
+      <span>Rung Zero Test Console · survey · 38 sources · Jul 2026</span>
+      <span><a href="../">Full report</a> · <a href="../../">Expedition</a> · <a href="/">Atlas</a></span>
+    </div>
+
+  </div>
+</div>

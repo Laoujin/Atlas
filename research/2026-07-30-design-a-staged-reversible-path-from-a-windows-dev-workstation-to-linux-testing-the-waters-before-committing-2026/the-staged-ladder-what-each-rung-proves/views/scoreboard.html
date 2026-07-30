@@ -1,0 +1,899 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "The staged ladder: what each rung of a Windows→Linux move actually proves — Scoreboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+.bt {
+  --paper: #efece2;
+  --paper2: #e5e1d5;
+  --card: #f7f5ee;
+  --ink: #17160f;
+  --ink2: #56513f;
+  --rule: #b8b2a0;
+  --rule2: #d3cec0;
+  --red: #b32a24;
+  --green: #1c6b46;
+  --amber: #9c6a0a;
+  --blue: #1f4e79;
+  --dark: #15171b;
+
+  margin: 0;
+  padding: 0 0 0 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.bt *, .bt *::before, .bt *::after { box-sizing: border-box; }
+.bt a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+.mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+.cond { font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif; }
+
+.lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ink2);
+}
+
+/* ---------- sheet head ---------- */
+.head {
+  border-bottom: 3px double var(--ink);
+  padding-top: 62px;
+}
+.head-top {
+  display: flex; flex-wrap: wrap; gap: 10px 24px;
+  align-items: baseline; justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 8px;
+}
+.head-grid {
+  display: grid; grid-template-columns: 1fr 300px; gap: 32px;
+  padding: 26px 0 24px;
+}
+.head h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: clamp(38px, 6vw, 66px);
+  line-height: .95; letter-spacing: -.01em;
+  text-transform: uppercase; margin: 0 0 14px;
+}
+.head h1 em { font-style: normal; color: var(--red); }
+.dek { font-size: 17px; max-width: 44em; color: #2f2c22; margin: 0 0 18px; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--rule); }
+.meta-row div {
+  padding: 7px 14px; border-right: 1px solid var(--rule);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em;
+}
+.meta-row div:last-child { border-right: 0; }
+.meta-row b { font-weight: 700; }
+
+.plate { border: 1px solid var(--rule); background: var(--card); padding: 8px; align-self: start; }
+.plate img { width: 100%; display: block; border: 1px solid var(--rule2); }
+.plate figcaption {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; line-height: 1.45;
+  letter-spacing: .04em; color: var(--ink2); padding-top: 8px; text-transform: uppercase;
+}
+
+/* ---------- verdict band ---------- */
+.verdict { background: var(--dark); color: #f2efe4; margin-top: 0; padding: 34px 0 30px; }
+.verdict .lbl { color: #9a9482; }
+.verdict h2 {
+  font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  font-size: clamp(24px, 3.4vw, 36px); font-weight: 700; letter-spacing: .01em;
+  margin: 6px 0 20px; line-height: 1.05;
+}
+.verdict h2 span { color: #ffd166; }
+.route { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.step {
+  flex: 1 1 120px; min-width: 118px;
+  border: 1px solid #3a3d44; background: #1c1f25;
+  padding: 10px 11px 11px; position: relative;
+}
+.step .n { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #7f8794; letter-spacing: .12em; }
+.step .nm {
+  font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  font-size: 19px; font-weight: 600; line-height: 1.05; margin: 3px 0 8px;
+}
+.step .tag {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .1em; padding: 3px 6px; display: inline-block;
+}
+.step.go { border-color: #2f7d55; }
+.step.go .tag { background: #1c6b46; color: #eafff4; }
+.step.star { border-color: #ffd166; background: #26241a; }
+.step.star .tag { background: #ffd166; color: #26241a; }
+.step.star .nm { color: #ffd166; }
+.step.no { opacity: .58; }
+.step.no .nm { text-decoration: line-through; text-decoration-thickness: 2px; }
+.step.no .tag { background: #b32a24; color: #ffeceb; }
+.step.par .tag { background: #9c6a0a; color: #fff6e2; }
+.verdict p.tail { font-size: 15px; color: #cbc6b6; max-width: 62em; margin: 20px 0 0; }
+.verdict p.tail a { color: #ffd166; }
+
+/* ---------- section ---------- */
+.sec { padding: 44px 0 6px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 22px; }
+.sec-head h3 {
+  font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  font-size: 27px; font-weight: 700; margin: 0; letter-spacing: .01em;
+}
+.sec-head .n { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink2); letter-spacing: .12em; }
+
+/* ---------- channel legend ---------- */
+.channels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.chan { border: 1px solid var(--rule); background: var(--card); padding: 14px 16px 16px; }
+.chan .k {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; margin-bottom: 6px;
+}
+.chan.a .k { color: var(--blue); }
+.chan.b .k { color: var(--green); }
+.chan.c .k { color: var(--red); }
+.chan h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 21px; text-transform: uppercase; margin: 0 0 6px; font-weight: 700; }
+.chan p { margin: 0; font-size: 13.5px; color: #3b382c; }
+
+/* ---------- rung cards ---------- */
+.rungs { display: flex; flex-direction: column; gap: 22px; }
+.rung {
+  border: 1px solid var(--rule); background: var(--card);
+  display: grid; grid-template-columns: 208px 1fr; position: relative;
+}
+.rung.hi { border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(23,22,15,.13); }
+.rung.dim { background: #eae6d9; }
+
+.spec { border-right: 1px solid var(--rule); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.spec .rn {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; line-height: .8;
+  font-size: 82px; letter-spacing: -.03em;
+}
+.rung.dim .spec .rn { color: #a9a291; }
+.rung.hi .spec .rn { color: var(--red); }
+.spec img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border: 1px solid var(--rule2); display: block; filter: saturate(.85); }
+.spec .cap { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .06em; color: var(--ink2); text-transform: uppercase; line-height: 1.4; }
+
+.body { padding: 16px 20px 0; }
+.rhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--rule2); padding-bottom: 12px; }
+.rhead h4 {
+  font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  font-size: 34px; font-weight: 700; line-height: .98; margin: 2px 0 0;
+}
+.rhead .sub { font-size: 13.5px; color: #4a4636; margin-top: 5px; max-width: 46em; }
+
+.stamp {
+  flex: 0 0 auto; transform: rotate(-5deg);
+  border: 2.5px solid currentColor; padding: 5px 11px 4px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 21px; letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px var(--card);
+  white-space: nowrap;
+}
+.stamp small { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .12em; font-weight: 600; margin-top: 2px; }
+.stamp.go { color: var(--green); }
+.stamp.no { color: var(--red); }
+.stamp.star { color: #8a6d00; border-style: double; border-width: 5px; }
+.stamp.par { color: var(--amber); }
+.stamp.commit { color: var(--ink); }
+
+.meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 20px; padding: 14px 0 4px; }
+.meter .mtop { display: flex; justify-content: space-between; align-items: baseline; }
+.meter .mk { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 700; letter-spacing: .12em; color: var(--ink2); }
+.meter .mv { font-family: 'Barlow Condensed', sans-serif; font-size: 19px; font-weight: 700; line-height: 1; }
+.track {
+  height: 11px; margin-top: 4px; background: #ddd8c8;
+  border: 1px solid var(--rule); position: relative; overflow: hidden;
+}
+.track::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(90deg, transparent 0 24.5%, rgba(23,22,15,.22) 24.5% 25%);
+  pointer-events: none;
+}
+.fill { height: 100%; }
+.fill.a { background: var(--blue); }
+.fill.b { background: var(--green); }
+.fill.c { background: var(--red); }
+.fill.zero { background: repeating-linear-gradient(45deg, #c3bcaa 0 4px, #ddd8c8 4px 8px); width: 100% !important; }
+
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 14px 0 0; border-top: 1px solid var(--rule2); }
+.pc > div { padding: 12px 18px 12px 0; }
+.pc > div + div { border-left: 1px solid var(--rule2); padding-left: 18px; }
+.pc h5 { margin: 0 0 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .14em; font-weight: 700; }
+.pc .proves h5 { color: var(--green); }
+.pc .hides h5 { color: var(--red); }
+.pc p { margin: 0 0 7px; font-size: 13.5px; color: #35322a; }
+.pc p:last-child { margin-bottom: 0; }
+.pc q { font-style: italic; color: #262319; }
+
+.strip { display: flex; flex-wrap: wrap; border-top: 1px solid var(--rule2); border-bottom: 1px solid var(--rule2); }
+.strip div { flex: 1 1 120px; padding: 9px 0; border-right: 1px solid var(--rule2); }
+.strip div:last-child { border-right: 0; }
+.strip .k { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .13em; color: var(--ink2); }
+.strip .v { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; line-height: 1.1; }
+.strip .v small { font-size: 13px; font-weight: 600; }
+
+.chips { display: flex; flex-direction: column; gap: 8px; padding: 14px 0 16px; }
+.chip { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.chip .mk {
+  flex: 0 0 auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .1em; padding: 3px 8px; margin-top: 1px; color: #fff;
+}
+.chip.adv .mk { background: var(--green); }
+.chip.ret .mk { background: var(--red); }
+.chip.na .mk { background: #8d8778; }
+
+.retreat {
+  grid-column: 1 / -1; border-top: 1px dashed var(--ink);
+  display: flex; flex-wrap: wrap; align-items: stretch;
+  background: #ebe7d9;
+}
+.retreat .tagbox {
+  background: var(--ink); color: #f2efe4; padding: 10px 14px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .16em;
+  display: flex; align-items: center;
+}
+.retreat .val {
+  flex: 1 1 260px; padding: 9px 16px; display: flex; align-items: center;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500;
+}
+.retreat .bars {
+  flex: 0 0 96px;
+  background-image: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 9px, var(--ink) 9px 12px, transparent 12px 14px);
+  opacity: .8;
+}
+.retreat.heavy { background: #f3dedd; }
+.retreat.heavy .tagbox { background: var(--red); }
+
+/* ---------- hazard ---------- */
+.hazard { border: 2px solid var(--ink); background: var(--card); margin: 26px 0 0; }
+.hazard .tape {
+  height: 16px;
+  background-image: repeating-linear-gradient(45deg, #17160f 0 14px, #e8c33a 14px 28px);
+}
+.hazard .in { padding: 18px 22px 20px; display: grid; grid-template-columns: 64px 1fr; gap: 18px; }
+.hazard .glyph { font-size: 46px; line-height: 1; text-align: center; }
+.hazard h4 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-size: 25px; margin: 0 0 8px; font-weight: 700; }
+.hazard p { margin: 0 0 8px; font-size: 14.5px; }
+.hazard p:last-child { margin: 0; }
+.hazard .fix { border-left: 4px solid var(--red); padding-left: 12px; font-weight: 600; }
+
+/* ---------- log sheet ---------- */
+.logwrap { display: grid; grid-template-columns: 1fr 260px; gap: 24px; }
+.log { border: 1px solid var(--rule); background: var(--card); }
+.log .lh {
+  background: var(--ink); color: #f2efe4; padding: 9px 16px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .16em; font-weight: 600;
+}
+.log ol { margin: 0; padding: 0; list-style: none; counter-reset: lg; }
+.log li {
+  display: grid; grid-template-columns: 34px 1fr; gap: 12px;
+  padding: 13px 16px; border-bottom: 1px solid var(--rule2); font-size: 14px;
+}
+.log li:last-child { border-bottom: 0; }
+.log li::before {
+  content: '☐'; font-size: 21px; line-height: 1; color: var(--ink2);
+  border: 1px solid var(--rule2); text-align: center; padding-top: 2px; height: 26px;
+}
+.log li b { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 19px; text-transform: uppercase; font-weight: 700; line-height: 1.1; }
+.log li.key { background: #f6efd6; }
+.log li.key::before { content: '★'; color: #8a6d00; }
+
+/* ---------- calendar ---------- */
+.cal { border: 1px solid var(--rule); background: var(--card); padding: 20px 22px 22px; }
+.calgrid { display: grid; grid-template-columns: 128px 1fr; gap: 8px 16px; align-items: center; }
+.calrow-lbl { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .08em; color: var(--ink2); text-align: right; }
+.bar { position: relative; height: 30px; background: #e2ded0; border: 1px solid var(--rule2); }
+.bar span {
+  position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+  padding: 0 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+  font-size: 15px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; overflow: hidden;
+}
+.bar span.s0 { left: 0%; width: 30.8%; background: #cfd9e6; color: #1f4e79; }
+.bar span.s1 { left: 23.1%; width: 7.7%; background: #17160f; color: #f2efe4; }
+.bar span.s3a { left: 30.8%; width: 7.7%; background: #ffd166; color: #26241a; }
+.bar span.s3b { left: 30.8%; width: 61.5%; background: #1c6b46; color: #eafff4; }
+.bar span.s6 { left: 92.3%; width: 7.7%; background: #b32a24; color: #fff; padding: 0 6px; font-size: 13px; }
+.calaxis { display: flex; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink2); }
+.calaxis i { flex: 1; font-style: normal; border-left: 1px solid var(--rule2); padding: 4px 0 0 3px; }
+.caltail { margin: 16px 0 0; font-size: 14px; }
+
+/* ---------- context stats ---------- */
+.ctx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.stat { border: 1px solid var(--rule); background: var(--card); padding: 16px 18px 18px; }
+.stat .big { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 58px; line-height: .9; letter-spacing: -.02em; }
+.stat .big.red { color: var(--red); }
+.stat .big.grn { color: var(--green); }
+.stat p { margin: 8px 0 0; font-size: 13.5px; color: #3b382c; }
+
+/* ---------- sources ---------- */
+.src { columns: 2; column-gap: 26px; }
+.src .row {
+  break-inside: avoid; display: grid; grid-template-columns: 26px 18px 1fr; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid var(--rule2); font-size: 12.5px; align-items: start;
+}
+.src .n { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink2); padding-top: 2px; }
+.src img { width: 16px; height: 16px; margin-top: 1px; }
+.src a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+.src a:hover { border-bottom-color: var(--ink); }
+.src .ty { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .08em; color: #7d7767; text-transform: uppercase; }
+
+/* ---------- siblings ---------- */
+.sibs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.sib { border: 1px solid var(--rule); background: var(--card); padding: 13px 15px 15px; text-decoration: none; display: block; }
+.sib:hover { background: #fffdf6; border-color: var(--ink); }
+.sib .d { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .12em; color: var(--ink2); text-transform: uppercase; }
+.sib h5 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-size: 19px; font-weight: 700; margin: 4px 0 5px; line-height: 1.08; }
+.sib p { margin: 0; font-size: 12.5px; color: #4a4636; }
+
+.foot {
+  border-top: 3px double var(--ink); margin-top: 44px; padding: 18px 0 46px;
+  display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .08em; color: var(--ink2);
+}
+.foot a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+
+@media (max-width: 900px) {
+  .head-grid { grid-template-columns: 1fr; }
+  .channels, .ctx, .sibs { grid-template-columns: 1fr; }
+  .rung { grid-template-columns: 1fr; }
+  .spec { border-right: 0; border-bottom: 1px solid var(--rule); flex-direction: row; align-items: center; }
+  .spec img { width: 130px; flex: 0 0 130px; }
+  .pc { grid-template-columns: 1fr; }
+  .pc > div + div { border-left: 0; border-top: 1px solid var(--rule2); padding-left: 0; }
+  .meters { grid-template-columns: 1fr; }
+  .logwrap { grid-template-columns: 1fr; }
+  .src { columns: 1; }
+  .rhead { flex-direction: column; }
+  .stamp { transform: rotate(-2deg); align-self: flex-start; }
+}
+</style>
+
+<div class="bt">
+
+<div class="wrap head">
+  <div class="head-top">
+    <div class="lbl">Migration bench test · sheet 01 · rungs 0–6</div>
+    <div class="lbl">Report 2026-07-30 · survey · 31 sources</div>
+  </div>
+
+  <div class="head-grid">
+    <div>
+      <h1>Seven rungs.<br>Three channels.<br><em>One of them passes.</em></h1>
+      <p class="dek">Every &ldquo;try Linux safely&rdquo; option gets scored on the same three channels: does it prove your <b>software</b> survives, does it prove your <b>hardware</b> survives, and what does it cost to walk back. Six rungs score well on one channel and zero on another. One scores high on both and near-zero on retreat cost.</p>
+      <div class="meta-row">
+        <div><b>SPECIMEN</b> Windows 11 dev workstation</div>
+        <div><b>LOAD</b> .NET/C# + TypeScript, Docker, homelab</div>
+        <div><b>ELAPSED</b> ~3 months</div>
+        <div><b>CASH</b> one SSD</div>
+      </div>
+    </div>
+    <figure class="plate">
+      <img src="scoreboard/images/hero-ubuntu-desktop.webp" alt="A modern Ubuntu desktop session">
+      <figcaption>Fig. 0 — the thing under test. Not &ldquo;does Linux work,&rdquo; but does it work on <b>this</b> machine, through suspend, docking and two kernel updates.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="verdict">
+  <div class="wrap">
+    <div class="lbl">Verdict — route as scored</div>
+    <h2>WSL2 → live USB → external SSD → <span>daily-drive from the SSD</span> → wipe and commit.<br>Skip the VM. Skip single-disk dual-boot entirely.</h2>
+    <div class="route">
+      <div class="step go"><div class="n">RUNG 0</div><div class="nm">WSL2</div><div class="tag">CLIMB</div></div>
+      <div class="step go"><div class="n">RUNG 1</div><div class="nm">Live USB</div><div class="tag">CLIMB</div></div>
+      <div class="step no"><div class="n">RUNG 2</div><div class="nm">VM</div><div class="tag">SKIP</div></div>
+      <div class="step star"><div class="n">RUNG 3</div><div class="nm">External SSD</div><div class="tag">★ TRIAL HERE</div></div>
+      <div class="step no"><div class="n">RUNG 4</div><div class="nm">Dual-boot</div><div class="tag">SKIP</div></div>
+      <div class="step par"><div class="n">RUNG 5</div><div class="nm">Mini PC</div><div class="tag">PARALLEL</div></div>
+      <div class="step go"><div class="n">RUNG 6</div><div class="nm">Full switch</div><div class="tag">COMMIT</div></div>
+    </div>
+    <p class="tail">WSL2 and VMs answer only &ldquo;does my software run&rdquo; — they are structurally blind to suspend/resume, Wi-Fi, GPU, docking and battery, which is where switchers actually fail <a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a><a href="https://www.xda-developers.com/wsl-great-run-linux-natively-instead/">[2]</a>. An external SSD install is the only rung that is simultaneously full-fidelity and zero-commitment — <q>the ability to basically press delete, and the Linux system is gone</q> <a href="https://dspdev.io/en/posts/portable-linux-ssd/">[3]</a>. Single-disk dual-boot is the worst trade on the ladder: partition surgery, BitLocker risk and bootloader fragility <a href="https://windowsforum.com/threads/dual-boot-windows-11-and-linux-mint-safe-production-ready-setup-guide.388453">[4]</a><a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-august-updates-break-linux-boot-in-dual-boot-systems/">[5]</a>, and it buys nothing an external disk doesn't.</p>
+  </div>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§1</span><h3>The three channels every rung is scored on</h3></div>
+  <div class="channels">
+    <div class="chan a">
+      <div class="k">CHANNEL A</div>
+      <h4>Software fidelity</h4>
+      <p>Does the <b>toolchain and workflow</b> survive — .NET SDK, Node/TS, Docker, editors, git, shell. Everything virtualised answers this at near-perfect fidelity.</p>
+    </div>
+    <div class="chan b">
+      <div class="k">CHANNEL B</div>
+      <h4>Hardware fidelity</h4>
+      <p>Does the <b>machine and desktop</b> survive — suspend/resume, Wi-Fi/Bluetooth, GPU and external monitors, docking, battery, scaling, the DE itself. The guest sees synthesised hardware, not yours.</p>
+    </div>
+    <div class="chan c">
+      <div class="k">CHANNEL C</div>
+      <h4>Commitment cost</h4>
+      <p>What retreat costs once you're on the rung. <b>Lower is better</b> — a full red bar means the Windows install is no longer where you left it.</p>
+    </div>
+  </div>
+  <p style="margin:18px 0 0;font-size:14.5px;max-width:60em">Practitioners converge on exactly this split: <q><i>I would strongly recommend playing around with Linux in a virtual machine first, then a spare machine if possible</i></q> — mikeymikec, AnandTech forums, Feb 2026 <a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[6]</a>.</p>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§2</span><h3>Rung-by-rung scorecard</h3></div>
+
+  <div class="rungs">
+
+    <!-- RUNG 0 -->
+    <div class="rung">
+      <div class="spec">
+        <div class="rn">0</div>
+        <img src="scoreboard/images/rung0-wsl2.webp" alt="A Linux package manager running in a terminal on a laptop">
+        <div class="cap">Specimen — the userland dev loop, unchanged</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>WSL2</h4>
+            <div class="sub">A real Microsoft-built Linux kernel in a managed VM, with systemd and full syscall compatibility. The free 80% of the developer question.</div>
+          </div>
+          <div class="stamp go">Climb<small>2–4 WEEKS</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">80%</span></div><div class="track"><div class="fill a" style="width:80%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">0%</span></div><div class="track"><div class="fill zero"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">~0%</span></div><div class="track"><div class="fill c" style="width:2%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>The whole Linux <b>userland</b> dev loop: bash, apt, git, <code>dotnet build/test</code>, Node, Docker, systemd units <a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a>.</p>
+            <p>WSLg even runs Linux GUI apps in Windows windows <a href="https://www.mykolaaleksandrov.dev/posts/2025/08/wsl-complete-practical-guide/">[13]</a>, and CUDA compute works — though NVIDIA still ships profilers as preview-only there <a href="https://docs.nvidia.com/cuda/wsl-user-guide/index.html">[14]</a>.</p>
+          </div>
+          <div class="hides">
+            <h5>STRUCTURALLY CANNOT TELL YOU</h5>
+            <p>Anything hardware or desktop. <q>Anything that involves kernel modules, low-level system configuration, or hardware access is either limited or outright blocked</q> <a href="https://www.xda-developers.com/wsl-great-run-linux-natively-instead/">[2]</a>.</p>
+            <p>No serial ports, USB only via <code>usbipd</code>, NAT networking hands the distro a fresh IP each restart, and <code>/mnt/c</code> crosses a network-style protocol <a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">[1]</a>. Keep files on the ext4 side.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€0</div></div>
+          <div><div class="k">SETUP</div><div class="v">15 <small>MIN</small></div></div>
+          <div><div class="k">STAY</div><div class="v">2–4 <small>WEEKS</small></div></div>
+        </div>
+        <div class="chips">
+          <div class="chip adv"><span class="mk">✓ ADVANCE</span><span>Your whole build/test/run loop is in WSL and you stop opening PowerShell for anything but launching it.</span></div>
+          <div class="chip ret"><span class="mk">✗ RETREAT</span><span>Toolchain has a hard Windows dependency — WPF/WinForms designers, IIS; Microsoft has announced no port <a href="https://learn.microsoft.com/en-us/answers/questions/696985/wpf-and-winforms-on-macos-and-linux">[10]</a>.</span></div>
+        </div>
+      </div>
+      <div class="retreat">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val"><code>wsl --unregister</code> &nbsp;—&nbsp; seconds. Nothing outside the distro is touched.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+    <!-- RUNG 1 -->
+    <div class="rung">
+      <div class="spec">
+        <div class="rn">1</div>
+        <img src="scoreboard/images/rung1-live-usb.webp" alt="USB flash drives">
+        <div class="cap">Specimen — €10 of consumable, one evening</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>Live USB</h4>
+            <div class="sub">The only cheap rung that touches Channel B at all. Boot it <i>before</i> you buy an SSD.</div>
+          </div>
+          <div class="stamp go">Climb<small>ONE EVENING · NON-NEGOTIABLE</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">15%</span></div><div class="track"><div class="fill a" style="width:15%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">55%</span></div><div class="track"><div class="fill b" style="width:55%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">0%</span></div><div class="track"><div class="fill c" style="width:0%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>A real kernel on <b>your</b> silicon: whether Wi-Fi, trackpad, display, dock and printer enumerate at all. <q>I put the live USB in…and it recognized everything. Wifi. Trackpad. Touchscreen. SD card reader. Brightness.</q> — notposting, Feb 2026 <a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[6]</a></p>
+            <p>Test the list: Wi-Fi association, Bluetooth pair, external monitor over the dock, brightness keys, audio out + mic, webcam, trackpad gestures, lid close. Cross-check the model against <a href="https://ubuntu.com/certified">Ubuntu Certified</a> — certification runs 500+ compatibility tests per machine <a href="https://certification.canonical.com/docs/programmes/desktop/">[15]</a>.</p>
+          </div>
+          <div class="hides">
+            <h5>STRUCTURALLY CANNOT TELL YOU</h5>
+            <p>Anything needing a driver install or a kernel update. Persistent live media chokes on initramfs regeneration, so proprietary NVIDIA modules can't be tested <a href="https://forum.endeavouros.com/t/live-usb-ventoy-user-and-missing-persistence-please-support-this-request/70462">[7]</a>.</p>
+            <p>So <q>GPU is stuck on nouveau in the live session</q> is <b>not</b> a no-go signal. Nor does one evening say anything about long-run stability, suspend, battery or updates.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€10 <small>USB</small></div></div>
+          <div><div class="k">SETUP</div><div class="v">20 <small>MIN</small></div></div>
+          <div><div class="k">STAY</div><div class="v">1 <small>EVENING</small></div></div>
+        </div>
+        <div class="chips">
+          <div class="chip adv"><span class="mk">✓ ADVANCE</span><span>Wi-Fi + display + trackpad + external monitor all come up unaided.</span></div>
+          <div class="chip ret"><span class="mk">✗ RETREAT</span><span>A core device is dead — Wi-Fi chipset unsupported, GPU won't init. Check <a href="https://ubuntu.com/certified">ubuntu.com/certified</a> before spending more <a href="https://ubuntu.com/certified">[11]</a>.</span></div>
+        </div>
+      </div>
+      <div class="retreat">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val">Pull the stick and reboot. The session <q>doesn't alter your computer's configuration in any way</q> <a href="https://ubuntu.com/tutorials/try-ubuntu-before-you-install">[12]</a>.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+    <!-- RUNG 2 -->
+    <div class="rung dim">
+      <div class="spec">
+        <div class="rn">2</div>
+        <img src="scoreboard/images/rung2-vm.webp" alt="A virtual machine window running a guest operating system">
+        <div class="cap">Specimen — a shopping trip, not a trial</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>Virtual machine</h4>
+            <div class="sub">Optional, and easy to over-trust. If you already did rung 0, a VM adds almost nothing — spend the evening on rung 1 instead.</div>
+          </div>
+          <div class="stamp no">Skip<small>OPTIONAL AT BEST</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">85%</span></div><div class="track"><div class="fill a" style="width:85%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">0%</span></div><div class="track"><div class="fill zero"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">~0%</span></div><div class="track"><div class="fill c" style="width:2%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>A distro/DE <b>taste-test</b>, package-manager muscle memory, and .NET + TypeScript build/test/debug end-to-end.</p>
+          </div>
+          <div class="hides">
+            <h5>STRUCTURALLY CANNOT TELL YOU</h5>
+            <p>Same blind spots as WSL2 — plus it actively <b>misleads on desktop feel</b>. Judging Wayland, GNOME animations or &ldquo;does it feel snappy&rdquo; from inside a VM benchmarks a software rasteriser.</p>
+            <p>Real GPU passthrough needs a second GPU dedicated to the guest and cooperative IOMMU grouping <a href="https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF">[8]</a>.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€0</div></div>
+          <div><div class="k">SETUP</div><div class="v">30 <small>MIN</small></div></div>
+          <div><div class="k">STAY</div><div class="v">0–1 <small>WEEK (OPTIONAL)</small></div></div>
+        </div>
+        <div class="chips">
+          <div class="chip adv"><span class="mk">✓ ADVANCE</span><span>You've picked a distro and a desktop environment. That's the whole deliverable.</span></div>
+          <div class="chip na"><span class="mk">— RETREAT</span><span>No retreat signal — nothing here is load-bearing.</span></div>
+        </div>
+      </div>
+      <div class="retreat">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val">Delete the VM file.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+    <!-- RUNG 3 -->
+    <div class="rung hi">
+      <div class="spec">
+        <div class="rn">3</div>
+        <img src="scoreboard/images/rung3-external-ssd.webp" alt="A portable external solid-state drive">
+        <div class="cap">Specimen — USB 3.2 Gen2 NVMe in an enclosure, not a thumb drive</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>External-SSD install</h4>
+            <div class="sub">The only rung that is simultaneously full-fidelity and zero-commitment. This is where the ladder pays off — and where you actually live for a while.</div>
+          </div>
+          <div class="stamp star">★ The real trial<small>4–8 WEEKS</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">100%</span></div><div class="track"><div class="fill a" style="width:100%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">95%</span></div><div class="track"><div class="fill b" style="width:95%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">10%</span></div><div class="track"><div class="fill c" style="width:10%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>Effectively everything: real drivers, real suspend, real docking, real battery, real update cycles over weeks. The Windows disk is untouched <a href="https://www.ghacks.net/2025/07/11/how-to-install-linux-on-an-external-ssd/">[9]</a>.</p>
+            <p>A documented 30-day switch found the pattern most people report: days 1–3 smooth, <b>week 1 is the trough</b> (printer drivers, Bluetooth audio latency, missing apps), then <q>by week two… I stopped fighting Linux and started understanding it</q> <a href="https://windowspost.com/linux-vs-windows-experience/">[17]</a>. Budget 4–8 weeks so you cross two kernel updates and one point-release.</p>
+          </div>
+          <div class="hides">
+            <h5>STRUCTURALLY CANNOT TELL YOU</h5>
+            <p>Only the USB-bus I/O ceiling, and — if external — that you're carrying a dongle. Nothing else material.</p>
+            <p>Practitioner floor is days, not the target: <q>use it for at least a day or 2, a week if you have the time</q> — Zepp, Feb 2026 <a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[6]</a>. Real trials run longer.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€60–120 <small>1TB NVMe + ENCLOSURE</small></div></div>
+          <div><div class="k">SETUP</div><div class="v">1–2 <small>HOURS</small></div></div>
+          <div><div class="k">STAY</div><div class="v">4–8 <small>WEEKS — THE REAL TRIAL</small></div></div>
+        </div>
+        <div class="chips">
+          <div class="chip adv"><span class="mk">✓ ADVANCE</span><span>You have gone 2–3 weeks without booting Windows for anything but one known app.</span></div>
+          <div class="chip ret"><span class="mk">✗ RETREAT</span><span>Suspend, docking or battery is still unfixable after two weekends of trying.</span></div>
+        </div>
+      </div>
+      <div class="retreat">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val">Unplug it. ⚠ Only if you protected the internal ESP first — see below.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+    <div class="hazard">
+      <div class="tape"></div>
+      <div class="in">
+        <div class="glyph">⚠</div>
+        <div>
+          <h4>The one trap that turns rung 3 irreversible</h4>
+          <p>Installers happily write the bootloader to your <b>internal</b> ESP. Then unplugging the SSD doesn't undo anything — and worse, <q>the EFI partition might be overwritten</q> <a href="https://medium.com/geekculture/installing-linux-ubuntu-20-04-on-an-external-portable-ssd-and-pitfalls-to-be-aware-of-388294e701b5">[16]</a>.</p>
+          <p class="fix">Disable the internal drives in BIOS/UEFI before installing, so the installer can only see the external disk. Do this and retreat really is &ldquo;unplug it.&rdquo;</p>
+        </div>
+      </div>
+      <div class="tape"></div>
+    </div>
+
+    <!-- RUNG 4 -->
+    <div class="rung dim">
+      <div class="spec">
+        <div class="rn">4</div>
+        <img src="scoreboard/images/rung4-dual-boot.webp" alt="An M.2 NVMe solid-state drive">
+        <div class="cap">Specimen — a second internal NVMe is rung 3 with better I/O; sharing one disk is not</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>Dual-boot, single disk</h4>
+            <div class="sub">The default advice, and the wrong one. What it adds over rung 3 is risk, not information.</div>
+          </div>
+          <div class="stamp no">Skip<small>WORST TRADE ON THE LADDER</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">100%</span></div><div class="track"><div class="fill a" style="width:100%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">100%</span></div><div class="track"><div class="fill b" style="width:100%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">70%</span></div><div class="track"><div class="fill c" style="width:70%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>Nothing rung 3 doesn't — at strictly higher risk. Identical Channel A and B scores; the only number that moves is the red one.</p>
+            <p>If your machine takes a <b>second internal NVMe</b>, that's rung 3 with better I/O and the same reversibility — take it, and still disconnect or deselect the Windows disk during install. mikeymikec: <q>I'd dual-boot with each OS having its own SSD</q> <a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[6]</a>.</p>
+          </div>
+          <div class="hides">
+            <h5>WHAT IT COSTS YOU INSTEAD</h5>
+            <p><b>Partition surgery under BitLocker.</b> Suspend or decrypt first or you're in recovery-key territory <a href="https://windowsforum.com/threads/dual-boot-windows-11-and-linux-mint-safe-production-ready-setup-guide.388453">[4]</a>; users report <code>NTFS_FILE_SYSTEM</code> bugchecks <a href="https://learn.microsoft.com/en-gb/answers/questions/5543127/bitlocker-and-dual-boot-ubuntu-windows-11-error-nt">[21]</a>.</p>
+            <p><b>Fast Startup</b> leaves NTFS hibernated; mounting it from Linux corrupts it <a href="https://windowsforum.com/threads/dual-boot-windows-11-and-linux-mint-safe-production-ready-setup-guide.388453">[4]</a>.</p>
+            <p><b>Windows can brick your bootloader.</b> The August 2024 SBAT update produced <q>Verifying shim SBAT data failed: Security Policy Violation</q> on machines its own detection missed <a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-august-updates-break-linux-boot-in-dual-boot-systems/">[5]</a>; the fix took roughly nine months <a href="https://news.itsfoss.com/microsoft-fixes-linux-dual-boot/">[22]</a>. Assume the class recurs.</p>
+            <p><b>Clock skew</b> — Windows wants localtime, Linux wants UTC <a href="https://wiki.archlinux.org/title/System_time">[23]</a>. And <b>the behavioural failure</b>: every switch costs a reboot, so you stop switching and stay in Windows <a href="https://www.howtogeek.com/you-dont-need-to-dual-boot-anymore-theres-a-better-way/">[24]</a><a href="https://www.xda-developers.com/5-pitfalls-of-dual-booting-windows-and-linux-that-i-wasnt-prepared-for/">[25]</a>.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€0 <small>OR A 2ND NVMe</small></div></div>
+          <div><div class="k">SETUP</div><div class="v">1–2 h <small>+ RISK</small></div></div>
+          <div><div class="k">STAY</div><div class="v">SKIP</div></div>
+        </div>
+        <div class="chips">
+          <div class="chip na"><span class="mk">— ADVANCE</span><span>No advance signal is defined, because the rung shouldn't be entered.</span></div>
+          <div class="chip na"><span class="mk">— RETREAT</span><span>Red Squirrel's Feb 2026 answer to the reboot tax was buying <q>an off lease mini PC you buy off Ebay</q> instead <a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[6]</a>.</span></div>
+        </div>
+      </div>
+      <div class="retreat heavy">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val">Repartition + bootloader repair. Hours, with data at stake.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+    <!-- RUNG 5 -->
+    <div class="rung">
+      <div class="spec">
+        <div class="rn">5</div>
+        <img src="scoreboard/images/rung5-mini-pc.webp" alt="A small form-factor mini PC">
+        <div class="cap">Specimen — off-lease mini PC, €150–300, separate blast radius</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>Spare machine / mini PC</h4>
+            <div class="sub">A parallel track, not a rung. Run it alongside rung 3 — never instead of it.</div>
+          </div>
+          <div class="stamp par">Parallel<small>INDEFINITE</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">60%</span></div><div class="track"><div class="fill a" style="width:60%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">0%</span><span></span></div><div class="track"><div class="fill zero"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">0%</span></div><div class="track"><div class="fill c" style="width:0%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>Homelab-adjacent Linux reflexes — systemd, <code>journalctl</code>, Docker Compose, reverse proxies — with a safe blast radius. The cheapest way to build server habits.</p>
+          </div>
+          <div class="hides">
+            <h5>STRUCTURALLY CANNOT TELL YOU</h5>
+            <p>Nothing about <b>your</b> workstation's hardware. Different chipset, different Wi-Fi card, different everything. Channel B reads zero for the machine you actually care about.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€150–300 <small>USED</small></div></div>
+          <div><div class="k">SETUP</div><div class="v">1 <small>HOUR</small></div></div>
+          <div><div class="k">STAY</div><div class="v">∞ <small>PARALLEL</small></div></div>
+        </div>
+        <div class="chips">
+          <div class="chip na"><span class="mk">— ADVANCE</span><span>Not on the critical path — it never gates the decision.</span></div>
+          <div class="chip na"><span class="mk">— RETREAT</span><span>Nothing to retreat from; it's a separate box.</span></div>
+        </div>
+      </div>
+      <div class="retreat">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val">Zero. It's a separate box.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+    <!-- RUNG 6 -->
+    <div class="rung hi">
+      <div class="spec">
+        <div class="rn">6</div>
+        <img src="scoreboard/images/rung6-full-switch.webp" alt="A Linux desktop session in daily use">
+        <div class="cap">Specimen — wipe, don't dual-boot</div>
+      </div>
+      <div class="body">
+        <div class="rhead">
+          <div>
+            <h4>Full switch</h4>
+            <div class="sub">Commit criterion: <b>30 consecutive days with zero Windows boots.</b></div>
+          </div>
+          <div class="stamp commit">Commit<small>FOREVER</small></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="mtop"><span class="mk">CH.A SOFTWARE</span><span class="mv">100%</span></div><div class="track"><div class="fill a" style="width:100%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.B HARDWARE</span><span class="mv">100%</span></div><div class="track"><div class="fill b" style="width:100%"></div></div></div>
+          <div class="meter"><div class="mtop"><span class="mk">CH.C COMMITMENT</span><span class="mv">100%</span></div><div class="track"><div class="fill c" style="width:100%"></div></div></div>
+        </div>
+        <div class="pc">
+          <div class="proves">
+            <h5>PROVES</h5>
+            <p>The last 10%: the workflows you only notice when there's no escape hatch.</p>
+            <p>The pattern repeats — Zepp <q>wiped that drive</q> after months of not needing Windows <a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">[6]</a>; one writeup admits never booting the retained 800 GB Windows partition <i>once</i> <a href="https://dev.to/lsroot/i-deleted-windows-and-my-bootloader-299f">[26]</a>; <a href="https://xeiaso.net/notes/2026/year-linux-desktop/">Xe Iaso</a> opened January 2026 with <q>I haven't booted into Windows in over 3 months on my tower</q> <a href="https://xeiaso.net/notes/2026/year-linux-desktop/">[27]</a> — 835 points and 639 comments on <a href="https://news.ycombinator.com/item?id=46471199">Hacker News</a>, a fair gauge of how contested this still is <a href="https://news.ycombinator.com/item?id=46471199">[28]</a>.</p>
+          </div>
+          <div class="hides">
+            <h5>PRE-FLIGHT BEFORE YOU WIPE</h5>
+            <p>Image the Windows disk. Verify a Windows install USB actually boots. Confirm you hold any BitLocker recovery key. That's what keeps the retreat cost at half a day.</p>
+            <p>Keep a Windows <b>VM</b> — not a dual-boot — for the one or two apps that never ported: WPF/WinForms designers and IIS have no Linux port and none announced <a href="https://learn.microsoft.com/en-us/answers/questions/696985/wpf-and-winforms-on-macos-and-linux">[10]</a>. <a href="https://www.jetbrains.com/rider/">JetBrains Rider</a> covers the cross-platform .NET IDE gap <a href="https://www.jetbrains.com/rider/">[29]</a>.</p>
+          </div>
+        </div>
+        <div class="strip">
+          <div><div class="k">SPEND</div><div class="v">€0</div></div>
+          <div><div class="k">SETUP</div><div class="v">2 <small>HOURS</small></div></div>
+          <div><div class="k">STAY</div><div class="v">FOREVER</div></div>
+        </div>
+        <div class="chips">
+          <div class="chip adv"><span class="mk">✓ ADVANCE</span><span>30 consecutive days without a single Windows boot.</span></div>
+          <div class="chip ret"><span class="mk">✗ RETREAT</span><span>Only a hard business blocker.</span></div>
+        </div>
+      </div>
+      <div class="retreat heavy">
+        <div class="tagbox">RETREAT COST</div>
+        <div class="val">Reinstall Windows from USB: half a day, plus restore from backup.</div>
+        <div class="bars"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§3</span><h3>Instrumentation — what to log during rung 3</h3></div>
+  <div class="logwrap">
+    <div class="log">
+      <div class="lh">GO/NO-GO EVIDENCE SHEET · THIS LIST, NOT VIBES</div>
+      <ol>
+        <li><span><b>Suspend / resume success rate</b>Over roughly 30 lid-closes. A single failure is noise; a 1-in-5 failure rate is the decision.</span></li>
+        <li><span><b>Idle battery drain vs the Windows baseline</b>Expect it to be <i>worse</i> out of the box — vendor Windows drivers are OEM-tuned <a href="https://informatecdigital.com/en/Linux-vs-Windows:-Which-consumes-less-battery-power-on-laptops/">[18]</a> — and to need <a href="https://linrunner.de/tlp/index.html">TLP</a> or <code>auto-cpufreq</code> tuning to close the gap <a href="https://linrunner.de/tlp/index.html">[19]</a>.</span></li>
+        <li><span><b>Dock / undock cycles</b>With monitors, Ethernet and peripherals attached. The failure mode nobody tests until it bites.</span></li>
+        <li><span><b>NVIDIA: flicker and frame pacing under Wayland</b>Explicit sync landed in the compositor stack and fixed the historic tearing class of bugs <a href="https://linuxiac.com/wayland-nvidia-explicit-sync-support/">[20]</a> — verify it on <i>your</i> card rather than assuming.</span></li>
+        <li class="key"><span><b>Windows-boot tally</b>The single best advance signal. When it hits zero for 2–3 weeks, you're done trialling.</span></li>
+      </ol>
+    </div>
+    <figure class="plate">
+      <img src="scoreboard/images/log-docking-station.webp" alt="The underside of a laptop docking station">
+      <figcaption>Fig. 1 — the dock is Channel B's hardest question, and the one no VM, no WSL2 and no live session can answer for you.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§4</span><h3>Test schedule — 13 weeks, one purchase</h3></div>
+  <div class="cal">
+    <div class="calgrid">
+      <div class="calrow-lbl">RUNG 0 · WSL2</div>
+      <div class="bar"><span class="s0">Full dev loop in Linux userland · list Windows-only deps</span></div>
+      <div class="calrow-lbl">RUNG 1 · LIVE USB</div>
+      <div class="bar"><span class="s1">One evening</span></div>
+      <div class="calrow-lbl">RUNG 3 · INSTALL</div>
+      <div class="bar"><span class="s3a">Buy + install</span></div>
+      <div class="calrow-lbl">RUNG 3 · DAILY-DRIVE</div>
+      <div class="bar"><span class="s3b">Suspend / battery / dock log · Windows-boot tally trending to zero</span></div>
+      <div class="calrow-lbl">RUNG 6 · DECIDE</div>
+      <div class="bar"><span class="s6">WIPE OR UNPLUG</span></div>
+      <div class="calrow-lbl">WEEK</div>
+      <div class="calaxis"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i><i>13</i></div>
+    </div>
+    <p class="caltail">Total elapsed: <b>~3 months</b>, of which only weeks 5–12 involve real friction. Cash outlay: one SSD.</p>
+  </div>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§5</span><h3>Ambient conditions</h3></div>
+  <div class="ctx">
+    <div class="stat">
+      <div class="big red">14 OCT<br>2025</div>
+      <p>Windows 10 support ended, and Windows 10 shed 9.4 points of share between then and June 2026 <a href="https://www.aboutchromebooks.com/windows-11-adoption-rate-statistics/">[30]</a>.</p>
+    </div>
+    <div class="stat">
+      <div class="big grn">2.8% → 4.7%</div>
+      <p>Desktop Linux share, 2022 to 2025 — with projections near 6% by late 2026 <a href="https://fosspost.org/linux-market-share-statistics/">[31]</a>.</p>
+    </div>
+    <div class="stat">
+      <div class="big">500+</div>
+      <p>Hardware compatibility tests Canonical runs per certified desktop machine <a href="https://certification.canonical.com/docs/programmes/desktop/">[15]</a>. The tailwind is real but modest: better-tested hardware support, not the disappearance of the hardware question.</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§6</span><h3>Related sheets from this expedition</h3></div>
+  <div class="sibs">
+    <a class="sib" href="../../wsl2-as-rung-zero-and-its-ceiling/"><div class="d">survey</div><h5>WSL2 as rung zero — and the exact wall it hits</h5><p>WSL2 retires every userland risk and none of the machine-ownership risks; here is where the line falls in 2026.</p></a>
+    <a class="sib" href="../../trial-hardware-and-vm-paths/"><div class="d">survey</div><h5>Trial hardware and VM paths</h5><p>Live USB first (€10, 15 minutes, proves your actual hardware), then a full install on an external NVMe SSD — everything else is a detour.</p></a>
+    <a class="sib" href="../../dual-boot-without-wrecking-windows/"><div class="d">survey</div><h5>Dual-boot without wrecking Windows</h5><p>Buy a second NVMe, keep the two OSes ignorant of each other, and pick Linux from the firmware boot menu.</p></a>
+    <a class="sib" href="../../living-in-both-oses-during-the-overlap/"><div class="d">survey</div><h5>Living in both OSes during the overlap</h5><p>One source of truth per asset class, replicated by a tool that knows the OS difference — never a shared partition.</p></a>
+    <a class="sib" href="../../dropbox-on-linux-and-shared-folders/"><div class="d">survey</div><h5>Dropbox on Linux and shared folders</h5><p>btrfs/zfs/xfs are supported now, but you cannot share one Dropbox folder between a Windows and a Linux install.</p></a>
+    <a class="sib" href="../../exit-criteria-and-the-blocker-inventory/"><div class="d">recon</div><h5>Exit criteria and the blocker inventory</h5><p>A fill-in blocker inventory plus tickable go/no-go criteria and a pre-committed rollback date.</p></a>
+  </div>
+</div>
+
+<div class="wrap sec">
+  <div class="sec-head"><span class="n">§7</span><h3>Instrument log — 31 sources</h3></div>
+  <div class="src">
+    <div class="row"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><span><a href="https://learn.microsoft.com/en-us/windows/wsl/compare-versions">Microsoft Learn — Comparing WSL versions</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=128" alt=""><span><a href="https://www.xda-developers.com/wsl-great-run-linux-natively-instead/">XDA — WSL is great, but run Linux natively instead</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=dspdev.io&sz=128" alt=""><span><a href="https://dspdev.io/en/posts/portable-linux-ssd/">dspdev.io — Portable Linux on an SSD</a> <span class="ty">vendor-blog</span></span></div>
+    <div class="row"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=windowsforum.com&sz=128" alt=""><span><a href="https://windowsforum.com/threads/dual-boot-windows-11-and-linux-mint-safe-production-ready-setup-guide.388453">WindowsForum — Dual-boot Windows 11 and Linux Mint setup guide</a> <span class="ty">forum</span></span></div>
+    <div class="row"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=bleepingcomputer.com&sz=128" alt=""><span><a href="https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-august-updates-break-linux-boot-in-dual-boot-systems/">BleepingComputer — August updates break Linux boot in dual-boot systems</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=forums.anandtech.com&sz=128" alt=""><span><a href="https://forums.anandtech.com/threads/should-i-switch-from-windows-to-linux-looking-for-real%E2%80%91world-opinions.2633837/">AnandTech Forums — Should I switch from Windows to Linux? (Feb 2026)</a> <span class="ty">forum</span></span></div>
+    <div class="row"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=forum.endeavouros.com&sz=128" alt=""><span><a href="https://forum.endeavouros.com/t/live-usb-ventoy-user-and-missing-persistence-please-support-this-request/70462">EndeavourOS Forum — Ventoy persistence and kernel updates</a> <span class="ty">forum</span></span></div>
+    <div class="row"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=wiki.archlinux.org&sz=128" alt=""><span><a href="https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF">Arch Wiki — PCI passthrough via OVMF</a> <span class="ty">wiki</span></span></div>
+    <div class="row"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=ghacks.net&sz=128" alt=""><span><a href="https://www.ghacks.net/2025/07/11/how-to-install-linux-on-an-external-ssd/">gHacks — How to install Linux on an external SSD</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><span><a href="https://learn.microsoft.com/en-us/answers/questions/696985/wpf-and-winforms-on-macos-and-linux">Microsoft Q&amp;A — WPF and WinForms on macOS and Linux</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=ubuntu.com&sz=128" alt=""><span><a href="https://ubuntu.com/certified">Ubuntu Certified hardware</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=ubuntu.com&sz=128" alt=""><span><a href="https://ubuntu.com/tutorials/try-ubuntu-before-you-install">Ubuntu — Try Ubuntu before you install</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=mykolaaleksandrov.dev&sz=128" alt=""><span><a href="https://www.mykolaaleksandrov.dev/posts/2025/08/wsl-complete-practical-guide/">Mykola Aleksandrov — WSL complete practical guide</a> <span class="ty">vendor-blog</span></span></div>
+    <div class="row"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=docs.nvidia.com&sz=128" alt=""><span><a href="https://docs.nvidia.com/cuda/wsl-user-guide/index.html">NVIDIA — CUDA on WSL user guide</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=certification.canonical.com&sz=128" alt=""><span><a href="https://certification.canonical.com/docs/programmes/desktop/">Canonical — Desktop certification programme</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><span><a href="https://medium.com/geekculture/installing-linux-ubuntu-20-04-on-an-external-portable-ssd-and-pitfalls-to-be-aware-of-388294e701b5">Geek Culture — Installing Ubuntu on an external portable SSD, and pitfalls</a> <span class="ty">vendor-blog</span></span></div>
+    <div class="row"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=windowspost.com&sz=128" alt=""><span><a href="https://windowspost.com/linux-vs-windows-experience/">WindowsPost — 30 days of Linux vs Windows</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=informatecdigital.com&sz=128" alt=""><span><a href="https://informatecdigital.com/en/Linux-vs-Windows:-Which-consumes-less-battery-power-on-laptops/">Informatec Digital — Linux vs Windows laptop battery consumption</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=linrunner.de&sz=128" alt=""><span><a href="https://linrunner.de/tlp/index.html">TLP — Optimize Linux laptop battery life</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=linuxiac.com&sz=128" alt=""><span><a href="https://linuxiac.com/wayland-nvidia-explicit-sync-support/">Linuxiac — Wayland NVIDIA explicit sync support</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><span><a href="https://learn.microsoft.com/en-gb/answers/questions/5543127/bitlocker-and-dual-boot-ubuntu-windows-11-error-nt">Microsoft Q&amp;A — BitLocker + dual-boot NTFS_FILE_SYSTEM</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=news.itsfoss.com&sz=128" alt=""><span><a href="https://news.itsfoss.com/microsoft-fixes-linux-dual-boot/">It's FOSS News — Microsoft finally fixes Linux dual-boot bug</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=wiki.archlinux.org&sz=128" alt=""><span><a href="https://wiki.archlinux.org/title/System_time">Arch Wiki — System time (RTC localtime vs UTC)</a> <span class="ty">wiki</span></span></div>
+    <div class="row"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=howtogeek.com&sz=128" alt=""><span><a href="https://www.howtogeek.com/you-dont-need-to-dual-boot-anymore-theres-a-better-way/">How-To Geek — You don't need to dual-boot anymore</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=128" alt=""><span><a href="https://www.xda-developers.com/5-pitfalls-of-dual-booting-windows-and-linux-that-i-wasnt-prepared-for/">XDA — 5 pitfalls of dual-booting Windows and Linux</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=dev.to&sz=128" alt=""><span><a href="https://dev.to/lsroot/i-deleted-windows-and-my-bootloader-299f">dev.to — I deleted Windows (and my bootloader)</a> <span class="ty">forum</span></span></div>
+    <div class="row"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=xeiaso.net&sz=128" alt=""><span><a href="https://xeiaso.net/notes/2026/year-linux-desktop/">Xe Iaso — 2026 will be my year of the Linux desktop</a> <span class="ty">vendor-blog</span></span></div>
+    <div class="row"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><span><a href="https://news.ycombinator.com/item?id=46471199">Hacker News — 835 points, 639 comments</a> <span class="ty">forum</span></span></div>
+    <div class="row"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=jetbrains.com&sz=128" alt=""><span><a href="https://www.jetbrains.com/rider/">JetBrains Rider</a> <span class="ty">official</span></span></div>
+    <div class="row"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=aboutchromebooks.com&sz=128" alt=""><span><a href="https://www.aboutchromebooks.com/windows-11-adoption-rate-statistics/">About Chromebooks — Windows 11 adoption rate statistics</a> <span class="ty">news</span></span></div>
+    <div class="row"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=fosspost.org&sz=128" alt=""><span><a href="https://fosspost.org/linux-market-share-statistics/">FOSS Post — Linux market share statistics</a> <span class="ty">news</span></span></div>
+  </div>
+</div>
+
+<div class="wrap foot">
+  <div>SCOREBOARD VIEW · SCORING IS THIS SHEET'S READING OF THE CANONICAL, NOT A MEASURED BENCHMARK</div>
+  <div><a href="../">Canonical page</a> · <a href="../../">Expedition</a> · <a href="/">Atlas</a></div>
+</div>
+
+</div>

@@ -1,0 +1,232 @@
+---
+title: "Trial hardware and VM paths for evaluating Linux before you commit (2026)"
+date: 2026-07-30
+depth: standard
+format: html
+topic: "Trial hardware and VM paths for evaluating Linux before committing (2026) — spare or second-hand laptop, external-SSD boot, virtual machines including GPU passthrough, and cloud/remote Linux desktops; cost versus realism of each."
+topic_raw: "gradual linux migration from Windows (first testing the waters)."
+tags: [linux, migration, hardware, virtualization, live-usb, external-ssd, vfio, thinkpad]
+summary: "Live USB first (€10, 15 minutes, proves your actual hardware), then a full install on an external NVMe SSD (€90–150) — everything else is a detour."
+citations: 45
+reading_time_min: 12
+cover: cover.svg
+model: "Opus 5"
+cost_usd: "sub"
+duration_sec: 655
+issue: 14
+---
+
+<style>
+.tldr { border-left: 4px solid #b7410e; padding: 0.8em 1.2em; margin: 1.5em 0; background: rgba(183,65,14,0.06); }
+.tldr p { margin: 0.4em 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92em; }
+th, td { text-align: left; vertical-align: top; padding: 0.45em 0.6em; border-bottom: 1px solid rgba(128,128,128,0.25); }
+th { white-space: nowrap; }
+.scroll { overflow-x: auto; margin: 1.4em 0; }
+.note { font-size: 0.9em; opacity: 0.85; }
+code { font-size: 0.9em; }
+</style>
+
+<div class="tldr">
+<p><strong>TL;DR</strong> — Use exactly two substrates, in this order. <strong>1. A live USB</strong> (€10, 15 minutes): the only rung that proves whether <em>your</em> Wi-Fi, GPU, trackpad, dock and external displays work, and it is non-destructive by construction <sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>. <strong>2. A full install on an external NVMe SSD</strong> (€90–150 all-in): a real, persistent, daily-drivable system that never writes to your internal disk — the honest "testing the waters" rung <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>.</p>
+<p>VMs (all free in 2026 <sup><a href="https://techdocs.broadcom.com/us/en/vmware-cis/desktop-hypervisors/workstation-pro/25H2/release-notes/vmware-workstation-pro-25h2-release-notes.html">[11]</a></sup>) validate your <em>toolchain</em> and nothing about drivers, suspend, battery or thermals. GPU passthrough is a hobby, not a migration step. A €175 used T480 is a fine second machine but a slow feedback loop <sup><a href="https://www.pcprice.watch/guides/used-thinkpad-buyers-guide-2026">[21]</a></sup>.</p>
+</div>
+
+<h2>The substrates, compared</h2>
+
+<div class="scroll">
+<table>
+<thead>
+<tr><th>Substrate</th><th>Cost (EUR)</th><th>Setup</th><th>What it <em>can</em> prove</th><th>What it <em>cannot</em> prove</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Live USB (Ventoy, multi-ISO)</strong></td>
+  <td>€0–15 (a 64 GB USB 3.2 stick)</td>
+  <td>15 min</td>
+  <td>Wi-Fi/Bluetooth, GPU + external displays, trackpad gestures, audio, brightness/function keys, dock and USB-C alt-mode, suspend-resume, fan behaviour — on <em>this exact machine</em> <sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>. Also: which distro/DE you actually like, at ~zero switching cost <sup><a href="https://www.ventoy.net/en/doc_start.html">[1]</a></sup></td>
+  <td>Anything needing a reboot (proprietary GPU driver install), long-run battery life, thermal behaviour under sustained build load, real disk performance, whether your day-to-day workflow survives a week</td>
+</tr>
+<tr>
+  <td><strong>Persistent live USB</strong></td>
+  <td>same</td>
+  <td>+15 min</td>
+  <td>Keeps Wi-Fi credentials, installed packages and dotfiles between boots — turns a demo into a scratch environment</td>
+  <td>Same blind spots, plus: persistence support is distro-dependent under Ventoy and breaks on some Ubuntu/Mint ISO layouts <sup><a href="https://www.techstoreon.com/pages/how-to-enable-persistence-on-your-bootable-usb">[39]</a></sup>. USB flash endurance is not SSD endurance <sup><a href="https://ounapuu.ee/posts/2024/12/02/linux-on-usb/">[7]</a></sup></td>
+</tr>
+<tr>
+  <td><strong>External-SSD full install</strong></td>
+  <td>€85–150 (USB 3.2 Gen2) / €130–210 (USB4)</td>
+  <td>1–2 h</td>
+  <td>Everything a live USB proves, <em>plus</em>: driver installs across reboots, kernel upgrades, battery life over days, thermals under real builds, whether your .NET + Node toolchain and homelab workflow actually land. Fully reversible — unplug and you are back on Windows</td>
+  <td>Peak storage throughput. Nothing else of consequence</td>
+</tr>
+<tr>
+  <td><strong>VM on Windows</strong> (Hyper-V / VMware / VirtualBox)</td>
+  <td>€0 + ~16 GB RAM and 80 GB disk headroom <sup><a href="https://techdocs.broadcom.com/us/en/vmware-cis/desktop-hypervisors/workstation-pro/25H2/release-notes/vmware-workstation-pro-25h2-release-notes.html">[11]</a></sup></td>
+  <td>30–60 min</td>
+  <td>Toolchain: SDK installs, container runtime, shell, editor, build times (roughly), package management, muscle memory for the CLI</td>
+  <td>⚠ <strong>Nothing about hardware.</strong> The guest sees virtual devices, so Wi-Fi, GPU, suspend, battery, lid/dock behaviour and thermals are all simulated away. Desktop-environment feel is also distorted by the hypervisor's graphics stack <sup><a href="https://www.xda-developers.com/virtualbox-vs-workstation-pro/">[12]</a></sup></td>
+</tr>
+<tr>
+  <td><strong>WSL2 + WSLg</strong></td>
+  <td>€0</td>
+  <td>5 min</td>
+  <td>Linux userland, systemd, Docker, build tooling — at near-native CPU speed for most dev work <sup><a href="https://www.xda-developers.com/wsl-is-powerful-but-cant-beat-a-real-linux-desktop/">[16]</a></sup></td>
+  <td>It is not a desktop: WSLg ships individual GUI windows, not a GNOME/KDE session <sup><a href="https://www.xda-developers.com/wsl-is-powerful-but-cant-beat-a-real-linux-desktop/">[16]</a></sup>. Kernel is a Microsoft fork (6.6.x in early 2026) you can't freely swap; GPU workloads ~33% slower and files under <code>/mnt/c</code> ~28% slower than native <sup><a href="https://www.kunalganglani.com/blog/wsl2-vs-native-linux-development">[15]</a></sup></td>
+</tr>
+<tr>
+  <td><strong>GPU passthrough (VFIO)</strong></td>
+  <td>€0–300 (usually a second GPU) + 5–20 h</td>
+  <td>a weekend, optimistically</td>
+  <td>Near-bare-metal GPU performance in a guest — within 1–3% for sustained workloads <sup><a href="https://homelabstarter.com/homelab-gpu-passthrough/">[17]</a></sup></td>
+  <td>⚠ Still nothing about laptop drivers, suspend or thermals. Wrong tool for a migration trial</td>
+</tr>
+<tr>
+  <td><strong>Spare / used laptop</strong></td>
+  <td>€130–260 used ThinkPad <sup><a href="https://www.pcprice.watch/guides/used-thinkpad-buyers-guide-2026">[21]</a></sup>; €900–1400 new Linux-certified <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td>
+  <td>days (shipping)</td>
+  <td>A complete, independent Linux machine you can live on without risking the work box</td>
+  <td>⚠ It proves Linux works on <em>that</em> laptop, not on your actual workstation. Feedback loop measured in days, and you now own two laptops</td>
+</tr>
+<tr>
+  <td><strong>Cloud / remote Linux desktop</strong></td>
+  <td>€5–30/month <sup><a href="https://www.shells.com/l/en-US/pricing">[31]</a></sup>; €0 on a homelab VM</td>
+  <td>15 min</td>
+  <td>Toolchain and server-side workflow validation; a headless SSH box is genuinely useful for .NET/Node CI-shaped work</td>
+  <td>Desktop feel is a video codec. RDP/xrdp latency is in the wrong ballpark for interactive UI judgement <sup><a href="https://superrendersfarm.com/article/moonlight-parsec-rdp-remote-desktop-gpu-rendering-2026">[33]</a></sup>. Zero hardware signal</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h2>1. Live USB — the highest value-per-effort rung, by a wide margin</h2>
+
+<p><a href="https://www.ventoy.net/en/doc_start.html">Ventoy</a> ⭐ 78k <sup><a href="https://github.com/ventoy/Ventoy">[2]</a></sup> inverts the usual flow: you install it once to a USB stick, then <em>copy ISO files onto the partition</em> and it builds the boot menu by scanning directories recursively <sup><a href="https://www.ventoy.net/en/doc_start.html">[1]</a></sup>. No re-flashing per distro, and the stick stays usable as ordinary storage <sup><a href="https://www.ventoy.net/en/doc_start.html">[1]</a></sup>. Version 1.1.11 (April 2026) covers 1300+ images and supports x86_64 UEFI Secure Boot as an install option <sup><a href="https://www.itechtics.com/multiboot-usb-ventoy/">[3]</a></sup><sup><a href="https://www.ventoy.net/en/doc_start.html">[1]</a></sup>. Three ISOs on one stick — Fedora Workstation, Ubuntu LTS, and one KDE distro — is a 20-minute distro bake-off.</p>
+
+<p><strong>The 15-minute checklist</strong>, from a boot with no install: Wi-Fi connects and browses; native display resolution; external monitor via dock/USB-C; audio on speakers <em>and</em> headphone jack; brightness and volume keys; trackpad two-finger scroll and gestures; webcam; suspend on lid-close and resume — do it three times, watching for failures or heavy drain <sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>. Then <code>inxi -Fxz</code> for a full hardware snapshot and <code>lspci</code>/<code>lsusb</code> to name anything that didn't come up <sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>. Stress tools run fine from a live session for a thermal sanity check <sup><a href="https://forums.linuxmint.com/viewtopic.php?t=393465">[38]</a></sup>.</p>
+
+<p>The one real gap: proprietary GPU drivers generally need a reboot to take effect, so a live session tests the open-source driver path only <sup><a href="https://forum.level1techs.com/t/gpu-testing-on-linux-live-usb/137851">[36]</a></sup>. For an Intel/AMD iGPU laptop that <em>is</em> the production path; for an NVIDIA dGPU it is not.</p>
+
+<h2>2. External-SSD full install — the rung that actually answers the question</h2>
+
+<p>This is a normal, permanent Linux install that happens to live on a drive you can unplug. Nothing is written to the internal disk, no partition is resized, no Windows bootloader is touched — <em>if</em> you handle one pitfall (below).</p>
+
+<h3>Enclosure and bridge chip</h3>
+
+<p>The bridge chip, not the SSD, decides whether you get UASP, whether TRIM passes through, and whether SMART is readable <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>. Four families cover almost everything on sale, and all support UASP, TRIM and SMART on Linux:</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Bridge</th><th>Interface</th><th>Link speed</th><th>smartctl type</th><th>Enclosure price</th></tr></thead>
+<tbody>
+<tr><td>JMicron JMS583</td><td>USB 3.1 Gen 2</td><td>10 Gbps</td><td><code>sntjmicron</code></td><td rowspan="3">€25–60</td></tr>
+<tr><td>Realtek RTL9210/B</td><td>USB 3.1 Gen 2</td><td>10 Gbps</td><td><code>sntrealtek</code></td></tr>
+<tr><td>ASMedia ASM2362</td><td>USB 3.1 Gen 2</td><td>10 Gbps</td><td><code>sntasmedia</code></td></tr>
+<tr><td>ASMedia ASM2364</td><td>USB 3.2 Gen 2×2</td><td>20 Gbps</td><td><code>sntasmedia</code></td><td>€45–80</td></tr>
+<tr><td>ASMedia ASM2464PD</td><td>USB4 / Thunderbolt</td><td>40 Gbps</td><td><code>sntasmedia</code></td><td>€70–120 <sup><a href="https://www.chargerlab.com/asm2464pd-within-newq-launched-usb4-40gbps-ssd-enclosure/">[10]</a></sup></td></tr>
+</tbody>
+</table>
+<p class="note">Bridge/speed/smartctl columns: <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>. UASP is mandatory in USB 3.1 and must be fully implemented, which makes USB 3.1+ enclosures the safer bet for TRIM <sup><a href="https://www.vcom.hk/blogs/blog/advanced-nvme-enclosure-features-explained-trim-uasp-and-compatibility">[40]</a></sup>.</p>
+</div>
+
+<p>Verify after first boot: <code>lsusb -t</code> must show <code>Driver=uas</code> (not <code>usb-storage</code>), and <code>lsblk -Do NAME,TRAN,TYPE,DISC-GRAN,DISC-MAX</code> must report a non-zero <code>DISC-MAX</code> <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>. ⚠ Many bridges do not advertise discard support, so the kernel disables TRIM even when the SSD supports it — the fix is a udev rule setting <code>provisioning_mode="unmap"</code> for that vendor/product ID <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup><sup><a href="https://bbs.archlinux.org/viewtopic.php?id=244636">[37]</a></sup>. Missing TRIM is a slow performance decay, not data loss <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>. Also skip ZFS on USB: duplicate serials, inconsistent SMART passthrough and USB dropouts degrade pools <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>.</p>
+
+<h3>Endurance: SSD in an enclosure, never a USB stick</h3>
+
+<p>USB flash drives use NAND that would be rejected for SSD use and have wear-levelling that isn't comparable; a full install with daily writes wears them out <sup><a href="https://ounapuu.ee/posts/2024/12/02/linux-on-usb/">[7]</a></sup>. Someone who ran exactly this experiment concluded: <em>"Don't expect any longevity with USB sticks, the wear leveling and endurance is not on the level of proper SSD-s"</em> — while noting Linux itself runs fine off USB, and you mainly feel it during package installs and updates <sup><a href="https://ounapuu.ee/posts/2024/12/02/linux-on-usb/">[7]</a></sup>. A 1 TB M.2 NVMe drive (€60–90) in a €30 enclosure has the same TBW rating it would have inside the laptop.</p>
+
+<h3>⚠ The bootloader pitfall</h3>
+
+<p>On UEFI, only one ESP is active at a time, so installers frequently write the EFI boot files to the <em>internal</em> disk's ESP even when you point the bootloader at the USB target — after which removing the external drive can leave the machine at a GRUB error <sup><a href="https://itsfoss.com/intsall-ubuntu-on-usb/">[6]</a></sup>. The clean workaround: from the live session, clear the <code>esp</code> flag on the internal ESP before installing and restore it afterwards, before rebooting <sup><a href="https://itsfoss.com/intsall-ubuntu-on-usb/">[6]</a></sup>. Physically disconnecting the internal drive is the desktop equivalent <sup><a href="https://www.danbp.org/p/en/node/148">[41]</a></sup>. Get this wrong and the whole "never touches Windows" promise evaporates.</p>
+
+<h3>Is it fast enough to compile on?</h3>
+
+<p>Yes, with a caveat about which number you look at. USB 3.2 Gen 2 external drives deliver 400–1000 MB/s, Thunderbolt 2500–3000 MB/s, and USB4 approaches 4000 MB/s, against up to 12,000 MB/s for a PCIe Gen 5 internal NVMe <sup><a href="https://diyssd.com/blog/diy-external-ssds-in-2026">[8]</a></sup>. The sequential gap is large; the gap that matters for builds is latency, and external adds USB controller overhead and protocol translation on top of the PCIe path <sup><a href="https://www.newegg.com/insider/internal-vs-external-ssds-in-2026-which-type-is-right-for-you/">[9]</a></sup>. In practice a USB 3.2 Gen 2 or better external SSD "will feel virtually identical to an internal drive" for everyday work <sup><a href="https://www.newegg.com/insider/internal-vs-external-ssds-in-2026-which-type-is-right-for-you/">[9]</a></sup>, and .NET/TypeScript builds are dominated by CPU and RAM, not by 1 GB/s versus 7 GB/s. Where you <em>will</em> notice it: a cold <code>npm install</code> or NuGet restore over a large tree, and first-boot package installs. If your machine has a Thunderbolt/USB4 port, an ASM2464PD enclosure removes even that objection <sup><a href="https://www.chargerlab.com/asm2464pd-within-newq-launched-usb4-40gbps-ssd-enclosure/">[10]</a></sup>.</p>
+
+<h2>3. VMs on Windows — good for the toolchain, useless for the verdict</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Option</th><th>Cost</th><th>Linux desktop fidelity</th><th>3D / GPU in 2026</th><th>Use it for</th></tr></thead>
+<tbody>
+<tr><td><strong>VMware Workstation Pro 25H2</strong></td><td>Free for commercial, educational and personal use; no licence key <sup><a href="https://techdocs.broadcom.com/us/en/vmware-cis/desktop-hypervisors/workstation-pro/25H2/release-notes/vmware-workstation-pro-25h2-release-notes.html">[11]</a></sup></td><td>Best of the three; faster disk and graphics virtualization for Linux guests <sup><a href="https://www.xda-developers.com/virtualbox-vs-workstation-pro/">[12]</a></sup></td><td>OpenGL 4.3 / DirectX 11 in guests — best Type-2 option <sup><a href="https://www.xda-developers.com/virtualbox-vs-workstation-pro/">[12]</a></sup></td><td>Default pick if you want a VM at all</td></tr>
+<tr><td><strong>Hyper-V</strong></td><td>Free (Windows Pro)</td><td>Enhanced Session Mode is <em>xrdp over hv_sock</em> — a remote-desktop session, not a local console <sup><a href="https://wiki.archlinux.org/title/Hyper-V">[13]</a></sup>; video can be worse with it than without <sup><a href="https://www.vidrasec.com/blog/hyperv/">[14]</a></sup></td><td>No official GPU acceleration for Linux guests <sup><a href="https://www.vidrasec.com/blog/hyperv/">[14]</a></sup></td><td>Headless server VMs only</td></tr>
+<tr><td><strong>VirtualBox</strong></td><td>Free</td><td>Adequate; widest host/guest coverage <sup><a href="https://www.xda-developers.com/virtualbox-vs-workstation-pro/">[12]</a></sup></td><td>Experimental, capped at older OpenGL <sup><a href="https://www.xda-developers.com/virtualbox-vs-workstation-pro/">[12]</a></sup></td><td>Throwaway experiments, Vagrant</td></tr>
+<tr><td><strong>WSL2 + WSLg</strong></td><td>Free</td><td>Individual GUI windows in the Windows shell — explicitly not a desktop session <sup><a href="https://www.xda-developers.com/wsl-is-powerful-but-cant-beat-a-real-linux-desktop/">[16]</a></sup></td><td>Works, but ~33% slower on heavy GPU workloads than native Ubuntu <sup><a href="https://www.kunalganglani.com/blog/wsl2-vs-native-linux-development">[15]</a></sup></td><td>Actual daily .NET/Node work while you evaluate</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Why a VM can't validate the migration.</strong> The guest is handed a virtual NIC, a virtual GPU, a virtual disk and a virtual power model. Every question that decides whether Linux is livable on your machine — does Wi-Fi work, does the dGPU switch, does suspend survive a lid close, does the battery last, does the fan spin up during a build, does the dock drive two monitors — is answered by the hypervisor, not by Linux. A VM tells you whether your <em>toolchain</em> ports. Nothing more.</p>
+
+<h2>4. GPU passthrough / VFIO — skip it for a migration trial</h2>
+
+<p>The payoff is real: a passed-through GPU runs within 1–3% of bare metal for sustained workloads <sup><a href="https://homelabstarter.com/homelab-gpu-passthrough/">[17]</a></sup>. The cost is the problem. Motherboards commonly group the GPU with other peripherals in one IOMMU group, so VFIO cannot detach it without an ACS override patch to split the groups <sup><a href="https://www.pchardwarepro.com/en/complete-guide-to-gpu-passthrough-with-vfio-on-linux/">[18]</a></sup>. Single-GPU passthrough is substantially harder still — the lone GPU often can't be isolated or reset, and the VM boots to a black screen or hangs during device reset <sup><a href="https://www.musabase.com/2025/05/single-gpu-passthrough-on-vm.html">[20]</a></sup>. The canonical <a href="https://github.com/joeknock90/Single-GPU-Passthrough">Single-GPU-Passthrough guide</a> ⭐ 1.7k opens with a disclaimer that it makes no guarantee the process will work on your hardware <sup><a href="https://github.com/joeknock90/Single-GPU-Passthrough">[19]</a></sup>. Comfortable setups need an iGPU for the host plus a discrete GPU for the guest <sup><a href="https://www.musabase.com/2025/05/single-gpu-passthrough-on-vm.html">[20]</a></sup>.</p>
+
+<p><strong>Verdict:</strong> VFIO is an <em>endgame</em> for someone who has already moved to Linux and needs occasional Windows-with-GPU. It answers no question you have while deciding whether to move, and it costs a weekend to find that out.</p>
+
+<h2>5. Spare or second-hand laptop</h2>
+
+<p>Real eBay sold medians across seven markets, June 2026 <sup><a href="https://www.pcprice.watch/guides/used-thinkpad-buyers-guide-2026">[21]</a></sup>:</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Model</th><th>Sold median</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>ThinkPad T430</td><td>€96</td><td>Budget pick; repairable, 16 GB max, Coreboot-moddable</td></tr>
+<tr><td>ThinkPad T470</td><td>€130</td><td>DDR4, USB-C, Thunderbolt 3</td></tr>
+<tr><td>ThinkPad X270</td><td>€148</td><td>Last serviceable 12.5"</td></tr>
+<tr><td><strong>ThinkPad T480</strong></td><td><strong>€175</strong></td><td>Best overall: quad-core, DDR4, TB3, dual storage bays, most liquid market (203+ sales/month)</td></tr>
+<tr><td>X1 Carbon G4</td><td>€259</td><td>Thin and light, but soldered RAM</td></tr>
+</tbody>
+</table>
+<p class="note">⚠ Asking prices run €257–375 for a T480 against the €175 cleared median — anchor offers to the sold median <sup><a href="https://www.pcprice.watch/guides/used-thinkpad-buyers-guide-2026">[21]</a></sup>. ThinkPads are described as "the de facto reference hardware for desktop Linux", working out of the box on Fedora, Ubuntu and Arch <sup><a href="https://www.pcprice.watch/guides/used-thinkpad-buyers-guide-2026">[21]</a></sup>.</p>
+</div>
+
+<p><strong>Buying new with Linux support</strong> — worth knowing, not worth doing as a trial:</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Vendor</th><th>Entry price</th><th>Linux status</th></tr></thead>
+<tbody>
+<tr><td>Lenovo ThinkPad</td><td>~$1,400 (X1 Carbon Gen 13) <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td><td>Linux certification across the ThinkPad and ThinkStation portfolio <sup><a href="https://news.lenovo.com/pressroom/press-releases/lenovo-brings-linux-certification-to-thinkpad-and-thinkstation-workstation-portfolio-easing-deployment-for-developers-data-scientists/">[22]</a></sup>; 100+ configurations on Canonical's catalogue as of Feb 2026 <sup><a href="https://linuxano.com/top-ubuntu-certified-thinkpads-for-developers/">[23]</a></sup>, but usually sold with Windows in most markets <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td></tr>
+<tr><td>Framework Laptop 13 Pro</td><td>€1,349 DIY, no RAM/storage/OS ($1,199 US) <sup><a href="https://www.heise.de/en/news/Framework-Laptop-13-Pro-AMD-more-expensive-than-Intel-Ubuntu-pre-installed-11268489.html">[25]</a></sup></td><td>Ubuntu preinstalled option; Ubuntu-certified <sup><a href="https://www.omgubuntu.co.uk/2026/07/ubuntu-2610-certified-hardware-check">[28]</a></sup></td></tr>
+<tr><td><a href="https://www.tuxedocomputers.com/en/TUXEDO-InfinityBook-Pro-14-Gen10.tuxedo">TUXEDO</a></td><td>€1,090 (InfinityBook Pro 15 Gen10) <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup>; Aura 15 band from ~$900 <sup><a href="https://linuxano.com/best-tuxedo-laptops-to-buy-in-2026-linux-preinstalled/">[27]</a></sup></td><td>TUXEDO OS or Ubuntu LTS preinstalled, five-year warranty, German build <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td></tr>
+<tr><td>System76</td><td>$1,299 (Pangolin) / $1,399 (Lemur Pro) <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td><td>Pop!_OS or Ubuntu, coreboot firmware <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td></tr>
+<tr><td>Dell XPS Developer Edition</td><td>~$2,050 (XPS 14) <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td><td>Ubuntu LTS preinstalled, drivers pushed upstream <sup><a href="https://www.starryhope.com/linux/best-linux-laptops-buyers-guide/">[26]</a></sup></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>6. Cloud / remote Linux desktop</h2>
+
+<p>Hosted Linux desktops start around $5/month <sup><a href="https://www.shells.com/l/en-US/pricing">[31]</a></sup>; <a href="https://www.kasmweb.com/">Kasm Workspaces</a> streams containerised desktops to a browser and is free for personal use up to 5 concurrent sessions <sup><a href="https://www.g2.com/products/kasm-workspaces/pricing">[32]</a></sup>. With a homelab you already have, the marginal cost is €0 — a VM plus one of:</p>
+
+<ul>
+<li><strong>SSH, headless</strong> — the highest-value option here. Validates your .NET/Node toolchain, containers and deployment story with zero desktop illusion.</li>
+<li><strong>xrdp</strong> — RDP into a Linux session <sup><a href="https://en.wikipedia.org/wiki/Xrdp">[42]</a></sup>. Works; latency is in the wrong ballpark for judging interactive UI feel <sup><a href="https://superrendersfarm.com/article/moonlight-parsec-rdp-remote-desktop-gpu-rendering-2026">[33]</a></sup>.</li>
+<li><strong><a href="https://app.lizardbyte.dev/Sunshine/">Sunshine</a> ⭐ 40k <sup><a href="https://github.com/LizardByte/Sunshine">[44]</a></sup> + Moonlight ⭐ 18k <sup><a href="https://github.com/moonlight-stream/moonlight-qt">[45]</a></sup></strong> — hardware-encoded 4K/60 at sub-30 ms, self-hosted on any GPU with an encoder <sup><a href="https://superrendersfarm.com/article/moonlight-parsec-rdp-remote-desktop-gpu-rendering-2026">[33]</a></sup>. Closest thing to a real desktop over the wire; pair with Tailscale to skip port forwarding.</li>
+<li><strong>NoMachine</strong> — free for non-commercial use, proprietary <sup><a href="https://en.wikipedia.org/wiki/NX_technology">[34]</a></sup>.</li>
+</ul>
+
+<p>All of them share the same blind spot as VMs, plus network latency. Use a remote box to answer "does my toolchain work on Linux", never "do I want to use Linux".</p>
+
+<h2>7. Checking compatibility before you buy</h2>
+
+<ul>
+<li><strong><a href="https://linux-hardware.org/">Linux Hardware Database</a></strong> — crowdsourced probes per laptop model showing which components work and on which kernels <sup><a href="https://linux-hardware.org/">[30]</a></sup><sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>. Check a candidate machine here <em>before</em> buying <sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>.</li>
+<li><strong><a href="https://github.com/linuxhw/hw-probe">hw-probe</a> ⭐ 918</strong> — run it from the live session to upload a probe of your own machine and diff it against the database <sup><a href="https://github.com/linuxhw/hw-probe">[29]</a></sup>. Packaged as <code>hw-probe</code> on Debian/Ubuntu, Fedora and Arch <sup><a href="https://linuxjunkies.org/guides/linux-hardware-compatibility">[35]</a></sup>.</li>
+<li><strong><a href="https://ubuntu.com/certified">Ubuntu Certified hardware</a></strong> — Canonical's verified-device list <sup><a href="https://ubuntu.com/certified">[24]</a></sup>. From Ubuntu 26.10, <em>Settings &gt; System &gt; About</em> has a "check if this computer is Ubuntu Certified" row backed by <code>com.ubuntu.hwctl</code>, reporting certified / certified-for-another-release / similar-to-a-certified-model / not certified <sup><a href="https://www.omgubuntu.co.uk/2026/07/ubuntu-2610-certified-hardware-check">[28]</a></sup>.</li>
+<li><strong>ArchWiki per-model pages</strong> — the best per-laptop Linux documentation available, useful regardless of distro <sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup><sup><a href="https://wiki.archlinux.org/title/Laptop">[43]</a></sup>.</li>
+</ul>
+
+<h2>Recommendation</h2>
+
+<ol>
+<li><strong>Ventoy stick, this week (€10, 15 min).</strong> Three ISOs, the hardware checklist above, then <code>hw-probe</code> to file a permanent record. Cheapest possible answer to "will Linux even run on this machine", and it settles the distro question at the same time <sup><a href="https://www.ventoy.net/en/doc_start.html">[1]</a></sup><sup><a href="https://linuxano.com/check-hardware-compatibility-before-installing-linux/">[4]</a></sup>.</li>
+<li><strong>Keep using WSL2 in parallel (€0).</strong> It is where your .NET and Node toolchain gets exercised daily while you decide, at near-native CPU speed <sup><a href="https://www.xda-developers.com/wsl-is-powerful-but-cant-beat-a-real-linux-desktop/">[16]</a></sup> — just don't mistake it for the desktop <sup><a href="https://www.kunalganglani.com/blog/wsl2-vs-native-linux-development">[15]</a></sup>.</li>
+<li><strong>External NVMe SSD install, if step 1 looks clean (€90–150, 1–2 h).</strong> Realtek RTL9210 or ASMedia ASM2362 enclosure, 1 TB NVMe, ESP flag cleared during install <sup><a href="https://itsfoss.com/intsall-ubuntu-on-usb/">[6]</a></sup>, UASP and TRIM verified after <sup><a href="https://computingforgeeks.com/nvme-enclosures-linux-trim-uasp/">[5]</a></sup>. Live on it for a month. If it fails you unplug a cable; if it succeeds you clone it to the internal drive.</li>
+</ol>
+
+<p>Everything else is optional. A €175 T480 is a reasonable insurance policy if you want a machine you can wipe freely <sup><a href="https://www.pcprice.watch/guides/used-thinkpad-buyers-guide-2026">[21]</a></sup>, and a homelab VM over SSH is a good place to keep server-shaped work. A desktop VM on Windows and GPU passthrough both answer questions you are not asking.</p>
