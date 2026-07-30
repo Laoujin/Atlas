@@ -1,0 +1,648 @@
+---
+layout: view
+view_name: "Flowchart"
+view_of: ../
+title: "Escape hatches for the leftovers: Wine, a VM, passthrough, or just keep the partition — Flowchart"
+---
+
+<style>
+  .schem {
+    --ink: #070d16;
+    --panel: #0c1526;
+    --panel2: #111e34;
+    --line: #1e3050;
+    --txt: #cdd9ea;
+    --dim: #7d8fa9;
+    --amber: #f2a93b;
+    --cyan: #3fc9e8;
+    --violet: #ab8dff;
+    --green: #4fcf8b;
+    --grey: #8494a8;
+    --red: #ff6b6b;
+    --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    margin: 0;
+    padding: 0 0 4rem;
+    background:
+      repeating-linear-gradient(0deg, rgba(30,48,80,.55) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, rgba(30,48,80,.55) 0 1px, transparent 1px 40px),
+      radial-gradient(120% 80% at 20% 0%, #0e1a2e 0%, var(--ink) 70%);
+    color: var(--txt);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .schem * { box-sizing: border-box; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---- drawing title block ---- */
+  .plate {
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(17,30,52,.9), rgba(9,16,28,.9));
+    margin-top: 2.5rem;
+  }
+  .plate-top { padding: 26px 26px 20px; border-bottom: 1px solid var(--line); }
+  .stamp {
+    font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--cyan); margin: 0 0 14px;
+  }
+  .plate h1 {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(24px, 4.4vw, 42px); line-height: 1.12;
+    letter-spacing: -.02em; margin: 0 0 14px; color: #fff;
+  }
+  .plate h1 em { color: var(--amber); font-style: normal; }
+  .lede { margin: 0; max-width: 74ch; color: var(--dim); font-size: 14px; }
+  .fields { display: flex; flex-wrap: wrap; }
+  .field {
+    flex: 1 1 150px; padding: 12px 16px;
+    border-right: 1px solid var(--line);
+  }
+  .field:last-child { border-right: 0; }
+  .field span { display: block; font-size: 9.5px; letter-spacing: .2em; color: var(--dim); text-transform: uppercase; }
+  .field b { font-size: 15px; color: #fff; font-weight: 700; }
+
+  /* ---- section headers ---- */
+  .sec { margin-top: 3.2rem; }
+  .sec > h2 {
+    font-size: 12px; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--dim); font-weight: 700; margin: 0 0 4px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .sec > h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .sec > p.note { margin: 0 0 20px; font-size: 13px; color: var(--dim); max-width: 80ch; }
+
+  /* ---- verdict plates ---- */
+  .verdicts { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .v {
+    border: 1px solid var(--line); border-top-width: 3px;
+    padding: 16px 18px; background: rgba(12,21,38,.75);
+  }
+  .v i { font-style: normal; font-size: 10px; letter-spacing: .2em; color: var(--dim); display: block; margin-bottom: 8px; }
+  .v strong { display: block; font-size: 17px; color: #fff; line-height: 1.25; margin-bottom: 6px; }
+  .v span { font-size: 12.5px; color: var(--dim); }
+  .v.a { border-top-color: var(--amber); } .v.a strong { color: var(--amber); }
+  .v.c { border-top-color: var(--cyan); } .v.c strong { color: var(--cyan); }
+  .v.v { border-top-color: var(--violet); } .v.v strong { color: var(--violet); }
+  .v.r { border-top-color: var(--red); } .v.r strong { color: var(--red); }
+
+  /* ---- legend ---- */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0 0 14px; font-size: 11.5px; color: var(--dim); }
+  .legend b { display: inline-flex; align-items: center; gap: 7px; font-weight: 400; }
+  .legend b::before { content: ""; width: 22px; height: 3px; background: currentColor; }
+  .lg-green { color: var(--green); } .lg-grey { color: var(--grey); }
+  .lg-amber { color: var(--amber); } .lg-cyan { color: var(--cyan); }
+  .lg-violet { color: var(--violet); } .lg-red { color: var(--red); }
+
+  /* ---- the diagram ---- */
+  .canvas {
+    overflow-x: auto; border: 1px solid var(--line);
+    background: rgba(6,11,20,.72); padding: 8px;
+  }
+  .canvas svg { display: block; width: 100%; min-width: 980px; height: auto; }
+  .hint { font-size: 11px; color: var(--dim); margin: 8px 0 0; }
+
+  /* ---- spec cards ---- */
+  .specs { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .card {
+    border: 1px solid var(--line); background: rgba(12,21,38,.8);
+    display: flex; flex-direction: column;
+  }
+  .card .bar { height: 3px; }
+  .card .body { padding: 16px 18px 4px; }
+  .card h3 { margin: 0 0 2px; font-size: 16px; color: #fff; letter-spacing: -.01em; }
+  .card .kind { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; }
+  .card p { margin: 0 0 12px; font-size: 13px; color: var(--txt); }
+  .card .thumb { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line); }
+  .rows { border-top: 1px solid var(--line); margin-top: auto; }
+  .row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 18px; font-size: 12px; border-bottom: 1px solid rgba(30,48,80,.55); }
+  .row:last-child { border-bottom: 0; }
+  .row span { color: var(--dim); letter-spacing: .12em; font-size: 10px; text-transform: uppercase; padding-top: 2px; }
+  .row b { color: #fff; font-weight: 700; text-align: right; }
+  .ok { color: var(--green); } .warn { color: var(--amber); } .bad { color: var(--red); }
+
+  /* ---- terminated band ---- */
+  .dead {
+    border: 1px solid rgba(255,107,107,.45);
+    background:
+      repeating-linear-gradient(135deg, rgba(255,107,107,.07) 0 8px, transparent 8px 18px),
+      rgba(22,10,14,.8);
+  }
+  .dead-head { display: flex; align-items: stretch; gap: 0; border-bottom: 1px solid rgba(255,107,107,.3); }
+  .dead-head .txt { padding: 18px 22px; }
+  .dead-head b { color: var(--red); font-size: 13px; letter-spacing: .24em; display: block; margin-bottom: 8px; }
+  .dead-head em { font-style: normal; font-size: 12.5px; color: var(--dim); }
+  .dead-head img {
+    width: 132px; flex: 0 0 132px; object-fit: cover; align-self: stretch;
+    border-right: 1px solid rgba(255,107,107,.3);
+    filter: grayscale(.5) contrast(1.05) brightness(.82);
+  }
+  @media (max-width: 560px) { .dead-head img { display: none; } }
+  .dead-list { display: grid; gap: 0; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .dead-list > div { padding: 18px 22px; border-right: 1px solid rgba(255,107,107,.22); }
+  .dead-list > div:last-child { border-right: 0; }
+  .dead-list h4 { margin: 0 0 10px; font-size: 14px; color: #fff; text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 2px; }
+  .dead-list p { margin: 0; font-size: 12.5px; color: var(--dim); }
+
+  /* ---- bill of materials ---- */
+  .bom { border: 1px solid var(--line); background: rgba(12,21,38,.8); }
+  .bom-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 11px 18px; border-bottom: 1px solid rgba(30,48,80,.6); align-items: baseline; }
+  .bom-row:last-child { border-bottom: 0; }
+  .bom-row em { font-style: normal; color: var(--dim); font-size: 12px; display: block; }
+  .bom-row .amt { font-size: 15px; color: #fff; font-weight: 700; white-space: nowrap; }
+  .bom-row .amt.free { color: var(--green); }
+
+  /* ---- sources ---- */
+  .srcs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .src { display: flex; gap: 11px; align-items: flex-start; border: 1px solid var(--line); background: rgba(12,21,38,.6); padding: 11px 13px; }
+  .src img { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 2px; }
+  .src .t { font-size: 12px; color: var(--txt); line-height: 1.4; }
+  .src .m { font-size: 10px; color: var(--dim); letter-spacing: .12em; text-transform: uppercase; margin-top: 3px; }
+  .src a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(63,201,232,.4); }
+  .src a:hover { border-bottom-color: var(--cyan); color: #fff; }
+  .n { color: var(--cyan); font-weight: 700; }
+
+  /* ---- sheet nav ---- */
+  .sheets { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .sheet { border: 1px solid var(--line); padding: 14px 16px; background: rgba(12,21,38,.6); display: block; text-decoration: none; color: var(--txt); }
+  .sheet:hover { border-color: var(--cyan); background: rgba(17,30,52,.9); }
+  .sheet b { display: block; font-size: 13px; color: #fff; margin-bottom: 5px; line-height: 1.35; }
+  .sheet em { font-style: normal; font-size: 12px; color: var(--dim); }
+  .sheet .d { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); margin-bottom: 7px; }
+
+  .foot { margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 16px; font-size: 12px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 6px 26px; }
+  .foot a { color: var(--txt); }
+
+  a.inl { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(63,201,232,.35); }
+  a.inl:hover { border-bottom-color: var(--cyan); }
+  sup a { color: var(--cyan); text-decoration: none; font-size: 10px; }
+  .stars { color: var(--amber); font-size: 11px; white-space: nowrap; }
+
+  @media (max-width: 640px) {
+    .schem { font-size: 14px; }
+    .field { flex-basis: 50%; }
+  }
+</style>
+
+<div class="schem">
+<div class="wrap">
+
+  <!-- ============ TITLE BLOCK ============ -->
+  <div class="plate">
+    <div class="plate-top">
+      <p class="stamp">Triage schematic · sheet 07 of 07 · rev 2026-07-30</p>
+      <h1>Which escape hatch<br>for <em>which kind of leftover?</em></h1>
+      <p class="lede">One pass down the tree per stranded application. Every branch terminates: in a Wine prefix,
+      in a local VM, on someone else's Windows box, on a partition you keep — or, once, in a dead end you should
+      not walk into.</p>
+    </div>
+    <div class="fields">
+      <div class="field"><span>Depth</span><b>recon</b></div>
+      <div class="field"><span>Sources</span><b>16</b></div>
+      <div class="field"><span>Read</span><b>4 min</b></div>
+      <div class="field"><span>Branches</span><b>7</b></div>
+      <div class="field"><span>Dead ends</span><b style="color:var(--red)">3</b></div>
+    </div>
+  </div>
+
+  <!-- ============ VERDICT ============ -->
+  <div class="sec">
+    <h2>Decision, before the diagram</h2>
+    <div class="verdicts">
+      <div class="v a">
+        <i>FIRST STOP</i>
+        <strong>Wine, via Bottles</strong>
+        <span>Costs nothing, and the AppDB rating tells you in minutes whether this app is the single-window kind that just works.</span>
+      </div>
+      <div class="v c">
+        <i>WHEN WINE CAN'T</i>
+        <strong>A local Windows VM</strong>
+        <span>Service, filter driver or Explorer integration → skip Wine entirely. KVM/virt-manager, or VMware Workstation Pro, free since Nov 2024.</span>
+      </div>
+      <div class="v v">
+        <i>THE WORK CLUSTER</i>
+        <strong>RDP into someone else's Windows</strong>
+        <span>Office + two corporate VPNs + SSMS is the employer's compliance problem. Windows 365 is $28–56/user/mo since 1 May 2026.</span>
+      </div>
+      <div class="v r">
+        <i>DO NOT BUILD</i>
+        <strong>No dGPU passthrough</strong>
+        <span>Muxless Optimus caps the guest at 640×480 with no Optimus handoff. And with three leftovers left, a 120 GB Windows partition beats engineering anything.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THE TREE ============ -->
+  <div class="sec">
+    <h2>The tree</h2>
+    <p class="note">Read top to bottom. The first question your app answers <b>yes</b> to is its hatch — the exclusions
+    come first on purpose, because Wine cannot be talked into a kernel.</p>
+    <div class="legend">
+      <b class="lg-green">dual boot</b>
+      <b class="lg-grey">no hatch</b>
+      <b class="lg-amber">Wine</b>
+      <b class="lg-violet">remote Windows</b>
+      <b class="lg-cyan">local VM</b>
+      <b class="lg-red">terminated</b>
+    </div>
+
+    <div class="canvas">
+      <svg viewBox="0 0 1200 1400" role="img" aria-label="Decision tree: driver or service to dual boot; Explorer hook to no hatch; anti-cheat game to Proton; employer-owned workload to corporate VDI or RDP; single-window Win32 app to Wine in Bottles; everything else to a local Windows VM, which branches to WinApps over FreeRDP and to a terminated dGPU passthrough branch.">
+        <defs>
+          <marker id="mk-slate" markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#6b83a8"/></marker>
+          <marker id="mk-green" markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#4fcf8b"/></marker>
+          <marker id="mk-grey"  markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8494a8"/></marker>
+          <marker id="mk-violet" markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ab8dff"/></marker>
+          <marker id="mk-amber" markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#f2a93b"/></marker>
+          <marker id="mk-cyan"  markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#3fc9e8"/></marker>
+          <marker id="mk-red"   markerWidth="10" markerHeight="10" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ff6b6b"/></marker>
+          <pattern id="hatch" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <rect width="9" height="9" fill="#170a10"/>
+            <line x1="0" y1="0" x2="0" y2="9" stroke="rgba(255,107,107,.28)" stroke-width="2.5"/>
+          </pattern>
+        </defs>
+
+        <style>
+          .qbox { fill: #111e34; stroke: #2c4670; stroke-width: 1.4; }
+          .tbox { fill: #0c1526; stroke: #1e3050; stroke-width: 1.2; }
+          .qt { font: 700 12.5px ui-monospace, Menlo, Consolas, monospace; fill: #ffffff; }
+          .qe { font: 400 10.5px ui-monospace, Menlo, Consolas, monospace; fill: #7d8fa9; }
+          .tt { font: 700 15px ui-monospace, Menlo, Consolas, monospace; fill: #ffffff; }
+          .tb { font: 400 11.5px ui-monospace, Menlo, Consolas, monospace; fill: #cdd9ea; }
+          .tc { font: 700 10.5px ui-monospace, Menlo, Consolas, monospace; letter-spacing: .12em; }
+          .wl { font: 700 9.5px ui-monospace, Menlo, Consolas, monospace; letter-spacing: .16em; fill: #6b83a8; }
+          .ghost { font: 700 44px ui-monospace, Menlo, Consolas, monospace; fill: #16253d; }
+          .wire { fill: none; stroke-width: 1.6; }
+        </style>
+
+        <!-- ghost row numerals -->
+        <text class="ghost" x="112" y="186" text-anchor="end">01</text>
+        <text class="ghost" x="112" y="330" text-anchor="end">02</text>
+        <text class="ghost" x="112" y="474" text-anchor="end">03</text>
+        <text class="ghost" x="112" y="626" text-anchor="end">04</text>
+        <text class="ghost" x="112" y="786" text-anchor="end">05</text>
+
+        <!-- START -->
+        <rect x="140" y="16" width="330" height="64" rx="32" fill="#0c1526" stroke="#3fc9e8" stroke-width="1.6"/>
+        <text class="tc" x="305" y="42" text-anchor="middle" fill="#3fc9e8">A WINDOWS LEFTOVER</text>
+        <text class="qe" x="305" y="60" text-anchor="middle">no native Linux replacement exists</text>
+        <path class="wire" stroke="#6b83a8" marker-end="url(#mk-slate)" d="M305,80 L305,116"/>
+
+        <!-- ================= Q1 ================= -->
+        <path class="qbox" d="M156,118 L454,118 L470,170 L454,222 L156,222 L140,170 Z"/>
+        <text class="qt" x="170" y="144">Is it a driver, a service or a</text>
+        <text class="qt" x="170" y="160">filter driver?</text>
+        <text class="qe" x="170" y="184">Lenovo Vantage · XTU · QuantumENGINE</text>
+        <text class="qe" x="170" y="199">X-Rite · SENetFilter · Sandboxie</text>
+        <path class="wire" stroke="#4fcf8b" marker-end="url(#mk-green)" d="M470,170 L646,170"/>
+        <text class="wl" x="514" y="162" fill="#4fcf8b">YES</text>
+
+        <rect class="tbox" x="650" y="112" width="520" height="116"/>
+        <rect x="650" y="112" width="4" height="116" fill="#4fcf8b"/>
+        <text class="tt" x="674" y="140">KEEP A 120 GB WINDOWS PARTITION</text>
+        <text class="tb" x="674" y="162">Wine has no kernel-mode driver stack, and no amount of</text>
+        <text class="tb" x="674" y="178">winetricks adds one. These are drivers, not applications.</text>
+        <text class="tc" x="674" y="205" fill="#4fcf8b">FREE · BOOT WINDOWS TWICE A YEAR FOR FIRMWARE</text>
+
+        <path class="wire" stroke="#6b83a8" marker-end="url(#mk-slate)" d="M305,222 L305,260"/>
+        <text class="wl" x="318" y="246">NO</text>
+
+        <!-- ================= Q2 ================= -->
+        <path class="qbox" d="M156,262 L454,262 L470,314 L454,366 L156,366 L140,314 Z"/>
+        <text class="qt" x="170" y="288">Does it hook Explorer or</text>
+        <text class="qt" x="170" y="304">global input?</text>
+        <text class="qe" x="170" y="328">Fences · DisplayFusion · AutoHotkey</text>
+        <text class="qe" x="170" y="343">ShareX · Ditto · shell extensions</text>
+        <path class="wire" stroke="#8494a8" marker-end="url(#mk-grey)" d="M470,314 L646,314"/>
+        <text class="wl" x="514" y="306" fill="#8494a8">YES</text>
+
+        <rect class="tbox" x="650" y="256" width="520" height="116" stroke-dasharray="5 4"/>
+        <rect x="650" y="256" width="4" height="116" fill="#8494a8"/>
+        <text class="tt" x="674" y="284">NO HATCH — REPLACE NATIVELY, OR DROP IT</text>
+        <text class="tb" x="674" y="306">A Wine prefix has no host desktop to integrate with. There</text>
+        <text class="tb" x="674" y="322">is nothing to hook, so there is nothing to emulate.</text>
+        <text class="tc" x="674" y="349" fill="#8494a8">FREE · BUT IT IS A BEHAVIOUR CHANGE, NOT A PORT</text>
+
+        <path class="wire" stroke="#6b83a8" marker-end="url(#mk-slate)" d="M305,366 L305,404"/>
+        <text class="wl" x="318" y="390">NO</text>
+
+        <!-- ================= Q3 ================= -->
+        <path class="qbox" d="M156,406 L454,406 L470,458 L454,510 L156,510 L140,458 Z"/>
+        <text class="qt" x="170" y="448">Is it a game with anti-cheat?</text>
+        <text class="qe" x="170" y="472">Fall Guys — Easy Anti-Cheat</text>
+        <path class="wire" stroke="#f2a93b" marker-end="url(#mk-amber)" d="M470,458 L646,458"/>
+        <text class="wl" x="514" y="450" fill="#f2a93b">YES</text>
+
+        <rect class="tbox" x="650" y="400" width="520" height="116"/>
+        <rect x="650" y="400" width="4" height="116" fill="#f2a93b"/>
+        <text class="tt" x="674" y="428">PROTON GE / EXPERIMENTAL &#9888;</text>
+        <text class="tb" x="674" y="450">Rated Running, not Supported. 642 of the 1,166 tracked</text>
+        <text class="tb" x="674" y="466">anti-cheat titles — 55% — are outright broken on Linux.</text>
+        <text class="tc" x="674" y="493" fill="#f2a93b">FREE · EXPECT BREAKAGE ON EVERY GAME PATCH</text>
+
+        <path class="wire" stroke="#6b83a8" marker-end="url(#mk-slate)" d="M305,510 L305,548"/>
+        <text class="wl" x="318" y="534">NO</text>
+
+        <!-- ================= Q4 ================= -->
+        <path class="qbox" d="M156,550 L454,550 L470,610 L454,670 L156,670 L140,610 Z"/>
+        <text class="qt" x="170" y="580">Does your employer own the</text>
+        <text class="qt" x="170" y="596">workload?</text>
+        <text class="qe" x="170" y="620">Office + OneNote · WatchGuard SSL VPN</text>
+        <text class="qe" x="170" y="635">Check Point Harmony SASE · SSMS</text>
+        <path class="wire" stroke="#ab8dff" marker-end="url(#mk-violet)" d="M470,610 L646,610"/>
+        <text class="wl" x="514" y="602" fill="#ab8dff">YES</text>
+
+        <rect class="tbox" x="650" y="544" width="520" height="132"/>
+        <rect x="650" y="544" width="4" height="132" fill="#ab8dff"/>
+        <text class="tt" x="674" y="572">CORPORATE VDI / RDP TO A MANAGED BOX</text>
+        <text class="tb" x="674" y="594">VPN clients ship filter drivers. Making that the employer's</text>
+        <text class="tb" x="674" y="610">compliance problem is the cheapest hatch there is. Windows</text>
+        <text class="tb" x="674" y="626">365 list price fell 20% on 1 May 2026, to $28–56/user/mo.</text>
+        <text class="tc" x="674" y="653" fill="#ab8dff">IDEALLY €0 · EMPLOYER-PROVIDED</text>
+
+        <path class="wire" stroke="#6b83a8" marker-end="url(#mk-slate)" d="M305,670 L305,708"/>
+        <text class="wl" x="318" y="694">NO</text>
+
+        <!-- ================= Q5 ================= -->
+        <path class="qbox" d="M156,710 L454,710 L470,770 L454,830 L156,830 L140,770 Z" stroke="#f2a93b"/>
+        <text class="qt" x="170" y="740">Single-window Win32 or older-</text>
+        <text class="qt" x="170" y="756">.NET utility? Check AppDB first.</text>
+        <text class="qe" x="170" y="780">IrfanView · Paint.NET · PDFtk</text>
+        <text class="qe" x="170" y="795">Beyond Compare (the app, not the ext)</text>
+        <path class="wire" stroke="#f2a93b" marker-end="url(#mk-amber)" d="M470,770 L646,770"/>
+        <text class="wl" x="514" y="762" fill="#f2a93b">YES</text>
+
+        <rect class="tbox" x="650" y="704" width="520" height="132" stroke="#f2a93b" stroke-width="1.6"/>
+        <rect x="650" y="704" width="4" height="132" fill="#f2a93b"/>
+        <text class="tt" x="674" y="732" fill="#f2a93b">WINE, IN A BOTTLES PREFIX &#10003; START HERE</text>
+        <text class="tb" x="674" y="754">Wine 11 is the stable branch and this is its best-supported</text>
+        <text class="tb" x="674" y="770">class. The AppDB rating tells you in minutes whether this</text>
+        <text class="tb" x="674" y="786">app is that kind of app — before you spend an evening.</text>
+        <text class="tc" x="674" y="813" fill="#f2a93b">FREE · ABOUT AN HOUR PER APP</text>
+
+        <!-- SSMS edge case, hanging off the Wine terminal -->
+        <path class="wire" stroke="#f2a93b" stroke-dasharray="4 4" marker-end="url(#mk-amber)" d="M910,836 L910,850"/>
+        <rect class="tbox" x="650" y="852" width="520" height="92" stroke-dasharray="5 4"/>
+        <text class="tc" x="674" y="874" fill="#f2a93b">EDGE CASE · SSMS 20, WITH BINARY PATCHES &#9888;</text>
+        <text class="tb" x="674" y="895">Connect, Object Explorer, Query Editor and Server Properties</text>
+        <text class="tb" x="674" y="911">work. Azure connection types, the SSIS/SSAS/SSRS designers,</text>
+        <text class="tb" x="674" y="927">Always On dialogs and Tuning Advisor do not. ~2 h, fragile.</text>
+
+        <!-- ================= fall-through to the VM ================= -->
+        <path class="wire" stroke="#3fc9e8" marker-end="url(#mk-cyan)" d="M305,830 L305,912 L600,912 L600,956"/>
+        <text class="wl" x="318" y="866" fill="#3fc9e8">NO — IT WANTS</text>
+        <text class="wl" x="318" y="880" fill="#3fc9e8">THE REAL THING</text>
+
+        <rect class="tbox" x="330" y="960" width="540" height="112" stroke="#3fc9e8" stroke-width="1.6"/>
+        <rect x="330" y="960" width="4" height="112" fill="#3fc9e8"/>
+        <text class="tt" x="354" y="988" fill="#3fc9e8">A LOCAL WINDOWS VM</text>
+        <text class="tb" x="354" y="1010">KVM + virt-manager, or VMware Workstation Pro — free for personal</text>
+        <text class="tb" x="354" y="1026">and commercial use since Nov 2024. Visual Studio 2026 + ReSharper,</text>
+        <text class="tb" x="354" y="1042">Power Automate Desktop: the things that need a real desktop.</text>
+        <text class="tc" x="354" y="1063" fill="#3fc9e8">≈$199 LICENCE, ONE INSTANCE PER LICENCE · ~80 GB DISK</text>
+
+        <!-- split under the VM -->
+        <path class="wire" stroke="#3fc9e8" d="M600,1072 L600,1110 L350,1110"/>
+        <path class="wire" stroke="#3fc9e8" marker-end="url(#mk-cyan)" d="M350,1110 L350,1146"/>
+        <path class="wire" stroke="#ff6b6b" d="M600,1110 L925,1110"/>
+        <path class="wire" stroke="#ff6b6b" marker-end="url(#mk-red)" d="M925,1110 L925,1146"/>
+        <text class="wl" x="150" y="1102" fill="#3fc9e8">WANT IT TO LOOK LIKE A NATIVE APP?</text>
+        <text class="wl" x="690" y="1102" fill="#ff6b6b">WANT THE dGPU INSIDE THE GUEST?</text>
+
+        <rect class="tbox" x="130" y="1150" width="440" height="140"/>
+        <rect x="130" y="1150" width="4" height="140" fill="#3fc9e8"/>
+        <text class="tt" x="152" y="1178">WINAPPS OVER FreeRDP</text>
+        <text class="qe" x="152" y="1196">&#9733; 15.7k · Jul 2026</text>
+        <text class="tb" x="152" y="1222">Seamless single-window RDP beats staring</text>
+        <text class="tb" x="152" y="1238">at a whole guest desktop for the Office and</text>
+        <text class="tb" x="152" y="1254">OneNote you open twice a week.</text>
+        <text class="tc" x="152" y="1277" fill="#3fc9e8">FREE ON TOP OF THE VM YOU ALREADY BUILT</text>
+
+        <rect x="670" y="1150" width="510" height="200" fill="url(#hatch)" stroke="#ff6b6b" stroke-width="1.6"/>
+        <text class="tt" x="694" y="1180" fill="#ff6b6b">&#10008; DEAD END · dGPU VFIO PASSTHROUGH</text>
+        <text class="tb" x="694" y="1206">Muxless Optimus means the NVIDIA chip drives no panel: the</text>
+        <text class="tb" x="694" y="1222">guest caps at 640×480, and the driver refuses to form Optimus</text>
+        <text class="tb" x="694" y="1238">with a virtual iGPU, so 3D work never migrates to the dGPU.</text>
+        <text class="tb" x="694" y="1258">Setup wants custom UEFI firmware, a vBIOS extracted from a</text>
+        <text class="tb" x="694" y="1274">BIOS update, and ACPI patching. A Legion 5 Pro attempt bound</text>
+        <text class="tb" x="694" y="1290">the card and got video — and Windows never recognised the</text>
+        <text class="tb" x="694" y="1306">RTX 3060M as NVIDIA hardware, so the driver refused to load.</text>
+        <text class="tc" x="694" y="1332" fill="#ff6b6b">DO NOT BUILD · RDP INTO THE VM INSTEAD</text>
+      </svg>
+    </div>
+    <p class="hint">Narrow screen? The diagram scrolls sideways.</p>
+  </div>
+
+  <!-- ============ SPEC CARDS ============ -->
+  <div class="sec">
+    <h2>Hatch specifications</h2>
+    <p class="note">The same five terminals, with the numbers and the citations behind them.</p>
+    <div class="specs">
+
+      <div class="card">
+        <div class="bar" style="background:var(--amber)"></div>
+        <img class="thumb" src="flowchart/images/bottles.webp" alt="Bottles project banner: Run Windows in Bottles">
+        <div class="body">
+          <h3>Wine, in a Bottles prefix</h3>
+          <div class="kind">Terminal 05 · first thing to try</div>
+          <p>Wine 11 is the stable branch, and single-window Win32 / older-.NET utilities are the class it
+          serves best <sup><a href="https://www.winehq.org/">[1]</a></sup>. Triage with the AppDB
+          Platinum/Gold/Silver/Bronze/Garbage definitions before committing an evening
+          <sup><a href="https://wiki.winehq.org/AppDB_Rating_Definitions">[2]</a></sup>.
+          <a class="inl" href="https://usebottles.com">Bottles</a> <span class="stars">&#9733; 8.6k</span>
+          <sup><a href="https://github.com/bottlesdevs/Bottles">[5]</a></sup> is the prefix manager for apps;
+          <a class="inl" href="https://lutris.net">Lutris</a> <span class="stars">&#9733; 10.1k</span>
+          <sup><a href="https://github.com/lutris/lutris">[12]</a></sup> is the same idea for games.</p>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Cost</span><b class="ok">Free</b></div>
+          <div class="row"><span>Effort</span><b>~1 h per app</b></div>
+          <div class="row"><span>Paid support</span><b><a class="inl" href="https://www.codeweavers.com">CrossOver</a> $74, $34/yr, $494 life <sup><a href="https://www.codeweavers.com/blog/balfour/2025/10/9/dont-panic-how-crossover-licenses-work">[13]</a></sup></b></div>
+          <div class="row"><span>Known edge</span><b class="warn"><a class="inl" href="https://github.com/WilhelmZA/ssms-on-wine">SSMS 20 patches</a> <span class="stars">&#9733; 1</span> <sup><a href="https://github.com/WilhelmZA/ssms-on-wine">[8]</a></sup></b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="bar" style="background:var(--cyan)"></div>
+        <div class="body">
+          <h3>A local Windows VM</h3>
+          <div class="kind">Terminal 06 · the fall-through</div>
+          <p>Wine cannot install or usefully run Visual Studio — even when it installs, functionality is
+          missing wholesale <sup><a href="https://forums.linuxmint.com/viewtopic.php?t=402070">[6]</a></sup>.
+          VMware Workstation Pro has been free for personal <em>and</em> commercial use since Broadcom's
+          Nov 2024 change, keyless, on Linux
+          <sup><a href="https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html">[3]</a></sup>.
+          On QEMU/SPICE, budget the extra hour: SPICE guest tools for a bidirectional clipboard, then
+          <code>phodav</code>/<code>spice-webdavd</code> inside the guest before guest→host file sharing works
+          <sup><a href="https://itsfoss.com/share-files-gnome-boxes/">[14]</a></sup>. GNOME Boxes is the same
+          stack with fewer knobs; virt-manager exposes the settings you will actually need.</p>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Licence</span><b>≈$199 retail, 1 instance <sup><a href="https://learn.microsoft.com/en-us/answers/questions/3846682/do-i-need-to-purchase-a-license-to-create-some-vir">[7]</a></sup></b></div>
+          <div class="row"><span>Disk</span><b>~80 GB</b></div>
+          <div class="row"><span>Hypervisor</span><b class="ok">Free (KVM or VMware)</b></div>
+          <div class="row"><span>Carries</span><b>Visual Studio 2026 + ReSharper, Power Automate Desktop</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="bar" style="background:var(--violet)"></div>
+        <div class="body">
+          <h3>Remote Windows: VDI, RDP, Cloud PC</h3>
+          <div class="kind">Terminal 04 · and the VM's nicer front end</div>
+          <p>The Office + VPN + SSMS cluster is one workload, and it belongs on a machine someone else
+          patches. Windows 365 dropped 20% on 1 May 2026 to $28–56 per user per month, productivity apps
+          excluded <sup><a href="https://www.computerworld.com/article/1614752/windows-365-costs-how-much.html">[10]</a></sup>.
+          For occasional use against a box you already have,
+          <a class="inl" href="https://github.com/winapps-org/winapps">WinApps</a>
+          <span class="stars">&#9733; 15.7k</span> renders Windows apps as seamless windows next to your Linux
+          ones over FreeRDP <sup><a href="https://github.com/winapps-org/winapps">[9]</a></sup> — no guest
+          desktop to stare at.</p>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Cloud PC</span><b>$28–56 / user / mo</b></div>
+          <div class="row"><span>Employer VDI</span><b class="ok">Ideally €0</b></div>
+          <div class="row"><span>WinApps</span><b class="ok">Free, needs a Windows target</b></div>
+          <div class="row"><span>Why</span><b>VPN filter drivers stop being your problem</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="bar" style="background:var(--green)"></div>
+        <div class="body">
+          <h3>Keep the partition</h3>
+          <div class="kind">Terminal 01 · the hatch that needs no engineering</div>
+          <p>Firmware and kernel-driver tools — Lenovo Vantage, XTU, QuantumENGINE, X-Rite Color Assistant,
+          SENetFilter, Sandboxie — are drivers, not applications. Wine has no kernel-mode driver stack, so this
+          branch was never a Wine branch. When the leftover list is down to three things you touch monthly,
+          120 GB of NVMe beats every hatch above it on both cost and hours.</p>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Cost</span><b class="ok">Free · 120 GB</b></div>
+          <div class="row"><span>Effort</span><b class="ok">None</b></div>
+          <div class="row"><span>Cadence</span><b>Boot twice a year for firmware</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="bar" style="background:var(--grey)"></div>
+        <div class="body">
+          <h3>No hatch at all</h3>
+          <div class="kind">Terminal 02 · accept the behaviour change</div>
+          <p>Stardock Fences, DisplayFusion, AutoHotkey, ShareX, Ditto, the Beyond Compare shell extension:
+          these hook Explorer and global input. A Wine prefix has no host desktop to integrate with, so
+          there is nothing for them to hook. Replace natively — that work is in the desktop-shell and
+          utility-belt sheets — or drop the habit.</p>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Cost</span><b class="ok">Free</b></div>
+          <div class="row"><span>Price</span><b class="warn">Muscle memory</b></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ TERMINATED ============ -->
+  <div class="sec">
+    <h2>Terminated branches</h2>
+    <p class="note">Three routes that look like hatches on paper and are not. Marked so future-you does not
+    rediscover them at 1 a.m.</p>
+    <div class="dead">
+      <div class="dead-head">
+        <img src="flowchart/images/laptop-dgpu.webp" alt="A laptop MXM graphics module with a bare NVIDIA GPU die">
+        <div class="txt">
+          <b>&#10008; DO NOT BUILD</b>
+          <em>A laptop dGPU is not a desktop card on a smaller board — it is a module wired through the
+          chipset with no display outputs of its own. That single fact is what kills the branch below.</em>
+        </div>
+      </div>
+      <div class="dead-list">
+        <div>
+          <h4>dGPU VFIO passthrough</h4>
+          <p>Muxless: the NVIDIA chip drives no panel, so the guest caps at 640×480 and the driver won't form
+          Optimus with a virtual iGPU. Custom UEFI, extracted vBIOS, ACPI patching — the guide's own author
+          says to do it "purely for the fun of tinkering… not for anything important"
+          <sup><a href="https://lantian.pub/en/article/modify-computer/laptop-intel-nvidia-optimus-passthrough.lantian/">[4]</a></sup>.
+          A Legion 5 Pro attempt got video, and Windows still never recognised the RTX 3060M as NVIDIA hardware
+          <sup><a href="https://forums.developer.nvidia.com/t/trying-to-get-discrete-laptop-gpu-running-in-qemu-kvm-windows/221706">[15]</a></sup>.</p>
+        </div>
+        <div>
+          <h4>virtio-gpu / Venus for a Windows guest</h4>
+          <p>Venus Vulkan over virtio-gpu is mature for <em>Linux</em> guests; the Windows-guest OpenGL/Direct3D
+          driver is still work in progress
+          <sup><a href="https://wiki.archlinux.org/title/QEMU/Guest_graphics_acceleration">[16]</a></sup>.
+          For Visual Studio, use VMware's mature Windows guest driver
+          <sup><a href="https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html">[3]</a></sup>
+          or RDP into the VM rather than fighting the display path.</p>
+        </div>
+        <div>
+          <h4>Wine for anything with a service</h4>
+          <p>The Lenovo / JBL / X-Rite / VPN cluster ships services and filter drivers. No amount of
+          <code>winetricks</code> adds a kernel. This is the one branch where more effort buys strictly
+          nothing — recognise it at question 01 and walk to the partition.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BOM ============ -->
+  <div class="sec">
+    <h2>Bill of materials</h2>
+    <p class="note">What the whole escape-hatch layer costs if you build every branch you actually need.</p>
+    <div class="bom">
+      <div class="bom-row"><div>Wine + Bottles + Lutris<em>The entire single-window tier</em></div><div class="amt free">$0</div></div>
+      <div class="bom-row"><div>CrossOver, if you want someone to call<em>$74 up front, $34/yr renewal, or $494 for life</em></div><div class="amt">$74</div></div>
+      <div class="bom-row"><div>Windows licence for the VM<em>One instance per licence — the VM counts as a device</em></div><div class="amt">≈$199</div></div>
+      <div class="bom-row"><div>Hypervisor, KVM or VMware Workstation Pro<em>Free for personal and commercial use since Nov 2024</em></div><div class="amt free">$0</div></div>
+      <div class="bom-row"><div>Disk for the guest<em>Plus 120 GB if you keep the Windows partition too</em></div><div class="amt">~80 GB</div></div>
+      <div class="bom-row"><div>Windows 365 Cloud PC, per user<em>Down 20% on 1 May 2026; productivity apps not included</em></div><div class="amt">$28–56/mo</div></div>
+      <div class="bom-row"><div>Corporate VDI, if the employer provides it<em>The cheapest hatch in the whole tree</em></div><div class="amt free">€0</div></div>
+      <div class="bom-row"><div>dGPU passthrough<em>Terminated — cost is measured in weekends, not dollars</em></div><div class="amt" style="color:var(--red)">∞</div></div>
+    </div>
+  </div>
+
+  <!-- ============ SOURCES ============ -->
+  <div class="sec">
+    <h2>Sources · 16</h2>
+    <div class="srcs">
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=winehq.org&sz=128" alt=""><div><div class="t"><span class="n">1</span> <a href="https://www.winehq.org/">WineHQ</a> — Wine 11 is the stable branch; AppDB is the database to check first.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=wiki.winehq.org&sz=128" alt=""><div><div class="t"><span class="n">2</span> <a href="https://wiki.winehq.org/AppDB_Rating_Definitions">AppDB rating definitions</a> — Platinum through Garbage, so you can triage before committing.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=knowledge.broadcom.com&sz=128" alt=""><div><div class="t"><span class="n">3</span> <a href="https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html">Broadcom</a> — Workstation Pro free for commercial, educational and personal use.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=lantian.pub&sz=128" alt=""><div><div class="t"><span class="n">4</span> <a href="https://lantian.pub/en/article/modify-computer/laptop-intel-nvidia-optimus-passthrough.lantian/">Lan Tian</a> — muxless passthrough: 640×480, no Optimus, custom UEFI + vBIOS + ACPI.</div><div class="m">forum</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="t"><span class="n">5</span> <a href="https://github.com/bottlesdevs/Bottles">bottlesdevs/Bottles</a> <span class="stars">&#9733; 8.6k</span> — the prefix manager for non-game apps.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=forums.linuxmint.com&sz=128" alt=""><div><div class="t"><span class="n">6</span> <a href="https://forums.linuxmint.com/viewtopic.php?t=402070">Linux Mint forums</a> — Visual Studio is Windows-only and Wine cannot handle it.</div><div class="m">forum</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><div><div class="t"><span class="n">7</span> <a href="https://learn.microsoft.com/en-us/answers/questions/3846682/do-i-need-to-purchase-a-license-to-create-some-vir">Microsoft Learn</a> — one licence, one instance, physical or virtual.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="t"><span class="n">8</span> <a href="https://github.com/WilhelmZA/ssms-on-wine">ssms-on-wine</a> <span class="stars">&#9733; 1</span> — what works and what does not in SSMS 20 under Wine.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="t"><span class="n">9</span> <a href="https://github.com/winapps-org/winapps">winapps-org/winapps</a> <span class="stars">&#9733; 15.7k</span> — FreeRDP backend, Windows apps as seamless windows.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=computerworld.com&sz=128" alt=""><div><div class="t"><span class="n">10</span> <a href="https://www.computerworld.com/article/1614752/windows-365-costs-how-much.html">Computerworld</a> — Windows 365 down 20% on 1 May 2026 to $28–56/user/mo.</div><div class="m">news</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=areweanticheatyet.com&sz=128" alt=""><div><div class="t"><span class="n">11</span> <a href="https://areweanticheatyet.com/">Are We Anti-Cheat Yet?</a> — Fall Guys is Running, not Supported; 642 of 1,166 broken.</div><div class="m">wiki</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><div class="t"><span class="n">12</span> <a href="https://github.com/lutris/lutris">lutris/lutris</a> <span class="stars">&#9733; 10.1k</span> — the game-side Wine/Proton runner.</div><div class="m">official</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=codeweavers.com&sz=128" alt=""><div><div class="t"><span class="n">13</span> <a href="https://www.codeweavers.com/blog/balfour/2025/10/9/dont-panic-how-crossover-licenses-work">CodeWeavers</a> — CrossOver+ $74, $34/yr renewal, CrossOver Life $494.</div><div class="m">vendor blog</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=itsfoss.com&sz=128" alt=""><div><div class="t"><span class="n">14</span> <a href="https://itsfoss.com/share-files-gnome-boxes/">It's FOSS</a> — SPICE guest tools, then phodav/spice-webdavd for guest→host sharing.</div><div class="m">vendor blog</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=forums.developer.nvidia.com&sz=128" alt=""><div><div class="t"><span class="n">15</span> <a href="https://forums.developer.nvidia.com/t/trying-to-get-discrete-laptop-gpu-running-in-qemu-kvm-windows/221706">NVIDIA forums</a> — Legion 5 Pro: video came up, the RTX 3060M was never recognised.</div><div class="m">forum</div></div></div>
+      <div class="src"><img src="https://www.google.com/s2/favicons?domain=wiki.archlinux.org&sz=128" alt=""><div><div class="t"><span class="n">16</span> <a href="https://wiki.archlinux.org/title/QEMU/Guest_graphics_acceleration">Arch Wiki</a> — the Windows-guest OpenGL/Direct3D driver is still work in progress.</div><div class="m">wiki</div></div></div>
+    </div>
+  </div>
+
+  <!-- ============ OTHER SHEETS ============ -->
+  <div class="sec">
+    <h2>Other sheets in this set</h2>
+    <div class="sheets">
+      <a class="sheet" href="../../net-sql-server-dev-stack-on-linux/"><div class="d">expedition</div><b>Your .NET + SQL Server stack on Linux</b><em>Rider replaces Visual Studio + ReSharper at the cost of the designers; SSMS has no Linux successor.</em></a>
+      <a class="sheet" href="../../microsoft-365-onenote-outlook-teams-onedrive-on-linux/"><div class="d">survey</div><b>Microsoft 365 on Linux in 2026</b><em>Tolerable compromise overall; OneDrive sync and OneNote are where the gap is real.</em></a>
+      <a class="sheet" href="../../windows-only-power-user-utilities/"><div class="d">survey</div><b>The utility belt, tool by tool</b><em>Most transfer cleanly; AutoHotkey and Power Automate Desktop have no single answer.</em></a>
+      <a class="sheet" href="../../multi-monitor-window-management-desktop-shell/"><div class="d">survey</div><b>Multi-monitor and the desktop shell</b><em>KDE Plasma 6.7 covers most of DisplayFusion and FancyZones; Fences has no equivalent.</em></a>
+      <a class="sheet" href="../../gaming-steam-proton-epic-paradox-and-the-anti-cheat-wall/"><div class="d">survey</div><b>Gaming after the switch</b><em>The library survives; the NVIDIA App and Game Bar layer does not.</em></a>
+      <a class="sheet" href="../../hardware-peripherals-corporate-vpn-clients/"><div class="d">recon</div><b>Legion hardware and the two corporate VPNs</b><em>Neither VPN blocks the switch; QuantumENGINE, Dolby and XTU are the real losses.</em></a>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><a href="../">Full text of this sheet</a></span>
+    <span><a href="../../">Back to the expedition</a></span>
+    <span><a href="/">Atlas</a></span>
+    <span>recon · 16 sources · drawn 30 Jul 2026</span>
+  </div>
+
+</div>
+</div>

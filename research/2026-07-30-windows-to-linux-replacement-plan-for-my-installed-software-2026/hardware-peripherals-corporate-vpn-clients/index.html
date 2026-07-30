@@ -1,0 +1,144 @@
+---
+title: "Legion hardware, peripherals and the two corporate VPNs on Linux"
+date: 2026-07-30
+depth: ceo
+format: html
+topic: "Vendor software and peripherals after switching a Lenovo Legion laptop to Linux (2026): Lenovo Vantage/XTU, JBL QuantumENGINE, Epson printing, Killer/Intel networking, and the two corporate VPN clients — where a Linux client exists and where it flatly does not."
+topic_raw: "can you check what software I have on my system installed (Windows) and then do a comparison with what I could replace that software with once I throw away Windows for Linux? (for those that are not available on Linux right away)"
+tags: [linux, lenovo-legion, vpn, peripherals, drivers, migration]
+summary: "Neither corporate VPN blocks the switch — Harmony SASE ships an official Linux agent and WatchGuard is reachable with plain OpenVPN; the real losses are QuantumENGINE, Dolby, XTU and Lenovo's AI/Space bloat."
+citations: 19
+reading_time_min: 5
+cover: cover.svg
+model: "Opus 5"
+cost_usd: "sub"
+duration_sec: 336
+issue: 13
+---
+
+<style>
+.tldr{border-left:4px solid #b5451b;padding:.6em 1em;margin:0 0 1.4em;background:rgba(181,69,27,.06)}
+table.cmp{width:100%;border-collapse:collapse;font-size:.94em}
+table.cmp th,table.cmp td{border-bottom:1px solid rgba(128,128,128,.28);padding:.45em .55em;vertical-align:top;text-align:left}
+table.cmp td.v{text-align:center;font-weight:700;white-space:nowrap}
+.ok{color:#1a7f37}.warn{color:#9a6700}.bad{color:#b5451b}
+.wrap{overflow-x:auto}
+</style>
+
+<div class="tldr">
+<strong>TL;DR</strong> — <em>The corporate VPN is not the blocker.</em> Check Point Harmony SASE ships a first-party Linux agent (Ubuntu .deb, RHEL/Fedora .rpm, generic .tar.xz)<sup><a href="https://sc1.checkpoint.com/documents/Infinity_Portal/WebAdminGuides/EN/SASE-Admin-Guide/Content/Topics-SASE-AG/Devices/Download.htm">[5]</a></sup>, and WatchGuard — which builds its Mobile VPN with SSL client only for Windows and macOS<sup><a href="https://software.watchguard.com/SoftwareDownloads?current=true&familyId=a2RVr000000bJA9MAM">[1]</a></sup> — <em>officially</em> documents connecting with a stock OpenVPN client using a <code>client.ovpn</code> profile exported from the Firebox<sup><a href="https://www.watchguard.com/help/docs/help-center/en-US/content/en-US/Fireware/mvpn/ssl/mvpn_ssl_ovpn_profile_c.html">[3]</a></sup>. The genuine, unfixable losses are small and cosmetic: JBL QuantumENGINE, Dolby Atmos/Vision, Intel XTU undervolting, and Lenovo's AI&nbsp;Now / Legion&nbsp;Space layer. The one real risk to clear with IT first is Harmony SASE's <em>posture check</em>, which blocks private access when a device fails policy<sup><a href="https://sc1.checkpoint.com/documents/Infinity_Portal/WebAdminGuides/EN/SASE-Admin-Guide/Content/Topics-SASE-AG/Devices/PostureCheck.htm">[6]</a></sup> — a policy question, not a technical one.
+</div>
+
+<div class="wrap">
+<table class="cmp">
+<thead><tr><th>Windows vendor software</th><th>Linux answer</th><th>Verdict</th><th>Notes</th></tr></thead>
+<tbody>
+<tr>
+<td><strong>Harmony SASE</strong> 12.10 (Check Point)</td>
+<td>Official SASE Agent for Linux<sup><a href="https://sc1.checkpoint.com/documents/Infinity_Portal/WebAdminGuides/EN/SASE-Admin-Guide/Content/Topics-SASE-AG/Devices/Download.htm">[5]</a></sup></td>
+<td class="v ok">✓</td>
+<td>Ubuntu 20.04+ .deb, Red Hat 8+ / Fedora 40+ .rpm, generic .tar.xz. ⚠ Posture Check runs client-side and denies private access on failure<sup><a href="https://sc1.checkpoint.com/documents/Infinity_Portal/WebAdminGuides/EN/SASE-Admin-Guide/Content/Topics-SASE-AG/Devices/PostureCheck.htm">[6]</a></sup> — confirm your tenant's posture rules aren't Windows-only (AV/disk-encryption checks) before you wipe.</td>
+</tr>
+<tr>
+<td><strong>WatchGuard Mobile VPN with SSL</strong> 2026.2</td>
+<td><a href="https://openvpn.net/">OpenVPN</a> / NetworkManager with the Firebox profile<sup><a href="https://www.watchguard.com/help/docs/help-center/en-US/content/en-US/Fireware/mvpn/ssl/mvpn_ssl_ovpn_profile_c.html">[3]</a></sup></td>
+<td class="v warn">⚠</td>
+<td>No Linux build exists — current 2026.2.1 is Windows + macOS only, released 07/02/2026<sup><a href="https://software.watchguard.com/SoftwareDownloads?current=true&familyId=a2RVr000000bJA9MAM">[1]</a></sup>, and Linux appears nowhere in the install docs<sup><a href="https://www.watchguard.com/help/docs/help-center/en-us/Content/en-US/Fireware/mvpn/ssl/mvpn_ssl_client-install_c.html">[2]</a></sup>. But it <em>is</em> plain OpenVPN: <em>VPN &gt; Mobile VPN &gt; Download Profile</em>, import <code>client.ovpn</code>; two-factor challenge-response works with native OpenVPN clients on Fireware 12.3+<sup><a href="https://www.watchguard.com/help/docs/help-center/en-US/content/en-US/Fireware/mvpn/ssl/mvpn_ssl_ovpn_profile_c.html">[3]</a></sup>. Step-by-step Linux walkthrough exists<sup><a href="https://jochen.kirstaetter.name/connecting-linux-to-watchguard-firebox-ssl/">[4]</a></sup>.</td>
+</tr>
+<tr>
+<td><strong>Lenovo Vantage Service</strong>, <strong>Legion Space</strong>, <strong>Lenovo Now</strong>, <strong>LenovoCompanion</strong></td>
+<td><a href="https://github.com/johnfanv2/LenovoLegionLinux">LenovoLegionLinux</a> ⭐ 3.2k (Jul 2026) + in-kernel <code>lenovo_wmi_*</code></td>
+<td class="v warn">⚠</td>
+<td>LLL covers fan curves (10 points), power modes, power limits, rapid charge, battery conservation, Y-logo LED<sup><a href="https://github.com/johnfanv2/LenovoLegionLinux">[7]</a></sup>. Mainline caught up: the Lenovo WMI gaming drivers landed for Linux 6.17, exposing Quiet/Balanced/Performance through <code>power-profiles-daemon</code>, Fn+Q or sysfs<sup><a href="https://www.phoronix.com/news/Lenovo-WMI-Gaming-Linux-6.17">[8]</a></sup>. ⚠ LLL's own fan control is unverified on gen-8 (2023) and newer hardware<sup><a href="https://github.com/johnfanv2/LenovoLegionLinux">[7]</a></sup> — check your model before betting on custom curves.</td>
+</tr>
+<tr>
+<td><strong>LegionLightingController</strong></td>
+<td><a href="https://github.com/4JX/L5P-Keyboard-RGB">L5P-Keyboard-RGB</a> ⭐ 520 (Jul 2026)</td>
+<td class="v warn">⚠</td>
+<td>4-zone RGB on Legion 5/5 Pro/Slim and LOQ, 2020–2024, Linux supported (root or a udev rule)<sup><a href="https://github.com/4JX/L5P-Keyboard-RGB">[9]</a></sup>. ✗ Legion 7(i) per-key backlights and white-only backlights are explicitly unsupported<sup><a href="https://github.com/4JX/L5P-Keyboard-RGB">[9]</a></sup>.</td>
+</tr>
+<tr>
+<td><strong>Intel XTU</strong> (Install_Intel_IPF_XTU, XTU_Installer)</td>
+<td><code>intel-undervolt</code> / <code>throttled</code></td>
+<td class="v bad">✗</td>
+<td>There is no Intel-endorsed undervolting path on Linux; the community MSR-poking tools are unofficial, and on recent Intel silicon the voltage interface is locked by firmware/microcode so they simply cannot apply an offset<sup><a href="https://www.phoronix.com/news/Linux-Intel-Undervolt-Kernel">[10]</a></sup>. Power-limit tuning survives via LLL/PPD; undervolting realistically does not.</td>
+</tr>
+<tr>
+<td><strong>JBL QuantumENGINE</strong> 2.5.6</td>
+<td>Nothing vendor-grade; <a href="https://github.com/wwmm/easyeffects">EasyEffects</a> ⭐ 9.9k (Jul 2026) for EQ</td>
+<td class="v bad">✗</td>
+<td>QuantumENGINE is Windows/macOS/iOS/Android only<sup><a href="https://www.jbl.com.au/blog/how-to-get-the-most-from-your-jbl-quantum-gear-with-jbl-quantumengine.html">[12]</a></sup>, and JBL is absent from HeadsetControl's device table ⭐ 1.9k<sup><a href="https://github.com/Sapd/HeadsetControl">[11]</a></sup>. The headset still works as a class-compliant USB audio device under PipeWire; on-device EQ presets, QuantumSURROUND and sidetone are gone. Rebuild EQ yourself in EasyEffects<sup><a href="https://github.com/wwmm/easyeffects">[13]</a></sup>.</td>
+</tr>
+<tr>
+<td><strong>Nahimic</strong>, <strong>Dolby Digital Plus OEM</strong>, <strong>Dolby Vision Access</strong></td>
+<td>PipeWire + EasyEffects, optionally seeded from the OEM tuning</td>
+<td class="v bad">✗</td>
+<td>No Dolby Atmos/Vision decode stack on Linux. Closest thing: <a href="https://github.com/antoinecellerier/speaker-tuning-to-easyeffects">speaker-tuning-to-easyeffects</a> ⭐ 62 (Jul 2026) extracts the DAX3 tuning XML shipped in the OEM Windows driver and re-emits it as an EasyEffects preset or a headless PipeWire filter-chain, with Lenovo models among those confirmed<sup><a href="https://github.com/antoinecellerier/speaker-tuning-to-easyeffects">[14]</a></sup> — do this <em>before</em> wiping the Windows partition.</td>
+</tr>
+<tr>
+<td><strong>KillerControlCenter</strong> (Rivet/Intel Killer Wi-Fi)</td>
+<td><code>iwlwifi</code> in-tree</td>
+<td class="v ok">✓</td>
+<td>Intel ships no Linux drivers for Killer wireless parts and points users at the generic Intel wireless driver for the equivalent adapter<sup><a href="https://www.intel.com/content/www/us/en/support/articles/000088040/wireless.html">[15]</a></sup>. Hardware: fine. The Killer app's traffic-prioritisation/bandwidth UI: ✗ gone, and no one misses it.</td>
+</tr>
+<tr>
+<td><strong>AppUp.IntelArcSoftware</strong> (Arc Control)</td>
+<td><code>xe</code>/Mesa drivers; no vendor GUI</td>
+<td class="v warn">⚠</td>
+<td>Intel states there are no plans to release Arc Control on non-Windows operating systems<sup><a href="https://www.intel.com/content/www/us/en/support/articles/000090450/graphics.html">[16]</a></sup>. Driver support is in-box on modern distros; overlays, capture and tuning UI are not.</td>
+</tr>
+<tr>
+<td><strong>Epson Connect Printer Setup</strong> 1.4.9</td>
+<td>CUPS driverless (IPP Everywhere) + <code>epson-inkjet-printer-escpr/escpr2</code></td>
+<td class="v ok">✓</td>
+<td>Modern Epson units are AirPrint/Mopria/IPP-Everywhere class: <code>cups</code> + <code>cups-browsed</code> + <code>ipp-usb</code> discover and configure the queue with no vendor driver at all<sup><a href="https://wiki.debian.org/CUPSDriverlessPrinting">[17]</a></sup>. Epson also publishes ESC/P-R printer drivers and Epson Scan 2 for Linux as .deb/.rpm, unsupported but maintained (ESC/P-R manual revised Feb 2026)<sup><a href="https://epson.com/support/linux-support-for-epson-products">[18]</a></sup>. ⚠ Epson Connect's <em>cloud</em> features (email-to-print, remote print) are printer-side and web-managed — the Windows setup utility itself has no Linux build and isn't needed once the printer is registered.</td>
+</tr>
+<tr>
+<td><strong>webOS Dev Manager</strong> 1.99.17 (webosbrew)</td>
+<td>Same app, Linux build</td>
+<td class="v ok">✓</td>
+<td><a href="https://github.com/webosbrew/dev-manager-desktop">dev-manager-desktop</a> ⭐ 2.4k (Jul 2026) ships x86_64 and ARM64 .deb and AppImage alongside the Windows MSI<sup><a href="https://github.com/webosbrew/dev-manager-desktop">[19]</a></sup>. Zero-effort port.</td>
+</tr>
+<tr>
+<td><strong>Lenovo AI Now 1.3</strong>, <strong>AINowContextWIN11</strong>, <strong>aimgr</strong></td>
+<td>—</td>
+<td class="v bad">✗</td>
+<td>Microsoft Store packages by construction: Windows-only, no Linux counterpart. Local-LLM needs are already covered by the Ollama install in the same inventory.</td>
+</tr>
+<tr>
+<td><strong>SENetFilter</strong> 1.0.0.1 (no publisher listed)</td>
+<td>—</td>
+<td class="v bad">✗</td>
+<td>A Windows NDIS-layer filter driver bundled by another product; it has no meaning outside Windows and nothing to replace.</td>
+</tr>
+<tr>
+<td><strong>Microsoft.SecHealthUI</strong> / <strong>McAfeeWPSSparsePackage</strong> / <strong>WindowsSubsystemForLinux</strong></td>
+<td>—</td>
+<td class="v bad">✗</td>
+<td>All three are moot after the switch: Defender UI and the McAfee stub are Windows-only by definition, and WSL's entire purpose is served by the host OS.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h2>No Linux client, no community substitute</h2>
+
+<p>Blunt list — accept these as losses, don't go hunting:</p>
+
+<ul>
+<li><strong>JBL QuantumENGINE</strong> — no Linux app, no HeadsetControl support for JBL<sup><a href="https://github.com/Sapd/HeadsetControl">[11]</a></sup>. Set your presets on Windows first if the headset stores them on-device; otherwise reproduce the EQ curve in EasyEffects.</li>
+<li><strong>Dolby Atmos / Dolby Vision</strong> — no licensed decoder for Linux desktop. Atmos-encoded content downmixes; Dolby Vision HDR metadata is ignored.</li>
+<li><strong>Intel XTU undervolting</strong> — unofficial only, and usually firmware-locked on recent chips<sup><a href="https://www.phoronix.com/news/Linux-Intel-Undervolt-Kernel">[10]</a></sup>.</li>
+<li><strong>Lenovo AI Now / Legion Space / Lenovo Now / LenovoCompanion</strong> — the storefront, telemetry, driver-update and NPU-assistant layers have no Linux equivalent. LLL replaces the <em>useful</em> 10% of Vantage<sup><a href="https://github.com/johnfanv2/LenovoLegionLinux">[7]</a></sup> and nothing replaces the rest.</li>
+<li><strong>Killer Control Center</strong> and <strong>Intel Arc Control</strong> GUIs — vendor states no Linux plans for Arc Control<sup><a href="https://www.intel.com/content/www/us/en/support/articles/000090450/graphics.html">[16]</a></sup>; Killer gets generic drivers only<sup><a href="https://www.intel.com/content/www/us/en/support/articles/000088040/wireless.html">[15]</a></sup>.</li>
+<li><strong>Legion 7(i) per-key RGB</strong>, if that's your model — a different protocol that nobody has reverse-engineered<sup><a href="https://github.com/4JX/L5P-Keyboard-RGB">[9]</a></sup>.</li>
+</ul>
+
+<h2>Do before you wipe</h2>
+
+<ol>
+<li>Ask IT to confirm the Harmony SASE tenant's Posture Check profile admits Linux endpoints<sup><a href="https://sc1.checkpoint.com/documents/Infinity_Portal/WebAdminGuides/EN/SASE-Admin-Guide/Content/Topics-SASE-AG/Devices/PostureCheck.htm">[6]</a></sup>, and get the Linux agent package from <em>Devices &gt; Downloads</em><sup><a href="https://sc1.checkpoint.com/documents/Infinity_Portal/WebAdminGuides/EN/SASE-Admin-Guide/Content/Topics-SASE-AG/Devices/Download.htm">[5]</a></sup>.</li>
+<li>Export the WatchGuard <code>client.ovpn</code> profile while you still have the Windows client working<sup><a href="https://www.watchguard.com/help/docs/help-center/en-US/content/en-US/Fireware/mvpn/ssl/mvpn_ssl_ovpn_profile_c.html">[3]</a></sup>.</li>
+<li>Dump the OEM Dolby/DAX3 tuning XML off the Windows install for later conversion<sup><a href="https://github.com/antoinecellerier/speaker-tuning-to-easyeffects">[14]</a></sup>.</li>
+<li>Record your Legion fan curve and power-limit values from Vantage so you can re-enter them in LLL<sup><a href="https://github.com/johnfanv2/LenovoLegionLinux">[7]</a></sup>.</li>
+</ol>

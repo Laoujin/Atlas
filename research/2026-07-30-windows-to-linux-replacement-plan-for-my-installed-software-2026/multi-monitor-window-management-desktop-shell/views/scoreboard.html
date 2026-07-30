@@ -1,0 +1,861 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Multi-monitor, window management and the desktop shell: replacing DisplayFusion, Fences, FancyZones and X-Rite on Linux — Scoreboard"
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .sb {
+    --ink: #f0f4f0;
+    --dim: #8d9a92;
+    --faint: #5c6862;
+    --night: #0a0d0b;
+    --panel: #111613;
+    --panel2: #161d19;
+    --line: #253029;
+    --turf: #16482c;
+    --turf2: #10321f;
+    --led: #ffb020;
+    --win: #37d67a;
+    --draw: #f0a832;
+    --loss: #ff4f3d;
+    --card: #d81f2a;
+
+    margin: 0;
+    padding: 0;
+    background: var(--night);
+    color: var(--ink);
+    font-family: "Barlow Condensed", "Roboto Condensed", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .sb *, .sb *::before, .sb *::after { box-sizing: border-box; }
+  .sb a { color: inherit; }
+  .sb sup a { text-decoration: none; color: var(--led); font-family: "IBM Plex Mono", monospace; font-size: .62em; }
+  .sb sup a:hover { text-decoration: underline; }
+  .sb-wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .disp { font-family: Anton, "Barlow Condensed", Impact, sans-serif; font-weight: 400; letter-spacing: .005em; text-transform: uppercase; line-height: .92; }
+  .kick { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); }
+
+  /* ---------- floodlit cover ---------- */
+  .sb-cover {
+    position: relative;
+    padding: 72px 0 40px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.022) 0 74px, rgba(255,255,255,0) 74px 148px),
+      radial-gradient(120% 90% at 50% -10%, #1d5936 0%, #123a23 42%, #0a0d0b 100%);
+    border-bottom: 3px solid var(--led);
+    overflow: hidden;
+  }
+  .sb-cover::before {
+    content: "";
+    position: absolute; inset: auto 0 0 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  }
+  .comp {
+    display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: baseline;
+    padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.14);
+  }
+  .comp b { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .26em; color: var(--led); font-weight: 600; }
+  .comp span { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .16em; color: rgba(240,244,240,.6); }
+
+  .cover-h {
+    margin: 26px 0 6px;
+    font-size: clamp(38px, 7.2vw, 92px);
+  }
+  .cover-h em { font-style: normal; color: var(--led); }
+  .cover-sub { max-width: 62ch; color: rgba(240,244,240,.78); font-size: clamp(17px, 2vw, 21px); }
+
+  /* LED result strip */
+  .led-strip {
+    margin-top: 34px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+    background: #040705;
+    border: 2px solid #000;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 24px 60px rgba(0,0,0,.55);
+    border-radius: 4px; overflow: hidden;
+  }
+  .led-cell {
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0 1px, transparent 1px 3px),
+      #080d0a;
+    padding: 18px 16px 16px; text-align: center; position: relative;
+  }
+  .led-cell.first { background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0 1px, transparent 1px 3px),
+      #0d1409; }
+  .led-abbr { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .2em; color: var(--faint); }
+  .led-cell.first .led-abbr { color: var(--led); }
+  .led-pts {
+    font-family: Anton, sans-serif; font-size: clamp(44px, 8vw, 86px); line-height: 1;
+    color: #3f5a48; text-shadow: 0 0 18px rgba(63,90,72,.5);
+  }
+  .led-cell.first .led-pts { color: var(--led); text-shadow: 0 0 26px rgba(255,176,32,.55); }
+  .led-note { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .1em; color: var(--faint); margin-top: 4px; }
+  .led-pos {
+    position: absolute; top: 8px; left: 10px;
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .12em; color: var(--faint);
+  }
+  .led-cell.first .led-pos { color: #7c5c17; }
+
+  /* ---------- generic section ---------- */
+  .sb-sec { padding: 62px 0 8px; }
+  .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 6px; }
+  .sec-head h2 { margin: 0; font-size: clamp(24px, 3.4vw, 38px); }
+  .sec-head .kick { padding-bottom: 4px; }
+  .sec-lede { max-width: 74ch; color: var(--dim); margin: 8px 0 26px; font-size: 17.5px; }
+
+  /* ---------- full-time verdict ---------- */
+  .fulltime {
+    margin-top: 40px;
+    border: 1px solid var(--line); border-left: 5px solid var(--led);
+    background: linear-gradient(100deg, #16201a 0%, var(--panel) 60%);
+    padding: 26px 26px 24px;
+  }
+  .fulltime h2 { margin: 8px 0 12px; font-size: clamp(26px, 4vw, 44px); }
+  .fulltime p { margin: 0 0 12px; max-width: 78ch; color: rgba(240,244,240,.85); }
+  .fulltime p:last-child { margin-bottom: 0; }
+  .ft-cost { color: var(--loss) !important; font-family: "IBM Plex Mono", monospace; font-size: 14px; letter-spacing: .04em; }
+
+  /* ---------- squads ---------- */
+  .squads { display: grid; grid-template-columns: repeat(auto-fit, minmax(266px, 1fr)); gap: 18px; }
+  .squad { background: var(--panel); border: 1px solid var(--line); display: flex; flex-direction: column; }
+  .squad.champ { border-color: rgba(255,176,32,.55); box-shadow: inset 0 0 0 1px rgba(255,176,32,.12); }
+  .squad-crest { aspect-ratio: 16 / 9; overflow: hidden; background: #050806; border-bottom: 1px solid var(--line); }
+  .squad-crest img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .squad-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .squad-name { font-size: 26px; margin: 0; }
+  .squad-name a { text-decoration: none; }
+  .squad-name a:hover { color: var(--led); }
+  .squad-role { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; }
+  .r-champ { color: var(--led); }
+  .r-mid { color: var(--win); }
+  .r-low { color: var(--dim); }
+  .squad-line { color: var(--dim); font-size: 16.5px; flex: 1; }
+  .wdl { display: flex; gap: 6px; }
+  .wdl div { flex: 1; text-align: center; border: 1px solid var(--line); padding: 6px 2px 5px; background: #0c110e; }
+  .wdl b { display: block; font-family: "IBM Plex Mono", monospace; font-size: 19px; font-weight: 700; }
+  .wdl span { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .14em; color: var(--faint); }
+  .wdl .w b { color: var(--win); } .wdl .d b { color: var(--draw); } .wdl .l b { color: var(--loss); }
+  .form { display: flex; gap: 3px; flex-wrap: wrap; }
+  .form i {
+    font-style: normal; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 11px;
+    width: 19px; height: 19px; display: grid; place-items: center; color: #06120b;
+  }
+  .form i.W { background: var(--win); } .form i.D { background: var(--draw); } .form i.L { background: var(--loss); color: #fff; }
+
+  /* ---------- league table ---------- */
+  .scroller { overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
+  table.league { border-collapse: collapse; width: 100%; min-width: 900px; }
+  table.league thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: #0d1310; border-bottom: 2px solid var(--led);
+    padding: 12px 14px; text-align: left; vertical-align: bottom;
+  }
+  table.league thead th.fx { width: 30%; }
+  .th-team { font-family: Anton, sans-serif; text-transform: uppercase; font-size: 17px; letter-spacing: .02em; }
+  .th-team span { display: block; font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .12em; color: var(--faint); text-transform: none; font-weight: 400; margin-top: 3px; }
+  table.league tbody tr:nth-child(even) { background: rgba(255,255,255,.017); }
+  table.league tbody tr:hover { background: rgba(255,176,32,.05); }
+  table.league td { padding: 11px 14px; border-bottom: 1px solid #1b241e; vertical-align: top; font-size: 16px; }
+  td.fixture { color: var(--ink); font-weight: 500; }
+  td.fixture i { font-style: normal; font-family: "IBM Plex Mono", monospace; color: var(--faint); font-size: 11px; margin-right: 8px; }
+  td.cell { color: var(--dim); }
+  .res {
+    display: inline-grid; place-items: center; width: 21px; height: 21px; margin-right: 8px;
+    font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 11.5px; color: #06120b;
+    vertical-align: text-bottom;
+  }
+  .res.W { background: var(--win); } .res.D { background: var(--draw); } .res.L { background: var(--loss); color: #fff; }
+  tr.blank td.cell, tr.blank td.fixture { color: var(--faint); }
+  tfoot.totals td { border-top: 2px solid var(--led); border-bottom: none; padding: 16px 14px; background: #0d1310; }
+  tfoot .pts { font-family: Anton, sans-serif; font-size: 34px; line-height: 1; color: #4a6552; }
+  tfoot .pts.top { color: var(--led); }
+  tfoot .ptsl { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .14em; color: var(--faint); }
+  .keybar { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 14px 0 0; }
+  .keybar div { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .06em; color: var(--dim); display: flex; align-items: center; gap: 7px; }
+  .keybar em { font-style: normal; width: 17px; height: 17px; display: inline-grid; place-items: center; font-weight: 700; font-size: 10px; color: #06120b; }
+  .keybar em.W { background: var(--win); } .keybar em.D { background: var(--draw); } .keybar em.L { background: var(--loss); color: #fff; }
+
+  .asterisk {
+    margin-top: 22px; padding: 18px 22px;
+    border: 1px dashed var(--line); background: #0e1310; color: var(--dim);
+  }
+  .asterisk b { color: var(--ink); }
+
+  /* ---------- red card ---------- */
+  .redcard {
+    margin-top: 58px;
+    display: grid; grid-template-columns: 1.15fr 1fr; gap: 0;
+    border: 1px solid rgba(216,31,42,.5);
+    background: linear-gradient(120deg, #24090b 0%, #150708 60%, #100708 100%);
+  }
+  .rc-text { padding: 30px 30px 28px; }
+  .rc-badge { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .rc-rect { width: 40px; height: 56px; background: var(--card); border-radius: 3px; transform: rotate(-9deg); box-shadow: 0 8px 22px rgba(216,31,42,.4); flex: none; }
+  .rc-badge span { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .22em; color: #ff8a80; }
+  .redcard h2 { margin: 0 0 12px; font-size: clamp(26px, 3.6vw, 40px); color: #ffdad7; }
+  .redcard p { margin: 0 0 12px; color: rgba(255,220,216,.8); max-width: 60ch; }
+  .rc-do { margin-top: 18px; padding: 14px 16px; background: rgba(216,31,42,.14); border-left: 4px solid var(--card); font-family: "IBM Plex Mono", monospace; font-size: 13.5px; line-height: 1.6; color: #ffe4e1; }
+  .rc-photo { position: relative; overflow: hidden; min-height: 260px; border-left: 1px solid rgba(216,31,42,.35); }
+  .rc-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.7) contrast(1.05); }
+  .rc-photo figcaption {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px;
+    background: linear-gradient(transparent, rgba(10,4,5,.92));
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .06em; color: #ffbdb8;
+  }
+
+  /* ---------- rule change band ---------- */
+  .rulechange {
+    margin-top: 58px; padding: 26px 26px 24px;
+    background: repeating-linear-gradient(135deg, #171a10 0 14px, #14170e 14px 28px);
+    border-top: 3px solid var(--led); border-bottom: 3px solid var(--led);
+  }
+  .rulechange h2 { margin: 6px 0 10px; font-size: clamp(22px, 3vw, 32px); color: var(--led); }
+  .rulechange p { margin: 0; max-width: 80ch; color: rgba(240,244,240,.82); }
+
+  /* ---------- transfers out ---------- */
+  .transfers { display: grid; gap: 14px; }
+  .tr {
+    display: grid; grid-template-columns: 64px 1fr auto; gap: 18px; align-items: start;
+    background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--faint); padding: 16px 18px;
+  }
+  .tr.v-full { border-left-color: var(--win); }
+  .tr.v-part { border-left-color: var(--draw); }
+  .tr.v-none { border-left-color: var(--loss); }
+  .tr-logo { width: 64px; height: 64px; background: #0a0f0c; border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
+  .tr-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .tr-glyph { font-size: 30px; color: var(--faint); line-height: 1; }
+  .tr h3 { margin: 0 0 4px; font-size: 22px; }
+  .tr-out { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .14em; color: var(--faint); text-transform: uppercase; }
+  .tr-in { margin: 8px 0 0; color: var(--ink); font-size: 16.5px; }
+  .tr-note { margin: 6px 0 0; color: var(--dim); font-size: 16px; max-width: 70ch; }
+  .verdict {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; font-weight: 600;
+    padding: 6px 11px; white-space: nowrap; border: 1px solid;
+  }
+  .verdict.full { color: var(--win); border-color: rgba(55,214,122,.45); background: rgba(55,214,122,.08); }
+  .verdict.part { color: var(--draw); border-color: rgba(240,168,50,.45); background: rgba(240,168,50,.08); }
+  .verdict.none { color: var(--loss); border-color: rgba(255,79,61,.45); background: rgba(255,79,61,.08); }
+
+  /* ---------- signings ---------- */
+  .signings { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
+  .sign { background: var(--panel2); border: 1px solid var(--line); padding: 15px 16px 16px; display: flex; flex-direction: column; gap: 7px; }
+  .sign.star { border-color: rgba(255,176,32,.5); background: linear-gradient(160deg, #1c1a10, var(--panel2) 65%); }
+  .sign-thumb { margin: -15px -16px 8px; border-bottom: 1px solid var(--line); background: #050806; }
+  .sign-thumb img { width: 100%; display: block; aspect-ratio: 2 / 1; object-fit: cover; }
+  .sign h3 { margin: 0; font-size: 20px; }
+  .sign h3 a { text-decoration: none; }
+  .sign h3 a:hover { color: var(--led); }
+  .sign .stars { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--led); letter-spacing: .04em; }
+  .sign p { margin: 0; color: var(--dim); font-size: 16px; flex: 1; }
+  .sign .pos { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .16em; color: var(--faint); text-transform: uppercase; }
+
+  /* ---------- suspended ---------- */
+  .suspended { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2px; background: var(--line); border: 1px solid var(--line); }
+  .susp { background: #0f0a0b; padding: 20px 20px 22px; }
+  .susp .num { font-family: Anton, sans-serif; font-size: 30px; color: var(--card); line-height: 1; }
+  .susp h3 { margin: 8px 0 6px; font-size: 19px; }
+  .susp p { margin: 0; color: var(--dim); font-size: 15.5px; }
+
+  /* ---------- colour room ---------- */
+  .colour { display: grid; grid-template-columns: 300px 1fr; gap: 26px; align-items: start; }
+  .colour figure { margin: 0; border: 1px solid var(--line); background: var(--panel); }
+  .colour figure img { width: 100%; display: block; }
+  .colour figcaption { padding: 10px 12px; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .05em; color: var(--faint); border-top: 1px solid var(--line); }
+  .colour p { margin: 0 0 14px; color: rgba(240,244,240,.82); }
+  .colour p:last-child { margin-bottom: 0; }
+  .colour b { color: var(--ink); }
+  .flag { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .12em; padding: 4px 9px; border: 1px solid rgba(255,79,61,.5); color: var(--loss); margin-bottom: 10px; }
+
+  /* ---------- fixtures / siblings ---------- */
+  .fixtures { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .fx {
+    display: block; text-decoration: none; background: var(--panel); border: 1px solid var(--line);
+    padding: 16px 18px 18px; transition: border-color .15s ease, transform .15s ease;
+  }
+  .fx:hover { border-color: var(--led); transform: translateY(-2px); }
+  .fx .depth { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--led); }
+  .fx h3 { margin: 7px 0 6px; font-size: 19px; line-height: 1.15; }
+  .fx p { margin: 0; color: var(--dim); font-size: 15.5px; }
+
+  /* ---------- press box ---------- */
+  .pressbox { display: flex; flex-wrap: wrap; gap: 8px; }
+  .out {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    background: var(--panel); border: 1px solid var(--line); padding: 6px 11px 6px 8px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--dim);
+  }
+  .out:hover { border-color: var(--led); color: var(--ink); }
+  .out img { width: 15px; height: 15px; display: block; }
+  .out b { color: var(--led); font-weight: 600; }
+
+  .sb-foot {
+    margin-top: 62px; padding: 30px 0 54px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 12px 26px; align-items: baseline;
+  }
+  .sb-foot a { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .1em; text-decoration: none; color: var(--dim); }
+  .sb-foot a:hover { color: var(--led); }
+  .sb-foot span { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; color: var(--faint); margin-left: auto; }
+
+  @media (max-width: 860px) {
+    .redcard { grid-template-columns: 1fr; }
+    .rc-photo { min-height: 200px; border-left: none; border-top: 1px solid rgba(216,31,42,.35); }
+    .colour { grid-template-columns: 1fr; }
+    .tr { grid-template-columns: 48px 1fr; }
+    .tr-logo { width: 48px; height: 48px; }
+    .tr .verdict { grid-column: 2; justify-self: start; }
+  }
+</style>
+
+<div class="sb">
+
+  <header class="sb-cover">
+    <div class="sb-wrap">
+      <div class="comp">
+        <b>Desktop Shell League · Season 2026</b>
+        <span>Matchday: pre-migration</span>
+        <span>17 fixtures</span>
+        <span>52 filings</span>
+      </div>
+
+      <h1 class="disp cover-h">The shell is<br>the <em>whole match</em></h1>
+      <p class="cover-sub">DisplayFusion, Fences, FancyZones and X-Rite are not applications you swap one-for-one — they are shell extensions. On Linux the shell <em>is</em> the desktop environment, so three contenders play for the right to replace them.</p>
+
+      <div class="led-strip">
+        <div class="led-cell first">
+          <div class="led-pos">P1</div>
+          <div class="led-abbr">KDE PLASMA 6.7</div>
+          <div class="led-pts mono">32</div>
+          <div class="led-note">9W · 5D · 3L</div>
+        </div>
+        <div class="led-cell">
+          <div class="led-pos">P2</div>
+          <div class="led-abbr">TILING WM</div>
+          <div class="led-pts mono">28</div>
+          <div class="led-note">7W · 7D · 3L</div>
+        </div>
+        <div class="led-cell">
+          <div class="led-pos">P3</div>
+          <div class="led-abbr">GNOME 50</div>
+          <div class="led-pts mono">18</div>
+          <div class="led-note">3W · 9D · 5L</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="sb-wrap">
+
+    <section class="fulltime">
+      <div class="kick">Full time · decision</div>
+      <h2 class="disp">Pick KDE Plasma 6.7 on Wayland</h2>
+      <p>It is the only desktop that natively covers per-monitor panels, per-screen wallpaper, arbitrary fractional scaling, per-screen ICC profiles usable <em>together</em> with HDR, and — new in 6.7, after 21 years of requests — per-screen virtual desktops <sup><a href="https://kde.org/announcements/plasma/6/6.7.0/">[1]</a><a href="https://www.omgubuntu.co.uk/2026/06/kde-plasma-6-7-released">[2]</a></sup>. FancyZones comes back as <a href="https://github.com/fuddlesworth/PlasmaZones">PlasmaZones</a> ⭐ 296 <sup><a href="https://github.com/fuddlesworth/PlasmaZones">[3]</a></sup>.</p>
+      <p class="ft-cost">WHAT IT COSTS &nbsp;→&nbsp; Fences has no equivalent, that workflow disappears <sup><a href="https://www.stardock.com/products/fences/">[8]</a></sup> · DisplayFusion's monitor-splitting and one-click window profiles degrade to scripts · X-Rite becomes copied factory .icm files plus ArgyllCMS, with no VCGT loading on Plasma Wayland <sup><a href="https://hub.displaycal.net/forums/topic/how-do-i-bake-in-vcgt-in-icc-profile/">[34]</a></sup></p>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">The three squads</span>
+        <h2 class="disp">Who is actually on the pitch</h2>
+      </div>
+      <div class="squads">
+
+        <article class="squad champ">
+          <div class="squad-crest"><img src="scoreboard/images/kde-plasma.webp" alt="KDE Plasma 6.7 desktop with Discover, a calendar popup and a taskbar panel"></div>
+          <div class="squad-body">
+            <div class="squad-role r-champ">★ Champions — 32 pts of 51</div>
+            <h3 class="squad-name disp"><a href="https://kde.org/announcements/plasma/6/6.7.0/">KDE Plasma 6.7</a></h3>
+            <p class="squad-line">Roughly 80% of DisplayFusion out of the box, plus something Windows itself cannot do. Assembled from four pieces rather than one product.</p>
+            <div class="wdl">
+              <div class="w"><b>9</b><span>WON</span></div>
+              <div class="d"><b>5</b><span>DREW</span></div>
+              <div class="l"><b>3</b><span>LOST</span></div>
+            </div>
+            <div class="form"><i class="W">W</i><i class="D">D</i><i class="W">W</i><i class="L">L</i><i class="W">W</i><i class="D">D</i><i class="D">D</i><i class="W">W</i><i class="L">L</i><i class="D">D</i><i class="L">L</i><i class="W">W</i><i class="D">D</i><i class="W">W</i><i class="W">W</i><i class="W">W</i><i class="W">W</i></div>
+          </div>
+        </article>
+
+        <article class="squad">
+          <div class="squad-crest"><img src="scoreboard/images/niri.webp" alt="niri scrollable-tiling window manager brand mark"></div>
+          <div class="squad-body">
+            <div class="squad-role r-mid">Runners-up on points — 28 pts of 51</div>
+            <h3 class="squad-name disp">Tiling WM &mdash; Hyprland / <a href="https://github.com/niri-wm/niri">niri</a> ⭐ 26.5k / sway</h3>
+            <p class="squad-line">Makes FancyZones irrelevant and treats multi-monitor as core design, but deletes the Fences workflow and the taskbar concept entirely.</p>
+            <div class="wdl">
+              <div class="w"><b>7</b><span>WON</span></div>
+              <div class="d"><b>7</b><span>DREW</span></div>
+              <div class="l"><b>3</b><span>LOST</span></div>
+            </div>
+            <div class="form"><i class="D">D</i><i class="W">W</i><i class="W">W</i><i class="D">D</i><i class="W">W</i><i class="W">W</i><i class="D">D</i><i class="W">W</i><i class="L">L</i><i class="L">L</i><i class="L">L</i><i class="W">W</i><i class="D">D</i><i class="D">D</i><i class="D">D</i><i class="W">W</i><i class="D">D</i></div>
+          </div>
+        </article>
+
+        <article class="squad">
+          <div class="squad-crest"><img src="scoreboard/images/gnome.webp" alt="GNOME 50 &lsquo;Tokyo&rsquo; release banner"></div>
+          <div class="squad-body">
+            <div class="squad-role r-low">Third — 18 pts of 51</div>
+            <h3 class="squad-name disp"><a href="https://release.gnome.org/50/">GNOME 50</a> + extensions</h3>
+            <p class="squad-line">Needs three extensions to reach a per-monitor taskbar and zone snapping, and still cannot put a different wallpaper on each screen.</p>
+            <div class="wdl">
+              <div class="w"><b>3</b><span>WON</span></div>
+              <div class="d"><b>9</b><span>DREW</span></div>
+              <div class="l"><b>5</b><span>LOST</span></div>
+            </div>
+            <div class="form"><i class="D">D</i><i class="D">D</i><i class="L">L</i><i class="L">L</i><i class="W">W</i><i class="D">D</i><i class="D">D</i><i class="D">D</i><i class="L">L</i><i class="D">D</i><i class="L">L</i><i class="D">D</i><i class="D">D</i><i class="W">W</i><i class="D">D</i><i class="L">L</i><i class="W">W</i></div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Results grid · 17 fixtures</span>
+        <h2 class="disp">The league table</h2>
+      </div>
+      <p class="sec-lede">One row per capability you currently get from DisplayFusion, Fences, FancyZones or X-Rite. Win = shipped and native. Draw = reachable, with an add-on or a caveat. Loss = not available at all.</p>
+
+      <div class="scroller">
+        <table class="league">
+          <thead>
+            <tr>
+              <th class="fx"><span class="kick">Capability</span></th>
+              <th class="th-team">KDE Plasma 6.7 <span>Wayland</span></th>
+              <th class="th-team">GNOME 50 <span>+ extensions</span></th>
+              <th class="th-team">Tiling WM <span>Hyprland / niri / sway</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="fixture"><i>01</i>Taskbar on every monitor</td>
+              <td class="cell"><span class="res W">W</span>Native panels per screen; panel cloning since 6.3 <sup><a href="https://alternativeto.net/news/2025/2/kde-plasma-6-3-improves-fractional-scaling-system-monitoring-panel-cloning-and-much-more/">[40]</a></sup></td>
+              <td class="cell"><span class="res D">D</span><a href="https://github.com/home-sweet-gnome/dash-to-panel">Dash to Panel</a> ⭐ 4.4k <sup><a href="https://github.com/home-sweet-gnome/dash-to-panel">[15]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Per-output bar (Waybar) — not a Windows-style window list</td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>02</i>Taskbar shows only that screen's windows</td>
+              <td class="cell"><span class="res D">D</span>Setting exists; stops being honoured after suspend on NVIDIA until plasmashell restarts <sup><a href="https://discuss.kde.org/t/solved-show-only-tasks-from-current-screen/12191">[14]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Dash to Panel "isolate monitors" <sup><a href="https://github.com/home-sweet-gnome/dash-to-panel">[15]</a></sup></td>
+              <td class="cell"><span class="res W">W</span>Moot by design — outputs own their workspaces <sup><a href="https://github.com/niri-wm/niri">[49]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>03</i>Different wallpaper per monitor</td>
+              <td class="cell"><span class="res W">W</span>Native, per-screen <sup><a href="https://discuss.kde.org/t/single-wallpaper-across-all-displays-in-multi-display-setup/15053">[16]</a></sup></td>
+              <td class="cell"><span class="res L">L</span>Still unsupported in 2026 <sup><a href="https://discourse.gnome.org/t/feature-request-per-screen-wallpaper-and-enhanced-slideshow-support/28557">[17]</a></sup></td>
+              <td class="cell"><span class="res W">W</span><a href="https://wiki.hypr.land/Hypr-Ecosystem/hyprpaper/">hyprpaper</a>, per-monitor by output name <sup><a href="https://wiki.hypr.land/Hypr-Ecosystem/hyprpaper/">[19]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>04</i>One image spanning all monitors</td>
+              <td class="cell"><span class="res L">L</span>Open request <sup><a href="https://discuss.kde.org/t/single-wallpaper-across-all-displays-in-multi-display-setup/15053">[16]</a></sup></td>
+              <td class="cell"><span class="res L">L</span>Manual image compositing <sup><a href="https://discourse.gnome.org/t/feature-request-per-screen-wallpaper-and-enhanced-slideshow-support/28557">[17]</a></sup></td>
+              <td class="cell"><span class="res D">D</span><a href="https://github.com/hhannine/superpaper">Superpaper</a> ⭐ 1.3k, on an X11-era DE list <sup><a href="https://github.com/hhannine/superpaper">[18]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>05</i>FancyZones-style zone layouts</td>
+              <td class="cell"><span class="res W">W</span>Built-in editor keeps only one layout <sup><a href="https://www.xda-developers.com/kde-window-manager-learned-microsoft-before-windows-did/">[11]</a></sup> → <a href="https://github.com/fuddlesworth/PlasmaZones">PlasmaZones</a> ⭐ 296 brings 26 layouts, per-monitor and per-desktop <sup><a href="https://github.com/fuddlesworth/PlasmaZones">[3]</a></sup></td>
+              <td class="cell"><span class="res W">W</span><a href="https://github.com/domferr/tilingshell">Tiling Shell</a> ⭐ 2.0k — layout editor + snap assistant, GNOME 42–50 <sup><a href="https://github.com/domferr/tilingshell">[12]</a><a href="https://extensions.gnome.org/extension/7065/tiling-shell/">[13]</a></sup></td>
+              <td class="cell"><span class="res W">W</span>Inherent, but a different model — no free-floating zones</td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>06</i>Save / restore window arrangement</td>
+              <td class="cell"><span class="res D">D</span><a href="https://github.com/rxappdev/RememberWindowPositions">RememberWindowPositions</a> ⭐ 246 KWin script <sup><a href="https://github.com/rxappdev/RememberWindowPositions">[27]</a></sup>; KWin now speaks the Wayland session-management protocol <sup><a href="https://blogs.kde.org/2026/04/18/this-week-in-plasma-per-screen-virtual-desktops-and-wayland-session-restore/">[25]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Third-party extension only</td>
+              <td class="cell"><span class="res W">W</span>Declarative window→workspace rules in config</td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>07</i>Restore layout after dock / undock</td>
+              <td class="cell"><span class="res D">D</span>Historically KWin's weak spot <sup><a href="https://bugs.kde.org/show_bug.cgi?id=161325">[28]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Extension-dependent</td>
+              <td class="cell"><span class="res D">D</span><a href="https://github.com/emersion/kanshi">kanshi</a> restores <em>outputs</em>, not windows <sup><a href="https://wiki.archlinux.org/title/Kanshi">[29]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>08</i>Monitor-configuration profiles, auto-applied on hotplug</td>
+              <td class="cell"><span class="res W">W</span>kscreen stores per-arrangement JSON; <code class="mono">kscreen-doctor</code> for scripting <sup><a href="https://linuxcommandlibrary.com/man/kscreen-doctor">[30]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>mutter remembers layouts, but no named profiles</td>
+              <td class="cell"><span class="res W">W</span><a href="https://github.com/emersion/kanshi">kanshi</a> ⭐ 718 — profiles on hotplug <sup><a href="https://wiki.archlinux.org/title/Kanshi">[29]</a><a href="https://github.com/emersion/kanshi">[50]</a></sup></td>
+            </tr>
+            <tr class="blank">
+              <td class="fixture"><i>09</i>Monitor splitting into virtual monitors</td>
+              <td class="cell"><span class="res L">L</span>Not available</td>
+              <td class="cell"><span class="res L">L</span>Not available</td>
+              <td class="cell"><span class="res L">L</span>No compositor exposes this; zone layouts are the nearest substitute <sup><a href="https://github.com/fuddlesworth/PlasmaZones">[3]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>10</i>Desktop icon groups (Fences)</td>
+              <td class="cell"><span class="res D">D</span>Multiple <a href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html">Folder View</a> widgets, each a filtered folder <sup><a href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html">[20]</a></sup></td>
+              <td class="cell"><span class="res D">D</span><a href="https://www.rastersoft.com/programas/ding.html">DING</a> "stacks" — groups by <em>file type</em> only <sup><a href="https://www.rastersoft.com/programas/ding.html">[21]</a></sup></td>
+              <td class="cell"><span class="res L">L</span>No desktop layer at all</td>
+            </tr>
+            <tr class="blank">
+              <td class="fixture"><i>11</i>Rule-based auto-sorting of desktop icons</td>
+              <td class="cell"><span class="res L">L</span>Not available</td>
+              <td class="cell"><span class="res L">L</span>Not available</td>
+              <td class="cell"><span class="res L">L</span>Not available</td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>12</i>Per-monitor fractional scaling</td>
+              <td class="cell"><span class="res W">W</span>Arbitrary values — 137%, 163% <sup><a href="https://botmonster.com/self-hosting/multi-monitor-linux-mixed-dpi-displays/">[39]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>25% steps; fractional needs an experimental gsettings flag <sup><a href="https://botmonster.com/self-hosting/multi-monitor-linux-mixed-dpi-displays/">[39]</a><a href="https://release.gnome.org/50/">[38]</a></sup></td>
+              <td class="cell"><span class="res W">W</span>Per-output <code class="mono">scale</code> in config; niri keeps its own UI pixel-perfect <sup><a href="https://github.com/niri-wm/niri">[49]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>13</i>Sharp XWayland apps under mixed DPI</td>
+              <td class="cell"><span class="res D">D</span>Rendered at one scale, then rescaled <sup><a href="https://botmonster.com/self-hosting/multi-monitor-linux-mixed-dpi-displays/">[39]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Same <sup><a href="https://botmonster.com/self-hosting/multi-monitor-linux-mixed-dpi-displays/">[39]</a></sup></td>
+              <td class="cell"><span class="res D">D</span><code class="mono">force_zero_scaling</code> workaround <sup><a href="https://botmonster.com/self-hosting/multi-monitor-linux-mixed-dpi-displays/">[39]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>14</i>Per-screen ICC profile</td>
+              <td class="cell"><span class="res W">W</span>In KWin Wayland since 2023 <sup><a href="https://www.phoronix.com/news/KDE-Wayland-Color-Mgmt">[35]</a></sup></td>
+              <td class="cell"><span class="res W">W</span>Settings → Color; wp_color_management v2 in GNOME 50 <sup><a href="https://release.gnome.org/50/">[38]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Hyprland yes; niri does not document it <sup><a href="https://github.com/niri-wm/niri">[49]</a></sup></td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>15</i>ICC profile <em>and</em> HDR at the same time</td>
+              <td class="cell"><span class="res W">W</span>New in 6.7 <sup><a href="https://kde.org/announcements/plasma/6/6.7.0/">[1]</a><a href="https://blogs.kde.org/2026/05/09/this-week-in-plasma-icc-profiles-%EF%B8%8F-hdr/">[36]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>HDR and colour-management v2 both present; this combination is not claimed <sup><a href="https://release.gnome.org/50/">[38]</a></sup></td>
+              <td class="cell"><span class="res D">D</span>Compositor-dependent</td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>16</i>Independent virtual desktops per screen</td>
+              <td class="cell"><span class="res W">W</span>New in 6.7 — a 21-year-old request, shipped 16 Jun 2026 <sup><a href="https://kde.org/announcements/plasma/6/6.7.0/">[1]</a><a href="https://www.omgubuntu.co.uk/2026/06/kde-plasma-6-7-released">[2]</a></sup></td>
+              <td class="cell"><span class="res L">L</span>Only "span all displays" or "primary only" <sup><a href="https://blogs.gnome.org/shell-dev/2021/02/23/gnome-shell-40-and-multi-monitor/">[51]</a><a href="https://discourse.gnome.org/t/feature-inquiry-discussion-independent-workspaces-per-monitor-macos-style/34802">[52]</a></sup></td>
+              <td class="cell"><span class="res W">W</span>Native</td>
+            </tr>
+            <tr>
+              <td class="fixture"><i>17</i>Resolution / refresh / HDR / VRR per monitor from the GUI</td>
+              <td class="cell"><span class="res W">W</span>System Settings → Display</td>
+              <td class="cell"><span class="res W">W</span>Settings → Displays</td>
+              <td class="cell"><span class="res D">D</span>Config file plus <code class="mono">kscreen-doctor</code> / <code class="mono">wlr-randr</code> equivalents</td>
+            </tr>
+          </tbody>
+          <tfoot class="totals">
+            <tr>
+              <td><div class="ptsl">POINTS · W=3 D=1 L=0</div><div class="ptsl" style="margin-top:6px">MAX 51</div></td>
+              <td><div class="pts top mono">32</div><div class="ptsl">9W 5D 3L</div></td>
+              <td><div class="pts mono">18</div><div class="ptsl">3W 9D 5L</div></td>
+              <td><div class="pts mono">28</div><div class="ptsl">7W 7D 3L</div></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="keybar">
+        <div><em class="W">W</em> Shipped, native, no add-on</div>
+        <div><em class="D">D</em> Reachable — extension, script or caveat</div>
+        <div><em class="L">L</em> Not available on this shell</div>
+      </div>
+
+      <div class="asterisk">
+        <b>The asterisk on second place.</b> A tiling WM finishes four points behind KDE, but its three losses are fixtures 09–11 — the entire Fences half of the brief, plus the taskbar concept. Points reward capability coverage, not workflow continuity. Read the tiling column as "different game, played well" rather than "nearly the same desktop".
+      </div>
+    </section>
+
+    <section class="redcard">
+      <div class="rc-text">
+        <div class="rc-badge">
+          <div class="rc-rect"></div>
+          <span>RED CARD · POSSIBLE ABANDONMENT</span>
+        </div>
+        <h2 class="disp">Legion hybrid graphics: the dGPU owns every external output</h2>
+        <p>On many Legion models the internal panel is driven by both GPUs, but every external output — HDMI and USB-C alike — is wired to the NVIDIA GPU only, and hybrid mode has produced blank external displays <sup><a href="https://forums.developer.nvidia.com/t/ryzen-7-gtx-1660ti-blank-screen-on-external-outputs-in-hybrid-graphics-mode/157800">[46]</a></sup>.</p>
+        <p>A long-standing report has mutter failing to initialise the dGPU and falling back to CPU rendering specifically when a <em>secondary</em> screen is attached to it, while single-display hybrid works fine <sup><a href="https://github.com/NVIDIA/open-gpu-kernel-modules/issues/161">[44]</a></sup>. NVIDIA's own forums carry the same complaint for KDE, GNOME and Cinnamon <sup><a href="https://forums.developer.nvidia.com/t/external-monitor-on-hybrid-nvidia-intel-laptop-on-wayland-is-unusable/304943">[45]</a></sup>, and Legion "Hybrid (iGPU only)" BIOS modes cause problems of their own <sup><a href="https://bbs.archlinux.org/viewtopic.php?id=306247">[47]</a></sup>.</p>
+        <div class="rc-do">BEFORE COMMITTING → boot a live Plasma 6.7 image with the external monitor plugged in, and test all three BIOS graphics modes. This is the one item on the list that can be a hard blocker rather than an inconvenience.</div>
+      </div>
+      <figure class="rc-photo">
+        <img src="scoreboard/images/legion.webp" alt="Interior of a Lenovo Legion 5i laptop with the bottom cover removed, showing fans, battery and mainboard">
+        <figcaption>Legion 5i internals — where the external display outputs are physically wired</figcaption>
+      </figure>
+    </section>
+
+    <section class="rulechange">
+      <div class="kick">Rule change · effective October 2026</div>
+      <h2 class="disp">X11 is relegated. Choose Wayland now.</h2>
+      <p>Plasma 6.7 is the last release with an X11 session <sup><a href="https://blog.davidedmundson.co.uk/blog/596/">[4]</a></sup> and 6.8 drops it <sup><a href="https://9to5linux.com/kde-plasma-6-8-desktop-environment-to-drop-the-x11-session-and-go-wayland-only">[5]</a></sup>, with more than 95% of Plasma 6.6 users already on Wayland <sup><a href="https://www.phoronix.com/news/KDE-Plasma-Wayland-Ex-X11">[6]</a></sup>. Two of the pieces you need — PlasmaZones and per-screen colour management — are Wayland-only anyway <sup><a href="https://github.com/fuddlesworth/PlasmaZones">[3]</a><a href="https://www.phoronix.com/news/KDE-Wayland-Color-Mgmt">[35]</a></sup>.</p>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Transfers out · four Windows shirts returned</span>
+        <h2 class="disp">Who leaves, and who replaces them</h2>
+      </div>
+      <div class="transfers">
+
+        <article class="tr v-part">
+          <div class="tr-logo"><img src="scoreboard/images/displayfusion.webp" alt="DisplayFusion product logo"></div>
+          <div>
+            <div class="tr-out">Outgoing · DisplayFusion 12.1.1</div>
+            <h3 class="disp"><a href="https://www.displayfusion.com/Features/">DisplayFusion</a> <sup><a href="https://www.displayfusion.com/Features/">[7]</a></sup></h3>
+            <p class="tr-in">In: Plasma panels + kscreen / <code class="mono">kscreen-doctor</code> + <a href="https://github.com/fuddlesworth/PlasmaZones">PlasmaZones</a> ⭐ 296 + <a href="https://github.com/rxappdev/RememberWindowPositions">RememberWindowPositions</a> ⭐ 246</p>
+            <p class="tr-note">Taskbars, per-monitor wallpaper, hotkeys and monitor profiles all land. Lost: monitor splitting, TitleBar buttons, and Triggers — the window-created / desktop-unlock event scripting <sup><a href="https://www.displayfusion.com/Features/">[7]</a></sup>.</p>
+          </div>
+          <div class="verdict part">~80% · FOUR PIECES</div>
+        </article>
+
+        <article class="tr v-none">
+          <div class="tr-logo"><img src="scoreboard/images/fences.webp" alt="Stardock Fences application icon"></div>
+          <div>
+            <div class="tr-out">Outgoing · Stardock Fences 6</div>
+            <h3 class="disp"><a href="https://www.stardock.com/products/fences/">Fences</a> <sup><a href="https://www.stardock.com/products/fences/">[8]</a><a href="https://en.wikipedia.org/wiki/Fences_(software)">[9]</a></sup></h3>
+            <p class="tr-in">In: nothing that plays the same position. <a href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html">Folder View</a> widgets are a genuine Folder Portals equivalent <sup><a href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html">[20]</a></sup>; <a href="https://www.rastersoft.com/programas/ding.html">DING</a> stacks group by type <sup><a href="https://www.rastersoft.com/programas/ding.html">[21]</a><a href="https://www.omgubuntu.co.uk/2026/07/ubuntu-desktop-icons-extension-gtk4-port">[23]</a></sup>.</p>
+            <p class="tr-note">No automation rules, no roll-up, no Peek — and users report you cannot even hand-order icons inside a Folder View <sup><a href="https://bbs.archlinux.org/viewtopic.php?id=199261">[24]</a></sup>. Grouping by file type is not grouping by intent. The realistic migration is to stop using the desktop as a filing system.</p>
+          </div>
+          <div class="verdict none">NO EQUIVALENT</div>
+        </article>
+
+        <article class="tr v-full">
+          <div class="tr-logo"><span class="tr-glyph">⊞</span></div>
+          <div>
+            <div class="tr-out">Outgoing · PowerToys FancyZones 0.97.1</div>
+            <h3 class="disp">FancyZones</h3>
+            <p class="tr-in">In: <a href="https://github.com/fuddlesworth/PlasmaZones">PlasmaZones</a> ⭐ 296 on Plasma 6.4+ Wayland <sup><a href="https://github.com/fuddlesworth/PlasmaZones">[3]</a></sup>, or <a href="https://github.com/domferr/tilingshell">Tiling Shell</a> ⭐ 2.0k on GNOME <sup><a href="https://github.com/domferr/tilingshell">[12]</a></sup></p>
+            <p class="tr-note">KDE's built-in editor alone is not enough — it cannot store multiple layouts <sup><a href="https://www.xda-developers.com/kde-window-manager-learned-microsoft-before-windows-did/">[11]</a></sup>. PlasmaZones adds per-monitor and per-virtual-desktop layouts, which FancyZones never had.</p>
+          </div>
+          <div class="verdict full">FULL · ARGUABLY BETTER</div>
+        </article>
+
+        <article class="tr v-part">
+          <div class="tr-logo"><span class="tr-glyph">◐</span></div>
+          <div>
+            <div class="tr-out">Outgoing · X-Rite Color Assistant 2.57</div>
+            <h3 class="disp"><a href="https://github.com/Tanmoy2504/X-Rite-Color-Assistant">X-Rite Color Assistant</a> <sup><a href="https://github.com/Tanmoy2504/X-Rite-Color-Assistant">[10]</a></sup></h3>
+            <p class="tr-in">In: the factory <code class="mono">.icm</code> files copied to <code class="mono">/usr/share/color/icc</code> and assigned per screen; recalibrate with ArgyllCMS + <a href="https://displaycal.net/">DisplayCAL</a> / <a href="https://github.com/eoyilmaz/displaycal-py3">displaycal-py3</a> ⭐ 1.6k <sup><a href="https://displaycal.net/">[31]</a><a href="https://github.com/eoyilmaz/displaycal-py3">[32]</a></sup></p>
+            <p class="tr-note">Color Assistant is a profile <em>loader</em>, not a calibrator — it only restores Lenovo's factory sRGB / Rec.709 / HDR profiles <sup><a href="https://github.com/Tanmoy2504/X-Rite-Color-Assistant">[10]</a></sup>. There is nothing to port, just the files. Copy them off before you wipe the partition.</p>
+          </div>
+          <div class="verdict part">PROFILES YES · VCGT NO</div>
+        </article>
+
+        <article class="tr v-full">
+          <div class="tr-logo"><span class="tr-glyph">▤</span></div>
+          <div>
+            <div class="tr-out">Outgoing · NVIDIA Control Panel / NVIDIA App (display side)</div>
+            <h3 class="disp">NVIDIA display config</h3>
+            <p class="tr-in">In: System Settings → Display — resolution, refresh, HDR, VRR, per-monitor scaling</p>
+            <p class="tr-note"><code class="mono">nvidia-settings</code> is largely inert under Wayland; the desktop owns display config. KWin auto-enables VRR for fullscreen apps, and unlike X11 multiple monitors do not break G-Sync <sup><a href="https://wiki.archlinux.org/title/Variable_refresh_rate">[48]</a></sup>.</p>
+          </div>
+          <div class="verdict full">FULL · DISPLAY SIDE</div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Signings · the squad you assemble</span>
+        <h2 class="disp">Nine pieces, one desktop</h2>
+      </div>
+      <div class="signings">
+
+        <article class="sign star">
+          <div class="sign-thumb"><img src="scoreboard/images/plasmazones.webp" alt="PlasmaZones repository card"></div>
+          <div class="pos">Marquee signing · zone tiling</div>
+          <h3 class="disp"><a href="https://github.com/fuddlesworth/PlasmaZones">PlasmaZones</a></h3>
+          <div class="stars">⭐ 296</div>
+          <p>Drag-to-snap tiling as a KWin effect: 26 built-in layouts, per-monitor, per-desktop and virtual-screen. Plasma 6 on Wayland only <sup><a href="https://github.com/fuddlesworth/PlasmaZones">[3]</a></sup>.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">Window memory</div>
+          <h3 class="disp"><a href="https://github.com/rxappdev/RememberWindowPositions">RememberWindowPositions</a></h3>
+          <div class="stars">⭐ 246</div>
+          <p>Restores position, size, screen and virtual desktop per application on Plasma 6+. Caption matching at 85% misfires on titles with counters, and its Session Restore interaction is unofficial — it has caused crash loops <sup><a href="https://github.com/rxappdev/RememberWindowPositions">[27]</a></sup>.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">Output profiles (non-KDE)</div>
+          <h3 class="disp"><a href="https://github.com/emersion/kanshi">kanshi</a></h3>
+          <div class="stars">⭐ 718</div>
+          <p>The standard hotplug profile switcher — and it can blank the laptop panel when docked <sup><a href="https://wiki.archlinux.org/title/Kanshi">[29]</a><a href="https://github.com/emersion/kanshi">[50]</a></sup>. Inside KDE, kscreen already keys config to the connected-output set.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">Calibration</div>
+          <h3 class="disp"><a href="https://github.com/eoyilmaz/displaycal-py3">displaycal-py3</a></h3>
+          <div class="stars">⭐ 1.6k</div>
+          <p>The maintained Python 3 fork of <a href="https://displaycal.net/">DisplayCAL</a>, targeting Python 3.9+ <sup><a href="https://github.com/eoyilmaz/displaycal-py3">[32]</a></sup>. ArgyllCMS underneath supports the X-Rite / Calibrite i1 Display line with vendor corrections <sup><a href="https://displaycal.net/">[31]</a></sup>.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">GNOME taskbar</div>
+          <h3 class="disp"><a href="https://github.com/home-sweet-gnome/dash-to-panel">Dash to Panel</a></h3>
+          <div class="stars">⭐ 4.4k</div>
+          <p>A Windows-style panel for GNOME with per-monitor and per-workspace isolation — the only route to a real taskbar on that shell <sup><a href="https://github.com/home-sweet-gnome/dash-to-panel">[15]</a></sup>.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">GNOME zones</div>
+          <h3 class="disp"><a href="https://github.com/domferr/tilingshell">Tiling Shell</a></h3>
+          <div class="stars">⭐ 2.0k</div>
+          <p>Layout editor and snap assistant, multi-monitor with differing scale factors, GNOME 42 through 50 <sup><a href="https://github.com/domferr/tilingshell">[12]</a><a href="https://extensions.gnome.org/extension/7065/tiling-shell/">[13]</a></sup>.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">Spanned wallpaper</div>
+          <h3 class="disp"><a href="https://github.com/hhannine/superpaper">Superpaper</a></h3>
+          <div class="stars">⭐ 1.3k</div>
+          <p>The only real answer to one image across all monitors, but its supported-DE list is rooted in X11-era tooling <sup><a href="https://github.com/hhannine/superpaper">[18]</a></sup>.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">Desktop icon groups</div>
+          <h3 class="disp"><a href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html">Folder View</a> widgets</h3>
+          <div class="stars">built in</div>
+          <p>As many as you like on the desktop, each pointing at a different folder, filtered by regex or file type <sup><a href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html">[20]</a></sup>. Two or three for the folders you actually touch, and a launcher for everything else.</p>
+        </article>
+
+        <article class="sign">
+          <div class="pos">Free agent · a different game</div>
+          <h3 class="disp"><a href="https://github.com/niri-wm/niri">niri</a></h3>
+          <div class="stars">⭐ 26.5k</div>
+          <p>Multi-monitor as core design from the start, mixed DPI working, all its own UI pixel-perfect under fractional scaling — and no documented colour management <sup><a href="https://github.com/niri-wm/niri">[49]</a></sup>.</p>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Colour room · the X-Rite handover</span>
+        <h2 class="disp">Profiles land. Gamma curves do not.</h2>
+      </div>
+      <div class="colour">
+        <figure>
+          <img src="scoreboard/images/colorimeter.webp" alt="A colorimeter puck used for display calibration, resting on a desk">
+          <figcaption>Hardware calibration itself is fine — ArgyllCMS drives essentially every colorimeter</figcaption>
+        </figure>
+        <div>
+          <span class="flag">SHARP EDGE · VCGT ON WAYLAND</span>
+          <p><b>The protocol picture is finally good.</b> <code class="mono">color-management-v1</code> merged upstream in February 2025 after five years and 800+ review comments, covering ICC profiles and HDR for colour-aware and unaware clients alike <sup><a href="https://www.phoronix.com/news/Wayland-CM-HDR-Merged">[37]</a></sup>. KWin has assigned per-screen ICC profiles since 2023 <sup><a href="https://www.phoronix.com/news/KDE-Wayland-Color-Mgmt">[35]</a></sup>, and Plasma 6.7 removed the last compromise: an ICC profile while HDR is active <sup><a href="https://kde.org/announcements/plasma/6/6.7.0/">[1]</a><a href="https://blogs.kde.org/2026/05/09/this-week-in-plasma-icc-profiles-%EF%B8%8F-hdr/">[36]</a></sup>. GNOME 50 shipped wp_color_management v2 plus HDR screen sharing <sup><a href="https://release.gnome.org/50/">[38]</a></sup>.</p>
+          <p><b>The regression is the video-card gamma table.</b> Plasma on Wayland exposes no API to set VCGT, so calibration curves are never loaded into the GPU LUT — the correction has to live in the profile and be applied by the colour-management system instead <sup><a href="https://hub.displaycal.net/forums/topic/how-do-i-bake-in-vcgt-in-icc-profile/">[34]</a></sup>. A 2026 walkthrough of the whole loop flags the same trap: applying an ICC profile only inside a colour-managed app is insufficient, because that app will not set the VCGT tables <sup><a href="https://arnebaeyens.com/blog/2026/linux-display-calibration/">[33]</a></sup>.</p>
+          <p>For a factory-profile-loading workflow that is acceptable. For hardware-calibrated grey tracking it is a real loss versus Windows.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Unavailable for selection</span>
+        <h2 class="disp">Four things that do not come back</h2>
+      </div>
+      <div class="suspended">
+        <div class="susp">
+          <div class="num mono">01</div>
+          <h3 class="disp">Fences' automation, roll-up and Peek</h3>
+          <p>Shaded groups that sort new files by rule, collapse to a title bar, and float above every window on Win+Space <sup><a href="https://www.stardock.com/products/fences/">[8]</a></sup>.</p>
+        </div>
+        <div class="susp">
+          <div class="num mono">02</div>
+          <h3 class="disp">DisplayFusion splitting, TitleBar buttons, Triggers</h3>
+          <p>No compositor exposes one physical monitor as several virtual ones, and there is no event-scripting layer for window creation or desktop unlock <sup><a href="https://www.displayfusion.com/Features/">[7]</a></sup>.</p>
+        </div>
+        <div class="susp">
+          <div class="num mono">03</div>
+          <h3 class="disp">Hardware VCGT loading</h3>
+          <p>Calibration curves cannot be pushed into the GPU LUT on Plasma Wayland <sup><a href="https://hub.displaycal.net/forums/topic/how-do-i-bake-in-vcgt-in-icc-profile/">[34]</a></sup>.</p>
+        </div>
+        <div class="susp">
+          <div class="num mono">04</div>
+          <h3 class="disp">Guaranteed window restore across dock / undock</h3>
+          <p>XDG Session Management shipped in wayland-protocols 1.48 on 1 Apr 2026 and KWin implements it — but KDE is explicit that the remaining gate is toolkit and app adoption <sup><a href="https://blogs.kde.org/2026/04/18/this-week-in-plasma-per-screen-virtual-desktops-and-wayland-session-restore/">[25]</a><a href="https://www.phoronix.com/news/Wayland-Protocols-1.48">[26]</a></sup>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Rest of the season</span>
+        <h2 class="disp">The other six angles</h2>
+      </div>
+      <div class="fixtures">
+        <a class="fx" href="../../net-sql-server-dev-stack-on-linux/">
+          <div class="depth">Expedition</div>
+          <h3 class="disp">Your .NET + SQL Server stack on Linux</h3>
+          <p>Rider replaces Visual Studio + ReSharper at the cost of the WinForms/WPF designers; SSMS has no Linux successor.</p>
+        </a>
+        <a class="fx" href="../../microsoft-365-onenote-outlook-teams-onedrive-on-linux/">
+          <div class="depth">Survey</div>
+          <h3 class="disp">Microsoft 365 on Linux in 2026</h3>
+          <p>Office, Teams and mail are a tolerable compromise; OneDrive sync and OneNote are where the gap is real.</p>
+        </a>
+        <a class="fx" href="../../windows-only-power-user-utilities/">
+          <div class="depth">Survey</div>
+          <h3 class="disp">The utility belt</h3>
+          <p>Most Windows-only utilities transfer cleanly; AutoHotkey and Power Automate Desktop have no single answer.</p>
+        </a>
+        <a class="fx" href="../../gaming-steam-proton-epic-paradox-and-the-anti-cheat-wall/">
+          <div class="depth">Survey</div>
+          <h3 class="disp">Gaming after the switch</h3>
+          <p>Both installed games run under Proton — the only hard loss is the NVIDIA App and Game Bar tooling layer.</p>
+        </a>
+        <a class="fx" href="../../hardware-peripherals-corporate-vpn-clients/">
+          <div class="depth">Recon</div>
+          <h3 class="disp">Legion hardware, peripherals and two VPNs</h3>
+          <p>Neither corporate VPN blocks the switch; the losses are QuantumENGINE, Dolby, XTU and Lenovo's bloat.</p>
+        </a>
+        <a class="fx" href="../../escape-hatches-for-the-irreplaceable/">
+          <div class="depth">Recon</div>
+          <h3 class="disp">Escape hatches for the leftovers</h3>
+          <p>Wine for single-window utilities, a local VM for Visual Studio and SSMS — and no GPU passthrough on a muxless Legion.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="sb-sec">
+      <div class="sec-head">
+        <span class="kick">Press box · 31 outlets, 52 filings</span>
+        <h2 class="disp">Who called the match</h2>
+      </div>
+      <div class="pressbox">
+        <a class="out" href="https://github.com/fuddlesworth/PlasmaZones"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt="">github.com <b>10</b></a>
+        <a class="out" href="https://www.phoronix.com/news/KDE-Plasma-Wayland-Ex-X11"><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt="">phoronix.com <b>4</b></a>
+        <a class="out" href="https://www.omgubuntu.co.uk/2026/06/kde-plasma-6-7-released"><img src="https://www.google.com/s2/favicons?domain=omgubuntu.co.uk&sz=128" alt="">omgubuntu.co.uk <b>2</b></a>
+        <a class="out" href="https://9to5linux.com/kde-plasma-6-8-desktop-environment-to-drop-the-x11-session-and-go-wayland-only"><img src="https://www.google.com/s2/favicons?domain=9to5linux.com&sz=128" alt="">9to5linux.com <b>2</b></a>
+        <a class="out" href="https://discuss.kde.org/t/solved-show-only-tasks-from-current-screen/12191"><img src="https://www.google.com/s2/favicons?domain=discuss.kde.org&sz=128" alt="">discuss.kde.org <b>2</b></a>
+        <a class="out" href="https://blogs.kde.org/2026/04/18/this-week-in-plasma-per-screen-virtual-desktops-and-wayland-session-restore/"><img src="https://www.google.com/s2/favicons?domain=blogs.kde.org&sz=128" alt="">blogs.kde.org <b>2</b></a>
+        <a class="out" href="https://discourse.gnome.org/t/feature-request-per-screen-wallpaper-and-enhanced-slideshow-support/28557"><img src="https://www.google.com/s2/favicons?domain=discourse.gnome.org&sz=128" alt="">discourse.gnome.org <b>2</b></a>
+        <a class="out" href="https://extensions.gnome.org/extension/7065/tiling-shell/"><img src="https://www.google.com/s2/favicons?domain=extensions.gnome.org&sz=128" alt="">extensions.gnome.org <b>2</b></a>
+        <a class="out" href="https://bbs.archlinux.org/viewtopic.php?id=306247"><img src="https://www.google.com/s2/favicons?domain=bbs.archlinux.org&sz=128" alt="">bbs.archlinux.org <b>2</b></a>
+        <a class="out" href="https://wiki.archlinux.org/title/Kanshi"><img src="https://www.google.com/s2/favicons?domain=wiki.archlinux.org&sz=128" alt="">wiki.archlinux.org <b>2</b></a>
+        <a class="out" href="https://forums.developer.nvidia.com/t/external-monitor-on-hybrid-nvidia-intel-laptop-on-wayland-is-unusable/304943"><img src="https://www.google.com/s2/favicons?domain=forums.developer.nvidia.com&sz=128" alt="">forums.developer.nvidia.com <b>2</b></a>
+        <a class="out" href="https://kde.org/announcements/plasma/6/6.7.0/"><img src="https://www.google.com/s2/favicons?domain=kde.org&sz=128" alt="">kde.org <b>1</b></a>
+        <a class="out" href="https://docs.kde.org/trunk_kf6/en/plasma-desktop/plasma-desktop/folder-view.html"><img src="https://www.google.com/s2/favicons?domain=docs.kde.org&sz=128" alt="">docs.kde.org <b>1</b></a>
+        <a class="out" href="https://bugs.kde.org/show_bug.cgi?id=161325"><img src="https://www.google.com/s2/favicons?domain=bugs.kde.org&sz=128" alt="">bugs.kde.org <b>1</b></a>
+        <a class="out" href="https://blog.davidedmundson.co.uk/blog/596/"><img src="https://www.google.com/s2/favicons?domain=blog.davidedmundson.co.uk&sz=128" alt="">blog.davidedmundson.co.uk <b>1</b></a>
+        <a class="out" href="https://release.gnome.org/50/"><img src="https://www.google.com/s2/favicons?domain=release.gnome.org&sz=128" alt="">release.gnome.org <b>1</b></a>
+        <a class="out" href="https://blogs.gnome.org/shell-dev/2021/02/23/gnome-shell-40-and-multi-monitor/"><img src="https://www.google.com/s2/favicons?domain=blogs.gnome.org&sz=128" alt="">blogs.gnome.org <b>1</b></a>
+        <a class="out" href="https://www.displayfusion.com/Features/"><img src="https://www.google.com/s2/favicons?domain=displayfusion.com&sz=128" alt="">displayfusion.com <b>1</b></a>
+        <a class="out" href="https://www.stardock.com/products/fences/"><img src="https://www.google.com/s2/favicons?domain=stardock.com&sz=128" alt="">stardock.com <b>1</b></a>
+        <a class="out" href="https://en.wikipedia.org/wiki/Fences_(software)"><img src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=128" alt="">en.wikipedia.org <b>1</b></a>
+        <a class="out" href="https://www.xda-developers.com/kde-window-manager-learned-microsoft-before-windows-did/"><img src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=128" alt="">xda-developers.com <b>1</b></a>
+        <a class="out" href="https://wiki.hypr.land/Hypr-Ecosystem/hyprpaper/"><img src="https://www.google.com/s2/favicons?domain=wiki.hypr.land&sz=128" alt="">wiki.hypr.land <b>1</b></a>
+        <a class="out" href="https://www.rastersoft.com/programas/ding.html"><img src="https://www.google.com/s2/favicons?domain=rastersoft.com&sz=128" alt="">rastersoft.com <b>1</b></a>
+        <a class="out" href="https://linuxcommandlibrary.com/man/kscreen-doctor"><img src="https://www.google.com/s2/favicons?domain=linuxcommandlibrary.com&sz=128" alt="">linuxcommandlibrary.com <b>1</b></a>
+        <a class="out" href="https://displaycal.net/"><img src="https://www.google.com/s2/favicons?domain=displaycal.net&sz=128" alt="">displaycal.net <b>1</b></a>
+        <a class="out" href="https://hub.displaycal.net/forums/topic/how-do-i-bake-in-vcgt-in-icc-profile/"><img src="https://www.google.com/s2/favicons?domain=hub.displaycal.net&sz=128" alt="">hub.displaycal.net <b>1</b></a>
+        <a class="out" href="https://arnebaeyens.com/blog/2026/linux-display-calibration/"><img src="https://www.google.com/s2/favicons?domain=arnebaeyens.com&sz=128" alt="">arnebaeyens.com <b>1</b></a>
+        <a class="out" href="https://botmonster.com/self-hosting/multi-monitor-linux-mixed-dpi-displays/"><img src="https://www.google.com/s2/favicons?domain=botmonster.com&sz=128" alt="">botmonster.com <b>1</b></a>
+        <a class="out" href="https://alternativeto.net/news/2025/2/kde-plasma-6-3-improves-fractional-scaling-system-monitoring-panel-cloning-and-much-more/"><img src="https://www.google.com/s2/favicons?domain=alternativeto.net&sz=128" alt="">alternativeto.net <b>1</b></a>
+        <a class="out" href="https://falcao.org/posts/nvidia-fedora-kde-wayland/"><img src="https://www.google.com/s2/favicons?domain=falcao.org&sz=128" alt="">falcao.org <b>1</b></a>
+        <a class="out" href="https://ubuntuhandbook.org/index.php/2026/03/nvidia-595-58-03-released-with-better-wayland-linux-gaming-support/"><img src="https://www.google.com/s2/favicons?domain=ubuntuhandbook.org&sz=128" alt="">ubuntuhandbook.org <b>1</b></a>
+      </div>
+    </section>
+
+    <footer class="sb-foot">
+      <a href="../">← Full report · 52 citations · 11 min read</a>
+      <a href="../../">↑ Throwing away Windows: the expedition</a>
+      <a href="/">Atlas</a>
+      <span>Points are this view's scoring device, not the canonical's — W=3, D=1, L=0 over 17 capability rows</span>
+    </footer>
+
+  </div>
+</div>

@@ -1,0 +1,835 @@
+---
+layout: view
+view_name: "Arcade"
+view_of: ../
+title: "Gaming after the switch: your library survives, the NVIDIA App does not — Arcade"
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.cab {
+  --void: #04050a;
+  --panel: #0a0d16;
+  --panel2: #101524;
+  --line: #222c46;
+  --cyan: #4df0ff;
+  --amber: #ffbe2e;
+  --magenta: #ff2e88;
+  --green: #46ff87;
+  --red: #ff3b3b;
+  --dim: #8592b5;
+  margin: 0;
+  padding: 0;
+  background: var(--void);
+  color: #dfe7ff;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 15px;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+.cab *, .cab *::before, .cab *::after { box-sizing: border-box; }
+.cab h1, .cab h2, .cab h3, .cab .px { font-family: "Press Start 2P", "IBM Plex Mono", monospace; font-weight: 400; letter-spacing: 0.02em; }
+.cab .crt-font { font-family: "VT323", "IBM Plex Mono", monospace; }
+.cab a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(77,240,255,.45); }
+.cab a:hover { color: #fff; background: rgba(77,240,255,.14); }
+.cab sup a { border-bottom: none; color: var(--dim); font-size: 10px; }
+.cab sup a:hover { color: var(--cyan); background: none; }
+.cab img { display: block; max-width: 100%; }
+.cab code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .92em;
+  background: rgba(77,240,255,.09); border: 1px solid rgba(77,240,255,.22);
+  padding: 1px 5px; color: #b6f4ff; word-break: break-word;
+}
+.cab .code code { background: none; border: none; padding: 0; }
+
+.cab .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+.cab section { position: relative; }
+
+/* the phosphor grid + scanline overlay every panel shares */
+.scan { position: relative; }
+.scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.42) 0 1px, rgba(0,0,0,0) 1px 3px);
+  mix-blend-mode: multiply;
+}
+.glow-cyan { color: var(--cyan); text-shadow: 0 0 6px rgba(77,240,255,.75), 0 0 22px rgba(77,240,255,.35); }
+.glow-amber { color: var(--amber); text-shadow: 0 0 6px rgba(255,190,46,.7), 0 0 22px rgba(255,190,46,.3); }
+.glow-red { color: var(--red); text-shadow: 0 0 8px rgba(255,59,59,.8), 0 0 26px rgba(255,59,59,.4); }
+.glow-green { color: var(--green); text-shadow: 0 0 6px rgba(70,255,135,.7); }
+.glow-mag { color: var(--magenta); text-shadow: 0 0 6px rgba(255,46,136,.75), 0 0 22px rgba(255,46,136,.35); }
+
+/* ---------- MARQUEE ---------- */
+.marquee { padding: 0; border-bottom: 4px solid var(--magenta); }
+.marquee .art {
+  position: relative;
+  min-height: 460px;
+  display: flex;
+  align-items: flex-end;
+  background: #000;
+}
+.marquee .art > img {
+  position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: .3; filter: saturate(1.3) contrast(1.1);
+}
+.marquee .art::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 1;
+  background: radial-gradient(120% 90% at 50% 100%, rgba(255,46,136,.30), transparent 60%), linear-gradient(to top, rgba(4,5,10,.97) 8%, rgba(4,5,10,.55) 55%, rgba(4,5,10,.9));
+}
+.marquee .inner { position: relative; z-index: 2; width: 100%; padding: 54px 20px 30px; }
+.marquee .kicker {
+  font-size: 10px; letter-spacing: .28em; color: var(--magenta);
+  text-transform: uppercase; margin-bottom: 22px;
+}
+.marquee h1 { font-size: clamp(24px, 5.1vw, 52px); line-height: 1.28; margin: 0 0 18px; }
+.marquee .sub {
+  font-family: "VT323", monospace; font-size: clamp(20px, 2.6vw, 30px);
+  color: var(--amber); letter-spacing: .04em; margin: 0 0 26px; line-height: 1.25;
+}
+.coinrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.coin {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid var(--line); background: rgba(10,13,22,.85);
+  padding: 7px 11px; color: var(--dim);
+}
+.coin b { color: var(--cyan); font-weight: 600; }
+.blink { color: var(--amber); }
+
+/* ---------- ATTRACT SCREEN ---------- */
+.attract { background: var(--panel); padding: 54px 0 60px; }
+.attract .grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 34px; align-items: start; }
+.bezel {
+  position: relative; border: 3px solid #2b3450; border-radius: 14px;
+  background: #01030a; padding: 22px; box-shadow: inset 0 0 60px rgba(77,240,255,.10), 0 0 0 8px #080b14;
+}
+.bezel .verdict-lead {
+  font-size: clamp(20px, 3.4vw, 34px); line-height: 1.3; margin: 0 0 16px;
+}
+.attract p { margin: 0 0 14px; color: #c6d1ef; }
+.attract .stillstack { display: grid; gap: 16px; }
+.still { position: relative; border: 2px solid var(--line); background: #000; }
+.still img { width: 100%; }
+.still .cap {
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  padding: 8px 10px; color: var(--dim); border-top: 1px solid var(--line);
+  background: var(--panel2);
+}
+.tierbar { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px; border-top: 1px solid var(--line); background: var(--panel2); }
+.tier {
+  font-family: "Press Start 2P", monospace; font-size: 9px; padding: 6px 8px;
+  border: 1px solid currentColor;
+}
+.tier.gold { color: var(--amber); }
+.tier.plat { color: var(--cyan); }
+.tier.play { color: var(--green); }
+.deckstill { display: flex; align-items: center; gap: 14px; border: 2px solid var(--line); background: var(--panel2); padding: 12px; }
+.deckstill img { width: 130px; flex: 0 0 auto; }
+.deckstill div { font-size: 12px; color: var(--dim); }
+.deckstill b { color: var(--green); }
+
+/* ---------- SCOREBOARD ---------- */
+.scoreboard { background: #06080f; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 48px 0 52px; }
+.sec-label { font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--magenta); margin: 0 0 8px; }
+.sec-title { font-size: clamp(16px, 2.4vw, 22px); margin: 0 0 8px; }
+.sec-note { color: var(--dim); font-size: 13px; margin: 0 0 26px; max-width: 74ch; }
+.boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+.board { border: 2px solid var(--line); background: var(--panel); padding: 20px; }
+.board .who { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan); margin-bottom: 6px; }
+.board .tot { font-family: "Press Start 2P", monospace; font-size: 34px; color: #fff; margin-bottom: 2px; }
+.board .totlab { font-size: 11px; color: var(--dim); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 18px; }
+.meter { margin-bottom: 12px; }
+.meter .mlab { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 5px; }
+.meter .mtrack { height: 12px; background: #0f1422; border: 1px solid var(--line); display: flex; }
+.meter .mfill { height: 100%; }
+.blocks { background-image: repeating-linear-gradient(to right, currentColor 0 6px, rgba(0,0,0,.65) 6px 8px); }
+.f-green { color: var(--green); }
+.f-red { color: var(--red); }
+.f-cyan { color: var(--cyan); }
+.f-amber { color: var(--amber); }
+
+/* ---------- HIGH SCORE TABLE ---------- */
+.hiscore { background: var(--void); padding: 56px 0 60px; }
+.hstable { border: 2px solid var(--line); background: var(--panel); overflow-x: auto; }
+.hstable table { width: 100%; border-collapse: collapse; min-width: 760px; }
+.hstable th {
+  font-family: "Press Start 2P", monospace; font-size: 9px; letter-spacing: .06em;
+  text-align: left; padding: 14px 12px; color: var(--magenta);
+  border-bottom: 2px solid var(--magenta); background: #080b14; white-space: nowrap;
+}
+.hstable td { padding: 13px 12px; border-bottom: 1px solid rgba(34,44,70,.7); vertical-align: top; font-size: 13px; }
+.hstable tr:last-child td { border-bottom: none; }
+.hstable tr:hover td { background: rgba(77,240,255,.05); }
+.rk { font-family: "Press Start 2P", monospace; font-size: 11px; color: var(--amber); white-space: nowrap; }
+.prog { color: #fff; font-weight: 600; }
+.prog small { display: block; color: var(--dim); font-weight: 400; font-size: 11px; letter-spacing: .04em; }
+.badge {
+  display: inline-block; font-family: "Press Start 2P", monospace; font-size: 8px;
+  padding: 7px 8px; border: 1px solid currentColor; white-space: nowrap; line-height: 1;
+}
+.b-clear { color: var(--green); background: rgba(70,255,135,.08); }
+.b-cont { color: var(--amber); background: rgba(255,190,46,.08); }
+.b-over { color: var(--red); background: rgba(255,59,59,.10); }
+.note { color: #b9c4e4; font-size: 12.5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; font-size: 11px; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+
+/* ---------- GAME OVER ---------- */
+.gameover { background: #12040a; border-top: 4px solid var(--red); border-bottom: 4px solid var(--red); padding: 60px 0 64px; }
+.gameover .go-head { text-align: center; margin-bottom: 34px; }
+.gameover .go-head .big { font-family: "Press Start 2P", monospace; font-size: clamp(26px, 7vw, 68px); line-height: 1.1; }
+.gameover .go-head .why { font-family: "VT323", monospace; font-size: clamp(18px, 2.4vw, 26px); color: #ffb0b0; margin-top: 14px; }
+.overgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 34px; }
+.overcard { border: 2px solid rgba(255,59,59,.55); background: rgba(255,59,59,.06); padding: 18px; }
+.overcard .x { font-size: 30px; color: var(--red); line-height: 1; margin-bottom: 10px; }
+.overcard .nm { color: #fff; font-weight: 600; font-size: 14px; }
+.overcard .ac { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #ff8f8f; margin-top: 4px; }
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.mechbox { border: 1px solid var(--line); background: rgba(4,5,10,.7); padding: 20px; }
+.mechbox h3 { font-size: 12px; margin: 0 0 12px; }
+.mechbox p { margin: 0 0 10px; font-size: 13px; color: #c6d1ef; }
+.rule {
+  margin-top: 26px; border-left: 4px solid var(--amber); background: rgba(255,190,46,.07);
+  padding: 18px 20px; font-family: "VT323", monospace; font-size: 21px; color: var(--amber); line-height: 1.4;
+}
+
+/* ---------- CHEAT CODE ---------- */
+.cheat { background: var(--panel); padding: 56px 0 60px; overflow: hidden; }
+.cheat .ch-grid { display: grid; grid-template-columns: 1fr 320px; gap: 30px; align-items: center; }
+.konami { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+.konami span {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border: 2px solid var(--cyan); color: var(--cyan); font-size: 20px;
+  background: rgba(77,240,255,.07);
+}
+.konami span.letter { font-family: "Press Start 2P", monospace; font-size: 13px; border-color: var(--magenta); color: var(--magenta); background: rgba(255,46,136,.07); }
+.code {
+  background: #01030a; border: 2px solid var(--line); border-left: 4px solid var(--green);
+  padding: 16px 18px; overflow-x: auto; font-size: 13px; color: var(--green);
+  white-space: pre; margin: 0 0 14px;
+}
+.cheat .stickpic { border: 2px solid var(--line); }
+.cheat .stickpic img { width: 100%; }
+
+/* ---------- PLAYER SELECT ---------- */
+.select { background: #06080f; border-top: 1px solid var(--line); padding: 56px 0 60px; }
+.p1 { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; border: 3px solid var(--cyan); background: var(--panel); margin-bottom: 22px; }
+.p1 .shot { position: relative; background: #000; }
+.p1 .shot img { width: 100%; height: 100%; object-fit: cover; }
+.p1 .shot .tag {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  font-family: "Press Start 2P", monospace; font-size: 10px; color: #01030a;
+  background: var(--cyan); padding: 8px 10px;
+}
+.p1 .info { padding: 26px; }
+.p1 .info h3 { font-size: 18px; margin: 0 0 6px; }
+.p1 .info .role { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--magenta); margin-bottom: 16px; }
+.statline { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; margin-bottom: 9px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.statline .bar { height: 10px; background: #0f1422; border: 1px solid var(--line); }
+.statline .bar i { display: block; height: 100%; }
+.roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+.rc { border: 2px solid var(--line); background: var(--panel); padding: 0; display: flex; flex-direction: column; }
+.rc .port { height: 92px; background: #01030a; display: grid; place-items: center; border-bottom: 1px solid var(--line); overflow: hidden; }
+.rc .port img { max-height: 92px; width: auto; }
+.rc .port img.fav { width: 46px; height: 46px; }
+.rc .body { padding: 16px; flex: 1; }
+.rc h4 { margin: 0 0 4px; font-size: 13px; font-family: "Press Start 2P", monospace; }
+.rc .stars { font-size: 11px; color: var(--amber); letter-spacing: .06em; }
+.rc p { margin: 10px 0 0; font-size: 12.5px; color: #b9c4e4; }
+.rc .verd { margin-top: 12px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.v-alt { color: var(--cyan); }
+.v-wrong { color: var(--red); }
+.v-under { color: var(--dim); }
+
+/* ---------- OPTIONS / DIP ---------- */
+.options { background: var(--void); padding: 56px 0 60px; }
+.opt-head { display: grid; grid-template-columns: 1fr 300px; gap: 26px; align-items: end; margin-bottom: 26px; }
+.opt-head .gpupic { border: 2px solid var(--line); }
+.dip { border: 2px solid var(--line); background: var(--panel); overflow-x: auto; }
+.dip table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.dip th { font-family: "Press Start 2P", monospace; font-size: 9px; text-align: left; padding: 14px 12px; color: var(--cyan); border-bottom: 2px solid var(--cyan); background: #080b14; }
+.dip td { padding: 12px; border-bottom: 1px solid rgba(34,44,70,.7); font-size: 13px; vertical-align: top; }
+.dip tr:last-child td { border-bottom: none; }
+.dip .feat { color: #fff; }
+.sw { font-family: "Press Start 2P", monospace; font-size: 8px; padding: 6px 7px; border: 1px solid currentColor; white-space: nowrap; }
+.sw-on { color: var(--green); }
+.sw-auto { color: var(--cyan); }
+.sw-part { color: var(--amber); }
+.sw-none { color: var(--red); }
+.ev { font-size: 12px; color: var(--green); word-break: break-all; }
+.warn { color: var(--amber); }
+
+/* ---------- HAZARDS ---------- */
+.hazards { background: var(--panel); border-top: 1px solid var(--line); padding: 56px 0 60px; }
+.hz-top { display: grid; grid-template-columns: 320px 1fr; gap: 26px; align-items: center; margin-bottom: 26px; }
+.hz-top .lap { border: 2px solid var(--line); }
+.hzgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.hzcard { border: 2px solid var(--line); background: #06080f; padding: 18px; border-top-width: 4px; }
+.hzcard.ok { border-top-color: var(--green); }
+.hzcard.warn2 { border-top-color: var(--amber); }
+.hzcard.wall { border-top-color: var(--red); }
+.hzcard .lvl { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+.hzcard h4 { margin: 0 0 10px; font-size: 12px; font-family: "Press Start 2P", monospace; line-height: 1.5; }
+.hzcard p { margin: 0; font-size: 12.5px; color: #b9c4e4; }
+
+/* ---------- CONTINUE ---------- */
+.cont { background: #06080f; border-top: 1px solid var(--line); padding: 56px 0 60px; }
+.cont .ctop { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+.cont .ctop img { width: 74px; }
+.ladder { display: grid; gap: 12px; }
+.step { display: grid; grid-template-columns: 92px 1fr; gap: 16px; align-items: center; border: 1px solid var(--line); background: var(--panel); padding: 16px; }
+.step .n { font-family: "Press Start 2P", monospace; font-size: 24px; color: var(--magenta); }
+.step .t { font-size: 13.5px; color: #d5def8; }
+
+/* ---------- ARCADE FLOOR (siblings) ---------- */
+.floor { position: relative; border-top: 4px solid var(--magenta); padding: 56px 0 60px; background: #04050a; }
+.floor > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .14; }
+.floor .wrap { position: relative; z-index: 2; }
+.cabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+.cabtile { border: 2px solid var(--line); background: rgba(10,13,22,.92); padding: 18px; }
+.cabtile .dp { font-size: 9px; font-family: "Press Start 2P", monospace; letter-spacing: .06em; margin-bottom: 10px; }
+.dp-exp { color: var(--magenta); }
+.dp-sur { color: var(--cyan); }
+.dp-rec { color: var(--amber); }
+.cabtile h4 { margin: 0 0 8px; font-size: 13.5px; line-height: 1.45; }
+.cabtile h4 a { border-bottom: none; color: #fff; }
+.cabtile h4 a:hover { color: var(--cyan); }
+.cabtile p { margin: 0; font-size: 12px; color: #a9b5d8; }
+.parentbar {
+  border: 2px solid var(--amber); background: rgba(255,190,46,.07);
+  padding: 18px 20px; margin-bottom: 20px;
+}
+.parentbar .lb { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+.parentbar a { font-size: 14px; }
+
+/* ---------- CREDITS ---------- */
+.credits { background: var(--void); border-top: 1px solid var(--line); padding: 54px 0 70px; }
+.crlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px; }
+.cr { display: grid; grid-template-columns: 30px 20px 1fr; gap: 9px; align-items: start; border: 1px solid rgba(34,44,70,.75); background: var(--panel); padding: 10px 12px; }
+.cr .cn { font-family: "Press Start 2P", monospace; font-size: 9px; color: var(--magenta); padding-top: 3px; }
+.cr img { width: 18px; height: 18px; margin-top: 2px; }
+.cr .ct { font-size: 12px; line-height: 1.45; }
+.cr .ct a { border-bottom: none; }
+.cr .ct em { font-style: normal; display: block; color: var(--dim); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-top: 3px; }
+.colophon {
+  margin-top: 30px; border-top: 1px solid var(--line); padding-top: 22px;
+  font-family: "VT323", monospace; font-size: 19px; color: var(--dim); line-height: 1.5;
+}
+.colophon .gg { color: var(--amber); }
+
+@media (max-width: 900px) {
+  .attract .grid, .cheat .ch-grid, .p1, .opt-head, .hz-top { grid-template-columns: 1fr; }
+  .cheat .stickpic, .opt-head .gpupic, .hz-top .lap { max-width: 420px; }
+  .step { grid-template-columns: 60px 1fr; }
+}
+</style>
+
+<div class="cab">
+
+<!-- ============ MARQUEE ============ -->
+<header class="marquee">
+  <div class="art scan">
+    <img src="arcade/images/arcade-row.webp" alt="A row of lit arcade cabinets in a games arcade">
+    <div class="inner wrap">
+      <div class="kicker">Atlas Arcade · Cabinet 05 · survey · 30 Jul 2026</div>
+      <h1><span class="glow-cyan">GAMING AFTER</span><br><span class="glow-amber">THE SWITCH</span></h1>
+      <p class="sub">YOUR LIBRARY SURVIVES. THE NVIDIA APP DOES NOT.</p>
+      <div class="coinrow">
+        <span class="coin">CREDITS <b>38</b></span>
+        <span class="coin">PLAYTIME <b>10 MIN</b></span>
+        <span class="coin">TITLES INSTALLED <b>2</b></span>
+        <span class="coin">TITLES CLEARED <b>2</b></span>
+        <span class="coin">CABINET <b>LEGION / NVIDIA / HYBRID</b></span>
+        <span class="coin blink">▸ INSERT COIN</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ ATTRACT SCREEN ============ -->
+<section class="attract">
+  <div class="wrap">
+    <div class="grid">
+      <div class="bezel scan">
+        <p class="verdict-lead"><span class="glow-green">ALL GAMES CLEARED.</span><br>ONE TOOL CABINET DARK.</p>
+        <p>Every game on this machine runs. <a href="https://store.steampowered.com/app/718850/Age_of_Wonders_Planetfall/">Age of Wonders: Planetfall</a> is ProtonDB <strong class="glow-amber">Gold</strong>, trending Platinum across 95 reports <sup><a href="https://www.protondb.com/api/v1/reports/summaries/718850.json">[1]</a></sup>, and Valve rates it <strong class="glow-green">Playable</strong> on Deck, SteamOS and Steam Machine <sup><a href="https://store.steampowered.com/app/718850/Age_of_Wonders_Planetfall/">[2]</a></sup>. Fall Guys is one of the 146-of-245 anti-cheat titles <a href="https://www.gamingonlinux.com/anticheat/">GamingOnLinux</a> records as <strong class="glow-green">Works</strong> <sup><a href="https://www.gamingonlinux.com/anticheat/">[3]</a></sup>.</p>
+        <p>The single ✗ is the <strong class="glow-red">NVIDIA App</strong> — DLSS overrides, driver-level game profiles and ShadowPlay have no GUI on Linux, only environment variables and separate tools <sup><a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html">[4]</a></sup>.</p>
+        <p>The forward-looking blocker is what you <em>don't</em> own yet: kernel-mode anti-cheat is structurally unrunnable, so any future purchase in that class stays a Windows purchase <sup><a href="https://www.gamingonlinux.com/anticheat/">[3]</a></sup>.</p>
+      </div>
+      <div class="stillstack">
+        <div class="still">
+          <img src="arcade/images/planetfall.webp" alt="Age of Wonders: Planetfall store artwork">
+          <div class="tierbar">
+            <span class="tier gold">PROTONDB GOLD</span>
+            <span class="tier plat">TRENDING PLATINUM</span>
+            <span class="tier play">DECK PLAYABLE</span>
+          </div>
+          <div class="cap">Attract still · 95 reports as of 30 Jul 2026</div>
+        </div>
+        <div class="deckstill">
+          <img src="arcade/images/steam-deck.webp" alt="Steam Deck handheld, front view">
+          <div>Valve's rating covers <b>Deck, SteamOS and Steam Machine</b> — default graphics config flagged performant, startup functional. Deck caveats are controller config and small text, not rendering. <sup><a href="https://store.steampowered.com/app/718850/Age_of_Wonders_Planetfall/">[2]</a></sup></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCOREBOARD ============ -->
+<section class="scoreboard">
+  <div class="wrap">
+    <p class="sec-label">Operator's scoreboard</p>
+    <h2 class="sec-title glow-cyan">TWO TRACKERS, TWO TOTALS</h2>
+    <p class="sec-note">Both agree on the one title in this library. They disagree about everything else — which is exactly why you check <em>before</em> buying a multiplayer shooter, not after.</p>
+    <div class="boards">
+      <div class="board scan">
+        <div class="who"><a href="https://www.gamingonlinux.com/anticheat/">GamingOnLinux</a> · anti-cheat list · Jul 2026</div>
+        <div class="tot">245</div>
+        <div class="totlab">titles tracked</div>
+        <div class="meter">
+          <div class="mlab"><span class="glow-green">WORKS</span><span class="glow-green">146</span></div>
+          <div class="mtrack"><i class="mfill blocks f-green" style="width:59.6%"></i></div>
+        </div>
+        <div class="meter">
+          <div class="mlab"><span class="glow-red">BROKEN</span><span class="glow-red">92</span></div>
+          <div class="mtrack"><i class="mfill blocks f-red" style="width:37.6%"></i></div>
+        </div>
+        <div class="meter">
+          <div class="mlab"><span>NEEDS REPORTS</span><span>7</span></div>
+          <div class="mtrack"><i class="mfill blocks f-amber" style="width:2.9%"></i></div>
+        </div>
+        <p class="note" style="margin-top:14px">Fall Guys (Mediatonic, Easy Anti-Cheat) → <strong class="glow-green">WORKS</strong> <sup><a href="https://www.gamingonlinux.com/anticheat/">[3]</a></sup></p>
+      </div>
+      <div class="board scan">
+        <div class="who"><a href="https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json">AreWeAntiCheatYet</a> · wider dataset</div>
+        <div class="tot">1166</div>
+        <div class="totlab">titles tracked · harsher verdicts</div>
+        <div class="meter">
+          <div class="mlab"><span class="glow-red">BROKEN</span><span class="glow-red">642</span></div>
+          <div class="mtrack"><i class="mfill blocks f-red" style="width:55.1%"></i></div>
+        </div>
+        <div class="meter">
+          <div class="mlab"><span class="glow-green">RUNNING</span><span class="glow-green">276</span></div>
+          <div class="mtrack"><i class="mfill blocks f-green" style="width:23.7%"></i></div>
+        </div>
+        <div class="meter">
+          <div class="mlab"><span class="glow-cyan">SUPPORTED</span><span class="glow-cyan">194</span></div>
+          <div class="mtrack"><i class="mfill blocks f-cyan" style="width:16.6%"></i></div>
+        </div>
+        <div class="meter">
+          <div class="mlab"><span class="glow-red">DENIED</span><span class="glow-red">52</span></div>
+          <div class="mtrack"><i class="mfill blocks f-red" style="width:4.5%"></i></div>
+        </div>
+        <p class="note" style="margin-top:14px">Fall Guys: Ultimate Knockout → <strong class="glow-green">RUNNING</strong>. Mediatonic enabled the EAC Linux module in Mar 2022 <sup><a href="https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json">[11]</a></sup></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HIGH SCORE TABLE ============ -->
+<section class="hiscore">
+  <div class="wrap">
+    <p class="sec-label">Cabinet 05 · high score table</p>
+    <h2 class="sec-title glow-amber">THE INVENTORY, ROW BY ROW</h2>
+    <p class="sec-note">Thirteen entries from the actual installed-software list. CLEARED = a Linux path exists and needs no babysitting. CONTINUE? = it runs, with a known catch. GAME OVER = no equivalent, split the job across other tools.</p>
+    <div class="hstable scan">
+      <table>
+        <thead>
+          <tr><th>RK</th><th>PROGRAM</th><th>ST</th><th>CONTINUE ON LINUX</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rk">01</td>
+            <td class="prog">Steam<small>2.10.91.91</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note">Native Linux client + Proton. Proton 11.0-1 stable since 7 Jul 2026, on Wine 11.0 with DXVK 2.7 / VKD3D 1.19 <sup><a href="https://www.phoronix.com/news/Proton-11.0-1">[5]</a></sup>. Nothing to replace.</td>
+          </tr>
+          <tr>
+            <td class="rk">02</td>
+            <td class="prog"><a href="https://store.steampowered.com/app/718850/Age_of_Wonders_Planetfall/">Age of Wonders: Planetfall</a><small>Steam · Paradox</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note">ProtonDB Gold, trending Platinum, 95 reports <sup><a href="https://www.protondb.com/api/v1/reports/summaries/718850.json">[1]</a></sup>. Deck / SteamOS / Steam Machine = Playable <sup><a href="https://store.steampowered.com/app/718850/Age_of_Wonders_Planetfall/">[2]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="rk">03</td>
+            <td class="prog">Paradox Launcher<small>v2</small></td>
+            <td><span class="badge b-cont">CONTINUE?</span></td>
+            <td class="note"><code>Failed to install Paradox Launcher: exit status 1603</code> has been open since Aug 2019 <sup><a href="https://github.com/ValveSoftware/Proton/issues/2959">[6]</a></sup> ⭐ 32k. The Gold rating comes from reports that route <em>around</em> the launcher — cheat code below.</td>
+          </tr>
+          <tr>
+            <td class="rk">04</td>
+            <td class="prog">Epic Games Launcher<small>1.3.170.0</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note">No Linux client exists. <a href="https://heroicgameslauncher.com/">Heroic</a> ⭐ 12k covers Epic + GOG + Amazon and manages Wine-GE / Proton-GE itself <sup><a href="https://heroicgameslauncher.com/">[8]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="rk">05</td>
+            <td class="prog">Epic Online Services<small>2.0.33.0</small></td>
+            <td><span class="badge b-cont">CONTINUE?</span></td>
+            <td class="note">Heroic's EOS Overlay: installed once globally, then enabled <strong>per game</strong>, and needs DXVK plus the <code>corefonts</code> winetricks package <sup><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/EOS-Overlay">[9]</a></sup>. Friend list and achievements work; the overlay is the fiddly part.</td>
+          </tr>
+          <tr>
+            <td class="rk">06</td>
+            <td class="prog">Fall Guys<small>Mediatonic · EAC</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note">"Should work out of the box with no need for tweaking. Make sure to use the latest GE-Proton version." <sup><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/Fall-Guys">[10]</a></sup> Use <a href="https://github.com/GloriousEggroll/proton-ge-custom">GE-Proton</a> ⭐ 15k, not stock Proton <sup><a href="https://github.com/GloriousEggroll/proton-ge-custom">[12]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="rk">07</td>
+            <td class="prog">NVIDIA Graphics Driver<small>596.11</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note">NVIDIA pairs branches — release notes read "Version 595.71.05(Linux)/596.36(Windows)" <sup><a href="https://docs.nvidia.com/datacenter/tesla/tesla-release-notes-595-71-05/index.html">[13]</a></sup> — so your Windows 596.x maps to Linux 595.x. You are not behind.</td>
+          </tr>
+          <tr>
+            <td class="rk">08</td>
+            <td class="prog">NVIDIA App<small>11.0.4.148</small></td>
+            <td><span class="badge b-over">GAME OVER</span></td>
+            <td class="note">No GUI equivalent. DLSS / Reflex / Smooth Motion are all environment variables <sup><a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html">[4]</a></sup>. Full switch map in the options screen below.</td>
+          </tr>
+          <tr>
+            <td class="rk">09</td>
+            <td class="prog">NVIDIA FrameView SDK<small>1.5</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note"><a href="https://github.com/flightlessmango/MangoHud">MangoHud</a> ⭐ 8.9k — FPS, frame times, temperatures, CPU/GPU load as a Vulkan/OpenGL overlay, logging to CSV for the benchmarking half <sup><a href="https://github.com/flightlessmango/MangoHud">[15]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="rk">10</td>
+            <td class="prog">NVIDIA PhysX System Software<small>9.23.1019</small></td>
+            <td><span class="badge b-clear">CLEARED</span></td>
+            <td class="note">Nothing to install. PhysX is cross-platform and BSD-3 open source since Dec 2018 <sup><a href="https://en.wikipedia.org/wiki/PhysX">[16]</a></sup>; games carry their own libraries inside the Proton prefix.</td>
+          </tr>
+          <tr>
+            <td class="rk">11</td>
+            <td class="prog">NVIDIA Control Panel<small>NVIDIACorp.NVIDIAControlPanel</small></td>
+            <td><span class="badge b-cont">CONTINUE?</span></td>
+            <td class="note"><code>nvidia-settings</code> ships with the driver <sup><a href="https://www.gamingonlinux.com/2026/03/nvidia-driver-595-58-03-released-as-the-big-new-recommended-stable-driver-for-linux/">[17]</a></sup>. Covers PowerMizer, resolution and sync; <strong class="glow-red">no</strong> per-game profile database.</td>
+          </tr>
+          <tr>
+            <td class="rk">12</td>
+            <td class="prog">Xbox Game Bar<small>+ IdentityProvider + SpeechToTextOverlay</small></td>
+            <td><span class="badge b-over">GAME OVER</span></td>
+            <td class="note">Game Bar's two real jobs split cleanly: overlay → <a href="https://github.com/flightlessmango/MangoHud">MangoHud</a> <sup><a href="https://github.com/flightlessmango/MangoHud">[15]</a></sup>, capture / Instant Replay → <a href="https://git.dec05eba.com/gpu-screen-recorder/about/">GPU Screen Recorder</a> <sup><a href="https://git.dec05eba.com/gpu-screen-recorder/about/">[18]</a></sup>. The Xbox PC app and its identity provider have no Linux port; cloud streaming survives because xbox.com supports Edge and Chrome, both of which ship for Linux <sup><a href="https://support.xbox.com/en-US/help/games-apps/cloud-gaming/supported-browsers">[19]</a></sup>.</td>
+          </tr>
+          <tr>
+            <td class="rk">13</td>
+            <td class="prog">Discord<small>1.0.9250</small></td>
+            <td><span class="badge b-cont">CONTINUE?</span></td>
+            <td class="note">Screen-share <strong>with audio</strong> on Wayland has been in Discord stable since Jan 2025, but only for apps that route via PulseAudio, and it was absent from the Flathub build <sup><a href="https://www.gamingonlinux.com/2025/01/discord-screen-sharing-with-audio-on-linux-wayland-is-officially-here/">[20]</a></sup>. If a game goes straight to PipeWire, <a href="https://github.com/Vencord/Vesktop">Vesktop</a> ⭐ 8.2k is the fix <sup><a href="https://github.com/Vencord/Vesktop">[21]</a></sup>. Install the <code>.deb</code>/<code>.rpm</code> or Vesktop — not the Flatpak.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><span class="badge b-clear">CLEARED</span> &nbsp;8 entries</span>
+      <span><span class="badge b-cont">CONTINUE?</span> &nbsp;4 entries · known catch</span>
+      <span><span class="badge b-over">GAME OVER</span> &nbsp;2 entries · no single successor</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAME OVER ============ -->
+<section class="gameover scan">
+  <div class="wrap">
+    <div class="go-head">
+      <div class="big glow-red">GAME OVER</div>
+      <div class="why">NO CONTINUE — RING 0 HAS NO TRANSLATION TARGET</div>
+    </div>
+    <div class="overgrid">
+      <div class="overcard">
+        <div class="x">⊠</div>
+        <div class="nm">2XKO</div>
+        <div class="ac">Riot Vanguard · kernel</div>
+      </div>
+      <div class="overcard">
+        <div class="x">⊠</div>
+        <div class="nm">EA SPORTS FC 27</div>
+        <div class="ac">EA Javelin · kernel</div>
+      </div>
+      <div class="overcard">
+        <div class="x">⊠</div>
+        <div class="nm">Battlefield 2042</div>
+        <div class="ac">EA Javelin · kernel</div>
+      </div>
+      <div class="overcard">
+        <div class="x">⊠</div>
+        <div class="nm">F1 25</div>
+        <div class="ac">EA Javelin · kernel</div>
+      </div>
+    </div>
+    <div class="mech">
+      <div class="mechbox">
+        <h3 class="glow-green">EAC + BATTLEYE — A SWITCH, NOT A WALL</h3>
+        <p>Epic added Easy Anti-Cheat support for Linux, macOS and Steam Deck <em>including Wine and Proton</em>, activated by the developer with a few clicks in the EOS Developer Portal <sup><a href="https://onlineservices.epicgames.com/news/epic-online-services-launches-anti-cheat-support-for-linux-mac-and-steam-deck">[22]</a></sup>.</p>
+        <p>Concretely: the studio must be on EOS SDK 1.14+ and must activate a Linux client module — "Players running the game using Wine or Proton will use the Linux client module", so it also has to be tested and updated alongside Windows <sup><a href="https://dev.epicgames.com/docs/game-services/anti-cheat/anti-cheat-interfaces">[23]</a></sup>. BattlEye works the same way, opt-in via Valve <sup><a href="https://www.phoronix.com/news/BattlEye-Proton-Steam-Deck">[24]</a></sup>.</p>
+        <p>→ A "Broken" EAC game is a <strong class="glow-amber">business decision</strong>, not a technical limit.</p>
+      </div>
+      <div class="mechbox">
+        <h3 class="glow-red">KERNEL-MODE — A DIFFERENT CATEGORY</h3>
+        <p>A Windows ring-0 driver has no Proton translation target: there is no kernel to load it into, and a user-space shim would defeat the entire threat model.</p>
+        <p>That is why the vendors that went kernel-only appear as hard failures on GamingOnLinux's July 2026 list — Riot Vanguard and EA Javelin titles both <sup><a href="https://www.gamingonlinux.com/anticheat/">[3]</a></sup>. No Proton version, no GE-Proton build and no launcher flag changes this.</p>
+      </div>
+    </div>
+    <div class="rule">▸ HIGH-SCORE ENTRY RULE: check GamingOnLinux or AreWeAntiCheatYet <em>before</em> you insert a coin in a multiplayer shooter. Nothing else in this inventory is exposed.</div>
+  </div>
+</section>
+
+<!-- ============ CHEAT CODE ============ -->
+<section class="cheat">
+  <div class="wrap">
+    <p class="sec-label">Bonus stage · cabinet 05</p>
+    <h2 class="sec-title glow-mag">THE PARADOX LAUNCHER CHEAT CODE</h2>
+    <p class="sec-note">Keep this in your notes: it is the first thing to try when a Paradox Launcher update or a Proton bump breaks startup — and it is why Planetfall's ProtonDB reports look inconsistent. Half of them bypassed the launcher and half did not <sup><a href="https://www.protondb.com/api/v1/reports/summaries/718850.json">[1]</a></sup>.</p>
+    <div class="ch-grid">
+      <div>
+        <div class="konami">
+          <span>↑</span><span>↑</span><span>↓</span><span>↓</span><span>←</span><span>→</span><span>←</span><span>→</span><span class="letter">B</span><span class="letter">A</span>
+        </div>
+        <p class="note" style="margin:0 0 14px"><code>&lt;path to exe&gt; %command%</code> does <strong class="glow-red">not</strong> work under Proton, because Proton's own wrapper chain <em>is</em> the command line. The working pattern rewrites that string instead <sup><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3064452556">[7]</a></sup>:</p>
+        <div class="code">eval $( echo "%command%" | sed -E "s#Launcher/dowser.exe#&lt;GameExe&gt;.exe#g" )</div>
+        <p class="note" style="margin:0">Substitute Planetfall's own executable name for <code>&lt;GameExe&gt;</code>. Paste it into the Steam launch options field.</p>
+      </div>
+      <div class="stickpic scan">
+        <img src="arcade/images/joysticks.webp" alt="Close-up of a row of retro arcade joysticks lit in blue and pink">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLAYER SELECT ============ -->
+<section class="select">
+  <div class="wrap">
+    <p class="sec-label">Player select · the Epic library</p>
+    <h2 class="sec-title glow-cyan">FOUR TOOLS, ONE ANSWER</h2>
+    <p class="sec-note">No Linux Epic client exists, so something has to stand in. Three of these four can do it; only one is the one you actually install.</p>
+
+    <div class="p1">
+      <div class="shot scan">
+        <span class="tag">1P · SELECTED</span>
+        <img src="arcade/images/heroic.webp" alt="Heroic Games Launcher library view">
+      </div>
+      <div class="info">
+        <h3><a href="https://heroicgameslauncher.com/">Heroic Games Launcher</a></h3>
+        <div class="role">Epic + GOG + Amazon · ⭐ 12k</div>
+        <div class="statline"><span>Epic library</span><span class="bar"><i class="blocks f-green" style="width:100%"></i></span></div>
+        <div class="statline"><span>Store coverage</span><span class="bar"><i class="blocks f-green" style="width:88%"></i></span></div>
+        <div class="statline"><span>Runner mgmt</span><span class="bar"><i class="blocks f-cyan" style="width:92%"></i></span></div>
+        <div class="statline"><span>Docs for you</span><span class="bar"><i class="blocks f-amber" style="width:100%"></i></span></div>
+        <p class="note" style="margin-top:14px">Native Epic support (it wraps Legendary) and bundled Wine-GE / Proton-GE management <sup><a href="https://heroicgameslauncher.com/">[8]</a></sup>. It is also the tool whose own wiki documents both of the things you'll hit — the <a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/EOS-Overlay">EOS overlay</a> <sup><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/EOS-Overlay">[9]</a></sup> and <a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/Fall-Guys">Fall Guys</a> <sup><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/Fall-Guys">[10]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="roster">
+      <div class="rc">
+        <div class="port"><img class="fav" src="https://www.google.com/s2/favicons?domain=lutris.net&sz=128" alt="Lutris icon"></div>
+        <div class="body">
+          <h4><a href="https://lutris.net/">LUTRIS</a></h4>
+          <div class="stars">⭐ 10k</div>
+          <p>Steam, Epic, GOG, Humble + emulators, with per-game install scripts <sup><a href="https://lutris.net/">[25]</a></sup>.</p>
+          <div class="verd v-alt">2P · keep as the second tool for anything needing a bespoke runner. Running both is normal.</div>
+        </div>
+      </div>
+      <div class="rc">
+        <div class="port"><img class="fav" src="https://www.google.com/s2/favicons?domain=usebottles.com&sz=128" alt="Bottles icon"></div>
+        <div class="body">
+          <h4><a href="https://usebottles.com/">BOTTLES</a></h4>
+          <div class="stars">⭐ 8.6k</div>
+          <p>Generic Wine-prefix manager for Windows <em>software</em> — no Epic library handling <sup><a href="https://usebottles.com/">[26]</a></sup>.</p>
+          <div class="verd v-wrong">✗ wrong category — a prefix manager, not a store client.</div>
+        </div>
+      </div>
+      <div class="rc">
+        <div class="port"><img src="arcade/images/legendary.webp" alt="Legendary project logo"></div>
+        <div class="body">
+          <h4><a href="https://github.com/legendary-gl/legendary">LEGENDARY</a></h4>
+          <div class="stars">⭐ 5.2k</div>
+          <p>CLI only: Epic auth, install, cloud saves, EOS overlay install <sup><a href="https://github.com/legendary-gl/legendary">[27]</a></sup>.</p>
+          <div class="verd v-under">already underneath Heroic — use directly only for scripting.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OPTIONS / DIP SWITCHES ============ -->
+<section class="options">
+  <div class="wrap">
+    <p class="sec-label">Options screen · cabinet dip switches</p>
+    <h2 class="sec-title glow-green">WHAT THE NVIDIA APP DID, NOW ON A COMMAND LINE</h2>
+    <div class="opt-head">
+      <p class="sec-note" style="margin:0">NVIDIA's own Linux gaming documentation is the authority here, and it is entirely environment variables <sup><a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html">[4]</a></sup>. There is no profile database and no GUI — each row below is a switch you flip per game, in Steam launch options or Heroic's per-game settings.</p>
+      <div class="gpupic scan"><img src="arcade/images/nvidia-gpu.webp" alt="An NVIDIA GeForce RTX graphics card"></div>
+    </div>
+    <div class="dip scan">
+      <table>
+        <thead><tr><th>NVIDIA APP FEATURE</th><th>SW</th><th>LINUX SWITCH POSITION</th></tr></thead>
+        <tbody>
+          <tr><td class="feat">DLSS on/off per game</td><td><span class="sw sw-auto">AUTO</span></td><td class="note">Proton exposes NVAPI via bundled <a href="https://github.com/jp7677/dxvk-nvapi">DXVK-NVAPI</a> — nothing to set <sup><a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html">[4]</a></sup></td></tr>
+          <tr><td class="feat">DLSS override / force latest preset</td><td><span class="sw sw-on">ON</span></td><td><span class="ev">DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE=on</span><br><span class="ev">DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE=on</span><br><span class="note">…or raw setting IDs via <span class="ev">DXVK_NVAPI_DRS_SETTINGS</span> <sup><a href="https://github.com/jp7677/dxvk-nvapi">[35]</a></sup></span></td></tr>
+          <tr><td class="feat">Auto-update DLSS DLLs</td><td><span class="sw sw-on">ON</span></td><td><span class="ev">PROTON_ENABLE_NGX_UPDATER=1</span></td></tr>
+          <tr><td class="feat">Smooth Motion (driver-level frame gen)</td><td><span class="sw sw-on">ON</span></td><td><span class="ev">NVPRESENT_ENABLE_SMOOTH_MOTION=1</span><br><span class="warn">⚠ must not be combined with native DLSS Frame Generation</span></td></tr>
+          <tr><td class="feat">Reflex</td><td><span class="sw sw-on">ON</span></td><td class="note">Native via <code>VK_NV_low_latency2</code>; under Proton needs DXVK-NVAPI's Vulkan layer installed plus <span class="ev">DXVK_NVAPI_VKREFLEX=1</span></td></tr>
+          <tr><td class="feat">Multi Frame Generation</td><td><span class="sw sw-part">PARTIAL</span></td><td class="note">DXVK-NVAPI 0.9.2 implements "limited/incomplete" Dynamic MFG and picks up R595's new DLSS settings <sup><a href="https://www.phoronix.com/news/DXVK-NVAPI-0.9.2-Released">[36]</a></sup></td></tr>
+          <tr><td class="feat">Driver-level per-game profile database</td><td><span class="sw sw-none">NO SW</span></td><td class="note">✗ None. Per-game config lives in Steam launch options / Heroic per-game settings.</td></tr>
+          <tr><td class="feat">Performance overlay</td><td><span class="sw sw-on">ON</span></td><td class="note"><a href="https://github.com/flightlessmango/MangoHud">MangoHud</a> ⭐ 8.9k <sup><a href="https://github.com/flightlessmango/MangoHud">[15]</a></sup></td></tr>
+          <tr><td class="feat">ShadowPlay / Instant Replay</td><td><span class="sw sw-on">ON</span></td><td class="note"><a href="https://git.dec05eba.com/gpu-screen-recorder/about/">GPU Screen Recorder</a> — NVENC, keeps only the last few minutes <sup><a href="https://git.dec05eba.com/gpu-screen-recorder/about/">[18]</a></sup>; <a href="https://github.com/obsproject/obs-studio">OBS Studio</a> ⭐ 74k for streaming and manual capture <sup><a href="https://github.com/obsproject/obs-studio">[38]</a></sup></td></tr>
+          <tr><td class="feat">GPU utilisation reported <em>inside</em> a game</td><td><span class="sw sw-part">MANUAL</span></td><td class="note">Needs <code>wine-nvml</code> installed manually — not bundled with Proton <sup><a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html">[4]</a></sup></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rule" style="border-left-color:var(--cyan);background:rgba(77,240,255,.06);color:var(--cyan)">⚠ DLSS under Proton requires a Turing-or-newer GPU on the proprietary/open NVIDIA stack, and the game's <code>nvngx.dll</code> / <code>_nvngx.dll</code> must be present in the prefix's <code>system32</code> <sup><a href="https://github.com/jp7677/dxvk-nvapi">[35]</a></sup></div>
+  </div>
+</section>
+
+<!-- ============ HAZARDS ============ -->
+<section class="hazards">
+  <div class="wrap">
+    <p class="sec-label">Stage hazards · hybrid Legion</p>
+    <h2 class="sec-title glow-amber">THE CABINET YOU'RE ACTUALLY PLAYING ON</h2>
+    <div class="hz-top">
+      <div class="lap scan"><img src="arcade/images/legion.webp" alt="A Lenovo Legion gaming laptop"></div>
+      <p class="sec-note" style="margin:0">Three of these four are decided for you — take the default and stop thinking about it. The fourth is a genuine wall, and it changes how you use the machine, not just how you configure it.</p>
+    </div>
+    <div class="hzgrid">
+      <div class="hzcard ok">
+        <div class="lvl">Stage 1 · driver branch</div>
+        <h4 class="glow-green">INSTALL 595</h4>
+        <p>595.58.03 became the recommended stable Linux driver on 24 Mar 2026 <sup><a href="https://www.gamingonlinux.com/2026/03/nvidia-driver-595-58-03-released-as-the-big-new-recommended-stable-driver-for-linux/">[17]</a></sup>, with R595 adding Vulkan improvements, HDR work and DRI3 v1.2 over 590 <sup><a href="https://www.phoronix.com/review/nvidia-595-linux">[29]</a></sup>.</p>
+      </div>
+      <div class="hzcard ok">
+        <div class="lvl">Stage 2 · kernel modules</div>
+        <h4 class="glow-green">OPEN, BY DEFAULT</h4>
+        <p>From 590, Turing and newer transition automatically to the open kernel modules; Pascal-and-older lost support entirely <sup><a href="https://archlinux.org/news/nvidia-590-driver-drops-pascal-support-main-packages-switch-to-open-kernel-modules/">[14]</a></sup>. Distro packaging followed — Arch's main <code>nvidia</code> packages now build the open modules <sup><a href="https://www.phoronix.com/news/Arch-LInux-NVIDIA-Open-Default">[28]</a></sup>. Any Legion new enough to carry an Intel Arc iGPU is far past Turing.</p>
+      </div>
+      <div class="hzcard warn2">
+        <div class="lvl">Stage 3 · Wayland + frame pacing</div>
+        <h4 class="glow-amber">USABLE, NOT EXPERIMENTAL</h4>
+        <p>590 raised the minimum Wayland version to 1.20 and fixed Vulkan swapchain re-creation <sup><a href="https://www.phoronix.com/news/NVIDIA-590.44.01-Linux-Beta">[30]</a></sup>; 595 fixed <code>kwin_wayland</code> failing to wake displays, kernel crashes on DisplayPort MST dock disconnect, and added system-memory fallback to stop low-VRAM desktop freezes <sup><a href="https://www.gamingonlinux.com/2026/03/nvidia-driver-595-58-03-released-as-the-big-new-recommended-stable-driver-for-linux/">[17]</a></sup> — all laptop-and-dock failure modes. KDE Plasma 6.8 re-enables triple buffering by default for NVIDIA <sup><a href="https://linuxiac.com/kde-plasma-6-8-to-enable-triple-buffering-by-default-for-nvidia-gpus/">[34]</a></sup>; for per-game HDR, VRR and frame limiting, run inside <a href="https://github.com/ValveSoftware/gamescope">gamescope</a> ⭐ 4.9k <sup><a href="https://github.com/ValveSoftware/gamescope">[37]</a></sup> rather than fighting the host compositor.</p>
+      </div>
+      <div class="hzcard wall">
+        <div class="lvl">Stage 4 · hybrid graphics</div>
+        <h4 class="glow-red">NO ADVANCED OPTIMUS</h4>
+        <p>PRIME render offload keeps the dGPU idle until a game asks: <span class="ev">__NV_PRIME_RENDER_OFFLOAD=1</span> for Vulkan, plus <span class="ev">__GLX_VENDOR_LIBRARY_NAME=nvidia</span> for OpenGL/GLX <sup><a href="https://download.nvidia.com/XFree86/Linux-x86_64/590.48.01/README/primerenderoffload.html">[31]</a></sup> — ahead of <code>%command%</code>. But dynamic MUX switching does not exist: <code>vga-switcheroo</code> cannot express it <sup><a href="https://www.notebookcheck.net/Linux-gaming-laptops-may-finally-get-Nvidia-Advanced-Optimus-support-in-near-future.667413.0.html">[33]</a></sup> and NVIDIA's replacement DRM-KMS API is still a proposal <sup><a href="https://www.phoronix.com/news/NVIDIA-Dynamic-Mux-Switching">[32]</a></sup>. Choose hybrid or dGPU-direct in the BIOS and reboot to change it — and G-Sync on the internal panel generally needs the dGPU-direct path.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTINUE ============ -->
+<section class="cont">
+  <div class="wrap">
+    <div class="ctop">
+      <img src="arcade/images/tux.webp" alt="Tux, the Linux mascot">
+      <div>
+        <p class="sec-label" style="margin-bottom:4px">Continue?</p>
+        <h2 class="sec-title glow-cyan" style="margin:0">MIGRATION ORDER · FIVE STAGES</h2>
+      </div>
+    </div>
+    <div class="ladder">
+      <div class="step"><span class="n">01</span><span class="t">Install the 595 driver with open kernel modules; verify <code>nvidia-settings</code> opens <sup><a href="https://www.gamingonlinux.com/2026/03/nvidia-driver-595-58-03-released-as-the-big-new-recommended-stable-driver-for-linux/">[17]</a></sup></span></div>
+      <div class="step"><span class="n">02</span><span class="t">Steam → enable Steam Play for all titles; test Planetfall, keep the <code>sed</code> bypass ready <sup><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3064452556">[7]</a></sup></span></div>
+      <div class="step"><span class="n">03</span><span class="t"><a href="https://heroicgameslauncher.com/">Heroic</a> → log into Epic, install GE-Proton, install Fall Guys <sup><a href="https://heroicgameslauncher.com/">[8]</a></sup><sup><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/Fall-Guys">[10]</a></sup></span></div>
+      <div class="step"><span class="n">04</span><span class="t"><a href="https://github.com/flightlessmango/MangoHud">MangoHud</a> + <a href="https://git.dec05eba.com/gpu-screen-recorder/about/">GPU Screen Recorder</a> — before you miss Game Bar <sup><a href="https://github.com/flightlessmango/MangoHud">[15]</a></sup><sup><a href="https://git.dec05eba.com/gpu-screen-recorder/about/">[18]</a></sup></span></div>
+      <div class="step"><span class="n">05</span><span class="t">Discord from the vendor package or <a href="https://github.com/Vencord/Vesktop">Vesktop</a> — not Flathub — if you screen-share <sup><a href="https://www.gamingonlinux.com/2025/01/discord-screen-sharing-with-audio-on-linux-wayland-is-officially-here/">[20]</a></sup><sup><a href="https://github.com/Vencord/Vesktop">[21]</a></sup></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARCADE FLOOR ============ -->
+<section class="floor">
+  <img class="bg" src="arcade/images/arcade-floor.webp" alt="Interior of a games arcade">
+  <div class="wrap">
+    <p class="sec-label">The rest of the arcade floor</p>
+    <h2 class="sec-title glow-amber">OTHER CABINETS IN THIS EXPEDITION</h2>
+    <div class="parentbar">
+      <div class="lb">Expedition synthesis</div>
+      <a href="../../">Throwing away Windows: a replacement plan for an actual installed-software inventory</a>
+    </div>
+    <div class="cabs">
+      <div class="cabtile">
+        <div class="dp dp-exp">EXPEDITION</div>
+        <h4><a href="../../net-sql-server-dev-stack-on-linux/">Your .NET + SQL Server stack on Linux: what actually replaces what</a></h4>
+        <p>Rider replaces Visual Studio + ReSharper at the cost of the WinForms/WPF designers; SQL Server moves cleanly to a container, but SSMS has no Linux successor.</p>
+      </div>
+      <div class="cabtile">
+        <div class="dp dp-sur">SURVEY</div>
+        <h4><a href="../../microsoft-365-onenote-outlook-teams-onedrive-on-linux/">Microsoft 365 on Linux in 2026: what you actually lose</a></h4>
+        <p>Office, Teams and mail are a tolerable compromise; OneDrive sync and OneNote are the two places where the gap is real.</p>
+      </div>
+      <div class="cabtile">
+        <div class="dp dp-sur">SURVEY</div>
+        <h4><a href="../../windows-only-power-user-utilities/">The utility belt: per-tool Linux verdicts for a Windows power user</a></h4>
+        <p>Most utilities transfer cleanly; AutoHotkey and Power Automate Desktop have no single answer, and Wayland is the variable that decides the rest.</p>
+      </div>
+      <div class="cabtile">
+        <div class="dp dp-sur">SURVEY</div>
+        <h4><a href="../../multi-monitor-window-management-desktop-shell/">Multi-monitor, window management and the desktop shell</a></h4>
+        <p>KDE Plasma 6.7 is the only Linux desktop that replaces most of DisplayFusion and FancyZones natively; Fences has no real equivalent.</p>
+      </div>
+      <div class="cabtile">
+        <div class="dp dp-rec">RECON</div>
+        <h4><a href="../../hardware-peripherals-corporate-vpn-clients/">Legion hardware, peripherals and the two corporate VPNs on Linux</a></h4>
+        <p>Neither VPN blocks the switch; the real losses are QuantumENGINE, Dolby, XTU and Lenovo's AI/Space bloat.</p>
+      </div>
+      <div class="cabtile">
+        <div class="dp dp-rec">RECON</div>
+        <h4><a href="../../escape-hatches-for-the-irreplaceable/">Escape hatches for the leftovers: Wine, a VM, passthrough, or just keep the partition</a></h4>
+        <p>Wine for single-window utilities, a local Windows VM for Visual Studio and SSMS, RDP for the corporate cluster — and no GPU passthrough on a muxless Legion.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CREDITS ============ -->
+<section class="credits">
+  <div class="wrap">
+    <p class="sec-label">Credits roll</p>
+    <h2 class="sec-title glow-cyan">38 SOURCES</h2>
+    <div class="crlist">
+      <div class="cr"><span class="cn">01</span><img src="https://www.google.com/s2/favicons?domain=protondb.com&sz=128" alt=""><span class="ct"><a href="https://www.protondb.com/api/v1/reports/summaries/718850.json">ProtonDB report summary — Planetfall (718850)</a><em>forum</em></span></div>
+      <div class="cr"><span class="cn">02</span><img src="https://www.google.com/s2/favicons?domain=store.steampowered.com&sz=128" alt=""><span class="ct"><a href="https://store.steampowered.com/app/718850/Age_of_Wonders_Planetfall/">Steam — Age of Wonders: Planetfall</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">03</span><img src="https://www.google.com/s2/favicons?domain=gamingonlinux.com&sz=128" alt=""><span class="ct"><a href="https://www.gamingonlinux.com/anticheat/">GamingOnLinux — anti-cheat compatibility list</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">04</span><img src="https://www.google.com/s2/favicons?domain=docs.nvidia.com&sz=128" alt=""><span class="ct"><a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html">NVIDIA — Linux gaming driver documentation</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">05</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/news/Proton-11.0-1">Phoronix — Proton 11.0-1</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">06</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/ValveSoftware/Proton/issues/2959">ValveSoftware/Proton #2959 — Paradox Launcher 1603</a><em>forum · ⭐ 32k</em></span></div>
+      <div class="cr"><span class="cn">07</span><img src="https://www.google.com/s2/favicons?domain=steamcommunity.com&sz=128" alt=""><span class="ct"><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3064452556">Steam Community — Proton launcher bypass guide</a><em>forum</em></span></div>
+      <div class="cr"><span class="cn">08</span><img src="https://www.google.com/s2/favicons?domain=heroicgameslauncher.com&sz=128" alt=""><span class="ct"><a href="https://heroicgameslauncher.com/">Heroic Games Launcher</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">09</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/EOS-Overlay">Heroic wiki — EOS Overlay</a><em>official · ⭐ 12k</em></span></div>
+      <div class="cr"><span class="cn">10</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/wiki/Fall-Guys">Heroic wiki — Fall Guys</a><em>official · ⭐ 12k</em></span></div>
+      <div class="cr"><span class="cn">11</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json">AreWeAntiCheatYet — games dataset</a><em>forum</em></span></div>
+      <div class="cr"><span class="cn">12</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/GloriousEggroll/proton-ge-custom">GloriousEggroll/proton-ge-custom (GE-Proton)</a><em>official · ⭐ 15k</em></span></div>
+      <div class="cr"><span class="cn">13</span><img src="https://www.google.com/s2/favicons?domain=docs.nvidia.com&sz=128" alt=""><span class="ct"><a href="https://docs.nvidia.com/datacenter/tesla/tesla-release-notes-595-71-05/index.html">NVIDIA release notes 595.71.05 (Linux) / 596.36 (Windows)</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">14</span><img src="https://www.google.com/s2/favicons?domain=archlinux.org&sz=128" alt=""><span class="ct"><a href="https://archlinux.org/news/nvidia-590-driver-drops-pascal-support-main-packages-switch-to-open-kernel-modules/">Arch Linux — NVIDIA 590 drops Pascal, open modules</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">15</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/flightlessmango/MangoHud">flightlessmango/MangoHud</a><em>official · ⭐ 8.9k</em></span></div>
+      <div class="cr"><span class="cn">16</span><img src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=128" alt=""><span class="ct"><a href="https://en.wikipedia.org/wiki/PhysX">PhysX (Wikipedia)</a><em>wiki</em></span></div>
+      <div class="cr"><span class="cn">17</span><img src="https://www.google.com/s2/favicons?domain=gamingonlinux.com&sz=128" alt=""><span class="ct"><a href="https://www.gamingonlinux.com/2026/03/nvidia-driver-595-58-03-released-as-the-big-new-recommended-stable-driver-for-linux/">GamingOnLinux — NVIDIA 595.58.03 recommended stable</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">18</span><img src="https://www.google.com/s2/favicons?domain=dec05eba.com&sz=128" alt=""><span class="ct"><a href="https://git.dec05eba.com/gpu-screen-recorder/about/">GPU Screen Recorder</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">19</span><img src="https://www.google.com/s2/favicons?domain=xbox.com&sz=128" alt=""><span class="ct"><a href="https://support.xbox.com/en-US/help/games-apps/cloud-gaming/supported-browsers">Xbox Support — Cloud Gaming supported browsers</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">20</span><img src="https://www.google.com/s2/favicons?domain=gamingonlinux.com&sz=128" alt=""><span class="ct"><a href="https://www.gamingonlinux.com/2025/01/discord-screen-sharing-with-audio-on-linux-wayland-is-officially-here/">GamingOnLinux — Discord screen share with audio on Wayland</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">21</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/Vencord/Vesktop">Vencord/Vesktop</a><em>official · ⭐ 8.2k</em></span></div>
+      <div class="cr"><span class="cn">22</span><img src="https://www.google.com/s2/favicons?domain=epicgames.com&sz=128" alt=""><span class="ct"><a href="https://onlineservices.epicgames.com/news/epic-online-services-launches-anti-cheat-support-for-linux-mac-and-steam-deck">EOS — anti-cheat support for Linux, Mac and Steam Deck</a><em>vendor blog</em></span></div>
+      <div class="cr"><span class="cn">23</span><img src="https://www.google.com/s2/favicons?domain=epicgames.com&sz=128" alt=""><span class="ct"><a href="https://dev.epicgames.com/docs/game-services/anti-cheat/anti-cheat-interfaces">Epic developer docs — anti-cheat interfaces</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">24</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/news/BattlEye-Proton-Steam-Deck">Phoronix — BattlEye works with Proton / Steam Deck</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">25</span><img src="https://www.google.com/s2/favicons?domain=lutris.net&sz=128" alt=""><span class="ct"><a href="https://lutris.net/">Lutris</a><em>official · ⭐ 10k</em></span></div>
+      <div class="cr"><span class="cn">26</span><img src="https://www.google.com/s2/favicons?domain=usebottles.com&sz=128" alt=""><span class="ct"><a href="https://usebottles.com/">Bottles</a><em>official · ⭐ 8.6k</em></span></div>
+      <div class="cr"><span class="cn">27</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/legendary-gl/legendary">legendary-gl/legendary</a><em>official · ⭐ 5.2k</em></span></div>
+      <div class="cr"><span class="cn">28</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/news/Arch-LInux-NVIDIA-Open-Default">Phoronix — Arch NVIDIA open modules by default</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">29</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/review/nvidia-595-linux">Phoronix — NVIDIA R595 Linux review</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">30</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/news/NVIDIA-590.44.01-Linux-Beta">Phoronix — NVIDIA 590.44.01 Linux beta</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">31</span><img src="https://www.google.com/s2/favicons?domain=nvidia.com&sz=128" alt=""><span class="ct"><a href="https://download.nvidia.com/XFree86/Linux-x86_64/590.48.01/README/primerenderoffload.html">NVIDIA README — PRIME render offload</a><em>official</em></span></div>
+      <div class="cr"><span class="cn">32</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/news/NVIDIA-Dynamic-Mux-Switching">Phoronix — NVIDIA dynamic MUX switching proposal</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">33</span><img src="https://www.google.com/s2/favicons?domain=notebookcheck.net&sz=128" alt=""><span class="ct"><a href="https://www.notebookcheck.net/Linux-gaming-laptops-may-finally-get-Nvidia-Advanced-Optimus-support-in-near-future.667413.0.html">Notebookcheck — Advanced Optimus on Linux</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">34</span><img src="https://www.google.com/s2/favicons?domain=linuxiac.com&sz=128" alt=""><span class="ct"><a href="https://linuxiac.com/kde-plasma-6-8-to-enable-triple-buffering-by-default-for-nvidia-gpus/">Linuxiac — Plasma 6.8 triple buffering for NVIDIA</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">35</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/jp7677/dxvk-nvapi">jp7677/dxvk-nvapi</a><em>official · ⭐ 641</em></span></div>
+      <div class="cr"><span class="cn">36</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span class="ct"><a href="https://www.phoronix.com/news/DXVK-NVAPI-0.9.2-Released">Phoronix — DXVK-NVAPI 0.9.2</a><em>news</em></span></div>
+      <div class="cr"><span class="cn">37</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/ValveSoftware/gamescope">ValveSoftware/gamescope</a><em>official · ⭐ 4.9k</em></span></div>
+      <div class="cr"><span class="cn">38</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span class="ct"><a href="https://github.com/obsproject/obs-studio">obsproject/obs-studio</a><em>official · ⭐ 74k</em></span></div>
+    </div>
+    <p class="colophon">CABINET 05 · <span class="gg">GAMING AFTER THE SWITCH</span> · survey · 38 credits · 10 min<br>Read the full canonical write-up at <a href="../">the default view</a>, or return to <a href="../../">the expedition</a> · <a href="/">Atlas</a><br><span class="gg">GAME OVER — INSERT COIN</span></p>
+  </div>
+</section>
+
+</div>
