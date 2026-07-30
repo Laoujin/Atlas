@@ -1,0 +1,830 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Which Linux to switch to in 2026: a decision framework for a .NET developer leaving Windows — Dashboard"
+---
+
+<style>
+  .tty {
+    --bg:      #06080c;
+    --panel:   #0d1117;
+    --panel2:  #11161f;
+    --line:    #1f2733;
+    --line2:   #2b3746;
+    --fg:      #c6d0dc;
+    --dim:     #7c8b9c;
+    --dimmer:  #55626f;
+    --ok:      #46c05f;
+    --warn:    #e0a233;
+    --bad:     #f2604f;
+    --link:    #63b0ff;
+    --fedora:  #4a8ed6;
+    --plasma:  #1fa2ff;
+    --magenta: #d17dd1;
+
+    margin: 0;
+    padding: 0 0 4rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tty * { box-sizing: border-box; }
+  .tty a { color: var(--link); text-decoration: none; border-bottom: 1px solid rgba(99,176,255,.28); }
+  .tty a:hover { border-bottom-color: var(--link); background: rgba(99,176,255,.08); }
+  .tty sup a { border: 0; font-size: .72em; color: var(--dim); }
+  .tty sup a:hover { color: var(--link); background: none; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ── shell prompt used as every section heading ───────────────── */
+  .prompt {
+    display: flex; align-items: baseline; gap: .6ch; flex-wrap: wrap;
+    margin: 3.5rem 0 1.1rem; padding-bottom: .55rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px; letter-spacing: .01em;
+  }
+  .prompt .ps1 { color: var(--magenta); }
+  .prompt .ps1 b { color: var(--ok); font-weight: 600; }
+  .prompt .cmd { color: var(--fg); }
+  .prompt .cmd em { color: var(--warn); font-style: normal; }
+  .prompt .note { margin-left: auto; color: var(--dimmer); font-size: 12px; }
+  .cursor {
+    display: inline-block; width: .55ch; height: 1em; margin-left: .3ch;
+    background: var(--ok); vertical-align: -.15em;
+    animation: blink 1.15s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+
+  /* ── masthead: a tty login banner ─────────────────────────────── */
+  .banner {
+    border-bottom: 1px solid var(--line2);
+    background:
+      repeating-linear-gradient(to bottom, rgba(255,255,255,.022) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 160% at 12% 0%, #14202f 0%, #0a0e15 55%, #06080c 100%);
+    padding: 2.6rem 0 2.1rem;
+  }
+  .banner-top {
+    display: flex; align-items: center; gap: 1ch;
+    color: var(--dimmer); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  }
+  .banner-top .dot { color: var(--ok); }
+  .banner-top .right { margin-left: auto; letter-spacing: .08em; }
+  .banner h1 {
+    margin: 1.4rem 0 .2rem; font-family: inherit; font-weight: 700;
+    font-size: clamp(1.55rem, 4.1vw, 2.9rem); line-height: 1.13; letter-spacing: -.02em;
+    color: #eef4fb;
+  }
+  .banner h1 .q { color: var(--dimmer); font-weight: 400; }
+  .banner .sub { max-width: 68ch; margin: .9rem 0 0; color: var(--dim); font-size: 14px; }
+  .banner .sub strong { color: var(--fg); font-weight: 600; }
+
+  .masthead-grid { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
+  .masthead-grid .txt { flex: 1 1 30ch; min-width: 0; }
+  .tuxbox {
+    flex: 0 0 118px; width: 118px; padding: .8rem;
+    border: 1px solid var(--line2); background: var(--panel);
+  }
+  .tuxbox img { display: block; width: 100%; height: auto; }
+  .tuxbox figcaption { margin-top: .55rem; color: var(--dimmer); font-size: 10px; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
+
+  /* ── stat strip ───────────────────────────────────────────────── */
+  .stats { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 2rem; background: var(--line); border: 1px solid var(--line); }
+  .stat { flex: 1 1 118px; padding: .85rem 1rem; background: var(--panel); }
+  .stat b { display: block; font-size: clamp(1.25rem, 3vw, 1.85rem); font-weight: 700; line-height: 1.1; color: #eef4fb; }
+  .stat span { display: block; margin-top: .2rem; color: var(--dimmer); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; }
+  .stat.hl b { color: var(--ok); }
+  .stat.warnc b { color: var(--warn); }
+
+  /* ── boot log ─────────────────────────────────────────────────── */
+  .boot { border: 1px solid var(--line); background: var(--panel); padding: .35rem 0; }
+  .bootline {
+    display: flex; align-items: baseline; gap: 1.1ch; flex-wrap: wrap;
+    padding: .32rem 1rem; font-size: 13px;
+  }
+  .bootline:hover { background: var(--panel2); }
+  .bootline .tag { flex: 0 0 auto; color: var(--dimmer); }
+  .bootline .tag b { color: var(--ok); font-weight: 600; }
+  .bootline .unit { color: var(--fg); }
+  .bootline .meta { margin-left: auto; color: var(--dimmer); font-size: 11.5px; letter-spacing: .05em; }
+
+  /* ── verdict: neofetch panel ──────────────────────────────────── */
+  .verdict { border: 1px solid var(--ok); background: linear-gradient(180deg, rgba(70,192,95,.07), rgba(70,192,95,.015)); }
+  .verdict-head {
+    display: flex; align-items: baseline; gap: 1ch; flex-wrap: wrap;
+    padding: .7rem 1.1rem; border-bottom: 1px solid rgba(70,192,95,.3);
+    background: rgba(70,192,95,.09); font-size: 12px; letter-spacing: .13em; text-transform: uppercase; color: var(--ok);
+  }
+  .verdict-head .r { margin-left: auto; color: var(--dim); letter-spacing: .08em; }
+  .verdict-body { display: flex; gap: 0; flex-wrap: wrap; }
+  .verdict-shot { flex: 1 1 340px; min-width: 0; padding: 1.1rem; border-right: 1px solid var(--line); }
+  .verdict-spec { flex: 1 1 380px; min-width: 0; padding: 1.1rem 1.3rem; }
+
+  .shot { border: 1px solid var(--line2); background: var(--panel2); }
+  .shot .bar {
+    display: flex; align-items: center; gap: .55ch;
+    padding: .4rem .6rem; border-bottom: 1px solid var(--line2);
+    color: var(--dimmer); font-size: 10.5px; letter-spacing: .06em;
+  }
+  .shot .bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--line2); display: inline-block; }
+  .shot .bar i:nth-child(1) { background: #f2604f; }
+  .shot .bar i:nth-child(2) { background: #e0a233; }
+  .shot .bar i:nth-child(3) { background: #46c05f; }
+  .shot .bar span { margin-left: .7ch; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption { padding: .5rem .65rem; border-top: 1px solid var(--line2); color: var(--dimmer); font-size: 11px; }
+
+  .spec { margin: 0; }
+  .spec div { display: flex; gap: 1ch; padding: .3rem 0; border-bottom: 1px dotted var(--line); font-size: 13.5px; }
+  .spec div:last-child { border-bottom: 0; }
+  .spec dt { flex: 0 0 12ch; color: var(--dim); }
+  .spec dd { margin: 0; flex: 1 1 auto; min-width: 0; color: #e6edf5; }
+  .spec dd b { color: var(--ok); font-weight: 700; }
+  .verdict-spec h2 {
+    margin: 0 0 .9rem; font-family: inherit; font-weight: 700; letter-spacing: -.015em;
+    font-size: clamp(1.1rem, 2.6vw, 1.5rem); color: #f2f7fc;
+  }
+  .verdict-spec h2 small { display: block; margin-top: .35rem; font-size: 12px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+
+  /* ── the NVIDIA else-branch ───────────────────────────────────── */
+  .elsebranch { display: flex; gap: 0; flex-wrap: wrap; margin-top: 1px; border: 1px solid var(--warn); background: rgba(224,162,51,.05); }
+  .elsebranch .txt { flex: 1 1 340px; min-width: 0; padding: 1.05rem 1.2rem; }
+  .elsebranch .pic { flex: 1 1 300px; min-width: 0; padding: 1.05rem; border-left: 1px solid var(--line); }
+  .elsebranch code.br { display: block; margin-bottom: .6rem; color: var(--warn); font-size: 13px; }
+  .elsebranch h3 { margin: 0 0 .45rem; font-family: inherit; font-size: 1.05rem; font-weight: 700; color: #f5efe2; }
+  .elsebranch p { margin: 0; color: var(--dim); font-size: 13.5px; }
+  .elsebranch p strong { color: var(--fg); font-weight: 600; }
+  @media (max-width: 720px) { .elsebranch .pic { border-left: 0; border-top: 1px solid var(--line); } .verdict-shot { border-right: 0; border-bottom: 1px solid var(--line); } }
+
+  /* ── candidate table ──────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
+  table.cand { width: 100%; min-width: 780px; border-collapse: collapse; font-size: 13px; }
+  table.cand th {
+    padding: .6rem .8rem; text-align: left; background: var(--panel2);
+    border-bottom: 1px solid var(--line2); color: var(--dimmer);
+    font-weight: 500; font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; white-space: nowrap;
+  }
+  table.cand td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--dim); }
+  table.cand tr:last-child td { border-bottom: 0; }
+  table.cand tr:hover td { background: var(--panel2); }
+  table.cand td.name { color: #e6edf5; white-space: nowrap; }
+  table.cand td.name em { display: block; font-style: normal; color: var(--dimmer); font-size: 11.5px; }
+  .st { display: inline-block; padding: .1rem .55rem; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; border: 1px solid; }
+  .st.sel  { color: #0a1a0e; background: var(--ok);   border-color: var(--ok); font-weight: 700; }
+  .st.run  { color: var(--ok);   border-color: rgba(70,192,95,.5);  background: rgba(70,192,95,.09); }
+  .st.alt  { color: var(--plasma); border-color: rgba(31,162,255,.45); background: rgba(31,162,255,.08); }
+  .st.cond { color: var(--warn); border-color: rgba(224,162,51,.5);  background: rgba(224,162,51,.08); }
+  .st.no   { color: var(--bad);  border-color: rgba(242,96,79,.45);  background: rgba(242,96,79,.07); }
+  .bar-cell { display: flex; align-items: center; gap: .7ch; }
+  .bar-cell .track { flex: 1 1 46px; min-width: 46px; height: 6px; background: var(--line); }
+  .bar-cell .fill { display: block; height: 100%; }
+  .bar-cell .fill.g { background: var(--ok); }
+  .bar-cell .fill.a { background: var(--warn); }
+  .bar-cell .fill.r { background: var(--bad); }
+
+  /* ── conflict panels ──────────────────────────────────────────── */
+  .conflict { border: 1px solid var(--line2); border-left: 3px solid var(--bad); background: var(--panel); margin-bottom: 1.4rem; }
+  .conflict.amber { border-left-color: var(--warn); }
+  .cf-head {
+    display: flex; align-items: baseline; gap: 1ch; flex-wrap: wrap;
+    padding: .6rem 1.05rem; border-bottom: 1px solid var(--line);
+    background: var(--panel2); font-size: 12px;
+  }
+  .cf-head .sev { color: var(--bad); font-weight: 700; letter-spacing: .1em; }
+  .conflict.amber .cf-head .sev { color: var(--warn); }
+  .cf-head .ts { color: var(--dimmer); }
+  .cf-head .idx { margin-left: auto; color: var(--dimmer); letter-spacing: .1em; }
+  .cf-body { display: flex; gap: 0; flex-wrap: wrap; }
+  .cf-main { flex: 1 1 380px; min-width: 0; padding: 1.15rem 1.25rem; }
+  .cf-side { flex: 0 1 320px; min-width: 0; padding: 1.15rem; border-left: 1px solid var(--line); }
+  @media (max-width: 780px) { .cf-side { border-left: 0; border-top: 1px solid var(--line); flex-basis: 100%; } }
+  .cf-main h3 { margin: 0 0 .75rem; font-family: inherit; font-weight: 700; font-size: clamp(1.05rem, 2.4vw, 1.32rem); letter-spacing: -.015em; color: #f2f7fc; }
+  .cf-main p { margin: 0 0 .75rem; font-size: 13.8px; color: var(--dim); }
+  .cf-main p strong { color: var(--fg); font-weight: 600; }
+  .versus { display: flex; align-items: stretch; gap: 0; margin: 0 0 1rem; border: 1px solid var(--line); }
+  .versus > div { flex: 1 1 0; min-width: 0; padding: .7rem .85rem; }
+  .versus > div + div { border-left: 1px solid var(--line); }
+  .versus .who { color: var(--dimmer); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; }
+  .versus .says { margin-top: .3rem; color: #e6edf5; font-size: 13px; }
+  .versus .vs { flex: 0 0 auto; display: flex; align-items: center; padding: 0 .7rem; color: var(--bad); font-size: 16px; background: var(--panel2); border-left: 1px solid var(--line); }
+  .resolve { padding: .7rem .9rem; border: 1px solid rgba(70,192,95,.35); background: rgba(70,192,95,.06); font-size: 13.5px; color: #dcefdf; }
+  .resolve b { display: block; margin-bottom: .25rem; color: var(--ok); font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; }
+  .resolve.dead { border-color: rgba(242,96,79,.4); background: rgba(242,96,79,.06); color: #f3ddd8; }
+  .resolve.dead b { color: var(--bad); }
+  .twoshot { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .twoshot > figure { flex: 1 1 130px; min-width: 0; margin: 0; }
+
+  /* ── wontfix rows ─────────────────────────────────────────────── */
+  .wf { display: flex; flex-wrap: wrap; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .wfrow { flex: 1 1 265px; min-width: 0; padding: 1rem 1.1rem; background: var(--panel); }
+  .wfrow .lbl { color: var(--bad); font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; }
+  .wfrow h4 { margin: .4rem 0 .45rem; font-family: inherit; font-size: 1rem; font-weight: 700; color: #f2f7fc; }
+  .wfrow p { margin: 0; font-size: 13px; color: var(--dim); }
+  .wfrow .glyph { float: right; margin: -.2rem 0 0 .6rem; font-size: 30px; line-height: 1; color: var(--line2); }
+  .wfshot { margin: 1px 0 0; border: 1px solid var(--line); }
+  .conclusion {
+    margin-top: 1px; padding: .95rem 1.1rem; border: 1px solid var(--line2);
+    background: var(--panel2); font-size: 13.8px; color: var(--fg);
+  }
+  .conclusion b { color: var(--warn); }
+
+  /* ── excluded list ────────────────────────────────────────────── */
+  .rmlist { border: 1px solid var(--line); background: var(--panel); }
+  .rmrow { display: flex; gap: 1.1ch; padding: .8rem 1.05rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .rmrow:last-child { border-bottom: 0; }
+  .rmrow .x { flex: 0 0 auto; color: var(--bad); font-weight: 700; }
+  .rmrow.cond .x { color: var(--warn); }
+  .rmrow .what { flex: 0 0 15ch; color: #e6edf5; }
+  .rmrow .why { flex: 1 1 32ch; min-width: 0; color: var(--dim); font-size: 13.3px; }
+  .rmrow .thumb { flex: 0 0 92px; }
+  .rmrow .thumb img { display: block; width: 100%; height: auto; border: 1px solid var(--line2); }
+
+  /* ── angle tiles ──────────────────────────────────────────────── */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: 1rem; }
+  .tile { display: flex; flex-direction: column; border: 1px solid var(--line); background: var(--panel); }
+  .tile:hover { border-color: var(--line2); background: var(--panel2); }
+  .tile-bar {
+    display: flex; align-items: baseline; gap: 1ch;
+    padding: .5rem .8rem; border-bottom: 1px solid var(--line);
+    font-size: 11px; letter-spacing: .08em; color: var(--dimmer);
+  }
+  .tile-bar .n { color: var(--plasma); font-weight: 700; }
+  .tile-bar .dep { margin-left: auto; padding: .05rem .5rem; border: 1px solid var(--line2); text-transform: uppercase; letter-spacing: .12em; font-size: 9.5px; }
+  .tile-bar .dep.survey { color: var(--plasma); border-color: rgba(31,162,255,.4); }
+  .tile-bar .dep.recon  { color: var(--dim); }
+  .tile-in { padding: .9rem .85rem 1rem; display: flex; flex-direction: column; flex: 1 1 auto; }
+  .tile-in h3 { margin: 0 0 .5rem; font-family: inherit; font-size: 14.5px; font-weight: 700; line-height: 1.35; letter-spacing: -.005em; }
+  .tile-in h3 a { color: #eef4fb; border: 0; }
+  .tile-in h3 a:hover { color: var(--plasma); background: none; }
+  .tile-in p { margin: 0 0 .9rem; font-size: 12.7px; line-height: 1.55; color: var(--dim); }
+  .tile-foot { margin-top: auto; display: flex; align-items: center; gap: .8ch; padding-top: .7rem; border-top: 1px dotted var(--line2); font-size: 11px; color: var(--dimmer); }
+  .tile-foot .cites { display: flex; align-items: center; gap: .6ch; flex: 1 1 auto; min-width: 0; }
+  .tile-foot .track { flex: 1 1 30px; height: 4px; background: var(--line); }
+  .tile-foot .track span { display: block; height: 100%; background: var(--plasma); }
+  .tile-foot .go { color: var(--plasma); }
+
+  /* ── sources ledger ───────────────────────────────────────────── */
+  table.src { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 12.5px; }
+  table.src th {
+    padding: .55rem .75rem; text-align: left; background: var(--panel2); border-bottom: 1px solid var(--line2);
+    color: var(--dimmer); font-weight: 500; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; white-space: nowrap;
+  }
+  table.src td { padding: .5rem .75rem; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--dim); }
+  table.src tr:hover td { background: var(--panel2); }
+  table.src td.n { color: var(--dimmer); white-space: nowrap; }
+  table.src td.dom { white-space: nowrap; }
+  table.src td.dom img { width: 14px; height: 14px; vertical-align: -2px; margin-right: .6ch; }
+  table.src td.dom a { color: #dbe5ef; }
+  .ty { display: inline-block; padding: .02rem .45rem; border: 1px solid var(--line2); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dimmer); white-space: nowrap; }
+  .ty.official { color: var(--ok); border-color: rgba(70,192,95,.35); }
+  .ty.forum { color: var(--warn); border-color: rgba(224,162,51,.35); }
+
+  details.more { margin-top: 1rem; border: 1px solid var(--line); background: var(--panel); }
+  details.more > summary { padding: .65rem 1rem; cursor: pointer; color: var(--plasma); font-size: 12.5px; list-style: none; }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary::before { content: "▸ "; color: var(--dimmer); }
+  details.more[open] > summary::before { content: "▾ "; }
+  details.more > summary:hover { background: var(--panel2); }
+  details.more .inner { padding: 0 1rem 1rem; }
+
+  .colophon {
+    margin-top: 3.5rem; padding-top: 1.1rem; border-top: 1px solid var(--line);
+    color: var(--dimmer); font-size: 12px;
+  }
+  .colophon .ps1 { color: var(--magenta); }
+  .colophon p { margin: .5rem 0 0; }
+</style>
+
+<div class="tty">
+
+  <!-- ══ masthead ═══════════════════════════════════════════════ -->
+  <div class="banner">
+    <div class="wrap">
+      <div class="banner-top">
+        <span class="dot">●</span>
+        <span>atlas tty1 — decision console</span>
+        <span class="right">2026-07-30 · 8 angles · expedition</span>
+      </div>
+
+      <div class="masthead-grid">
+        <div class="txt">
+          <h1>Which Linux do I actually install?<br><span class="q">Eight angles, run blind. Two names. Three collisions.</span></h1>
+          <p class="sub">Scope: one distro and one desktop, as a daily driver, for a developer who lives in <strong>.NET 10</strong>, <strong>TypeScript</strong> and <strong>Docker</strong> and runs a self-hosted homelab. Each angle below was researched independently — the value is in where they disagree.</p>
+        </div>
+        <figure class="tuxbox">
+          <img src="dashboard/images/tux.webp" alt="Tux, the Linux mascot">
+          <figcaption>uname -o<br>GNU/Linux</figcaption>
+        </figure>
+      </div>
+
+      <div class="stats">
+        <div class="stat hl"><b>8</b><span>angles run</span></div>
+        <div class="stat"><b>242</b><span>sources cited</span></div>
+        <div class="stat"><b>81</b><span>min read (full)</span></div>
+        <div class="stat"><b>5</b><span>families surveyed</span></div>
+        <div class="stat"><b>2</b><span>finalists</span></div>
+        <div class="stat warnc"><b>3</b><span>cross-angle conflicts</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ══ boot log ═════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">systemctl status angles.target</span>
+      <span class="note">8 loaded · 8 active · 0 failed</span>
+    </div>
+
+    <div class="boot">
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../the-2026-distro-landscape-what-actually-differs/">distro-landscape</a> — five real families, honest shortlist of five names</span><span class="meta">survey · 40 refs · 14 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../stable-vs-rolling-vs-immutable-atomic/">release-model</a> — fixed 6-month or atomic; not rolling, not Debian stable</span><span class="meta">survey · 37 refs · 14 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../developer-toolchain-fit/">toolchain-fit</a> — Ubuntu 26.04 and Fedora 44 tie; everyone else hand-configures a vendor repo</span><span class="meta">survey · 39 refs · 15 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../desktop-environment-choice/">desktop-choice</a> — KDE Plasma; X11 is gone this year either way</span><span class="meta">survey · 44 refs · 12 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../hardware-and-driver-reality/">hardware-reality</a> — only NVIDIA, new silicon and Secure Boot still force a choice</span><span class="meta">recon · 13 refs · 3 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../migrating-off-windows/">windows-migration</a> — four things don't cross over; stage via live USB then dual-boot</span><span class="meta">survey · 44 refs · 15 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../maintenance-burden-and-support-lifecycle/">upkeep-ranking</a> — atomic and LTS are near-zero chore; Arch costs a reading habit</span><span class="meta">recon · 13 refs · 3 min</span></div>
+      <div class="bootline"><span class="tag">[&nbsp;&nbsp;<b>OK</b>&nbsp;&nbsp;]</span><span class="unit">Reached target <a href="../gaming-and-media/">gaming-media</a> — ~90% of Steam titles run; anti-cheat and DRM streaming don't</span><span class="meta">recon · 12 refs · 3 min</span></div>
+    </div>
+
+    <!-- ══ verdict ══════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">neofetch <em>--verdict</em></span>
+      <span class="note">the answer, before the reasoning</span>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-head">
+        <span>◆ install this</span>
+        <span class="r">converged from 8 independent angles</span>
+      </div>
+      <div class="verdict-body">
+        <div class="verdict-shot">
+          <figure class="shot">
+            <div class="bar"><i></i><i></i><i></i><span>plasmashell — Wayland session</span></div>
+            <img src="dashboard/images/plasma-67.webp" alt="KDE Plasma 6.7 desktop with the Discover software centre, calendar widget and task bar">
+            <figcaption>What you actually get: Plasma 6.7 — Discover pulling from Flathub, a Windows-shaped panel, per-screen virtual desktops, ICC colour plus HDR. <sup><a href="https://kde.org/announcements/plasma/6/6.7.0/">[7]</a></sup></figcaption>
+          </figure>
+          <figure class="shot" style="margin-top:.6rem">
+            <div class="bar"><i></i><i></i><i></i><span>stock session, nothing configured</span></div>
+            <img src="dashboard/images/fedora-kde-plasma.webp" alt="A stock Fedora KDE Plasma desktop with default wallpaper and bottom panel">
+            <figcaption>First boot: a bottom panel, a launcher, a system tray. The Windows muscle memory survives the move — that is the whole argument for this edition. <sup><a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">[10]</a></sup></figcaption>
+          </figure>
+        </div>
+        <div class="verdict-spec">
+          <h2><a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">Fedora KDE Plasma Desktop 44</a>, dual-booted, with an ext4 partition for Dropbox
+            <small>edition swap, not distro swap</small>
+          </h2>
+          <dl class="spec">
+            <div><dt>Base</dt><dd><a href="https://fedoramagazine.org/announcing-fedora-linux-44/">Fedora Linux 44</a> — shipped 28 Apr 2026 <sup><a href="https://fedoramagazine.org/announcing-fedora-linux-44/">[1]</a></sup></dd></div>
+            <div><dt>Kernel</dt><dd>6.19 — fresh enough for silicon under ~18 months old <sup><a href="https://www.phoronix.com/news/Linux-7.1-Graphics-Drivers">[21]</a></sup></dd></div>
+            <div><dt>Desktop</dt><dd><b>KDE Plasma 6.6.4</b>, Wayland <sup><a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">[10]</a></sup></dd></div>
+            <div><dt>Release model</dt><dd>6-month fixed · ~13 months support per release <sup><a href="https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle">[27]</a></sup></dd></div>
+            <div><dt>Upkeep</dt><dd>one version upgrade a year, otherwise unattended</dd></div>
+            <div><dt>Root FS</dt><dd>btrfs + snapper, configured on install day — Fedora will not do it for you <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[12]</a></sup></dd></div>
+            <div><dt>Sync FS</dt><dd><b>separate unencrypted ext4 partition</b> — Dropbox refuses anything else <sup><a href="https://linux.slashdot.org/story/18/08/10/2120248/dropbox-is-dropping-support-for-all-linux-file-systems-except-unencrypted-ext4">[13]</a></sup></dd></div>
+            <div><dt>Toolchain</dt><dd><code>dnf install dotnet-sdk-10.0</code> — in-repo at 10.0.110 <sup><a href="https://packages.fedoraproject.org/pkgs/dotnet10.0/dotnet-sdk-10.0/">[48]</a></sup>; <a href="https://docs.docker.com/engine/install/">Docker Engine</a> has an official Fedora path <sup><a href="https://docs.docker.com/engine/install/">[50]</a></sup></dd></div>
+            <div><dt>Windows</dt><dd>kept on its own partition — not optional, see WONTFIX below</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="elsebranch">
+      <div class="txt">
+        <code class="br">if [ "$GPU" = "nvidia" ]; then install ubuntu-26.04-lts; fi</code>
+        <h3>The one branch that flips the answer</h3>
+        <p><a href="https://documentation.ubuntu.com/release-notes/26.04/">Ubuntu 26.04 LTS</a> carries the NVIDIA 595 driver in-archive, installed by <strong>one command</strong> — <code>ubuntu-drivers autoinstall</code> <sup><a href="https://ubuntuhandbook.org/index.php/2026/04/nvidia-595-driver-ubuntu-26-04/">[55]</a></sup> — and ships five years of security maintenance <sup><a href="https://documentation.ubuntu.com/release-notes/26.04/">[2]</a></sup>. On an NVIDIA machine that buys you more than Fedora's fresher userspace does. Fedora's path works but generates a local MOK key by hand under Secure Boot <sup><a href="https://fedoraproject.org/wiki/Changes/NvidiaInstallationWithSecureboot">[28]</a></sup>, and the atomic images deadlock outright.</p>
+      </div>
+      <div class="pic">
+        <figure class="shot">
+          <div class="bar"><i></i><i></i><i></i><span>nvidia-settings — Ubuntu 26.04</span></div>
+          <img src="dashboard/images/ubuntu-nvidia.webp" alt="NVIDIA Settings on an Ubuntu desktop reporting a GeForce RTX 5090">
+          <figcaption>Proprietary driver, in-archive, GNOME Wayland session. <sup><a href="https://www.phoronix.com/news/Ubuntu-26.04-Faster-NVIDIA">[81]</a></sup></figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- ══ candidate table ══════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">cat candidates.tsv | sort -k5</span>
+      <span class="note">upkeep bar = lower is better</span>
+    </div>
+
+    <div class="tablewrap">
+      <table class="cand">
+        <thead>
+          <tr><th>Candidate</th><th>Release model</th><th>Default desktop</th><th>Upkeep cost</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name"><a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">Fedora KDE Plasma 44</a><em>official edition</em></td>
+            <td>fixed, 6-month · ~13 mo support</td>
+            <td>Plasma 6.6.4</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill a" style="width:38%"></span></span> 1 upgrade/yr</span></td>
+            <td><span class="st sel">selected</span></td>
+          </tr>
+          <tr>
+            <td class="name"><a href="https://documentation.ubuntu.com/release-notes/26.04/">Ubuntu 26.04 LTS</a><em>+ Kubuntu for Plasma</em></td>
+            <td>LTS, 2-year · 5 yr support</td>
+            <td>GNOME 50</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill g" style="width:16%"></span></span> near-zero</span></td>
+            <td><span class="st run">runner-up</span></td>
+          </tr>
+          <tr>
+            <td class="name"><a href="https://docs.projectbluefin.io/">Bluefin</a> / <a href="https://github.com/ublue-os/aurora">Aurora</a> ⭐ 749<em>atomic Fedora images</em></td>
+            <td>rebased image, weekly stable stream</td>
+            <td>GNOME / Plasma</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill g" style="width:8%"></span></span> reboot to undo</span></td>
+            <td><span class="st alt">alternate</span></td>
+          </tr>
+          <tr>
+            <td class="name">Linux Mint 22.3<em><a href="https://github.com/linuxmint/cinnamon">Cinnamon</a> ⭐ 5.5k</em></td>
+            <td>LTS base · next release ~Dec 2026</td>
+            <td>Cinnamon 6.6</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill g" style="width:14%"></span></span> near-zero</span></td>
+            <td><span class="st cond">conditional</span></td>
+          </tr>
+          <tr>
+            <td class="name"><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">openSUSE Tumbleweed</a><em><a href="https://doc.opensuse.org/documentation/tumbleweed/snapper/">snapper</a> on by default</em></td>
+            <td>rolling, openQA-gated snapshots</td>
+            <td>your pick</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill a" style="width:62%"></span></span> frequent, large</span></td>
+            <td><span class="st no">not recommended</span></td>
+          </tr>
+          <tr>
+            <td class="name">Arch · CachyOS<em>AUR ecosystem</em></td>
+            <td>rolling, advisory feed mandatory</td>
+            <td>your pick</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill r" style="width:92%"></span></span> a reading habit</span></td>
+            <td><span class="st no">excluded</span></td>
+          </tr>
+          <tr>
+            <td class="name"><a href="https://www.debian.org/releases/">Debian stable</a><em>trixie</em></td>
+            <td>frozen, ~2-year cycle</td>
+            <td>GNOME</td>
+            <td><span class="bar-cell"><span class="track"><span class="fill g" style="width:12%"></span></span> near-zero</span></td>
+            <td><span class="st no">excluded</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ conflicts ════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">journalctl -p warning --unit=synthesis</span>
+      <span class="note">no single angle can see these</span>
+    </div>
+
+    <div class="conflict">
+      <div class="cf-head">
+        <span class="sev">CONFLICT</span>
+        <span class="ts">desktop-choice ⇄ distro-landscape + toolchain-fit</span>
+        <span class="idx">01 / 03</span>
+      </div>
+      <div class="cf-body">
+        <div class="cf-main">
+          <h3>The desktop you want is not the flagship of the distro you want</h3>
+          <div class="versus">
+            <div>
+              <div class="who">desktop angle says</div>
+              <div class="says"><a href="https://kde.org/announcements/plasma/6/6.7.0/">KDE Plasma</a> — the only session where Windows muscle memory, working global hotkeys and sane mixed-DPI scaling coexist</div>
+            </div>
+            <div class="vs">⇄</div>
+            <div>
+              <div class="who">other six angles say</div>
+              <div class="says">Fedora or Ubuntu — and both ship <a href="https://release.gnome.org/50/">GNOME 50</a> by default</div>
+            </div>
+          </div>
+          <p><strong>2026 removes the fallback.</strong> GNOME 50 deleted its X11 session outright — roughly 27,540 lines cut from Mutter, and you cannot log into an X11 GNOME session even with Xorg installed <sup><a href="https://www.xda-developers.com/x11-on-gnome-is-finally-dead-as-its-newest-version-goes-all-in-on-wayland/">[8]</a></sup>. Plasma 6.8 drops its own X11 session on 14 October <sup><a href="https://linuxiac.com/kde-plasma-6-8-will-go-fully-wayland-ending-nearly-30-years-of-x11-sessions/">[9]</a></sup>. There is no "just use X11 if Wayland misbehaves" branch left — only a choice of which compositor's rough edges you accept. KDE is also effectively the only desktop with a working GlobalShortcuts portal backend <sup><a href="https://github.com/flatpak/xdg-desktop-portal/discussions/1368">[41]</a></sup>.</p>
+          <div class="resolve">
+            <b>resolution</b>
+            Swap the <em>edition</em>, not the distro. <a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">Fedora KDE Plasma Desktop</a> is an official edition on Plasma 6.6.4 <sup><a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">[10]</a></sup> — Kubuntu and <a href="https://github.com/ublue-os/aurora">Aurora</a> ⭐ 749 are the equivalents on the other two tracks <sup><a href="https://github.com/ublue-os/aurora">[11]</a></sup>.
+          </div>
+        </div>
+        <div class="cf-side">
+          <div class="twoshot">
+            <figure class="shot">
+              <div class="bar"><i></i><i></i><i></i><span>the flagship</span></div>
+              <img src="dashboard/images/gnome-50.webp" alt="GNOME 50 'Tokyo' release artwork">
+              <figcaption>GNOME 50 — default on both finalists, no X11 session at all.</figcaption>
+            </figure>
+            <figure class="shot">
+              <div class="bar"><i></i><i></i><i></i><span>the pick</span></div>
+              <img src="dashboard/images/fedora-kde-44.webp" alt="Fedora KDE Plasma Desktop 44 announcement artwork">
+              <figcaption>Fedora KDE 44 — same base, different edition.</figcaption>
+            </figure>
+          </div>
+          <figure class="shot" style="margin-top:.6rem">
+            <div class="bar"><i></i><i></i><i></i><span>the deadline</span></div>
+            <img src="dashboard/images/wayland-only.webp" alt="Illustration marking the end of X11 sessions on KDE Plasma">
+            <figcaption>October 2026: nearly 30 years of X11 sessions end. <sup><a href="https://linuxiac.com/kde-plasma-6-8-will-go-fully-wayland-ending-nearly-30-years-of-x11-sessions/">[9]</a></sup></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="conflict">
+      <div class="cf-head">
+        <span class="sev">CONFLICT</span>
+        <span class="ts">release-model ⇄ windows-migration</span>
+        <span class="idx">02 / 03</span>
+      </div>
+      <div class="cf-body">
+        <div class="cf-main">
+          <h3>Your snapshots fight your file sync</h3>
+          <div class="versus">
+            <div>
+              <div class="who">release-model angle says</div>
+              <div class="says">Configure btrfs snapshots on install day — neither Fedora nor Ubuntu does it for you</div>
+            </div>
+            <div class="vs">⇄</div>
+            <div>
+              <div class="who">migration angle says</div>
+              <div class="says">Dropbox's Linux client syncs only to <em>unencrypted ext4</em></div>
+            </div>
+          </div>
+          <p><strong>Nothing else in the run surfaces this collision.</strong> The rollback advice is sound in isolation: Fedora's default installer doesn't produce a snapshot-friendly btrfs layout, and pre/post snapshots need packages installed by hand <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[12]</a></sup>. The sync constraint is equally real — the client depends on extended attributes and refuses everything but plain ext4 <sup><a href="https://linux.slashdot.org/story/18/08/10/2120248/dropbox-is-dropping-support-for-all-linux-file-systems-except-unencrypted-ext4">[13]</a></sup>. Follow both angles literally and a btrfs-everywhere install silently costs you Dropbox.</p>
+          <div class="resolve">
+            <b>resolution</b>
+            btrfs for <code>/</code> and <code>/home</code>, plus <strong>one dedicated unencrypted ext4 partition</strong> that holds only the sync folder. Decide this at partitioning time — it is the one choice you cannot defer.
+          </div>
+        </div>
+        <div class="cf-side">
+          <figure class="shot">
+            <div class="bar"><i></i><i></i><i></i><span>btrfs + snapper on Fedora 44</span></div>
+            <img src="dashboard/images/btrfs-snapshots.webp" alt="Article artwork for configuring btrfs snapshot and rollback support on Fedora 44">
+            <figcaption>The rollback setup the release-model angle insists on — and the reason your sync folder needs to live somewhere else. <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[12]</a></sup></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="conflict amber">
+      <div class="cf-head">
+        <span class="sev">CONFLICT</span>
+        <span class="ts">upkeep-ranking ⇄ toolchain-fit</span>
+        <span class="idx">03 / 03</span>
+      </div>
+      <div class="cf-body">
+        <div class="cf-main">
+          <h3>Atomic is simultaneously the lowest-upkeep and the highest-friction option</h3>
+          <div class="versus">
+            <div>
+              <div class="who">upkeep angle ranks it</div>
+              <div class="says">#1 — a bad update is undone by rebooting into the previous image</div>
+            </div>
+            <div class="vs">⇄</div>
+            <div>
+              <div class="who">toolchain angle ranks it</div>
+              <div class="says">last — layering is discouraged and IDEs expect a mutable host</div>
+            </div>
+          </div>
+          <p>Both readings are correct about the same system. Atomic derivatives stage every update as a new deployment and always keep a rollback deployment <sup><a href="https://docs.bazzite.gg/Installing_and_Managing_Software/Updates_Rollbacks_and_Rebasing/">[14]</a></sup>, and <a href="https://docs.projectbluefin.io/">Bluefin</a> ⭐ 2.6k explicitly frames your relationship as being with Flathub and Homebrew rather than with a distro. But layering <code>docker-ce</code> on an image-based Fedora still means placing a <code>.repo</code> file by hand, against community advice <sup><a href="https://discussion.fedoraproject.org/t/installing-docker-on-silverblue/119610">[70]</a></sup>.</p>
+          <div class="resolve">
+            <b>reconciles only if</b>
+            You accept <strong>container-first development</strong> — Toolbx/Distrobox for the SDKs, the host image left untouched. <a href="https://docs.projectbluefin.io/bluefin-dx/">Bluefin DX</a> bakes in Docker Engine with Compose and Buildx for exactly this <sup><a href="https://docs.projectbluefin.io/bluefin-dx/">[24]</a></sup>.
+          </div>
+          <div class="resolve dead" style="margin-top:.6rem">
+            <b>fails outright if</b>
+            Your GPU is NVIDIA. A May 2026 Fedora Kinoite 44 update deadlocked on an akmod dependency conflict during a kernel bump <sup><a href="https://discussion.fedoraproject.org/t/cant-update-fedora-kinoite-44-probably-nvidia-related/191407">[15]</a></sup> — the one failure mode the "just reboot to roll back" promise doesn't cover.
+          </div>
+        </div>
+        <div class="cf-side">
+          <figure class="shot">
+            <div class="bar"><i></i><i></i><i></i><span>github.com/ublue-os/aurora</span></div>
+            <img src="dashboard/images/aurora-repo.webp" alt="GitHub repository card for ublue-os/aurora, the atomic KDE Plasma image">
+            <figcaption><a href="https://github.com/ublue-os/aurora">Aurora</a> ⭐ 749 — Universal Blue's Plasma image, the atomic counterpart to Bluefin. <sup><a href="https://github.com/ublue-os/aurora">[11]</a></sup></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ wontfix ══════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">grep -r <em>WONTFIX</em> ./findings</span>
+      <span class="note">distro-independent · decides whether to dual-boot, not what to install</span>
+    </div>
+
+    <div class="wf">
+      <div class="wfrow">
+        <span class="glyph">⊠</span>
+        <div class="lbl">wontfix · permanent</div>
+        <h4>Kernel anti-cheat</h4>
+        <p>Valorant, Call of Duty and Battlefield 6 are blocked by design. Across titles using anti-cheat: 17% supported, 24% running, <strong>55% broken, 4% denied</strong> <sup><a href="https://areweanticheatyet.com/">[16]</a></sup>. RICOCHET, Riot Vanguard and EA Javelin are the specific gatekeepers <sup><a href="https://www.tweaktown.com/news/108859/valves-steam-machine-cant-run-some-of-the-most-popular-multiplayer-games/index.html">[61]</a></sup>.</p>
+      </div>
+      <div class="wfrow">
+        <span class="glyph">▤</span>
+        <div class="lbl">wontfix · licensing</div>
+        <h4>Browser DRM ceiling</h4>
+        <p>Linux browsers get Widevine L3 software DRM only, capping Netflix, Prime and HBO at <strong>720p SDR</strong> with no HDR — while HDR <em>gaming</em> works fine on Wayland <sup><a href="https://www.xda-developers.com/linux-finally-working-hdr-but-still-cant-use-it-most-streaming-services/">[17]</a></sup>.</p>
+      </div>
+      <div class="wfrow">
+        <span class="glyph">✉</span>
+        <div class="lbl">wontfix · vendor</div>
+        <h4>Desktop Office &amp; Belgian eID</h4>
+        <p>Microsoft 365 desktop apps are Windows and macOS only <sup><a href="https://learn.microsoft.com/en-ca/answers/questions/5891967/microsoft-office-on-linux">[18]</a></sup>; the web build has no VBA, no add-ins, no offline <sup><a href="https://learn.microsoft.com/en-us/answers/questions/5825752/office-365-web-vs-computer-program">[63]</a></sup>. And the Belgian eID cannot work through <em>any</em> Snap or Flatpak browser — sandbox confinement blocks the PKCS#11 module <sup><a href="https://eid.belgium.be/en/faq/why-it-not-possible-use-eid-software-snap-andor-flatpak">[19]</a></sup>.</p>
+      </div>
+    </div>
+
+    <figure class="shot wfshot">
+      <div class="bar"><i></i><i></i><i></i><span>steam · proton 11 beta</span></div>
+      <img src="dashboard/images/proton-11.webp" alt="A Windows game running on Linux through Proton">
+      <figcaption>The other 90%: singleplayer is genuinely solved. Close to 90% of Windows titles launch under Proton, with roughly 10% in the Borked tier <sup><a href="https://boilingsteam.com/windows-games-compatibility-on-linux-is-at-a-all-time-high/">[58]</a></sup>, and Proton 11 entered beta in April 2026 <sup><a href="https://www.gamingonlinux.com/2026/04/proton-11-beta-arrives-to-bring-enhanced-gaming-compatibility-to-linux-steamos/">[59]</a></sup>.</figcaption>
+    </figure>
+
+    <div class="conclusion">
+      Because all three are unfixable, <b>keeping Windows is the default</b> — which promotes the hardware angle's Secure Boot warning from incidental to load-bearing. Microsoft's UEFI CA 2011 certificate expired 27 June 2026; distros ship dual-signed shims so Secure Boot can stay on, but BitLocker recovery is the thing that bites during partitioning <sup><a href="https://linuxlap.com/news/secure-boot-linux-2026/">[20]</a></sup>. Check the machine first with <a href="https://github.com/linuxhw/hw-probe">hw-probe</a> ⭐ 918 <sup><a href="https://github.com/linuxhw/hw-probe">[57]</a></sup> and a live USB.
+    </div>
+
+    <!-- ══ excluded ═════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">cat excluded.log</span>
+      <span class="note">what the angles agreed to rule out</span>
+    </div>
+
+    <div class="rmlist">
+      <div class="rmrow">
+        <span class="x">✗</span>
+        <span class="what">Arch family</span>
+        <span class="why">Loses on vendor support, then loses again on June 2026's AUR supply-chain attack — a rootkit and an SSH-key stealer planted across <strong>1,579 packages</strong> <sup><a href="https://www.phoronix.com/news/Arch-Linux-AUR-More-Than-1500">[5]</a></sup>. CachyOS topping DistroWatch is a page-hit ranking, not adoption <sup><a href="https://www.theregister.com/2025/08/20/cachyos_distrowatch/">[73]</a></sup>.</span>
+      </div>
+      <div class="rmrow">
+        <span class="x">✗</span>
+        <span class="what">Pure rolling</span>
+        <span class="why">Requires reading an advisory feed before <em>every</em> update — Arch publishes manual-intervention notices you cannot skip <sup><a href="https://archlinux.org/news/">[6]</a></sup>. That is a habit, not a setting, and it is the single upkeep cost that never amortises.</span>
+      </div>
+      <div class="rmrow">
+        <span class="x">✗</span>
+        <span class="what">Debian stable</span>
+        <span class="why">The release-model angle rules it out for a 2026 developer workstation on software age alone <sup><a href="https://www.debian.org/releases/">[37]</a></sup> — and Microsoft's own .NET packages have shipped broken metadata against Debian trixie <sup><a href="https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian">[82]</a></sup>.</span>
+      </div>
+      <div class="rmrow cond">
+        <span class="x">▲</span>
+        <span class="what">Linux Mint</span>
+        <span class="why"><strong>The upkeep angle's favourite, eliminated by the hardware angle.</strong> If the machine's silicon is under ~18 months old, new Intel and AMD GPU enablement lands per kernel release <sup><a href="https://www.phoronix.com/news/Linux-7.1-Graphics-Drivers">[21]</a></sup> and Mint's LTS base is too old. Mint 23 doesn't arrive until ~December 2026 <sup><a href="https://www.phoronix.com/news/Mint-23-Alfa">[33]</a></sup>. Otherwise: the least-change option, Wayland fully supported <sup><a href="https://www.omgubuntu.co.uk/2026/07/linux-mint-wayland-fully-supported">[4]</a></sup>.</span>
+        <span class="thumb"><img src="dashboard/images/linux-mint.webp" alt="Linux Mint Cinnamon desktop"></span>
+      </div>
+    </div>
+
+    <!-- ══ tiles ════════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">ls -l angles/</span>
+      <span class="note">bar = citation density</span>
+    </div>
+
+    <div class="tiles">
+      <article class="tile">
+        <div class="tile-bar"><span class="n">01</span><span>landscape</span><span class="dep survey">survey</span></div>
+        <div class="tile-in">
+          <h3><a href="../the-2026-distro-landscape-what-actually-differs/">The 2026 Linux distro landscape: what actually differs between the families</a></h3>
+          <p>There are only five real distro families, and the honest shortlist for a Windows developer is Fedora Workstation, Ubuntu LTS, Linux Mint, Bluefin/Aurora and openSUSE Tumbleweed — everything else is a variation, a server OS, or a hobby.</p>
+          <div class="tile-foot"><span class="cites">40 refs <span class="track"><span style="width:91%"></span></span></span><span>14 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">02</span><span>release-model</span><span class="dep survey">survey</span></div>
+        <div class="tile-in">
+          <h3><a href="../stable-vs-rolling-vs-immutable-atomic/">Stable, rolling, or atomic: picking a release model for your first Linux daily driver</a></h3>
+          <p>Start on a 6-month fixed release or an atomic Fedora image; avoid pure rolling and avoid Debian stable — with the evidence for each model's breakage, rollback and software-age tradeoffs.</p>
+          <div class="tile-foot"><span class="cites">37 refs <span class="track"><span style="width:84%"></span></span></span><span>14 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">03</span><span>toolchain</span><span class="dep survey">survey</span></div>
+        <div class="tile-in">
+          <h3><a href="../developer-toolchain-fit/">Toolchain fit: which distro costs least setup work for .NET 10 + TypeScript + Docker</a></h3>
+          <p>Ubuntu 26.04 LTS and Fedora 44 tie on setup effort; every other family costs you at least one hand-configured vendor repo. <a href="https://learn.microsoft.com/en-us/dotnet/core/install/linux">Microsoft's own package matrix</a> is the constraint that decides it.</p>
+          <div class="tile-foot"><span class="cites">39 refs <span class="track"><span style="width:89%"></span></span></span><span>15 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">04</span><span>desktop</span><span class="dep survey">survey</span></div>
+        <div class="tile-in">
+          <h3><a href="../desktop-environment-choice/">Picking a Linux desktop in 2026: the Windows 11 switcher's decision guide</a></h3>
+          <p>KDE Plasma is the lowest-friction landing spot. X11 sessions die this year, so the real choice is which Wayland compositor's rough edges you can live with.</p>
+          <div class="tile-foot"><span class="cites">44 refs <span class="track"><span style="width:100%"></span></span></span><span>12 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">05</span><span>hardware</span><span class="dep recon">recon</span></div>
+        <div class="tile-in">
+          <h3><a href="../hardware-and-driver-reality/">Hardware and driver reality in 2026: only three things should decide your distro</a></h3>
+          <p>Only three hardware classes still force a distro choice — NVIDIA, very new silicon, and Secure-Boot dual-boot. Everything else is a live-USB check away.</p>
+          <div class="tile-foot"><span class="cites">13 refs <span class="track"><span style="width:30%"></span></span></span><span>3 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">06</span><span>migration</span><span class="dep survey">survey</span></div>
+        <div class="tile-in">
+          <h3><a href="../migrating-off-windows/">Windows to Linux in 2026: what crosses over, what doesn't, and how to stage the switch</a></h3>
+          <p>Almost everything a .NET developer does crosses over. The four that don't: desktop Office with VBA, a native Outlook with working calendar, WPF/WinForms designers, and Windows-only compliance tooling.</p>
+          <div class="tile-foot"><span class="cites">44 refs <span class="track"><span style="width:100%"></span></span></span><span>15 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">07</span><span>upkeep</span><span class="dep recon">recon</span></div>
+        <div class="tile-in">
+          <h3><a href="../maintenance-burden-and-support-lifecycle/">Linux upkeep in 2026: support windows, upgrade pain, and monthly chores ranked</a></h3>
+          <p>Atomic Fedora and Ubuntu/Mint LTS are near-zero chore; Fedora Workstation costs one upgrade a year; Arch costs a reading habit you cannot skip.</p>
+          <div class="tile-foot"><span class="cites">13 refs <span class="track"><span style="width:30%"></span></span></span><span>3 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-bar"><span class="n">08</span><span>gaming</span><span class="dep recon">recon</span></div>
+        <div class="tile-in">
+          <h3><a href="../gaming-and-media/">Gaming and media on Linux in 2026: singleplayer is solved, anti-cheat and DRM streaming are not</a></h3>
+          <p>Roughly 90% of Windows Steam titles launch under Proton. The two real losses are kernel anti-cheat multiplayer and browser DRM streaming above 720p SDR.</p>
+          <div class="tile-foot"><span class="cites">12 refs <span class="track"><span style="width:27%"></span></span></span><span>3 min</span><span class="go">→</span></div>
+        </div>
+      </article>
+    </div>
+
+    <!-- ══ sources ══════════════════════════════════════════════ -->
+    <div class="prompt">
+      <span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span>
+      <span class="cmd">dnf repolist <em>--synthesis</em></span>
+      <span class="note">21 of 242 · the ones this page rests on</span>
+    </div>
+
+    <div class="tablewrap">
+      <table class="src">
+        <thead><tr><th>#</th><th>Source</th><th>Type</th><th>Claim</th></tr></thead>
+        <tbody>
+          <tr><td class="n">01</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=fedoramagazine.org&sz=128" alt=""><a href="https://fedoramagazine.org/announcing-fedora-linux-44/">fedoramagazine.org</a></td><td><span class="ty official">official</span></td><td>Fedora 44 shipped 28 Apr 2026 with kernel 6.19, GNOME 50, Plasma 6.6 and the Atomic Desktop variants.</td></tr>
+          <tr><td class="n">02</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=documentation.ubuntu.com&sz=128" alt=""><a href="https://documentation.ubuntu.com/release-notes/26.04/">documentation.ubuntu.com</a></td><td><span class="ty official">official</span></td><td>Ubuntu 26.04 LTS released 23 Apr 2026 with five years of security updates through April 2031.</td></tr>
+          <tr><td class="n">03</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=docs.projectbluefin.io&sz=128" alt=""><a href="https://docs.projectbluefin.io/administration/">docs.projectbluefin.io</a></td><td><span class="ty official">official</span></td><td>Bluefin checks for updates every six hours and applies them at reboot; stable publishes weekly images.</td></tr>
+          <tr><td class="n">04</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=omgubuntu.co.uk&sz=128" alt=""><a href="https://www.omgubuntu.co.uk/2026/07/linux-mint-wayland-fully-supported">omgubuntu.co.uk</a></td><td><span class="ty">news</span></td><td>Mint 23 (end of 2026) fully supports X11 and Wayland; Mint hasn't committed to Wayland by default.</td></tr>
+          <tr><td class="n">05</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><a href="https://www.phoronix.com/news/Arch-Linux-AUR-More-Than-1500">phoronix.com</a></td><td><span class="ty">news</span></td><td>Arch published a list of 1,579 compromised AUR packages and believed the incident contained.</td></tr>
+          <tr><td class="n">06</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=archlinux.org&sz=128" alt=""><a href="https://archlinux.org/news/">archlinux.org</a></td><td><span class="ty official">official</span></td><td>Arch publishes breaking-change and manual-intervention notices that must be read before upgrading.</td></tr>
+          <tr><td class="n">07</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=kde.org&sz=128" alt=""><a href="https://kde.org/announcements/plasma/6/6.7.0/">kde.org</a></td><td><span class="ty official">official</span></td><td>Plasma 6.7 (16 Jun 2026) adds per-screen virtual desktops and simultaneous ICC colour management plus HDR.</td></tr>
+          <tr><td class="n">08</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=128" alt=""><a href="https://www.xda-developers.com/x11-on-gnome-is-finally-dead-as-its-newest-version-goes-all-in-on-wayland/">xda-developers.com</a></td><td><span class="ty">news</span></td><td>GNOME 50 removed the X11 session entirely — about 27,540 lines cut from Mutter.</td></tr>
+          <tr><td class="n">09</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=linuxiac.com&sz=128" alt=""><a href="https://linuxiac.com/kde-plasma-6-8-will-go-fully-wayland-ending-nearly-30-years-of-x11-sessions/">linuxiac.com</a></td><td><span class="ty">news</span></td><td>Plasma 6.8 (expected 14 Oct 2026) drops the dedicated X11 session; 6.7 is the last one to have it.</td></tr>
+          <tr><td class="n">10</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=fedoramagazine.org&sz=128" alt=""><a href="https://fedoramagazine.org/whats-new-in-fedora-kde-plasma-desktop-44/">fedoramagazine.org</a></td><td><span class="ty official">official</span></td><td>Fedora KDE 44 ships Plasma 6.6.4 with the new Plasma Setup and Plasma Keyboard components.</td></tr>
+          <tr><td class="n">11</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/ublue-os/aurora">github.com/ublue-os/aurora</a> ⭐ 749</td><td><span class="ty official">official</span></td><td>Aurora is Universal Blue's KDE Plasma image, the atomic counterpart to Bluefin.</td></tr>
+          <tr><td class="n">12</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=sysguides.com&sz=128" alt=""><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">sysguides.com</a></td><td><span class="ty">vendor-blog</span></td><td>Fedora's installer doesn't create a snapshot-suited btrfs layout; pre/post snapshots need manual setup.</td></tr>
+          <tr><td class="n">13</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=slashdot.org&sz=128" alt=""><a href="https://linux.slashdot.org/story/18/08/10/2120248/dropbox-is-dropping-support-for-all-linux-file-systems-except-unencrypted-ext4">linux.slashdot.org</a></td><td><span class="ty">news</span></td><td>Dropbox on Linux supports only unencrypted ext4 for the sync folder, because it relies on extended attributes.</td></tr>
+          <tr><td class="n">14</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=docs.bazzite.gg&sz=128" alt=""><a href="https://docs.bazzite.gg/Installing_and_Managing_Software/Updates_Rollbacks_and_Rebasing/">docs.bazzite.gg</a></td><td><span class="ty official">official</span></td><td>Atomic Fedora derivatives stage each update as a new deployment and always keep a rollback deployment.</td></tr>
+          <tr><td class="n">15</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=discussion.fedoraproject.org&sz=128" alt=""><a href="https://discussion.fedoraproject.org/t/cant-update-fedora-kinoite-44-probably-nvidia-related/191407">discussion.fedoraproject.org</a></td><td><span class="ty forum">forum</span></td><td>A May 2026 Kinoite 44 thread shows an update blocked by an NVIDIA akmod dependency conflict.</td></tr>
+          <tr><td class="n">16</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=areweanticheatyet.com&sz=128" alt=""><a href="https://areweanticheatyet.com/">areweanticheatyet.com</a></td><td><span class="ty official">official</span></td><td>Of games using anti-cheat: 17% supported, 24% running, 55% broken, 4% denied.</td></tr>
+          <tr><td class="n">17</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=xda-developers.com&sz=128" alt=""><a href="https://www.xda-developers.com/linux-finally-working-hdr-but-still-cant-use-it-most-streaming-services/">xda-developers.com</a></td><td><span class="ty">news</span></td><td>Widevine L3 software DRM caps Netflix/Prime/HBO at SD-720p SDR with no HDR.</td></tr>
+          <tr><td class="n">18</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-ca/answers/questions/5891967/microsoft-office-on-linux">learn.microsoft.com</a></td><td><span class="ty forum">forum</span></td><td>Microsoft 365 desktop apps are supported only on Windows and macOS; the web version is the Linux route.</td></tr>
+          <tr><td class="n">19</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=eid.belgium.be&sz=128" alt=""><a href="https://eid.belgium.be/en/faq/why-it-not-possible-use-eid-software-snap-andor-flatpak">eid.belgium.be</a></td><td><span class="ty official">official</span></td><td>The Belgian eID can't be used with Snap or Flatpak software — confinement blocks the PKCS#11 module.</td></tr>
+          <tr><td class="n">20</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=linuxlap.com&sz=128" alt=""><a href="https://linuxlap.com/news/secure-boot-linux-2026/">linuxlap.com</a></td><td><span class="ty">news</span></td><td>Microsoft's UEFI CA 2011 certificate expired 27 Jun 2026; major distros ship dual-signed shims.</td></tr>
+          <tr><td class="n">21</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><a href="https://www.phoronix.com/news/Linux-7.1-Graphics-Drivers">phoronix.com</a></td><td><span class="ty">news</span></td><td>New Intel and AMD GPU enablement lands per kernel release, so kernel recency governs new-silicon support.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details class="more">
+      <summary>Supporting sources referenced above (not in the synthesis top-21)</summary>
+      <div class="inner">
+        <div class="tablewrap">
+          <table class="src">
+            <tbody>
+              <tr><td class="n">24</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=docs.projectbluefin.io&sz=128" alt=""><a href="https://docs.projectbluefin.io/bluefin-dx/">docs.projectbluefin.io/bluefin-dx</a></td><td><span class="ty official">official</span></td><td>Bluefin DX ships docker-ce with Compose and Buildx plugins plus Podman tooling.</td></tr>
+              <tr><td class="n">82</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian">learn.microsoft.com</a></td><td><span class="ty official">official</span></td><td>Debian gets .NET only by registering packages.microsoft.com via packages-microsoft-prod.deb.</td></tr>
+              <tr><td class="n">27</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=fedoraproject.org&sz=128" alt=""><a href="https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle">fedoraproject.org</a></td><td><span class="ty">wiki</span></td><td>Each Fedora release is supported for about 13 months — roughly one month past X+2.</td></tr>
+              <tr><td class="n">28</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=fedoraproject.org&sz=128" alt=""><a href="https://fedoraproject.org/wiki/Changes/NvidiaInstallationWithSecureboot">fedoraproject.org</a></td><td><span class="ty official">official</span></td><td>Fedora installs the proprietary NVIDIA driver under Secure Boot by generating a local key with mokutil.</td></tr>
+              <tr><td class="n">33</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><a href="https://www.phoronix.com/news/Mint-23-Alfa">phoronix.com</a></td><td><span class="ty">news</span></td><td>Mint 23 is being built on the Ubuntu 26.04 LTS base with the Linux 7.0 kernel.</td></tr>
+              <tr><td class="n">41</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/flatpak/xdg-desktop-portal/discussions/1368">github.com/flatpak/xdg-desktop-portal</a> ⭐ 815</td><td><span class="ty forum">forum</span></td><td>KDE is effectively the only desktop with a working GlobalShortcuts portal backend.</td></tr>
+              <tr><td class="n">37</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=debian.org&sz=128" alt=""><a href="https://www.debian.org/releases/">debian.org</a></td><td><span class="ty official">official</span></td><td>Debian's release index — the stable/testing/unstable cadence behind the software-age objection.</td></tr>
+              <tr><td class="n">48</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=packages.fedoraproject.org&sz=128" alt=""><a href="https://packages.fedoraproject.org/pkgs/dotnet10.0/dotnet-sdk-10.0/">packages.fedoraproject.org</a></td><td><span class="ty official">official</span></td><td>Fedora 43 and 44 ship dotnet-sdk-10.0 at 10.0.110 — the .1xx feature band.</td></tr>
+              <tr><td class="n">50</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=docs.docker.com&sz=128" alt=""><a href="https://docs.docker.com/engine/install/">docs.docker.com</a></td><td><span class="ty official">official</span></td><td>Docker Engine has official install procedures only for CentOS, Debian, Fedora, RHEL, Ubuntu and Raspberry Pi OS.</td></tr>
+              <tr><td class="n">57</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/linuxhw/hw-probe">github.com/linuxhw/hw-probe</a> ⭐ 918</td><td><span class="ty official">official</span></td><td>hw-probe generates a local hardware report and checks operability against the linux-hardware.org database.</td></tr>
+              <tr><td class="n">58</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=boilingsteam.com&sz=128" alt=""><a href="https://boilingsteam.com/windows-games-compatibility-on-linux-is-at-a-all-time-high/">boilingsteam.com</a></td><td><span class="ty">news</span></td><td>Close to 90% of Windows games launch on Linux under Proton, with the Borked tier at roughly 10%.</td></tr>
+              <tr><td class="n">59</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=gamingonlinux.com&sz=128" alt=""><a href="https://www.gamingonlinux.com/2026/04/proton-11-beta-arrives-to-bring-enhanced-gaming-compatibility-to-linux-steamos/">gamingonlinux.com</a></td><td><span class="ty">news</span></td><td>Proton 11 entered beta in April 2026; Proton Experimental keeps shipping per-game fixes.</td></tr>
+              <tr><td class="n">61</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=tweaktown.com&sz=128" alt=""><a href="https://www.tweaktown.com/news/108859/valves-steam-machine-cant-run-some-of-the-most-popular-multiplayer-games/index.html">tweaktown.com</a></td><td><span class="ty">news</span></td><td>RICOCHET, Riot Vanguard and EA Javelin are the anti-cheat systems blocking the big multiplayer titles.</td></tr>
+              <tr><td class="n">63</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt=""><a href="https://learn.microsoft.com/en-us/answers/questions/5825752/office-365-web-vs-computer-program">learn.microsoft.com</a></td><td><span class="ty forum">forum</span></td><td>Office for the web lacks VBA, third-party add-ins and offline use, and degrades on complex files.</td></tr>
+              <tr><td class="n">70</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=discussion.fedoraproject.org&sz=128" alt=""><a href="https://discussion.fedoraproject.org/t/installing-docker-on-silverblue/119610">discussion.fedoraproject.org</a></td><td><span class="ty forum">forum</span></td><td>Layering docker-ce on Silverblue works but needs manual .repo placement, against community advice.</td></tr>
+              <tr><td class="n">73</td><td class="dom"><img src="https://www.google.com/s2/favicons?domain=theregister.com&sz=128" alt=""><a href="https://www.theregister.com/2025/08/20/cachyos_distrowatch/">theregister.com</a></td><td><span class="ty">news</span></td><td>DistroWatch's ranking counts page hits, not installs — it signals interest, not adoption.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <div class="colophon">
+      <p><span class="ps1">atlas@expedition <b>~/linux-2026</b> $</span> exit<span class="cursor"></span></p>
+      <p>Dashboard view of an 8-child expedition · 242 sources · 81 minutes of reading condensed to one console. The <a href="../">default view</a> carries the full synthesis prose and every angle in order. Screenshots come from the cited release announcements and Wikimedia Commons.</p>
+    </div>
+
+  </div>
+</div>

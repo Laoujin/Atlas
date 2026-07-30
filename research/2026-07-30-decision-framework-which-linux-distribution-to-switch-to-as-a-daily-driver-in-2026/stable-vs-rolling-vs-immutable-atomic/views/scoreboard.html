@@ -1,0 +1,907 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Stable, rolling, or atomic: picking a release model for your first Linux daily driver — Scoreboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+.sb {
+  --pitch: #0a0d10;
+  --panel: #13181e;
+  --panel2: #191f26;
+  --line: #262d36;
+  --line2: #333c47;
+  --ink: #eae7de;
+  --dim: #8d959f;
+  --dimmer: #626a74;
+  --amber: #ffb020;
+  --green: #3ddc84;
+  --red: #ff5252;
+  --ivory: #f4f1e8;
+
+  margin: 0;
+  padding: 0 0 5rem;
+  background: var(--pitch);
+  color: var(--ink);
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+.sb *, .sb *::before, .sb *::after { box-sizing: border-box; }
+.sb .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.25rem; }
+.sb p { margin: 0 0 .85rem; }
+.sb a { color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(255,176,32,.35); }
+.sb a:hover { border-bottom-color: var(--amber); }
+.sb sup { font-size: .62em; }
+.sb sup a { border: none; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
+.sb sup a:hover { color: var(--amber); }
+.sb code {
+  font-family: 'JetBrains Mono', monospace; font-size: .8em;
+  background: #000; color: #cfe3d2; padding: .1em .38em; border-radius: 3px;
+  border: 1px solid var(--line);
+}
+
+/* ---------- scoreboard chrome ---------- */
+.sb .fixture-strip {
+  border-bottom: 2px solid var(--amber);
+  background: #000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .66rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--amber);
+  padding: .7rem 0;
+}
+.sb .fixture-strip .wrap { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; }
+.sb .fixture-strip .sep { color: var(--dimmer); }
+
+.sb .hood { padding: 3rem 0 1rem; }
+.sb .kicker {
+  font-family: 'JetBrains Mono', monospace; font-size: .68rem;
+  letter-spacing: .28em; text-transform: uppercase; color: var(--dim);
+  margin-bottom: 1.1rem;
+}
+.sb h1.title {
+  font-family: 'Archivo Black', 'Arial Black', sans-serif;
+  font-size: clamp(2.4rem, 7.2vw, 5.4rem);
+  line-height: .92; letter-spacing: -.02em; text-transform: uppercase;
+  margin: 0 0 1.2rem; color: var(--ivory);
+}
+.sb h1.title em { font-style: normal; color: var(--dimmer); }
+.sb .deck {
+  font-size: 1.28rem; max-width: 60ch; color: #c8c4b9;
+  border-left: 3px solid var(--amber); padding-left: 1rem;
+}
+
+/* ---------- the three team panels ---------- */
+.sb .board {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--line); border: 1px solid var(--line);
+  margin: 2.4rem 0 1rem;
+}
+.sb .team { background: var(--panel); padding: 1.4rem 1.2rem 1.5rem; position: relative; }
+.sb .team.pick   { background: linear-gradient(180deg, #241a06 0%, var(--panel) 62%); }
+.sb .team.topper { background: linear-gradient(180deg, #06251a 0%, var(--panel) 62%); }
+.sb .team.bench  { background: linear-gradient(180deg, #250b0b 0%, var(--panel) 62%); }
+.sb .ribbon {
+  font-family: 'JetBrains Mono', monospace; font-size: .58rem;
+  letter-spacing: .16em; text-transform: uppercase;
+  display: inline-block; padding: .3rem .55rem; margin-bottom: 1rem;
+  border: 1px solid currentColor; border-radius: 2px;
+}
+.sb .team.pick .ribbon   { color: var(--amber); }
+.sb .team.topper .ribbon { color: var(--green); }
+.sb .team.bench .ribbon  { color: var(--red); }
+.sb .team h2 {
+  font-family: 'Archivo Black', sans-serif; font-size: 1.5rem; text-transform: uppercase;
+  letter-spacing: -.01em; margin: 0 0 .5rem; color: var(--ivory); line-height: 1;
+}
+.sb .team .squad {
+  font-family: 'JetBrains Mono', monospace; font-size: .66rem; line-height: 1.7;
+  color: var(--dim); margin-bottom: 1rem; min-height: 3.4em;
+}
+.sb .crests { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.sb .crest {
+  width: 40px; height: 40px; border-radius: 6px; background: var(--ivory);
+  display: flex; align-items: center; justify-content: center; padding: 5px;
+  border: 1px solid #d8d3c4;
+}
+.sb .crest img { max-width: 100%; max-height: 100%; display: block; }
+.sb .led {
+  font-family: 'Archivo Black', sans-serif; font-size: 4.6rem; line-height: .85;
+  letter-spacing: -.03em;
+}
+.sb .team.pick .led   { color: var(--amber); text-shadow: 0 0 26px rgba(255,176,32,.45); }
+.sb .team.topper .led { color: var(--green); text-shadow: 0 0 26px rgba(61,220,132,.4); }
+.sb .team.bench .led  { color: var(--red);   text-shadow: 0 0 26px rgba(255,82,82,.35); }
+.sb .led-label {
+  font-family: 'JetBrains Mono', monospace; font-size: .58rem;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--dimmer); margin-top: .3rem;
+}
+.sb .board-foot {
+  font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--dim);
+  letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid var(--line); border-top: none; padding: .75rem 1rem; background: #0d1116;
+}
+
+/* ---------- section headers ---------- */
+.sb section { margin-top: 4.2rem; }
+.sb .shead { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.4rem; }
+.sb .shead .no {
+  font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: var(--amber);
+  letter-spacing: .12em; padding-top: .5rem;
+}
+.sb .shead h2 {
+  font-family: 'Archivo Black', sans-serif; text-transform: uppercase;
+  font-size: clamp(1.4rem, 3.6vw, 2.2rem); line-height: 1; margin: 0; color: var(--ivory);
+}
+.sb .shead .rule { flex: 1; height: 1px; background: var(--line2); }
+.sb .sub { color: var(--dim); max-width: 74ch; margin-bottom: 1.5rem; }
+
+/* ---------- manager's decision ---------- */
+.sb .decision {
+  border: 2px solid var(--amber); background: #10130f;
+  padding: 1.8rem 1.6rem; margin-top: 2.4rem;
+}
+.sb .decision .dhead {
+  font-family: 'JetBrains Mono', monospace; font-size: .64rem; letter-spacing: .24em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 1rem;
+}
+.sb .dgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); }
+.sb .dcell { background: #0e1216; padding: 1.15rem 1.1rem; }
+.sb .dcell .tag {
+  font-family: 'JetBrains Mono', monospace; font-size: .58rem; letter-spacing: .18em;
+  text-transform: uppercase; margin-bottom: .55rem;
+}
+.sb .dcell.go .tag { color: var(--green); }
+.sb .dcell.no .tag { color: var(--red); }
+.sb .dcell h3 {
+  font-family: 'Archivo Black', sans-serif; font-size: 1.12rem; text-transform: uppercase;
+  margin: 0 0 .5rem; color: var(--ivory); line-height: 1.05;
+}
+.sb .dcell p { font-size: .96rem; color: #b9b5ab; margin: 0; }
+
+/* ---------- league grid ---------- */
+.sb .scroller { overflow-x: auto; border: 1px solid var(--line); }
+.sb .league { min-width: 860px; display: grid; grid-template-columns: 15rem repeat(3, 1fr); }
+.sb .league > div { padding: .8rem .85rem; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+.sb .league > div:nth-child(4n) { border-right: none; }
+.sb .lh {
+  background: #000; font-family: 'JetBrains Mono', monospace; font-size: .62rem;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+  position: sticky; top: 0;
+}
+.sb .lh.c-fix { color: var(--amber); }
+.sb .lh.c-rol { color: var(--ink); }
+.sb .lh.c-ato { color: var(--green); }
+.sb .axis {
+  background: #0d1116; font-weight: 600; font-size: .98rem; color: var(--ivory);
+  text-transform: uppercase; letter-spacing: .01em;
+}
+.sb .axis .wt {
+  display: block; font-family: 'JetBrains Mono', monospace; font-size: .58rem;
+  letter-spacing: .12em; color: var(--dimmer); text-transform: uppercase; margin-top: .25rem;
+}
+.sb .cell { font-size: .9rem; color: #a9a59c; background: var(--panel); }
+.sb .col-fix { background: #14150f; }
+.sb .col-ato { background: #0f1613; }
+.sb .cell .g {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.05rem;
+  margin-right: .35rem;
+}
+.sb .g.yes  { color: var(--green); }
+.sb .g.warn { color: var(--amber); }
+.sb .g.no   { color: var(--red); }
+.sb .cell.win { box-shadow: inset 0 0 0 2px rgba(255,255,255,.14); position: relative; }
+.sb .cell.win::after {
+  content: '▲ AXIS'; position: absolute; top: .35rem; right: .5rem;
+  font-family: 'JetBrains Mono', monospace; font-size: .5rem; letter-spacing: .12em;
+  color: rgba(255,255,255,.4);
+}
+.sb .league > div:nth-last-child(-n+4) { border-bottom: none; }
+.sb .tally {
+  display: grid; grid-template-columns: 15rem repeat(3, 1fr); min-width: 860px;
+  background: #000; border-top: 2px solid var(--amber);
+  font-family: 'Archivo Black', sans-serif;
+}
+.sb .tally > div { padding: .9rem .85rem; }
+.sb .tally .tl {
+  font-family: 'JetBrains Mono', monospace; font-size: .62rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--dim); align-self: center;
+}
+.sb .tally .tv { font-size: 1.9rem; line-height: 1; }
+.sb .tally .tv small {
+  display: block; font-family: 'JetBrains Mono', monospace; font-size: .5rem;
+  letter-spacing: .14em; color: var(--dimmer); margin-top: .35rem;
+}
+
+/* ---------- disciplinary log ---------- */
+.sb .cards { border: 1px solid var(--line); }
+.sb .book {
+  display: grid; grid-template-columns: 5.2rem 1fr auto;
+  align-items: center; gap: 1rem;
+  padding: .7rem 1rem; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.sb .book:last-child { border-bottom: none; }
+.sb .book .when {
+  font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--dim);
+  letter-spacing: .06em;
+}
+.sb .book .what { font-size: .98rem; color: var(--ivory); }
+.sb .book .what span { color: var(--dim); font-size: .86rem; }
+.sb .card-y, .sb .card-r {
+  width: 17px; height: 24px; border-radius: 2px; display: inline-block;
+  box-shadow: 0 1px 4px rgba(0,0,0,.6);
+}
+.sb .card-y { background: var(--amber); }
+.sb .card-r { background: var(--red); }
+.sb .book.reds { background: #1c0c0c; }
+.sb .book .flag {
+  font-family: 'JetBrains Mono', monospace; font-size: .54rem; letter-spacing: .12em;
+  color: var(--red); border: 1px solid var(--red); padding: .15rem .35rem;
+  margin-left: .5rem; white-space: nowrap;
+}
+.sb .rate {
+  font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--amber);
+  letter-spacing: .12em; text-transform: uppercase; background: #000;
+  border: 1px solid var(--line); border-top: none; padding: .8rem 1rem;
+}
+
+/* ---------- generic panel grid ---------- */
+.sb .panels { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sb .p3 { grid-template-columns: repeat(3, 1fr); }
+.sb .p2 { grid-template-columns: repeat(2, 1fr); }
+.sb .pan { background: var(--panel); padding: 1.3rem 1.2rem; }
+.sb .pan .pno {
+  font-family: 'JetBrains Mono', monospace; font-size: .58rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: .6rem;
+}
+.sb .pan h3 {
+  font-family: 'Archivo Black', sans-serif; font-size: 1.05rem; text-transform: uppercase;
+  margin: 0 0 .6rem; color: var(--ivory); line-height: 1.1;
+}
+.sb .pan p { font-size: .93rem; color: #a9a59c; }
+.sb .pan p:last-child { margin-bottom: 0; }
+
+.sb .quote {
+  margin: 1.6rem 0 0; padding: 1.5rem 1.4rem; background: #000;
+  border-left: 4px solid var(--green);
+  font-family: 'Archivo Black', sans-serif; font-size: clamp(1.05rem, 2.6vw, 1.5rem);
+  line-height: 1.28; text-transform: uppercase; color: var(--ivory);
+}
+.sb .quote b { color: var(--green); }
+
+/* ---------- fixture table ---------- */
+.sb .fixtures { border: 1px solid var(--line); }
+.sb .fx {
+  display: grid; grid-template-columns: 3rem 12.5rem 12rem 1fr; gap: 1rem; align-items: center;
+  padding: .75rem 1rem; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.sb .fx:last-child { border-bottom: none; }
+.sb .fx .crest { width: 32px; height: 32px; }
+.sb .fx .who { font-weight: 600; color: var(--ivory); font-size: 1rem; }
+.sb .fx .cad { font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: var(--amber); }
+.sb .fx .todo { font-size: .92rem; color: #a9a59c; }
+.sb .fx.zero .cad { color: var(--green); }
+.sb .fx.hot  { background: #180f0f; }
+.sb .fx.hot .cad { color: var(--red); }
+
+/* ---------- bench ---------- */
+.sb .bench-row {
+  display: grid; grid-template-columns: 13rem 1fr 9rem; gap: 1.1rem; align-items: center;
+  padding: .95rem 1rem; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.sb .bench-row:last-child { border-bottom: none; }
+.sb .bench-row .name { font-family: 'Archivo Black', sans-serif; font-size: .95rem; text-transform: uppercase; color: var(--ivory); }
+.sb .bench-row .note { font-size: .92rem; color: #a9a59c; }
+.sb .meter { height: 8px; background: #000; border: 1px solid var(--line2); position: relative; }
+.sb .meter i { position: absolute; inset: 0 auto 0 0; display: block; }
+.sb .meter i.hi { background: var(--green); }
+.sb .meter i.mid { background: var(--amber); }
+.sb .meter i.lo { background: var(--red); }
+.sb .meter-cap {
+  font-family: 'JetBrains Mono', monospace; font-size: .56rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dimmer); margin-top: .3rem;
+}
+
+/* ---------- squad sheet ---------- */
+.sb .sheet { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sb .signing { background: var(--panel); padding: 1.4rem 1.3rem; display: flex; gap: 1rem; }
+.sb .signing .crest { width: 52px; height: 52px; flex: 0 0 52px; }
+.sb .signing .cond {
+  font-family: 'JetBrains Mono', monospace; font-size: .6rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--dim); margin-bottom: .45rem;
+}
+.sb .signing h3 {
+  font-family: 'Archivo Black', sans-serif; font-size: 1.22rem; text-transform: uppercase;
+  margin: 0 0 .5rem; color: var(--amber); line-height: 1.05;
+}
+.sb .signing p { font-size: .93rem; color: #a9a59c; margin: 0; }
+.sb .relegated { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sb .rel { background: #150e0e; padding: 1.3rem 1.2rem; }
+.sb .rel h3 {
+  font-family: 'Archivo Black', sans-serif; font-size: 1.05rem; text-transform: uppercase;
+  margin: 0 0 .55rem; color: var(--red); line-height: 1.1;
+}
+.sb .rel p { font-size: .92rem; color: #a9a59c; margin: 0; }
+
+/* ---------- promotion ---------- */
+.sb .promo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sb .step { background: var(--panel); padding: 1.5rem 1.3rem; }
+.sb .step .big {
+  font-family: 'Archivo Black', sans-serif; font-size: 3.2rem; line-height: .8;
+  color: var(--green); text-shadow: 0 0 22px rgba(61,220,132,.3); margin-bottom: .8rem;
+}
+.sb .step h3 { font-family: 'Archivo Black', sans-serif; font-size: 1.05rem; text-transform: uppercase; margin: 0 0 .55rem; color: var(--ivory); }
+.sb .step p { font-size: .94rem; color: #a9a59c; }
+.sb .full-time {
+  margin-top: 1.4rem; padding: 1.6rem 1.4rem; border: 1px solid var(--line2); background: #000;
+  font-family: 'Archivo Black', sans-serif; font-size: clamp(1rem, 2.4vw, 1.35rem);
+  line-height: 1.3; text-transform: uppercase; color: var(--ivory);
+}
+.sb .full-time span { color: var(--amber); }
+
+/* ---------- tournament rail ---------- */
+.sb .tour { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sb .tcard { background: var(--panel); padding: 1.05rem 1.1rem; }
+.sb .tcard .dpill {
+  font-family: 'JetBrains Mono', monospace; font-size: .54rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--dim); border: 1px solid var(--line2);
+  padding: .12rem .4rem; display: inline-block; margin-bottom: .5rem;
+}
+.sb .tcard a { font-weight: 600; font-size: 1rem; border: none; }
+.sb .tcard p { font-size: .87rem; color: #8f8b83; margin: .4rem 0 0; }
+
+/* ---------- officials / sources ---------- */
+.sb .officials { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sb .off {
+  background: var(--panel); padding: .65rem .8rem; display: grid;
+  grid-template-columns: 1.6rem 1.9rem 1fr; gap: .6rem; align-items: start;
+}
+.sb .off .n { font-family: 'JetBrains Mono', monospace; font-size: .66rem; color: var(--dimmer); padding-top: .15rem; }
+.sb .off img { width: 18px; height: 18px; border-radius: 3px; background: #fff; }
+.sb .off a { font-size: .88rem; border: none; color: #cfc9bd; }
+.sb .off a:hover { color: var(--amber); }
+.sb .off .st {
+  display: block; font-family: 'JetBrains Mono', monospace; font-size: .54rem;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dimmer); margin-top: .1rem;
+}
+.sb .colophon {
+  margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.2rem;
+  font-family: 'JetBrains Mono', monospace; font-size: .64rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dimmer);
+  display: flex; flex-wrap: wrap; gap: .5rem 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .sb .board, .sb .dgrid, .sb .p3, .sb .p2, .sb .sheet, .sb .relegated,
+  .sb .promo, .sb .tour, .sb .officials { grid-template-columns: 1fr; }
+  .sb .fx { grid-template-columns: 3rem 1fr; }
+  .sb .fx .cad, .sb .fx .todo { grid-column: 2; }
+  .sb .bench-row { grid-template-columns: 1fr; }
+  .sb .led { font-size: 3.4rem; }
+}
+</style>
+
+<div class="sb">
+
+<div class="fixture-strip">
+  <div class="wrap">
+    <span>Release-model league · season 2026</span>
+    <span class="sep">/</span>
+    <span>Matchday one: your first Linux install</span>
+    <span class="sep">/</span>
+    <span>37 sources</span>
+    <span class="sep">/</span>
+    <span>Survey</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hood">
+    <div class="kicker">Three release models · eight axes · one signing</div>
+    <h1 class="title">Fixed <em>vs</em> Rolling <em>vs</em> Atomic</h1>
+    <p class="deck">Atomic tops the table. Rolling finishes second. Fixed wins almost nothing — and it is still the one you should sign for month one, because a first Linux install is a survival fixture, not a title race.</p>
+  </div>
+
+  <div class="board">
+    <div class="team pick">
+      <div class="ribbon">Manager's pick</div>
+      <h2>Fixed<br>point release</h2>
+      <div class="crests">
+        <span class="crest"><img src="scoreboard/images/fedora.webp" alt="Fedora logo"></span>
+        <span class="crest"><img src="scoreboard/images/ubuntu.webp" alt="Ubuntu logo"></span>
+        <span class="crest"><img src="scoreboard/images/debian.webp" alt="Debian logo"></span>
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+      </div>
+      <div class="squad">Debian 13 trixie<br>Ubuntu 26.04 LTS<br>Fedora 44 · openSUSE Leap 16</div>
+      <div class="led">1</div>
+      <div class="led-label">axes won outright</div>
+    </div>
+    <div class="team bench">
+      <div class="ribbon">Not in month one</div>
+      <h2>Rolling<br>release</h2>
+      <div class="crests">
+        <span class="crest"><img src="scoreboard/images/arch.webp" alt="Arch Linux logo"></span>
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+      </div>
+      <div class="squad">Arch Linux<br>openSUSE Tumbleweed<br>CachyOS</div>
+      <div class="led">2</div>
+      <div class="led-label">axes won outright</div>
+    </div>
+    <div class="team topper">
+      <div class="ribbon">Tops the table</div>
+      <h2>Image-based<br>atomic</h2>
+      <div class="crests">
+        <span class="crest"><img src="scoreboard/images/fedora.webp" alt="Fedora logo"></span>
+        <span class="crest"><img src="scoreboard/images/nixos.webp" alt="NixOS logo"></span>
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+      </div>
+      <div class="squad">Silverblue · Kinoite<br>Bluefin · Aurora · Bazzite<br>openSUSE Aeon · NixOS</div>
+      <div class="led">3</div>
+      <div class="led-label">axes won outright</div>
+    </div>
+  </div>
+  <div class="board-foot">Eight axes scored · fixed 1 · rolling 2 · atomic 3 · two axes shared · nobody sweeps</div>
+
+  <div class="decision">
+    <div class="dhead">Manager's decision · matchday one</div>
+    <div class="dgrid">
+      <div class="dcell go">
+        <div class="tag">Sign</div>
+        <h3>Fedora Workstation 44</h3>
+        <p>Or <a href="https://ubuntu.com">Ubuntu</a> 26.04 LTS <sup><a href="https://documentation.ubuntu.com/release-notes/26.04/">[2]</a></sup>. <a href="https://fedoraproject.org">Fedora</a>'s six-month cadence <sup><a href="https://ostechnix.com/fedora-44-release-date-confirmed/">[1]</a></sup> is the vendor-supported middle. Set up btrfs snapshots <em>on day one</em> — neither distro does it for you <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[3]</a></sup>.</p>
+      </div>
+      <div class="dcell go">
+        <div class="tag">Or sign instead</div>
+        <h3>Bluefin DX</h3>
+        <p>If you never want to think about maintenance and you are happy doing all dev work in containers. <a href="https://docs.projectbluefin.io/">Bluefin DX</a> ships Docker, VS Code and devcontainers inside the image, auto-updates every six hours, and rolls back with one command <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup>.</p>
+      </div>
+      <div class="dcell no">
+        <div class="tag">Do not sign</div>
+        <h3>Arch or CachyOS</h3>
+        <p><a href="https://archlinux.org">Arch Linux</a> shipped 13 "manual intervention required" advisories between Jan 2025 and Jul 2026 — each one a boot-breaker if you ignore it <sup><a href="https://archlinux.org/news/">[5]</a></sup>. Reading an upstream feed before every update is a skill, not a setting.</p>
+      </div>
+      <div class="dcell no">
+        <div class="tag">Do not sign</div>
+        <h3>Debian stable</h3>
+        <p>Its Node.js is 20.19 <sup><a href="https://packages.debian.org/trixie/nodejs">[6]</a></sup>, which went end-of-life upstream in March 2026 <sup><a href="https://nodejs.org/en/about/previous-releases">[7]</a></sup>. Excellent server OS, wrong desktop for a .NET and Node stack.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="sub" style="margin-top:2rem">The distro question is really three questions stacked on top of each other, and only the first one matters much: <strong style="color:var(--ivory)">release model</strong> (how new is the software and who tests it), then package ecosystem (deb/rpm/pacman/nix), then desktop environment. Pick the release model deliberately; the other two are largely reversible or cosmetic.</p>
+
+  <section>
+    <div class="shead"><span class="no">01</span><h2>The league table</h2><span class="rule"></span></div>
+    <p class="sub">Eight axes, graded ✓ good · ⚠ conditional · ✗ absent. A cell is marked <strong style="color:var(--ivory)">▲ AXIS</strong> when one model holds it outright; two axes end level and go to nobody.</p>
+
+    <div class="scroller">
+      <div class="league">
+        <div class="lh">Axis</div>
+        <div class="lh c-fix">Fixed / point release</div>
+        <div class="lh c-rol">Rolling release</div>
+        <div class="lh c-ato">Image-based / atomic</div>
+
+        <div class="axis">Software currency on the host<span class="wt">how old is what you get</span></div>
+        <div class="cell col-fix"><span class="g warn">⚠</span> Frozen at release. Debian 13 = kernel 6.12, GCC 14.2, Python 3.13 <sup><a href="https://www.debian.org/releases/trixie/release-notes/whats-new.en.html">[8]</a></sup>; Ubuntu 26.04 opens on Linux 7.0 <sup><a href="https://www.phoronix.com/news/Ubuntu-26.04-LTS">[9]</a></sup></div>
+        <div class="cell win"><span class="g yes">✓</span> Current upstream, days behind</div>
+        <div class="cell col-ato"><span class="g warn">⚠</span> Tracks its base — Fedora Atomic ≈ Fedora cadence, kernel gated ~2 weeks behind on the stable stream <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup></div>
+
+        <div class="axis">New hardware support<span class="wt">silicon bought after install day</span></div>
+        <div class="cell col-fix"><span class="g warn">⚠</span> An LTS freezes its kernel, so later hardware may have no driver; HWE backports newer kernels in <sup><a href="https://oneuptime.com/blog/post/2026-03-02-hwe-kernels-ubuntu-lts/view">[26]</a></sup> <sup><a href="https://ubuntu.com/kernel/lifecycle">[27]</a></sup></div>
+        <div class="cell win"><span class="g yes">✓</span> Newest kernel arrives on its own</div>
+        <div class="cell col-ato"><span class="g warn">⚠</span> Base cadence, minus the gating delay <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup></div>
+
+        <div class="axis">Attention each update demands<span class="wt">your Tuesday evenings</span></div>
+        <div class="cell col-fix"><span class="g warn">⚠</span> Low, spiking hard at each version upgrade</div>
+        <div class="cell"><span class="g no">✗</span> High — read the news feed before every <code>pacman -Syu</code>, every time <sup><a href="https://archlinux.org/news/">[5]</a></sup></div>
+        <div class="cell col-ato win"><span class="g yes">✓</span> Near zero — staged in the background, applied at reboot <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup></div>
+
+        <div class="axis">Rollback out of the box<span class="wt">without a setup project</span></div>
+        <div class="cell col-fix"><span class="g no">✗</span> Fedora and Ubuntu ship btrfs with no working snapshots <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[3]</a></sup>; openSUSE Leap is the exception, with snapper wired in <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/snapper/">[10]</a></sup></div>
+        <div class="cell"><span class="g warn">⚠</span> Nothing on Arch; Tumbleweed ships snapper + a GRUB snapshot entry <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">[13]</a></sup></div>
+        <div class="cell col-ato win"><span class="g yes">✓</span> Built in and mandatory — two bootable deployments, <code>rpm-ostree rollback</code> swaps the default <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup></div>
+
+        <div class="axis">Blast radius when it breaks<span class="wt">cost of one bad day</span></div>
+        <div class="cell col-fix"><span class="g warn">⚠</span> A broken <em>upgrade</em>, once every 6–24 months, fixed from a terminal <sup><a href="https://discussion.fedoraproject.org/t/fedora-43-44-upgrade-keeps-failing-and-rolling-back-noob-need-guidance/189979">[14]</a></sup></div>
+        <div class="cell"><span class="g no">✗</span> A broken <em>update</em>, any Tuesday <sup><a href="https://archlinux.org/news/">[5]</a></sup></div>
+        <div class="cell col-ato win"><span class="g yes">✓</span> A broken <em>image</em> — reboot into the previous one <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup></div>
+
+        <div class="axis">No big-bang upgrade day<span class="wt">the scheduled scare</span></div>
+        <div class="cell col-fix"><span class="g no">✗</span> Every 6 months (Fedora) <sup><a href="https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle">[16]</a></sup> / 2 years (Ubuntu LTS, Debian)</div>
+        <div class="cell"><span class="g yes">✓</span> Never happens</div>
+        <div class="cell col-ato"><span class="g yes">✓</span> Rebase, not reinstall <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup></div>
+
+        <div class="axis">Install arbitrary software on the host<span class="wt">the beginner's escape hatch</span></div>
+        <div class="cell col-fix"><span class="g yes">✓</span> Unrestricted</div>
+        <div class="cell"><span class="g yes">✓</span> Unrestricted</div>
+        <div class="cell col-ato"><span class="g warn">⚠</span> Constrained — flatpak, brew or container first; the docs say "most software should go into a container" <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup>, and Bluefin locks layering off by default <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup></div>
+
+        <div class="axis">Proprietary GPU drivers<span class="wt">the thing that strands you</span></div>
+        <div class="cell col-fix win"><span class="g yes">✓</span> A normal package</div>
+        <div class="cell"><span class="g warn">⚠</span> A normal package that breaks on kernel bumps — NVIDIA 590 dropped Pascal and switched to open modules <sup><a href="https://archlinux.org/news/">[5]</a></sup></div>
+        <div class="cell col-ato"><span class="g warn">⚠</span> Needs a prebuilt <code>-nvidia</code> image variant; layering deadlocks the solver <sup><a href="https://discussion.fedoraproject.org/t/cant-update-fedora-kinoite-44-probably-nvidia-related/191407">[12]</a></sup></div>
+      </div>
+      <div class="tally">
+        <div class="tl">Axes won outright</div>
+        <div class="tv" style="color:var(--amber)">1<small>gpu drivers</small></div>
+        <div class="tv" style="color:var(--ink)">2<small>currency · hardware</small></div>
+        <div class="tv" style="color:var(--green)">3<small>attention · rollback · blast radius</small></div>
+      </div>
+    </div>
+
+    <div class="quote">Atomic wins the axes about <b>recovery</b>. Rolling wins the axes about <b>freshness</b>. Fixed wins the axis nobody can work around in month one — <b>you can still install anything, anywhere, on the host</b>. That is why the pick is the mid-table side.</div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">02</span><h2>Disciplinary record</h2><span class="rule"></span></div>
+    <p class="sub">No distribution publishes a breakage rate, so anyone quoting one is guessing. The closest thing to a bookings log is Arch's own news feed: it posts an item whenever an update needs the user to do something by hand before it will succeed. Between January 2025 and July 2026 the named entries run as follows <sup><a href="https://archlinux.org/news/">[5]</a></sup>.</p>
+
+    <div class="cards">
+      <div class="book"><span class="when">Jun 2025</span><span class="what"><code>linux-firmware</code> <span>— manual intervention required</span></span><span class="card-y"></span></div>
+      <div class="book"><span class="when">Jun 2025</span><span class="what">Plasma 6.4 <span>— breaks X11 sessions</span></span><span class="card-y"></span></div>
+      <div class="book"><span class="when">Jun 2025</span><span class="what">Wine / wine-staging transition</span><span class="card-y"></span></div>
+      <div class="book"><span class="when">Oct 2025</span><span class="what"><code>dovecot</code> 2.4 <span>— config incompatible</span></span><span class="card-y"></span></div>
+      <div class="book"><span class="when">Dec 2025</span><span class="what">.NET packages <span>— manual intervention required</span><span class="flag">lands on your stack</span></span><span class="card-y"></span></div>
+      <div class="book"><span class="when">Dec 2025</span><span class="what">NVIDIA 590 <span>— drops Pascal, switches to open kernel modules</span></span><span class="card-y"></span></div>
+      <div class="book"><span class="when">Apr 2026</span><span class="what"><code>kea</code></span><span class="card-y"></span></div>
+      <div class="book"><span class="when">May 2026</span><span class="what"><code>varnish</code> renamed to <code>vinyl-cache</code> <span>— breaking for all users</span></span><span class="card-y"></span></div>
+      <div class="book reds"><span class="when">Jun 2026</span><span class="what">Active malicious AUR packages incident <span>— the AUR is a build-script repository, not a curated one</span></span><span class="card-r"></span></div>
+      <div class="book"><span class="when">Jul 2026</span><span class="what"><code>virtualbox-ext-vnc</code> ≥ 7.2.12-2</span><span class="card-y"></span></div>
+    </div>
+    <div class="rate">13 advisories in 19 months ≈ one interrupt every six to eight weeks · one red card</div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">03</span><h2>What the stats actually measure</h2><span class="rule"></span></div>
+    <p class="sub">Three real proxies exist for "breakage", and they say different things about each model.</p>
+    <div class="panels p3">
+      <div class="pan">
+        <div class="pno">Proxy 01 · vendor advisories</div>
+        <h3>Counting the interrupts</h3>
+        <p>The bookings log above. It measures how often a model asks the user to act — roughly one interrupt every six to eight weeks on Arch <sup><a href="https://archlinux.org/news/">[5]</a></sup>. It says nothing about severity, only frequency.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Proxy 02 · pre-release gating</div>
+        <h3>Rolling need not be a lottery</h3>
+        <p>openSUSE Tumbleweed ships batched snapshots several times a week, and every batch is gated by openQA, which boots and exercises a real install before publication <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">[13]</a></sup>. This is why Tumbleweed is the only rolling distro with a credible claim to being boring. Arch has no equivalent gate.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Proxy 03 · forum threads</div>
+        <h3>Risk concentrates at the boundary</h3>
+        <p>In June 2026 the Fedora 43→44 upgrade silently failed for btrfs-subvolume users because the <code>/system-update</code> symlink landed where systemd could not see it; the workaround was a non-graphical target plus <code>dnf-3</code> instead of <code>dnf5</code> <sup><a href="https://discussion.fedoraproject.org/t/fedora-43-44-upgrade-keeps-failing-and-rolling-back-noob-need-guidance/189979">[14]</a></sup>. Rare — but on the day you chose to upgrade, and it needs a terminal.</p>
+      </div>
+    </div>
+    <div class="quote">Rolling trades many small interrupts for no big ones. Fixed trades no small interrupts for <b>one scary day a year</b>. Atomic makes the scary day non-scary by turning "go back" into <b>a boot-menu entry</b>.</div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">04</span><h2>Fixture list</h2><span class="rule"></span></div>
+    <p class="sub">Cadence per contender, and what each one actually puts on your calendar.</p>
+    <div class="fixtures">
+      <div class="fx">
+        <span class="crest"><img src="scoreboard/images/debian.webp" alt="Debian logo"></span>
+        <span class="who">Debian 13 "trixie"</span>
+        <span class="cad">point releases</span>
+        <span class="todo">13.6 shipped 11 Jul 2026 <sup><a href="https://www.debian.org/News/2026/20260711">[15]</a></sup>. Security updates only for ~2 years, then a major dist-upgrade.</span>
+      </div>
+      <div class="fx zero">
+        <span class="crest"><img src="scoreboard/images/ubuntu.webp" alt="Ubuntu logo"></span>
+        <span class="who">Ubuntu 26.04 LTS</span>
+        <span class="cad">2 years</span>
+        <span class="todo">Released 23 Apr 2026, supported to Apr 2031 <sup><a href="https://documentation.ubuntu.com/release-notes/26.04/">[2]</a></sup>. Nothing for two years, then an LTS→LTS upgrade.</span>
+      </div>
+      <div class="fx">
+        <span class="crest"><img src="scoreboard/images/fedora.webp" alt="Fedora logo"></span>
+        <span class="who">Fedora 44</span>
+        <span class="cad">~6 months</span>
+        <span class="todo">44 landed 28 Apr 2026 <sup><a href="https://ostechnix.com/fedora-44-release-date-confirmed/">[1]</a></sup>; each release is supported 13 months, so you may skip one <sup><a href="https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle">[16]</a></sup>.</span>
+      </div>
+      <div class="fx">
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+        <span class="who">openSUSE Leap 16</span>
+        <span class="cad">annual · 24 mo support</span>
+        <span class="todo">Every minor release now gets 24 months <sup><a href="https://news.opensuse.org/2025/09/03/leap-16-doubles-support/">[17]</a></sup>. ⚠ Leap 15 reached end of life in Apr 2026 <sup><a href="https://news.opensuse.org/2026/04/01/leap-15-eol/">[18]</a></sup>.</span>
+      </div>
+      <div class="fx">
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+        <span class="who">openSUSE Tumbleweed</span>
+        <span class="cad">several times a week</span>
+        <span class="todo"><code>zypper dup</code>, never <code>zypper up</code> — the wrong verb causes a partial upgrade <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">[13]</a></sup>.</span>
+      </div>
+      <div class="fx hot">
+        <span class="crest"><img src="scoreboard/images/arch.webp" alt="Arch Linux logo"></span>
+        <span class="who">Arch / CachyOS</span>
+        <span class="cad">continuous</span>
+        <span class="todo">Read the news feed before <code>pacman -Syu</code>, every time <sup><a href="https://archlinux.org/news/">[5]</a></sup>.</span>
+      </div>
+      <div class="fx zero">
+        <span class="crest"><img src="scoreboard/images/bluefin.webp" alt="Bluefin project card"></span>
+        <span class="who">Bluefin / Aurora</span>
+        <span class="cad">every 6 hours</span>
+        <span class="todo">The <code>stable</code> stream publishes weekly images with a kernel gated ~2 weeks behind Fedora; updates apply at the next reboot <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup>.</span>
+      </div>
+      <div class="fx zero">
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+        <span class="who">openSUSE Aeon</span>
+        <span class="cad">daily · automatic</span>
+        <span class="todo">Updates the OS, your Flatpaks <em>and</em> your distroboxes without being asked <sup><a href="https://lwn.net/Articles/977987/">[19]</a></sup>.</span>
+      </div>
+    </div>
+    <div class="rate">Trap for a switcher: leave a rolling machine off for two months and <code>pacman</code> can refuse to upgrade because the signing keyring itself is stale — bootstrap out with <code>pacman -Sy --needed archlinux-keyring</code> before <code>pacman -Su</code> <sup><a href="https://wiki.archlinux.org/title/Pacman/Package_signing">[20]</a></sup> <sup><a href="https://www.umutsagir.com/pacman-errors-when-updating-arch-linux-after-a-long-time/">[21]</a></sup>. A weekly timer refreshes trusted keys — but only on machines that are actually on.</div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">05</span><h2>The bench</h2><span class="rule"></span></div>
+    <p class="sub">This is the axis where the models differ most, and the one that decides whether a bad update costs you five minutes or an evening. Bar length = how much of your recovery story arrives already working.</p>
+    <div class="cards">
+      <div class="bench-row">
+        <span class="name">Atomic<br>rpm-ostree / bootc</span>
+        <span class="note">Every operation is offline by design: <code>rpm-ostree install</code> composes a <em>new deployment</em> that takes effect at reboot, and the system keeps two bootable deployments so <code>rpm-ostree rollback</code> just swaps the default <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup>. On Universal Blue images the same thing runs through bootc — <code>sudo bootc status</code> shows current and staged, and you can pin to a dated tag like <code>bluefin:stable-20241027</code> <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup>.</span>
+        <span><span class="meter"><i class="hi" style="width:100%"></i></span><span class="meter-cap">on by default</span></span>
+      </div>
+      <div class="bench-row">
+        <span class="name">NixOS<br>generations</span>
+        <span class="note">Every <code>nixos-rebuild switch</code> creates a generation that appears as a boot-menu entry, so rollback is "boot the previous entry" <sup><a href="https://nixos.org/manual/nixos/stable/">[22]</a></sup> <sup><a href="https://wiki.nixos.org/wiki/Nixos-rebuild">[23]</a></sup>. Functionally the best of the lot — it rolls back config, not just packages. <a href="https://github.com/NixOS/nixpkgs">nixpkgs</a> ⭐ 26k (Jul 2026) is enormous, but "write your OS as a pure function" is a second career, not a Tuesday-evening switch.</span>
+        <span><span class="meter"><i class="hi" style="width:95%"></i></span><span class="meter-cap">after you learn Nix</span></span>
+      </div>
+      <div class="bench-row">
+        <span class="name">openSUSE<br>Leap &amp; Tumbleweed</span>
+        <span class="note">Ships btrfs with snapper wired in: reboot, pick <em>Start Bootloader from a read-only snapshot</em> in GRUB, then <code>sudo snapper rollback</code> <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">[13]</a></sup> <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/snapper/">[10]</a></sup>. The only traditional distro family where this is the out-of-box default.</span>
+        <span><span class="meter"><i class="hi" style="width:85%"></i></span><span class="meter-cap">out of the box</span></span>
+      </div>
+      <div class="bench-row">
+        <span class="name">Fedora &amp; Ubuntu<br>build it yourself</span>
+        <span class="note">Both default to btrfs-capable installs and <strong style="color:var(--ivory)">neither gives you working automatic snapshots</strong>. On Fedora 44 you install snapper plus the DNF5 actions plugin and grub-btrfs yourself, and the stock subvolume layout is not ideal for it <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[3]</a></sup>. <a href="https://github.com/linuxmint/timeshift">Timeshift</a> ⭐ 4.2k (Jul 2026) is friendlier, but its btrfs mode only supports the Ubuntu-style <code>@</code> / <code>@home</code> layout, so Fedora users are steered to the slower rsync mode <sup><a href="https://www.fosslinux.com/139835/install-and-use-timeshift-on-fedora.htm">[24]</a></sup>.</span>
+        <span><span class="meter"><i class="mid" style="width:32%"></i></span><span class="meter-cap">step one of the install</span></span>
+      </div>
+      <div class="bench-row">
+        <span class="name">Arch<br>no substitutes</span>
+        <span class="note">Nothing by default. You get whatever you set up.</span>
+        <span><span class="meter"><i class="lo" style="width:3%"></i></span><span class="meter-cap">empty bench</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">06</span><h2>Where "stable" hurts this stack</h2><span class="rule"></span></div>
+    <p class="sub">For a .NET and Node developer, software age is the decisive practical axis — and it cuts against Debian hard.</p>
+    <div class="panels p2">
+      <div class="pan">
+        <div class="pno">Too old</div>
+        <h3>Node.js 20 is already dead</h3>
+        <p>Debian 13 ships <code>nodejs</code> 20.19.2 <sup><a href="https://packages.debian.org/trixie/nodejs">[6]</a></sup>. Node 20 reached end-of-life on 24 Mar 2026; the live LTS lines are 22 and 24, with 26 already Current <sup><a href="https://nodejs.org/en/about/previous-releases">[7]</a></sup>. You would be installing Node from a third-party source on day one anyway.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Too new</div>
+        <h3>Even Microsoft missed trixie</h3>
+        <p>Microsoft's own .NET packages failed to install on Debian trixie because their metadata declared <code>libicu52</code>–<code>libicu74</code> while trixie ships <code>libicu76</code> — pure metadata mismatch, and <code>dotnet-sdk-9.0</code> was uninstallable <sup><a href="https://github.com/dotnet/sdk/issues/48973">[25]</a></sup> ⭐ 3.2k (Jul 2026). Being older than the vendor's build matrix and being newer than it both break you.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Hardware</div>
+        <h3>HWE is the admission</h3>
+        <p>An LTS freezes its kernel at release, so hardware bought later may have no driver; HWE progressively backports newer kernels in <sup><a href="https://oneuptime.com/blog/post/2026-03-02-hwe-kernels-ubuntu-lts/view">[26]</a></sup> <sup><a href="https://ubuntu.com/kernel/lifecycle">[27]</a></sup>. Ubuntu 26.04 also adds a <em>virtualization</em> HWE stack — newer QEMU, libvirt, EDK2 and SeaBIOS via <code>-hwe</code> packages, refreshed every six months for the first two years <sup><a href="https://www.phoronix.com/news/Ubuntu-Virtualization-HWE-Stack">[28]</a></sup>.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">The counter-argument</div>
+        <h3>Backports are a rolling release you assembled</h3>
+        <p>Debian's answer is that newer kernels come from backports, so hardware support is fixable <sup><a href="https://www.debian.org/News/2026/20260711">[15]</a></sup>. True — but "fixable via backports and third-party repos" describes a rolling release you built by hand, with none of the testing. <strong style="color:var(--ivory)">Fedora's six-month cadence is the sweet spot: new enough that vendor build matrices target it, old enough that someone froze and tested it.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">07</span><h2>Penalties conceded: the atomic tax</h2><span class="rule"></span></div>
+    <p class="sub">Atomic systems really are low-maintenance, and adoption backs that up — Bazzite reached ~5.5% of Linux Steam users by late 2025 while Linux overall hit an all-time-high 3.2% Steam share in 2026 <sup><a href="https://tech-insider.org/au/bazzite-steamos-linux-gaming-3-2-percent-2026/">[29]</a></sup>. The constraints are real, though, and you should price them before switching.</p>
+    <div class="panels p3">
+      <div class="pan">
+        <div class="pno">Penalty 01</div>
+        <h3>dnf install does not exist</h3>
+        <p>Layering is the escape hatch, not the workflow: rpm-ostree's own docs say most software should go into a container and reserve layering for kernel modules and driver daemons, and every layering operation needs a reboot <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup>. On Bluefin, local layering is locked off by default — you must set <code>LockLayering=false</code>, and the docs warn it means manual maintenance and longer updates <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup>.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Penalty 02</div>
+        <h3>Your dev box is a container</h3>
+        <p><a href="https://github.com/containers/toolbox">Toolbx</a> ⭐ 3.4k (Jul 2026) is preinstalled on Fedora Atomic; <a href="https://distrobox.it/">Distrobox</a> ⭐ 13k (Jul 2026) is the community superset that runs any base image and exports apps to your desktop menu <sup><a href="https://falcao.org/posts/distrobox-toolbx-podman-docker/">[30]</a></sup>. Both are fine for compilers and CLI tooling. The friction is at the boundary: one write-up documents needing workarounds to get VS Code inside a toolbox to launch a host browser for GitHub sign-in, and ultimately switching to Neovim <sup><a href="https://r0x0d.com/posts/toolbox-ides-and-atomic-desktops/">[31]</a></sup>.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Penalty 03 · the red card</div>
+        <h3>Proprietary drivers can strand you</h3>
+        <p>Layering <code>akmod-nvidia</code> means the module rebuilds against each new kernel inside the image composition — and when the solver disagrees you get no update at all: <code>kmod-nvidia-3:595.71.05-1.fc45.x86_64 requires akmod-nvidia = 3:595.71.05-1.fc45, but none of the providers can be installed</code> <sup><a href="https://discussion.fedoraproject.org/t/cant-update-fedora-kinoite-44-probably-nvidia-related/191407">[12]</a></sup>. The mitigation is to never layer the driver: Universal Blue publishes prebuilt <code>-nvidia</code> variants with signed, version-locked modules built daily <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup>.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Penalty 04</div>
+        <h3>Podman, not Docker</h3>
+        <p>Plain Silverblue gives you Podman and no host <code>dnf</code> to change that <sup><a href="https://oneuptime.com/blog/post/2026-03-18-use-podman-fedora-silverblue/view">[32]</a></sup>. For Compose stacks that matters — which is exactly why <strong style="color:var(--ivory)">Bluefin DX</strong> is the atomic variant to pick over stock Silverblue: DX bakes in Docker Engine, Podman, Incus, KVM/QEMU with virt-manager, VS Code with Remote-Containers and Homebrew, enabled with <code>ujust devmode</code> + <code>ujust dx-group</code> <sup><a href="https://deepwiki.com/ublue-os/bluefin-docs/2.5-developer-experience-(bluefin-dx)">[33]</a></sup>. <a href="https://github.com/ublue-os/bluefin">Bluefin</a> ⭐ 2.6k (Jul 2026) puts it bluntly: it is "not a distribution" — "your relationship is with Flathub, homebrew, and whatever you put in your containers" <sup><a href="https://docs.projectbluefin.io/">[34]</a></sup>.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Penalty 05 · waved off</div>
+        <h3>GUI apps are fine</h3>
+        <p>Flatpak is no longer a compromise: Flathub passed 435 million downloads in 2025, +21% year over year and 15× its 2020 volume, across 2,800+ apps <sup><a href="https://linuxiac.com/flathub-sees-over-435-million-downloads-in-2025/">[35]</a></sup>. Desktop applications are a solved problem on atomic; system-level and CLI tooling is where you adapt.</p>
+      </div>
+      <div class="pan">
+        <div class="pno">Penalty 06</div>
+        <h3>The opinionated end goes further</h3>
+        <p><a href="https://en.opensuse.org/Portal:Aeon">openSUSE Aeon</a> targets "lazy developers" — automatic daily updates of OS, Flatpaks and distroboxes, changes applied to a separate btrfs snapshot activated at reboot — but ships almost nothing in the base system, not even man pages or a PDF viewer. LWN's review sums up its stance as <strong style="color:var(--red)">"System-tinkerers need not apply."</strong> <sup><a href="https://lwn.net/Articles/977987/">[19]</a></sup></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">08</span><h2>Team sheet · pick one</h2><span class="rule"></span></div>
+    <div class="sheet">
+      <div class="signing">
+        <span class="crest"><img src="scoreboard/images/fedora.webp" alt="Fedora logo"></span>
+        <div>
+          <div class="cond">If you want a normal Linux you can poke at</div>
+          <h3>Fedora Workstation 44</h3>
+          <p>The six-month cadence is the vendor-supported middle: new enough for .NET and Node build matrices, still frozen and tested <sup><a href="https://ostechnix.com/fedora-44-release-date-confirmed/">[1]</a></sup>. ⚠ Add snapper + grub-btrfs on install day <sup><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">[3]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="signing">
+        <span class="crest"><img src="scoreboard/images/bluefin.webp" alt="Bluefin project card"></span>
+        <div>
+          <div class="cond">If you want the machine to maintain itself</div>
+          <h3>Bluefin DX</h3>
+          <p>Docker, devcontainers and VS Code in the image; auto-update every six hours; rollback is a boot entry, not a project <sup><a href="https://docs.projectbluefin.io/administration/">[4]</a></sup> <sup><a href="https://deepwiki.com/ublue-os/bluefin-docs/2.5-developer-experience-(bluefin-dx)">[33]</a></sup>. Use the <code>-nvidia</code> variant if you have an NVIDIA GPU.</p>
+        </div>
+      </div>
+      <div class="signing">
+        <span class="crest"><img src="scoreboard/images/opensuse.webp" alt="openSUSE logo"></span>
+        <div>
+          <div class="cond">If you want rollback without a new mental model</div>
+          <h3>openSUSE Leap 16</h3>
+          <p>snapper/btrfs rollback is the default rather than a setup task <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/snapper/">[10]</a></sup>, and every minor release now carries 24 months of maintenance <sup><a href="https://news.opensuse.org/2025/09/03/leap-16-doubles-support/">[17]</a></sup>.</p>
+        </div>
+      </div>
+      <div class="signing">
+        <span class="crest"><img src="scoreboard/images/ubuntu.webp" alt="Ubuntu logo"></span>
+        <div>
+          <div class="cond">If you must match your homelab's server distro</div>
+          <h3>Ubuntu 26.04 LTS</h3>
+          <p>Linux 7.0 for new hardware <sup><a href="https://www.phoronix.com/news/Ubuntu-26.04-LTS">[9]</a></sup>, HWE for hardware bought later <sup><a href="https://ubuntu.com/kernel/lifecycle">[27]</a></sup>, supported to 2031 <sup><a href="https://documentation.ubuntu.com/release-notes/26.04/">[2]</a></sup>. ⚠ Expect to add third-party repos for Node and .NET.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">09</span><h2>Not in the squad</h2><span class="rule"></span></div>
+    <div class="relegated">
+      <div class="rel">
+        <h3>Arch / CachyOS</h3>
+        <p>CachyOS has topped DistroWatch since mid-2025 <sup><a href="https://linuxiac.com/cachyos-topped-distrowatch-rankings/">[36]</a></sup> <sup><a href="https://en.wikipedia.org/wiki/CachyOS">[37]</a></sup> and its performance tuning is real, but the model requires reading upstream news before every update <sup><a href="https://archlinux.org/news/">[5]</a></sup> — a skill, not a setting. Month one is the wrong time to acquire it.</p>
+      </div>
+      <div class="rel">
+        <h3>Debian stable</h3>
+        <p>Excellent server OS, wrong desktop for this stack: end-of-life Node in the archive <sup><a href="https://packages.debian.org/trixie/nodejs">[6]</a></sup> <sup><a href="https://nodejs.org/en/about/previous-releases">[7]</a></sup> and far enough from vendor build matrices that even Microsoft's own .NET packages have missed it <sup><a href="https://github.com/dotnet/sdk/issues/48973">[25]</a></sup> ⭐ 3.2k (Jul 2026).</p>
+      </div>
+      <div class="rel">
+        <h3>NixOS</h3>
+        <p>Best-in-class reproducibility and rollback <sup><a href="https://nixos.org/manual/nixos/stable/">[22]</a></sup> <sup><a href="https://wiki.nixos.org/wiki/Nixos-rebuild">[23]</a></sup>, but you would be learning Linux and Nix simultaneously. Come back once bash and systemd are boring.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">10</span><h2>Promotion criteria</h2><span class="rule"></span></div>
+    <p class="sub">Two signals, in order. Until both are true, stay on the mid-table side.</p>
+    <div class="promo">
+      <div class="step">
+        <div class="big">01</div>
+        <h3>You have recovered from a broken system once, on purpose</h3>
+        <p>Deliberately roll back a snapshot or a deployment in month one, while nothing is wrong. Until you have done that, no release model is safe for you — because the whole argument for each of them is about recovery.</p>
+      </div>
+      <div class="step">
+        <div class="big">02</div>
+        <h3>You have stopped installing things on the host</h3>
+        <p>Once your toolchains live in distrobox or devcontainers and your GUI apps come from Flathub, you no longer need a mutable host — which is exactly when atomic becomes free rather than restrictive. That is the moment to rebase Fedora Workstation → Bluefin DX (a rebase, not a reinstall <sup><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">[11]</a></sup>), or to try Tumbleweed if you actively want newer software and trust openQA to gate it <sup><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">[13]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="full-time">Rolling release is the <span>last</span> graduation, not the first — and for most developers there is no reason to take it at all, because containers already give you current toolchains on a boring host.</div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">11</span><h2>Same tournament</h2><span class="rule"></span></div>
+    <p class="sub">This is one angle of an eight-angle run. <a href="../../">Back to the full decision framework</a>.</p>
+    <div class="tour">
+      <div class="tcard">
+        <div class="dpill">survey</div>
+        <a href="../../the-2026-distro-landscape-what-actually-differs/">The 2026 Linux distro landscape: what actually differs between the families</a>
+        <p>Five real families; the honest shortlist is Fedora Workstation, Ubuntu LTS, Mint, Bluefin/Aurora and Tumbleweed.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">survey</div>
+        <a href="../../developer-toolchain-fit/">Toolchain fit: which distro costs least setup work for .NET 10 + TypeScript + Docker</a>
+        <p>Ubuntu 26.04 LTS and Fedora 44 tie on setup effort; every other family costs a hand-configured vendor repo.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">survey</div>
+        <a href="../../desktop-environment-choice/">Picking a Linux desktop in 2026: the Windows 11 switcher's guide</a>
+        <p>KDE Plasma is the lowest-friction landing spot; X11 sessions die this year.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">recon</div>
+        <a href="../../hardware-and-driver-reality/">Hardware and driver reality in 2026</a>
+        <p>Only NVIDIA, very new silicon and Secure-Boot dual-boot still force a distro choice.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">survey</div>
+        <a href="../../migrating-off-windows/">Windows to Linux in 2026: what crosses over and what doesn't</a>
+        <p>Four things don't cross: desktop Office with VBA, native Outlook, WPF/WinForms designers, Windows-only compliance tooling.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">recon</div>
+        <a href="../../maintenance-burden-and-support-lifecycle/">Linux upkeep in 2026: support windows and monthly chores ranked</a>
+        <p>Atomic Fedora and Ubuntu/Mint LTS are near-zero chore; Arch costs a reading habit you cannot skip.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">recon</div>
+        <a href="../../gaming-and-media/">Gaming and media on Linux in 2026</a>
+        <p>~90% of Windows Steam titles launch under Proton; anti-cheat multiplayer and DRM streaming are the losses.</p>
+      </div>
+      <div class="tcard">
+        <div class="dpill">index</div>
+        <a href="/">All Atlas research</a>
+        <p>Every run in the archive.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">12</span><h2>Match officials</h2><span class="rule"></span></div>
+    <p class="sub">37 sources behind the scoreboard.</p>
+    <div class="officials">
+      <div class="off"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=ostechnix.com&sz=128" alt=""><span><a href="https://ostechnix.com/fedora-44-release-date-confirmed/">Fedora 44 release date confirmed</a><span class="st">news · ostechnix.com</span></span></div>
+      <div class="off"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=documentation.ubuntu.com&sz=128" alt=""><span><a href="https://documentation.ubuntu.com/release-notes/26.04/">Ubuntu 26.04 LTS release notes</a><span class="st">official · documentation.ubuntu.com</span></span></div>
+      <div class="off"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=sysguides.com&sz=128" alt=""><span><a href="https://sysguides.com/fedora-44-with-btrfs-snapshot-and-rollback-support">Fedora 44 with btrfs snapshot and rollback support</a><span class="st">vendor blog · sysguides.com</span></span></div>
+      <div class="off"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=docs.projectbluefin.io&sz=128" alt=""><span><a href="https://docs.projectbluefin.io/administration/">Bluefin administration guide</a><span class="st">official · docs.projectbluefin.io</span></span></div>
+      <div class="off"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=archlinux.org&sz=128" alt=""><span><a href="https://archlinux.org/news/">Arch Linux news feed</a><span class="st">official · archlinux.org</span></span></div>
+      <div class="off"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=packages.debian.org&sz=128" alt=""><span><a href="https://packages.debian.org/trixie/nodejs">Debian trixie package: nodejs</a><span class="st">official · packages.debian.org</span></span></div>
+      <div class="off"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=nodejs.org&sz=128" alt=""><span><a href="https://nodejs.org/en/about/previous-releases">Node.js previous releases and EOL schedule</a><span class="st">official · nodejs.org</span></span></div>
+      <div class="off"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=debian.org&sz=128" alt=""><span><a href="https://www.debian.org/releases/trixie/release-notes/whats-new.en.html">Debian 13 trixie — what's new</a><span class="st">official · debian.org</span></span></div>
+      <div class="off"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span><a href="https://www.phoronix.com/news/Ubuntu-26.04-LTS">Ubuntu 26.04 LTS powered by Linux 7.0</a><span class="st">news · phoronix.com</span></span></div>
+      <div class="off"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=doc.opensuse.org&sz=128" alt=""><span><a href="https://doc.opensuse.org/documentation/tumbleweed/snapper/">openSUSE Snapper documentation</a><span class="st">official · doc.opensuse.org</span></span></div>
+      <div class="off"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=coreos.github.io&sz=128" alt=""><span><a href="https://coreos.github.io/rpm-ostree/administrator-handbook/">rpm-ostree administrator handbook</a><span class="st">official · coreos.github.io</span></span></div>
+      <div class="off"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=discussion.fedoraproject.org&sz=128" alt=""><span><a href="https://discussion.fedoraproject.org/t/cant-update-fedora-kinoite-44-probably-nvidia-related/191407">Can't update Fedora Kinoite 44, probably NVIDIA related</a><span class="st">forum · discussion.fedoraproject.org</span></span></div>
+      <div class="off"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=doc.opensuse.org&sz=128" alt=""><span><a href="https://doc.opensuse.org/documentation/tumbleweed/updating_upgrading_reverting/">Tumbleweed: updating, upgrading and reverting</a><span class="st">official · doc.opensuse.org</span></span></div>
+      <div class="off"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=discussion.fedoraproject.org&sz=128" alt=""><span><a href="https://discussion.fedoraproject.org/t/fedora-43-44-upgrade-keeps-failing-and-rolling-back-noob-need-guidance/189979">Fedora 43→44 upgrade keeps failing and rolling back</a><span class="st">forum · discussion.fedoraproject.org</span></span></div>
+      <div class="off"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=debian.org&sz=128" alt=""><span><a href="https://www.debian.org/News/2026/20260711">Updated Debian 13: 13.6 released</a><span class="st">official · debian.org</span></span></div>
+      <div class="off"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=fedoraproject.org&sz=128" alt=""><span><a href="https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle">Fedora release life cycle</a><span class="st">wiki · fedoraproject.org</span></span></div>
+      <div class="off"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=news.opensuse.org&sz=128" alt=""><span><a href="https://news.opensuse.org/2025/09/03/leap-16-doubles-support/">Leap 16 doubles support</a><span class="st">vendor blog · news.opensuse.org</span></span></div>
+      <div class="off"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=news.opensuse.org&sz=128" alt=""><span><a href="https://news.opensuse.org/2026/04/01/leap-15-eol/">Leap 15 reaches end of life</a><span class="st">vendor blog · news.opensuse.org</span></span></div>
+      <div class="off"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=lwn.net&sz=128" alt=""><span><a href="https://lwn.net/Articles/977987/">openSUSE Aeon review</a><span class="st">news · lwn.net</span></span></div>
+      <div class="off"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=wiki.archlinux.org&sz=128" alt=""><span><a href="https://wiki.archlinux.org/title/Pacman/Package_signing">Arch Wiki: pacman package signing</a><span class="st">wiki · wiki.archlinux.org</span></span></div>
+      <div class="off"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=umutsagir.com&sz=128" alt=""><span><a href="https://www.umutsagir.com/pacman-errors-when-updating-arch-linux-after-a-long-time/">pacman errors after a long gap</a><span class="st">vendor blog · umutsagir.com</span></span></div>
+      <div class="off"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=nixos.org&sz=128" alt=""><span><a href="https://nixos.org/manual/nixos/stable/">NixOS manual</a><span class="st">official · nixos.org</span></span></div>
+      <div class="off"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=wiki.nixos.org&sz=128" alt=""><span><a href="https://wiki.nixos.org/wiki/Nixos-rebuild">NixOS Wiki: nixos-rebuild</a><span class="st">wiki · wiki.nixos.org</span></span></div>
+      <div class="off"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=fosslinux.com&sz=128" alt=""><span><a href="https://www.fosslinux.com/139835/install-and-use-timeshift-on-fedora.htm">Install and use Timeshift on Fedora</a><span class="st">vendor blog · fosslinux.com</span></span></div>
+      <div class="off"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><span><a href="https://github.com/dotnet/sdk/issues/48973">dotnet/sdk #48973 — libicu76 on Debian trixie</a><span class="st">issue · github.com · ⭐ 3.2k</span></span></div>
+      <div class="off"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><span><a href="https://oneuptime.com/blog/post/2026-03-02-hwe-kernels-ubuntu-lts/view">HWE kernels on Ubuntu LTS</a><span class="st">vendor blog · oneuptime.com</span></span></div>
+      <div class="off"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=ubuntu.com&sz=128" alt=""><span><a href="https://ubuntu.com/kernel/lifecycle">Ubuntu kernel lifecycle</a><span class="st">official · ubuntu.com</span></span></div>
+      <div class="off"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><span><a href="https://www.phoronix.com/news/Ubuntu-Virtualization-HWE-Stack">Ubuntu virtualization HWE stack</a><span class="st">news · phoronix.com</span></span></div>
+      <div class="off"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=tech-insider.org&sz=128" alt=""><span><a href="https://tech-insider.org/au/bazzite-steamos-linux-gaming-3-2-percent-2026/">Bazzite, SteamOS and Linux gaming at 3.2%</a><span class="st">news · tech-insider.org</span></span></div>
+      <div class="off"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=falcao.org&sz=128" alt=""><span><a href="https://falcao.org/posts/distrobox-toolbx-podman-docker/">Distrobox, Toolbx, Podman, Docker</a><span class="st">vendor blog · falcao.org</span></span></div>
+      <div class="off"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=r0x0d.com&sz=128" alt=""><span><a href="https://r0x0d.com/posts/toolbox-ides-and-atomic-desktops/">Toolbox, IDEs and atomic desktops</a><span class="st">vendor blog · r0x0d.com</span></span></div>
+      <div class="off"><span class="n">32</span><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><span><a href="https://oneuptime.com/blog/post/2026-03-18-use-podman-fedora-silverblue/view">Using Podman on Fedora Silverblue</a><span class="st">vendor blog · oneuptime.com</span></span></div>
+      <div class="off"><span class="n">33</span><img src="https://www.google.com/s2/favicons?domain=deepwiki.com&sz=128" alt=""><span><a href="https://deepwiki.com/ublue-os/bluefin-docs/2.5-developer-experience-(bluefin-dx)">Bluefin DX developer experience</a><span class="st">wiki · deepwiki.com</span></span></div>
+      <div class="off"><span class="n">34</span><img src="https://www.google.com/s2/favicons?domain=docs.projectbluefin.io&sz=128" alt=""><span><a href="https://docs.projectbluefin.io/">Bluefin documentation home</a><span class="st">official · docs.projectbluefin.io</span></span></div>
+      <div class="off"><span class="n">35</span><img src="https://www.google.com/s2/favicons?domain=linuxiac.com&sz=128" alt=""><span><a href="https://linuxiac.com/flathub-sees-over-435-million-downloads-in-2025/">Flathub sees over 435 million downloads in 2025</a><span class="st">news · linuxiac.com</span></span></div>
+      <div class="off"><span class="n">36</span><img src="https://www.google.com/s2/favicons?domain=linuxiac.com&sz=128" alt=""><span><a href="https://linuxiac.com/cachyos-topped-distrowatch-rankings/">CachyOS topped DistroWatch rankings</a><span class="st">news · linuxiac.com</span></span></div>
+      <div class="off"><span class="n">37</span><img src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=128" alt=""><span><a href="https://en.wikipedia.org/wiki/CachyOS">CachyOS</a><span class="st">wiki · en.wikipedia.org</span></span></div>
+    </div>
+
+    <div class="colophon">
+      <span>Release-model league · scoreboard view</span>
+      <span>Survey · 37 sources · 30 Jul 2026</span>
+      <span><a href="../">Read the canonical write-up</a></span>
+      <span><a href="../../">Parent expedition</a></span>
+    </div>
+  </section>
+
+</div>
+</div>
