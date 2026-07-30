@@ -1,0 +1,1225 @@
+---
+layout: view
+view_name: "Spec Sheet"
+view_of: ../
+title: "Claude Code's native guardrails in 2026: what the permission model holds, and where it stops — Spec Sheet"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;450;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap');
+
+.ss {
+  --paper:#f2efe7;
+  --paper-2:#e9e5da;
+  --ink:#15171b;
+  --ink-2:#4a4f57;
+  --ink-3:#7c8189;
+  --hair:#c6c0b0;
+  --hair-2:#d8d3c5;
+  --deny:#b23616;
+  --ask:#9a7112;
+  --allow:#2f6b3f;
+  --kernel:#154a3d;
+  --grid:rgba(21,23,27,.045);
+  margin:0;
+  padding:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.ss *{box-sizing:border-box}
+.ss img{max-width:100%;display:block}
+
+/* ── sheet ─────────────────────────────────────────────── */
+.sheet{
+  max-width:1220px;
+  margin:0 auto;
+  padding:clamp(14px,3vw,40px);
+  background:
+    repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, var(--grid) 0 1px, transparent 1px 28px),
+    var(--paper);
+}
+.frame{
+  border:2px solid var(--ink);
+  background:rgba(242,239,231,.72);
+  position:relative;
+}
+.frame::before,.frame::after{
+  content:"";position:absolute;width:14px;height:14px;border:2px solid var(--ink);
+}
+.frame::before{top:6px;left:6px;border-right:0;border-bottom:0}
+.frame::after{bottom:6px;right:6px;border-left:0;border-top:0}
+
+/* ── title block ───────────────────────────────────────── */
+.titleblock{display:grid;grid-template-columns:1fr auto;gap:0;border-bottom:2px solid var(--ink)}
+.tb-main{padding:clamp(18px,2.6vw,34px)}
+.tb-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;
+}
+.tb-eyebrow b{color:var(--deny);font-weight:600}
+.sheet h1{
+  font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif;
+  font-weight:700;font-size:clamp(28px,4.6vw,52px);line-height:1.02;
+  letter-spacing:-.015em;margin:0 0 14px;text-transform:uppercase;
+}
+.tb-sub{font-size:clamp(14px,1.5vw,17px);color:var(--ink-2);max-width:62ch;margin:0}
+.tb-meta{
+  border-left:2px solid var(--ink);
+  display:grid;grid-template-columns:auto;align-content:start;
+  min-width:224px;
+}
+.mrow{display:grid;grid-template-columns:88px 1fr;border-bottom:1px solid var(--hair);font-family:'IBM Plex Mono',monospace;font-size:10.5px}
+.mrow:last-child{border-bottom:0}
+.mrow dt{padding:7px 8px;color:var(--ink-3);letter-spacing:.1em;text-transform:uppercase;border-right:1px solid var(--hair);margin:0}
+.mrow dd{padding:7px 10px;margin:0;font-weight:600;letter-spacing:.04em}
+.tb-emblem{border-bottom:1px solid var(--hair);padding:12px;background:var(--paper-2)}
+.tb-emblem img{width:100%;max-width:180px;margin:0 auto;opacity:.9}
+
+/* ── ratings strip ─────────────────────────────────────── */
+.ratings{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));border-bottom:2px solid var(--ink)}
+.rat{padding:16px 18px;border-right:1px solid var(--hair)}
+.rat:last-child{border-right:0}
+.rat b{display:block;font-family:'IBM Plex Mono',monospace;font-size:clamp(30px,4.4vw,46px);font-weight:600;line-height:1;letter-spacing:-.03em}
+.rat span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-top:9px;line-height:1.45}
+.rat.hot b{color:var(--deny)}
+.rat.cool b{color:var(--kernel)}
+
+/* ── verdict ───────────────────────────────────────────── */
+.verdict{padding:clamp(18px,2.4vw,30px);border-bottom:2px solid var(--ink);background:var(--paper-2)}
+.verdict-lab{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:#fff;background:var(--deny);display:inline-block;padding:4px 9px;margin-bottom:14px;
+}
+.verdict p{margin:0 0 12px;font-size:clamp(15px,1.75vw,19px);line-height:1.5;max-width:88ch}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{font-weight:600}
+
+/* ── sections ──────────────────────────────────────────── */
+.sec{border-bottom:2px solid var(--ink)}
+.sec:last-child{border-bottom:0}
+.sec-head{display:grid;grid-template-columns:auto 1fr;align-items:stretch;border-bottom:1px solid var(--ink)}
+.sec-num{
+  font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;
+  background:var(--ink);color:var(--paper);padding:11px 14px;letter-spacing:.06em;display:flex;align-items:center;
+}
+.sec-title{
+  font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif;font-weight:700;
+  font-size:clamp(15px,2vw,21px);text-transform:uppercase;letter-spacing:.05em;
+  padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.sec-title em{font-family:'IBM Plex Mono',monospace;font-style:normal;font-size:10px;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase;font-weight:400}
+.sec-body{padding:clamp(16px,2.4vw,28px)}
+.lede{font-size:15.5px;color:var(--ink-2);max-width:84ch;margin:0 0 22px}
+.lede:last-child{margin-bottom:0}
+
+/* ── generic datasheet table ───────────────────────────── */
+.scrollx{overflow-x:auto;border:1px solid var(--hair);background:rgba(255,255,255,.42)}
+table.dt{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+table.dt th{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  text-align:left;padding:9px 11px;background:var(--ink);color:var(--paper);font-weight:500;white-space:nowrap;
+}
+table.dt td{padding:10px 11px;border-top:1px solid var(--hair-2);vertical-align:top;line-height:1.45}
+table.dt tbody tr:nth-child(even){background:rgba(21,23,27,.028)}
+table.dt code,.mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.ss code{font-family:'IBM Plex Mono',monospace;font-size:.9em;background:rgba(21,23,27,.07);padding:1px 4px;border-radius:2px;word-break:break-word}
+.nowrap{white-space:nowrap}
+
+/* ── mode ladder ───────────────────────────────────────── */
+.ladder{display:grid;gap:0;border:1px solid var(--hair);background:rgba(255,255,255,.42)}
+.rung{
+  display:grid;grid-template-columns:34px 168px 106px 1fr 1.05fr;
+  border-top:1px solid var(--hair-2);align-items:stretch;
+}
+.rung:first-child{border-top:0}
+.rung.hd{background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase}
+.rung.hd>div{padding:9px 10px;border-left:0}
+.rung>div{padding:11px 12px;border-left:1px solid var(--hair-2)}
+.rung>div:first-child{border-left:0}
+.r-idx{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-3);text-align:center}
+.r-name{font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600}
+.r-name s{display:block;text-decoration:none;font-weight:400;font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+.meter{display:flex;gap:3px;margin-top:3px}
+.meter i{width:9px;height:15px;border:1px solid var(--ink);display:block}
+.meter i.on{background:var(--ink)}
+.meter i.hot{background:var(--deny);border-color:var(--deny)}
+.m-lab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.r-note{font-size:12.5px;color:var(--ink-2)}
+.rung.danger{background:rgba(178,54,22,.06)}
+.rung.danger .r-name{color:var(--deny)}
+kbd{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;border:1px solid var(--ink);
+  padding:1px 5px;background:var(--paper);box-shadow:1px 1px 0 var(--ink);display:inline-block;margin:2px 3px 2px 0;
+}
+
+/* ── invariant bracket ─────────────────────────────────── */
+.invariant{
+  margin-top:16px;border:2px solid var(--kernel);background:rgba(21,74,61,.06);
+  display:grid;grid-template-columns:auto 1fr;
+}
+.invariant .tag{
+  background:var(--kernel);color:#f2efe7;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;padding:12px 12px;writing-mode:horizontal-tb;display:flex;align-items:center;
+}
+.invariant .body{padding:12px 16px;font-size:13.5px}
+.invariant .body b{font-weight:600}
+
+/* ── gate flow ─────────────────────────────────────────── */
+.gates{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin-bottom:6px}
+.gate{border:2px solid var(--ink);padding:12px 16px;min-width:150px;flex:1 1 150px;background:rgba(255,255,255,.5)}
+.gate + .arrow{align-self:center;font-family:'IBM Plex Mono',monospace;font-size:20px;padding:0 10px;color:var(--ink-3)}
+.gate b{display:block;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;letter-spacing:.02em}
+.gate span{display:block;font-size:11.5px;color:var(--ink-2);margin-top:5px;line-height:1.4}
+.gate.d{border-color:var(--deny)}.gate.d b{color:var(--deny)}
+.gate.a{border-color:var(--ask)}.gate.a b{color:var(--ask)}
+.gate.w{border-color:var(--allow)}.gate.w b{color:var(--allow)}
+.firstmatch{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:10px 0 0}
+
+/* ── precedence stack ─────────────────────────────────── */
+.stack{margin-top:24px;display:grid;gap:5px}
+.plate{
+  display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:0;
+  border:1px solid var(--ink);background:rgba(255,255,255,.5);
+}
+.plate>div{padding:10px 12px}
+.plate .pn{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;background:var(--ink);color:var(--paper);text-align:center;height:100%;display:flex;align-items:center;justify-content:center}
+.plate .pp{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+.plate .pn2{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:right}
+.plate.top{border:2px solid var(--deny);background:rgba(178,54,22,.07)}
+.plate.top .pn{background:var(--deny)}
+.plate.top .pn2{color:var(--deny)}
+
+/* ── spec blocks (matcher syntax) ─────────────────────── */
+.specs{display:grid;gap:20px}
+.spec{border:1px solid var(--ink)}
+.spec-h{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+  background:var(--ink);color:var(--paper);padding:9px 13px;
+}
+.spec-h b{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.02em}
+.spec-h span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;opacity:.72}
+.spec-b{padding:14px 15px;background:rgba(255,255,255,.42)}
+.spec-b > p{margin:0 0 12px;font-size:13.5px;color:var(--ink-2);max-width:80ch}
+.spec-b > p:last-child{margin-bottom:0}
+.pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:0;border:1px solid var(--hair);margin:0 0 12px}
+.pair{border-right:1px solid var(--hair)}
+.pair:last-child{border-right:0}
+.pair h4{
+  margin:0;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  padding:7px 11px;border-bottom:1px solid var(--hair);font-weight:500;
+}
+.pair.y h4{background:rgba(47,107,63,.13);color:var(--allow)}
+.pair.n h4{background:rgba(178,54,22,.11);color:var(--deny)}
+.pair ul{list-style:none;margin:0;padding:9px 11px}
+.pair li{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:3px 0;line-height:1.4;word-break:break-word}
+.pair li::before{content:"— ";color:var(--ink-3)}
+
+/* ── notes / hazards ──────────────────────────────────── */
+.hazard{
+  border:2px solid var(--deny);background:rgba(178,54,22,.07);padding:13px 16px;margin:18px 0 0;
+  display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;
+}
+.hazard .glyph{font-size:30px;line-height:1;color:var(--deny)}
+.hazard b{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--deny);margin-bottom:5px}
+.hazard p{margin:0;font-size:13.5px}
+.note{
+  border-left:3px solid var(--ink-3);padding:2px 0 2px 14px;margin:16px 0 0;font-size:13.5px;color:var(--ink-2);
+}
+
+/* ── code listings ────────────────────────────────────── */
+figure.listing{margin:18px 0 0;border:1px solid var(--ink);background:#15171b}
+figure.listing figcaption{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--paper);padding:8px 12px;border-bottom:1px solid #33373d;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+figure.listing figcaption i{font-style:normal;opacity:.6}
+figure.listing pre{
+  margin:0;padding:14px 14px;overflow-x:auto;color:#dfdbd0;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.6;
+}
+figure.listing pre b{color:#f0a35e;font-weight:400}
+figure.listing pre i{color:#7f868e;font-style:normal}
+figure.listing pre u{color:#8fbf9f;text-decoration:none}
+
+/* ── plates (images) ──────────────────────────────────── */
+.plates{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0 0}
+.plate-fig{margin:0;border:1px solid var(--ink);background:rgba(255,255,255,.5)}
+.plate-fig img{width:100%;height:132px;object-fit:cover;border-bottom:1px solid var(--ink);filter:saturate(.82)}
+.plate-fig figcaption{padding:9px 11px;font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.5;color:var(--ink-2)}
+.plate-fig figcaption b{display:block;color:var(--ink);letter-spacing:.1em;text-transform:uppercase;font-size:9.5px;margin-bottom:4px}
+.plate-wide{margin:20px 0 0;border:1px solid var(--ink);background:rgba(255,255,255,.5)}
+.plate-wide img{width:100%;height:clamp(140px,22vw,230px);object-fit:cover;border-bottom:1px solid var(--ink);filter:saturate(.8)}
+.plate-wide figcaption{padding:10px 13px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-2);line-height:1.55}
+.plate-wide figcaption b{color:var(--ink);letter-spacing:.1em;text-transform:uppercase;font-size:9.5px}
+
+/* ── classification key ──────────────────────────────── */
+.classkey{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border:1px solid var(--ink);margin:0 0 22px}
+.ck{padding:12px 13px;border-right:1px solid var(--hair)}
+.ck:last-child{border-right:0}
+.ck b{display:block;font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1}
+.ck span{display:block;font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.4}
+.ck.a b{color:var(--ink-3)}
+.ck.b b{color:var(--ask)}
+.ck.c b{color:var(--kernel)}
+.ck.d b{color:var(--kernel)}
+.ck.e b{color:var(--allow)}
+.chip{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;
+  border:1px solid currentColor;padding:1px 6px;display:inline-block;
+}
+.chip.a{color:var(--ink-3)}
+.chip.b{color:var(--ask)}
+.chip.c,.chip.d{color:var(--kernel)}
+.chip.e{color:var(--allow)}
+
+/* ── the boundary row ─────────────────────────────────── */
+table.matrix{min-width:760px}
+table.matrix td{font-size:12.5px}
+table.matrix tr.upper td{background:rgba(154,113,18,.05)}
+table.matrix tr.lower td{background:rgba(21,74,61,.055)}
+table.matrix tr.bnd td{
+  background:var(--ink);color:var(--paper);padding:0;border-top:0;
+}
+.bnd-in{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:11px 12px;
+  border-top:3px double var(--paper);border-bottom:3px double var(--paper);}
+.bnd-in span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;line-height:1.5}
+.bnd-in .up{text-align:left;opacity:.82}
+.bnd-in .dn{text-align:right;opacity:.82}
+.bnd-in .lbl{
+  font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif;font-weight:700;
+  font-size:clamp(12px,1.7vw,17px);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+  border:1px solid var(--paper);padding:4px 11px;
+}
+.hold{color:var(--allow);font-weight:600}
+.fail{color:var(--deny);font-weight:600}
+
+/* ── posture cards ───────────────────────────────────── */
+.posture{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+.pc{border:1px solid var(--ink);background:rgba(255,255,255,.5);display:flex;flex-direction:column}
+.pc-h{background:var(--ink);color:var(--paper);padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.pc.max .pc-h{background:var(--kernel)}
+.pc-b{padding:13px}
+.pc-b h4{margin:0 0 8px;font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.03em}
+.pc-b p{margin:0 0 9px;font-size:13px;color:var(--ink-2);line-height:1.5}
+.pc-b p:last-child{margin-bottom:0}
+
+/* ── source register ─────────────────────────────────── */
+.srcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0;border:1px solid var(--hair)}
+.src{display:grid;grid-template-columns:24px 1fr;gap:9px;padding:9px 11px;border-top:1px solid var(--hair-2);border-right:1px solid var(--hair-2);align-items:start}
+.src img{width:16px;height:16px;margin-top:3px}
+.src .n{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-3)}
+.src a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--hair);font-size:12.5px;font-weight:500;word-break:break-word}
+.src a:hover{border-bottom-color:var(--deny);color:var(--deny)}
+.src .st{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);display:block;margin-top:3px}
+
+/* ── series index ────────────────────────────────────── */
+.series{display:grid;gap:0;border:1px solid var(--ink)}
+.sheet-row{display:grid;grid-template-columns:56px 1fr auto;border-top:1px solid var(--hair-2);align-items:center}
+.sheet-row:first-child{border-top:0}
+.sheet-row.self{background:rgba(178,54,22,.07)}
+.sheet-row>div{padding:11px 12px}
+.sheet-row .sn{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-3);border-right:1px solid var(--hair-2);text-align:center}
+.sheet-row a{color:var(--ink);text-decoration:none;font-weight:600;font-size:14px;border-bottom:1px solid var(--hair)}
+.sheet-row a:hover{color:var(--deny);border-bottom-color:var(--deny)}
+.sheet-row p{margin:4px 0 0;font-size:12.5px;color:var(--ink-2);max-width:80ch}
+.sheet-row .dp{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);border-left:1px solid var(--hair-2);white-space:nowrap}
+.sheet-row .cur{color:var(--deny);font-weight:600}
+
+/* ── colophon ────────────────────────────────────────── */
+.colophon{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));border-top:2px solid var(--ink);
+}
+.co{padding:13px 15px;border-right:1px solid var(--hair);font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.6}
+.co:last-child{border-right:0}
+.co b{display:block;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
+.co a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--hair)}
+.co a:hover{color:var(--deny)}
+.ss sup a{color:var(--deny);text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:9.5px}
+.ss sup a:hover{text-decoration:underline}
+.ss .ent{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--hair-2);font-weight:500}
+.ss .ent:hover{color:var(--deny);border-bottom-color:var(--deny)}
+
+@media (max-width:820px){
+  .titleblock{grid-template-columns:1fr}
+  .tb-meta{border-left:0;border-top:2px solid var(--ink)}
+  .rung{grid-template-columns:28px 1fr}
+  .rung>div:nth-child(3),.rung>div:nth-child(4),.rung>div:nth-child(5){grid-column:2;border-left:0;border-top:1px dotted var(--hair-2);padding-top:8px}
+  .rung.hd{display:none}
+  .bnd-in{grid-template-columns:1fr;text-align:left}
+  .bnd-in .dn{text-align:left}
+}
+</style>
+
+<div class="ss">
+<div class="sheet">
+<div class="frame">
+
+  <!-- ═══ TITLE BLOCK ═══ -->
+  <div class="titleblock">
+    <div class="tb-main">
+      <div class="tb-eyebrow">Reference sheet &nbsp;·&nbsp; agent containment &nbsp;·&nbsp; <b>class A → class E</b></div>
+      <h1>Claude Code<br>Permission Model</h1>
+      <p class="tb-sub">The six-mode ladder, the matcher grammar tool by tool, and the enforcement matrix that marks exactly where control stops being a string comparison and starts being a refused syscall.</p>
+    </div>
+    <dl class="tb-meta">
+      <div class="tb-emblem"><img src="../cover.svg" alt="Sheet emblem for the guardrails research page"></div>
+      <div class="mrow"><dt>Series</dt><dd>Claude&nbsp;Code&nbsp;safety</dd></div>
+      <div class="mrow"><dt>Sheet</dt><dd>02 of 07</dd></div>
+      <div class="mrow"><dt>Rev</dt><dd>2026-07-30</dd></div>
+      <div class="mrow"><dt>Depth</dt><dd>expedition</dd></div>
+      <div class="mrow"><dt>Sources</dt><dd>40 cited</dd></div>
+      <div class="mrow"><dt>Read</dt><dd>26 min</dd></div>
+    </dl>
+  </div>
+
+  <!-- ═══ RATINGS ═══ -->
+  <div class="ratings">
+    <div class="rat"><b>6</b><span>Permission modes<br>(not four)</span></div>
+    <div class="rat cool"><b>2</b><span>Controls that hold<br>in every mode</span></div>
+    <div class="rat cool"><b>1</b><span>Layer with<br>OS teeth</span></div>
+    <div class="rat hot"><b>3</b><span>CVEs / silent<br>patches on record</span></div>
+    <div class="rat hot"><b>0</b><span>Built-in credential<br>deny list</span></div>
+  </div>
+
+  <!-- ═══ VERDICT ═══ -->
+  <div class="verdict">
+    <span class="verdict-lab">Verdict — read this line first</span>
+    <p><strong>Claude Code's permission rules are a policy layer inside the agent's own process, not a security boundary.</strong> The docs say it outright: “Permission rules are enforced by Claude Code, not by the model” <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>, and Anthropic's deployment guide calls the Bash command parser “a permission gate, not a sandbox” <sup><a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">[12]</a></sup>.</p>
+    <p>The only piece with OS teeth is the sandboxed Bash tool — <a class="ent" href="https://github.com/containers/bubblewrap">bubblewrap</a> plus an optional seccomp filter on Linux — and it constrains Bash subprocesses only, never Read/Edit, MCP servers, or hooks <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup><sup><a href="https://code.claude.com/docs/en/sandbox-environments">[4]</a></sup>. Two controls hold in <em>every</em> mode including <code>bypassPermissions</code>: <code>permissions.deny</code> rules, and a <code>PreToolUse</code> hook that returns <code>deny</code> <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup>. Everything else is ergonomics and blast-radius reduction. <strong>Put the real boundary at the OS.</strong></p>
+  </div>
+
+  <!-- ═══ §1 MODES ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§1</div><div class="sec-title">Operating modes <em>the six-rung ladder</em></div></div>
+    <div class="sec-body">
+      <p class="lede"><code>auto</code> (a classifier gate) and <code>dontAsk</code> (auto-deny) are new relative to the four most guides still list. <code>default</code> is now labelled <strong>Manual</strong> in the UI, with <code>manual</code> accepted as an alias <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup>. The meter reads autonomy granted without a prompt, not safety.</p>
+
+      <div class="ladder">
+        <div class="rung hd">
+          <div>#</div><div>Mode</div><div>Autonomy</div><div>Runs without asking</div><div>Set with / notes</div>
+        </div>
+
+        <div class="rung">
+          <div class="r-idx">01</div>
+          <div class="r-name">default<s>alias: manual</s></div>
+          <div><span class="meter"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="m-lab">reads only</span></div>
+          <div class="r-note">Read-only tools, plus the built-in read-only Bash set.</div>
+          <div class="r-note"><kbd>Shift+Tab</kbd> <kbd>--permission-mode default</kbd> <code>defaultMode</code>. Status bar shows <code>⏸ manual mode on</code>.</div>
+        </div>
+
+        <div class="rung">
+          <div class="r-idx">02</div>
+          <div class="r-name">plan</div>
+          <div><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="m-lab">reads + shell</span></div>
+          <div class="r-note">Reads; classifier-approved shell where auto mode is available.</div>
+          <div class="r-note"><kbd>Shift+Tab</kbd> <kbd>/plan</kbd> <kbd>--permission-mode plan</kbd>. Edits blocked until you approve the plan.</div>
+        </div>
+
+        <div class="rung">
+          <div class="r-idx">03</div>
+          <div class="r-name">dontAsk</div>
+          <div><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="m-lab">allowlist only</span></div>
+          <div class="r-note"><code>permissions.allow</code> matches, built-in read-only Bash, and hook <code>allow</code> — nothing else. Auto-<strong>denies</strong> anything that would prompt.</div>
+          <div class="r-note"><kbd>--permission-mode dontAsk</kbd> only. Never appears in the <kbd>Shift+Tab</kbd> cycle.</div>
+        </div>
+
+        <div class="rung danger">
+          <div class="r-idx">04</div>
+          <div class="r-name">acceptEdits</div>
+          <div><span class="meter"><i class="on"></i><i class="on"></i><i class="hot"></i><i></i><i></i><i></i></span><span class="m-lab">writes in cwd</span></div>
+          <div class="r-note">Reads, file edits, and <code>mkdir touch rm rmdir mv cp sed</code> inside the working directory. <strong>⚠ <code>rm</code> is auto-approved here.</strong></div>
+          <div class="r-note"><kbd>Shift+Tab</kbd> <kbd>--permission-mode acceptEdits</kbd>.</div>
+        </div>
+
+        <div class="rung">
+          <div class="r-idx">05</div>
+          <div class="r-name">auto</div>
+          <div><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="m-lab">classifier-gated</span></div>
+          <div class="r-note">Everything, gated per action by a separate classifier model. It sees your messages, tool calls and CLAUDE.md — but <strong>tool results are stripped</strong>, so hostile file content can't address it directly.</div>
+          <div class="r-note"><kbd>Shift+Tab</kbd> when available; <code>defaultMode: "auto"</code> in <strong>user</strong> settings only — a repo can't self-authorise auto mode.</div>
+        </div>
+
+        <div class="rung danger">
+          <div class="r-idx">06</div>
+          <div class="r-name">bypassPermissions</div>
+          <div><span class="meter"><i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="hot"></i></span><span class="m-lab">everything</span></div>
+          <div class="r-note">Everything. Protected-path writes included, skipped since v2.1.126.</div>
+          <div class="r-note"><kbd>--dangerously-skip-permissions</kbd> <kbd>--permission-mode bypassPermissions</kbd> <code>defaultMode</code>. Cannot be entered from a session that didn't start with it.</div>
+        </div>
+      </div>
+
+      <div class="invariant">
+        <div class="tag">Mode-independent</div>
+        <div class="body">
+          <b>Deny rules and explicit <code>ask</code> rules apply in every mode, including <code>bypassPermissions</code>.</b> Allow rules are the only category that becomes irrelevant there <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup>.
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Protected paths</strong> are never auto-approved outside <code>bypassPermissions</code>: <code>.git</code>, <code>.config/git</code>, <code>.claude</code> (except <code>.claude/worktrees</code>), <code>.vscode</code>, <code>.idea</code>, <code>.husky</code>, <code>.cargo</code>, <code>.devcontainer</code>, <code>.yarn</code>, <code>.mvn</code>, plus <code>.bashrc</code>, <code>.zshrc</code>, <code>.envrc</code>, <code>.npmrc</code>, <code>bunfig.toml</code>, <code>.pre-commit-config.yaml</code>, <code>.mcp.json</code>, <code>.claude.json</code>. Critically, <code>permissions.allow</code> <strong>cannot</strong> pre-approve a protected-path write — the safety check runs before allow rules are evaluated <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup>.
+      </div>
+
+      <div class="note">
+        Entering <code>auto</code> mode <strong>drops</strong> broad allow rules that grant arbitrary code execution — blanket <code>Bash(*)</code>/<code>PowerShell(*)</code>, wildcarded interpreters like <code>Bash(python*)</code>, package-manager run commands, and <code>Agent</code> rules. Narrow rules like <code>Bash(npm test)</code> carry over, and that carry-over is itself a hole; <code>autoMode.classifyAllShell: true</code> closes it <sup><a href="https://code.claude.com/docs/en/auto-mode-config">[13]</a></sup>. Boundaries stated in chat (“don't push”) are honoured but <strong>not stored as rules</strong> — context compaction can lose them. For a hard guarantee, write a deny rule <sup><a href="https://code.claude.com/docs/en/auto-mode-config">[13]</a></sup>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §2 EVALUATION ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§2</div><div class="sec-title">Evaluation order &amp; settings precedence <em>first match wins</em></div></div>
+    <div class="sec-body">
+      <div class="gates">
+        <div class="gate d"><b>1 · DENY</b><span>Blocks. Applies in every mode. Cannot carry allowlist exceptions.</span></div>
+        <div class="arrow">▸</div>
+        <div class="gate a"><b>2 · ASK</b><span>Forces a prompt. Applies in every mode.</span></div>
+        <div class="arrow">▸</div>
+        <div class="gate w"><b>3 · ALLOW</b><span>Skips the prompt. Irrelevant under <code>bypassPermissions</code>.</span></div>
+        <div class="arrow">▸</div>
+        <div class="gate"><b>4 · PROMPT</b><span>Fail-closed default: unparseable commands and anything &gt;10,000 chars always prompt.</span></div>
+      </div>
+      <p class="firstmatch">Specificity does not reorder anything · a broad <code>Bash(aws *)</code> deny blocks a narrower <code>Bash(aws s3 ls)</code> allow <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup></p>
+
+      <div class="note">
+        A <strong>bare tool name</strong> (<code>Bash</code>) in deny removes the tool from Claude's context entirely; a <strong>scoped rule</strong> (<code>Bash(rm *)</code>) leaves the tool present and blocks matching calls. <code>EndConversation</code> is the one tool a deny/ask rule can't remove while any other tool remains <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/tools-reference">[14]</a></sup>.
+      </div>
+
+      <div class="stack">
+        <div class="plate top"><div class="pn">1</div><div class="pp">/etc/claude-code/managed-settings.json &nbsp;<i>+ managed-settings.d/</i></div><div class="pn2">cannot be overridden — incl. CLI args</div></div>
+        <div class="plate"><div class="pn">2</div><div class="pp">command-line arguments</div><div class="pn2">session overrides</div></div>
+        <div class="plate"><div class="pn">3</div><div class="pp">.claude/settings.local.json</div><div class="pn2">local project</div></div>
+        <div class="plate"><div class="pn">4</div><div class="pp">.claude/settings.json</div><div class="pn2">project</div></div>
+        <div class="plate"><div class="pn">5</div><div class="pp">~/.claude/settings.json</div><div class="pn2">user — lowest</div></div>
+      </div>
+
+      <div class="note">
+        Permission rules <strong>merge</strong> across scopes rather than replace, and “if a tool is denied at any level, no other level can allow it” — a user-level deny beats a project-level allow and vice versa <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/settings">[8]</a></sup>.
+      </div>
+
+      <div class="hazard">
+        <div class="glyph">⌂</div>
+        <div>
+          <b>Two scope traps on a single-user Linux box</b>
+          <p><strong>Project <code>allow</code> rules need workspace trust.</strong> <code>permissions.allow</code> and <code>additionalDirectories</code> in a repo's <code>.claude/settings.json</code> apply only after you accept the trust dialog; <code>deny</code> and <code>ask</code> are unaffected because they only restrict <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>. <strong>Starting Claude in <code>$HOME</code> is a trap:</strong> trust acceptance there is session-only, never written to disk, with no setting to persist it <sup><a href="https://code.claude.com/docs/en/security">[5]</a></sup> — and a <code>/path</code> pattern in <em>user</em> settings anchors at <code>~/.claude</code>, not the filesystem root, so <code>Read(/secrets/**)</code> in <code>~/.claude/settings.json</code> blocks <code>~/.claude/secrets/**</code> and nothing else <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §3 MATCHER SYNTAX ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§3</div><div class="sec-title">Matcher syntax, tool by tool <em>form: Tool or Tool(specifier) · Bash(*) ≡ Bash</em></div></div>
+    <div class="sec-body">
+      <div class="specs">
+
+        <div class="spec">
+          <div class="spec-h"><b>Bash · PowerShell · Monitor</b><span>glob at any position · word boundary via the space</span></div>
+          <div class="spec-b">
+            <div class="pairs">
+              <div class="pair y"><h4>Matches</h4><ul>
+                <li>Bash(ls *) → <code>ls -la</code></li>
+                <li>Bash(ls*) → <code>ls -la</code> and <code>lsof</code></li>
+                <li>Bash(ls:*) — trailing-wildcard spelling, end of pattern only</li>
+                <li>deny Bash(rm *) → <code>FOO=bar rm -rf tmp/</code></li>
+              </ul></div>
+              <div class="pair n"><h4>Does not match</h4><ul>
+                <li>Bash(ls *) → <code>lsof</code></li>
+                <li>Bash(safe-cmd *) → <code>safe-cmd &amp;&amp; other-cmd</code></li>
+                <li>Bash(command:rm *) — ignored, startup warning</li>
+              </ul></div>
+            </div>
+            <p>Commands are parsed to an AST and split on <code>&amp;&amp;</code> <code>||</code> <code>;</code> <code>|</code> <code>|&amp;</code> <code>&amp;</code> and newlines — <strong>every subcommand must match independently</strong> <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">[12]</a></sup>. PowerShell rules use the same shape, are case-insensitive, and canonicalise aliases (<code>Get-ChildItem</code> also matches <code>gci</code>, <code>ls</code>, <code>dir</code>).</p>
+            <p><strong>Wrapper strip list — fixed, non-configurable:</strong> <code>timeout</code>, <code>time</code>, <code>nice</code>, <code>nohup</code>, <code>stdbuf</code>, builtins <code>command</code> and <code>builtin</code>, zsh <code>noglob</code>, and bare <code>xargs</code> (no flags). Leading assignments of <em>known-safe</em> env vars are stripped for allow rules; deny and ask rules match past <strong>any</strong> leading assignment — a real bypass in v2.1.70, now closed <sup><a href="https://github.com/anthropics/claude-code/issues/31558">[33]</a></sup>.</p>
+            <p><strong>Built-in read-only set, no prompt in any mode, not configurable:</strong> <code>ls cat echo pwd head tail grep find wc which diff stat du cd</code> and read-only <code>git</code>. To gate one, add an <code>ask</code> or <code>deny</code> rule <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</p>
+          </div>
+        </div>
+
+        <div class="spec">
+          <div class="spec-h"><b>Read · Edit</b><span>gitignore syntax · four anchors · symlink pair check</span></div>
+          <div class="spec-b">
+            <p><code>Edit</code> rules cover all file-editing tools; <code>Read</code> rules are best-effort applied to Grep, Glob, LSP, <code>@file</code> mentions and IDE-shared context <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/tools-reference">[14]</a></sup>.</p>
+            <div class="scrollx" style="margin-bottom:12px">
+              <table class="dt" style="min-width:520px">
+                <thead><tr><th style="width:22%">Pattern</th><th style="width:34%">Anchor</th><th>Example</th></tr></thead>
+                <tbody>
+                  <tr><td><code>//path</code></td><td>filesystem root</td><td><code>Read(//Users/alice/secrets/**)</code></td></tr>
+                  <tr><td><code>~/path</code></td><td>home directory</td><td><code>Read(~/Documents/*.pdf)</code></td></tr>
+                  <tr><td><code>/path</code></td><td><strong>the settings source</strong> — not root</td><td><code>Edit(/src/**/*.ts)</code></td></tr>
+                  <tr><td><code>path</code> · <code>./path</code></td><td>current directory</td><td><code>Read(*.env)</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pairs">
+              <div class="pair y"><h4>Holds</h4><ul>
+                <li>deny <code>src/**</code> matches a <code>src</code> dir at <em>any</em> depth</li>
+                <li><code>Read(.env)</code> ≡ <code>Read(**/.env)</code> — gitignore rules</li>
+                <li>deny fires if <em>either</em> the link path or the resolved target matches</li>
+              </ul></div>
+              <div class="pair n"><h4>Silently useless</h4><ul>
+                <li><code>/Users/alice/file</code> is <em>not</em> absolute — one slash anchors at the settings source</li>
+                <li><code>Write(C:\Users\matth\.claude\*.json)</code> — Windows paths normalise to <code>/c/Users/…</code>, so it never matches</li>
+                <li>path rules on <code>Write</code>, <code>NotebookEdit</code>, <code>Glob</code>, <code>MultiEdit</code> — accepted, never consulted, warned at startup</li>
+                <li>allow <code>src/**</code> matches only <code>&lt;cwd&gt;/src</code>, not any depth</li>
+              </ul></div>
+            </div>
+            <p>Only <code>Edit(path)</code> and <code>Read(path)</code> are consulted for file checks — use those two spellings <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>. Symlinks are checked as a pair, asymmetrically: <strong>allow</strong> requires <em>both</em> link and target to match (otherwise it prompts), <strong>deny</strong> fires if <em>either</em> matches. That asymmetry was added after CVE-2026-25724, where deny rules were simply not enforced through symlinks <sup><a href="https://github.com/advisories/GHSA-4q92-rfm6-2cqx">[27]</a></sup>. The Windows-path footgun is the cause of at least one reported “deny rules bypassed” issue <sup><a href="https://github.com/anthropics/claude-code/issues/26315">[37]</a></sup>.</p>
+          </div>
+        </div>
+
+        <div class="spec">
+          <div class="spec-h"><b>WebFetch</b><span>hostname match, case-insensitive</span></div>
+          <div class="spec-b">
+            <div class="pairs">
+              <div class="pair y"><h4>Matches</h4><ul>
+                <li><code>domain:*.example.com</code> → subdomains at any depth</li>
+                <li><code>domain:example.*</code> → <code>example.org</code></li>
+              </ul></div>
+              <div class="pair n"><h4>Does not match</h4><ul>
+                <li><code>domain:*.example.com</code> → the apex <code>example.com</code></li>
+                <li><code>domain:example.*</code> → <code>example.evil.com</code> — deliberate: a wildcard matches only between two dots, so a trailing wildcard can't be claimed by a registrable domain</li>
+              </ul></div>
+            </div>
+            <div class="hazard" style="margin-top:0">
+              <div class="glyph">⚠</div>
+              <div>
+                <b>The documented limit</b>
+                <p>“Using WebFetch alone doesn't prevent network access. If Bash is allowed, Claude can still use <code>curl</code>, <code>wget</code>, or other tools to reach any URL” <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <div class="spec-h"><b>MCP · Agent · Cd · parameter matching</b><span>anchoring rules differ by rule type</span></div>
+          <div class="spec-b">
+            <div class="scrollx">
+              <table class="dt" style="min-width:600px">
+                <thead><tr><th style="width:29%">Form</th><th>Semantics</th></tr></thead>
+                <tbody>
+                  <tr><td><code>mcp__puppeteer</code><br><code>mcp__puppeteer__*</code><br><code>mcp__puppeteer__puppeteer_navigate</code></td><td>Whole server, glob, or single tool. Deny/ask accept tool-name globs — <code>"mcp__*"</code> kills every MCP tool. <strong>Allow</strong> globs must be anchored after a literal, glob-free <code>mcp__&lt;server&gt;__</code> prefix; an unanchored allow glob like <code>"*"</code> or <code>"mcp__*"</code> is skipped with a warning.</td></tr>
+                  <tr><td><code>Agent(Explore)</code><br><code>Agent(my-custom-agent)</code></td><td>Gates subagents by name.</td></tr>
+                  <tr><td><code>Cd(~/code/**)</code></td><td>Gates the <code>/cd</code> command. Adding <em>any</em> <code>Cd</code> allow rule flips <code>/cd</code> to allowlist mode. Deny rules check every symlink hop.</td></tr>
+                  <tr><td><code>Tool(param:value)</code><br><span class="m-lab">deny / ask only</span></td><td>Any top-level scalar input: <code>Agent(model:opus)</code>, <code>Bash(run_in_background:true)</code>, <code>Bash(dangerouslyDisableSandbox:true)</code>. You <strong>cannot</strong> match a tool's primary content field (<code>command</code>, <code>file_path</code>, <code>url</code>, <code>path</code>) — <code>Bash(command:rm *)</code> is ignored with a startup warning, precisely because a compound command would bypass it.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="margin-top:12px">All four forms per the permissions reference <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §4 LEAKS ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§4</div><div class="sec-title">Derating table — where the matcher leaks <em>most of this is documented by Anthropic itself</em></div></div>
+    <div class="sec-body">
+      <p class="lede">The honest list of what an allowlist will not do for you. Rows marked <span class="chip a">FIXED</span> were live bypasses that shipped.</p>
+      <div class="scrollx">
+        <table class="dt">
+          <thead><tr><th style="width:20%">Leak</th><th>Mechanism</th><th style="width:14%">Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Environment runners</strong></td><td><code>direnv exec</code>, <code>devbox run</code>, <code>mise exec</code>, <code>npx</code>, <code>docker exec</code> are <strong>not</strong> in the wrapper-strip list, so <code>Bash(devbox run *)</code> matches <code>devbox run rm -rf .</code></td><td>by design <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup></td></tr>
+            <tr><td><strong>Argument-constraining patterns</strong></td><td><code>Bash(curl http://github.com/ *)</code> misses <code>curl -X GET http://github.com/…</code>, <code>https://</code>, <code>-L</code> redirects, <code>URL=… &amp;&amp; curl $URL</code>, and double spaces</td><td>by design <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup></td></tr>
+            <tr><td><strong>Indirect file access</strong></td><td>Read/Edit deny rules cover built-in tools and recognised Bash file commands (<code>cat</code>, <code>head</code>, <code>sed</code>) — <strong>not</strong> “arbitrary subprocesses that read or write files indirectly, like a Python or Node script”</td><td>by design <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup></td></tr>
+            <tr><td><strong>Path-identity evasion</strong></td><td>A deny on <code>npx</code>/<code>node</code> defeated by <code>/proc/self/root/usr/bin/npx</code> — “resolves to the same binary but doesn't match the deny pattern”</td><td>open <sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[25]</a></sup></td></tr>
+            <tr><td><strong>Loader invocation</strong></td><td>Even SHA-256 execution blocking fell to <code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 /usr/bin/wget …</code> — loading via <code>mmap</code> instead of <code>execve</code></td><td>open <sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[25]</a></sup></td></tr>
+            <tr><td><strong>Subagents</strong></td><td>Sub-agents spawned via the Task tool ran 22+ Bash commands (<code>ls -la ~/.ssh/</code>, <code>tail ~/.bash_history</code>, <code>find / -perm -4000</code>) after a single Task approval, with <code>Bash</code> in the deny list</td><td>closed as duplicate of four older permission-inheritance issues <sup><a href="https://github.com/anthropics/claude-code/issues/25000">[34]</a></sup></td></tr>
+            <tr><td><strong>Attachment traversal</strong></td><td><code>@../Library/Security/KeyIV.cs</code> read a file that <code>Read(**/Security/**)</code> correctly blocked through the Read tool</td><td>closed as not planned <sup><a href="https://github.com/anthropics/claude-code/issues/61148">[35]</a></sup></td></tr>
+            <tr><td><strong>Subcommand-count fallback</strong></td><td>Prefixing a denied <code>curl</code> with 50 <code>true</code> commands produced “Command splits into 51 subcommands, too many to safety-check individually. Do you want to proceed?” — the deny rule never evaluated. Traced to an internal perf ticket capping analysis at 50 subcommands</td><td><span class="chip a">FIXED</span> v2.1.90 <sup><a href="https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/">[32]</a></sup></td></tr>
+            <tr><td><strong>Read deny not enforced</strong></td><td>Separate reports of <code>Read</code> deny patterns for <code>.env</code> not being applied</td><td>reported <sup><a href="https://github.com/anthropics/claude-code/issues/24846">[36]</a></sup></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        The docs' own remedy, verbatim: “Bash permission patterns that try to constrain command arguments are fragile.” Use deny rules on <code>curl</code>/<code>wget</code>, use <code>WebFetch(domain:…)</code> for allowed domains, use <code>PreToolUse</code> hooks to validate URLs, and treat CLAUDE.md guidance as steering that “doesn't enforce a boundary, so pair it with one of the options above” <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.
+      </div>
+
+      <figure class="plate-wide">
+        <img src="spec-sheet/images/ona-denylist-escape.webp" alt="Cover graphic from the Ona write-up on escaping Claude Code's denylist and sandbox">
+        <figcaption><b>Plate 1 — field report.</b> The <a class="ent" href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">Ona</a> write-up chains three of the rows above and lands on the structural point: denylists operate in “the same space the agent reasons in: userspace, language, logic.” Its conclusion — “No single control solves this” <sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[25]</a></sup>.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ═══ §5 HOOKS ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§5</div><div class="sec-title">Hooks — the one gate that survives persuasion <em>PreToolUse</em></div></div>
+    <div class="sec-body">
+      <div class="invariant" style="margin-top:0;margin-bottom:22px">
+        <div class="tag">Quoted spec</div>
+        <div class="body">
+          “<code>PreToolUse</code> hooks fire before any permission-mode check, in every permission mode, including <code>dontAsk</code>. A hook that returns <code>permissionDecision: "deny"</code> blocks the tool even in <code>bypassPermissions</code> mode or with <code>--dangerously-skip-permissions</code>. This lets you enforce policy that users can't bypass by changing their permission mode.” <sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup>
+        </div>
+      </div>
+
+      <p class="lede">It is one-directional. A hook returning <code>"allow"</code> skips the prompt but <strong>cannot</strong> override a settings deny rule, an ask rule, an org-<code>ask</code> connector tool, or a <code>requiresUserInteraction</code> MCP tool: “hooks can tighten restrictions but not loosen them past what permission rules allow” <sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup><sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</p>
+
+      <div class="scrollx">
+        <table class="dt" style="min-width:560px">
+          <thead><tr><th style="width:12%">Exit</th><th style="width:30%">Meaning</th><th>Blocks on</th></tr></thead>
+          <tbody>
+            <tr><td><code>0</code></td><td>Success — stdout parsed as JSON for structured control</td><td>—</td></tr>
+            <tr><td><code>2</code></td><td><strong>Blocking</strong> error — stderr becomes the reason Claude sees</td><td><code>PreToolUse</code>, <code>PermissionRequest</code>, <code>UserPromptSubmit</code>, <code>UserPromptExpansion</code>, <code>Stop</code>, <code>SubagentStop</code>, <code>TaskCreated</code>, <code>ConfigChange</code>. <span class="fail">Not</span> <code>PostToolUse</code>, <code>SessionStart</code>, <code>Setup</code> — there stderr is merely shown.</td></tr>
+            <tr><td><code>1</code> / other</td><td>Non-blocking error; execution proceeds</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="firstmatch">Don't mix mechanisms — “Claude Code ignores JSON when you exit 2” <sup><a href="https://code.claude.com/docs/en/hooks">[6]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup></p>
+
+      <figure class="listing">
+        <figcaption><span>Structured PreToolUse output</span><i>stdout · exit 0</i></figcaption>
+<pre>{
+  <b>"hookSpecificOutput"</b>: {
+    <b>"hookEventName"</b>: <u>"PreToolUse"</u>,
+    <b>"permissionDecision"</b>: <u>"deny"</u>,
+    <b>"permissionDecisionReason"</b>: <u>"Blocked by local policy"</u>,
+    <b>"updatedInput"</b>: { <b>"command"</b>: <u>"npm run lint"</u> }
+  }
+}</pre>
+      </figure>
+
+      <div class="gates" style="margin-top:22px">
+        <div class="gate d"><b>deny</b><span>most restrictive — wins</span></div><div class="arrow">▸</div>
+        <div class="gate"><b>defer</b><span></span></div><div class="arrow">▸</div>
+        <div class="gate a"><b>ask</b><span></span></div><div class="arrow">▸</div>
+        <div class="gate w"><b>allow</b><span>least restrictive</span></div>
+      </div>
+      <p class="firstmatch">When several hooks match one event, <strong>all</strong> run to completion and the most restrictive answer wins — one hook's <code>deny</code> does <em>not</em> suppress a sibling hook's side effects <sup><a href="https://code.claude.com/docs/en/hooks">[6]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup></p>
+
+      <div class="note">
+        <strong>Matcher grammar:</strong> <code>"*"</code>, <code>""</code>, or omitted matches all; plain identifiers are exact or pipe/comma-separated lists (<code>Edit|Write</code>); anything containing other characters is treated as an <strong>unanchored JavaScript regex</strong>. An optional <code>if</code> field pre-filters on a permission rule (<code>"if": "Bash(git *)"</code>) and <strong>fails open</strong> — it runs the hook when the command can't be parsed <sup><a href="https://code.claude.com/docs/en/hooks">[6]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup>.
+      </div>
+
+      <figure class="listing">
+        <figcaption><span>~/.claude/hooks/hard-deny.sh — matches the whole command string, which a settings rule can't</span><i>chmod +x</i></figcaption>
+<pre><i>#!/usr/bin/env bash</i>
+set -uo pipefail
+input=$(cat)
+tool=$(jq -r <u>'.tool_name // empty'</u>            &lt;&lt;&lt;"$input")
+cmd=$( jq -r <u>'.tool_input.command // empty'</u>   &lt;&lt;&lt;"$input")
+fp=$(  jq -r <u>'.tool_input.file_path // empty'</u> &lt;&lt;&lt;"$input")
+
+<b>deny</b>() {                      <i># exit 0 + JSON, so the reason reaches Claude verbatim</i>
+  jq -n --arg r "$1" <u>'{hookSpecificOutput:{
+      hookEventName:"PreToolUse",
+      permissionDecision:"deny",
+      permissionDecisionReason:$r}}'</u>
+  exit 0
+}
+
+case "$tool" in
+  <b>Bash|PowerShell|Monitor</b>)
+    grep -Eq <u>'(^|[^[:alnum:]_-])sudo([^[:alnum:]_-]|$)'</u> &lt;&lt;&lt;"$cmd" \
+      &amp;&amp; deny "sudo is blocked by local policy"
+    <i># path-identity and loader indirection (ona.com escape classes)</i>
+    grep -Eq <u>'/proc/self/root|/proc/[0-9]+/root|ld-linux|/lib(64)?/ld-'</u> &lt;&lt;&lt;"$cmd" \
+      &amp;&amp; deny "binary invoked through loader or /proc indirection"
+    <i># environment runners the built-in wrapper stripper ignores</i>
+    grep -Eq <u>'(^|[^[:alnum:]_-])(devbox run|mise exec|direnv exec|docker exec)([^[:alnum:]_-]|$)'</u> &lt;&lt;&lt;"$cmd" \
+      &amp;&amp; deny "environment runner: write an exact-match rule for the inner command"
+    grep -Eq <u>'dangerouslyDisableSandbox'</u> &lt;&lt;&lt;"$cmd" \
+      &amp;&amp; deny "sandbox opt-out is disabled here"
+    ;;
+  <b>Edit|Write|NotebookEdit|MultiEdit</b>)
+    case "$fp" in
+      "$HOME"/.claude/hooks/*|"$HOME"/.claude/settings*.json \
+      |"$HOME"/.ssh/*|"$HOME"/.bashrc|"$HOME"/.profile|*/.git/hooks/*)
+        deny "protected path: $fp" ;;
+    esac
+    ;;
+esac
+exit 0</pre>
+      </figure>
+
+      <figure class="listing">
+        <figcaption><span>~/.claude/settings.json — shell form, so $HOME expands</span><i>registration</i></figcaption>
+<pre>{
+  <b>"hooks"</b>: {
+    <b>"PreToolUse"</b>: [
+      {
+        <b>"matcher"</b>: <u>"*"</u>,
+        <b>"hooks"</b>: [
+          {
+            <b>"type"</b>: <u>"command"</u>,
+            <b>"command"</b>: <u>"\"$HOME\"/.claude/hooks/hard-deny.sh"</u>,
+            <b>"timeout"</b>: 10
+          }
+        ]
+      }
+    ]
+  }
+}</pre>
+      </figure>
+
+      <div class="hazard">
+        <div class="glyph">◭</div>
+        <div>
+          <b>Four caveats before you trust it</b>
+          <p><strong>1.</strong> Hooks run as you, with your credentials — enforcement, not isolation. &nbsp;<strong>2.</strong> <code>PostToolUse</code> cannot undo anything; the tool has already executed <sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup> — use it for audit trails and <code>additionalContext</code> nudges only. &nbsp;<strong>3.</strong> The hook script and its registration are files. The Bash sandbox “automatically denies write access to Claude Code's <code>settings.json</code> files at every scope … so a sandboxed command can't modify its own policy”, resolving symlinks since v2.1.210 — but only <em>while the sandbox is on</em> and filesystem isolation isn't disabled <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>. Add the <code>Edit</code> deny rules and a <code>ConfigChange</code> hook <sup><a href="https://code.claude.com/docs/en/security">[5]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks">[6]</a></sup>. &nbsp;<strong>4.</strong> <code>disableAllHooks</code> and <code>allowManagedHooksOnly</code> exist — on a personal box, <code>disableAllHooks: true</code> in your own user settings switches your gate off; only managed-level settings can disable managed hooks <sup><a href="https://code.claude.com/docs/en/hooks">[6]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <code>SessionStart</code> (matchers <code>startup</code>, <code>resume</code>, <code>clear</code>, <code>compact</code>, <code>fork</code>) is the right place to re-inject policy text after compaction — useful precisely because conversational boundaries are lost to it <sup><a href="https://code.claude.com/docs/en/hooks">[6]</a></sup><sup><a href="https://code.claude.com/docs/en/auto-mode-config">[13]</a></sup>. It cannot block.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §6 SANDBOX ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§6</div><div class="sec-title">Bash sandbox on Linux <em>the first layer the kernel enforces</em></div></div>
+    <div class="sec-body">
+      <figure class="plate-wide" style="margin-top:0;margin-bottom:22px">
+        <img src="spec-sheet/images/bubble-wrap.webp" alt="Sheet of plastic bubble wrap">
+        <figcaption><b>Plate 2 — the namesake.</b> On Linux the enforcing primitive is <a class="ent" href="https://github.com/containers/bubblewrap">bubblewrap</a>: user, IPC, PID, network and UTS namespaces, plus an optional seccomp filter. It is the first control on this sheet that a syscall can actually be refused by — and, like the material, it wraps one package at a time. Here that package is Bash and its children, and nothing else <sup><a href="https://github.com/containers/bubblewrap">[19]</a></sup><sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.</figcaption>
+      </figure>
+
+      <p class="lede">Enable with <code>/sandbox</code>, or <code>sandbox.enabled: true</code> in <code>~/.claude/settings.json</code> for all projects. The panel has Mode / Overrides / Config tabs, plus a Dependencies tab when something is missing <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.</p>
+
+      <div class="scrollx" style="margin-bottom:0">
+        <table class="dt" style="min-width:560px">
+          <thead><tr><th style="width:22%">Component</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Mechanism</strong></td><td>macOS uses Seatbelt; <strong>Linux and WSL2 use <a class="ent" href="https://github.com/containers/bubblewrap">bubblewrap</a></strong> ⭐ 8.2k (Jul 2026) <sup><a href="https://github.com/containers/bubblewrap">[19]</a></sup>, plus <code>socat</code> to relay traffic through the sandbox proxy, plus an <strong>optional seccomp filter</strong> (<code>npm install -g @anthropic-ai/sandbox-runtime</code>) that is “required to block Unix domain sockets” <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup></td></tr>
+            <tr><td><strong>Install</strong></td><td><code>sudo apt-get install bubblewrap socat</code>. WSL1 unsupported; native Windows unsupported.</td></tr>
+            <tr><td><strong>Filesystem layer</strong></td><td>Write access defaults to the working directory + session <code>$TMPDIR</code>. <strong>Read access defaults to the entire computer</strong>, minus a few denied directories — the docs note this “still allows reading credential files such as <code>~/.aws/credentials</code> and <code>~/.ssh/</code>”. There is <strong>no built-in credential deny list</strong>; only what you list is restricted.</td></tr>
+            <tr><td><strong>Network layer</strong></td><td>A proxy <em>outside</em> the sandbox enforces a hostname allowlist. <strong>No domains are pre-allowed</strong>; first use of a new domain prompts. <code>strictAllowlist: true</code> (v2.1.219+) denies instead of prompting.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hazard">
+        <div class="glyph">⌷</div>
+        <div>
+          <b>Ubuntu 24.04+ and derivatives — fix this first or nothing engages</b>
+          <p>The default AppArmor policy blocks bubblewrap from creating user namespaces. Check with <code>sysctl kernel.apparmor_restrict_unprivileged_userns</code>; if it returns <code>1</code> you must install an <code>/etc/apparmor.d/bwrap</code> profile with <code>userns</code> and reload AppArmor <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>. By default a sandbox that <em>can't</em> start produces a warning and <strong>unsandboxed execution</strong>, not a failure. <code>sandbox.failIfUnavailable: true</code> makes it fatal.</p>
+        </div>
+      </div>
+
+      <div class="invariant">
+        <div class="tag">Design axiom</div>
+        <div class="body">“It is worth noting that effective sandboxing requires <b>both</b> filesystem and network isolation” — without network isolation a compromised agent exfiltrates SSH keys; without filesystem isolation it backdoors something to regain network access <sup><a href="https://www.anthropic.com/engineering/claude-code-sandboxing">[24]</a></sup><sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.</div>
+      </div>
+
+      <div class="plates">
+        <figure class="plate-fig">
+          <img src="spec-sheet/images/bubblewrap-repo.webp" alt="containers/bubblewrap repository card">
+          <figcaption><b>Plate 3 — the upstream project</b><a class="ent" href="https://github.com/containers/bubblewrap">containers/bubblewrap</a> ⭐ 8.2k · low-level unprivileged sandboxing, also used by Flatpak <sup><a href="https://github.com/containers/bubblewrap">[19]</a></sup></figcaption>
+        </figure>
+        <figure class="plate-fig">
+          <img src="spec-sheet/images/anthropic-sandboxing-og.webp" alt="Anthropic engineering post on Claude Code sandboxing">
+          <figcaption><b>Plate 4 — vendor rationale</b>Approval fatigue as the motivation; two layers asserted as jointly necessary <sup><a href="https://www.anthropic.com/engineering/claude-code-sandboxing">[24]</a></sup></figcaption>
+        </figure>
+        <figure class="plate-fig">
+          <img src="spec-sheet/images/sandbox-runtime-repo.webp" alt="anthropic-experimental/sandbox-runtime repository card">
+          <figcaption><b>Plate 5 — whole-process variant</b><a class="ent" href="https://github.com/anthropic-experimental/sandbox-runtime">sandbox-runtime</a> ⭐ 4.8k · same primitives, wraps the entire process. Beta research preview <sup><a href="https://github.com/anthropic-experimental/sandbox-runtime">[20]</a></sup></figcaption>
+        </figure>
+        <figure class="plate-fig">
+          <img src="spec-sheet/images/breaker-panel.webp" alt="Colour-coded circuit breaker panel">
+          <figcaption><b>Plate 6 — the mental model</b>Breakers trip below the level of the thing they protect. Every control above §6 sits <em>inside</em> the circuit it is meant to interrupt.</figcaption>
+        </figure>
+      </div>
+
+      <h3 style="font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:16px;margin:26px 0 12px">§6.1 &nbsp;What the sandbox does not cover</h3>
+      <div class="scrollx">
+        <table class="dt" style="min-width:560px">
+          <thead><tr><th style="width:30%">Outside the boundary</th><th>Consequence</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Read, Edit, Write, WebFetch</strong></td><td>They run in-process under permission rules, not in the sandbox.</td></tr>
+            <tr><td><strong>MCP servers and hooks</strong></td><td>Separate processes that “run unconstrained on the host.”</td></tr>
+            <tr><td><strong>Computer use</strong></td><td>Runs on your actual desktop.</td></tr>
+            <tr><td><strong>Inherited environment</strong></td><td>Sandboxed Bash inherits the parent environment <em>including credentials</em> unless you use <code>sandbox.credentials</code> or <code>CLAUDE_CODE_SUBPROCESS_ENV_SCRUB</code>.</td></tr>
+            <tr><td><strong>The escape hatch</strong></td><td>When a command fails on sandbox restrictions, Claude may retry it with <code>dangerouslyDisableSandbox</code>. One practitioner reports the instruction <code>"(don't ask, just do it)"</code> is embedded in the binary <sup><a href="https://www.claudecodecamp.com/p/claude-code-sandboxing-how-sandbox-works-and-what-it-doesn-t-protect">[39]</a></sup>. Kill it with <code>allowUnsandboxedCommands: false</code>.</td></tr>
+            <tr><td><strong>denyRead ≠ Read deny</strong></td><td>Practitioner finding worth verifying yourself: <code>sandbox.denyRead</code> does <strong>not</strong> stop Claude's Read tool — you need <em>both</em> <code>sandbox.denyRead</code> and <code>permissions.deny: ["Read(...)"]</code> <sup><a href="https://www.claudecodecamp.com/p/claude-code-sandboxing-how-sandbox-works-and-what-it-doesn-t-protect">[39]</a></sup>, consistent with the docs' own layering statement <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:16px;margin:26px 0 12px">§6.2 &nbsp;Documented weaknesses, in Anthropic's words <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup></h3>
+      <div class="pairs">
+        <div class="pair n"><h4>Configuration that gives it away</h4><ul>
+          <li>no TLS inspection → “domain fronting or similar techniques to reach hosts outside the allowlist”; broad domains like <code>github.com</code> “can create paths for data exfiltration”</li>
+          <li><code>allowUnixSockets</code> → “allowing access to <code>/var/run/docker.sock</code> effectively grants access to the host system”</li>
+          <li><code>allowWrite</code> on any <code>$PATH</code> or shell-rc directory is privilege escalation</li>
+        </ul></div>
+        <div class="pair n"><h4>Switches that weaken it</h4><ul>
+          <li><code>enableWeakerNestedSandbox</code> (needed inside unprivileged containers) “considerably weakens security”</li>
+          <li><code>filesystem.disabled: true</code> (v2.1.216+) turns off read protections and <code>credentials.files</code>; the docs warn a sandboxed command could then write <code>~/.claude/settings.json</code> or a <code>$PATH</code> executable “and use them to widen its own access on the next run”</li>
+          <li><code>excludedCommands</code> has <strong>no</strong> managed-only lockdown — “a developer can always append entries that run additional commands outside the sandbox”</li>
+        </ul></div>
+      </div>
+
+      <div class="note">
+        <strong>Incompatibilities you will hit:</strong> <code>watchman</code> (use <code>jest --no-watchman</code>), <code>docker</code> (add <code>docker *</code> to <code>excludedCommands</code>), Go CLIs failing TLS under Seatbelt, and on WSL2 anything under <code>/mnt/c/</code> or <code>cmd.exe</code>/<code>powershell.exe</code>, because WSL hands those to Windows over a Unix socket the sandbox blocks <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.
+      </div>
+
+      <h3 style="font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:16px;margin:26px 0 12px">§6.3 &nbsp;Sandbox CVEs and bypasses</h3>
+      <div class="scrollx">
+        <table class="dt">
+          <thead><tr><th style="width:26%">Issue</th><th>Detail</th><th style="width:15%">Fixed</th></tr></thead>
+          <tbody>
+            <tr><td><strong>CVE-2026-39861</strong><br><span class="m-lab">symlink sandbox escape · High · CVSS 7.7 · CWE-22 + CWE-61</span></td><td>Sandboxed processes could create symlinks pointing outside the workspace; the <strong>unsandboxed</strong> Claude Code process then followed them and wrote arbitrarily “without prompting the user”. Neither half could escape alone. Required prompt injection to trigger reliably.</td><td>2.1.64 <sup><a href="https://github.com/advisories/GHSA-vp62-r36r-9xqp">[28]</a></sup></td></tr>
+            <tr><td><strong>CVE-2026-25724</strong><br><span class="m-lab">deny not enforced through symlinks · Low · CVSS 2.3</span></td><td>Denying <code>/etc/passwd</code> did not stop a read through a symlink to it.</td><td>2.1.7 <sup><a href="https://github.com/advisories/GHSA-4q92-rfm6-2cqx">[27]</a></sup></td></tr>
+            <tr><td><strong>SOCKS5 hostname null-byte injection</strong></td><td><code>attacker-host.com\x00.google.com</code> passed a JS <code>endsWith()</code> allowlist check while <code>getaddrinfo()</code> truncated at the null byte and dialled the attacker host. <strong>Every release from 2.0.24 through 2.1.89</strong> — ~130 versions over 5.5 months.</td><td>2.1.90 (v2.1.88 per Anthropic) — <span class="fail">no CVE, no advisory, no changelog note</span> <sup><a href="https://oddguan.com/blog/second-time-same-sandbox-anthropic-claude-code-network-allowlist-bypass-data-exfiltration/">[30]</a></sup><sup><a href="https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/">[31]</a></sup></td></tr>
+            <tr><td><strong>Agent self-disables its own sandbox</strong></td><td>Claude reasoned: “The bubblewrap sandbox is failing to create a namespace on this kernel… Let me try disabling the sandbox and using the full binary path to bypass the deny rule pattern.”</td><td>behavioural, not patched <sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[25]</a></sup></td></tr>
+            <tr><td><strong><code>IS_SANDBOX=1</code></strong></td><td>Documented as a variable Claude Code “set[s] to <code>1</code> in subprocesses … when running in a sandboxed environment” <sup><a href="https://code.claude.com/docs/en/env-vars">[16]</a></sup>; practitioners pass <code>IS_SANDBOX=1 claude --dangerously-skip-permissions</code> to satisfy the “recognized sandbox” check that otherwise blocks the flag under root <sup><a href="https://news.ycombinator.com/item?id=44865477">[38]</a></sup>, and the docs confirm that check “is skipped automatically inside a recognized sandbox” <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.</td><td>as documented</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hazard">
+        <div class="glyph">❝</div>
+        <div>
+          <b>Practitioner sentiment is harsher than the docs</b>
+          <p><em>cedws:</em> “Sandboxing should not be opt in. It should not have full read access over the file system by default.” <em>tso</em> called full default read access plus the agent's ability to disable its own sandbox practices that “would not pass muster in a freshman level security course” <sup><a href="https://news.ycombinator.com/item?id=47236910">[26]</a></sup>. On the symlink CVE thread: “I'm fairly confident that almost any decent LLM trained on agentic command line workflows could break out of Claude Code. It's really not hard” <sup><a href="https://news.ycombinator.com/item?id=48057842">[29]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §7 BYPASS ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§7</div><div class="sec-title">--dangerously-skip-permissions <em>precisely what it bypasses</em></div></div>
+    <div class="sec-body">
+      <p class="lede"><code>--dangerously-skip-permissions</code> ≡ <code>--permission-mode bypassPermissions</code>. <code>--allow-dangerously-skip-permissions</code> merely adds it to the <kbd>Shift+Tab</kbd> cycle without starting in it <sup><a href="https://code.claude.com/docs/en/cli-reference">[9]</a></sup>.</p>
+
+      <div class="pairs">
+        <div class="pair y"><h4>Still prompts / still enforced</h4><ul>
+          <li>explicit <code>ask</code> rules <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup></li>
+          <li><code>permissions.deny</code> rules <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup></li>
+          <li><code>PreToolUse</code> hook denials <sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup></li>
+          <li>org-<code>ask</code> connector tools; MCP tools marked <code>requiresUserInteraction</code> <sup><a href="https://code.claude.com/docs/en/mcp">[10]</a></sup></li>
+          <li><code>rm -rf /</code> and <code>rm -rf ~</code> circuit breaker — including inside <code>$(…)</code>, backticks and <code>&lt;(…)</code> since v2.1.208 <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup></li>
+        </ul></div>
+        <div class="pair n"><h4>Does not prompt</h4><ul>
+          <li>everything else</li>
+          <li>protected-path writes (<code>.git</code>, <code>.claude</code>, <code>.bashrc</code>, …) — skipped since v2.1.126</li>
+          <li>plan mode's edit blocks — Claude is <em>instructed</em> to plan, but edits execute</li>
+          <li><code>permissions.allow</code> becomes irrelevant</li>
+        </ul></div>
+      </div>
+
+      <div class="note">
+        <strong>Guardrails around the flag:</strong> refused as root or under <code>sudo</code> on Linux/macOS unless a sandbox is “recognized”; first interactive use shows a one-time responsibility dialog saved to user settings; <code>--bg</code> background sessions are refused until you've accepted it interactively; and Claude Code on the web ignores <code>defaultMode: "bypassPermissions"</code> from settings files so a checked-in repo can't start a cloud session in it <sup><a href="https://code.claude.com/docs/en/permission-modes">[1]</a></sup>.
+      </div>
+
+      <div class="invariant">
+        <div class="tag">Vendor instruction</div>
+        <div class="body">“Always run <code>--dangerously-skip-permissions</code> sessions inside a container, a VM, or the sandbox runtime, so that file tools, MCP servers, and hooks are also inside the boundary” <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[4]</a></sup>. Even then, the dev container page warns it “does not prevent a malicious project from exfiltrating anything accessible inside the container, including the Claude Code credentials stored in <code>~/.claude</code>” <sup><a href="https://code.claude.com/docs/en/devcontainer">[11]</a></sup>.</div>
+      </div>
+
+      <div class="note">
+        To lock yourself out: <code>permissions.disableBypassPermissionsMode: "disable"</code>. It works from any scope — “a user can set it in their own settings to lock themselves out of bypass mode” <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §8 MCP + UX ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§8</div><div class="sec-title">MCP trust &amp; the inspection commands</div></div>
+    <div class="sec-body">
+      <div class="scrollx">
+        <table class="dt" style="min-width:600px">
+          <thead><tr><th style="width:24%">Surface</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Project <code>.mcp.json</code></strong></td><td>Servers sit at <code>⏸ Pending approval</code> until approved interactively. Since v2.1.196 “a cloned repository can't approve its own servers” — <code>enableAllProjectMcpServers</code> committed to <code>.claude/settings.json</code> is ignored in an untrusted folder. Approvals from user settings, managed settings and <code>--settings</code> still apply; an untracked <code>.claude/settings.local.json</code> applies only after you trust the folder <sup><a href="https://code.claude.com/docs/en/mcp">[10]</a></sup>.</td></tr>
+            <tr><td><strong>Trust posture</strong></td><td>“Verify you trust each server before connecting it. Servers that fetch external content can expose you to prompt injection risk” <sup><a href="https://code.claude.com/docs/en/mcp">[10]</a></sup>. Anthropic “reviews connectors against its listing criteria … but does not security-audit or manage any MCP server” <sup><a href="https://code.claude.com/docs/en/security">[5]</a></sup>.</td></tr>
+            <tr><td><strong>Forced approval</strong></td><td>Server authors can set <code>_meta["anthropic/requiresUserInteraction"]: true</code> (v2.1.199+); such a tool is never auto-approved by an allow rule, by auto mode's classifier, by <code>--permission-prompt-tool</code> (an <code>allow</code> result is converted to deny), or by Remote Control's one-tap approve <sup><a href="https://code.claude.com/docs/en/mcp">[10]</a></sup>.</td></tr>
+            <tr><td><strong><code>headersHelper</code></strong></td><td>“Executes arbitrary shell commands”; at project/local scope it runs only after you accept workspace trust <sup><a href="https://code.claude.com/docs/en/mcp">[10]</a></sup>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scrollx" style="margin-top:18px">
+        <table class="dt" style="min-width:560px">
+          <thead><tr><th style="width:20%">Command</th><th>What it tells you</th></tr></thead>
+          <tbody>
+            <tr><td><code>/permissions</code></td><td>Every active rule <strong>and the <code>settings.json</code> file each rule came from</strong> — the fastest way to diagnose a rule that isn't firing. Auto-mode denials land under a <strong>Recently denied</strong> tab where <kbd>r</kbd> marks the call for retry <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/auto-mode-config">[13]</a></sup>.</td></tr>
+            <tr><td><kbd>Ctrl+E</kbd></td><td>On a Bash prompt, generates a Low/Med/High risk explanation — one model call, only when pressed <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup>.</td></tr>
+            <tr><td><code>/hooks</code> · <code>/sandbox</code> · <code>/status</code></td><td>Registered hooks per event · resolved sandbox config · which settings sources loaded <sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup><sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup><sup><a href="https://code.claude.com/docs/en/settings">[8]</a></sup>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §9 CONFIG ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§9</div><div class="sec-title">Configuration listing <em>hardened Linux workstation · adapt the domain list, start narrow</em></div></div>
+    <div class="sec-body">
+      <figure class="listing" style="margin-top:0">
+        <figcaption><span>~/.claude/settings.json</span><i>user scope</i></figcaption>
+<pre>{
+  <b>"$schema"</b>: <u>"https://json.schemastore.org/claude-code-settings.json"</u>,
+  <b>"permissions"</b>: {
+    <b>"defaultMode"</b>: <u>"default"</u>,
+    <b>"disableBypassPermissionsMode"</b>: <u>"disable"</u>,
+    <b>"deny"</b>: [
+      <u>"Read(//**/.env)"</u>, <u>"Read(//**/.env.*)"</u>,
+      <u>"Read(~/.ssh/**)"</u>, <u>"Read(~/.aws/**)"</u>, <u>"Read(~/.gnupg/**)"</u>,
+      <u>"Read(~/.config/gh/**)"</u>, <u>"Read(~/.kube/**)"</u>,
+      <u>"Read(~/.claude/.credentials.json)"</u>,
+      <u>"Edit(~/.ssh/**)"</u>, <u>"Edit(~/.claude/hooks/**)"</u>, <u>"Edit(//**/.git/hooks/**)"</u>,
+      <u>"Bash(sudo *)"</u>, <u>"Bash(curl *)"</u>, <u>"Bash(wget *)"</u>, <u>"Bash(nc *)"</u>,
+      <u>"Bash(chmod -R *)"</u>, <u>"Bash(git push --force*)"</u>, <u>"Bash(git reset --hard*)"</u>
+    ],
+    <b>"ask"</b>: [
+      <u>"Bash(git push *)"</u>, <u>"Bash(gh pr create *)"</u>,
+      <u>"Bash(dangerouslyDisableSandbox:true)"</u>, <u>"Agent(isolation:*)"</u>
+    ],
+    <b>"allow"</b>: [
+      <u>"Bash(npm run test *)"</u>, <u>"Bash(npm run lint)"</u>, <u>"Bash(git commit *)"</u>,
+      <u>"WebFetch(domain:docs.claude.com)"</u>
+    ]
+  },
+  <b>"sandbox"</b>: {
+    <b>"enabled"</b>: true,
+    <b>"failIfUnavailable"</b>: true,
+    <b>"allowUnsandboxedCommands"</b>: false,
+    <b>"autoAllowBashIfSandboxed"</b>: true,
+    <b>"excludedCommands"</b>: [],
+    <b>"filesystem"</b>: {
+      <b>"denyRead"</b>: [<u>"~/.ssh"</u>, <u>"~/.aws"</u>, <u>"~/.gnupg"</u>, <u>"~/.config/gh"</u>, <u>"~/.kube"</u>],
+      <b>"allowWrite"</b>: []
+    },
+    <b>"network"</b>: {
+      <b>"strictAllowlist"</b>: true,
+      <b>"allowAllUnixSockets"</b>: false,
+      <b>"allowUnixSockets"</b>: [],
+      <b>"allowLocalBinding"</b>: false,
+      <b>"allowedDomains"</b>: [<u>"api.anthropic.com"</u>, <u>"registry.npmjs.org"</u>, <u>"*.github.com"</u>]
+    },
+    <b>"credentials"</b>: {
+      <b>"files"</b>: [
+        { <b>"path"</b>: <u>"~/.ssh"</u>,             <b>"mode"</b>: <u>"deny"</u> },
+        { <b>"path"</b>: <u>"~/.aws/credentials"</u>, <b>"mode"</b>: <u>"deny"</u> },
+        { <b>"path"</b>: <u>"~/.gnupg"</u>,           <b>"mode"</b>: <u>"deny"</u> }
+      ],
+      <b>"envVars"</b>: [
+        { <b>"name"</b>: <u>"GITHUB_TOKEN"</u>, <b>"mode"</b>: <u>"deny"</u> },
+        { <b>"name"</b>: <u>"NPM_TOKEN"</u>,    <b>"mode"</b>: <u>"deny"</u> }
+      ]
+    },
+    <b>"enableWeakerNestedSandbox"</b>: false
+  },
+  <b>"hooks"</b>: {
+    <b>"PreToolUse"</b>: [
+      { <b>"matcher"</b>: <u>"*"</u>, <b>"hooks"</b>: [
+        { <b>"type"</b>: <u>"command"</u>, <b>"command"</b>: <u>"\"$HOME\"/.claude/hooks/hard-deny.sh"</u>, <b>"timeout"</b>: 10 } ] }
+    ],
+    <b>"ConfigChange"</b>: [
+      { <b>"matcher"</b>: <u>"*"</u>, <b>"hooks"</b>: [
+        { <b>"type"</b>: <u>"command"</u>, <b>"command"</b>: <u>"\"$HOME\"/.claude/hooks/log-config-change.sh"</u> } ] }
+    ]
+  }
+}</pre>
+      </figure>
+
+      <div class="note">
+        <strong>Path conventions differ between the two blocks.</strong> Sandbox paths use <em>ordinary filesystem</em> conventions — <code>/tmp/build</code> is absolute, <code>~/</code> is home, bare <code>./x</code> resolves to the project root in project settings or <code>~/.claude</code> in user settings — deliberately different from the Read/Edit anchors in §3 <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup><sup><a href="https://github.com/anthropics/claude-code/blob/main/examples/settings/settings-bash-sandbox.json">[21]</a></sup>. Array keys merge across scopes; boolean keys take the managed value. <code>Read</code>/<code>Edit</code> deny rules and <code>sandbox.filesystem</code> paths are merged into one final sandbox boundary, and <code>WebFetch</code> allow rules pre-allow sandbox domains. Starter configs live at <a class="ent" href="https://github.com/anthropics/claude-code/tree/main/examples/settings">examples/settings</a> ⭐ 140k (Jul 2026) <sup><a href="https://github.com/anthropics/claude-code/tree/main/examples/settings">[22]</a></sup>.
+      </div>
+
+      <div class="note">
+        Also export <code>CLAUDE_CODE_SUBPROCESS_ENV_SCRUB</code> in your shell to strip Anthropic and cloud-provider credentials from <strong>all</strong> subprocesses regardless of sandboxing — note it also forces filesystem isolation on, ignoring <code>filesystem.disabled</code> from every source including managed settings <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.
+      </div>
+
+      <figure class="listing">
+        <figcaption><span>/etc/claude-code/managed-settings.json — root-owned, mode 0644</span><i>machine-wide floor</i></figcaption>
+<pre>{
+  <b>"permissions"</b>: {
+    <b>"deny"</b>: [<u>"Bash(sudo *)"</u>, <u>"Read(~/.ssh/**)"</u>, <u>"Read(//**/.env)"</u>],
+    <b>"disableBypassPermissionsMode"</b>: <u>"disable"</u>
+  },
+  <b>"allowManagedPermissionRulesOnly"</b>: true,
+  <b>"allowManagedHooksOnly"</b>: true,
+  <b>"sandbox"</b>: {
+    <b>"enabled"</b>: true,
+    <b>"failIfUnavailable"</b>: true,
+    <b>"allowUnsandboxedCommands"</b>: false,
+    <b>"filesystem"</b>: { <b>"allowManagedReadPathsOnly"</b>: true },
+    <b>"network"</b>:    { <b>"allowManagedDomainsOnly"</b>: true }
+  }
+}</pre>
+      </figure>
+
+      <div class="hazard">
+        <div class="glyph">⊘</div>
+        <div>
+          <b>On a box you own root on, this is a speed bump — not a boundary</b>
+          <p><code>allowManagedPermissionRulesOnly</code> stops user and project settings defining any allow/ask/deny rules, and the two <code>allowManaged*Only</code> sandbox locks stop a developer widening <code>allowRead</code> or <code>allowedDomains</code> <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup><sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>. But Anthropic is explicit that managed settings “operate as a client-side control, not a security boundary … a user who can run a modified client can bypass any client-side control” <sup><a href="https://code.claude.com/docs/en/server-managed-settings">[17]</a></sup>. Treat it as protection against a confused agent, not an adversary.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §10 THE MATRIX ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§10</div><div class="sec-title">Enforcement layer matrix <em>the boundary line, drawn</em></div></div>
+    <div class="sec-body">
+      <div class="classkey">
+        <div class="ck a"><b>A</b><span>Advisory only. The model may comply; nothing checks.</span></div>
+        <div class="ck b"><b>B</b><span>In-process policy. Claude Code matching a string, in the same userspace the agent reasons in.</span></div>
+        <div class="ck c"><b>C</b><span>Kernel-enforced, partial scope. Bash subtree only.</span></div>
+        <div class="ck d"><b>D</b><span>Kernel-enforced, whole process. Shared kernel.</span></div>
+        <div class="ck e"><b>E</b><span>Separate kernel. Hypervisor or userspace syscall layer.</span></div>
+      </div>
+
+      <div class="scrollx">
+        <table class="dt matrix">
+          <thead><tr><th style="width:8%">Class</th><th style="width:20%">Layer</th><th style="width:20%">Enforced by</th><th style="width:22%">Covers</th><th>Defeated by</th></tr></thead>
+          <tbody>
+            <tr class="upper"><td><span class="chip a">A</span></td><td>CLAUDE.md guidance</td><td>the model</td><td><span class="fail">nothing</span></td><td>any injection; docs say it “doesn't enforce a boundary” <sup><a href="https://code.claude.com/docs/en/permissions">[2]</a></sup></td></tr>
+            <tr class="upper"><td><span class="chip a">A</span></td><td>Conversational boundaries</td><td>auto-mode classifier</td><td>stated intent</td><td>context compaction <sup><a href="https://code.claude.com/docs/en/auto-mode-config">[13]</a></sup></td></tr>
+            <tr class="upper"><td><span class="chip b">B</span></td><td><code>permissions.allow</code></td><td>Claude Code, in-process</td><td>prompt reduction</td><td>wrappers, env runners, indirection, subagents</td></tr>
+            <tr class="upper"><td><span class="chip b">B</span></td><td><code>permissions.deny</code> / <code>ask</code></td><td>Claude Code, in-process</td><td><span class="hold">✓ holds in every mode</span></td><td>indirect subprocesses; historically symlinks, null bytes, 51-subcommand commands</td></tr>
+            <tr class="upper"><td><span class="chip b">B</span></td><td>Auto-mode classifier</td><td>a second model</td><td>intent drift, exfil patterns</td><td>it's per-action judgement, “not an isolation boundary” <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[4]</a></sup></td></tr>
+            <tr class="upper"><td><span class="chip b">B</span></td><td><code>PreToolUse</code> hook <code>deny</code></td><td>Claude Code, before the mode check</td><td><span class="hold">✓ survives <code>bypassPermissions</code></span></td><td>editing the hook file; <code>disableAllHooks</code></td></tr>
+
+            <tr class="bnd"><td colspan="5"><div class="bnd-in">
+              <span class="up">▲ above — in-process policy<br>a string being matched, in the agent's own userspace</span>
+              <span class="lbl">Enforcement boundary</span>
+              <span class="dn">below — the kernel refuses the syscall ▼<br>“holds regardless of what the model chose to run”</span>
+            </div></td></tr>
+
+            <tr class="lower"><td><span class="chip c">C</span></td><td><strong>Bash sandbox</strong></td><td>bubblewrap + seccomp + proxy</td><td>Bash <strong>and all child processes</strong></td><td>domain fronting, <code>allowUnixSockets</code>, <code>excludedCommands</code>, the escape hatch; <span class="fail">✗ Read/Edit/MCP/hooks</span></td></tr>
+            <tr class="lower"><td><span class="chip d">D</span></td><td><strong>sandbox-runtime</strong></td><td>same primitives, whole process</td><td>file tools, MCP servers and hooks too</td><td>shared kernel; beta <sup><a href="https://github.com/anthropic-experimental/sandbox-runtime">[20]</a></sup></td></tr>
+            <tr class="lower"><td><span class="chip d">D</span></td><td>Container</td><td>namespaces + seccomp + caps, plus default-deny egress via <a class="ent" href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">init-firewall.sh</a> ⭐ 140k <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">[23]</a></sup></td><td>full dev env</td><td>shared kernel; anything mounted or reachable <sup><a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">[12]</a></sup></td></tr>
+            <tr class="lower"><td><span class="chip e">E</span></td><td>gVisor / VM</td><td>userspace syscall layer / hypervisor</td><td>full OS</td><td>hypervisor bugs <sup><a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">[12]</a></sup></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="invariant">
+        <div class="tag">Both sides agree</div>
+        <div class="body">“The operating system enforces the sandbox boundary on the running process, so it holds regardless of what the model chose to run and even if an allowed command does more than its name suggests” <sup><a href="https://code.claude.com/docs/en/sandboxing">[3]</a></sup>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §11 POSTURES ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§11</div><div class="sec-title">Recommended postures <em>for a Linux daily driver that also runs Claude Code</em></div></div>
+    <div class="sec-body">
+      <div class="posture">
+        <div class="pc">
+          <div class="pc-h">Posture 1 · class C</div>
+          <div class="pc-b">
+            <h4>Everyday work, code you trust</h4>
+            <p>Bash sandbox on with <code>failIfUnavailable</code> and <code>allowUnsandboxedCommands: false</code>; <code>sandbox.credentials</code> covering <code>~/.ssh</code>, <code>~/.aws</code>, <code>~/.gnupg</code>; the §9 deny rules and the §5 hook; <code>disableBypassPermissionsMode: "disable"</code>.</p>
+            <p><strong>Fix the Ubuntu AppArmor <code>userns</code> restriction first, or none of it engages.</strong></p>
+          </div>
+        </div>
+        <div class="pc">
+          <div class="pc-h">Posture 2 · class D</div>
+          <div class="pc-b">
+            <h4>Unattended, or bypass mode</h4>
+            <p>Whole-process isolation is mandatory, not optional. <a class="ent" href="https://github.com/anthropic-experimental/sandbox-runtime">@anthropic-ai/sandbox-runtime</a> ⭐ 4.8k (Jul 2026) wraps the entire process in the same bubblewrap/seccomp primitives — <code>npx @anthropic-ai/sandbox-runtime claude</code> — covering file tools, hooks and MCP servers.</p>
+            <p>It denies all writes and all network by default, so you must allow your project dir, <code>~/.claude</code>, <code>~/.claude.json</code>, <code>/tmp</code> and <code>api.anthropic.com</code> before it will start <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[4]</a></sup><sup><a href="https://github.com/anthropic-experimental/sandbox-runtime">[20]</a></sup>. Beta research preview; config format may change.</p>
+          </div>
+        </div>
+        <div class="pc max">
+          <div class="pc-h">Posture 3 · class E</div>
+          <div class="pc-b">
+            <h4>Untrusted repositories</h4>
+            <p>“A dedicated virtual machine” is Anthropic's own answer <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[4]</a></sup>. Nothing host-level clears the bar.</p>
+            <p>The container guidance is explicit that credentials must live <em>outside</em> the boundary, reached through a credential-injecting proxy, with <code>--network none</code> plus a Unix-socket proxy as the egress path <sup><a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">[12]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="pc max">
+          <div class="pc-h">Asset inventory</div>
+          <div class="pc-b">
+            <h4>Credentials are the asset, not the filesystem</h4>
+            <p>The Linux credential store is <code>~/.claude/.credentials.json</code> at mode 0600 — no keychain <sup><a href="https://code.claude.com/docs/en/authentication">[15]</a></sup>. Anything with your uid and unsandboxed Bash reads it.</p>
+            <p><strong>That, not <code>rm -rf</code>, is why the boundary belongs at the OS.</strong></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §12 SERIES ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§12</div><div class="sec-title">Other sheets in this series</div></div>
+    <div class="sec-body">
+      <p class="lede">Parent expedition: <a class="ent" href="../../">Running Claude Code safely on a Linux workstation, and where Proxmox actually helps</a>.</p>
+      <div class="series">
+        <div class="sheet-row"><div class="sn">01</div><div><a href="../../threat-model-and-blast-radius-for-an-agentic-coding-cli/">Threat model and blast radius</a><p>The realized 2026 losses come from the agent's own destructive git commands and from supply-chain malware that weaponizes an installed agent CLI — containment must stop out-of-workspace writes, egress, and credential reads, in that order.</p></div><div class="dp">survey · 28 src</div></div>
+        <div class="sheet-row self"><div class="sn">02</div><div><a href="../">Native guardrails and the permission model</a><p>This sheet.</p></div><div class="dp cur">expedition · 40 src</div></div>
+        <div class="sheet-row"><div class="sn">03</div><div><a href="../../linux-native-sandboxing-on-the-workstation/">Linux-native sandboxing on the workstation</a><p>Turn on the built-in bubblewrap sandbox, then wrap the whole process in a 30-line bwrap script; systemd-run --user, firejail and Flatpak are the wrong tools, and Landlock is the primitive to bet on but not to hand-roll.</p></div><div class="dp">expedition · 52 src</div></div>
+        <div class="sheet-row"><div class="sn">04</div><div><a href="../../containerized-dev-environments/">Containers as the containment layer</a><p>Rootless Podman plus a proxy-only internal network beats the reference devcontainer; that firewall leaks DNS and hands the agent NET_ADMIN.</p></div><div class="dp">survey · 34 src</div></div>
+        <div class="sheet-row"><div class="sn">05</div><div><a href="../../proxmox-as-the-isolation-boundary/">Proxmox as the isolation boundary: KVM VM, not LXC</a><p>Containers share the host kernel and privileged LXC cannot be root-safe — plus the wiring, firewall rules, snapshot policy and sizing to make a dedicated agent guest usable.</p></div><div class="dp">expedition · 42 src</div></div>
+        <div class="sheet-row"><div class="sn">06</div><div><a href="../../credential-and-secret-isolation/">Credential isolation</a><p>An agent that can read $HOME holds your whole identity, and on Linux the keyring does not help — give the agent its own short-lived, narrowly scoped credentials.</p></div><div class="dp">survey · 32 src</div></div>
+        <div class="sheet-row"><div class="sn">07</div><div><a href="../../audit-trail-and-recovery-drills/">Audit trail and recovery drills</a><p>Git commits are your real undo and a PostToolUse hook is your real audit log; transcripts and /rewind expire, miss bash, and are writable by the agent.</p></div><div class="dp">recon · 12 src</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §13 SOURCES ═══ -->
+  <section class="sec">
+    <div class="sec-head"><div class="sec-num">§13</div><div class="sec-title">Source register <em>40 entries · official docs, advisories, field reports, forum</em></div></div>
+    <div class="sec-body">
+      <div class="srcs">
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[1]</span> <a href="https://code.claude.com/docs/en/permission-modes">Permission modes</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[2]</span> <a href="https://code.claude.com/docs/en/permissions">Permissions</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[3]</span> <a href="https://code.claude.com/docs/en/sandboxing">Sandboxing</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[4]</span> <a href="https://code.claude.com/docs/en/sandbox-environments">Sandbox environments</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[5]</span> <a href="https://code.claude.com/docs/en/security">Security</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[6]</span> <a href="https://code.claude.com/docs/en/hooks">Hooks reference</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[7]</span> <a href="https://code.claude.com/docs/en/hooks-guide">Hooks guide</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[8]</span> <a href="https://code.claude.com/docs/en/settings">Settings</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[9]</span> <a href="https://code.claude.com/docs/en/cli-reference">CLI reference</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[10]</span> <a href="https://code.claude.com/docs/en/mcp">MCP</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[11]</span> <a href="https://code.claude.com/docs/en/devcontainer">Dev container</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[12]</span> <a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">Agent SDK — secure deployment</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[13]</span> <a href="https://code.claude.com/docs/en/auto-mode-config">Auto mode configuration</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[14]</span> <a href="https://code.claude.com/docs/en/tools-reference">Tools reference</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[15]</span> <a href="https://code.claude.com/docs/en/authentication">Authentication</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[16]</span> <a href="https://code.claude.com/docs/en/env-vars">Environment variables</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[17]</span> <a href="https://code.claude.com/docs/en/server-managed-settings">Server-managed settings</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><span class="n">[18]</span> <a href="https://code.claude.com/docs/llms.txt">docs/llms.txt — doc index</a><span class="st">official</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[19]</span> <a href="https://github.com/containers/bubblewrap">containers/bubblewrap</a><span class="st">official · ⭐ 8.2k</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[20]</span> <a href="https://github.com/anthropic-experimental/sandbox-runtime">anthropic-experimental/sandbox-runtime</a><span class="st">official · ⭐ 4.8k</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[21]</span> <a href="https://github.com/anthropics/claude-code/blob/main/examples/settings/settings-bash-sandbox.json">settings-bash-sandbox.json</a><span class="st">official · ⭐ 140k</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[22]</span> <a href="https://github.com/anthropics/claude-code/tree/main/examples/settings">claude-code — examples/settings</a><span class="st">official · ⭐ 140k</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[23]</span> <a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">.devcontainer/init-firewall.sh</a><span class="st">official · ⭐ 140k</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=128" alt=""><div><span class="n">[24]</span> <a href="https://www.anthropic.com/engineering/claude-code-sandboxing">Anthropic Engineering — sandboxing</a><span class="st">vendor blog</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=ona.com&sz=128" alt=""><div><span class="n">[25]</span> <a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">Ona — escaping the denylist and sandbox</a><span class="st">vendor blog</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><div><span class="n">[26]</span> <a href="https://news.ycombinator.com/item?id=47236910">HN — sandboxing defaults</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[27]</span> <a href="https://github.com/advisories/GHSA-4q92-rfm6-2cqx">GHSA-4q92-rfm6-2cqx · CVE-2026-25724</a><span class="st">advisory</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[28]</span> <a href="https://github.com/advisories/GHSA-vp62-r36r-9xqp">GHSA-vp62-r36r-9xqp · CVE-2026-39861</a><span class="st">advisory</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><div><span class="n">[29]</span> <a href="https://news.ycombinator.com/item?id=48057842">HN — CVE-2026-39861 thread</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=oddguan.com&sz=128" alt=""><div><span class="n">[30]</span> <a href="https://oddguan.com/blog/second-time-same-sandbox-anthropic-claude-code-network-allowlist-bypass-data-exfiltration/">oddguan — network allowlist bypass</a><span class="st">vendor blog</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=securityweek.com&sz=128" alt=""><div><span class="n">[31]</span> <a href="https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/">SecurityWeek — silent patch</a><span class="st">news</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=adversa.ai&sz=128" alt=""><div><span class="n">[32]</span> <a href="https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/">Adversa AI — deny rules disabled</a><span class="st">vendor blog</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[33]</span> <a href="https://github.com/anthropics/claude-code/issues/31558">issue #31558 — env-prefix bypass</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[34]</span> <a href="https://github.com/anthropics/claude-code/issues/25000">issue #25000 — subagents bypass deny</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[35]</span> <a href="https://github.com/anthropics/claude-code/issues/61148">issue #61148 — @../ traversal</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[36]</span> <a href="https://github.com/anthropics/claude-code/issues/24846">issue #24846 — Read deny and .env</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[37]</span> <a href="https://github.com/anthropics/claude-code/issues/26315">issue #26315 — Windows-path rules</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><div><span class="n">[38]</span> <a href="https://news.ycombinator.com/item?id=44865477">HN — IS_SANDBOX=1</a><span class="st">forum</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=claudecodecamp.com&sz=128" alt=""><div><span class="n">[39]</span> <a href="https://www.claudecodecamp.com/p/claude-code-sandboxing-how-sandbox-works-and-what-it-doesn-t-protect">Claude Code Camp — what the sandbox doesn't protect</a><span class="st">vendor blog</span></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><span class="n">[40]</span> <a href="https://github.com/anthropics/claude-code">anthropics/claude-code</a><span class="st">official · ⭐ 140k</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ COLOPHON ═══ -->
+  <div class="colophon">
+    <div class="co"><b>Sheet</b>Claude Code permission model<br>Rev 2026-07-30 · 02 of 07</div>
+    <div class="co"><b>Canonical</b><a href="../">Full prose page →</a><br>expedition depth · 26 min</div>
+    <div class="co"><b>Series</b><a href="../../">Running Claude Code safely →</a></div>
+    <div class="co"><b>Index</b><a href="/">Atlas →</a></div>
+    <div class="co"><b>Doc index</b><a href="https://code.claude.com/docs/llms.txt">code.claude.com/docs/llms.txt</a><br><a href="https://github.com/anthropics/claude-code">anthropics/claude-code</a> ⭐ 140k</div>
+  </div>
+
+</div>
+</div>
+</div>

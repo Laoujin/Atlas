@@ -1,0 +1,951 @@
+---
+layout: view
+view_name: "Blueprint"
+view_of: ../
+title: "Running Claude Code safely on a Linux workstation, and where Proxmox actually helps — Blueprint"
+---
+
+<style>
+  .bp {
+    --ground: #0a2240;
+    --ground2: #071b33;
+    --panel: rgba(255,255,255,.035);
+    --panel2: rgba(255,255,255,.055);
+    --ink: #e7f1fc;
+    --dim: #9dbbd9;
+    --faint: #628aae;
+    --cyan: #6fd0ff;
+    --amber: #ffb454;
+    --green: #7ee0a0;
+    --red: #ff8080;
+    --line: rgba(178,212,246,.30);
+    --line2: rgba(178,212,246,.16);
+    --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", "IBM Plex Mono", "Roboto Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+
+    margin: 0;
+    padding: clamp(10px, 2vw, 28px);
+    background-color: var(--ground);
+    background-image:
+      linear-gradient(rgba(160,200,240,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(160,200,240,.05) 1px, transparent 1px),
+      linear-gradient(rgba(160,200,240,.075) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(160,200,240,.075) 1px, transparent 1px),
+      radial-gradient(120% 80% at 50% 0%, rgba(111,208,255,.10), transparent 60%);
+    background-size: 18px 18px, 18px 18px, 90px 90px, 90px 90px, 100% 100%;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .bp * { box-sizing: border-box; }
+  .bp a { color: var(--cyan); text-decoration: none; border-bottom: 1px dotted rgba(111,208,255,.5); }
+  .bp a:hover { color: #fff; border-bottom-color: #fff; }
+  .bp sup a { border-bottom: none; font-size: .78em; }
+
+  /* ── drawing frame ─────────────────────────────────────────── */
+  .sheet {
+    max-width: 1220px;
+    margin: 0 auto;
+    border: 1px solid var(--line);
+    padding: clamp(12px, 2vw, 26px);
+    position: relative;
+    background: linear-gradient(180deg, rgba(7,27,51,.55), rgba(7,27,51,.20));
+  }
+  .sheet::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--line2);
+    pointer-events: none;
+  }
+  .ruler {
+    height: 12px;
+    border-bottom: 1px solid var(--line2);
+    background-image: repeating-linear-gradient(90deg, var(--line2) 0 1px, transparent 1px 20px);
+    margin-bottom: 18px;
+  }
+
+  /* ── header ────────────────────────────────────────────────── */
+  .head { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+  .sheetid { font-size: 11px; letter-spacing: .22em; color: var(--faint); text-transform: uppercase; }
+  h1.dwgtitle {
+    font-family: var(--mono);
+    font-size: clamp(20px, 3.4vw, 40px);
+    line-height: 1.12;
+    margin: 8px 0 6px;
+    letter-spacing: -.01em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .dwgsub { color: var(--dim); font-size: 12.5px; max-width: 66ch; }
+  .stampcol { display: grid; gap: 6px; justify-items: end; }
+  .chip {
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    border: 1px solid var(--line); padding: 4px 9px; color: var(--dim); white-space: nowrap;
+  }
+  .chip b { color: var(--ink); font-weight: 700; }
+
+  /* ── generic block ─────────────────────────────────────────── */
+  .blk { margin-top: 34px; }
+  .tab {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan);
+    margin-bottom: 12px;
+  }
+  .tab::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .tab .no {
+    border: 1px solid var(--cyan); color: var(--cyan);
+    width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%;
+    font-size: 10px; letter-spacing: 0;
+  }
+  .tab .sub { color: var(--faint); letter-spacing: .12em; }
+
+  /* ── general notes ─────────────────────────────────────────── */
+  .notes { border: 1px solid var(--line); border-left: 3px solid var(--amber); background: var(--panel); padding: 16px 18px; }
+  .notes ol { list-style: none; margin: 0; padding: 0; counter-reset: n; }
+  .notes li { counter-increment: n; padding: 8px 0 8px 42px; position: relative; border-top: 1px dashed var(--line2); font-size: 13px; }
+  .notes li:first-child { border-top: none; }
+  .notes li::before {
+    content: counter(n, decimal-leading-zero);
+    position: absolute; left: 0; top: 8px;
+    font-size: 11px; color: var(--amber);
+    border: 1px solid rgba(255,180,84,.55); padding: 1px 6px;
+  }
+  .notes strong { color: #fff; }
+  .notes code, .bp code { background: rgba(111,208,255,.10); border: 1px solid rgba(111,208,255,.18); padding: 0 4px; font-size: .92em; color: #cfe9ff; }
+
+  /* ── nesting diagram ───────────────────────────────────────── */
+  .figure { border: 1px solid var(--line); background: rgba(4,16,31,.4); padding: 14px; }
+  .figure svg { display: block; width: 100%; height: auto; }
+  .figcap { margin-top: 10px; font-size: 11px; color: var(--faint); letter-spacing: .1em; text-transform: uppercase; }
+
+  /* ── layer bands ───────────────────────────────────────────── */
+  .stack { margin-top: 18px; display: grid; gap: 0; }
+  .band {
+    display: grid;
+    grid-template-columns: 62px minmax(0,1fr) 218px;
+    border: 1px solid var(--line);
+    border-bottom: none;
+    background: var(--panel);
+  }
+  .band:last-of-type { border-bottom: 1px solid var(--line); }
+  .band.substrate { border-top: 3px double var(--red); background: repeating-linear-gradient(135deg, rgba(255,128,128,.10) 0 6px, transparent 6px 12px); }
+  .band .lvl {
+    border-right: 1px solid var(--line2);
+    display: grid; place-content: center; gap: 4px; justify-items: center;
+    padding: 14px 4px;
+    background: rgba(0,0,0,.16);
+  }
+  .band .lvl b { font-size: 17px; letter-spacing: .02em; }
+  .band .lvl span { font-size: 9px; color: var(--faint); letter-spacing: .1em; }
+  .band .body { padding: 14px 18px; min-width: 0; }
+  .band .name { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
+  .band .enf { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin-top: 3px; }
+  .band .verdict { font-size: 12.5px; color: var(--dim); margin-top: 9px; }
+  .band .verdict b { color: #fff; }
+  .band .refs { margin-top: 10px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .band .spec { border-left: 1px solid var(--line2); padding: 14px 14px; display: grid; gap: 10px; align-content: start; background: rgba(0,0,0,.10); }
+  .spec .k { font-size: 9.5px; letter-spacing: .16em; color: var(--faint); text-transform: uppercase; }
+  .spec .v { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; }
+  .sample { height: 0; margin: 5px 0 2px; }
+  .s-advisory { border-top: 1px dashed var(--amber); }
+  .s-uncond   { border-top: 2px dashed var(--amber); }
+  .s-kernel   { border-top: 2px solid var(--green); }
+  .s-shared   { border-top: 2px solid var(--cyan); }
+  .s-hyper    { border-top: 3px double var(--green); }
+  .s-none     { border-top: 2px solid var(--red); }
+  .ticks { display: flex; gap: 3px; }
+  .ticks i { width: 13px; height: 9px; border: 1px solid var(--line); display: block; }
+  .ticks i.on { background: var(--amber); border-color: var(--amber); }
+
+  .tag { font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; border: 1px solid var(--line); padding: 2px 6px; color: var(--dim); }
+  .tag.g { color: var(--green); border-color: rgba(126,224,160,.5); }
+  .tag.a { color: var(--amber); border-color: rgba(255,180,84,.5); }
+  .tag.r { color: var(--red); border-color: rgba(255,128,128,.5); }
+  .tag.c { color: var(--cyan); border-color: rgba(111,208,255,.5); }
+
+  /* ── assemblies ────────────────────────────────────────────── */
+  .asm { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .asmcard { border: 1px solid var(--line); background: var(--panel); padding: 16px 18px; }
+  .asmcard.b { border-color: rgba(126,224,160,.45); }
+  .asmcard h3 { margin: 0; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
+  .asmcard .when { font-size: 11px; color: var(--faint); letter-spacing: .1em; text-transform: uppercase; margin-top: 4px; }
+  .asmrows { margin-top: 14px; display: grid; gap: 2px; }
+  .asmrow { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; font-size: 12px; padding: 6px 8px; background: rgba(0,0,0,.14); }
+  .asmrow.off { opacity: .32; text-decoration: line-through; }
+  .asmrow .lv { font-size: 10.5px; color: var(--cyan); letter-spacing: .08em; }
+  .asmcard .foot { margin-top: 14px; font-size: 12px; color: var(--dim); border-top: 1px dashed var(--line2); padding-top: 10px; }
+
+  /* ── tables ────────────────────────────────────────────────── */
+  .tw { overflow-x: auto; border: 1px solid var(--line); }
+  table.bpt { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 620px; }
+  table.bpt th {
+    text-align: left; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--faint); font-weight: 400; padding: 10px 12px; border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.24); white-space: nowrap;
+  }
+  table.bpt td { padding: 11px 12px; border-bottom: 1px dashed var(--line2); vertical-align: top; }
+  table.bpt tr:last-child td { border-bottom: none; }
+  table.bpt td.num { color: var(--faint); font-size: 11px; white-space: nowrap; }
+  table.bpt td strong { color: #fff; }
+  table.bpt .ttl { font-size: 12.5px; }
+  table.bpt .sm { color: var(--dim); font-size: 11.5px; display: block; margin-top: 4px; }
+
+  /* ── details / code ────────────────────────────────────────── */
+  .details { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 16px; }
+  .detail { border: 1px solid var(--line); background: rgba(3,13,26,.5); }
+  .detail .dh { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line2); background: rgba(0,0,0,.24); }
+  .detail .dh .bub { border: 1px solid var(--cyan); color: var(--cyan); border-radius: 50%; width: 20px; height: 20px; display: grid; place-items: center; font-size: 10px; flex: none; }
+  .detail .dh .t { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .detail .dh .f { margin-left: auto; font-size: 9.5px; color: var(--faint); letter-spacing: .1em; white-space: nowrap; }
+  .detail pre { margin: 0; padding: 13px 14px; overflow-x: auto; font-size: 11.5px; line-height: 1.62; color: #cfe4f8; }
+  .detail pre .c { color: var(--faint); }
+  .detail pre .k { color: var(--cyan); }
+  .detail pre .v { color: var(--green); }
+  .detail pre .w { color: var(--amber); }
+
+  /* ── keynotes ──────────────────────────────────────────────── */
+  .keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .key { border: 1px solid var(--line); border-top: 3px solid var(--amber); padding: 14px 16px; background: var(--panel); }
+  .key .kt { display: flex; gap: 8px; align-items: baseline; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
+  .key p { margin: 9px 0 0; font-size: 12.5px; color: var(--dim); }
+  .key p b { color: #fff; }
+
+  /* ── source register ───────────────────────────────────────── */
+  .reg { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 8px; }
+  .src { display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: center; border: 1px solid var(--line2); padding: 7px 9px; background: rgba(0,0,0,.14); font-size: 11px; }
+  .src img { width: 18px; height: 18px; display: block; opacity: .92; }
+  .src .n { color: var(--faint); }
+  .src .d { color: var(--dim); overflow-wrap: anywhere; }
+
+  /* ── stamp ─────────────────────────────────────────────────── */
+  .stampwrap { display: grid; place-items: center; padding: 8px 0 0; }
+  .stamp {
+    border: 2px solid var(--red); color: var(--red);
+    padding: 14px 22px; max-width: 760px;
+    transform: rotate(-1.4deg);
+    background: rgba(255,128,128,.05);
+  }
+  .stamp .sh { font-size: 11px; letter-spacing: .28em; text-transform: uppercase; border-bottom: 1px solid rgba(255,128,128,.5); padding-bottom: 6px; margin-bottom: 9px; }
+  .stamp p { margin: 0; font-size: 13px; line-height: 1.55; color: #ffd4d4; }
+
+  /* ── title block ───────────────────────────────────────────── */
+  .tblock { margin-top: 34px; border: 1px solid var(--line); display: grid; grid-template-columns: minmax(0,1fr) auto; }
+  .tfields { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+  .tf { border-right: 1px solid var(--line2); border-bottom: 1px solid var(--line2); padding: 9px 11px; }
+  .tf .k { font-size: 9px; letter-spacing: .16em; color: var(--faint); text-transform: uppercase; }
+  .tf .v { font-size: 12px; margin-top: 3px; }
+  .plates { display: flex; flex-wrap: wrap; gap: 0; border-left: 1px solid var(--line); }
+  .plate { width: 124px; border-right: 1px solid var(--line2); border-bottom: 1px solid var(--line2); padding: 8px; display: grid; gap: 6px; align-content: start; }
+  .plate:last-child { border-right: none; }
+  .plate img { width: 100%; height: 62px; object-fit: contain; background: rgba(255,255,255,.94); border: 1px solid var(--line2); display: block; }
+  .plate .pc { font-size: 8.5px; letter-spacing: .12em; color: var(--faint); text-transform: uppercase; line-height: 1.4; }
+
+  .navrow { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .navrow a { border: 1px solid var(--line); padding: 6px 11px; border-bottom: 1px solid var(--line); }
+
+  @media (max-width: 720px) {
+    .band { grid-template-columns: 46px minmax(0,1fr); }
+    .band .spec { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--line2); grid-template-columns: repeat(2, 1fr); display: grid; }
+    .tblock { grid-template-columns: 1fr; }
+    .plates { border-left: none; border-top: 1px solid var(--line); }
+  }
+</style>
+
+<div class="bp">
+<div class="sheet">
+  <div class="ruler"></div>
+
+  <div class="head">
+    <div>
+      <div class="sheetid">Atlas · expedition · drawing no. CC-LNX-2026 · sheet 00 of 07 · rev A</div>
+      <h1 class="dwgtitle">Containment stack for an<br>agentic coding CLI</h1>
+      <div class="dwgsub">Running Claude Code on a Linux daily driver, with a Proxmox mini PC available as an isolation boundary. Section, schedules and details for the seven angles of this expedition.</div>
+    </div>
+    <div class="stampcol">
+      <span class="chip">Scale <b>not to scale</b></span>
+      <span class="chip">Drawn <b>2026-07-30</b></span>
+      <span class="chip">Sheets <b>7</b></span>
+      <span class="chip">Refs <b>240</b></span>
+    </div>
+  </div>
+
+  <!-- ═══ GENERAL NOTES ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">N</span> General notes <span class="sub">— read before building anything</span></div>
+    <div class="notes">
+      <ol>
+        <li><strong>Build two setups, not one.</strong> One hardened daily driver, one disposable guest. Every attempt to make a single configuration serve both ends up either unusable or uncontained.</li>
+        <li><strong>Nothing enforced inside the agent's process is a boundary.</strong> Anthropic's docs say it outright — permission rules are enforced by Claude Code, not by the model <sup><a href="https://code.claude.com/docs/en/permissions">[1]</a></sup> — and the Bash parser is "a permission gate, not a sandbox" <sup><a href="https://code.claude.com/docs/en/agent-sdk/secure-deployment">[2]</a></sup>.</li>
+        <li><strong>Rank containment by what actually caused losses:</strong> stop writes outside the workspace, then stop arbitrary egress, then stop reads of <code>~/.ssh</code> and <code>~/.aws</code> — in that order.</li>
+        <li><strong>Two controls survive every permission mode</strong>, including <code>bypassPermissions</code>: a <code>permissions.deny</code> rule and a <code>PreToolUse</code> hook returning <code>deny</code> <sup><a href="https://code.claude.com/docs/en/permission-modes">[15]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup>. Configure both — as blast-radius reduction, not as the boundary.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ═══ KEY PLAN ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">K</span> Key plan <span class="sub">— nested enclosures, plan view</span></div>
+    <div class="figure">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="Plan view of six nested containment enclosures around the agent process, with a red arrow showing a kernel-exploit path that pierces every layer except the hypervisor.">
+        <defs>
+          <pattern id="hatch" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#ff8080" stroke-opacity="0.35" stroke-width="1.4"/>
+          </pattern>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ff8080"/>
+          </marker>
+        </defs>
+
+        <!-- L5 hypervisor: double line -->
+        <rect x="14" y="14" width="972" height="322" fill="none" stroke="#7ee0a0" stroke-width="1.6"/>
+        <rect x="19" y="19" width="962" height="312" fill="none" stroke="#7ee0a0" stroke-width="1.6"/>
+        <text x="32" y="40" fill="#7ee0a0" font-family="monospace" font-size="12" letter-spacing="1.6">L5 · KVM VM ON PROXMOX — HYPERVISOR BOUNDARY</text>
+
+        <!-- L4 podman -->
+        <rect x="62" y="56" width="876" height="238" fill="none" stroke="#6fd0ff" stroke-width="1.4"/>
+        <text x="78" y="76" fill="#6fd0ff" font-family="monospace" font-size="11" letter-spacing="1.4">L4 · ROOTLESS PODMAN + PROXY-ONLY INTERNAL NET</text>
+
+        <!-- L3 bwrap wrapper -->
+        <rect x="110" y="92" width="780" height="166" fill="none" stroke="#6fd0ff" stroke-width="1.4"/>
+        <text x="126" y="112" fill="#6fd0ff" font-family="monospace" font-size="11" letter-spacing="1.4">L3 · WHOLE-PROCESS bwrap WRAPPER</text>
+
+        <!-- L2 built-in sandbox -->
+        <rect x="158" y="128" width="684" height="94" fill="none" stroke="#7ee0a0" stroke-width="1.4" stroke-dasharray="14 5"/>
+        <text x="174" y="147" fill="#7ee0a0" font-family="monospace" font-size="11" letter-spacing="1.4">L2 · BUILT-IN BASH SANDBOX (BASH SUBPROCESSES ONLY)</text>
+
+        <!-- L1/L0 policy -->
+        <rect x="206" y="160" width="588" height="48" fill="rgba(255,180,84,0.06)" stroke="#ffb454" stroke-width="1.2" stroke-dasharray="5 4"/>
+        <text x="220" y="177" fill="#ffb454" font-family="monospace" font-size="10.5" letter-spacing="1.4">L1 HOOK + DENY RULES · L0 PERMISSION POLICY — ADVISORY</text>
+
+        <!-- agent -->
+        <rect x="352" y="182" width="296" height="20" fill="rgba(231,241,252,0.14)" stroke="#e7f1fc" stroke-width="1"/>
+        <text x="500" y="196" fill="#e7f1fc" font-family="monospace" font-size="11" text-anchor="middle" letter-spacing="2">AGENT PROCESS</text>
+
+        <!-- kernel substrate -->
+        <rect x="62" y="300" width="876" height="24" fill="url(#hatch)" stroke="#ff8080" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="78" y="317" fill="#ff8080" font-family="monospace" font-size="10.5" letter-spacing="1.6">SUBSTRATE · SHARED KERNEL — CONTAINED BY NOTHING ABOVE IT</text>
+
+        <!-- pierce arrow -->
+        <path d="M648,192 L706,192 L706,72 L820,72" fill="none" stroke="#ff8080" stroke-width="1.5" stroke-dasharray="7 4" marker-end="url(#ah)"/>
+        <circle cx="820" cy="72" r="9" fill="none" stroke="#ff8080" stroke-width="1.4"/>
+        <path d="M814,66 L826,78 M826,66 L814,78" stroke="#ff8080" stroke-width="1.4"/>
+        <text x="838" y="70" fill="#ff8080" font-family="monospace" font-size="10">CVE-2026-23111</text>
+        <text x="838" y="84" fill="#ff8080" font-family="monospace" font-size="10">STOPS AT L5</text>
+
+        <!-- dimension line, left margin -->
+        <path d="M40,190 L40,58" fill="none" stroke="#9dbbd9" stroke-width="1"/>
+        <path d="M36,64 L40,54 L44,64" fill="none" stroke="#9dbbd9" stroke-width="1"/>
+        <path d="M36,184 L40,194 L44,184" fill="none" stroke="#9dbbd9" stroke-width="1"/>
+        <text x="34" y="126" fill="#9dbbd9" font-family="monospace" font-size="9.5" letter-spacing="1.4" transform="rotate(-90 34 126)" text-anchor="middle">OUTWARD</text>
+      </svg>
+      <div class="figcap">Fig. K — each enclosure is enforced further from the agent's process. Dashed amber = advisory. Solid = kernel-enforced. Double = hypervisor. Hatched = out of scope for every layer drawn.</div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION A-A ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">A</span> Section A–A · containment stack <span class="sub">— six layers, top = innermost</span></div>
+
+    <div class="stack">
+
+      <div class="band">
+        <div class="lvl"><b>L0</b><span>POLICY</span></div>
+        <div class="body">
+          <div class="name">Permission rules in <code>settings.json</code></div>
+          <div class="enf">Enforced by — Claude Code's own process</div>
+          <div class="verdict"><b>Not a boundary, and the docs never claimed it was.</b> A denied <code>curl</code> was downgraded to a prompt by padding the command past a 50-subcommand parser cap <sup><a href="https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/">[3]</a></sup><sup><a href="https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit">[45]</a></sup>; deny rules went unenforced through symlinks (CVE-2026-25725) <sup><a href="https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725">[4]</a></sup> and through the <code>@../</code> attachment syntax <sup><a href="https://github.com/anthropics/claude-code/issues/61148">[47]</a></sup>. Still worth writing — it stops the honest mistakes, which are most of them.</div>
+          <div class="refs"><a href="../claude-code-native-guardrails-and-permission-model/">→ Sheet 02 · native guardrails</a></div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-advisory"></div><div class="v" style="color:var(--amber)">Advisory</div></div>
+          <div><div class="k">Daily friction</div><div class="ticks"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+          <div><span class="tag a">Configure anyway</span></div>
+        </div>
+      </div>
+
+      <div class="band">
+        <div class="lvl"><b>L1</b><span>GATE</span></div>
+        <div class="body">
+          <div class="name"><code>permissions.deny</code> + <code>PreToolUse</code> hook</div>
+          <div class="enf">Enforced by — Claude Code, but before any mode check</div>
+          <div class="verdict">The only in-process controls that fire even under <code>--dangerously-skip-permissions</code> <sup><a href="https://code.claude.com/docs/en/permission-modes">[15]</a></sup><sup><a href="https://code.claude.com/docs/en/hooks-guide">[7]</a></sup>. Use the hook to deny what the built-in parser misses: <code>sudo</code>, loader indirection via <code>ld-linux</code>, <code>/proc/self/root</code> path identity, environment runners like <code>devbox run</code>, and any attempt to set <code>dangerouslyDisableSandbox</code>. <b>Still the same process</b> — a compromised hook file is a compromised gate, so deny writes to it.</div>
+          <div class="refs"><a href="../claude-code-native-guardrails-and-permission-model/">→ Sheet 02</a> &nbsp;·&nbsp; <a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">escape classes [44]</a></div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-uncond"></div><div class="v" style="color:var(--amber)">Advisory / unconditional</div></div>
+          <div><div class="k">Daily friction</div><div class="ticks"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+          <div><span class="tag a">Holds in every mode</span></div>
+        </div>
+      </div>
+
+      <div class="band">
+        <div class="lvl"><b>L2</b><span>KERNEL</span></div>
+        <div class="body">
+          <div class="name">Built-in Bash sandbox — <a href="https://github.com/containers/bubblewrap">bubblewrap</a> ⭐ 8.2k + seccomp</div>
+          <div class="enf">Enforced by — the Linux kernel · covers Bash subprocesses only</div>
+          <div class="verdict"><b>The highest containment per minute of setup on Linux.</b> Set <code>sandbox.enabled: true</code> and <code>allowUnsandboxedCommands: false</code> <sup><a href="https://code.claude.com/docs/en/sandboxing">[8]</a></sup>. Two things to know: it restricts writes and network but <b>permits reading the whole filesystem</b> with no credential deny list by default, and it does not cover Read/Edit, hooks or MCP servers <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[14]</a></sup>. It has been escaped via symlink once already (CVE-2026-39861, CVSS 7.7) <sup><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-39861/">[5]</a></sup>.</div>
+          <div class="refs"><a href="../linux-native-sandboxing-on-the-workstation/">→ Sheet 03 · Linux-native sandboxing</a></div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-kernel"></div><div class="v" style="color:var(--green)">Kernel · partial</div></div>
+          <div><div class="k">Daily friction</div><div class="ticks"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+          <div><span class="tag g">Daily driver — on</span></div>
+        </div>
+      </div>
+
+      <div class="band">
+        <div class="lvl"><b>L3</b><span>KERNEL</span></div>
+        <div class="body">
+          <div class="name">Whole-process <code>bwrap</code> wrapper</div>
+          <div class="enf">Enforced by — the Linux kernel · covers the entire <code>claude</code> process tree</div>
+          <div class="verdict">A ~30-line <code>claude-jail</code> script closes L2's gap: hooks, MCP servers and the built-in Read/Edit tools land inside the same filesystem view. Or let Anthropic maintain the wrapper — <code>npx</code> <a href="https://github.com/anthropic-experimental/sandbox-runtime">@anthropic-ai/sandbox-runtime</a> ⭐ 4.8k. <b>The price of admission is an unprivileged user namespace</b>, which widens reachable kernel surface — see the substrate note below.</div>
+          <div class="refs"><a href="../linux-native-sandboxing-on-the-workstation/">→ Sheet 03</a> &nbsp;·&nbsp; <a href="https://man.archlinux.org/man/bwrap.1.en">bwrap(1) [61]</a></div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-kernel"></div><div class="v" style="color:var(--green)">Kernel · whole process</div></div>
+          <div><div class="k">Daily friction</div><div class="ticks"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+          <div><span class="tag g">Daily driver — on</span></div>
+        </div>
+      </div>
+
+      <div class="band">
+        <div class="lvl"><b>L4</b><span>NS</span></div>
+        <div class="body">
+          <div class="name">Rootless Podman + proxy-only <code>--internal</code> network</div>
+          <div class="enf">Enforced by — namespaces + a proxy sidecar · shared host kernel</div>
+          <div class="verdict">Use <code>--userns=keep-id</code>, the repo as the only bind mount, and egress through a <a href="https://docs.podman.io/en/latest/markdown/podman-network-create.1.html">proxy sidecar</a> on an internal network. <b>Not</b> the <code>NET_ADMIN</code>-plus-<code>iptables</code> pattern of Anthropic's reference devcontainer, which allows unrestricted outbound DNS, allowlists all of GitHub's CIDR space, and hands the agent's own container <code>CAP_NET_ADMIN</code> <sup><a href="https://github.com/anthropics/claude-code/issues/36907">[13]</a></sup><sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json">[27]</a></sup>. Rootless <em>Docker</em> is a dead end: it maps your UID to container root, and the CLI refuses <code>--dangerously-skip-permissions</code> as root <sup><a href="https://github.com/moby/moby/issues/45919">[28]</a></sup>.</div>
+          <div class="refs"><a href="../containerized-dev-environments/">→ Sheet 04 · containers</a></div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-shared"></div><div class="v" style="color:var(--cyan)">Kernel · shared</div></div>
+          <div><div class="k">Daily friction</div><div class="ticks"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+          <div><span class="tag c">Optional middle step</span></div>
+        </div>
+      </div>
+
+      <div class="band">
+        <div class="lvl"><b>L5</b><span>HYPER</span></div>
+        <div class="body">
+          <div class="name">KVM VM on the <a href="https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2">Proxmox</a> mini PC — never LXC</div>
+          <div class="enf">Enforced by — KVM + a host-side guest-NIC firewall</div>
+          <div class="verdict"><b>The strongest boundary available, and the only one that also contains the build.</b> Proxmox's own container docs say containers use the host kernel and "full virtual machines provide better isolation" <sup><a href="https://pve.proxmox.com/wiki/Linux_Container">[18]</a></sup>; LXC upstream says privileged containers "aren't and cannot be root-safe" <sup><a href="https://linuxcontainers.org/lxc/security/">[19]</a></sup>; Anthropic sends untrusted repositories to a dedicated VM for kernel-level separation <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[14]</a></sup>. Clone the repo <em>inside</em> the guest — no home mount. Drive it over SSH + tmux, <a href="https://mosh.org/">Mosh</a> if the laptop suspends. Disk-only snapshots roll back in seconds <sup><a href="https://pve.proxmox.com/pve-docs/chapter-pvesm.html">[21]</a></sup>, and the guest firewall runs host-side as iptables so it cannot be switched off from inside <sup><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">[20]</a></sup>.</div>
+          <div class="refs"><a href="../proxmox-as-the-isolation-boundary/">→ Sheet 05 · Proxmox as the boundary</a></div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-hyper"></div><div class="v" style="color:var(--green)">Hypervisor</div></div>
+          <div><div class="k">Daily friction</div><div class="ticks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+          <div><span class="tag g">Untrusted + unattended</span></div>
+        </div>
+      </div>
+
+      <div class="band substrate">
+        <div class="lvl" style="color:var(--red)"><b>S</b><span>SUBSTRATE</span></div>
+        <div class="body">
+          <div class="name" style="color:var(--red)">The shared kernel — contained by nothing above it</div>
+          <div class="enf">Enforced by — nobody</div>
+          <div class="verdict">L2 through L4 all buy their containment with unprivileged user namespaces, which widen the reachable kernel surface. CVE-2026-23111 is a concrete unprivileged-to-root path through exactly that <sup><a href="https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening">[12]</a></sup><sup><a href="https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html">[54]</a></sup>. L5 does not remove this — it relocates the trust boundary to KVM.</div>
+        </div>
+        <div class="spec">
+          <div><div class="k">Boundary</div><div class="sample s-none"></div><div class="v" style="color:var(--red)">None</div></div>
+          <div><span class="tag r">Open — see stamp</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ ASSEMBLIES ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">B</span> Assembly schedule <span class="sub">— which bands go in which build</span></div>
+    <div class="asm">
+
+      <div class="asmcard">
+        <h3>Assembly A · daily driver</h3>
+        <div class="when">Your own repos · interactive · every day</div>
+        <div class="asmrows">
+          <div class="asmrow"><span class="lv">L0</span><span>Permission rules — deny reads of credential paths</span></div>
+          <div class="asmrow"><span class="lv">L1</span><span><code>PreToolUse</code> hard-deny hook</span></div>
+          <div class="asmrow"><span class="lv">L2</span><span>Built-in sandbox, <code>failIfUnavailable: true</code></span></div>
+          <div class="asmrow"><span class="lv">L3</span><span><code>claude-jail</code> wrapper <em>or</em> sandbox-runtime</span></div>
+          <div class="asmrow off"><span class="lv">L4</span><span>Container layer — unnecessary here</span></div>
+          <div class="asmrow off"><span class="lv">L5</span><span>VM — too much friction for daily work</span></div>
+        </div>
+        <div class="foot">Credentials: a FIDO2-backed SSH key <sup><a href="https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html">[39]</a></sup> and one repo-scoped fine-grained PAT <sup><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens">[40]</a></sup> — nothing else reachable.</div>
+      </div>
+
+      <div class="asmcard b">
+        <h3>Assembly B · untrusted &amp; unattended</h3>
+        <div class="when">Someone else's repo · <code>--dangerously-skip-permissions</code> · overnight runs</div>
+        <div class="asmrows">
+          <div class="asmrow"><span class="lv">L5</span><span>KVM guest on Proxmox, cloned from a template</span></div>
+          <div class="asmrow"><span class="lv">L5</span><span>Guest-NIC firewall: LAN and host rejected outbound</span></div>
+          <div class="asmrow"><span class="lv">L5</span><span>Repo cloned inside · deploy key, read-only</span></div>
+          <div class="asmrow"><span class="lv">L5</span><span>Disk-only snapshot before each run</span></div>
+          <div class="asmrow"><span class="lv">L0</span><span>Deny rules still on — cheap, and they hold</span></div>
+          <div class="asmrow off"><span class="lv">—</span><span>LXC container — rejected, see below</span></div>
+        </div>
+        <div class="foot">Rebuild rather than repair: keep one <code>base</code> snapshot taken right after provisioning and roll back to it, never to yesterday's mess.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ NOT TO SPEC ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">X</span> Not to spec <span class="sub">— evaluated and rejected</span></div>
+    <div class="tw">
+      <table class="bpt">
+        <thead><tr><th>Option</th><th>Why it fails here</th><th>Ref</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>LXC container on Proxmox</strong></td>
+            <td>Shares the host kernel; Proxmox's own docs prefer full VMs for isolation, and LXC upstream states privileged containers cannot be root-safe.</td>
+            <td class="num"><a href="https://pve.proxmox.com/wiki/Linux_Container">[18]</a> <a href="https://linuxcontainers.org/lxc/security/">[19]</a></td>
+          </tr>
+          <tr>
+            <td><strong><a href="https://github.com/netblue30/firejail">firejail</a> ⭐ 7.6k</strong></td>
+            <td>setuid-root by design, with a matching CVE history. You do not add a setuid-root binary to reduce the blast radius of a coding agent.</td>
+            <td class="num"><a href="https://secure-os.org/articles/firejail/">[86]</a> <a href="https://www.cybersecurity-help.cz/vdb/SB2022061012">[87]</a></td>
+          </tr>
+          <tr>
+            <td><strong><code>systemd-run --user</code></strong></td>
+            <td>Its strongest hardening directives are documented as applying to system services only, so the user-scope version buys much less than it appears to.</td>
+            <td class="num"><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">[25]</a></td>
+          </tr>
+          <tr>
+            <td><strong>Flatpak</strong></td>
+            <td>Wrong shape for a dev CLI, and roughly 42% of published apps neuter their own sandbox with broad filesystem permissions.</td>
+            <td class="num"><a href="https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal">[26]</a> <a href="https://docs.flatpak.org/en/latest/sandbox-permissions.html">[85]</a></td>
+          </tr>
+          <tr>
+            <td><strong>Rootless Docker</strong></td>
+            <td>Maps your UID to container root; Claude Code then refuses <code>--dangerously-skip-permissions</code> as root, so the one thing you wanted the container for stops working.</td>
+            <td class="num"><a href="https://github.com/moby/moby/issues/45919">[28]</a> <a href="https://www.kenmuse.com/blog/rootless-docker-and-its-hidden-security-trade-offs/">[73]</a></td>
+          </tr>
+          <tr>
+            <td><strong>Anthropic's reference devcontainer, as shipped</strong></td>
+            <td>Good shape, weak boundary: unrestricted outbound DNS, all of GitHub's CIDR space allowlisted, <code>CAP_NET_ADMIN</code> granted to the agent container. Keep the shape, replace the firewall with a proxy sidecar.</td>
+            <td class="num"><a href="https://github.com/anthropics/claude-code/issues/36907">[13]</a> <a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">[74]</a></td>
+          </tr>
+          <tr>
+            <td><strong>Hand-rolled Landlock</strong></td>
+            <td>The right primitive to bet on long-term, wrong thing to write yourself today — let bubblewrap and the tools built on it carry it.</td>
+            <td class="num"><a href="https://docs.kernel.org/userspace-api/landlock.html">[41]</a> <a href="https://github.com/always-further/nono">[76]</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ FRICTION / CONTAINMENT PLOT ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">C</span> Chart C · containment vs. daily friction <span class="sub">— plotted from the seven angles</span></div>
+    <div class="figure">
+      <svg viewBox="0 0 640 430" role="img" aria-label="Scatter plot of containment strength against daily friction. The built-in sandbox and the bwrap wrapper sit at the efficiency knee; the KVM VM sits highest on both axes; LXC, Flatpak, firejail and systemd-run cluster low-containment.">
+        <!-- grid -->
+        <g stroke="rgba(178,212,246,0.14)" stroke-width="1">
+          <line x1="60" y1="380" x2="600" y2="380"/>
+          <line x1="60" y1="312" x2="600" y2="312"/>
+          <line x1="60" y1="244" x2="600" y2="244"/>
+          <line x1="60" y1="176" x2="600" y2="176"/>
+          <line x1="60" y1="108" x2="600" y2="108"/>
+          <line x1="60" y1="40"  x2="600" y2="40"/>
+          <line x1="160" y1="40" x2="160" y2="380"/>
+          <line x1="260" y1="40" x2="260" y2="380"/>
+          <line x1="360" y1="40" x2="360" y2="380"/>
+          <line x1="460" y1="40" x2="460" y2="380"/>
+          <line x1="560" y1="40" x2="560" y2="380"/>
+        </g>
+        <!-- axes -->
+        <line x1="60" y1="380" x2="600" y2="380" stroke="#9dbbd9" stroke-width="1.4"/>
+        <line x1="60" y1="380" x2="60" y2="34" stroke="#9dbbd9" stroke-width="1.4"/>
+        <text x="330" y="412" fill="#9dbbd9" font-family="monospace" font-size="10.5" text-anchor="middle" letter-spacing="2">DAILY FRICTION →</text>
+        <text x="20" y="210" fill="#9dbbd9" font-family="monospace" font-size="10.5" text-anchor="middle" letter-spacing="2" transform="rotate(-90 20 210)">CONTAINMENT STRENGTH →</text>
+
+        <!-- recommended zone -->
+        <rect x="176" y="112" width="112" height="96" fill="rgba(126,224,160,0.08)" stroke="#7ee0a0" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="232" y="103" fill="#7ee0a0" font-family="monospace" font-size="9.5" text-anchor="middle" letter-spacing="1.2">THE KNEE</text>
+
+        <!-- frontier -->
+        <polyline points="130,353 160,312 210,176 260,135 360,108 480,54" fill="none" stroke="rgba(111,208,255,0.45)" stroke-width="1.2" stroke-dasharray="6 4"/>
+
+        <!-- recommended points -->
+        <g fill="#6fd0ff" font-family="monospace" font-size="10">
+          <circle cx="130" cy="353" r="4"/><text x="140" y="357" fill="#9dbbd9">L0 deny rules</text>
+          <circle cx="160" cy="312" r="4"/><text x="170" y="316" fill="#9dbbd9">L1 PreToolUse hook</text>
+          <circle cx="210" cy="176" r="5.5" stroke="#7ee0a0" fill="#7ee0a0"/><text x="222" y="171" fill="#7ee0a0">L2 built-in sandbox</text>
+          <circle cx="260" cy="135" r="5.5" stroke="#7ee0a0" fill="#7ee0a0"/><text x="272" y="139" fill="#7ee0a0">L3 bwrap wrapper</text>
+          <circle cx="360" cy="108" r="4"/><text x="370" y="112" fill="#6fd0ff">L4 rootless Podman</text>
+          <circle cx="480" cy="54" r="6" fill="#7ee0a0"/><circle cx="480" cy="54" r="11" fill="none" stroke="#7ee0a0" stroke-width="1"/><text x="496" y="58" fill="#7ee0a0">L5 KVM VM</text>
+        </g>
+
+        <!-- rejected points as crosses -->
+        <g stroke="#ff8080" stroke-width="1.4" font-family="monospace" font-size="10" fill="#ff8080">
+          <path d="M175,334 L185,344 M185,334 L175,344"/><text x="192" y="343" stroke="none">systemd-run --user</text>
+          <path d="M205,293 L215,303 M215,293 L205,303"/><text x="222" y="302" stroke="none">firejail</text>
+          <path d="M315,212 L325,222 M325,212 L315,222"/><text x="332" y="221" stroke="none">devcontainer as shipped</text>
+          <path d="M335,239 L345,249 M345,239 L335,249"/><text x="352" y="248" stroke="none">rootless Docker</text>
+          <path d="M395,253 L405,263 M405,253 L395,263"/><text x="412" y="262" stroke="none">LXC</text>
+          <path d="M455,307 L465,317 M465,307 L455,317"/><text x="472" y="316" stroke="none">Flatpak</text>
+        </g>
+      </svg>
+      <div class="figcap">Fig. C — L2 + L3 is the efficiency knee: near-VM filesystem containment at near-zero daily cost. Everything crossed out costs friction without buying a boundary. L5 is the only point above the knee, and it is bought with real friction.</div>
+    </div>
+  </div>
+
+  <!-- ═══ KEYNOTES ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">▲</span> Keynotes <span class="sub">— three findings every angle hit independently</span></div>
+    <div class="keys">
+      <div class="key">
+        <div class="kt"><span>▲ 1</span><span>Reads are wide open by default</span></div>
+        <p>The built-in sandbox restricts writes and network but <b>permits reading the whole filesystem, with no credential deny list</b> <sup><a href="https://code.claude.com/docs/en/sandboxing">[8]</a></sup>. So <code>~/.ssh</code> and <code>~/.aws</code> are in scope unless you list them — and 2026's npm stealers name <code>~/.claude/.credentials.json</code> explicitly <sup><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-ironworm-ebpf-rootkit-npm-supply-chain-202/">[9]</a></sup>. On Linux the keyring is not a mitigation: once the login collection is unlocked, any process running as you reads every secret over D-Bus <sup><a href="https://nvd.nist.gov/vuln/detail/CVE-2018-19358">[10]</a></sup><sup><a href="https://github.com/swiesend/secret-service">[38]</a></sup>. Encrypting at rest changes nothing; changing <em>what the credential is</em> does.</p>
+      </div>
+      <div class="key">
+        <div class="kt"><span>▲ 2</span><span>Ubuntu 24.04+ silently disables the sandbox</span></div>
+        <p>Default AppArmor forbids bubblewrap from creating user namespaces, and <b>a sandbox that fails to start degrades to unsandboxed execution with a warning</b> <sup><a href="https://code.claude.com/docs/en/sandboxing">[8]</a></sup><sup><a href="https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007">[42]</a></sup>. Set <code>sandbox.failIfUnavailable: true</code> and install a <code>bwrap</code> AppArmor profile, or the whole local story is theatre — a specific trap for anyone arriving from WSL2, where none of this applied.</p>
+      </div>
+      <div class="key">
+        <div class="kt"><span>▲ 3</span><span>The dependency is a likelier attacker than the model</span></div>
+        <p><code>preinstall</code> scripts run <b>before any agent permission check</b>, and observed malware re-invokes an installed agent CLI with <code>--dangerously-skip-permissions</code> as a credential-hunting tool <sup><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">[11]</a></sup><sup><a href="https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/">[69]</a></sup>. The <em>build</em> needs the same boundary as the agent — the strongest single argument for L5.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DETAILS ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">D</span> Details <span class="sub">— installed configuration, as drawn</span></div>
+    <div class="details">
+
+      <div class="detail">
+        <div class="dh"><span class="bub">1</span><span class="t">Daily driver — settings.json</span><span class="f">~/.claude/</span></div>
+<pre><span class="c">// L0 + L1 + L2 in one file</span>
+{
+  <span class="k">"permissions"</span>: {
+    <span class="k">"defaultMode"</span>: <span class="v">"default"</span>,
+    <span class="k">"disableBypassPermissionsMode"</span>: <span class="v">"disable"</span>,
+    <span class="k">"deny"</span>: [
+      <span class="v">"Read(//**/.env)"</span>, <span class="v">"Read(//**/.env.*)"</span>,
+      <span class="v">"Read(~/.ssh/**)"</span>, <span class="v">"Read(~/.aws/**)"</span>,
+      <span class="v">"Read(~/.gnupg/**)"</span>, <span class="v">"Read(~/.kube/**)"</span>,
+      <span class="v">"Read(~/.config/gh/**)"</span>,
+      <span class="v">"Read(~/.claude/.credentials.json)"</span>,
+      <span class="v">"Edit(~/.claude/hooks/**)"</span>,
+      <span class="v">"Edit(//**/.git/hooks/**)"</span>,
+      <span class="v">"Bash(sudo *)"</span>, <span class="v">"Bash(git reset --hard*)"</span>,
+      <span class="v">"Bash(git push --force*)"</span>
+    ]
+  },
+  <span class="k">"sandbox"</span>: {
+    <span class="k">"enabled"</span>: <span class="w">true</span>,
+    <span class="k">"failIfUnavailable"</span>: <span class="w">true</span>,   <span class="c">// keynote 2</span>
+    <span class="k">"allowUnsandboxedCommands"</span>: <span class="w">false</span>,
+    <span class="k">"autoAllowBashIfSandboxed"</span>: <span class="w">true</span>,
+    <span class="k">"network"</span>: { <span class="k">"strictAllowlist"</span>: <span class="w">true</span>,
+      <span class="k">"allowedDomains"</span>: [<span class="v">"api.anthropic.com"</span>,
+        <span class="v">"registry.npmjs.org"</span>, <span class="v">"*.github.com"</span>] },
+    <span class="k">"filesystem"</span>: { <span class="k">"denyRead"</span>:
+      [<span class="v">"~/.ssh"</span>, <span class="v">"~/.aws"</span>, <span class="v">"~/.gnupg"</span>, <span class="v">"~/.config/gh"</span>] }
+  }
+}</pre>
+      </div>
+
+      <div class="detail">
+        <div class="dh"><span class="bub">2</span><span class="t">L3 — claude-jail, essential flags</span><span class="f">~/.local/bin/</span></div>
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># refuse to run if the kernel won't give us a userns</span>
+bwrap --unshare-user --dev /dev true 2&gt;/dev/null || exit 1
+
+exec bwrap \
+  --unshare-all <span class="w">--share-net</span> --die-with-parent \
+  --hostname claude-jail \
+  <span class="w">--clearenv</span> --setenv HOME <span class="v">"$HOME"</span> \
+    --setenv PATH <span class="v">/usr/local/bin:/usr/bin:/bin</span> \
+    --setenv TERM <span class="v">"${TERM:-xterm-256color}"</span> \
+  --proc /proc --dev /dev --tmpfs /tmp --tmpfs /run \
+  --ro-bind /usr /usr --symlink usr/bin /bin \
+  --ro-bind /etc/ssl /etc/ssl \
+  --ro-bind <span class="v">"$(readlink -f /etc/resolv.conf)"</span> /etc/resolv.conf \
+  --bind <span class="v">"$HOME/.claude"</span> <span class="v">"$HOME/.claude"</span> \
+  <span class="w">--bind "$PROJECT" "$PROJECT"</span> --chdir <span class="v">"$PROJECT"</span> \
+  <span class="w">--cap-drop ALL</span> \
+  claude <span class="v">"$@"</span>
+
+<span class="c"># Ubuntu 24.04+: without this profile, bwrap cannot</span>
+<span class="c"># create a user namespace at all.</span>
+sudo tee /etc/apparmor.d/bwrap &lt;&lt;'EOF'
+abi &lt;abi/4.0&gt;,
+include &lt;tunables/global&gt;
+profile bwrap /usr/bin/bwrap flags=(unconfined) {
+  userns,
+}
+EOF
+sudo systemctl reload apparmor</pre>
+      </div>
+
+      <div class="detail">
+        <div class="dh"><span class="bub">3</span><span class="t">L5 — guest-NIC firewall</span><span class="f">/etc/pve/firewall/210.fw</span></div>
+<pre><span class="c"># enforced host-side as iptables — the guest</span>
+<span class="c"># cannot switch this off from inside</span>
+[OPTIONS]
+enable: 1
+policy_in: <span class="w">DROP</span>
+policy_out: <span class="w">DROP</span>
+
+[RULES]
+<span class="c"># in: only your workstation, only ssh (+ mosh)</span>
+IN  ACCEPT -p tcp -dport 22 -source <span class="v">192.168.1.50</span>
+IN  ACCEPT -p udp -dport 60000:61000 -source <span class="v">192.168.1.50</span>
+
+<span class="c"># out: the internet, never the LAN or the host</span>
+OUT ACCEPT -p udp -dport 53 -dest <span class="v">192.168.1.1</span>
+OUT <span class="w">REJECT</span> -dest <span class="v">192.168.1.0/24</span>
+OUT <span class="w">REJECT</span> -dest <span class="v">10.0.0.0/8</span>
+OUT <span class="w">REJECT</span> -dest <span class="v">172.16.0.0/12</span>
+OUT ACCEPT -p tcp -dport 443
+OUT ACCEPT -p tcp -dport 22 -dest <span class="v">+forges</span></pre>
+      </div>
+
+      <div class="detail">
+        <div class="dh"><span class="bub">4</span><span class="t">L5 — snapshot &amp; rollback drill</span><span class="f">Proxmox host</span></div>
+<pre><span class="c"># clean baseline, right after provisioning.</span>
+<span class="c"># never delete this one.</span>
+qm snapshot 210 <span class="v">base</span> --description <span class="v">"clean toolchain"</span>
+
+<span class="c"># pre-flight before an unattended run</span>
+qm snapshot 210 <span class="v">"pre-$(date +%Y%m%d-%H%M)"</span>
+
+<span class="c"># undo — seconds, on ZFS or LVM-thin</span>
+qm rollback 210 <span class="v">base</span> --start
+
+<span class="c"># disk-only: omit --vmstate. RAM snapshots cost</span>
+<span class="c"># minutes and buy nothing you want here.</span>
+qm listsnapshot 210
+qm delsnapshot 210 <span class="v">pre-20260730-0900</span>
+
+<span class="c"># the guest's only credential: a read-only</span>
+<span class="c"># deploy key, scoped to one repository</span>
+ssh-keygen -t ed25519 -f ~/.ssh/deploy_myrepo -N <span class="v">""</span>
+git clone git@github.com:me/myrepo.git ~/src/myrepo</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ BREACH SCHEDULE ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">R</span> Schedule of known breaches <span class="sub">— why L0 and L1 are drawn dashed</span></div>
+    <div class="tw">
+      <table class="bpt">
+        <thead><tr><th>Ref</th><th>Mechanism</th><th>Effect</th><th>Layer</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td class="num">CVE-2026-25725</td><td>Deny rules unenforced through symlinks</td><td>Denied path readable</td><td class="num">L0</td><td class="num"><a href="https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725">[4]</a></td></tr>
+          <tr><td class="num">CVE-2026-39861</td><td>Sandbox escaped via symlink · CVSS 7.7</td><td>Write outside the sandbox</td><td class="num">L2</td><td class="num"><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-39861/">[5]</a></td></tr>
+          <tr><td class="num">Parser cap</td><td>Command padded past a 50-subcommand limit</td><td>Denied <code>curl</code> downgraded to a prompt</td><td class="num">L0</td><td class="num"><a href="https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/">[3]</a> <a href="https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit">[45]</a></td></tr>
+          <tr><td class="num">Loader indirection</td><td>Agent reasoned its way into disabling its own sandbox, then loaded a blocked binary through <code>ld-linux.so</code></td><td><code>execve</code> gate sidestepped entirely</td><td class="num">L0 · L2</td><td class="num"><a href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/">[6]</a> <a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[44]</a></td></tr>
+          <tr><td class="num"><code>@../</code> syntax</td><td>Attachment path escaped a Read deny rule</td><td>Out-of-tree file read</td><td class="num">L0</td><td class="num"><a href="https://github.com/anthropics/claude-code/issues/61148">[47]</a></td></tr>
+          <tr><td class="num">Env prefix</td><td>Deny bypassed with an environment-variable command prefix</td><td>Denied command ran</td><td class="num">L0</td><td class="num"><a href="https://github.com/anthropics/claude-code/issues/31558">[48]</a></td></tr>
+          <tr><td class="num">Subagents</td><td>Task-tool subagents ran 22+ bash commands including credential reads</td><td>Gate bypassed by delegation</td><td class="num">L0 · L1</td><td class="num"><a href="https://github.com/anthropics/claude-code/issues/25000">[46]</a></td></tr>
+          <tr><td class="num">SOCKS5 null byte</td><td>Allowlist bypass, ~130 affected releases — <strong>patched with no CVE and no changelog entry</strong></td><td>Network allowlist defeated</td><td class="num">L2</td><td class="num"><a href="https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/">[43]</a></td></tr>
+          <tr><td class="num">DNS exfil</td><td>Data smuggled out over DNS requests</td><td>Egress with no HTTP</td><td class="num">L2 · L4</td><td class="num"><a href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/">[32]</a></td></tr>
+          <tr><td class="num">Devcontainer DNS</td><td>Reference firewall allows outbound UDP/53 to any resolver</td><td>DNS tunnelling out of the container</td><td class="num">L4</td><td class="num"><a href="https://github.com/anthropics/claude-code/issues/36907">[13]</a></td></tr>
+          <tr><td class="num">CVE-2026-23111</td><td>nftables unprivileged-to-root, reachable through the user namespace bubblewrap needs</td><td>Root on the host</td><td class="num">Substrate</td><td class="num"><a href="https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening">[12]</a></td></tr>
+          <tr><td class="num">Realized loss</td><td>Agent ran <code>git reset --hard</code> / <code>git checkout</code> unprompted</td><td><strong>Uncommitted work permanently destroyed</strong></td><td class="num">All</td><td class="num"><a href="https://github.com/anthropics/claude-code/issues/34327">[30]</a> <a href="https://github.com/anthropics/claude-code/issues/11237">[31]</a> <a href="https://github.com/anthropics/claude-code/issues/17190">[80]</a></td></tr>
+          <tr><td class="num">Realized loss</td><td>npm supply-chain malware re-invokes an installed agent CLI with <code>--dangerously-skip-permissions</code></td><td><strong>Credentials swept from <code>$HOME</code></strong></td><td class="num">All</td><td class="num"><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">[11]</a> <a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-ironworm-ebpf-rootkit-npm-supply-chain-202/">[9]</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="figcap" style="margin-top:10px">Sourcing caveat — the Claude Code CVE details come from vulnerability-database aggregators and security-vendor blogs, not from Anthropic advisories. Treat version-specific claims as directional.</div>
+  </div>
+
+  <!-- ═══ ANCILLARY SPECS ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">S</span> Ancillary specifications <span class="sub">— identity and undo</span></div>
+    <div class="asm">
+      <div class="asmcard">
+        <h3>Spec S1 · the agent's identity</h3>
+        <div class="when">Sheet 06 — credential isolation · survey</div>
+        <div class="foot" style="border-top:none;padding-top:12px">
+          Assume anything readable under <code>$HOME</code> is already exfiltrated. Do not try to hide the credential — <b>change what it is</b>.
+          <br><br>
+          · <b>Git access:</b> a <a href="https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html">FIDO2-backed SSH key</a> — the private half cannot leave the token.<br>
+          · <b>Forge API:</b> one fine-grained PAT, scoped to one repo <sup><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens">[40]</a></sup>. In the VM, a read-only <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys">deploy key</a> instead.<br>
+          · <b>Everything else:</b> short-lived and injected at process start, never written to a dotfile <sup><a href="https://github.com/Infisical/infisical">[78]</a></sup>.<br>
+          · <b>Not a mitigation:</b> the GNOME keyring. Unlocked login collection = every secret readable over D-Bus by any process running as you <sup><a href="https://nvd.nist.gov/vuln/detail/CVE-2018-19358">[10]</a></sup>.<br>
+          · <b>Keep a revocation drill</b>, written down, rehearsed once.
+        </div>
+      </div>
+      <div class="asmcard">
+        <h3>Spec S2 · undo and evidence</h3>
+        <div class="when">Sheet 07 — audit trail and recovery drills · recon</div>
+        <div class="foot" style="border-top:none;padding-top:12px">
+          The built-ins are convenience layers, not evidence.
+          <br><br>
+          · <b>Real undo:</b> git commits, plus <a href="https://git-scm.com/docs/git-reflog">reflog</a> for the rest. Commit before handing the agent the keyboard.<br>
+          · <b>Real audit log:</b> a <code>PostToolUse</code> hook appending outside the repo <sup><a href="https://code.claude.com/docs/en/hooks">[64]</a></sup> — because the agent can write to anything inside it.<br>
+          · <b>Transcripts expire</b> after 30 days <sup><a href="https://code.claude.com/docs/en/sessions">[34]</a></sup>, and <code>/rewind</code> cannot undo what a bash command did, nor a subagent's edits <sup><a href="https://code.claude.com/docs/en/checkpointing">[35]</a></sup>.<br>
+          · <b>Rehearse one restore.</b> "A backup you have never restored from is not a backup, it is a theory" <sup><a href="https://oneuptime.com/blog/post/2026-03-02-test-backup-integrity-restores-ubuntu/view">[36]</a></sup>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SHEET INDEX ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">I</span> Sheet index <span class="sub">— the seven angles of this expedition</span></div>
+    <div class="tw">
+      <table class="bpt">
+        <thead><tr><th>Sheet</th><th>Title &amp; finding</th><th>Depth</th><th>Refs</th><th>Read</th><th>Layers</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="num">01</td>
+            <td class="ttl"><a href="../threat-model-and-blast-radius-for-an-agentic-coding-cli/">Threat model and blast radius</a>
+              <span class="sm">The realized 2026 losses come from the agent's own destructive git commands and from supply-chain malware that weaponizes an installed agent CLI — not from the exotic prompt-injection scenarios. Containment must stop out-of-workspace writes, egress, and credential reads, in that order.</span></td>
+            <td class="num">survey</td><td class="num">28</td><td class="num">10 min</td><td class="num">frames all</td>
+          </tr>
+          <tr>
+            <td class="num">02</td>
+            <td class="ttl"><a href="../claude-code-native-guardrails-and-permission-model/">Claude Code's native guardrails in 2026</a>
+              <span class="sm">Permission rules are an in-process policy layer, not a security boundary; only the bubblewrap-backed Bash sandbox has OS teeth, and it covers Bash alone — with the exact syntax, the documented holes, the CVEs, and the two controls that hold in every mode.</span></td>
+            <td class="num">expedition</td><td class="num">40</td><td class="num">26 min</td><td class="num">L0 · L1 · L2</td>
+          </tr>
+          <tr>
+            <td class="num">03</td>
+            <td class="ttl"><a href="../linux-native-sandboxing-on-the-workstation/">Linux-native sandboxing on the workstation</a>
+              <span class="sm">Turn on the built-in bubblewrap sandbox, then wrap the whole process in a 30-line <code>bwrap</code> script. <code>systemd-run --user</code>, firejail and Flatpak are the wrong tools for this job, and Landlock is the primitive to bet on but not to hand-roll.</span></td>
+            <td class="num">expedition</td><td class="num">52</td><td class="num">25 min</td><td class="num">L2 · L3</td>
+          </tr>
+          <tr>
+            <td class="num">04</td>
+            <td class="ttl"><a href="../containerized-dev-environments/">Containers as the containment layer</a>
+              <span class="sm">Rootless Podman plus a proxy-only internal network beats Anthropic's reference devcontainer; the reference firewall leaks DNS and hands the agent <code>NET_ADMIN</code>.</span></td>
+            <td class="num">survey</td><td class="num">34</td><td class="num">12 min</td><td class="num">L4</td>
+          </tr>
+          <tr>
+            <td class="num">05</td>
+            <td class="ttl"><a href="../proxmox-as-the-isolation-boundary/">Proxmox as the isolation boundary — KVM, not LXC</a>
+              <span class="sm">Proxmox's own docs say containers share the host kernel and LXC upstream says privileged containers cannot be root-safe — plus the wiring, firewall rules, snapshot policy and sizing that make a dedicated agent guest actually usable.</span></td>
+            <td class="num">expedition</td><td class="num">42</td><td class="num">24 min</td><td class="num">L5</td>
+          </tr>
+          <tr>
+            <td class="num">06</td>
+            <td class="ttl"><a href="../credential-and-secret-isolation/">Credential isolation for an agentic coding CLI</a>
+              <span class="sm">An agent that can read <code>$HOME</code> holds your whole identity, and on Linux the keyring does not help — so give the agent its own short-lived, narrowly scoped credentials instead.</span></td>
+            <td class="num">survey</td><td class="num">32</td><td class="num">11 min</td><td class="num">spec S1</td>
+          </tr>
+          <tr>
+            <td class="num">07</td>
+            <td class="ttl"><a href="../audit-trail-and-recovery-drills/">Audit trail and recovery drills</a>
+              <span class="sm">Git commits are your real undo and a <code>PostToolUse</code> hook is your real audit log — Claude Code's own transcripts and <code>/rewind</code> are convenience layers that expire, miss bash, and are writable by the agent.</span></td>
+            <td class="num">recon</td><td class="num">12</td><td class="num">3 min</td><td class="num">spec S2</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ OPEN QUESTION STAMP ═══ -->
+  <div class="blk">
+    <div class="stampwrap">
+      <div class="stamp">
+        <div class="sh">Rev. pending · open question · none of the seven angles closes this</div>
+        <p>Nothing drawn here contains a kernel exploit, and L5 only moves the trust boundary to KVM. If your threat model includes a targeted attacker rather than opportunistic supply-chain malware, the honest answer is that <b>the agent host should be disposable</b> — which argues for automating VM re-provisioning rather than snapshotting one long-lived guest.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SOURCE REGISTER ═══ -->
+  <div class="blk">
+    <div class="tab"><span class="no">§</span> Reference documents <span class="sub">— 240 refs across seven sheets · principal sources listed</span></div>
+    <div class="reg">
+      <a class="src" href="https://code.claude.com/docs/en/permissions"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><span class="n">[1]</span> <span class="d">Permissions — official docs</span></span></a>
+      <a class="src" href="https://code.claude.com/docs/en/agent-sdk/secure-deployment"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><span class="n">[2]</span> <span class="d">Secure deployment guide</span></span></a>
+      <a class="src" href="https://code.claude.com/docs/en/sandboxing"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><span class="n">[8]</span> <span class="d">Sandboxing</span></span></a>
+      <a class="src" href="https://code.claude.com/docs/en/sandbox-environments"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><span class="n">[14]</span> <span class="d">Sandbox environments</span></span></a>
+      <a class="src" href="https://code.claude.com/docs/en/permission-modes"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><span class="n">[15]</span> <span class="d">Permission modes</span></span></a>
+      <a class="src" href="https://code.claude.com/docs/en/hooks-guide"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><span class="n">[7]</span> <span class="d">Hooks guide</span></span></a>
+      <a class="src" href="https://www.anthropic.com/engineering/claude-code-sandboxing"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&amp;sz=128" alt=""><span><span class="n">[57]</span> <span class="d">Anthropic — engineering the sandbox</span></span></a>
+      <a class="src" href="https://www.anthropic.com/engineering/claude-code-auto-mode"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&amp;sz=128" alt=""><span><span class="n">[33]</span> <span class="d">Anthropic — auto mode threat model</span></span></a>
+      <a class="src" href="https://github.com/containers/bubblewrap"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><span class="n">[16]</span> <span class="d">bubblewrap ⭐ 8.2k</span></span></a>
+      <a class="src" href="https://github.com/anthropic-experimental/sandbox-runtime"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><span class="n">[17]</span> <span class="d">sandbox-runtime ⭐ 4.8k</span></span></a>
+      <a class="src" href="https://github.com/netblue30/firejail"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><span class="n">[24]</span> <span class="d">firejail ⭐ 7.6k</span></span></a>
+      <a class="src" href="https://github.com/always-further/nono"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><span class="n">[76]</span> <span class="d">nono ⭐ 3.3k</span></span></a>
+      <a class="src" href="https://github.com/anthropics/claude-code"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><span class="n">[51]</span> <span class="d">claude-code ⭐ 140k</span></span></a>
+      <a class="src" href="https://pve.proxmox.com/wiki/Linux_Container"><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><span class="n">[18]</span> <span class="d">Proxmox — Linux Container</span></span></a>
+      <a class="src" href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html"><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><span class="n">[20]</span> <span class="d">Proxmox — firewall</span></span></a>
+      <a class="src" href="https://pve.proxmox.com/pve-docs/chapter-pvesm.html"><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><span class="n">[21]</span> <span class="d">Proxmox — storage &amp; snapshots</span></span></a>
+      <a class="src" href="https://pve.proxmox.com/pve-docs/chapter-qm.html"><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><span class="n">[22]</span> <span class="d">Proxmox — QEMU/KVM guests</span></span></a>
+      <a class="src" href="https://linuxcontainers.org/lxc/security/"><img src="https://www.google.com/s2/favicons?domain=linuxcontainers.org&amp;sz=128" alt=""><span><span class="n">[19]</span> <span class="d">LXC — security</span></span></a>
+      <a class="src" href="https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725"><img src="https://www.google.com/s2/favicons?domain=miggo.io&amp;sz=128" alt=""><span><span class="n">[4]</span> <span class="d">CVE-2026-25725</span></span></a>
+      <a class="src" href="https://www.sentinelone.com/vulnerability-database/cve-2026-39861/"><img src="https://www.google.com/s2/favicons?domain=sentinelone.com&amp;sz=128" alt=""><span><span class="n">[5]</span> <span class="d">CVE-2026-39861 · CVSS 7.7</span></span></a>
+      <a class="src" href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/"><img src="https://www.google.com/s2/favicons?domain=phoenix.security&amp;sz=128" alt=""><span><span class="n">[6]</span> <span class="d">Three CVEs and the chain</span></span></a>
+      <a class="src" href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox"><img src="https://www.google.com/s2/favicons?domain=ona.com&amp;sz=128" alt=""><span><span class="n">[44]</span> <span class="d">Escaping its own denylist</span></span></a>
+      <a class="src" href="https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/"><img src="https://www.google.com/s2/favicons?domain=adversa.ai&amp;sz=128" alt=""><span><span class="n">[3]</span> <span class="d">Deny rules disabled by padding</span></span></a>
+      <a class="src" href="https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/"><img src="https://www.google.com/s2/favicons?domain=securityweek.com&amp;sz=128" alt=""><span><span class="n">[43]</span> <span class="d">Silently patched bypass</span></span></a>
+      <a class="src" href="https://www.wiz.io/blog/s1ngularitys-aftermath"><img src="https://www.google.com/s2/favicons?domain=wiz.io&amp;sz=128" alt=""><span><span class="n">[11]</span> <span class="d">Malware re-invoking the CLI</span></span></a>
+      <a class="src" href="https://labs.cloudsecurityalliance.org/research/csa-research-note-ironworm-ebpf-rootkit-npm-supply-chain-202/"><img src="https://www.google.com/s2/favicons?domain=cloudsecurityalliance.org&amp;sz=128" alt=""><span><span class="n">[9]</span> <span class="d">npm stealers name .credentials.json</span></span></a>
+      <a class="src" href="https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/"><img src="https://www.google.com/s2/favicons?domain=datadoghq.com&amp;sz=128" alt=""><span><span class="n">[69]</span> <span class="d">Shai-Hulud 2.0 npm worm</span></span></a>
+      <a class="src" href="https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening"><img src="https://www.google.com/s2/favicons?domain=securityarsenal.com&amp;sz=128" alt=""><span><span class="n">[12]</span> <span class="d">CVE-2026-23111 · userns to root</span></span></a>
+      <a class="src" href="https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt"><img src="https://www.google.com/s2/favicons?domain=qualys.com&amp;sz=128" alt=""><span><span class="n">[53]</span> <span class="d">Ubuntu userns restriction bypasses</span></span></a>
+      <a class="src" href="https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007"><img src="https://www.google.com/s2/favicons?domain=discourse.ubuntu.com&amp;sz=128" alt=""><span><span class="n">[42]</span> <span class="d">AppArmor userns restriction</span></span></a>
+      <a class="src" href="https://nvd.nist.gov/vuln/detail/CVE-2018-19358"><img src="https://www.google.com/s2/favicons?domain=nvd.nist.gov&amp;sz=128" alt=""><span><span class="n">[10]</span> <span class="d">Keyring readable over D-Bus</span></span></a>
+      <a class="src" href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/"><img src="https://www.google.com/s2/favicons?domain=embracethered.com&amp;sz=128" alt=""><span><span class="n">[32]</span> <span class="d">Exfiltration via DNS</span></span></a>
+      <a class="src" href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/"><img src="https://www.google.com/s2/favicons?domain=simonwillison.net&amp;sz=128" alt=""><span><span class="n">[50]</span> <span class="d">The lethal trifecta</span></span></a>
+      <a class="src" href="https://docs.kernel.org/userspace-api/landlock.html"><img src="https://www.google.com/s2/favicons?domain=docs.kernel.org&amp;sz=128" alt=""><span><span class="n">[41]</span> <span class="d">Landlock — kernel docs</span></span></a>
+      <a class="src" href="https://man.archlinux.org/man/bwrap.1.en"><img src="https://www.google.com/s2/favicons?domain=man.archlinux.org&amp;sz=128" alt=""><span><span class="n">[61]</span> <span class="d">bwrap(1)</span></span></a>
+      <a class="src" href="https://docs.podman.io/en/latest/markdown/podman-network-create.1.html"><img src="https://www.google.com/s2/favicons?domain=docs.podman.io&amp;sz=128" alt=""><span><span class="n">[29]</span> <span class="d">podman network create --internal</span></span></a>
+      <a class="src" href="https://mosh.org/"><img src="https://www.google.com/s2/favicons?domain=mosh.org&amp;sz=128" alt=""><span><span class="n">[23]</span> <span class="d">Mosh — surviving suspend</span></span></a>
+      <a class="src" href="https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html"><img src="https://www.google.com/s2/favicons?domain=yubico.com&amp;sz=128" alt=""><span><span class="n">[39]</span> <span class="d">FIDO2-backed SSH keys</span></span></a>
+    </div>
+  </div>
+
+  <!-- ═══ TITLE BLOCK ═══ -->
+  <div class="tblock">
+    <div class="tfields">
+      <div class="tf"><div class="k">Project</div><div class="v">Claude Code on Linux</div></div>
+      <div class="tf"><div class="k">Drawing</div><div class="v">CC-LNX-2026 · Section A–A</div></div>
+      <div class="tf"><div class="k">Sheet</div><div class="v">00 of 07 · index</div></div>
+      <div class="tf"><div class="k">Depth</div><div class="v">expedition</div></div>
+      <div class="tf"><div class="k">Angles</div><div class="v">7 · all successful</div></div>
+      <div class="tf"><div class="k">References</div><div class="v">240</div></div>
+      <div class="tf"><div class="k">Scale</div><div class="v">Not to scale</div></div>
+      <div class="tf"><div class="k">Date</div><div class="v">2026-07-30</div></div>
+      <div class="tf"><div class="k">Rev</div><div class="v">A — first issue</div></div>
+      <div class="tf"><div class="k">Status</div><div class="v" style="color:var(--green)">Issued for construction</div></div>
+      <div class="tf"><div class="k">Substrate risk</div><div class="v" style="color:var(--red)">Unresolved</div></div>
+      <div class="tf"><div class="k">Full text</div><div class="v"><a href="../">Read the canonical →</a></div></div>
+    </div>
+    <div class="plates">
+      <div class="plate">
+        <img src="blueprint/images/plate-proxmox.webp" alt="Proxmox logo">
+        <div class="pc">Plate 1 · <a href="https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2">Proxmox VE</a> — the L5 host</div>
+      </div>
+      <div class="plate">
+        <img src="blueprint/images/plate-sandbox.webp" alt="Abstract glyph grid from Anthropic's sandboxing engineering post">
+        <div class="pc">Plate 2 · <a href="https://www.anthropic.com/engineering/claude-code-sandboxing">Anthropic on sandboxing</a> — the L2 design</div>
+      </div>
+      <div class="plate">
+        <img src="blueprint/images/plate-rack.webp" alt="Line illustration of four rack-optimised servers stacked">
+        <div class="pc">Plate 3 · rack-optimised guests — the stack, in metal</div>
+      </div>
+      <div class="plate">
+        <img src="blueprint/images/plate-linux.webp" alt="Tux, the Linux mascot">
+        <div class="pc">Plate 4 · the shared kernel — the substrate nothing above contains</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="navrow">
+    <a href="../">↖ Canonical synthesis</a>
+    <a href="../claude-code-native-guardrails-and-permission-model/">Sheet 02 · guardrails</a>
+    <a href="../linux-native-sandboxing-on-the-workstation/">Sheet 03 · sandboxing</a>
+    <a href="../proxmox-as-the-isolation-boundary/">Sheet 05 · Proxmox</a>
+    <a href="/">Atlas index</a>
+  </div>
+
+  <div class="ruler" style="margin: 18px 0 0; border-bottom: none; border-top: 1px solid var(--line2);"></div>
+</div>
+</div>

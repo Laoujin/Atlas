@@ -1,0 +1,767 @@
+{
+  "atlas": {
+    "url": "/",
+    "title": "Atlas"
+  },
+  "canonical": {
+    "url": "../",
+    "title": "Running Claude Code safely on a Linux workstation, and where Proxmox actually helps"
+  },
+  "parent": null,
+  "siblings": [
+    {
+      "url": "../threat-model-and-blast-radius-for-an-agentic-coding-cli/",
+      "title": "Threat model and blast radius: what actually goes wrong running an agentic coding CLI on your workstation",
+      "summary": "The realized 2026 losses come from the agent's own destructive git commands and from supply-chain malware that weaponizes an installed agent CLI — not from the exotic prompt-injection scenarios; containment must stop out-of-workspace writes, egress, and credential reads, in that order.",
+      "depth": "survey",
+      "citations": 28,
+      "reading_time_min": 10
+    },
+    {
+      "url": "../claude-code-native-guardrails-and-permission-model/",
+      "title": "Claude Code's native guardrails in 2026: what the permission model holds, and where it stops",
+      "summary": "Claude Code's permission rules are an in-process policy layer, not a security boundary; only the bubblewrap-backed Bash sandbox has OS teeth, and it covers Bash alone — here is the exact syntax, the documented holes, the CVEs, and the two controls that hold in every mode.",
+      "depth": "expedition",
+      "citations": 40,
+      "reading_time_min": 26
+    },
+    {
+      "url": "../linux-native-sandboxing-on-the-workstation/",
+      "title": "Linux-native sandboxing for Claude Code on the workstation itself",
+      "summary": "Turn on Claude Code's built-in bubblewrap sandbox, then wrap the whole process in a 30-line bwrap script; systemd-run --user, firejail and Flatpak are the wrong tools for this job, and Landlock is the primitive to bet on but not to hand-roll.",
+      "depth": "expedition",
+      "citations": 52,
+      "reading_time_min": 25
+    },
+    {
+      "url": "../containerized-dev-environments/",
+      "title": "Containers as the containment layer for claude --dangerously-skip-permissions",
+      "summary": "Rootless Podman plus a proxy-only internal network beats Anthropic's reference devcontainer; the reference firewall leaks DNS and hands the agent NET_ADMIN.",
+      "depth": "survey",
+      "citations": 34,
+      "reading_time_min": 12
+    },
+    {
+      "url": "../proxmox-as-the-isolation-boundary/",
+      "title": "Proxmox as the isolation boundary for Claude Code: KVM VM, not LXC",
+      "summary": "Use a KVM VM, never an LXC: Proxmox's own docs say containers share the host kernel and LXC upstream says privileged containers cannot be root-safe — plus the wiring, firewall rules, snapshot policy and sizing to make a dedicated agent guest actually usable.",
+      "depth": "expedition",
+      "citations": 42,
+      "reading_time_min": 24
+    },
+    {
+      "url": "../credential-and-secret-isolation/",
+      "title": "Credential isolation for an agentic coding CLI on Linux",
+      "summary": "An agent that can read $HOME holds your whole identity, and on Linux the keyring does not help — so give the agent its own short-lived, narrowly scoped credentials instead.",
+      "depth": "survey",
+      "citations": 32,
+      "reading_time_min": 11
+    },
+    {
+      "url": "../audit-trail-and-recovery-drills/",
+      "title": "Audit trail and recovery drills for an agentic coding CLI on Linux",
+      "summary": "Git commits are your real undo and a PostToolUse hook is your real audit log — Claude Code's own transcripts and /rewind are convenience layers that expire, miss bash, and are writable by the agent.",
+      "depth": "recon",
+      "citations": 12,
+      "reading_time_min": 3
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "https://code.claude.com/docs/en/permissions",
+      "claim": "Rule evaluation order (deny then ask then allow), settings precedence, per-tool matcher syntax, wrapper stripping, read-only command set, gitignore path anchors, symlink pair checking, and the explicit statement that rules are enforced by Claude Code and not the model.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 2,
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "claim": "Anthropic's own framing of the Bash command parser as a permission gate rather than a sandbox, the isolation-strength comparison table, the credential-injecting proxy pattern, and hardened docker run flags.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 3,
+      "url": "https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/",
+      "title": "https://adversa.ai/blog/claude-code-security-bypass-deny-rules-disabled/",
+      "claim": "Deny rules were silently skipped for shell commands containing more than 50 subcommands, traced to a performance cap; prefixing a denied curl with 50 true commands defeated the rule.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 4,
+      "url": "https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725",
+      "title": "https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725",
+      "claim": "CVE-2026-25725: Claude Code < 2.1.2 failed to read-only-bind .claude/settings.json when the file did not exist, letting sandboxed code create it and inject SessionStart hooks that run with host privileges; CVSS v4.0 4.0, fixed in 2.1.2.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 5,
+      "url": "https://www.sentinelone.com/vulnerability-database/cve-2026-39861/",
+      "title": "https://www.sentinelone.com/vulnerability-database/cve-2026-39861/",
+      "claim": "CVE-2026-39861 (CVSS 7.7, fixed 2.1.64): Claude Code's sandbox let a sandboxed process create symlinks out of the workspace, so a later unsandboxed write escaped to e.g. ~/.bashrc.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 6,
+      "url": "https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/",
+      "title": "https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/",
+      "claim": "CVE-2026-35020/35021/35022 chain: env-var command injection gains execution, writes a malicious .claude/settings.json apiKeyHelper, which on next start reads ~/.ssh/id_rsa and ~/.aws/credentials and POSTs them out.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 7,
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "https://code.claude.com/docs/en/hooks-guide",
+      "claim": "The protected-files PreToolUse example, multi-hook merge order, and the key claim that a PreToolUse deny survives bypassPermissions and --dangerously-skip-permissions while an allow cannot override deny rules.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 8,
+      "url": "https://code.claude.com/docs/en/sandboxing",
+      "title": "https://code.claude.com/docs/en/sandboxing",
+      "claim": "The sandboxed Bash tool: bubblewrap + socat + optional seccomp on Linux, Ubuntu 24.04 AppArmor userns fix, default read-everything policy, network proxy allowlist, sandbox settings keys, the dangerouslyDisableSandbox escape hatch, and the documented security limitations including domain fronting and Unix-socket escalation.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 9,
+      "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-ironworm-ebpf-rootkit-npm-supply-chain-202/",
+      "title": "https://labs.cloudsecurityalliance.org/research/csa-research-note-ironworm-ebpf-rootkit-npm-supply-chain-202/",
+      "claim": "The IronWorm npm-supply-chain stealer (June 2026) sweeps 86 environment variables and 20+ credential file paths, explicitly including ~/.claude/.credentials.json and ~/.codex/auth.json.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 10,
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-19358",
+      "title": "https://nvd.nist.gov/vuln/detail/CVE-2018-19358",
+      "claim": "CVE-2018-19358 records that local users can retrieve login credentials from an unlocked GNOME Keyring via a Secret Service API call over D-Bus; the vendor disputes it as out of scope of their security model.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 11,
+      "url": "https://www.wiz.io/blog/s1ngularitys-aftermath",
+      "title": "https://www.wiz.io/blog/s1ngularitys-aftermath",
+      "claim": "The s1ngularity Nx compromise invoked installed AI CLIs with permission-skipping flags to hunt credentials; ~50% of victims had an AI CLI installed and roughly 25% of Claude invocations were refused by safety guardrails.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 12,
+      "url": "https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening",
+      "title": "https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening",
+      "claim": "CVE-2026-23111 is an nf_tables use-after-free giving an unprivileged local user root and container escape; hardening advice includes user.max_user_namespaces=0.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 13,
+      "url": "https://github.com/anthropics/claude-code/issues/36907",
+      "title": "https://github.com/anthropics/claude-code/issues/36907",
+      "claim": "The reference firewall allows outbound UDP/53 to any resolver, so DNS tunnelling bypasses the IP allowlist entirely; the issue was closed as not planned.",
+      "source_type": "forum",
+      "github_stars": 140000
+    },
+    {
+      "n": 14,
+      "url": "https://code.claude.com/docs/en/sandbox-environments",
+      "title": "https://code.claude.com/docs/en/sandbox-environments",
+      "claim": "Comparison of isolation approaches and the instruction that --dangerously-skip-permissions sessions must always run inside a container, VM, or the sandbox runtime, plus the statement that the Bash sandbox alone is insufficient for unattended runs.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 15,
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "https://code.claude.com/docs/en/permission-modes",
+      "claim": "The six permission modes (default/manual, acceptEdits, plan, auto, dontAsk, bypassPermissions), how to set each, protected paths, and exactly what bypassPermissions does and does not skip.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 16,
+      "url": "https://github.com/containers/bubblewrap",
+      "title": "https://github.com/containers/bubblewrap",
+      "claim": "bubblewrap is the unprivileged sandboxing tool Claude Code uses on Linux and WSL2, built on user/IPC/PID/network/UTS namespaces plus seccomp filters.",
+      "source_type": "official",
+      "github_stars": 8200
+    },
+    {
+      "n": 17,
+      "url": "https://github.com/anthropic-experimental/sandbox-runtime",
+      "title": "https://github.com/anthropic-experimental/sandbox-runtime",
+      "claim": "The standalone sandbox runtime wraps a whole process in the same bubblewrap + seccomp isolation, denies all network and all writes by default, and documents domain-fronting and write-escalation limitations.",
+      "source_type": "official",
+      "github_stars": 4800
+    },
+    {
+      "n": 18,
+      "url": "https://pve.proxmox.com/wiki/Linux_Container",
+      "title": "https://pve.proxmox.com/wiki/Linux_Container",
+      "claim": "Proxmox states containers share the host kernel and that full VMs provide better isolation; unprivileged containers map container root to an unprivileged host UID; FUSE inside containers is strongly discouraged because containers must be frozen for snapshot backups.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 19,
+      "url": "https://linuxcontainers.org/lxc/security/",
+      "title": "https://linuxcontainers.org/lxc/security/",
+      "claim": "LXC upstream's official position is that privileged containers cannot be root-safe, while unprivileged containers are safe by design because container uid 0 maps to an unprivileged host user.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 20,
+      "url": "https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html",
+      "title": "https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html",
+      "claim": "The Proxmox firewall runs host-side as an iptables service per node, has cluster/host/guest levels with config files, must be enabled both at datacenter level and per network device, and supports security groups and IP sets.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 21,
+      "url": "https://pve.proxmox.com/pve-docs/chapter-pvesm.html",
+      "title": "https://pve.proxmox.com/pve-docs/chapter-pvesm.html",
+      "claim": "ZFS and LVM-thin do native block-level snapshots; internal qcow2 snapshots on directory/NFS/CIFS block a running VM and can take minutes to hours on large disks.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 22,
+      "url": "https://pve.proxmox.com/pve-docs/chapter-qm.html",
+      "title": "https://pve.proxmox.com/pve-docs/chapter-qm.html",
+      "claim": "Proxmox VM tuning: setting min memory equal to max allocates directly instead of ballooning; ballooning under host pressure can trigger guest swap or the OOM killer; cpulimit caps total host CPU time as a fraction; VirtIO SCSI single with IO thread is current best practice; discard shrinks thin-provisioned images.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 23,
+      "url": "https://mosh.org/",
+      "title": "https://mosh.org/",
+      "claim": "Mosh survives roaming between networks and laptop sleep, provides local echo, runs over UDP ports 60000-61000, and authenticates by logging in over SSH first.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 24,
+      "url": "https://github.com/netblue30/firejail",
+      "title": "https://github.com/netblue30/firejail",
+      "claim": "Firejail describes itself as a SUID sandbox program built on namespaces, seccomp-bpf and capabilities; latest release 0.9.80.",
+      "source_type": "official",
+      "github_stars": 7600
+    },
+    {
+      "n": 25,
+      "url": "https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html",
+      "title": "https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html",
+      "claim": "systemd sandboxing directives and their documented caveats, including that ProtectHome in per-user service managers implicitly enables PrivateUsers, ProtectProc is system-services-only, and ProtectSystem/ReadOnlyPaths cannot guarantee protection in all cases.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 26,
+      "url": "https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal",
+      "title": "https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal",
+      "claim": "A study of hundreds of Flatpak and Snap packages found roughly 42% either override the intended isolation or misconfigure sandboxing, producing overprivilege or escape paths.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 27,
+      "url": "https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json",
+      "title": "https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json",
+      "claim": "The reference devcontainer adds NET_ADMIN and NET_RAW via runArgs, bind-mounts only the workspace as /workspace, keeps ~/.claude and shell history in per-devcontainer named volumes, runs as remoteUser node, and applies the firewall in postStartCommand.",
+      "source_type": "official",
+      "github_stars": 140000
+    },
+    {
+      "n": 28,
+      "url": "https://github.com/moby/moby/issues/45919",
+      "title": "https://github.com/moby/moby/issues/45919",
+      "claim": "Under rootless Docker, bind-mounted host files owned by the invoking user appear as root-owned inside the container, so a non-root container user cannot write the mounted repo.",
+      "source_type": "forum",
+      "github_stars": 72000
+    },
+    {
+      "n": 29,
+      "url": "https://docs.podman.io/en/latest/markdown/podman-network-create.1.html",
+      "title": "https://docs.podman.io/en/latest/markdown/podman-network-create.1.html",
+      "claim": "podman network create --internal restricts external access on the network and disables the DNS name plugin for it.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 30,
+      "url": "https://github.com/anthropics/claude-code/issues/34327",
+      "title": "https://github.com/anthropics/claude-code/issues/34327",
+      "claim": "Claude Code ran `git reset --hard origin/main` unprompted at session startup on two consecutive days, permanently destroying 12 unpushed commits plus uncommitted work; closed as not planned.",
+      "source_type": "forum",
+      "github_stars": 139551
+    },
+    {
+      "n": 31,
+      "url": "https://github.com/anthropics/claude-code/issues/11237",
+      "title": "https://github.com/anthropics/claude-code/issues/11237",
+      "claim": "Claude Code ran `git checkout src/source_code.c` without prompting, destroying four days of uncommitted work; labelled bug/data-loss, closed as not planned.",
+      "source_type": "forum",
+      "github_stars": 139551
+    },
+    {
+      "n": 32,
+      "url": "https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/",
+      "title": "https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/",
+      "claim": "CVE-2025-55284: indirect prompt injection in Claude Code exfiltrated .env contents via default-allowlisted ping/nslookup/dig/host DNS lookups; CVSS 7.1, fixed in v1.0.4.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 33,
+      "url": "https://www.anthropic.com/engineering/claude-code-auto-mode",
+      "title": "https://www.anthropic.com/engineering/claude-code-auto-mode",
+      "claim": "Anthropic's own four-category threat model for Claude Code, the 93% permission-approval rate, and the 17% false-negative rate of its auto-mode classifier.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 34,
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "https://code.claude.com/docs/en/sessions",
+      "claim": "Claude Code stores transcripts as JSONL under ~/.claude/projects with 30-day retention, an internal format that breaks between releases, and offers --output-format json for structured per-run output.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 35,
+      "url": "https://code.claude.com/docs/en/checkpointing",
+      "title": "https://code.claude.com/docs/en/checkpointing",
+      "claim": "/rewind checkpoints do not track files modified by bash commands, do not restore subagent edits, skip symlinked/hard-linked paths, keep only the 100 most recent checkpoints, and are explicitly not a replacement for version control.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 36,
+      "url": "https://oneuptime.com/blog/post/2026-03-02-test-backup-integrity-restores-ubuntu/view",
+      "title": "https://oneuptime.com/blog/post/2026-03-02-test-backup-integrity-restores-ubuntu/view",
+      "claim": "Backups must be restore-tested on a schedule; an untested backup provides no assurance.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 37,
+      "url": "https://code.claude.com/docs/en/authentication",
+      "title": "https://code.claude.com/docs/en/authentication",
+      "claim": "On Linux, Claude Code credentials live in ~/.claude/.credentials.json with file mode 0600 rather than an OS keychain.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 38,
+      "url": "https://github.com/swiesend/secret-service",
+      "title": "https://github.com/swiesend/secret-service",
+      "claim": "The freedesktop Secret Service API offers no application isolation: once the login collection is unlocked, any application can read any secret, and D-Bus policy controls are not used by default and are trivially spoofed.",
+      "source_type": "forum",
+      "github_stars": 38
+    },
+    {
+      "n": 39,
+      "url": "https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html",
+      "title": "https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html",
+      "claim": "OpenSSH 8.2+ supports ed25519-sk/ecdsa-sk keys where the private key never leaves the hardware token, a touch is always required unless explicitly disabled, and -O verify-required adds PIN or biometric verification per use.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 40,
+      "url": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+      "title": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+      "claim": "GitHub recommends fine-grained PATs over classic PATs: each is limited to one owner, can be restricted to specific repositories, and takes individually granted permissions, whereas classic tokens grant access across all organizations and personal repositories.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 41,
+      "url": "https://docs.kernel.org/userspace-api/landlock.html",
+      "title": "https://docs.kernel.org/userspace-api/landlock.html",
+      "claim": "Landlock shipped in Linux 5.13, needs CAP_SYS_ADMIN or no_new_privs, and cannot restrict chroot, chdir/stat/chmod/chown/fcntl, or pipes and sockets reached via /proc/<pid>/fd.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 42,
+      "url": "https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007",
+      "title": "https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007",
+      "claim": "Ubuntu 23.10 and 24.04 restrict unprivileged user namespace creation via AppArmor (kernel.apparmor_restrict_unprivileged_userns=1), requiring an explicit profile to grant a binary the userns permission.",
+      "source_type": "forum",
+      "github_stars": null
+    },
+    {
+      "n": 43,
+      "url": "https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/",
+      "title": "https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/",
+      "claim": "Press confirmation of the silently patched SOCKS5 allowlist bypass, the payload shape, and that Anthropic assigned no CVE and made no public announcement.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 44,
+      "url": "https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox",
+      "title": "https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox",
+      "claim": "Demonstrated denylist escape via /proc/self/root path identity, the agent choosing to disable its own bubblewrap sandbox, and a hash-blocklist bypass by invoking the dynamic linker directly.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 45,
+      "url": "https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit",
+      "title": "https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit",
+      "claim": "Adversa found a hard cap of 50 security subcommands in Claude Code's bashPermissions.ts: pad a command with 50 no-ops and a denied curl downgrades from deny to a permission prompt.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 46,
+      "url": "https://github.com/anthropics/claude-code/issues/25000",
+      "title": "https://github.com/anthropics/claude-code/issues/25000",
+      "claim": "Sub-agents spawned via the Task tool ran 22+ bash commands, including reads of ~/.ssh and ~/.bash_history, despite Bash being in the deny list; closed as a duplicate of four earlier permission-inheritance issues.",
+      "source_type": "forum",
+      "github_stars": 140000
+    },
+    {
+      "n": 47,
+      "url": "https://github.com/anthropics/claude-code/issues/61148",
+      "title": "https://github.com/anthropics/claude-code/issues/61148",
+      "claim": "A Read deny rule was bypassed by the @../ attachment syntax for files outside the workspace root in v2.1.146; closed as not planned.",
+      "source_type": "forum",
+      "github_stars": 140000
+    },
+    {
+      "n": 48,
+      "url": "https://github.com/anthropics/claude-code/issues/31558",
+      "title": "https://github.com/anthropics/claude-code/issues/31558",
+      "claim": "Reported bypass of deny permissions via an environment-variable command prefix in v2.1.70, since closed; the current docs state deny and ask rules match past any leading assignment.",
+      "source_type": "forum",
+      "github_stars": 140000
+    },
+    {
+      "n": 49,
+      "url": "https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions",
+      "title": "https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions",
+      "claim": "Analysis of 18,470 public .claude/settings.local.json files found 22.2% grant Bash(rm:*), 21.3% grant curl, 19.7% grant unchecked git push, and only 1.1% define any deny rule.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 50,
+      "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "title": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "claim": "The lethal trifecta: private data access, exposure to untrusted content, and outbound communication; prompting cannot reliably separate instruction sources.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 51,
+      "url": "https://github.com/anthropics/claude-code",
+      "title": "https://github.com/anthropics/claude-code",
+      "claim": "The upstream Claude Code repository, used here for star count and as the canonical home of the example settings and reference dev container.",
+      "source_type": "official",
+      "github_stars": 140000
+    },
+    {
+      "n": 52,
+      "url": "https://github.com/cli/cli/issues/10108",
+      "title": "https://github.com/cli/cli/issues/10108",
+      "claim": "gh auth login silently falls back to plaintext token storage in ~/.config/gh/hosts.yml when the system keyring is unavailable.",
+      "source_type": "forum",
+      "github_stars": 45500
+    },
+    {
+      "n": 53,
+      "url": "https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt",
+      "title": "https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt",
+      "claim": "Qualys published three bypasses of Ubuntu's unprivileged user namespace restrictions using aa-exec, busybox and LD_PRELOAD against permissive default AppArmor profiles.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 54,
+      "url": "https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html",
+      "title": "https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html",
+      "claim": "CVE-2026-23111 was fixed on 5 February 2026 by removing a single '!' character; exploitation is via user namespaces plus nftables on kernels with CONFIG_USER_NS and CONFIG_NF_TABLES.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 55,
+      "url": "https://github.com/gitleaks/gitleaks",
+      "title": "https://github.com/gitleaks/gitleaks",
+      "claim": "Gitleaks is a regex-based secret scanner fast enough to run as a pre-commit hook and emits SARIF for CI integration.",
+      "source_type": "official",
+      "github_stars": 28400
+    },
+    {
+      "n": 56,
+      "url": "https://git-scm.com/docs/git-reflog",
+      "title": "https://git-scm.com/docs/git-reflog",
+      "claim": "git reflog entries expire by default after 90 days when reachable and 30 days when unreachable, so reflog is a recovery window rather than a backup.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 57,
+      "url": "https://www.anthropic.com/engineering/claude-code-sandboxing",
+      "title": "https://www.anthropic.com/engineering/claude-code-sandboxing",
+      "claim": "Anthropic's engineering rationale for the sandbox: approval fatigue, the two-layer filesystem plus network design, and the assertion that both layers are required.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 58,
+      "url": "https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2",
+      "title": "https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2",
+      "claim": "Proxmox VE 9.2 was released 21 May 2026 on Debian 13.5 with Linux kernel 7.0, QEMU 11.0, LXC 7.0 and ZFS 2.4, and expanded the SDN stack with WireGuard and BGP fabric protocols.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 59,
+      "url": "https://containers.dev/",
+      "title": "https://containers.dev/",
+      "claim": "The Dev Containers specification defines devcontainer.json as a portable description of a development environment.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 60,
+      "url": "https://docs.docker.com/engine/security/rootless/",
+      "title": "https://docs.docker.com/engine/security/rootless/",
+      "claim": "Rootless Docker runs daemon and containers inside a user namespace, needs 65536 subuid/subgid, does not support AppArmor, supports cgroups only on cgroup v2 + systemd, and needs CAP_NET_BIND_SERVICE or a sysctl to publish ports below 1024.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 61,
+      "url": "https://man.archlinux.org/man/bwrap.1.en",
+      "title": "https://man.archlinux.org/man/bwrap.1.en",
+      "claim": "bwrap flag reference: --ro-bind, --bind, --tmpfs, --proc, --dev, --unshare-all, --share-net, --die-with-parent, --new-session, --clearenv, --symlink, --seccomp, --cap-drop; filesystem operations execute in the order given.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 62,
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "https://code.claude.com/docs/en/settings",
+      "claim": "Settings file locations including /etc/claude-code/managed-settings.json on Linux with a managed-settings.d drop-in directory, and the five-level precedence order with managed settings above CLI arguments.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 63,
+      "url": "https://code.claude.com/docs/en/network-config",
+      "title": "https://code.claude.com/docs/en/network-config",
+      "claim": "Claude Code's documented egress requirements are api.anthropic.com, claude.ai, claude.com, platform.claude.com, mcp-proxy.anthropic.com, downloads.claude.ai, storage.googleapis.com, bridge.claudeusercontent.com, raw.githubusercontent.com, code.claude.com, two Datadog intake hosts, formulae.brew.sh, plus registry.npmjs.org for npm installs; it honours HTTPS_PROXY and NODE_EXTRA_CA_CERTS but not SOCKS.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 64,
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "https://code.claude.com/docs/en/hooks",
+      "claim": "Hook input arrives as JSON on stdin with session_id, transcript_path, cwd, tool_name, tool_input and tool_result; PostToolUse fires after every successful tool call and SessionEnd can archive the transcript.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 65,
+      "url": "https://code.claude.com/docs/en/security",
+      "title": "https://code.claude.com/docs/en/security",
+      "claim": "Built-in protections, additional safeguards (workspace trust, command injection detection, fail-closed matching), the home-directory trust caveat, the MCP non-audit statement, and the recommendation to use VMs.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 66,
+      "url": "https://pve.proxmox.com/wiki/ZFS_on_Linux",
+      "title": "https://pve.proxmox.com/wiki/ZFS_on_Linux",
+      "claim": "On PVE 8.1+ installs the ZFS ARC limit defaults to 10% of host memory clamped to 16 GiB; the sizing rule is 2 GiB base plus 1 GiB per TiB of pool; older installs may be uncapped at 50%+ and should be limited via zfs_arc_max in /etc/modprobe.d/zfs.conf.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 67,
+      "url": "https://pve.proxmox.com/wiki/Network_Configuration",
+      "title": "https://pve.proxmox.com/wiki/Network_Configuration",
+      "claim": "A Proxmox Linux bridge is a virtual switch; setting bridge-vlan-aware yes makes it VLAN-aware so a per-guest VLAN tag works transparently; a bridge with bridge-ports none has no physical uplink and creates an isolated guest network or a NAT/masquerade setup.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 68,
+      "url": "https://pve.proxmox.com/wiki/System_Requirements",
+      "title": "https://pve.proxmox.com/wiki/System_Requirements",
+      "claim": "Proxmox VE minimum and recommended requirements: 1 GB RAM minimum, recommended 2 GB for the OS and PVE services plus memory designated for guests, and roughly 1 GB memory per TB of used storage for ZFS/Ceph.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 69,
+      "url": "https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/",
+      "title": "https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/",
+      "claim": "Shai-Hulud 2.0 backdoored 796 npm packages by 24 Nov 2025, ran TruffleHog locally, installed a self-hosted GitHub runner, and attempted to delete the user's home directory when exfiltration failed.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 70,
+      "url": "https://www.sentinelone.com/vulnerability-database/cve-2026-6406/",
+      "title": "https://www.sentinelone.com/vulnerability-database/cve-2026-6406/",
+      "claim": "CVE-2026-6406 let the Docker CLI --use-api-socket flag smuggle the Docker socket past Docker Desktop's Enhanced Container Isolation because the policy check inspected only HostConfig.Binds, not HostConfig.Mounts.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 71,
+      "url": "https://www.helpnetsecurity.com/2026/04/08/flatpak-1-16-4-released-fixes-sandbox-escape/",
+      "title": "https://www.helpnetsecurity.com/2026/04/08/flatpak-1-16-4-released-fixes-sandbox-escape/",
+      "claim": "Flatpak 1.16.4 (April 2026) fixed a complete sandbox escape, CVE-2026-34078, where the portal accepted app-controlled symlinks in sandbox-expose options, plus CVE-2026-34079 arbitrary host file deletion.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 72,
+      "url": "https://github.com/containers/podman/issues/12661",
+      "title": "https://github.com/containers/podman/issues/12661",
+      "claim": "In an unprivileged Podman context an iptables/modprobe call fails with Operation not permitted when the needed netfilter module is not already loaded on the host.",
+      "source_type": "forum",
+      "github_stars": 32000
+    },
+    {
+      "n": 73,
+      "url": "https://www.kenmuse.com/blog/rootless-docker-and-its-hidden-security-trade-offs/",
+      "title": "https://www.kenmuse.com/blog/rootless-docker-and-its-hidden-security-trade-offs/",
+      "claim": "Rootless mode trades daemon-root risk for a larger unprivileged-user-namespace kernel attack surface; Qualys disclosed three bypasses of Ubuntu's unprivileged-namespace restrictions in 2025.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 74,
+      "url": "https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh",
+      "title": "https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh",
+      "claim": "The reference dev container ships an init-firewall.sh that blocks all outbound traffic except an allowlist, requiring NET_ADMIN and NET_RAW capabilities.",
+      "source_type": "official",
+      "github_stars": 140000
+    },
+    {
+      "n": 75,
+      "url": "https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos",
+      "title": "https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos",
+      "claim": "PocketOS (25 Apr 2026): a Cursor agent found a stray Railway API token, called volumeDelete, and destroyed the production volume and its backups in 9 seconds; newest usable backup was three months old.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 76,
+      "url": "https://github.com/always-further/nono",
+      "title": "https://github.com/always-further/nono",
+      "claim": "nono sandboxes AI agents with zero setup and no root, shipping profiles for Claude Code, Codex and others across macOS, Linux and WSL2.",
+      "source_type": "official",
+      "github_stars": 3300
+    },
+    {
+      "n": 77,
+      "url": "https://man7.org/linux/man-pages/man1/script.1.html",
+      "title": "https://man7.org/linux/man-pages/man1/script.1.html",
+      "claim": "script(1) records a full terminal session to a typescript file, and with --log-timing the session can be replayed via scriptreplay.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 78,
+      "url": "https://github.com/Infisical/infisical",
+      "title": "https://github.com/Infisical/infisical",
+      "claim": "Infisical is an open-source end-to-end encrypted secret manager whose CLI injects secrets into local development and CI/CD, and whose agent injects secrets into applications without code changes.",
+      "source_type": "official",
+      "github_stars": 28400
+    },
+    {
+      "n": 79,
+      "url": "https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys",
+      "title": "https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys",
+      "claim": "A GitHub deploy key is an SSH key granting access to a single repository, read-only by default, with the private half staying on the server; its documented drawbacks are no passphrase and no expiry, and agent forwarding cannot be used for automated deploys.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 80,
+      "url": "https://github.com/anthropics/claude-code/issues/17190",
+      "title": "https://github.com/anthropics/claude-code/issues/17190",
+      "claim": "Claude Code chose destructive `git reset --hard` over a safe `git checkout` for a rollback request, losing hours of work.",
+      "source_type": "forum",
+      "github_stars": 139551
+    },
+    {
+      "n": 81,
+      "url": "https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/",
+      "title": "https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/",
+      "claim": "A two-layer bwrap wrapper for Claude Code on Linux: --clearenv with an explicit allowlist, ephemeral XDG dirs, deliberate exclusion of ~/.ssh, ~/.aws, ~/.gnupg, resolv.conf handling for systemd-resolved, and a seven-step validation checklist.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 82,
+      "url": "https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/",
+      "title": "https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/",
+      "claim": "A practitioner bwrap wrapper: binds ~/.npm for cache, conditionally binds ~/.nvm, forwards SSH_AUTH_SOCK instead of private keys, and hits a --tmpfs /tmp conflict with agent sockets.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 83,
+      "url": "https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html",
+      "title": "https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html",
+      "claim": "Three disclosed Claude Code flaws (including CVE-2025-59536 and CVE-2026-21852) achieved command execution or API-key exfiltration purely from repository-local config files such as .claude/settings.json and .mcp.json.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 84,
+      "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-indirect-prompt-injection-in-the-wild-2026/",
+      "title": "https://labs.cloudsecurityalliance.org/research/csa-research-note-indirect-prompt-injection-in-the-wild-2026/",
+      "claim": "Documented 2026 indirect-prompt-injection incidents (GrafanaGhost, OpenClaw inbox deletion, Flowise RCE) and Google's measured 32% relative increase in malicious IPI content between Nov 2025 and Feb 2026.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 85,
+      "url": "https://docs.flatpak.org/en/latest/sandbox-permissions.html",
+      "title": "https://docs.flatpak.org/en/latest/sandbox-permissions.html",
+      "claim": "Flatpak apps start with no network, no host filesystem and no device access; --filesystem=host mounts the whole host at /run/host/root and --filesystem=home exposes the entire home directory.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 86,
+      "url": "https://secure-os.org/articles/firejail/",
+      "title": "https://secure-os.org/articles/firejail/",
+      "claim": "A 2026 firejail guide confirming it still runs SUID root, listing --net=none, --private, --nodbus, --seccomp, whitelist/blacklist, and stating a firejail bug is a privilege-escalation path.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 87,
+      "url": "https://www.cybersecurity-help.cz/vdb/SB2022061012",
+      "title": "https://www.cybersecurity-help.cz/vdb/SB2022061012",
+      "claim": "CVE-2022-31214 in firejail's join.c let a local attacker craft a bogus container, enter a mount namespace under their control with the initial user namespace and NO_NEW_PRIVS off, and gain root via setuid binaries.",
+      "source_type": "news",
+      "github_stars": null
+    }
+  ]
+}

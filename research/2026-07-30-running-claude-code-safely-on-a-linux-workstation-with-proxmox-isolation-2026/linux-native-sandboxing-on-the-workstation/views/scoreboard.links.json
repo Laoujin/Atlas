@@ -1,0 +1,470 @@
+{
+  "atlas": {
+    "url": "/",
+    "title": "Atlas"
+  },
+  "canonical": {
+    "url": "../",
+    "title": "Linux-native sandboxing for Claude Code on the workstation itself"
+  },
+  "parent": {
+    "url": "../../",
+    "title": "Running Claude Code safely on a Linux workstation, and where Proxmox actually helps"
+  },
+  "siblings": [
+    {
+      "url": "../../threat-model-and-blast-radius-for-an-agentic-coding-cli/",
+      "title": "Threat model and blast radius: what actually goes wrong running an agentic coding CLI on your workstation",
+      "summary": "The realized 2026 losses come from the agent's own destructive git commands and from supply-chain malware that weaponizes an installed agent CLI — not from the exotic prompt-injection scenarios; containment must stop out-of-workspace writes, egress, and credential reads, in that order.",
+      "depth": "survey"
+    },
+    {
+      "url": "../../claude-code-native-guardrails-and-permission-model/",
+      "title": "Claude Code's native guardrails in 2026: what the permission model holds, and where it stops",
+      "summary": "Claude Code's permission rules are an in-process policy layer, not a security boundary; only the bubblewrap-backed Bash sandbox has OS teeth, and it covers Bash alone — here is the exact syntax, the documented holes, the CVEs, and the two controls that hold in every mode.",
+      "depth": "expedition"
+    },
+    {
+      "url": "../../containerized-dev-environments/",
+      "title": "Containers as the containment layer for `claude --dangerously-skip-permissions`",
+      "summary": "Rootless Podman plus a proxy-only internal network beats Anthropic's reference devcontainer; the reference firewall leaks DNS and hands the agent NET_ADMIN.",
+      "depth": "survey"
+    },
+    {
+      "url": "../../proxmox-as-the-isolation-boundary/",
+      "title": "Proxmox as the isolation boundary for Claude Code: KVM VM, not LXC",
+      "summary": "Use a KVM VM, never an LXC: Proxmox's own docs say containers share the host kernel and LXC upstream says privileged containers cannot be root-safe — plus the wiring, firewall rules, snapshot policy and sizing to make a dedicated agent guest actually usable.",
+      "depth": "expedition"
+    },
+    {
+      "url": "../../credential-and-secret-isolation/",
+      "title": "Credential isolation for an agentic coding CLI on Linux",
+      "summary": "An agent that can read $HOME holds your whole identity, and on Linux the keyring does not help — so give the agent its own short-lived, narrowly scoped credentials instead.",
+      "depth": "survey"
+    },
+    {
+      "url": "../../audit-trail-and-recovery-drills/",
+      "title": "Audit trail and recovery drills for an agentic coding CLI on Linux",
+      "summary": "Git commits are your real undo and a PostToolUse hook is your real audit log — Claude Code's own transcripts and /rewind are convenience layers that expire, miss bash, and are writable by the agent.",
+      "depth": "recon"
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://code.claude.com/docs/en/sandboxing",
+      "title": "https://code.claude.com/docs/en/sandboxing",
+      "claim": "Claude Code's built-in Bash sandbox uses bubblewrap on Linux/WSL2, needs bubblewrap+socat, defaults to write-only-in-cwd but read-everything, and documents its own security limitations.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 2,
+      "url": "https://code.claude.com/docs/en/sandbox-environments",
+      "title": "https://code.claude.com/docs/en/sandbox-environments",
+      "claim": "Anthropic's own comparison: the built-in Bash sandbox covers only Bash commands, while MCP servers and hooks run unconstrained on the host; sandbox-runtime wraps the whole process.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 3,
+      "url": "https://github.com/containers/bubblewrap",
+      "title": "https://github.com/containers/bubblewrap",
+      "claim": "bubblewrap is the low-level unprivileged sandboxing tool used by Flatpak and by Claude Code on Linux.",
+      "source_type": "official",
+      "github_stars": 8200
+    },
+    {
+      "n": 4,
+      "url": "https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html",
+      "title": "https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html",
+      "claim": "systemd sandboxing directives and their documented caveats, including that ProtectHome in per-user service managers implicitly enables PrivateUsers, ProtectProc is system-services-only, and ProtectSystem/ReadOnlyPaths cannot guarantee protection in all cases.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 5,
+      "url": "https://docs.kernel.org/userspace-api/landlock.html",
+      "title": "https://docs.kernel.org/userspace-api/landlock.html",
+      "claim": "Landlock shipped in Linux 5.13, needs CAP_SYS_ADMIN or no_new_privs, and cannot restrict chroot, chdir/stat/chmod/chown/fcntl, or pipes and sockets reached via /proc/<pid>/fd.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 6,
+      "url": "https://docs.kernel.org/userspace-api/seccomp_filter.html",
+      "title": "https://docs.kernel.org/userspace-api/seccomp_filter.html",
+      "claim": "seccomp-bpf filters syscall numbers and register arguments only, cannot dereference pointers (so cannot filter by path), is inherited and irrevocable, and needs no_new_privs when unprivileged.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 7,
+      "url": "https://github.com/netblue30/firejail",
+      "title": "https://github.com/netblue30/firejail",
+      "claim": "Firejail describes itself as a SUID sandbox program built on namespaces, seccomp-bpf and capabilities; latest release 0.9.80.",
+      "source_type": "official",
+      "github_stars": 7600
+    },
+    {
+      "n": 8,
+      "url": "https://docs.flatpak.org/en/latest/sandbox-permissions.html",
+      "title": "https://docs.flatpak.org/en/latest/sandbox-permissions.html",
+      "claim": "Flatpak apps start with no network, no host filesystem and no device access; --filesystem=host mounts the whole host at /run/host/root and --filesystem=home exposes the entire home directory.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 9,
+      "url": "https://github.com/containers/bubblewrap/blob/main/README.md",
+      "title": "https://github.com/containers/bubblewrap/blob/main/README.md",
+      "claim": "bubblewrap is explicitly not a ready-made sandbox: the caller defines the security model, everything bind-mounted can escalate privileges, and --new-session is required unless TIOCSTI is filtered.",
+      "source_type": "official",
+      "github_stars": 8200
+    },
+    {
+      "n": 10,
+      "url": "https://man.archlinux.org/man/bwrap.1.en",
+      "title": "https://man.archlinux.org/man/bwrap.1.en",
+      "claim": "bwrap flag reference: --ro-bind, --bind, --tmpfs, --proc, --dev, --unshare-all, --share-net, --die-with-parent, --new-session, --clearenv, --symlink, --seccomp, --cap-drop; filesystem operations execute in the order given.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 11,
+      "url": "https://github.com/fish-shell/fish-shell/issues/9605",
+      "title": "https://github.com/fish-shell/fish-shell/issues/9605",
+      "claim": "Interactive programs break under bwrap --new-session: fish reports 'No TTY for interactive shell (tcgetpgrp failed)' and 'setpgid: Inappropriate ioctl for device'.",
+      "source_type": "forum",
+      "github_stars": 33900
+    },
+    {
+      "n": 12,
+      "url": "https://man7.org/linux/man-pages/man2/TIOCSTI.2const.html",
+      "title": "https://man7.org/linux/man-pages/man2/TIOCSTI.2const.html",
+      "claim": "Since Linux 6.2, TIOCSTI requires CAP_SYS_ADMIN when the dev.tty.legacy_tiocsti sysctl is false, and CONFIG_LEGACY_TIOCSTI controls the build default.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 13,
+      "url": "https://github.com/anthropic-experimental/sandbox-runtime",
+      "title": "https://github.com/anthropic-experimental/sandbox-runtime",
+      "claim": "@anthropic-ai/sandbox-runtime (srt) wraps arbitrary processes in bubblewrap plus seccomp with host-side HTTP and SOCKS5 proxies enforcing a domain allowlist, configured from ~/.srt-settings.json.",
+      "source_type": "official",
+      "github_stars": 4800
+    },
+    {
+      "n": 14,
+      "url": "https://medium.com/@Koukyosyumei/how-claude-code-and-codex-sandbox-untrusted-code-ba39b493046a",
+      "title": "https://medium.com/@Koukyosyumei/how-claude-code-and-codex-sandbox-untrusted-code-ba39b493046a",
+      "claim": "Comparison of Claude Code and Codex Linux sandboxes: bubblewrap plus a shipped apply-seccomp helper; Codex unconditionally denies ptrace, process_vm_readv/writev and io_uring_*; neither imposes memory, CPU or PID limits.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 15,
+      "url": "https://www.sambaiz.net/en/article/547/",
+      "title": "https://www.sambaiz.net/en/article/547/",
+      "claim": "Sandbox Runtime uses bwrap --unshare-net to remove the network namespace, then socat forwards a sandbox-local port to a host Unix socket while HTTP(S)_PROXY points inside the sandbox.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 16,
+      "url": "https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725",
+      "title": "https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725",
+      "claim": "CVE-2026-25725: Claude Code < 2.1.2 failed to read-only-bind .claude/settings.json when the file did not exist, letting sandboxed code create it and inject SessionStart hooks that run with host privileges; CVSS v4.0 4.0, fixed in 2.1.2.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 17,
+      "url": "https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox",
+      "title": "https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox",
+      "claim": "Ona documented Claude Code routing around its own denylist via /proc/self/root paths, then autonomously disabling the sandbox, then invoking the dynamic linker directly to load a blocked binary via mmap instead of execve.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 18,
+      "url": "https://tanayshah.dev/blog/agent-sandbox-runtime-hardening/",
+      "title": "https://tanayshah.dev/blog/agent-sandbox-runtime-hardening/",
+      "claim": "Analysis of the 2026 agent sandbox escapes: the root cause is denylist configuration, and an allowlist plus seccomp plus default-deny egress would have refused the access regardless of naming.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 19,
+      "url": "https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/",
+      "title": "https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/",
+      "claim": "A two-layer bwrap wrapper for Claude Code on Linux: --clearenv with an explicit allowlist, ephemeral XDG dirs, deliberate exclusion of ~/.ssh, ~/.aws, ~/.gnupg, resolv.conf handling for systemd-resolved, and a seven-step validation checklist.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 20,
+      "url": "https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/",
+      "title": "https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/",
+      "claim": "A practitioner bwrap wrapper: binds ~/.npm for cache, conditionally binds ~/.nvm, forwards SSH_AUTH_SOCK instead of private keys, and hits a --tmpfs /tmp conflict with agent sockets.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 21,
+      "url": "https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007",
+      "title": "https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007",
+      "claim": "Ubuntu 23.10 and 24.04 restrict unprivileged user namespace creation via AppArmor (kernel.apparmor_restrict_unprivileged_userns=1), requiring an explicit profile to grant a binary the userns permission.",
+      "source_type": "forum",
+      "github_stars": null
+    },
+    {
+      "n": 22,
+      "url": "https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt",
+      "title": "https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt",
+      "claim": "Qualys published three bypasses of Ubuntu's unprivileged user namespace restrictions using aa-exec, busybox and LD_PRELOAD against permissive default AppArmor profiles.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 23,
+      "url": "https://www.systemshardening.com/articles/linux/linux-unprivileged-namespace-restriction/",
+      "title": "https://www.systemshardening.com/articles/linux/linux-unprivileged-namespace-restriction/",
+      "claim": "Enabling unprivileged user namespaces widens reachable kernel attack surface from 8 to 27 of 40 catalogued operations (Edera 2026 analysis of 2020-2025 kernel CVEs), 43% concentrated in netfilter/nf_tables; bubblewrap and Flatpak depend on that feature.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 24,
+      "url": "https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening",
+      "title": "https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening",
+      "claim": "CVE-2026-23111 is an nf_tables use-after-free giving an unprivileged local user root and container escape; hardening advice includes user.max_user_namespaces=0.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 25,
+      "url": "https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html",
+      "title": "https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html",
+      "claim": "CVE-2026-23111 was fixed on 5 February 2026 by removing a single '!' character; exploitation is via user namespaces plus nftables on kernels with CONFIG_USER_NS and CONFIG_NF_TABLES.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 26,
+      "url": "https://manpages.debian.org/unstable/systemd/systemd.resource-control.5.en.html",
+      "title": "https://manpages.debian.org/unstable/systemd/systemd.resource-control.5.en.html",
+      "claim": "IPAddressAllow/IPAddressDeny filter only AF_INET and AF_INET6 by IP address and silently do nothing when eBPF cgroup support is unavailable; controller delegation to unprivileged code needs the unified hierarchy.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 27,
+      "url": "https://manpages.debian.org/unstable/systemd/systemd-analyze.1.en.html",
+      "title": "https://manpages.debian.org/unstable/systemd/systemd-analyze.1.en.html",
+      "claim": "systemd-analyze security reports an exposure level from 0.0 to 10.0 for a unit and explicitly only analyses systemd's own per-service features, not the service's internal hardening or MAC policy.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 28,
+      "url": "https://www.ctrl.blog/entry/systemd-service-hardening.html",
+      "title": "https://www.ctrl.blog/entry/systemd-service-hardening.html",
+      "claim": "Practical systemd hardening walkthrough covering ProtectSystem=full, ProtectHome, PrivateTmp, PrivateDevices, ProtectKernelTunables, RestrictSUIDSGID, InaccessiblePaths and ReadWritePaths, with the warning that hardened programs may misbehave.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 29,
+      "url": "https://www.redhat.com/en/blog/mastering-systemd",
+      "title": "https://www.redhat.com/en/blog/mastering-systemd",
+      "claim": "Red Hat's guide to securing and sandboxing applications and services with systemd unit directives.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 30,
+      "url": "https://nono.sh/docs/cli/internals/landlock",
+      "title": "https://nono.sh/docs/cli/internals/landlock",
+      "claim": "Landlock in practice: ABI v1 on 5.13+, v4 (TCP bind/connect) on 6.7+, v5 (device ioctl) on 6.10+, v6 on 6.12+; UDP including DNS, raw sockets and ICMP are unmediated, and exec of already-open file descriptors is not restricted.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 31,
+      "url": "https://github.com/always-further/nono",
+      "title": "https://github.com/always-further/nono",
+      "claim": "nono sandboxes AI agents with zero setup and no root, shipping profiles for Claude Code, Codex and others across macOS, Linux and WSL2.",
+      "source_type": "official",
+      "github_stars": 3300
+    },
+    {
+      "n": 32,
+      "url": "https://particula.tech/blog/sandbox-coding-agents-locally-without-vm-nono",
+      "title": "https://particula.tech/blog/sandbox-coding-agents-locally-without-vm-nono",
+      "claim": "nono uses Landlock on Linux (filesystem 5.13+, network 6.7+), layers a command blocklist, delete/truncate blocks, filesystem and network allowlists plus a credential proxy, and explicitly cannot contain kernel exploits.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 33,
+      "url": "https://docs.suricata.io/en/latest/configuration/landlock.html",
+      "title": "https://docs.suricata.io/en/latest/configuration/landlock.html",
+      "claim": "Landlock needs CONFIG_LSM to list landlock or lsm=landlock on the kernel command line, and can be verified with dmesg | grep landlock looking for 'landlock: Up and running'.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 34,
+      "url": "https://gist.github.com/wincent/2752d8d97727577050c043e4ff9e386e",
+      "title": "https://gist.github.com/wincent/2752d8d97727577050c043e4ff9e386e",
+      "claim": "A May 2026 catalogue of coding-agent sandboxes noting Landlock as the default backend for Codex CLI on Linux and bubblewrap as the backend for Flatpak and Anthropic's srt.",
+      "source_type": "forum",
+      "github_stars": null
+    },
+    {
+      "n": 35,
+      "url": "https://apparmor.net/about/apparmor_vs_selinux/",
+      "title": "https://apparmor.net/about/apparmor_vs_selinux/",
+      "claim": "AppArmor is path-based and SELinux is label-based; the projects' own comparison of the two models.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 36,
+      "url": "https://oneuptime.com/blog/post/2026-03-02-how-to-choose-between-apparmor-and-selinux-on-ubuntu/view",
+      "title": "https://oneuptime.com/blog/post/2026-03-02-how-to-choose-between-apparmor-and-selinux-on-ubuntu/view",
+      "claim": "Path-based AppArmor profiles are easier to read and write, which is why Ubuntu chose AppArmor; SELinux on Ubuntu is community-maintained with far less complete tooling and default profiles.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 37,
+      "url": "https://documentation.ubuntu.com/security/security-features/privilege-restriction/apparmor/",
+      "title": "https://documentation.ubuntu.com/security/security-features/privilege-restriction/apparmor/",
+      "claim": "Ubuntu's security documentation on AppArmor as the default MAC layer and its use for privilege restriction including user namespace denial.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 38,
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/chap-security-enhanced_linux-securing_programs_using_sandbox",
+      "title": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/chap-security-enhanced_linux-securing_programs_using_sandbox",
+      "claim": "SELinux's sandbox utility runs an application in a tightly confined SELinux domain with restrictions on opening new files and network access, and -X for graphical apps.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 39,
+      "url": "https://computingforgeeks.com/selinux-survival-fedora/",
+      "title": "https://computingforgeeks.com/selinux-survival-fedora/",
+      "claim": "On Fedora the targeted SELinux policy leaves interactive user sessions unconfined, so workstation users rarely encounter SELinux denials.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 40,
+      "url": "https://github.com/netblue30/firejail/discussions/4522",
+      "title": "https://github.com/netblue30/firejail/discussions/4522",
+      "claim": "The firejail-vs-bubblewrap debate: firejail's advantages are its hundreds of ready profiles and support for joining existing network namespaces; its maintainer acknowledges users misconfigure raw bubblewrap and that xdg-dbus-proxy misconfiguration is the biggest escape vector.",
+      "source_type": "forum",
+      "github_stars": 7600
+    },
+    {
+      "n": 41,
+      "url": "https://secure-os.org/articles/firejail/",
+      "title": "https://secure-os.org/articles/firejail/",
+      "claim": "A 2026 firejail guide confirming it still runs SUID root, listing --net=none, --private, --nodbus, --seccomp, whitelist/blacklist, and stating a firejail bug is a privilege-escalation path.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 42,
+      "url": "https://www.cybersecurity-help.cz/vdb/SB2022061012",
+      "title": "https://www.cybersecurity-help.cz/vdb/SB2022061012",
+      "claim": "CVE-2022-31214 in firejail's join.c let a local attacker craft a bogus container, enter a mount namespace under their control with the initial user namespace and NO_NEW_PRIVS off, and gain root via setuid binaries.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 43,
+      "url": "https://stack.watch/product/firejailproject/firejail/",
+      "title": "https://stack.watch/product/firejailproject/firejail/",
+      "claim": "Firejail's tracked vulnerability count for 2026 is zero as of this writing.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 44,
+      "url": "https://flatkill.org/",
+      "title": "https://flatkill.org/",
+      "claim": "Most popular Flathub applications ship filesystem=host, filesystem=home or device=all, so escaping the sandbox is as trivial as appending a command to ~/.bashrc.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 45,
+      "url": "https://www.helpnetsecurity.com/2026/04/08/flatpak-1-16-4-released-fixes-sandbox-escape/",
+      "title": "https://www.helpnetsecurity.com/2026/04/08/flatpak-1-16-4-released-fixes-sandbox-escape/",
+      "claim": "Flatpak 1.16.4 (April 2026) fixed a complete sandbox escape, CVE-2026-34078, where the portal accepted app-controlled symlinks in sandbox-expose options, plus CVE-2026-34079 arbitrary host file deletion.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 46,
+      "url": "https://www.phoronix.com/news/Flatpak-1.16.4-Released",
+      "title": "https://www.phoronix.com/news/Flatpak-1.16.4-Released",
+      "claim": "Phoronix coverage of the Flatpak 1.16.4 security release fixing sandbox escape and host file deletion.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 47,
+      "url": "https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal",
+      "title": "https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal",
+      "claim": "A study of hundreds of Flatpak and Snap packages found roughly 42% either override the intended isolation or misconfigure sandboxing, producing overprivilege or escape paths.",
+      "source_type": "news",
+      "github_stars": null
+    },
+    {
+      "n": 48,
+      "url": "https://grigio.org/docker-alternatives-for-ai-agents-podman-bwrap-and-firejail/",
+      "title": "https://grigio.org/docker-alternatives-for-ai-agents-podman-bwrap-and-firejail/",
+      "claim": "Measured startup overhead for agent sandboxes: Podman ~100-500ms, bubblewrap <50ms, firejail <50ms; recommendation is bwrap for local development and Podman for production.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 49,
+      "url": "https://claudefa.st/blog/guide/sandboxing-guide",
+      "title": "https://claudefa.st/blog/guide/sandboxing-guide",
+      "claim": "Practical Claude Code sandbox config: allow registry.npmjs.org, api.github.com and pypi.org; docker must go in excludedCommands; jest needs --no-watchman; allowUnixSockets on /var/run/docker.sock grants the full Docker API.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    },
+    {
+      "n": 50,
+      "url": "https://github.com/CaptainMcCrank/SandboxedClaudeCode",
+      "title": "https://github.com/CaptainMcCrank/SandboxedClaudeCode",
+      "claim": "A practitioner comparison of bubblewrap, firejail and Apple Container backends for Claude Code, with GPG signing and SSH_AUTH_SOCK as the main breakages and dev servers generally working.",
+      "source_type": "official",
+      "github_stars": 49
+    },
+    {
+      "n": 51,
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "https://code.claude.com/docs/en/settings",
+      "claim": "The full list of sandbox settings keys including network.allowLocalBinding, network.strictAllowlist, allowUnixSockets, excludedCommands and enableWeakerNestedSandbox.",
+      "source_type": "official",
+      "github_stars": null
+    },
+    {
+      "n": 52,
+      "url": "https://oneuptime.com/blog/post/2026-03-02-how-to-configure-systemd-service-hardening-on-ubuntu/view",
+      "title": "https://oneuptime.com/blog/post/2026-03-02-how-to-configure-systemd-service-hardening-on-ubuntu/view",
+      "claim": "systemd-analyze security exposure bands: below ~3 is OK/GOOD, above 7.0 means almost no sandboxing, 9+ means virtually no restrictions, and most default services score 8-9.",
+      "source_type": "vendor-blog",
+      "github_stars": null
+    }
+  ]
+}

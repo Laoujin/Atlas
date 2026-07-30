@@ -1,0 +1,1400 @@
+---
+layout: view
+view_name: "Runbook"
+view_of: ../
+title: "Proxmox as the isolation boundary for Claude Code: KVM VM, not LXC — Runbook"
+---
+
+<style>
+  .rb {
+    --paper: #eeebe1;
+    --paper2: #f8f6ef;
+    --ink: #14161a;
+    --ink2: #40464e;
+    --ink3: #6d7480;
+    --rule: #c6c0b1;
+    --rule2: #ded8c9;
+    --red: #ab3018;
+    --amber: #97690a;
+    --amber-bg: #f6e9c8;
+    --steel: #23566f;
+    --green: #2c6642;
+    --term: #0f1216;
+    --term-fg: #dde5e0;
+    --grid: rgba(20, 22, 26, 0.05);
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    margin: 0;
+    padding: 3.6rem 1.4rem 4rem;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 26px 26px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .rb * { box-sizing: border-box; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  .rb a { color: var(--steel); text-decoration: none; border-bottom: 1px solid rgba(35, 86, 111, 0.35); }
+  .rb a:hover { border-bottom-color: var(--steel); }
+  .rb sup a { border: 0; font-family: var(--mono); font-size: 10px; color: var(--red); }
+  .rb code { font-family: var(--mono); font-size: 0.87em; background: rgba(20, 22, 26, 0.06); padding: 0.08em 0.32em; }
+  .rb p { margin: 0 0 0.85rem; }
+  .rb ul { margin: 0 0 0.9rem; padding-left: 1.15rem; }
+  .rb li { margin-bottom: 0.3rem; }
+
+  /* ---------- document header ---------- */
+  .dochead {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2rem;
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 1.1rem 0 1.2rem;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.55rem;
+  }
+  .doctitle {
+    font-family: var(--mono);
+    font-size: clamp(26px, 4.4vw, 44px);
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.7rem;
+    text-transform: uppercase;
+  }
+  .doctitle em { font-style: normal; color: var(--red); }
+  .docsub { font-size: 14.5px; color: var(--ink2); max-width: 46ch; margin: 0; }
+
+  .metaplate {
+    border: 1px solid var(--ink);
+    background: var(--paper2);
+    padding: 0.75rem 0.85rem;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    align-self: start;
+  }
+  .metaplate .mrow { display: flex; gap: 0.5rem; align-items: baseline; padding: 0.16rem 0; }
+  .metaplate .mk { color: var(--ink3); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+  .metaplate .dots { flex: 1; border-bottom: 1px dotted var(--rule); transform: translateY(-3px); }
+  .metaplate .mv { font-weight: 700; white-space: nowrap; }
+  .metaplate img { display: block; width: 100%; max-width: 168px; margin: 0.15rem auto 0.6rem; }
+
+  /* ---------- decision stamp ---------- */
+  .verdict { margin: 2.2rem 0 0; }
+  .stamp {
+    display: inline-block;
+    transform: rotate(-1.3deg);
+    border: 3px double var(--red);
+    color: var(--red);
+    padding: 0.55rem 1.1rem 0.6rem;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(16px, 2.6vw, 26px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: rgba(171, 48, 24, 0.05);
+  }
+  .stamp small {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    font-weight: 400;
+    margin-bottom: 0.25rem;
+    opacity: 0.8;
+  }
+  .verdict-body {
+    margin-top: 1.3rem;
+    border-left: 3px solid var(--ink);
+    padding-left: 1rem;
+    max-width: 74ch;
+    font-size: 15.5px;
+  }
+  .verdict-body strong { background: rgba(217, 166, 0, 0.28); padding: 0 0.15em; }
+
+  /* ---------- section headers ---------- */
+  .sec { margin: 3.1rem 0 0; }
+  .sechead {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.35rem;
+    margin-bottom: 1.15rem;
+  }
+  .secnum {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 0.2rem 0.45rem;
+    white-space: nowrap;
+  }
+  .sectitle {
+    font-family: var(--mono);
+    font-size: clamp(15px, 2.1vw, 20px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+  .sechint { font-family: var(--mono); font-size: 11px; color: var(--ink3); margin-left: auto; white-space: nowrap; }
+
+  /* ---------- go / no-go ---------- */
+  .gonogo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.9rem;
+  }
+  .trigger {
+    border: 1px solid var(--ink);
+    background: var(--paper2);
+    padding: 0.85rem 0.95rem;
+  }
+  .trigger .box {
+    font-family: var(--mono);
+    font-size: 20px;
+    line-height: 1;
+    color: var(--red);
+    float: left;
+    margin: 0.1rem 0.5rem 0 0;
+  }
+  .trigger h4 {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.3rem;
+  }
+  .trigger p { margin: 0; font-size: 13.5px; color: var(--ink2); }
+  .elsewise {
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    border: 1px dashed var(--ink3);
+    padding: 0.7rem 0.9rem;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  /* ---------- guest-type gate plates ---------- */
+  .plates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .plate {
+    position: relative;
+    border: 1px solid var(--ink);
+    background: var(--paper2);
+    padding: 0.95rem 1rem 1.1rem;
+    overflow: hidden;
+  }
+  .plate h4 {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.15rem;
+  }
+  .plate .kernel {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 0.7rem;
+  }
+  .plate dl { margin: 0; font-size: 13px; }
+  .plate dt {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-top: 0.55rem;
+  }
+  .plate dd { margin: 0.1rem 0 0; color: var(--ink2); }
+  .plate.rejected { border-color: var(--red); }
+  .plate.rejected::after {
+    content: "REJECTED";
+    position: absolute;
+    right: -18px;
+    top: 34%;
+    transform: rotate(-14deg);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: 0.06em;
+    color: rgba(171, 48, 24, 0.16);
+    pointer-events: none;
+  }
+  .plate.approved { border: 2px solid var(--steel); background: #f2f6f8; }
+  .verdictchip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 0.2rem 0.45rem;
+    margin-bottom: 0.6rem;
+  }
+  .vc-no { background: var(--red); color: #fff; }
+  .vc-yes { background: var(--steel); color: #fff; }
+  .price {
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 0.8rem 1rem;
+  }
+  .price b { color: #f0c05a; }
+
+  /* ---------- nameplate (sizing) ---------- */
+  .sizing { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.4rem; align-items: start; }
+  .nameplate {
+    background: linear-gradient(160deg, #dedcd4 0%, #cbc9c0 55%, #d6d4cb 100%);
+    border: 1px solid #a9a69c;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    padding: 1.1rem 1.2rem;
+    background-repeat: no-repeat;
+  }
+  .nameplate .np-head {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #4a4740;
+    border-bottom: 1px solid #a9a69c;
+    padding-bottom: 0.45rem;
+    margin-bottom: 0.55rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .np-row {
+    display: grid;
+    grid-template-columns: 108px 1fr;
+    gap: 0.6rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 0.34rem 0;
+    border-bottom: 1px dotted rgba(0, 0, 0, 0.18);
+  }
+  .np-row:last-child { border-bottom: 0; }
+  .np-row .k { color: #5a564d; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10.5px; padding-top: 2px; }
+  .np-row .v { font-weight: 700; color: #16181b; }
+  .rivets { display: flex; justify-content: space-between; margin-top: 0.7rem; }
+  .rivets span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f2f1ec, #8e8b82 70%, #6f6d66);
+  }
+  .sizing-notes { font-size: 13.8px; }
+  .sizing-notes h4 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; margin: 0 0 0.5rem; color: var(--ink3);
+  }
+  .sizing-notes p { margin-bottom: 0.7rem; color: var(--ink2); }
+  .kitshot { border: 1px solid var(--rule); background: #fff; padding: 0.7rem; margin-top: 1rem; }
+  .kitshot img { display: block; width: 100%; height: auto; }
+  .kitshot figcaption {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em;
+    color: var(--ink3); margin-top: 0.5rem; text-transform: uppercase;
+  }
+
+  /* ---------- caution band ---------- */
+  .caution {
+    display: grid;
+    grid-template-columns: 15px 1fr;
+    border: 1px solid var(--amber);
+    background: var(--amber-bg);
+    margin: 1.1rem 0;
+  }
+  .caution::before {
+    content: "";
+    background: repeating-linear-gradient(45deg, #d9a600 0 7px, #1a1c20 7px 14px);
+  }
+  .caution .cbody { padding: 0.75rem 0.95rem; font-size: 13.8px; }
+  .caution .clabel {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    display: block; margin-bottom: 0.25rem;
+  }
+  .caution p:last-child { margin-bottom: 0; }
+
+  /* ---------- procedure steps ---------- */
+  .step { display: grid; grid-template-columns: 60px 1fr; gap: 1.1rem; margin-bottom: 1.6rem; }
+  .digit {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--paper2);
+    background: var(--ink);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: start;
+  }
+  .step h4 {
+    font-family: var(--mono);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0.55rem 0 0.3rem;
+  }
+  .step .why { font-size: 13.8px; color: var(--ink2); margin: 0 0 0.7rem; max-width: 72ch; }
+
+  /* ---------- terminal ---------- */
+  .term { border: 1px solid var(--ink); background: var(--term); margin: 0.55rem 0 0.9rem; }
+  .term .bar {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: #1b2027;
+    border-bottom: 1px solid #2c333c;
+    padding: 0.32rem 0.6rem;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8b97a3;
+  }
+  .where { font-weight: 700; padding: 0.12rem 0.4rem; color: #0f1216; }
+  .w-host { background: #7fb3cd; }
+  .w-guest { background: #86c79c; }
+  .w-ws { background: #e2bd6a; }
+  .term pre {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.3px;
+    line-height: 1.62;
+    color: var(--term-fg);
+  }
+  .term pre .c { color: #7f8c99; }
+  .term pre .p { color: #6fb08a; }
+
+  /* ---------- mount ruling ---------- */
+  .mounts { border: 1px solid var(--ink); background: var(--paper2); }
+  .mount {
+    display: grid;
+    grid-template-columns: 74px 1.1fr 1.4fr;
+    gap: 0.8rem;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--rule2);
+    font-size: 13.5px;
+    align-items: baseline;
+  }
+  .mount:last-child { border-bottom: 0; }
+  .mount .rulechip {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.14em; padding: 0.2rem 0.35rem; text-align: center; color: #fff;
+  }
+  .rc-no { background: var(--red); }
+  .rc-yes { background: var(--green); }
+  .mount .what { font-family: var(--mono); font-size: 12.5px; }
+  .mount.no .what { text-decoration: line-through; text-decoration-color: rgba(171, 48, 24, 0.6); color: var(--ink3); }
+  .mount .blast { color: var(--ink2); }
+
+  /* ---------- firewall rule cards ---------- */
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.8rem; }
+  .rulecard { border: 1px solid var(--ink); background: var(--paper2); padding: 0.7rem 0.8rem 0.8rem; }
+  .rulecard .chips { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.14em; padding: 0.2rem 0.4rem; color: #fff;
+  }
+  .ch-in { background: var(--steel); }
+  .ch-out { background: #55504a; }
+  .ch-accept { background: var(--green); }
+  .ch-reject { background: var(--red); }
+  .ch-order { background: var(--amber); }
+  .rulecard .rule {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--term);
+    color: var(--term-fg);
+    padding: 0.45rem 0.55rem;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .rulecard .purpose { font-size: 13.3px; color: var(--ink2); margin: 0.5rem 0 0; }
+  .policy {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.9rem;
+  }
+  .policy b { color: #ef8a70; }
+
+  .topo { display: grid; grid-template-columns: 1fr 300px; gap: 1.4rem; align-items: start; margin-top: 1.3rem; }
+  .twocol { display: grid; grid-template-columns: 1fr 280px; gap: 1.4rem; align-items: start; }
+  .shot { border: 1px solid var(--rule); background: #fff; padding: 0.6rem; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em;
+    color: var(--ink3); margin-top: 0.45rem; text-transform: uppercase;
+  }
+
+  /* ---------- snapshot policy box ---------- */
+  .snapbox { border: 3px double var(--ink); background: var(--paper2); padding: 1.1rem 1.2rem 1.2rem; }
+  .snapbox > h4 {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em;
+    text-transform: uppercase; margin: 0 0 0.9rem; color: var(--red);
+  }
+  .cycle { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; margin-bottom: 0.5rem; }
+  .cyc {
+    flex: 1 1 150px;
+    border: 1px solid var(--ink);
+    background: #fff;
+    padding: 0.6rem 0.7rem;
+    position: relative;
+  }
+  .cyc + .cyc { border-left: 0; }
+  .cyc .n { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--ink3); }
+  .cyc .t { font-family: var(--mono); font-size: 13px; font-weight: 700; text-transform: uppercase; margin: 0.15rem 0 0.25rem; }
+  .cyc .d { font-size: 12.5px; color: var(--ink2); line-height: 1.45; }
+  .cyc.keep { background: #f2f6f8; border-color: var(--steel); }
+  .rollbar {
+    display: flex; align-items: center; gap: 0.6rem;
+    border: 1px dashed var(--red); color: var(--red);
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.5rem 0.7rem; margin-bottom: 1rem;
+  }
+  .rollbar .arrow { font-size: 18px; line-height: 1; }
+  .snaprules { font-size: 13.6px; }
+  .snaprules li { margin-bottom: 0.35rem; }
+  .zfsmark { float: right; width: 132px; margin: 0 0 0.6rem 1rem; }
+  .zfsmark img { display: block; width: 100%; height: auto; }
+  .zfsmark figcaption { font-family: var(--mono); font-size: 10px; color: var(--ink3); text-align: center; margin-top: 0.3rem; }
+
+  /* ---------- wiring ranks ---------- */
+  .wiring { border-top: 1px solid var(--ink); }
+  .wire {
+    display: grid;
+    grid-template-columns: 96px 1fr 1.25fr;
+    gap: 0.9rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule2);
+    align-items: baseline;
+    font-size: 13.6px;
+  }
+  .wire .rank {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.14em; padding: 0.22rem 0.4rem; color: #fff; text-align: center;
+  }
+  .r-primary { background: var(--green); }
+  .r-second { background: var(--steel); }
+  .r-batch { background: var(--ink); }
+  .r-skip { background: var(--red); }
+  .r-heavy { background: var(--amber); }
+  .wire .name { font-family: var(--mono); font-size: 12.8px; font-weight: 700; }
+  .wire .note { color: var(--ink2); }
+
+  /* ---------- hazard register ---------- */
+  .hazards { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 0.8rem; }
+  .hazard { border: 1px solid var(--ink); background: var(--paper2); padding: 0.75rem 0.85rem; }
+  .hazard .glyph { font-size: 22px; line-height: 1; float: right; color: var(--red); margin-left: 0.5rem; }
+  .hazard h4 { font-family: var(--mono); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.35rem; }
+  .hazard .risk { font-size: 13.2px; color: var(--ink2); margin: 0 0 0.5rem; }
+  .hazard .fix {
+    font-family: var(--mono); font-size: 12px;
+    border-top: 1px solid var(--rule2); padding-top: 0.45rem; margin: 0;
+  }
+  .hazard .fix b { color: var(--green); letter-spacing: 0.1em; }
+
+  /* ---------- smoke test ---------- */
+  .checks { border: 1px solid var(--ink); background: var(--paper2); }
+  .check {
+    display: grid;
+    grid-template-columns: 26px 1fr 1fr;
+    gap: 0.7rem;
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--rule2);
+    align-items: baseline;
+    font-size: 13.4px;
+  }
+  .check:last-child { border-bottom: 0; }
+  .check .bx { font-family: var(--mono); font-size: 17px; line-height: 1; color: var(--ink3); }
+  .check .cmd { font-family: var(--mono); font-size: 12.2px; overflow-x: auto; }
+  .check .exp { color: var(--ink2); }
+  .check .exp b { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+  .check .exp b.pass { color: var(--green); }
+  .check .exp b.fail { color: var(--red); }
+
+  /* ---------- closing ---------- */
+  .closing { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.9rem; }
+  .use {
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper2);
+    padding: 0.9rem 1rem;
+  }
+  .use .n { font-family: var(--mono); font-size: 28px; font-weight: 700; color: #f0c05a; line-height: 1; }
+  .use h4 { font-family: var(--mono); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0.4rem 0 0.3rem; }
+  .use p { margin: 0; font-size: 13.2px; color: #c3cbd3; }
+  .halfway {
+    margin-top: 1.1rem;
+    border: 1px solid var(--red);
+    background: rgba(171, 48, 24, 0.06);
+    padding: 0.9rem 1rem;
+    font-size: 14px;
+  }
+  .halfway .clabel {
+    font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--red); display: block; margin-bottom: 0.3rem;
+  }
+
+  /* ---------- sources + related ---------- */
+  .srcs { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 0.35rem 1.4rem; }
+  .src { display: grid; grid-template-columns: 18px 26px 1fr; gap: 0.5rem; align-items: baseline; padding: 0.28rem 0; border-bottom: 1px dotted var(--rule); font-size: 13px; }
+  .src .n { font-family: var(--mono); font-size: 10.5px; color: var(--ink3); }
+  .src img { width: 16px; height: 16px; display: block; }
+  .src .ty { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.8rem; }
+  .relcard { border: 1px solid var(--ink); background: var(--paper2); padding: 0.75rem 0.85rem; }
+  .relcard .depth {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink3);
+  }
+  .relcard h4 { font-size: 14px; margin: 0.25rem 0 0.3rem; line-height: 1.3; }
+  .relcard h4 a { border: 0; color: var(--ink); }
+  .relcard p { margin: 0; font-size: 12.6px; color: var(--ink2); line-height: 1.45; }
+
+  .colophon {
+    margin-top: 2.6rem;
+    border-top: 5px solid var(--ink);
+    padding-top: 0.8rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+  }
+
+  @media (max-width: 900px) {
+    .dochead { grid-template-columns: 1fr; }
+    .plates { grid-template-columns: 1fr; }
+    .sizing, .topo, .twocol { grid-template-columns: 1fr; }
+    .mount { grid-template-columns: 74px 1fr; }
+    .mount .blast { grid-column: 2; }
+    .wire { grid-template-columns: 96px 1fr; }
+    .wire .note { grid-column: 2; }
+    .check { grid-template-columns: 26px 1fr; }
+    .check .exp { grid-column: 2; }
+    .step { grid-template-columns: 44px 1fr; gap: 0.8rem; }
+    .digit { height: 44px; font-size: 20px; }
+  }
+</style>
+
+<div class="rb">
+<div class="wrap">
+
+  <header class="dochead">
+    <div>
+      <div class="kicker">Field procedure · agent guest</div>
+      <h1 class="doctitle">Build the agent VM<br><em>on the Proxmox box</em></h1>
+      <p class="docsub">Everything you need at the keyboard: the go/no-go, the guest type, the spec plate, eight build steps, the firewall rules, and the snapshot policy that gives you a real undo button.</p>
+    </div>
+    <aside class="metaplate">
+      <img src="runbook/images/proxmox-logo.webp" alt="Proxmox logo">
+      <div class="mrow"><span class="mk">Doc</span><span class="dots"></span><span class="mv">RUNBOOK-210</span></div>
+      <div class="mrow"><span class="mk">Rev</span><span class="dots"></span><span class="mv">2026-07-30</span></div>
+      <div class="mrow"><span class="mk">Platform</span><span class="dots"></span><span class="mv"><a href="https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2">Proxmox VE 9.2</a></span></div>
+      <div class="mrow"><span class="mk">Guest</span><span class="dots"></span><span class="mv">VMID 210 · agentvm</span></div>
+      <div class="mrow"><span class="mk">Guest type</span><span class="dots"></span><span class="mv">KVM VM</span></div>
+      <div class="mrow"><span class="mk">Depth</span><span class="dots"></span><span class="mv">expedition</span></div>
+      <div class="mrow"><span class="mk">Sources</span><span class="dots"></span><span class="mv">42</span></div>
+      <div class="mrow"><span class="mk">Build time</span><span class="dots"></span><span class="mv">~1 afternoon</span></div>
+    </aside>
+  </header>
+
+  <section class="verdict">
+    <div class="stamp"><small>Decision</small>KVM VM — not an LXC</div>
+    <div class="verdict-body">
+      <p>Proxmox's own container documentation says plainly that "Containers use the kernel of the host system. This exposes an attack surface for malicious users. In general, full virtual machines provide better isolation"<sup><a href="https://pve.proxmox.com/wiki/Linux_Container">[1]</a></sup>, LXC upstream says privileged containers "aren't and cannot be root-safe"<sup><a href="https://linuxcontainers.org/lxc/security/">[2]</a></sup>, and Anthropic sends untrusted repositories to "a dedicated virtual machine" for kernel-level separation<sup><a href="https://code.claude.com/docs/en/sandbox-environments">[3]</a></sup>.</p>
+      <p><strong>Plain SSH + tmux is the primary interface</strong>, <a href="https://code.visualstudio.com/docs/remote/faq">VS Code Remote-SSH</a> the comfortable second. <strong>Clone the repo inside the guest</strong> — never mount your workstation's home into it. Disk-only ZFS/LVM-thin snapshots are the undo button<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pvesm.html">[5]</a></sup>. Isolation is enforced by the <strong>guest-NIC firewall on the host side</strong>, which cannot be switched off from inside the guest<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">[4]</a></sup>.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 0</span>
+      <h2 class="sectitle">Go / no-go</h2>
+      <span class="sechint">tick one, or stop reading</span>
+    </div>
+    <div class="gonogo">
+      <div class="trigger">
+        <span class="box">☐</span>
+        <h4>Untrusted repo</h4>
+        <p>A repository you didn't write, or one whose dependency tree you haven't audited.</p>
+      </div>
+      <div class="trigger">
+        <span class="box">☐</span>
+        <h4>Unattended run</h4>
+        <p>Anything you'd otherwise start with <code>--dangerously-skip-permissions</code> and walk away from.</p>
+      </div>
+      <div class="trigger">
+        <span class="box">☐</span>
+        <h4>Fresh dependency install</h4>
+        <p>One <code>npm install</code> is enough: the June 2026 Mastra compromise poisoned 140+ packages, and a <code>postinstall</code> dropper harvested "credentials and tokens present on developer workstations"<sup><a href="https://www.microsoft.com/en-us/security/blog/2026/06/17/postinstall-payload-inside-mastra-npm-supply-chain-compromise/">[14]</a></sup>.</p>
+      </div>
+    </div>
+    <p class="elsewise">NONE TICKED → don't build this. Reviewing your own code with prompts you wrote is a job for the workstation-local sandbox — see <a href="../../linux-native-sandboxing-on-the-workstation/">Linux-native sandboxing on the workstation</a>. This guest is for the three cases above, and it earns its keep in exactly those.</p>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 1</span>
+      <h2 class="sectitle">Pick the guest type</h2>
+      <span class="sechint">the answer is already decided — here's why</span>
+    </div>
+    <div class="plates">
+      <div class="plate rejected">
+        <span class="verdictchip vc-no">Do not use</span>
+        <h4>Unprivileged LXC</h4>
+        <div class="kernel">Kernel: shared with host</div>
+        <dl>
+          <dt>Escape needs</dt>
+          <dd>A generic kernel bug; the attacker lands as an unprivileged host UID<sup><a href="https://pve.proxmox.com/wiki/Linux_Container">[1]</a></sup><sup><a href="https://linuxcontainers.org/lxc/security/">[2]</a></sup></dd>
+          <dt>Docker inside</dt>
+          <dd>Broken outright on current Proxmox kernels — runc needs <code>CAP_NET_ADMIN</code> over the namespace and Docker's AppArmor probe is host-root-owned: "no configuration change can overcome this fundamental namespace limitation"<sup><a href="https://dev.to/mattercoder/docker-on-proxmox-lxc-what-actually-works-and-why-unprivileged-doesnt-45km">[8]</a></sup></dd>
+          <dt>Also</dt>
+          <dd>FUSE mounts are "strongly advise[d] against" because containers must be frozen for snapshot backups<sup><a href="https://pve.proxmox.com/wiki/Linux_Container">[1]</a></sup> — which collides with using snapshots as your undo button.</dd>
+        </dl>
+      </div>
+      <div class="plate rejected">
+        <span class="verdictchip vc-no">Do not use</span>
+        <h4>Privileged LXC</h4>
+        <div class="kernel">Kernel: shared with host</div>
+        <dl>
+          <dt>Escape needs</dt>
+          <dd>A container-escape bug that upstream <b>will not treat as a CVE</b><sup><a href="https://pve.proxmox.com/pve-docs/chapter-pct.html">[7]</a></sup></dd>
+          <dt>The nesting trap</dt>
+          <dd>To get Docker you set <code>nesting=1</code>, <code>keyctl=1</code>, <code>fuse=1</code>, <code>lxc.apparmor.profile: unconfined</code> and clear the capability drops. Verdict: "a performance choice, not security choice"<sup><a href="https://dev.to/mattercoder/docker-on-proxmox-lxc-what-actually-works-and-why-unprivileged-doesnt-45km">[8]</a></sup></dd>
+          <dt>Proxmox staff</dt>
+          <dd>"it can still be possible to break out of the LXC when nesting is enabled"<sup><a href="https://forum.proxmox.com/threads/root-docker-in-unprivileged-lxc-safe-or-not.93548/">[9]</a></sup>; containers "can leak or interfere with the host under extreme conditions"<sup><a href="https://forum.proxmox.com/threads/vm-or-lxc.151626/">[41]</a></sup></dd>
+        </dl>
+      </div>
+      <div class="plate approved">
+        <span class="verdictchip vc-yes">Approved for use</span>
+        <h4>KVM VM</h4>
+        <div class="kernel">Kernel: its own</div>
+        <dl>
+          <dt>Escape needs</dt>
+          <dd>A hypervisor bug — a much smaller surface<sup><a href="https://northflank.com/blog/how-to-sandbox-ai-agents">[12]</a></sup></dd>
+          <dt>Docker inside</dt>
+          <dd>Plain install, nothing special. The container chapter itself says nesting containers inside a QEMU VM "remains a recommended practice" for maximum isolation<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pct.html">[7]</a></sup></dd>
+          <dt>Undo</dt>
+          <dd><code>qm snapshot</code> / <code>qm rollback</code>, optional RAM state<sup><a href="https://pve.proxmox.com/pve-docs/qm.1.html">[24]</a></sup></dd>
+        </dl>
+      </div>
+    </div>
+    <p class="price">TOTAL PRICE OF THE VM OVER AN LXC: <b>~200 MB of RAM and a couple of seconds of boot</b><sup><a href="https://dev.to/mattercoder/docker-on-proxmox-lxc-what-actually-works-and-why-unprivileged-doesnt-45km">[8]</a></sup>. That is the cheapest security upgrade in this document.</p>
+    <div class="caution">
+      <div class="cbody">
+        <span class="clabel">Caution · the halfway house</span>
+        <p>An unprivileged LXC does protect the host filesystem from <code>rm -rf /</code> inside the guest, a trashed toolchain, and a stray <code>chmod 777</code>. It does not protect against a kernel-level exploit, against whatever you switched off to make Docker work, or against anything on your LAN — that last one is a firewall problem, not a container problem.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 2</span>
+      <h2 class="sectitle">Spec plate</h2>
+      <span class="sechint">sizing for a mini PC</span>
+    </div>
+    <div class="sizing">
+      <div>
+        <div class="nameplate">
+          <div class="np-head"><span>Guest 210 · agentvm</span><span>PVE 9.x</span></div>
+          <div class="np-row"><span class="k">vCPU</span><span class="v">4 cores · <code>cpulimit</code> unset</span></div>
+          <div class="np-row"><span class="k">RAM</span><span class="v">8192 MiB · min = max</span></div>
+          <div class="np-row"><span class="k">Balloon</span><span class="v">0 — disabled</span></div>
+          <div class="np-row"><span class="k">Disk</span><span class="v">64–100 GB</span></div>
+          <div class="np-row"><span class="k">Controller</span><span class="v">virtio-scsi-single + iothread</span></div>
+          <div class="np-row"><span class="k">Disk opts</span><span class="v">discard=on, ssd=1</span></div>
+          <div class="np-row"><span class="k">Backend</span><span class="v">ZFS or LVM-thin</span></div>
+          <div class="np-row"><span class="k">NIC</span><span class="v">virtio, bridge=vmbr0, firewall=1</span></div>
+          <div class="np-row"><span class="k">Agent</span><span class="v">qemu-guest-agent, <code>--agent 1</code></span></div>
+          <div class="np-row"><span class="k">Headroom</span><span class="v">ARC max + guest RAM + ~15% free</span></div>
+          <div class="rivets"><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="caution">
+          <div class="cbody">
+            <span class="clabel">Caution · do not enable ballooning</span>
+            <p>Dynamic allocation reclaims memory when host usage crosses ~80%, and the balloon driver releasing RAM mid-build is how you get a mysterious <code>heap out of memory</code> halfway through an agent run<sup><a href="https://pve.proxmox.com/pve-docs/chapter-qm.html">[17]</a></sup>.</p>
+          </div>
+        </div>
+        <div class="caution">
+          <div class="cbody">
+            <span class="clabel">Caution · check ZFS ARC first</span>
+            <p>From PVE 8.1 onward the in-RAM read cache defaults to 10% of host memory clamped to 16 GiB, sized as 2 GiB base plus 1 GiB per TiB of pool. Older installs may still be uncapped at 50%+ and will quietly starve the guest — inspect <code>/etc/modprobe.d/zfs.conf</code> and set <code>options zfs zfs_arc_max=&lt;bytes&gt;</code><sup><a href="https://pve.proxmox.com/wiki/ZFS_on_Linux">[16]</a></sup>. Proxmox itself wants 2 GB for the OS and its services, plus whatever you designate to guests<sup><a href="https://pve.proxmox.com/wiki/System_Requirements">[15]</a></sup>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="sizing-notes">
+        <h4>Why these numbers</h4>
+        <p><b>4 cores.</b> <code>cores</code> is what the guest sees; <code>cpulimit</code> caps total host CPU time as a fraction, so 4 cores can draw up to 400%<sup><a href="https://pve.proxmox.com/pve-docs/chapter-qm.html">[17]</a></sup>. A test suite that saturates four cores is exactly what you want off your desktop.</p>
+        <p><b>8 GB, pinned.</b> <code>tsc</code> heap scales with type surface, not code size — 61 MB on an empty project, 465 MB once <code>aws-sdk</code> types are in scope, and large projects "run very close to the node memory limit, and would frequently just go out of memory"<sup><a href="https://swatinem.de/blog/optimizing-tsc/">[42]</a></sup>. Stack a language server, jest workers and a dev server on that and 4 GB is not enough.</p>
+        <p><b>ZFS or LVM-thin, not qcow2 on a directory.</b> Both snapshot natively at block level; qcow2-on-directory/NFS snapshots "block a running VM" and can take minutes to hours on large disks<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pvesm.html">[5]</a></sup>.</p>
+        <p><b>Adding a <a href="https://www.jetbrains.com/help/idea/prerequisites.html">JetBrains Gateway</a> backend?</b> Budget more. Their guidance for larger projects is to "add more CPUs and RAM", enable swap "even on cloud instances", and use local SSD storage<sup><a href="https://www.jetbrains.com/help/idea/prerequisites.html">[20]</a></sup>.</p>
+        <figure class="kitshot">
+          <img src="runbook/images/mini-pc.webp" alt="A small-form-factor mini PC of the kind used as a single-node Proxmox host">
+          <figcaption>The whole lab: one mini PC, one node, one agent guest</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 3</span>
+      <h2 class="sectitle">Build procedure</h2>
+      <span class="sechint">host → guest → workstation</span>
+    </div>
+
+    <div class="step">
+      <div class="digit">1</div>
+      <div>
+        <h4>Build a cloud-init template, once</h4>
+        <p class="why">VM IDs from 9000 up keep templates visually separate from running guests<sup><a href="https://www.virtualizationhowto.com/2025/10/proxmox-cloud-init-made-easy-automating-vm-provisioning-like-the-cloud/">[37]</a></sup>. You will rebuild the agent guest more often than you expect — make cloning cheap.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-host">HOST</span><span>root@pve</span></div>
+<pre><span class="c"># on the Proxmox host</span>
+wget https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+
+qm create 9000 --name ubuntu-cloud --memory 2048 --cores 2 \
+  --net0 virtio,bridge=vmbr0
+qm importdisk 9000 noble-server-cloudimg-amd64.img local-lvm
+qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9000-disk-0
+qm set 9000 --ide2 local-lvm:cloudinit --boot c --bootdisk scsi0 \
+  --serial0 socket --vga serial0
+qm set 9000 --ciuser dev --sshkey ~/.ssh/agentvm.pub --ipconfig0 ip=dhcp \
+  --agent 1 --ciupgrade 1
+qm template 9000</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">2</div>
+      <div>
+        <h4>Clone the agent guest and size it</h4>
+        <p class="why"><code>--balloon 0</code> pins the RAM instead of letting the host reclaim it mid-build; <code>virtio-scsi-single</code> plus an IO thread is documented current best practice, and <code>discard=on</code> keeps the thin volume from growing forever as the agent churns <code>node_modules</code><sup><a href="https://pve.proxmox.com/pve-docs/chapter-qm.html">[17]</a></sup>.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-host">HOST</span><span>root@pve</span></div>
+<pre>qm clone 9000 210 --name agentvm --full
+qm resize 210 scsi0 +64G
+qm set 210 --cores 4 --memory 8192 --balloon 0 \
+  --scsihw virtio-scsi-single \
+  --scsi0 local-lvm:vm-210-disk-0,discard=on,ssd=1,iothread=1 \
+  --net0 virtio,bridge=vmbr0,firewall=1
+qm start 210</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">3</div>
+      <div>
+        <h4>Provision inside the guest — as <code>dev</code>, never root</h4>
+        <p class="why"><code>--dangerously-skip-permissions</code> is blocked when running as root on Linux, and that check is skipped only inside a recognized sandbox<sup><a href="https://code.claude.com/docs/en/sandboxing">[39]</a></sup>. Provision a normal non-root user or the unattended path won't start.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-guest">GUEST</span><span>dev@agentvm</span></div>
+<pre>sudo apt update &amp;&amp; sudo apt install -y \
+  qemu-guest-agent git tmux mosh build-essential ca-certificates curl
+sudo systemctl enable --now qemu-guest-agent
+
+<span class="c"># docker via the official repo — a plain install, because this is a VM</span>
+curl -fsSL https://get.docker.com | sh &amp;&amp; sudo usermod -aG docker dev
+
+<span class="c"># claude code</span>
+npm install -g @anthropic-ai/claude-code</pre>
+        </div>
+        <div class="caution">
+          <div class="cbody">
+            <span class="clabel">Caution · the docker group is root-equivalent</span>
+            <p>Adding <code>dev</code> to <code>docker</code> is root-equivalent inside the guest. That's acceptable <em>because the guest is the boundary</em> — it is exactly what would be unacceptable on your workstation. Anthropic makes the same point about <code>/var/run/docker.sock</code>: exposing it "effectively grants access to the host system"<sup><a href="https://code.claude.com/docs/en/sandboxing">[39]</a></sup>.</p>
+          </div>
+        </div>
+        <p class="why">Then make every login land in a persistent session, so a dropped connection never kills a running agent. Add to <code>~/.bashrc</code>:</p>
+        <div class="term">
+          <div class="bar"><span class="where w-guest">GUEST</span><span>~/.bashrc</span></div>
+<pre><span class="c"># land in a persistent session on every login</span>
+if [[ -z "$TMUX" &amp;&amp; -n "$SSH_CONNECTION" ]]; then
+  tmux new-session -A -s agent
+fi</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">4</div>
+      <div>
+        <h4>Turn the firewall on — both flags</h4>
+        <p class="why">Datacenter → Firewall → Options → <code>enable: 1</code>, then write <code>/etc/pve/firewall/210.fw</code> (rule cards in Step 4 below). <code>firewall=1</code> was already set on <code>net0</code> in step 2 — both flags are required, because "Each virtual network device has its own firewall enable flag"<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">[4]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">5</div>
+      <div>
+        <h4>Take the baseline snapshot, before any repo exists</h4>
+        <p class="why">This is the one snapshot you never delete. Clean toolchain, firewalled, no code.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-host">HOST</span><span>root@pve</span></div>
+<pre>qm snapshot 210 base --description "clean toolchain, no repos, firewalled"</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">6</div>
+      <div>
+        <h4>Wire the workstation side</h4>
+        <p class="why"><code>ForwardAgent no</code> and <code>IdentitiesOnly yes</code> are the two lines that keep the boundary intact<sup><a href="https://www.clockwork.com/insights/ssh-agent-hijacking/">[35]</a></sup><sup><a href="https://goteleport.com/blog/x11-forwarding/">[34]</a></sup>.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-ws">WORKSTATION</span><span>~/.ssh/config</span></div>
+<pre>Host agentvm
+  HostName 192.168.1.210
+  User dev
+  IdentityFile ~/.ssh/agentvm
+  IdentitiesOnly yes
+  ForwardAgent no
+  ForwardX11 no
+  ForwardX11Trusted no</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">7</div>
+      <div>
+        <h4>Get the repo in — from the forge, with a per-repo deploy key</h4>
+        <p class="why">A <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys">GitHub deploy key</a> is "an SSH key that grants access to a single repository", read-only by default, with the private half living on the server<sup><a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys">[36]</a></sup>. Generate it <em>in the guest</em>. Accept the documented downsides: no passphrase, no expiry — so rotate<sup><a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys">[36]</a></sup>. If the agent needs to push, use a second write-enabled key or a token scoped to that one repo.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-guest">GUEST</span><span>dev@agentvm</span></div>
+<pre>ssh-keygen -t ed25519 -f ~/.ssh/deploy_myrepo -N ""
+<span class="c"># paste ~/.ssh/deploy_myrepo.pub into repo Settings → Deploy keys</span>
+<span class="c"># (leave write access off)</span>
+git clone git@github.com:me/myrepo.git ~/src/myrepo</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="digit">8</div>
+      <div>
+        <h4>Daily driving</h4>
+        <p class="why">Claude Code is a TUI, so a terminal is its native habitat. Move results back out with <code>scp</code>/<code>rsync</code> <em>initiated from the workstation</em> (pull, don't push), or push a branch from the guest and review the diff on your side.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-ws">WORKSTATION</span><span>you@desktop</span></div>
+<pre><span class="p">$</span> ssh agentvm            <span class="c"># lands in tmux via the .bashrc snippet</span>
+<span class="p">$</span> cd ~/src/myrepo &amp;&amp; claude</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 4</span>
+      <h2 class="sectitle">Firewall rule cards</h2>
+      <span class="sechint">/etc/pve/firewall/210.fw</span>
+    </div>
+    <div class="twocol">
+      <div>
+        <p>Two things the agent must never reach: <b>the rest of your LAN</b>, and <b>the Proxmox host itself</b> (8006 web UI, 22 SSH — a foothold there is game over). Enforce it at the hypervisor: the Proxmox firewall runs as an iptables-based service on each node rather than inside the guest<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">[4]</a></sup>. An agent with root in the guest can flush the guest's own <code>ufw</code> rules; it cannot touch rules enforced on the host side of the tap device.</p>
+        <p>Three levels exist — cluster (<code>/etc/pve/firewall/cluster.fw</code>), host (<code>/etc/pve/nodes/&lt;node&gt;/host.fw</code>) and per-guest (<code>/etc/pve/firewall/&lt;VMID&gt;.fw</code>)<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">[4]</a></sup>. You only need the last one, plus one IPSET in the first.</p>
+      </div>
+      <figure class="shot">
+        <img src="runbook/images/switch.webp" alt="Front panel of a managed Ethernet switch">
+        <figcaption>The LAN the guest must not see</figcaption>
+      </figure>
+    </div>
+    <p class="policy">[OPTIONS] &nbsp; enable: 1 &nbsp;·&nbsp; policy_in: <b>DROP</b> &nbsp;·&nbsp; policy_out: <b>DROP</b> &nbsp; — default-deny both directions, then punch the four holes you actually need.</p>
+    <div class="rules">
+      <div class="rulecard">
+        <div class="chips"><span class="chip ch-in">IN</span><span class="chip ch-accept">ACCEPT</span></div>
+        <div class="rule">IN  ACCEPT -p tcp -dport 22 -source 192.168.1.50 -log nolog</div>
+        <p class="purpose">SSH, from your workstation's IP only. Nothing else on the LAN can knock.</p>
+      </div>
+      <div class="rulecard">
+        <div class="chips"><span class="chip ch-in">IN</span><span class="chip ch-accept">ACCEPT</span></div>
+        <div class="rule">IN  ACCEPT -p udp -dport 60000:61000 -source 192.168.1.50</div>
+        <p class="purpose">Only if you use <a href="https://mosh.org/">Mosh</a>. Auth is still SSH — Mosh "logs in to the server via SSH" and then hands off to UDP<sup><a href="https://mosh.org/">[21]</a></sup>.</p>
+      </div>
+      <div class="rulecard">
+        <div class="chips"><span class="chip ch-out">OUT</span><span class="chip ch-accept">ACCEPT</span></div>
+        <div class="rule">OUT ACCEPT -p udp -dport 53 -dest 192.168.1.1</div>
+        <p class="purpose">DNS to the router, and only the router. Without this, everything else looks broken.</p>
+      </div>
+      <div class="rulecard">
+        <div class="chips"><span class="chip ch-out">OUT</span><span class="chip ch-reject">REJECT</span><span class="chip ch-order">ORDER MATTERS</span></div>
+        <div class="rule">OUT REJECT -dest 192.168.1.0/24
+OUT REJECT -dest 10.0.0.0/8
+OUT REJECT -dest 172.16.0.0/12</div>
+        <p class="purpose">The whole point. These sit <em>above</em> the broad port-443 accept, so LAN destinations are dropped before the general egress rule can allow them. The Proxmox host's own management IP lives inside <code>192.168.1.0/24</code>, so it's covered here too.</p>
+      </div>
+      <div class="rulecard">
+        <div class="chips"><span class="chip ch-out">OUT</span><span class="chip ch-accept">ACCEPT</span></div>
+        <div class="rule">OUT ACCEPT -p tcp -dport 443</div>
+        <p class="purpose">The internet, for registries and the API. Broad by necessity — see the caution below.</p>
+      </div>
+      <div class="rulecard">
+        <div class="chips"><span class="chip ch-out">OUT</span><span class="chip ch-accept">ACCEPT</span><span class="chip ch-order">IPSET</span></div>
+        <div class="rule">OUT ACCEPT -p tcp -dport 22 -dest +forges</div>
+        <p class="purpose">Git over SSH, to an <code>[IPSET forges]</code> defined in <code>cluster.fw</code> and populated from GitHub's published ranges. Reusable bundles live in <code>[GROUP name]</code>, address lists in <code>[IPSET name]</code>, referenced as <code>+setname</code><sup><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">[4]</a></sup>.</p>
+      </div>
+    </div>
+
+    <div class="caution">
+      <div class="cbody">
+        <span class="clabel">Caution · SDN "Simple" zones are not isolation</span>
+        <p>The docs make a Simple zone sound like a boundary — it "will create an isolated VNet bridge", "is not linked to a physical interface, and VM traffic is only local on each the node"<sup><a href="https://pve.proxmox.com/wiki/Software-Defined_Network">[31]</a></sup>. In practice Simple zones do <em>not</em> isolate guests from each other by default, because "currently simple zones don't use dedicated vrf"; real separation still needs layered Proxmox firewall rules — accept intra-subnet, accept the gateway, drop all cross-subnet<sup><a href="https://forum.proxmox.com/threads/isolated-private-networks-with-sdn.137131/">[32]</a></sup>. Treat SDN as plumbing and the firewall as the boundary.</p>
+      </div>
+    </div>
+
+    <div class="caution">
+      <div class="cbody">
+        <span class="clabel">Caution · segmentation is not exfiltration protection</span>
+        <p>Egress allowlisting is weaker than it looks. A hostname-based proxy decides "from the client-supplied hostname without inspecting TLS", so code inside can use domain fronting to reach hosts outside the allowlist, and "Allowing broad domains such as <code>github.com</code> can create paths for data exfiltration"<sup><a href="https://code.claude.com/docs/en/sandboxing">[39]</a></sup>. An IP-based firewall rule is coarser still. Segmentation buys you LAN protection reliably; it does not buy you exfiltration protection.</p>
+      </div>
+    </div>
+
+    <div class="topo">
+      <div>
+        <h4 style="font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 .5rem;color:var(--ink3)">Alternate topology · dedicated VLAN</h4>
+        <p>If you already run OPNsense, put the policy where you already audit it. Make <code>vmbr0</code> VLAN-aware and tag the guest's NIC — the tag is part of the guest's network config and needs no in-guest setup<sup><a href="https://pve.proxmox.com/wiki/Network_Configuration">[30]</a></sup>. Then add the VLAN under <em>Interfaces → Other Types → VLAN</em>, assign and enable it, give it a static gateway IP, serve DHCP+DNS, and write interface rules that allow the VLAN out to the internet and block it to every other local network<sup><a href="https://cylab.be/blog/490/tutorial-building-isolated-network-topologies-in-proxmox">[33]</a></sup>. This survives you forgetting to re-tick the per-NIC firewall flag.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-host">HOST</span><span>/etc/network/interfaces</span></div>
+<pre>auto vmbr0
+iface vmbr0 inet manual
+        bridge-ports eno1
+        bridge-stp off
+        bridge-fd 0
+        bridge-vlan-aware yes
+        bridge-vids 2-4094</pre>
+        </div>
+        <p>And for a throwaway "review this untrusted repo" guest that needs no network at all, a bridge with no physical port isolates it completely; add internet back with NAT only if you want it<sup><a href="https://pve.proxmox.com/wiki/Network_Configuration">[30]</a></sup><sup><a href="https://pve.proxmox.com/wiki/Software-Defined_Network">[31]</a></sup>.</p>
+        <div class="term">
+          <div class="bar"><span class="where w-host">HOST</span><span>fully offline bridge</span></div>
+<pre>auto vmbr99
+iface vmbr99 inet static
+        address 10.99.0.1/24
+        bridge-ports none
+        bridge-stp off
+        bridge-fd 0</pre>
+        </div>
+      </div>
+      <figure class="shot">
+        <img src="runbook/images/opnsense-dashboard.webp" alt="Dashboard of the OPNsense firewall distribution viewed in a browser">
+        <figcaption>Topology B puts the rules in the router you already audit</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 5</span>
+      <h2 class="sectitle">Snapshot policy</h2>
+      <span class="sechint">the real undo button</span>
+    </div>
+    <div class="snapbox">
+      <h4>Procedure · disk-only snapshots, four states</h4>
+      <div class="cycle">
+        <div class="cyc keep">
+          <div class="n">STATE 01 · KEEP FOREVER</div>
+          <div class="t">base</div>
+          <div class="d"><code>qm snapshot 210 base</code><br>Taken before any repo is cloned. Never delete this one.</div>
+        </div>
+        <div class="cyc">
+          <div class="n">STATE 02 · PRE-FLIGHT</div>
+          <div class="t">pre-&lt;stamp&gt;</div>
+          <div class="d"><code>qm snapshot 210 "pre-$(date +%Y%m%d-%H%M)"</code><br>One before each unattended run.</div>
+        </div>
+        <div class="cyc">
+          <div class="n">STATE 03 · REVIEW</div>
+          <div class="t">read the diff</div>
+          <div class="d">Agent finished. Inspect what it did before you keep anything.</div>
+        </div>
+        <div class="cyc">
+          <div class="n">STATE 04 · CLOSE OUT</div>
+          <div class="t">delsnapshot</div>
+          <div class="d"><code>qm delsnapshot 210 pre-…</code><br>Delete the pre-flight once the diff is reviewed.</div>
+        </div>
+      </div>
+      <div class="rollbar"><span class="arrow">↩</span><span>Bad run → <code>qm rollback 210 base --start</code> → back to STATE 01 in seconds</span></div>
+      <figure class="zfsmark">
+        <img src="runbook/images/openzfs.webp" alt="OpenZFS logo">
+        <figcaption>ZFS or LVM-thin only</figcaption>
+      </figure>
+      <ul class="snaprules">
+        <li><b>Skip <code>--vmstate</code>.</b> A RAM snapshot writes a vmstate volume the size of guest memory — one forum user saw a ~21 GB ZFS dataset appear per snapshot regardless of how little changed on disk<sup><a href="https://forum.proxmox.com/threads/solved-snapshot-vm-question-ram-no-ram.82654/">[28]</a></sup>. It also drags the guest's clock back to snapshot time on rollback.</li>
+        <li><b>Accept crash-consistency.</b> Without RAM, "it will be as if the LXC/VM encountered a power outage and crashed"<sup><a href="https://forum.proxmox.com/threads/solved-snapshot-vm-question-ram-no-ram.82654/">[28]</a></sup>. A git working tree and a <code>node_modules</code> tree recover from a hard power cut.</li>
+        <li><b>Pass <code>--start</code>.</b> <code>qm rollback</code> won't auto-start the guest unless you ask; RAM snapshots start automatically<sup><a href="https://pve.proxmox.com/pve-docs/qm.1.html">[24]</a></sup>.</li>
+        <li><b>Install the guest agent anyway.</b> With <code>qemu-guest-agent</code> running and <code>qm set 210 --agent 1</code>, Proxmox calls <code>guest-fsfreeze-freeze</code> and <code>guest-fsfreeze-thaw</code> around the snapshot "to improve consistency"<sup><a href="https://pve.proxmox.com/wiki/Qemu-guest-agent">[29]</a></sup>. It also gives you the <code>qm guest exec</code> channel<sup><a href="https://pve.proxmox.com/pve-docs/qm.1.html">[24]</a></sup>.</li>
+        <li><b>Cap it at 3–4 live snapshots.</b> Thin/CoW snapshots are cheap to create but they pin the blocks they diverge from — a forgotten snapshot plus a churning <code>node_modules</code> is how a 100 GB thin pool fills up.</li>
+        <li><b>Snapshots are an undo button, not a backup.</b> They live on the same pool as the guest. Backups are a separate concern.</li>
+      </ul>
+      <div class="term">
+        <div class="bar"><span class="where w-host">HOST</span><span>housekeeping</span></div>
+<pre>qm listsnapshot 210
+qm delsnapshot 210 pre-20260730-0900
+
+<span class="c"># containers use identical verbs: pct snapshot / rollback --start /</span>
+<span class="c"># listsnapshot / delsnapshot</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 6</span>
+      <h2 class="sectitle">Unattended runs</h2>
+      <span class="sechint">batch it, don't babysit it</span>
+    </div>
+    <p>For anything you'd otherwise run with <code>--dangerously-skip-permissions</code>, don't sit in front of it — drive it as a batch job and read the result. <code>-p</code>/<code>--print</code> runs the same agent loop non-interactively and exits; <code>--output-format json</code> returns the result plus session ID, usage and <code>total_cost_usd</code>; <code>--bare</code> skips auto-discovery of hooks, plugins, MCP servers and project memory so the run is reproducible and only your explicit flags apply<sup><a href="https://code.claude.com/docs/en/headless">[23]</a></sup>. <code>--resume "$session_id"</code> continues a specific conversation from the same directory<sup><a href="https://code.claude.com/docs/en/headless">[23]</a></sup>.</p>
+    <div class="term">
+      <div class="bar"><span class="where w-ws">WORKSTATION</span><span>pull the result back</span></div>
+<pre><span class="p">$</span> ssh agentvm 'cd ~/src/myrepo &amp;&amp; claude --bare -p "run the test suite \
+    and fix failures" --allowedTools "Bash,Read,Edit" \
+    --output-format json' | jq -r '.result'</pre>
+    </div>
+    <p>Two Proxmox-side hatches need no SSH at all, because they go <b>host → guest</b> over the QEMU guest agent channel — handy for recovery when you've firewalled yourself out<sup><a href="https://pve.proxmox.com/pve-docs/qm.1.html">[24]</a></sup>. Containers have <code>pct exec</code> and <code>pct enter</code><sup><a href="https://pve.proxmox.com/pve-docs/pct.1.html">[25]</a></sup>.</p>
+    <div class="term">
+      <div class="bar"><span class="where w-host">HOST</span><span>no-network recovery</span></div>
+<pre>qm guest exec 210 -- &lt;cmd&gt;
+qm guest exec-status 210 &lt;pid&gt;</pre>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 7</span>
+      <h2 class="sectitle">Wiring, ranked</h2>
+      <span class="sechint">by how much trust it moves into the guest</span>
+    </div>
+    <div class="twocol" style="margin-bottom:1.1rem">
+      <p style="margin:0">Six options, ranked by how much of your trust each one moves into the guest. A February 2026 practitioner write-up of exactly this shape drives Claude Code over <a href="https://mosh.org/">mosh</a> + tmux, with shell config auto-attaching on login — "every time I SSH into the work PC, I want to land directly in a tmux session. If the session already exists, attach to it" — and Claude Code hooks firing notifications to a self-hosted ntfy on completion, errors and questions<sup><a href="https://rogs.me/2026/02/claude-code-from-the-beach-my-remote-coding-setup-with-mosh-tmux-and-ntfy/">[22]</a></sup>. The friction they report is mobile-specific; from a desktop over LAN it is just a terminal.</p>
+      <figure class="shot">
+        <img src="runbook/images/tmux.webp" alt="A tmux session split into multiple panes in a terminal">
+        <figcaption>tmux: the whole GUI you need</figcaption>
+      </figure>
+    </div>
+    <div class="wiring">
+      <div class="wire">
+        <span class="rank r-primary">PRIMARY</span>
+        <span class="name">SSH + tmux</span>
+        <span class="note">Survives disconnect via tmux. No GUI, no trust surface beyond sshd. Claude Code is a TUI; this is its native habitat.</span>
+      </div>
+      <div class="wire">
+        <span class="rank r-primary">PRIMARY+</span>
+        <span class="name"><a href="https://mosh.org/">Mosh</a> + tmux</span>
+        <span class="note">Roams networks and survives a suspended laptop. Costs you UDP 60000–61000 open to the guest<sup><a href="https://mosh.org/">[21]</a></sup>. Add it if you close the lid mid-run.</span>
+      </div>
+      <div class="wire">
+        <span class="rank r-second">SECOND</span>
+        <span class="name"><a href="https://code.visualstudio.com/docs/remote/faq">VS Code Remote-SSH</a></span>
+        <span class="note">Comfortable. The server runs "as the same user you used to sign in", and workspace extensions get "full access to the source code, remote filesystem, and remote APIs"<sup><a href="https://code.visualstudio.com/docs/remote/faq">[18]</a></sup> — acceptable, because that user is inside the boundary. Needs kernel ≥ 4.18, glibc ≥ 2.28, libstdc++ ≥ 3.4.25 in the guest<sup><a href="https://code.visualstudio.com/docs/remote/faq">[18]</a></sup>.</span>
+      </div>
+      <div class="wire">
+        <span class="rank r-batch">BATCH</span>
+        <span class="name">claude -p headless</span>
+        <span class="note">The unattended path — see Step 6. No extra trust surface at all.</span>
+      </div>
+      <div class="wire">
+        <span class="rank r-heavy">HEAVY</span>
+        <span class="name"><a href="https://www.jetbrains.com/help/idea/prerequisites.html">JetBrains Gateway</a></span>
+        <span class="note">Backend persists, full IDE in the guest, and you pay for it in RAM<sup><a href="https://www.jetbrains.com/help/idea/prerequisites.html">[20]</a></sup>. Only if Rider or IDEA is non-negotiable.</span>
+      </div>
+      <div class="wire">
+        <span class="rank r-skip">SKIP</span>
+        <span class="name"><a href="https://code.visualstudio.com/docs/remote/tunnels">code tunnel</a></span>
+        <span class="note">Adds a Microsoft-hosted Azure relay and ties the guest to a GitHub/Microsoft identity on both ends<sup><a href="https://code.visualstudio.com/docs/remote/tunnels">[19]</a></sup>. It exists to traverse firewalls you don't have.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 8</span>
+      <h2 class="sectitle">Do not mount your workstation</h2>
+      <span class="sechint">every mount is a hole through the boundary</span>
+    </div>
+    <div class="mounts">
+      <div class="mount">
+        <span class="rulechip rc-yes">DO THIS</span>
+        <span class="what">git clone in the guest</span>
+        <span class="blast">Blast radius: only what's cloned. Native performance. Clone from the forge, not from your laptop.</span>
+      </div>
+      <div class="mount no">
+        <span class="rulechip rc-no">NO</span>
+        <span class="what">virtiofs directory mapping</span>
+        <span class="blast">Everything under the mapped host path, at host permissions — and community testing calls it "significantly slower than NFS"<sup><a href="https://forum.proxmox.com/threads/proxmox-8-4-virtiofs-virtiofs-shared-host-folder-for-linux-and-or-windows-guest-vms.167435/">[26]</a></sup>. Fine only for a read-only asset drop.</span>
+      </div>
+      <div class="mount no">
+        <span class="rulechip rc-no">NO</span>
+        <span class="what">NFS / SMB from the workstation</span>
+        <span class="blast">Every exported path, writable. NFS "dominated small random operations" in head-to-head testing<sup><a href="https://blog.jklr.org/2019/08/27/nas-performance-sshfs-nfs-smb.html">[27]</a></sup> — being the fastest way to undo your own boundary is not a recommendation.</span>
+      </div>
+      <div class="mount no">
+        <span class="rulechip rc-no">NO</span>
+        <span class="what">sshfs guest → workstation</span>
+        <span class="blast">"fastest from the encrypted options"<sup><a href="https://blog.jklr.org/2019/08/27/nas-performance-sshfs-nfs-smb.html">[27]</a></sup>, and it requires the guest to hold a credential <em>to your workstation</em> — the exact inversion you're trying to avoid.</span>
+      </div>
+      <div class="mount no">
+        <span class="rulechip rc-no">NO</span>
+        <span class="what">LXC bind mount</span>
+        <span class="blast">Proxmox: "Never bind mount system directories like <code>/</code>, <code>/var</code> or <code>/etc</code> into a container - this poses a great security risk"<sup><a href="https://pve.proxmox.com/pve-docs/chapter-pct.html">[7]</a></sup></span>
+      </div>
+    </div>
+    <div class="caution">
+      <div class="cbody">
+        <span class="clabel">Why this is the rule that matters most</span>
+        <p>A writable mount of <code>~/projects</code> means a compromised agent can plant a <code>postinstall</code> hook, a <code>.git/hooks/pre-commit</code>, or an executable on your workstation's <code>$PATH</code>. Anthropic flags exactly this class of escalation: "Allowing writes to directories containing executables in <code>$PATH</code>, system configuration directories, or user shell configuration files such as <code>.bashrc</code> or <code>.zshrc</code> can lead to code execution in different security contexts"<sup><a href="https://code.claude.com/docs/en/sandboxing">[39]</a></sup>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 9</span>
+      <h2 class="sectitle">Hazard register</h2>
+      <span class="sechint">where your workstation is still trusted</span>
+    </div>
+    <div class="hazards">
+      <div class="hazard">
+        <span class="glyph">⚿</span>
+        <h4>SSH agent forwarding</h4>
+        <p class="risk">Anyone with root on the remote host can use the forwarded socket to authenticate as you to every other system your keys reach — no private key theft required<sup><a href="https://www.clockwork.com/insights/ssh-agent-hijacking/">[35]</a></sup>.</p>
+        <p class="fix"><b>FIX ·</b> Never to this guest. Per-repo deploy key inside it; <code>ProxyJump</code> if you must reach a third host.</p>
+      </div>
+      <div class="hazard">
+        <span class="glyph">⌨</span>
+        <h4>X11 forwarding</h4>
+        <p class="risk">In trusted mode a malicious remote can "capture keystrokes and mouse events", "inspect or manipulate other application windows", "read from or write to the clipboard and selections", and screenshot your display<sup><a href="https://goteleport.com/blog/x11-forwarding/">[34]</a></sup>.</p>
+        <p class="fix"><b>FIX ·</b> Don't forward for a TUI workflow. If you must, <code>ssh -X</code> with <code>ForwardX11Trusted no</code> — never <code>ssh -Y</code><sup><a href="https://goteleport.com/blog/x11-forwarding/">[34]</a></sup>.</p>
+      </div>
+      <div class="hazard">
+        <span class="glyph">⊞</span>
+        <h4>Wayland</h4>
+        <p class="risk">No <code>-Y</code> equivalent exists, which is a feature here.</p>
+        <p class="fix"><b>FIX ·</b> Headless testing in the guest; pull screenshots out as files.</p>
+      </div>
+      <div class="hazard">
+        <span class="glyph">✂</span>
+        <h4>Clipboard</h4>
+        <p class="risk">Nothing in the terminal path shares a clipboard — but noVNC/SPICE consoles do, and so does a shared X server.</p>
+        <p class="fix"><b>FIX ·</b> Use SSH, not the Proxmox console, for daily work.</p>
+      </div>
+      <div class="hazard">
+        <span class="glyph">⧉</span>
+        <h4>Editor server &amp; extensions</h4>
+        <p class="risk">The <a href="https://code.visualstudio.com/docs/remote/faq">VS Code Server</a> runs as the user you signed in with, and workspace extensions get full access to the source, remote filesystem and remote APIs<sup><a href="https://code.visualstudio.com/docs/remote/faq">[18]</a></sup>.</p>
+        <p class="fix"><b>FIX ·</b> Acceptable — that user is inside the boundary. Don't sign in as root; every extension you install joins the guest's attack surface.</p>
+      </div>
+      <div class="hazard">
+        <span class="glyph">⚿</span>
+        <h4>Credentials you put in the guest</h4>
+        <p class="risk">Anything in the guest's <code>~/.ssh</code>, <code>~/.aws</code>, <code>~/.npmrc</code> or environment is reachable by the agent. The hypervisor does not help here.</p>
+        <p class="fix"><b>FIX ·</b> Minimum bar: nothing in that guest is reusable anywhere else. See <a href="../../credential-and-secret-isolation/">Credential isolation</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">STEP 10</span>
+      <h2 class="sectitle">Acceptance checks</h2>
+      <span class="sechint">run these before you trust it</span>
+    </div>
+    <div class="checks">
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">ssh agentvm</span>
+        <span class="exp"><b class="pass">PASS</b> if you land directly in the <code>agent</code> tmux session.</span>
+      </div>
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">id &amp;&amp; groups</span>
+        <span class="exp"><b class="pass">PASS</b> if you are <code>dev</code>, not root, and <code>docker</code> is in the group list.</span>
+      </div>
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">curl -sS https://api.github.com &gt;/dev/null</span>
+        <span class="exp"><b class="pass">PASS</b> — port 443 egress is allowed.</span>
+      </div>
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">curl -m 5 https://192.168.1.1:8006</span>
+        <span class="exp"><b class="fail">MUST FAIL</b> — the RFC1918 rejects cover the Proxmox web UI and every other LAN host.</span>
+      </div>
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">ssh -T git@github.com</span>
+        <span class="exp"><b class="pass">PASS</b> only once <code>+forges</code> is populated; a hang here means the IPSET is empty.</span>
+      </div>
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">qm guest exec 210 -- /bin/true</span>
+        <span class="exp"><b class="pass">PASS</b> — from the host, proving the guest agent channel works for both recovery and snapshot fsfreeze.</span>
+      </div>
+      <div class="check">
+        <span class="bx">☐</span>
+        <span class="cmd">qm rollback 210 base --start</span>
+        <span class="exp"><b class="pass">PASS</b> if the guest comes back in seconds with no repos on disk. Do this once, deliberately, before you need it.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">CLOSE</span>
+      <h2 class="sectitle">When to reach for this guest</h2>
+      <span class="sechint">friction verdict</span>
+    </div>
+    <p>Use both boundaries. The workstation-local sandbox is the right default for reviewing your own code with prompts you wrote — Anthropic's own framing is that "Sandboxing reduces risk but is not a complete isolation boundary"<sup><a href="https://code.claude.com/docs/en/sandboxing">[39]</a></sup>. This VM earns its keep in three specific situations, and its daily friction is one <code>ssh</code> plus the occasional "the file isn't on this machine" moment.</p>
+    <div class="closing">
+      <div class="use">
+        <div class="n">01</div>
+        <h4>Untrusted repo</h4>
+        <p>Kernel-level separation is the recommended answer for code you didn't write<sup><a href="https://code.claude.com/docs/en/sandbox-environments">[3]</a></sup>.</p>
+      </div>
+      <div class="use">
+        <div class="n">02</div>
+        <h4>Permissions skipped</h4>
+        <p>Pre-flight snapshot, then walk away. Rollback in seconds<sup><a href="https://pve.proxmox.com/pve-docs/qm.1.html">[24]</a></sup>.</p>
+      </div>
+      <div class="use">
+        <div class="n">03</div>
+        <h4>Unaudited dependencies</h4>
+        <p>The install itself is the threat — and four dedicated vCPUs churn while you keep working<sup><a href="https://pve.proxmox.com/pve-docs/chapter-qm.html">[17]</a></sup>.</p>
+      </div>
+    </div>
+    <div class="halfway">
+      <span class="clabel">The configuration to avoid</span>
+      An LXC because it's "lighter", with <code>nesting</code> and <code>keyctl</code> on so Docker works, and <code>~/projects</code> bind-mounted in so the editor feels normal. That has the operational cost of a separate machine and the security properties of running the agent locally as root<sup><a href="https://dev.to/mattercoder/docker-on-proxmox-lxc-what-actually-works-and-why-unprivileged-doesnt-45km">[8]</a></sup><sup><a href="https://forum.proxmox.com/threads/root-docker-in-unprivileged-lxc-safe-or-not.93548/">[9]</a></sup>. Per-language LXC dev containers over Remote-SSH work fine as a <em>dependency-hygiene</em> setup<sup><a href="https://blog.im404.me/article/isolated-development-environments-with-proxmox-lxc">[40]</a></sup> — that is a different problem. If the reason you're building this is that an agent runs code you didn't write, spend the 200 MB and boot the VM.
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">REF A</span>
+      <h2 class="sectitle">Related procedures</h2>
+      <span class="sechint">sibling angles</span>
+    </div>
+    <div class="related">
+      <div class="relcard">
+        <span class="depth">survey</span>
+        <h4><a href="../../threat-model-and-blast-radius-for-an-agentic-coding-cli/">Threat model and blast radius</a></h4>
+        <p>The realized 2026 losses came from the agent's own destructive git commands and from supply-chain malware weaponizing an installed agent CLI.</p>
+      </div>
+      <div class="relcard">
+        <span class="depth">expedition</span>
+        <h4><a href="../../claude-code-native-guardrails-and-permission-model/">Native guardrails and permission model</a></h4>
+        <p>Permission rules are an in-process policy layer, not a security boundary; only the bubblewrap-backed Bash sandbox has OS teeth.</p>
+      </div>
+      <div class="relcard">
+        <span class="depth">expedition</span>
+        <h4><a href="../../linux-native-sandboxing-on-the-workstation/">Linux-native sandboxing on the workstation</a></h4>
+        <p>Turn on the built-in sandbox, then wrap the whole process in a 30-line <code>bwrap</code> script.</p>
+      </div>
+      <div class="relcard">
+        <span class="depth">survey</span>
+        <h4><a href="../../containerized-dev-environments/">Containers as the containment layer</a></h4>
+        <p>Rootless Podman plus a proxy-only internal network beats the reference devcontainer, which leaks DNS and hands the agent NET_ADMIN.</p>
+      </div>
+      <div class="relcard">
+        <span class="depth">survey</span>
+        <h4><a href="../../credential-and-secret-isolation/">Credential isolation</a></h4>
+        <p>An agent that can read <code>$HOME</code> holds your whole identity, and on Linux the keyring does not help.</p>
+      </div>
+      <div class="relcard">
+        <span class="depth">recon</span>
+        <h4><a href="../../audit-trail-and-recovery-drills/">Audit trail and recovery drills</a></h4>
+        <p>Git commits are your real undo and a <code>PostToolUse</code> hook is your real audit log.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sechead">
+      <span class="secnum">REF B</span>
+      <h2 class="sectitle">Sources</h2>
+      <span class="sechint">42 cited</span>
+    </div>
+    <div class="srcs">
+      <div class="src"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/wiki/Linux_Container">Proxmox VE Wiki — Linux Container</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=linuxcontainers.org&amp;sz=128" alt=""><span><a href="https://linuxcontainers.org/lxc/security/">LXC — Security</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><a href="https://code.claude.com/docs/en/sandbox-environments">Claude Code — Sandbox environments</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html">Proxmox VE Docs — Firewall</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/pve-docs/chapter-pvesm.html">Proxmox VE Docs — Storage</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=forum.proxmox.com&amp;sz=128" alt=""><span><a href="https://forum.proxmox.com/threads/docker-in-unpriviledged-lxc-or-dedicated-vm.156369/">Forum — Docker in unprivileged LXC or dedicated VM</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/pve-docs/chapter-pct.html">Proxmox VE Docs — Container Toolkit</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=dev.to&amp;sz=128" alt=""><span><a href="https://dev.to/mattercoder/docker-on-proxmox-lxc-what-actually-works-and-why-unprivileged-doesnt-45km">Docker on Proxmox LXC: what actually works</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=forum.proxmox.com&amp;sz=128" alt=""><span><a href="https://forum.proxmox.com/threads/root-docker-in-unprivileged-lxc-safe-or-not.93548/">Forum — Root Docker in unprivileged LXC, safe or not?</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&amp;sz=128" alt=""><span><a href="https://news.ycombinator.com/item?id=46700628">HN — How are you sandboxing your coding agents?</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&amp;sz=128" alt=""><span><a href="https://news.ycombinator.com/item?id=47185250">HN — 2026 agent sandboxing survey</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=northflank.com&amp;sz=128" alt=""><span><a href="https://northflank.com/blog/how-to-sandbox-ai-agents">Northflank — How to sandbox AI agents</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=128" alt=""><span><a href="https://arxiv.org/pdf/2603.02277">Quantifying Frontier LLM Capabilities for Container Sandbox Escape</a> <span class="ty">peer-reviewed</span></span></div>
+      <div class="src"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=microsoft.com&amp;sz=128" alt=""><span><a href="https://www.microsoft.com/en-us/security/blog/2026/06/17/postinstall-payload-inside-mastra-npm-supply-chain-compromise/">Microsoft — Mastra npm supply-chain compromise</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/wiki/System_Requirements">Proxmox VE Wiki — System Requirements</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/wiki/ZFS_on_Linux">Proxmox VE Wiki — ZFS on Linux</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/pve-docs/chapter-qm.html">Proxmox VE Docs — Qemu/KVM Virtual Machines</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=code.visualstudio.com&amp;sz=128" alt=""><span><a href="https://code.visualstudio.com/docs/remote/faq">VS Code — Remote Development FAQ</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=code.visualstudio.com&amp;sz=128" alt=""><span><a href="https://code.visualstudio.com/docs/remote/tunnels">VS Code — Remote Tunnels</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=jetbrains.com&amp;sz=128" alt=""><span><a href="https://www.jetbrains.com/help/idea/prerequisites.html">JetBrains — Remote development prerequisites</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=mosh.org&amp;sz=128" alt=""><span><a href="https://mosh.org/">Mosh — the mobile shell</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=rogs.me&amp;sz=128" alt=""><span><a href="https://rogs.me/2026/02/claude-code-from-the-beach-my-remote-coding-setup-with-mosh-tmux-and-ntfy/">rogs.me — Claude Code from the beach: mosh, tmux, ntfy</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><a href="https://code.claude.com/docs/en/headless">Claude Code — Headless mode</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/pve-docs/qm.1.html">Proxmox VE Docs — qm(1)</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/pve-docs/pct.1.html">Proxmox VE Docs — pct(1)</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=forum.proxmox.com&amp;sz=128" alt=""><span><a href="https://forum.proxmox.com/threads/proxmox-8-4-virtiofs-virtiofs-shared-host-folder-for-linux-and-or-windows-guest-vms.167435/">Forum — virtiofs shared host folder</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=blog.jklr.org&amp;sz=128" alt=""><span><a href="https://blog.jklr.org/2019/08/27/nas-performance-sshfs-nfs-smb.html">NAS performance — SSHFS vs NFS vs SMB</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=forum.proxmox.com&amp;sz=128" alt=""><span><a href="https://forum.proxmox.com/threads/solved-snapshot-vm-question-ram-no-ram.82654/">Forum — Snapshot VM question: RAM / no RAM</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/wiki/Qemu-guest-agent">Proxmox VE Wiki — QEMU guest agent</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/wiki/Network_Configuration">Proxmox VE Wiki — Network Configuration</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=pve.proxmox.com&amp;sz=128" alt=""><span><a href="https://pve.proxmox.com/wiki/Software-Defined_Network">Proxmox VE Wiki — Software-Defined Network</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">32</span><img src="https://www.google.com/s2/favicons?domain=forum.proxmox.com&amp;sz=128" alt=""><span><a href="https://forum.proxmox.com/threads/isolated-private-networks-with-sdn.137131/">Forum — Isolated private networks with SDN</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">33</span><img src="https://www.google.com/s2/favicons?domain=cylab.be&amp;sz=128" alt=""><span><a href="https://cylab.be/blog/490/tutorial-building-isolated-network-topologies-in-proxmox">CyLab — Isolated network topologies in Proxmox</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">34</span><img src="https://www.google.com/s2/favicons?domain=goteleport.com&amp;sz=128" alt=""><span><a href="https://goteleport.com/blog/x11-forwarding/">Teleport — What is SSH X11 forwarding?</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">35</span><img src="https://www.google.com/s2/favicons?domain=clockwork.com&amp;sz=128" alt=""><span><a href="https://www.clockwork.com/insights/ssh-agent-hijacking/">Clockwork — SSH agent hijacking</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">36</span><img src="https://www.google.com/s2/favicons?domain=docs.github.com&amp;sz=128" alt=""><span><a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys">GitHub Docs — Managing deploy keys</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">37</span><img src="https://www.google.com/s2/favicons?domain=virtualizationhowto.com&amp;sz=128" alt=""><span><a href="https://www.virtualizationhowto.com/2025/10/proxmox-cloud-init-made-easy-automating-vm-provisioning-like-the-cloud/">Proxmox cloud-init made easy</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">38</span><img src="https://www.google.com/s2/favicons?domain=proxmox.com&amp;sz=128" alt=""><span><a href="https://www.proxmox.com/en/about/company-details/press-releases/proxmox-virtual-environment-9-2">Proxmox — VE 9.2 release</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">39</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><a href="https://code.claude.com/docs/en/sandboxing">Claude Code — Sandboxing</a> <span class="ty">official</span></span></div>
+      <div class="src"><span class="n">40</span><img src="https://www.google.com/s2/favicons?domain=blog.im404.me&amp;sz=128" alt=""><span><a href="https://blog.im404.me/article/isolated-development-environments-with-proxmox-lxc">im404 — Isolated dev environments with Proxmox LXC</a> <span class="ty">vendor-blog</span></span></div>
+      <div class="src"><span class="n">41</span><img src="https://www.google.com/s2/favicons?domain=forum.proxmox.com&amp;sz=128" alt=""><span><a href="https://forum.proxmox.com/threads/vm-or-lxc.151626/">Forum — VM or LXC?</a> <span class="ty">forum</span></span></div>
+      <div class="src"><span class="n">42</span><img src="https://www.google.com/s2/favicons?domain=swatinem.de&amp;sz=128" alt=""><span><a href="https://swatinem.de/blog/optimizing-tsc/">swatinem.de — Optimizing tsc</a> <span class="ty">vendor-blog</span></span></div>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <span>RUNBOOK-210 · REV 2026-07-30</span>
+    <span>Derived from <a href="../">the canonical page</a></span>
+    <span>Part of <a href="../../">Running Claude Code safely on a Linux workstation</a></span>
+    <span><a href="/">Atlas</a></span>
+  </footer>
+
+</div>
+</div>

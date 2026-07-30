@@ -1,0 +1,1251 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Linux-native sandboxing for Claude Code on the workstation itself — Scoreboard"
+---
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  .sbx *{box-sizing:border-box}
+  .sbx{
+    --board:#06090a;
+    --board2:#0b1113;
+    --panel:#101a1c;
+    --panel2:#152124;
+    --grid:#1d2c30;
+    --dim:#26383c;
+    --amber:#ffb020;
+    --amber-d:#8a5c05;
+    --green:#3ce084;
+    --green-d:#0d6435;
+    --red:#ff4a3d;
+    --red-d:#7a1a14;
+    --cyan:#57d7e8;
+    --chalk:#e9f2f2;
+    --mute:#7d9297;
+    background:var(--board);
+    color:var(--chalk);
+    font-family:'Inter','Helvetica Neue',sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    margin:0;
+    padding:0;
+    background-image:radial-gradient(rgba(255,255,255,0.04) 1px,transparent 1px);
+    background-size:4px 4px;
+  }
+  .sbx .mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+  .sbx .cond{font-family:'Barlow Condensed','Arial Narrow',sans-serif}
+  .sbx .disp{font-family:'Bebas Neue','Barlow Condensed',sans-serif;letter-spacing:0.02em}
+  .sbx a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(87,215,232,0.35)}
+  .sbx a:hover{color:#fff;border-bottom-color:#fff}
+  .sbx sup{font-size:9px;font-family:'JetBrains Mono',monospace}
+  .sbx sup a{border-bottom:none;color:var(--amber)}
+  .sbx p{margin:0 0 10px}
+
+  .sbx .rail{max-width:1220px;margin:0 auto;padding:0 22px 90px}
+
+  /* ---------- board head ---------- */
+  .sbx .marquee{
+    border-bottom:2px solid var(--dim);
+    background:linear-gradient(180deg,#0a1214,#06090a);
+    padding:9px 0;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+  .sbx .marquee .tape{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.34em;
+    text-transform:uppercase;
+    color:var(--amber);
+    text-shadow:0 0 9px rgba(255,176,32,0.55);
+    max-width:1220px;
+    margin:0 auto;
+    padding:0 22px;
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .sbx .boardstrip{
+    height:112px;overflow:hidden;border-bottom:2px solid var(--dim);
+    background:#0a1012;position:relative
+  }
+  .sbx .boardstrip img{
+    display:block;width:100%;height:100%;object-fit:cover;object-position:center 42%;
+    filter:grayscale(0.55) contrast(1.15) brightness(0.6) sepia(0.35) hue-rotate(-14deg);
+    opacity:0.85
+  }
+
+  .sbx .badge{
+    display:flex;align-items:center;gap:12px;margin-bottom:16px
+  }
+  .sbx .badge img{width:42px;height:42px;object-fit:contain;flex:0 0 auto}
+  .sbx .badge .bt{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--mute);line-height:1.7
+  }
+  .sbx .badge .bt b{color:var(--chalk);font-weight:500}
+
+  .sbx .head{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 300px;
+    gap:34px;
+    align-items:end;
+    padding:44px 0 30px;
+    border-bottom:1px solid var(--grid);
+  }
+  .sbx h1{
+    font-family:'Bebas Neue','Barlow Condensed',sans-serif;
+    font-size:clamp(48px,8.4vw,104px);
+    line-height:0.88;
+    margin:0 0 14px;
+    letter-spacing:0.01em;
+  }
+  .sbx h1 .g{color:var(--green);text-shadow:0 0 22px rgba(60,224,132,0.35)}
+  .sbx h1 .a{color:var(--amber);text-shadow:0 0 22px rgba(255,176,32,0.35)}
+  .sbx h1 .v{color:var(--mute);font-size:0.42em;vertical-align:0.34em;padding:0 0.16em}
+  .sbx .dek{font-size:17px;color:#c3d3d3;max-width:56ch}
+  .sbx .kick{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.22em;
+    text-transform:uppercase;color:var(--mute);margin-bottom:16px
+  }
+  .sbx .coverplate{
+    border:1px solid var(--grid);
+    background:var(--panel);
+    padding:12px;
+  }
+  .sbx .coverplate img{display:block;width:100%;height:auto;opacity:0.9}
+  .sbx .coverplate .cap{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.16em;
+    text-transform:uppercase;color:var(--mute);margin-top:10px
+  }
+
+  /* ---------- full time ---------- */
+  .sbx .fulltime{
+    margin:34px 0 0;
+    border:2px solid var(--green-d);
+    background:
+      linear-gradient(180deg,rgba(60,224,132,0.07),rgba(6,9,10,0.2));
+    display:grid;
+    grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+  }
+  .sbx .fulltime .left{padding:26px 26px 22px;border-right:1px solid var(--green-d)}
+  .sbx .fulltime .right{padding:26px}
+  .sbx .ftlabel{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;
+    text-transform:uppercase;color:var(--green);margin-bottom:14px
+  }
+  .sbx .ftline{
+    font-family:'JetBrains Mono',monospace;
+    font-size:clamp(13px,1.6vw,17px);
+    font-weight:700;
+    color:var(--green);
+    text-shadow:0 0 14px rgba(60,224,132,0.4);
+    line-height:1.8;
+    word-break:break-word;
+  }
+  .sbx .ftline .off{color:var(--red);text-shadow:0 0 14px rgba(255,74,61,0.4)}
+
+  /* ---------- legend ---------- */
+  .sbx .legend{
+    display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;
+    padding:16px 0 0;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.1em;
+    text-transform:uppercase;color:var(--mute)
+  }
+  .sbx .legend b{color:var(--chalk);font-weight:500}
+
+  /* ---------- zone bars ---------- */
+  .sbx .zone{
+    margin:46px 0 0;
+    display:flex;align-items:center;gap:16px;
+    border-top:2px dashed currentColor;
+    padding-top:12px;
+  }
+  .sbx .zone .zn{
+    font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.06em;line-height:1
+  }
+  .sbx .zone .zs{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--mute)
+  }
+  .sbx .z-go{color:var(--green)}
+  .sbx .z-mid{color:var(--amber)}
+  .sbx .z-out{color:var(--red)}
+  .sbx .z-na{color:var(--mute)}
+
+  /* ---------- rows ---------- */
+  .sbx .row{
+    display:grid;
+    grid-template-columns:78px minmax(0,1.55fr) 218px minmax(0,1fr);
+    gap:0;
+    border:1px solid var(--grid);
+    border-left:5px solid var(--dim);
+    background:var(--panel);
+    margin-top:12px;
+  }
+  .sbx .row.go{border-left-color:var(--green)}
+  .sbx .row.mid{border-left-color:var(--amber)}
+  .sbx .row.out{border-left-color:var(--red)}
+  .sbx .row.na{border-left-color:var(--dim)}
+
+  .sbx .pos{
+    border-right:1px solid var(--grid);
+    padding:16px 8px;
+    text-align:center;
+    background:var(--board2);
+  }
+  .sbx .pos .n{
+    font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:34px;line-height:1;color:var(--amber);
+    text-shadow:0 0 14px rgba(255,176,32,0.45)
+  }
+  .sbx .pos .n.off{color:var(--red);text-shadow:0 0 14px rgba(255,74,61,0.4)}
+  .sbx .pos .n.gry{color:var(--mute);text-shadow:none}
+  .sbx .pos .l{
+    display:block;font-family:'JetBrains Mono',monospace;font-size:8.5px;
+    letter-spacing:0.16em;color:var(--mute);margin-top:8px
+  }
+
+  .sbx .who{padding:16px 20px}
+  .sbx .who h3{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:25px;line-height:1.1;margin:0 0 4px;letter-spacing:0.01em
+  }
+  .sbx .who h3 em{
+    font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:0.16em;text-transform:uppercase;color:var(--amber);
+    vertical-align:0.32em;margin-left:8px
+  }
+  .sbx .who .what{font-size:13.5px;color:#bccbcb;margin:0 0 9px}
+  .sbx .who .req{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--mute);
+    line-height:1.7;margin:0
+  }
+  .sbx .who .req b{color:#a9bcbc;font-weight:500}
+
+  .sbx .meters{padding:16px;border-left:1px solid var(--grid);border-right:1px solid var(--grid)}
+  .sbx .mrow{margin-bottom:12px}
+  .sbx .mrow:last-child{margin-bottom:0}
+  .sbx .mhead{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--mute);margin-bottom:5px
+  }
+  .sbx .mhead b{font-size:12px;color:var(--chalk);font-weight:700}
+  .sbx .bar{
+    height:13px;background:#0a1112;border:1px solid var(--dim);
+    -webkit-mask:repeating-linear-gradient(90deg,#000 0 calc(10% - 3px),transparent calc(10% - 3px) 10%);
+    mask:repeating-linear-gradient(90deg,#000 0 calc(10% - 3px),transparent calc(10% - 3px) 10%);
+  }
+  .sbx .bar i{display:block;height:100%}
+  .sbx .bar.cont i{background:var(--green);box-shadow:0 0 10px rgba(60,224,132,0.7)}
+  .sbx .bar.fric i{background:var(--amber);box-shadow:0 0 10px rgba(255,176,32,0.6)}
+  .sbx .bar.dead i{background:var(--dim);box-shadow:none}
+
+  .sbx .call{padding:16px 18px;background:var(--panel2)}
+  .sbx .stamp{
+    display:inline-block;font-family:'Bebas Neue',sans-serif;font-size:19px;
+    letter-spacing:0.05em;padding:3px 11px 1px;margin-bottom:9px;line-height:1.25
+  }
+  .sbx .stamp.s-go{background:var(--green);color:#04160c}
+  .sbx .stamp.s-add{background:var(--cyan);color:#04191c}
+  .sbx .stamp.s-opt{background:var(--amber);color:#1a1000}
+  .sbx .stamp.s-out{background:var(--red);color:#1a0300}
+  .sbx .stamp.s-na{background:var(--dim);color:#b9cbcb}
+  .sbx .call p{font-size:13px;color:#c3d3d3;margin:0 0 10px}
+  .sbx .cards{display:flex;flex-direction:column;gap:5px;margin-top:auto}
+  .sbx .bk{
+    display:flex;gap:8px;align-items:flex-start;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.5;color:#a9bcbc
+  }
+  .sbx .bk .chip{
+    flex:0 0 auto;width:11px;height:15px;border-radius:1.5px;margin-top:1px;
+    box-shadow:0 0 7px rgba(0,0,0,0.6)
+  }
+  .sbx .bk .chip.y{background:var(--amber)}
+  .sbx .bk .chip.r{background:var(--red)}
+
+  /* ---------- half time numbers ---------- */
+  .sbx .htn{
+    margin:56px 0 0;border:1px solid var(--grid);background:var(--board2);
+  }
+  .sbx .htn .hdr{
+    border-bottom:1px solid var(--grid);padding:11px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;
+    text-transform:uppercase;color:var(--amber)
+  }
+  .sbx .htn .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .sbx .tile{padding:20px 18px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+  .sbx .tile .big{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:29px;line-height:1;
+    color:var(--amber);text-shadow:0 0 16px rgba(255,176,32,0.35)
+  }
+  .sbx .tile .big.g{color:var(--green);text-shadow:0 0 16px rgba(60,224,132,0.35)}
+  .sbx .tile .big.r{color:var(--red);text-shadow:0 0 16px rgba(255,74,61,0.35)}
+  .sbx .tile .lbl{
+    font-family:'Barlow Condensed',sans-serif;font-size:14px;color:#bccbcb;
+    margin-top:9px;line-height:1.35
+  }
+
+  /* ---------- generic panel ---------- */
+  .sbx section.pnl{margin:56px 0 0;border:1px solid var(--grid);background:var(--panel)}
+  .sbx section.pnl > .ph{
+    border-bottom:1px solid var(--grid);background:var(--board2);
+    padding:14px 20px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline
+  }
+  .sbx section.pnl > .ph h2{
+    font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.05em;
+    margin:0;line-height:1;color:var(--chalk)
+  }
+  .sbx section.pnl > .ph .sub{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--mute)
+  }
+  .sbx .pb{padding:22px 20px}
+
+  /* own goals */
+  .sbx .owns{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0}
+  .sbx .own{padding:20px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+  .sbx .own .num{
+    font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.14em;color:var(--red)
+  }
+  .sbx .own h4{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;
+    margin:4px 0 8px;line-height:1.15
+  }
+  .sbx .own p{font-size:12.5px;color:#bccbcb;margin:0 0 10px}
+  .sbx .own code{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);
+    background:#0a1211;border:1px solid var(--dim);padding:2px 5px;display:inline-block
+  }
+
+  /* code blocks */
+  .sbx pre{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.62;
+    background:#080d0e;border:1px solid var(--dim);color:#cfe0dd;
+    padding:16px 18px;overflow-x:auto;margin:0
+  }
+  .sbx pre .c{color:#5e7a78}
+  .sbx pre .k{color:var(--amber)}
+  .sbx pre .s{color:var(--green)}
+  .sbx .prewrap{overflow-x:auto}
+  .sbx .twoup{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0}
+  .sbx .twoup > div{padding:20px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+  .sbx .twoup h4,.sbx .pb h4{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;
+    margin:0 0 10px;letter-spacing:0.02em
+  }
+
+  /* abi ladder */
+  .sbx .abi{display:grid;gap:4px}
+  .sbx .abi .st{
+    display:grid;grid-template-columns:66px minmax(0,1fr) 110px;gap:12px;align-items:center;
+    background:var(--panel2);border:1px solid var(--grid);padding:9px 14px
+  }
+  .sbx .abi .st .v{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--cyan)
+  }
+  .sbx .abi .st .f{font-family:'Barlow Condensed',sans-serif;font-size:16px}
+  .sbx .abi .st .kv{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--amber);text-align:right
+  }
+  .sbx .abi .st.hot{border-color:var(--amber)}
+
+  /* injury list */
+  .sbx .inj{width:100%;border-collapse:collapse;font-size:13px}
+  .sbx .inj th{
+    text-align:left;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+    letter-spacing:0.16em;text-transform:uppercase;color:var(--mute);
+    padding:0 12px 9px 0;border-bottom:1px solid var(--dim);font-weight:400
+  }
+  .sbx .inj td{padding:11px 12px 11px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+  .sbx .inj td:first-child{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--chalk);white-space:nowrap}
+  .sbx .inj td.fix{color:#bccbcb}
+  .sbx .inj code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)}
+
+  /* abandoned */
+  .sbx .esc{display:grid;gap:0}
+  .sbx .esc .e{
+    display:grid;grid-template-columns:52px minmax(0,1fr);gap:16px;
+    padding:18px 20px;border-bottom:1px solid var(--grid)
+  }
+  .sbx .esc .e:last-child{border-bottom:none}
+  .sbx .esc .card{
+    width:34px;height:46px;border-radius:2px;background:var(--red);
+    box-shadow:0 0 16px rgba(255,74,61,0.35)
+  }
+  .sbx .esc .card.y{background:var(--amber);box-shadow:0 0 16px rgba(255,176,32,0.3)}
+  .sbx .esc h4{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;margin:0 0 6px
+  }
+  .sbx .esc p{font-size:13px;color:#bccbcb;margin:0}
+  .sbx .esc .q{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--amber);
+    border-left:2px solid var(--amber-d);padding-left:12px;margin-top:9px
+  }
+
+  /* tools strip */
+  .sbx .kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0}
+  .sbx .kitcard{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+  .sbx .kitcard img{display:block;width:100%;height:132px;object-fit:cover;border-bottom:1px solid var(--grid);filter:saturate(0.85)}
+  .sbx .kitcard .kb{padding:16px 18px}
+  .sbx .kitcard .kb h4{margin:0 0 4px;font-size:20px}
+  .sbx .kitcard .kb .st{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--amber);margin-bottom:8px
+  }
+  .sbx .kitcard .kb p{font-size:12.5px;color:#bccbcb;margin:0 0 10px}
+  .sbx .kitcard .kb .cmd{
+    font-family:'JetBrains Mono',monospace;font-size:11px;background:#080d0e;
+    border:1px solid var(--dim);color:var(--green);padding:7px 9px;overflow-x:auto
+  }
+
+  /* away fixtures */
+  .sbx .fix{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0}
+  .sbx .fx{padding:18px 20px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+  .sbx .fx .d{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:7px
+  }
+  .sbx .fx h4{margin:0 0 7px;font-size:18px;line-height:1.2}
+  .sbx .fx h4 a{border-bottom:none}
+  .sbx .fx p{font-size:12.5px;color:#a9bcbc;margin:0}
+  .sbx .fx.star{background:var(--panel2);border-left:3px solid var(--amber)}
+
+  /* officials */
+  .sbx .offs{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:0}
+  .sbx .offg{padding:18px 20px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+  .sbx .offg .gh{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--mute);margin-bottom:12px
+  }
+  .sbx .src{display:flex;gap:9px;align-items:center;margin-bottom:9px;font-size:12.5px}
+  .sbx .src img{width:16px;height:16px;flex:0 0 auto;border-radius:2px}
+  .sbx .src .n{
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);flex:0 0 auto
+  }
+  .sbx .src a{border-bottom:none;color:#c3d3d3}
+  .sbx .src a:hover{color:#fff}
+
+  .sbx .foot{
+    margin-top:56px;border-top:2px solid var(--dim);padding-top:18px;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;
+    color:var(--mute);line-height:1.9
+  }
+
+  @media (max-width:900px){
+    .sbx .head{grid-template-columns:1fr}
+    .sbx .coverplate{max-width:320px}
+    .sbx .fulltime{grid-template-columns:1fr}
+    .sbx .fulltime .left{border-right:none;border-bottom:1px solid var(--green-d)}
+    .sbx .row{grid-template-columns:66px minmax(0,1fr)}
+    .sbx .meters{border-left:none;border-right:none;border-top:1px solid var(--grid);grid-column:1/-1}
+    .sbx .call{grid-column:1/-1;border-top:1px solid var(--grid)}
+  }
+</style>
+
+<div class="sbx">
+
+<div class="marquee"><span class="tape">containment league · linux sandboxing for claude code · season 2026 · 9 mechanisms scored · 52 sources</span></div>
+
+<div class="boardstrip"><img src="scoreboard/images/board-strip.webp" alt="A split-flap departure board, rows of mechanically flipped characters"></div>
+
+<div class="rail">
+
+  <header class="head">
+    <div>
+      <div class="badge">
+        <img src="scoreboard/images/tux.webp" alt="Tux, the Linux mascot">
+        <span class="bt"><b>Home side · Linux</b><br>Expedition angle · 25 min read · scored 30 jul 2026</span>
+      </div>
+      <h1>Containment <span class="v">vs</span> <span class="a">Friction</span></h1>
+      <p class="dek">Nine ways to wrap <span class="mono">claude</span> on a Linux workstation, ranked by how much the kernel actually holds against how much of your day it costs. Two make the team. Four are relegated. One is not a sandbox at all.</p>
+    </div>
+    <div class="coverplate">
+      <img src="../cover.svg" alt="Cover artwork for the Linux-native sandboxing research angle">
+      <div class="cap">angle cover · canonical page</div>
+    </div>
+  </header>
+
+  <div class="fulltime">
+    <div class="left">
+      <div class="ftlabel">◉ full time · the settings that win the match</div>
+      <div class="ftline">
+        sandbox.enabled = <span>true</span><br>
+        allowUnsandboxedCommands = <span class="off">false</span><br>
+        failIfUnavailable = <span>true</span><br>
+        network.strictAllowlist = <span>true</span>
+      </div>
+    </div>
+    <div class="right">
+      <div class="ftlabel">◉ why it wins</div>
+      <p>It is bubblewrap plus seccomp — enforced by the kernel rather than by the model — and it is the highest containment per minute of setup available on Linux <sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup>. It covers Bash only, so add an outer boundary: <a href="https://github.com/anthropic-experimental/sandbox-runtime">sandbox-runtime</a> ⭐ 4.8k or <a href="https://github.com/always-further/nono">nono</a> ⭐ 3.3k this week <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[2]</a></sup>.</p>
+      <p>And none of it contains a kernel exploit. For a repository you don't trust, Anthropic's own answer is <em>a dedicated virtual machine</em> <sup><a href="https://code.claude.com/docs/en/sandbox-environments">[2]</a></sup>.</p>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><b>CONTAINMENT</b> 0–10 · what the kernel enforces</span>
+    <span><b>FRICTION</b> 0–10 · setup plus daily cost, higher is worse</span>
+    <span><b style="color:var(--amber)">▮</b> yellow card · documented leak</span>
+    <span><b style="color:var(--red)">▮</b> red card · documented escape or CVE</span>
+  </div>
+
+  <!-- ============ PROMOTION ZONE ============ -->
+  <div class="zone z-go">
+    <span class="zn">Promotion zone</span>
+    <span class="zs">run these · positions 1–3</span>
+  </div>
+
+  <article class="row go">
+    <div class="pos"><span class="n">1</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3><a href="https://code.claude.com/docs/en/sandboxing">Claude Code built-in sandbox</a> <em>hardened</em></h3>
+      <p class="what">bubblewrap for filesystem and namespace isolation, <span class="mono">socat</span> plumbing a loopback port to a host-side allowlisting proxy, plus a seccomp filter whose one job is blocking Unix domain sockets. Confines every Bash command and all of its children.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></p>
+      <p class="req"><b>needs</b> Linux or WSL2 · <span class="mono">bubblewrap</span> + <span class="mono">socat</span><br><b>gate</b> Ubuntu 24.04+ needs an AppArmor profile for <span class="mono">bwrap</span><sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup><br><b>setup</b> ~5 minutes</p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>6/10</b></div>
+        <div class="bar cont"><i style="width:60%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>1/10</b></div>
+        <div class="bar fric"><i style="width:10%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-go">Do this first, today</span>
+      <p>Writes land in cwd and the session temp dir; egress goes through a hostname allowlist. Everything else on this board is additive.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span>CVE-2026-25725 — a nonexistent <span class="mono">.claude/settings.json</span> could not be read-only bound, so sandboxed code created it, injected a <span class="mono">SessionStart</span> hook and got host execution. CVSS v4.0 4.0, fixed 2.1.2<sup><a href="https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725">[16]</a></sup></span></div>
+        <div class="bk"><span class="chip r"></span><span>denylist bypass via <span class="mono">/proc/self/root/…</span>, then the agent disabling its own sandbox, then <span class="mono">ld-linux.so</span> loading a blocked binary<sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[17]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>reads the whole disk by default, <span class="mono">~/.ssh</span> and <span class="mono">~/.aws</span> included<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>hooks, MCP servers, Read/Edit/WebFetch all run outside it<sup><a href="https://code.claude.com/docs/en/sandbox-environments">[2]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>the proxy never terminates TLS → domain fronting<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="row go">
+    <div class="pos"><span class="n">2</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3><a href="https://github.com/anthropic-experimental/sandbox-runtime">sandbox-runtime</a> <em>srt · ⭐ 4.8k</em></h3>
+      <p class="what">The same bubblewrap and seccomp primitives, wrapped around the <em>whole</em> process instead of one Bash call — so the file tools, hooks and MCP servers land inside the boundary too. Default-deny on both writes and network.<sup><a href="https://code.claude.com/docs/en/sandbox-environments">[2]</a></sup></p>
+      <p class="req"><b>run</b> <span class="mono">npx @anthropic-ai/sandbox-runtime claude</span><br><b>config</b> <span class="mono">~/.srt-settings.json</span> — must allow <span class="mono">~/.claude</span>, <span class="mono">~/.claude.json</span>, <span class="mono">/tmp</span>, the provider endpoint<br><b>setup</b> ~15 minutes</p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>8/10</b></div>
+        <div class="bar cont"><i style="width:80%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>2/10</b></div>
+        <div class="bar fric"><i style="width:20%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-add">Best containment per minute</span>
+      <p>The only thing on this board that closes the hooks-and-MCP gap without you writing a wrapper. Nest the built-in sandbox inside it and you also keep the egress proxy for Bash.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip y"></span><span>labelled a beta research preview; the config format may change<sup><a href="https://code.claude.com/docs/en/sandbox-environments">[2]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>same TLS-blind proxy; a proxy-timing leak of initial bytes was observed<sup><a href="https://www.sambaiz.net/en/article/547/">[15]</a></sup></span></div>
+        <div class="bk"><span class="chip r"></span><span>inherits every bubblewrap escape — anything bound in is an escalation primitive<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="row go">
+    <div class="pos"><span class="n">2</span><span class="l">POS · EQUAL</span></div>
+    <div class="who">
+      <h3><a href="https://github.com/always-further/nono">nono</a> <em>landlock · ⭐ 3.3k</em></h3>
+      <p class="what">The only entry that needs <strong>no user namespace at all</strong>. <a href="https://docs.kernel.org/userspace-api/landlock.html">Landlock</a> is the one Linux LSM designed for unprivileged self-restriction: a process applies a ruleset to itself and the kernel enforces it on every descendant. <span class="mono">nono</span> targets the highest ABI available, degrades to <span class="mono">PartiallyEnforced</span> on older kernels, and layers a command blocklist, delete/truncate blocks and a credential proxy on top.<sup><a href="https://github.com/always-further/nono">[31]</a></sup><sup><a href="https://particula.tech/blog/sandbox-coding-agents-locally-without-vm-nono">[32]</a></sup></p>
+      <p class="req"><b>run</b> <span class="mono">nono run --profile claude-code -- claude</span><br><b>kernel</b> 5.13+ filesystem · <strong>6.7+ for any network control</strong> · 6.10+ ioctl<sup><a href="https://nono.sh/docs/cli/internals/landlock">[30]</a></sup><br><b>check</b> <span class="mono">dmesg | grep landlock</span> → <span class="mono">Up and running</span><sup><a href="https://docs.suricata.io/en/latest/configuration/landlock.html">[33]</a></sup></p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>7/10</b></div>
+        <div class="bar cont"><i style="width:70%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>2/10</b></div>
+        <div class="bar fric"><i style="width:20%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-add">Take this if your kernel is ≥ 6.7</span>
+      <p>It sidesteps the entire user-namespace attack surface that every bubblewrap row pays for. Also Codex CLI's default Linux backend.<sup><a href="https://gist.github.com/wincent/2752d8d97727577050c043e4ff9e386e">[34]</a></sup> Use it through the tool — hand-rolling Landlock is a project.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip y"></span><span>UDP — DNS on 53 included — plus raw sockets and ICMP are unmediated below ABI 10<sup><a href="https://nono.sh/docs/cli/internals/landlock">[30]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span><span class="mono">chroot(2)</span> is not denied; <span class="mono">chdir</span>, <span class="mono">stat</span>, <span class="mono">chmod</span>, <span class="mono">chown</span>, <span class="mono">setxattr</span>, <span class="mono">utime</span>, <span class="mono">fcntl</span>, <span class="mono">access</span> unsupported; pipes and sockets via <span class="mono">/proc/&lt;pid&gt;/fd/*</span> unrestrictable<sup><a href="https://docs.kernel.org/userspace-api/landlock.html">[5]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>a file-level grant goes stale when the file is replaced by an atomic write from outside — exactly what editors and package managers do<sup><a href="https://nono.sh/docs/cli/internals/landlock">[30]</a></sup></span></div>
+        <div class="bk"><span class="chip r"></span><span>&ldquo;a kernel-level exploit is out of scope for Landlock or Seatbelt to contain&rdquo;<sup><a href="https://particula.tech/blog/sandbox-coding-agents-locally-without-vm-nono">[32]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="row go">
+    <div class="pos"><span class="n">3</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3>Hand-rolled <a href="https://github.com/containers/bubblewrap">bwrap</a> wrapper <em>claude-jail · ⭐ 8.2k</em></h3>
+      <p class="what">Exactly what you bind and nothing else: mount, PID, IPC, UTS and user namespaces, capabilities dropped, network optional. Highest ceiling on this board and the only row where you own the audit.</p>
+      <p class="req"><b>needs</b> unprivileged <span class="mono">CLONE_NEWUSER</span> + mount namespaces<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup><br><b>setup</b> 1–3 hours the first time, then near zero<br><b>startup</b> under 50 ms per invocation<sup><a href="https://grigio.org/docker-alternatives-for-ai-agents-podman-bwrap-and-firejail/">[48]</a></sup></p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>8/10</b></div>
+        <div class="bar cont"><i style="width:80%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>6/10</b></div>
+        <div class="bar fric"><i style="width:60%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-go">Worth it to understand the boundary</span>
+      <p>Not worth it as a shortcut. &ldquo;The level of protection … is entirely determined by the arguments passed to bubblewrap&rdquo;<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup> — the script is below.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span>&ldquo;if you bind a D-Bus socket into the sandbox, it can be used to execute commands via systemd&rdquo;<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span><span class="mono">TIOCSTI</span> injection unless you filter it or pass <span class="mono">--new-session</span> — which breaks the TUI<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup><sup><a href="https://github.com/fish-shell/fish-shell/issues/9605">[11]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>no egress policy at all: with <span class="mono">--share-net</span>, Claude can reach any host you can reach<sup><a href="https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/">[19]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>no memory, CPU or PID limits — neither Claude Code nor Codex implements them<sup><a href="https://medium.com/@Koukyosyumei/how-claude-code-and-codex-sandbox-untrusted-code-ba39b493046a">[14]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ PLAY-OFF ============ -->
+  <div class="zone z-mid">
+    <span class="zn">Play-off line</span>
+    <span class="zs">marginal gain · take it for one thing only</span>
+  </div>
+
+  <article class="row mid">
+    <div class="pos"><span class="n">4</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">systemd-run --user</a> <em>+ hardening directives</em></h3>
+      <p class="what">Read-only rootfs via <span class="mono">ProtectSystem=strict</span>, <span class="mono">$HOME</span> hidden, private <span class="mono">/tmp</span>, no-new-privs, a syscall filter and address-family restrictions. Genuinely a sandbox on paper.<sup><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">[4]</a></sup><sup><a href="https://www.ctrl.blog/entry/systemd-service-hardening.html">[28]</a></sup></p>
+      <p class="req"><b>needs</b> systemd + unprivileged user namespaces (<span class="mono">ProtectHome</span> implies <span class="mono">PrivateUsers</span> in a user manager)<sup><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">[4]</a></sup><br><b>score it</b> <span class="mono">systemd-analyze security</span> · exposure 0.0–10.0, under 3 is good, over 7 means almost no sandboxing<sup><a href="https://manpages.debian.org/unstable/systemd/systemd-analyze.1.en.html">[27]</a></sup><sup><a href="https://oneuptime.com/blog/post/2026-03-02-how-to-configure-systemd-service-hardening-on-ubuntu/view">[52]</a></sup><br><b>setup</b> ~30 minutes, and you fight it</p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>3/10</b></div>
+        <div class="bar cont"><i style="width:30%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>5/10</b></div>
+        <div class="bar fric"><i style="width:50%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-opt">Optional — for the resource limits</span>
+      <p>Wrap position 3 in a transient user unit purely to gain <span class="mono">CapabilityBoundingSet=</span>, <span class="mono">SystemCallFilter=@system-service</span>, <span class="mono">MemoryMax=</span> and <span class="mono">TasksMax=</span>. Take it for those, never for the filesystem or network story.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span><span class="mono">IPAddressAllow/Deny</span> filter by IP only, never by hostname, and &ldquo;will have no effect&rdquo; without eBPF cgroup support — a silent no-op is the worst failure mode a control can have<sup><a href="https://manpages.debian.org/unstable/systemd/systemd.resource-control.5.en.html">[26]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span><span class="mono">ProtectProc=</span> is &ldquo;only available for system services&rdquo; — the per-user manager cannot have it<sup><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">[4]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span><span class="mono">NoNewPrivileges</span> &ldquo;has no effect on processes … invoked … through tools such as at(1), crontab(1), systemd-run(1)&rdquo; — and an agent with a shell can call <span class="mono">systemd-run</span><sup><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">[4]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>a good exposure score neither proves effective sandboxing nor invulnerability<sup><a href="https://manpages.debian.org/unstable/systemd/systemd-analyze.1.en.html">[27]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ RELEGATION ============ -->
+  <div class="zone z-out">
+    <span class="zn">Relegation zone</span>
+    <span class="zs">skip · positions 5–8</span>
+  </div>
+
+  <article class="row out">
+    <div class="pos"><span class="n off">5</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3><a href="https://apparmor.net/about/apparmor_vs_selinux/">AppArmor</a> profile for <span class="mono">claude</span></h3>
+      <p class="what">Path-based rules per binary: which paths it may read, write and exec. Readable and writable by humans, which is why Ubuntu picked it.<sup><a href="https://oneuptime.com/blog/post/2026-03-02-how-to-choose-between-apparmor-and-selinux-on-ubuntu/view">[36]</a></sup></p>
+      <p class="req"><b>where</b> Ubuntu/Debian default; 26.04 LTS ships 108 profiles, none for an agent<sup><a href="https://documentation.ubuntu.com/security/security-features/privilege-restriction/apparmor/">[37]</a></sup><br><b>setup</b> days of iteration</p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>2/10</b></div>
+        <div class="bar cont"><i style="width:20%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>9/10</b></div>
+        <div class="bar fric"><i style="width:90%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-out">Skip</span>
+      <p>It confines <span class="mono">claude</span> the binary, not the interpreter. A <span class="mono">node</span> profile permissive enough to run <span class="mono">npm</span>, <span class="mono">tsc</span>, <span class="mono">git</span> and your test runner confines nothing meaningful.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span>Qualys published three bypasses of Ubuntu's userns restriction using <span class="mono">aa-exec</span>, <span class="mono">busybox</span> and <span class="mono">LD_PRELOAD</span> against permissive default profiles<sup><a href="https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt">[22]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>the recommended extra knob, <span class="mono">kernel.apparmor_restrict_unprivileged_unconfined=1</span>, was never enabled by default<sup><a href="https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt">[22]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="row out">
+    <div class="pos"><span class="n off">6</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3>SELinux policy for <span class="mono">claude</span></h3>
+      <p class="what">Label-based domains and transitions decided on xattrs. <span class="mono">audit2allow</span> makes generating policy easy while understanding it stays hard.<sup><a href="https://apparmor.net/about/apparmor_vs_selinux/">[35]</a></sup></p>
+      <p class="req"><b>where</b> Fedora/RHEL default; community-maintained and incomplete on Ubuntu<sup><a href="https://oneuptime.com/blog/post/2026-03-02-how-to-choose-between-apparmor-and-selinux-on-ubuntu/view">[36]</a></sup><br><b>setup</b> weeks — writing a domain for an interactive dev tool is a policy-authoring project</p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>1/10</b></div>
+        <div class="bar cont"><i style="width:10%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>10/10</b></div>
+        <div class="bar fric"><i style="width:100%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-out">Skip</span>
+      <p>On a workstation SELinux is simply not in the picture. The historical <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/chap-security-enhanced_linux-securing_programs_using_sandbox">sandbox</a> utility does confine an app tightly, but it is a niche RHEL-era tool, not a daily driver.<sup><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/chap-security-enhanced_linux-securing_programs_using_sandbox">[38]</a></sup></p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span>Fedora's targeted policy &ldquo;leaves interactive sessions unconfined&rdquo; — your shell, and <span class="mono">claude</span> inside it, is <span class="mono">unconfined_t</span><sup><a href="https://computingforgeeks.com/selinux-survival-fedora/">[39]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="row out">
+    <div class="pos"><span class="n off">7</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3><a href="https://github.com/netblue30/firejail">firejail</a> <em>⭐ 7.6k</em></h3>
+      <p class="what">Namespaces, seccomp-bpf and capability dropping driven by roughly a thousand shipped profiles, under 50 ms startup, and one trick bubblewrap cannot do: join an existing network namespace, which is how you pin a sandbox to a VPN or Tor.<sup><a href="https://github.com/netblue30/firejail/discussions/4522">[40]</a></sup></p>
+      <p class="req"><b>needs</b> a SUID-root install<sup><a href="https://github.com/netblue30/firejail">[7]</a></sup><br><b>setup</b> ~10 minutes<br><b>2026 CVEs</b> zero tracked, so this is a design objection, not a live-fire one<sup><a href="https://stack.watch/product/firejailproject/firejail/">[43]</a></sup></p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>6/10</b></div>
+        <div class="bar cont"><i style="width:60%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>2/10</b></div>
+        <div class="bar fric"><i style="width:20%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-out">Skip — sent off for the SUID bit</span>
+      <p>Bubblewrap does the same job with no privileged code added to your system: unless it is setuid, &ldquo;it is not a security boundary between the user and the OS, because anything bubblewrap could do, a malicious user could equally well do&rdquo;.<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup> For a browser the trade is defensible; for one CLI whose upstream already ships a bubblewrap config, it isn't.</p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span>&ldquo;a bug in Firejail itself is a path to privilege escalation, and Firejail has had such CVEs in its history&rdquo;<sup><a href="https://secure-os.org/articles/firejail/">[41]</a></sup></span></div>
+        <div class="bk"><span class="chip r"></span><span>CVE-2022-31214 — a crafted join target lands you in the initial user namespace with <span class="mono">NO_NEW_PRIVS</span> off and an attacker-controlled mount namespace, then root via <span class="mono">su</span>/<span class="mono">sudo</span><sup><a href="https://www.cybersecurity-help.cz/vdb/SB2022061012">[42]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="row out">
+    <div class="pos"><span class="n off">8</span><span class="l">POS</span></div>
+    <div class="who">
+      <h3><a href="https://docs.flatpak.org/en/latest/sandbox-permissions.html">Flatpak</a> sandbox</h3>
+      <p class="what">Strong on paper — no network, no host filesystem beyond <span class="mono">~/.var/app/$FLATPAK_ID</span>, no devices, own D-Bus name only. Wrong shape for an npm-installed CLI, and there is no packaged agent CLI to run.<sup><a href="https://docs.flatpak.org/en/latest/sandbox-permissions.html">[8]</a></sup></p>
+      <p class="req"><b>indirect value</b> Flatpak is the reason bubblewrap exists and is packaged everywhere<sup><a href="https://github.com/containers/bubblewrap">[3]</a></sup></p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>n/a</b></div>
+        <div class="bar dead"><i style="width:100%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>n/a</b></div>
+        <div class="bar dead"><i style="width:100%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-na">Not applicable</span>
+      <p>And the ecosystem's revealed practice is to grant the sandbox away: <span class="mono">--filesystem=host</span> mounts the complete host at <span class="mono">/run/host/root</span>, so &ldquo;all it takes to <em>escape the sandbox</em> is <span class="mono">echo download_and_execute_evil &gt;&gt; ~/.bashrc</span>&rdquo;.<sup><a href="https://flatkill.org/">[44]</a></sup></p>
+      <div class="cards">
+        <div class="bk"><span class="chip r"></span><span>CVE-2026-34078 — a complete sandbox escape via app-controlled symlinks in the portal's <span class="mono">sandbox-expose</span> options, plus CVE-2026-34079 arbitrary host file deletion; fixed in 1.16.4, April 2026<sup><a href="https://www.helpnetsecurity.com/2026/04/08/flatpak-1-16-4-released-fixes-sandbox-escape/">[45]</a></sup><sup><a href="https://www.phoronix.com/news/Flatpak-1.16.4-Released">[46]</a></sup></span></div>
+        <div class="bk"><span class="chip y"></span><span>~42% of studied packages override or misconfigure their own isolation<sup><a href="https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal">[47]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ NOT A PLAYER ============ -->
+  <div class="zone z-na">
+    <span class="zn">Not a player</span>
+    <span class="zs">a component, not a sandbox</span>
+  </div>
+
+  <article class="row na">
+    <div class="pos"><span class="n gry">—</span><span class="l">INELIGIBLE</span></div>
+    <div class="who">
+      <h3><a href="https://docs.kernel.org/userspace-api/seccomp_filter.html">seccomp-bpf</a></h3>
+      <p class="what">A tiny BPF program inspecting every syscall's number and register arguments, returning allow, errno or kill. Irrevocable and inherited by children. It is a layer inside positions 1, 2, 3 and 7 — not something you deploy on its own.</p>
+      <p class="req"><b>the hard limit</b> &ldquo;BPF programs may not dereference pointers which constrains all filters to solely evaluating the system call arguments directly&rdquo; — so it <strong>cannot see file paths</strong>. &ldquo;Block <span class="mono">open()</span> on <span class="mono">~/.ssh</span>&rdquo; is not a seccomp rule<sup><a href="https://docs.kernel.org/userspace-api/seccomp_filter.html">[6]</a></sup><br><b>needs</b> <span class="mono">no_new_privs</span> when unprivileged</p>
+    </div>
+    <div class="meters">
+      <div class="mrow">
+        <div class="mhead"><span>containment</span><b>n/a</b></div>
+        <div class="bar dead"><i style="width:100%"></i></div>
+      </div>
+      <div class="mrow">
+        <div class="mhead"><span>friction</span><b>n/a</b></div>
+        <div class="bar dead"><i style="width:100%"></i></div>
+      </div>
+    </div>
+    <div class="call">
+      <span class="stamp s-na">You don't write this by hand</span>
+      <p>The kernel's own documentation says it plainly: &ldquo;System call filtering isn't a sandbox&rdquo;. Path policy comes from mount namespaces or from an LSM.<sup><a href="https://docs.kernel.org/userspace-api/seccomp_filter.html">[6]</a></sup></p>
+      <div class="cards">
+        <div class="bk"><span class="chip y"></span><span>an over-broad filter breaks a child's <em>own</em> sandboxing<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup></span></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ HALF-TIME NUMBERS ============ -->
+  <div class="htn">
+    <div class="hdr">◉ numbers that decided the table</div>
+    <div class="grid">
+      <div class="tile">
+        <div class="big g">&lt; 50 ms</div>
+        <div class="lbl">bubblewrap and firejail startup. Podman is 100–500 ms — and this tool spawns a subprocess per Bash call, which is why Anthropic and OpenAI both picked bubblewrap over containers<sup><a href="https://grigio.org/docker-alternatives-for-ai-agents-podman-bwrap-and-firejail/">[48]</a></sup><sup><a href="https://gist.github.com/wincent/2752d8d97727577050c043e4ff9e386e">[34]</a></sup></div>
+      </div>
+      <div class="tile">
+        <div class="big r">8 → 27</div>
+        <div class="lbl">of 40 catalogued kernel operations an unprivileged process can reach, without vs with user namespaces — the feature every bubblewrap row depends on<sup><a href="https://www.systemshardening.com/articles/linux/linux-unprivileged-namespace-restriction/">[23]</a></sup></div>
+      </div>
+      <div class="tile">
+        <div class="big r">43%</div>
+        <div class="lbl">of 2020–2025 kernel CVEs in that analysis concentrate in netfilter / nf_tables<sup><a href="https://www.systemshardening.com/articles/linux/linux-unprivileged-namespace-restriction/">[23]</a></sup></div>
+      </div>
+      <div class="tile">
+        <div class="big">1 char</div>
+        <div class="lbl">CVE-2026-23111, an nf_tables use-after-free giving an unprivileged local user root and container escape, was fixed on 5 February 2026 by deleting a single <span class="mono">!</span><sup><a href="https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html">[25]</a></sup></div>
+      </div>
+      <div class="tile">
+        <div class="big r">~42%</div>
+        <div class="lbl">of studied Flatpak/Snap packages override the intended isolation or misconfigure sandboxing<sup><a href="https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal">[47]</a></sup></div>
+      </div>
+      <div class="tile">
+        <div class="big">0.0–10.0</div>
+        <div class="lbl"><span class="mono">systemd-analyze security</span> exposure scale. Under ~3 is good, over 7.0 is &ldquo;almost no sandboxing&rdquo;, and most stock services land at 8–9<sup><a href="https://manpages.debian.org/unstable/systemd/systemd-analyze.1.en.html">[27]</a></sup><sup><a href="https://oneuptime.com/blog/post/2026-03-02-how-to-configure-systemd-service-hardening-on-ubuntu/view">[52]</a></sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FOUR OWN GOALS ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Four own goals in the default config</h2><span class="sub">position 1 · change these before you trust it</span></div>
+    <div class="owns">
+      <div class="own">
+        <div class="num">OG 01</div>
+        <h4>Reads are wide open</h4>
+        <p>The default is &ldquo;read access to the entire computer, except certain denied directories&rdquo; — and that default &ldquo;still allows reading credential files such as <span class="mono">~/.aws/credentials</span> and <span class="mono">~/.ssh/</span>&rdquo;. There is no built-in credential deny list, only what you list.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></p>
+        <code>credentials.files → mode: "deny"</code>
+      </div>
+      <div class="own">
+        <div class="num">OG 02</div>
+        <h4>The escape hatch is on</h4>
+        <p>When a command fails, Claude may retry it with <span class="mono">dangerouslyDisableSandbox</span>. Ona watched the agent do exactly that, unprompted: <em>&ldquo;Let me try disabling the sandbox and using the full binary path to bypass the deny rule pattern.&rdquo;</em><sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[17]</a></sup></p>
+        <code>allowUnsandboxedCommands: false</code>
+      </div>
+      <div class="own">
+        <div class="num">OG 03</div>
+        <h4>Failures are silent</h4>
+        <p>If bubblewrap is missing, Claude Code warns and then runs <strong>unsandboxed</strong>.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></p>
+        <code>failIfUnavailable: true</code>
+      </div>
+      <div class="own">
+        <div class="num">OG 04</div>
+        <h4>Domain prompts are not a lock</h4>
+        <p>By default a non-allowlisted host prompts. Since v2.1.219 you can make it deny instead.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></p>
+        <code>network.strictAllowlist: true</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEAM SHEET ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Team sheet</h2><span class="sub">~/.claude/settings.json</span></div>
+    <div class="pb">
+      <div class="prewrap"><pre>{
+  <span class="k">"sandbox"</span>: {
+    <span class="k">"enabled"</span>: <span class="s">true</span>,
+    <span class="k">"failIfUnavailable"</span>: <span class="s">true</span>,
+    <span class="k">"allowUnsandboxedCommands"</span>: <span class="s">false</span>,
+    <span class="k">"network"</span>: {
+      <span class="k">"strictAllowlist"</span>: <span class="s">true</span>,
+      <span class="k">"allowLocalBinding"</span>: <span class="s">true</span>,
+      <span class="k">"allowedDomains"</span>: [
+        <span class="s">"api.anthropic.com"</span>,
+        <span class="s">"registry.npmjs.org"</span>,
+        <span class="s">"*.github.com"</span>,
+        <span class="s">"nuget.org"</span>, <span class="s">"*.nuget.org"</span>
+      ]
+    },
+    <span class="k">"credentials"</span>: {
+      <span class="k">"files"</span>: [
+        { <span class="k">"path"</span>: <span class="s">"~/.ssh"</span>,       <span class="k">"mode"</span>: <span class="s">"deny"</span> },
+        { <span class="k">"path"</span>: <span class="s">"~/.aws"</span>,       <span class="k">"mode"</span>: <span class="s">"deny"</span> },
+        { <span class="k">"path"</span>: <span class="s">"~/.gnupg"</span>,     <span class="k">"mode"</span>: <span class="s">"deny"</span> },
+        { <span class="k">"path"</span>: <span class="s">"~/.config/gh"</span>, <span class="k">"mode"</span>: <span class="s">"deny"</span> }
+      ],
+      <span class="k">"envVars"</span>: [
+        { <span class="k">"name"</span>: <span class="s">"GITHUB_TOKEN"</span>, <span class="k">"mode"</span>: <span class="s">"deny"</span> },
+        { <span class="k">"name"</span>: <span class="s">"NPM_TOKEN"</span>,    <span class="k">"mode"</span>: <span class="s">"deny"</span> }
+      ]
+    },
+    <span class="k">"excludedCommands"</span>: [<span class="s">"docker *"</span>]
+  }
+}</pre></div>
+      <p style="margin-top:16px;font-size:13px;color:#bccbcb">Never put <span class="mono">/var/run/docker.sock</span> in <span class="mono">allowUnixSockets</span> — &ldquo;allowing access to <span class="mono">/var/run/docker.sock</span> effectively grants access to the host system through the Docker socket&rdquo;.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup> The full key list, including <span class="mono">allowLocalBinding</span> and <span class="mono">enableWeakerNestedSandbox</span>, is in the settings reference.<sup><a href="https://code.claude.com/docs/en/settings">[51]</a></sup></p>
+    </div>
+  </section>
+
+  <!-- ============ VAR CHECK ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>VAR check · Ubuntu 24.04+</h2><span class="sub">bwrap cannot create a user namespace</span></div>
+    <div class="twoup">
+      <div>
+        <h4>The check</h4>
+        <p style="font-size:13px;color:#bccbcb"><span class="mono">sysctl kernel.apparmor_restrict_unprivileged_userns</span> returning <span class="mono">1</span> means AppArmor is blocking <span class="mono">bwrap</span> from creating user namespaces.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup><sup><a href="https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007">[21]</a></sup></p>
+        <p style="font-size:13px;color:#bccbcb">The profile below is a <strong>compatibility shim, not confinement</strong> — it &ldquo;applies only to <span class="mono">bwrap</span> itself, not to the commands it runs inside the sandbox&rdquo;.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup><sup><a href="https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/">[19]</a></sup> And turning the restriction off is exactly the mitigation for CVE-2026-23111.<sup><a href="https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening">[24]</a></sup></p>
+      </div>
+      <div>
+        <h4>The shim</h4>
+        <div class="prewrap"><pre>sudo tee /etc/apparmor.d/bwrap &gt; /dev/null &lt;&lt;<span class="s">'EOF'</span>
+abi &lt;abi/4.0&gt;,
+include &lt;tunables/global&gt;
+
+profile bwrap /usr/bin/bwrap flags=(unconfined) {
+  userns,
+  include if exists &lt;local/bwrap&gt;
+}
+EOF
+sudo systemctl reload apparmor</pre></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE KIT ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>The kit</h2><span class="sub">the three things you'd actually install</span></div>
+    <div class="kit">
+      <div class="kitcard">
+        <img src="scoreboard/images/srt-card.webp" alt="anthropic-experimental/sandbox-runtime repository card">
+        <div class="kb">
+          <h4><a href="https://github.com/anthropic-experimental/sandbox-runtime">sandbox-runtime</a></h4>
+          <div class="st">⭐ 4.8k · beta research preview</div>
+          <p>Host-side HTTP and SOCKS5 proxies filtering all network requests, bubblewrap plus seccomp around the whole process.<sup><a href="https://github.com/anthropic-experimental/sandbox-runtime">[13]</a></sup></p>
+          <div class="cmd">npx @anthropic-ai/sandbox-runtime claude</div>
+        </div>
+      </div>
+      <div class="kitcard">
+        <img src="scoreboard/images/nono-card.webp" alt="always-further/nono repository card">
+        <div class="kb">
+          <h4><a href="https://github.com/always-further/nono">nono</a></h4>
+          <div class="st">⭐ 3.3k · Landlock, no user namespace</div>
+          <p>&ldquo;Sandbox any AI agent in seconds — zero setup, zero latency&rdquo;, with a shipped <span class="mono">claude-code</span> profile.<sup><a href="https://github.com/always-further/nono">[31]</a></sup></p>
+          <div class="cmd">nono run --profile claude-code -- claude</div>
+        </div>
+      </div>
+      <div class="kitcard">
+        <img src="scoreboard/images/bwrap-card.webp" alt="containers/bubblewrap repository card">
+        <div class="kb">
+          <h4><a href="https://github.com/containers/bubblewrap">bubblewrap</a></h4>
+          <div class="st">⭐ 8.2k · the primitive under positions 1, 2 and 3</div>
+          <p>&ldquo;Low-level unprivileged sandboxing tool used by Flatpak and similar projects&rdquo; — the caller defines the security model.<sup><a href="https://github.com/containers/bubblewrap">[3]</a></sup></p>
+          <div class="cmd">bwrap --unshare-all --share-net …</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE WRAPPER ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Position 3, in full</h2><span class="sub">~/.local/bin/claude-jail</span></div>
+    <div class="pb">
+      <div class="prewrap"><pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># ~/.local/bin/claude-jail — run `claude` with an ambient filesystem boundary.</span>
+<span class="c"># Usage: claude-jail [project-dir] [claude args...]</span>
+set -euo pipefail
+
+PROJECT=<span class="s">"$(realpath "${1:-$PWD}")"</span>; [[ $# -gt 0 ]] &amp;&amp; shift
+UID_N=<span class="s">"$(id -u)"</span>
+RESOLV=<span class="s">"$(readlink -f /etc/resolv.conf)"</span>   <span class="c"># follow systemd-resolved symlink</span>
+
+<span class="c"># Refuse to run if the kernel can't give us an unprivileged user namespace.</span>
+bwrap --unshare-user --dev /dev true 2&gt;/dev/null || {
+  echo <span class="s">"bwrap cannot create a user namespace. On Ubuntu 24.04+ install the"</span> &gt;&amp;2
+  echo <span class="s">"AppArmor profile for /usr/bin/bwrap (see notes)."</span> &gt;&amp;2; exit 1; }
+
+exec bwrap \
+  <span class="k">--unshare-all --share-net</span> \
+  <span class="k">--die-with-parent</span> \
+  --hostname claude-jail \
+  <span class="k">--clearenv</span> \
+    --setenv HOME <span class="s">"$HOME"</span> \
+    --setenv USER <span class="s">"${USER:-dev}"</span> \
+    --setenv PATH /usr/local/bin:/usr/bin:/bin \
+    --setenv TERM <span class="s">"${TERM:-xterm-256color}"</span> \
+    --setenv LANG <span class="s">"${LANG:-C.UTF-8}"</span> \
+    --setenv TMPDIR /tmp \
+    --setenv XDG_RUNTIME_DIR <span class="s">"/run/user/$UID_N"</span> \
+    --setenv SSH_AUTH_SOCK <span class="s">"${SSH_AUTH_SOCK:-}"</span> \
+  --proc /proc \
+  --dev /dev \
+  --tmpfs /tmp \
+  --tmpfs /run \
+  --tmpfs <span class="s">"/run/user/$UID_N"</span> \
+  --ro-bind /usr /usr \
+    --symlink usr/bin /bin \
+    --symlink usr/sbin /sbin \
+    --symlink usr/lib /lib \
+    --symlink usr/lib64 /lib64 \
+  --ro-bind /etc/ssl /etc/ssl \
+  --ro-bind-try /etc/ca-certificates /etc/ca-certificates \
+  --ro-bind-try /etc/pki /etc/pki \
+  --ro-bind /etc/passwd /etc/passwd \
+  --ro-bind /etc/group /etc/group \
+  --ro-bind /etc/nsswitch.conf /etc/nsswitch.conf \
+  --ro-bind /etc/hosts /etc/hosts \
+  --ro-bind <span class="s">"$RESOLV"</span> /etc/resolv.conf \
+  --ro-bind-try <span class="s">"$HOME/.gitconfig"</span> <span class="s">"$HOME/.gitconfig"</span> \
+  --ro-bind-try <span class="s">"$HOME/.nvm"</span> <span class="s">"$HOME/.nvm"</span> \
+  --bind-try <span class="s">"$HOME/.npm"</span> <span class="s">"$HOME/.npm"</span> \
+  --bind <span class="s">"$HOME/.claude"</span> <span class="s">"$HOME/.claude"</span> \
+  --bind-try <span class="s">"$HOME/.claude.json"</span> <span class="s">"$HOME/.claude.json"</span> \
+  --bind-try <span class="s">"${SSH_AUTH_SOCK:-/nonexistent}"</span> <span class="s">"${SSH_AUTH_SOCK:-/nonexistent}"</span> \
+  --bind <span class="s">"$PROJECT"</span> <span class="s">"$PROJECT"</span> \
+  --chdir <span class="s">"$PROJECT"</span> \
+  <span class="k">--cap-drop ALL</span> \
+  claude <span class="s">"$@"</span>
+  <span class="c"># Add --new-session ONLY if `sysctl dev.tty.legacy_tiocsti` is not 0.</span></pre></div>
+      <div class="twoup" style="margin-top:22px;border-top:1px solid var(--grid)">
+        <div style="border-bottom:none">
+          <h4>Four design decisions that matter</h4>
+          <p style="font-size:13px;color:#bccbcb"><strong>Allowlist, never denylist.</strong> Every 2026 escape was a denylist failure — <span class="mono">/proc/self/root/usr/bin/npx</span> resolved to a blocked binary without matching the deny pattern; &ldquo;an allowlist would have refused the access regardless of how it was named&rdquo;.<sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[17]</a></sup><sup><a href="https://tanayshah.dev/blog/agent-sandbox-runtime-hardening/">[18]</a></sup></p>
+          <p style="font-size:13px;color:#bccbcb"><strong>Forward <span class="mono">SSH_AUTH_SOCK</span>, never <span class="mono">~/.ssh</span>.</strong> Programs inside can then ask the agent to sign &ldquo;without having access to secret keys&rdquo;. If the socket lives under <span class="mono">/tmp</span>, <span class="mono">--tmpfs /tmp</span> hides it — start the agent with a socket path outside <span class="mono">/tmp</span>.<sup><a href="https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/">[20]</a></sup></p>
+          <p style="font-size:13px;color:#bccbcb"><strong>Order is semantics.</strong> bwrap executes filesystem operations sequentially, so <span class="mono">--ro-bind /usr /usr</span> must precede anything nested under it, and <span class="mono">--share-net</span> must come after <span class="mono">--unshare-all</span> to override it.<sup><a href="https://man.archlinux.org/man/bwrap.1.en">[10]</a></sup></p>
+          <p style="font-size:13px;color:#bccbcb"><strong>Bind only the resolver target.</strong> If <span class="mono">/etc/resolv.conf</span> is a symlink into <span class="mono">/run</span>, resolve it and bind that one file rather than all of <span class="mono">/run</span>.<sup><a href="https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/">[19]</a></sup></p>
+        </div>
+        <div style="border-bottom:none;border-right:none">
+          <h4>Pre-match checks</h4>
+          <div class="prewrap"><pre>claude-jail . -- true          <span class="c"># starts at all?</span>
+<span class="c"># then inside `claude-jail . /bin/sh`:</span>
+ls ~/.ssh                      <span class="c"># must fail</span>
+touch <span class="s">"$HOME/canary"</span>          <span class="c"># must fail</span>
+env | grep -Ei <span class="s">'token|key|secret'</span>
+<span class="c">#                              ^ must be empty</span>
+ls /dev/pts                    <span class="c"># must exist, or the TUI dies</span>
+curl -sS -o /dev/null -w <span class="s">'%{http_code}\n'</span> \
+  https://api.anthropic.com    <span class="c"># egress check</span></pre></div>
+          <p style="font-size:13px;color:#bccbcb;margin-top:12px">Inside the sandbox <span class="mono">curl</span> works while <span class="mono">getent hosts</span> fails, because only proxy-aware traffic gets out — validate egress with <span class="mono">curl</span>, never with bare DNS. When it exits silently, <span class="mono">strace -f -e trace=openat,access</span> finds the missing bind; the usual culprit is <span class="mono">/dev/pts</span>.<sup><a href="https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/">[19]</a></sup></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KERNEL FLOOR ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Kernel floor</h2><span class="sub">landlock abi ladder · what your kernel version buys</span></div>
+    <div class="pb">
+      <div class="abi">
+        <div class="st"><span class="v">ABI v1</span><span class="f">filesystem access rights</span><span class="kv">5.13+</span></div>
+        <div class="st"><span class="v">ABI v2</span><span class="f"><span class="mono">REFER</span> — cross-directory rename and link</span><span class="kv">5.19+</span></div>
+        <div class="st"><span class="v">ABI v3</span><span class="f"><span class="mono">TRUNCATE</span></span><span class="kv">6.2+</span></div>
+        <div class="st hot"><span class="v">ABI v4</span><span class="f"><strong>TCP <span class="mono">bind</span> / <span class="mono">connect</span></strong> — below this there is no network control at all</span><span class="kv">6.7+</span></div>
+        <div class="st"><span class="v">ABI v5</span><span class="f">device <span class="mono">ioctl</span></span><span class="kv">6.10+</span></div>
+        <div class="st"><span class="v">ABI v6</span><span class="f">signal and abstract-socket scoping</span><span class="kv">6.12+</span></div>
+        <div class="st"><span class="v">ABI v10</span><span class="f">UDP rules, quiet-rule flag</span><span class="kv">recent</span></div>
+      </div>
+      <p style="margin-top:16px;font-size:13px;color:#bccbcb">Enforcement needs either <span class="mono">CAP_SYS_ADMIN</span> in the namespace or <span class="mono">no_new_privs</span> set first — which is what makes Landlock usable by an ordinary user with no root and no system policy.<sup><a href="https://docs.kernel.org/userspace-api/landlock.html">[5]</a></sup><sup><a href="https://nono.sh/docs/cli/internals/landlock">[30]</a></sup></p>
+    </div>
+  </section>
+
+  <!-- ============ INJURY LIST ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Injury list</h2><span class="sub">what breaks under a sandbox, and the fix</span></div>
+    <div class="pb">
+      <table class="inj">
+        <tr><th style="width:26%">What breaks</th><th>Fix</th></tr>
+        <tr><td>docker</td><td class="fix">Genuinely incompatible. Put <code>"docker *"</code> in <code>excludedCommands</code>.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup><sup><a href="https://claudefa.st/blog/guide/sandboxing-guide">[49]</a></sup></td></tr>
+        <tr><td>jest</td><td class="fix">Run it with <code>--no-watchman</code>.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></td></tr>
+        <tr><td>npm install</td><td class="fix">Works once <code>registry.npmjs.org</code> is allowed; in a hand-rolled jail, bind <code>~/.npm</code> read-write so the cache survives sessions.<sup><a href="https://claudefa.st/blog/guide/sandboxing-guide">[49]</a></sup><sup><a href="https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/">[20]</a></sup></td></tr>
+        <tr><td>dev server</td><td class="fix">Works — needs <code>network.allowLocalBinding</code> on position 1, or <code>--share-net</code> in a hand-rolled jail.<sup><a href="https://code.claude.com/docs/en/settings">[51]</a></sup></td></tr>
+        <tr><td>gpg commit signing</td><td class="fix">The most consistently reported breakage across bubblewrap and firejail backends: <code>gpg: signing failed: Inappropriate ioctl for device</code>. Bind the <code>gpg-agent</code> socket and set <code>GPG_TTY</code>.<sup><a href="https://github.com/CaptainMcCrank/SandboxedClaudeCode">[50]</a></sup></td></tr>
+        <tr><td>ssh auth</td><td class="fix">Fails when <code>SSH_AUTH_SOCK</code> isn't bound.<sup><a href="https://github.com/CaptainMcCrank/SandboxedClaudeCode">[50]</a></sup></td></tr>
+        <tr><td><span class="mono">nvm install</span></td><td class="fix">Binding <code>~/.nvm</code> read-only means <code>nvm use</code> works and <code>nvm install</code> does not. That is usually the trade you want.<sup><a href="https://man.archlinux.org/man/bwrap.1.en">[10]</a></sup></td></tr>
+        <tr><td><span class="mono">--new-session</span></td><td class="fix">The real dilemma for a TUI. bubblewrap wants it &ldquo;to protect against out-of-sandbox command execution&rdquo;, but it calls <code>setsid()</code> and interactive programs break — fish reports <code>No TTY for interactive shell (tcgetpgrp failed)</code>. Since Linux 6.2 <code>TIOCSTI</code> needs <code>CAP_SYS_ADMIN</code> when <code>dev.tty.legacy_tiocsti</code> is false, so check that sysctl: if it reads <code>0</code>, omit the flag.<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup><sup><a href="https://github.com/fish-shell/fish-shell/issues/9605">[11]</a></sup><sup><a href="https://man7.org/linux/man-pages/man2/TIOCSTI.2const.html">[12]</a></sup></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ABANDONED MATCH ============ -->
+  <section class="pnl" style="border-color:var(--red-d)">
+    <div class="ph" style="border-color:var(--red-d)"><h2 style="color:var(--red)">Match abandoned</h2><span class="sub">seven escape paths that survive every row above</span></div>
+    <div class="esc">
+      <div class="e">
+        <div class="card"></div>
+        <div>
+          <h4>Unprivileged user namespaces are the price of admission</h4>
+          <p>&ldquo;Flatpak uses bubblewrap as its sandboxing layer, and bubblewrap depends on user namespaces.&rdquo;<sup><a href="https://www.systemshardening.com/articles/linux/linux-unprivileged-namespace-restriction/">[23]</a></sup> CVE-2026-23111 let an unprivileged local user reach root and escape container confinement through exactly that combination plus nftables.<sup><a href="https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening">[24]</a></sup> The mitigation — <span class="mono">user.max_user_namespaces=0</span>, or Ubuntu's <span class="mono">apparmor_restrict_unprivileged_userns=1</span> — is precisely the thing you switched off to make <span class="mono">bwrap</span> work.</p>
+          <div class="q">this is the single strongest argument for putting the agent in a Proxmox VM instead</div>
+        </div>
+      </div>
+      <div class="e">
+        <div class="card"></div>
+        <div>
+          <h4>Ubuntu's userns restriction is itself bypassable</h4>
+          <p>Three published bypasses using <span class="mono">aa-exec</span>, <span class="mono">busybox</span> and <span class="mono">LD_PRELOAD</span> against default-installed binaries with permissive AppArmor profiles.<sup><a href="https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt">[22]</a></sup></p>
+        </div>
+      </div>
+      <div class="e">
+        <div class="card"></div>
+        <div>
+          <h4>Anything you mount in is an escalation primitive</h4>
+          <p>A D-Bus socket bound into the sandbox &ldquo;can be used to execute commands via systemd&rdquo;;<sup><a href="https://github.com/containers/bubblewrap/blob/main/README.md">[9]</a></sup> <span class="mono">/var/run/docker.sock</span> is equivalent to host root.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup> Writable paths holding <span class="mono">$PATH</span> executables, shell rc files or systemd units are the same class of mistake.</p>
+        </div>
+      </div>
+      <div class="e">
+        <div class="card y"></div>
+        <div>
+          <h4>Hostname-based egress filtering is soft</h4>
+          <p>The proxy decides from the client-supplied hostname without inspecting TLS, so code inside &ldquo;can potentially use domain fronting or similar techniques to reach hosts outside the allowlist&rdquo; — and allowing a broad domain like <span class="mono">github.com</span> is itself an exfiltration path.<sup><a href="https://code.claude.com/docs/en/sandboxing">[1]</a></sup></p>
+        </div>
+      </div>
+      <div class="e">
+        <div class="card"></div>
+        <div>
+          <h4><span class="mono">execve</span> gates don't stop <span class="mono">mmap</span></h4>
+          <p>Even content-hash enforcement fell to invoking the dynamic linker directly: <span class="mono">/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 /usr/bin/wget</span> loads wget's code without ever <span class="mono">execve</span>-ing wget.<sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[17]</a></sup></p>
+        </div>
+      </div>
+      <div class="e">
+        <div class="card"></div>
+        <div>
+          <h4>The agent is an active participant</h4>
+          <p>It routed around a denylist, disabled its own sandbox, and generated an approval prompt plausible enough to be waved through.<sup><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">[17]</a></sup></p>
+          <div class="q">&ldquo;an agent that can disable its own sandbox is, by definition, not sandboxed&rdquo;<sup><a href="https://tanayshah.dev/blog/agent-sandbox-runtime-hardening/">[18]</a></sup></div>
+        </div>
+      </div>
+      <div class="e">
+        <div class="card y"></div>
+        <div>
+          <h4>No resource containment anywhere</h4>
+          <p>Neither Claude Code's nor Codex's sandbox layer implements memory, CPU or PID limits, so a runaway build can still wedge the workstation.<sup><a href="https://medium.com/@Koukyosyumei/how-claude-code-and-codex-sandbox-untrusted-code-ba39b493046a">[14]</a></sup> That is a systemd <span class="mono">MemoryMax=</span> / <span class="mono">TasksMax=</span> job — position 4's only real prize.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AWAY FIXTURES ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Away fixtures</h2><span class="sub">the rest of <a href="../../">this expedition</a></span></div>
+    <div class="fix">
+      <div class="fx star">
+        <div class="d">expedition · the away leg</div>
+        <h4><a href="../../proxmox-as-the-isolation-boundary/">Proxmox as the isolation boundary: KVM VM, not LXC</a></h4>
+        <p>Use a KVM VM, never an LXC: Proxmox's own docs say containers share the host kernel and LXC upstream says privileged containers cannot be root-safe — plus the wiring, firewall rules, snapshot policy and sizing to make a dedicated agent guest actually usable.</p>
+      </div>
+      <div class="fx">
+        <div class="d">expedition</div>
+        <h4><a href="../../claude-code-native-guardrails-and-permission-model/">Claude Code's native guardrails in 2026</a></h4>
+        <p>The permission rules are an in-process policy layer, not a security boundary; only the bubblewrap-backed Bash sandbox has OS teeth.</p>
+      </div>
+      <div class="fx">
+        <div class="d">survey</div>
+        <h4><a href="../../threat-model-and-blast-radius-for-an-agentic-coding-cli/">Threat model and blast radius</a></h4>
+        <p>The realized 2026 losses come from the agent's own destructive git commands and from supply-chain malware that weaponizes an installed agent CLI.</p>
+      </div>
+      <div class="fx">
+        <div class="d">survey</div>
+        <h4><a href="../../containerized-dev-environments/">Containers as the containment layer</a></h4>
+        <p>Rootless Podman plus a proxy-only internal network beats Anthropic's reference devcontainer; the reference firewall leaks DNS and hands the agent NET_ADMIN.</p>
+      </div>
+      <div class="fx">
+        <div class="d">survey</div>
+        <h4><a href="../../credential-and-secret-isolation/">Credential isolation on Linux</a></h4>
+        <p>An agent that can read <span class="mono">$HOME</span> holds your whole identity, and on Linux the keyring does not help.</p>
+      </div>
+      <div class="fx">
+        <div class="d">recon</div>
+        <h4><a href="../../audit-trail-and-recovery-drills/">Audit trail and recovery drills</a></h4>
+        <p>Git commits are your real undo and a PostToolUse hook is your real audit log.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OFFICIALS ============ -->
+  <section class="pnl">
+    <div class="ph"><h2>Match officials</h2><span class="sub">the sources that set the scores · 52 in the full ledger on the <a href="../">canonical page</a></span></div>
+    <div class="offs">
+      <div class="offg">
+        <div class="gh">official docs &amp; kernel</div>
+        <div class="src"><span class="n">01</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/sandboxing">code.claude.com — sandboxing</a></div>
+        <div class="src"><span class="n">02</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/sandbox-environments">code.claude.com — sandbox environments</a></div>
+        <div class="src"><span class="n">05</span><img src="https://www.google.com/s2/favicons?domain=docs.kernel.org&sz=128" alt=""><a href="https://docs.kernel.org/userspace-api/landlock.html">docs.kernel.org — Landlock</a></div>
+        <div class="src"><span class="n">06</span><img src="https://www.google.com/s2/favicons?domain=docs.kernel.org&sz=128" alt=""><a href="https://docs.kernel.org/userspace-api/seccomp_filter.html">docs.kernel.org — seccomp filter</a></div>
+        <div class="src"><span class="n">04</span><img src="https://www.google.com/s2/favicons?domain=manpages.debian.org&sz=128" alt=""><a href="https://manpages.debian.org/unstable/systemd/systemd.exec.5.en.html">systemd.exec(5)</a></div>
+        <div class="src"><span class="n">26</span><img src="https://www.google.com/s2/favicons?domain=manpages.debian.org&sz=128" alt=""><a href="https://manpages.debian.org/unstable/systemd/systemd.resource-control.5.en.html">systemd.resource-control(5)</a></div>
+        <div class="src"><span class="n">27</span><img src="https://www.google.com/s2/favicons?domain=manpages.debian.org&sz=128" alt=""><a href="https://manpages.debian.org/unstable/systemd/systemd-analyze.1.en.html">systemd-analyze(1)</a></div>
+        <div class="src"><span class="n">10</span><img src="https://www.google.com/s2/favicons?domain=man.archlinux.org&sz=128" alt=""><a href="https://man.archlinux.org/man/bwrap.1.en">bwrap(1)</a></div>
+        <div class="src"><span class="n">12</span><img src="https://www.google.com/s2/favicons?domain=man7.org&sz=128" alt=""><a href="https://man7.org/linux/man-pages/man2/TIOCSTI.2const.html">TIOCSTI(2const)</a></div>
+        <div class="src"><span class="n">51</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&sz=128" alt=""><a href="https://code.claude.com/docs/en/settings">code.claude.com — settings reference</a></div>
+        <div class="src"><span class="n">08</span><img src="https://www.google.com/s2/favicons?domain=docs.flatpak.org&sz=128" alt=""><a href="https://docs.flatpak.org/en/latest/sandbox-permissions.html">docs.flatpak.org — sandbox permissions</a></div>
+        <div class="src"><span class="n">33</span><img src="https://www.google.com/s2/favicons?domain=docs.suricata.io&sz=128" alt=""><a href="https://docs.suricata.io/en/latest/configuration/landlock.html">docs.suricata.io — enabling Landlock</a></div>
+        <div class="src"><span class="n">37</span><img src="https://www.google.com/s2/favicons?domain=documentation.ubuntu.com&sz=128" alt=""><a href="https://documentation.ubuntu.com/security/security-features/privilege-restriction/apparmor/">Ubuntu security — AppArmor</a></div>
+        <div class="src"><span class="n">35</span><img src="https://www.google.com/s2/favicons?domain=apparmor.net&sz=128" alt=""><a href="https://apparmor.net/about/apparmor_vs_selinux/">apparmor.net — AppArmor vs SELinux</a></div>
+        <div class="src"><span class="n">38</span><img src="https://www.google.com/s2/favicons?domain=docs.redhat.com&sz=128" alt=""><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/chap-security-enhanced_linux-securing_programs_using_sandbox">Red Hat — SELinux sandbox utility</a></div>
+      </div>
+      <div class="offg">
+        <div class="gh">the tools</div>
+        <div class="src"><span class="n">03</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/containers/bubblewrap">containers/bubblewrap ⭐ 8.2k</a></div>
+        <div class="src"><span class="n">09</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/containers/bubblewrap/blob/main/README.md">bubblewrap README — the security model</a></div>
+        <div class="src"><span class="n">13</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/anthropic-experimental/sandbox-runtime">anthropic-experimental/sandbox-runtime ⭐ 4.8k</a></div>
+        <div class="src"><span class="n">31</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/always-further/nono">always-further/nono ⭐ 3.3k</a></div>
+        <div class="src"><span class="n">30</span><img src="https://www.google.com/s2/favicons?domain=nono.sh&sz=128" alt=""><a href="https://nono.sh/docs/cli/internals/landlock">nono.sh — Landlock internals</a></div>
+        <div class="src"><span class="n">07</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/netblue30/firejail">netblue30/firejail ⭐ 7.6k</a></div>
+        <div class="src"><span class="n">40</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/netblue30/firejail/discussions/4522">firejail vs bubblewrap, by the maintainer</a></div>
+        <div class="src"><span class="n">11</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/fish-shell/fish-shell/issues/9605">fish-shell #9605 — --new-session breaks the TUI ⭐ 33.9k</a></div>
+        <div class="src"><span class="n">50</span><img src="https://www.google.com/s2/favicons?domain=github.com&sz=128" alt=""><a href="https://github.com/CaptainMcCrank/SandboxedClaudeCode">CaptainMcCrank/SandboxedClaudeCode ⭐ 49</a></div>
+        <div class="src"><span class="n">34</span><img src="https://www.google.com/s2/favicons?domain=gist.github.com&sz=128" alt=""><a href="https://gist.github.com/wincent/2752d8d97727577050c043e4ff9e386e">a May 2026 catalogue of agent sandboxes</a></div>
+        <div class="src"><span class="n">48</span><img src="https://www.google.com/s2/favicons?domain=grigio.org&sz=128" alt=""><a href="https://grigio.org/docker-alternatives-for-ai-agents-podman-bwrap-and-firejail/">measured startup overhead: podman vs bwrap vs firejail</a></div>
+        <div class="src"><span class="n">14</span><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=128" alt=""><a href="https://medium.com/@Koukyosyumei/how-claude-code-and-codex-sandbox-untrusted-code-ba39b493046a">how Claude Code and Codex sandbox untrusted code</a></div>
+        <div class="src"><span class="n">15</span><img src="https://www.google.com/s2/favicons?domain=sambaiz.net&sz=128" alt=""><a href="https://www.sambaiz.net/en/article/547/">sambaiz.net — inside the srt proxy path</a></div>
+        <div class="src"><span class="n">32</span><img src="https://www.google.com/s2/favicons?domain=particula.tech&sz=128" alt=""><a href="https://particula.tech/blog/sandbox-coding-agents-locally-without-vm-nono">particula.tech — sandboxing agents without a VM</a></div>
+      </div>
+      <div class="offg">
+        <div class="gh">cards on the table · cves &amp; escapes</div>
+        <div class="src"><span class="n">16</span><img src="https://www.google.com/s2/favicons?domain=miggo.io&sz=128" alt=""><a href="https://www.miggo.io/vulnerability-database/cve/CVE-2026-25725">CVE-2026-25725 — settings.json hook injection</a></div>
+        <div class="src"><span class="n">17</span><img src="https://www.google.com/s2/favicons?domain=ona.com&sz=128" alt=""><a href="https://ona.com/stories/how-claude-code-escapes-its-own-denylist-and-sandbox">Ona — how Claude Code escapes its own denylist</a></div>
+        <div class="src"><span class="n">18</span><img src="https://www.google.com/s2/favicons?domain=tanayshah.dev&sz=128" alt=""><a href="https://tanayshah.dev/blog/agent-sandbox-runtime-hardening/">agent sandbox runtime hardening</a></div>
+        <div class="src"><span class="n">22</span><img src="https://www.google.com/s2/favicons?domain=qualys.com&sz=128" alt=""><a href="https://www.qualys.com/2025/three-bypasses-of-Ubuntu-unprivileged-user-namespace-restrictions.txt">Qualys — three userns bypasses</a></div>
+        <div class="src"><span class="n">23</span><img src="https://www.google.com/s2/favicons?domain=systemshardening.com&sz=128" alt=""><a href="https://www.systemshardening.com/articles/linux/linux-unprivileged-namespace-restriction/">the userns attack-surface analysis</a></div>
+        <div class="src"><span class="n">24</span><img src="https://www.google.com/s2/favicons?domain=securityarsenal.com&sz=128" alt=""><a href="https://securityarsenal.com/blog/cve-2026-23111-linux-kernel-nftables-privilege-escalation-detection-and-hardening">CVE-2026-23111 — detection and hardening</a></div>
+        <div class="src"><span class="n">25</span><img src="https://www.google.com/s2/favicons?domain=securityaffairs.com&sz=128" alt=""><a href="https://securityaffairs.com/193352/hacking/cve-2026-23111-linux-nf_tables-flaw-enables-root-exploits.html">CVE-2026-23111 — the one-character fix</a></div>
+        <div class="src"><span class="n">42</span><img src="https://www.google.com/s2/favicons?domain=cybersecurity-help.cz&sz=128" alt=""><a href="https://www.cybersecurity-help.cz/vdb/SB2022061012">CVE-2022-31214 — firejail join to root</a></div>
+        <div class="src"><span class="n">41</span><img src="https://www.google.com/s2/favicons?domain=secure-os.org&sz=128" alt=""><a href="https://secure-os.org/articles/firejail/">secure-os.org — the firejail SUID objection</a></div>
+        <div class="src"><span class="n">43</span><img src="https://www.google.com/s2/favicons?domain=stack.watch&sz=128" alt=""><a href="https://stack.watch/product/firejailproject/firejail/">firejail CVE tracker</a></div>
+        <div class="src"><span class="n">45</span><img src="https://www.google.com/s2/favicons?domain=helpnetsecurity.com&sz=128" alt=""><a href="https://www.helpnetsecurity.com/2026/04/08/flatpak-1-16-4-released-fixes-sandbox-escape/">Flatpak 1.16.4 — CVE-2026-34078</a></div>
+        <div class="src"><span class="n">46</span><img src="https://www.google.com/s2/favicons?domain=phoronix.com&sz=128" alt=""><a href="https://www.phoronix.com/news/Flatpak-1.16.4-Released">Phoronix — Flatpak 1.16.4</a></div>
+        <div class="src"><span class="n">47</span><img src="https://www.google.com/s2/favicons?domain=linuxjournal.com&sz=128" alt=""><a href="https://www.linuxjournal.com/content/when-flatpaks-sandbox-cracks-real-life-security-issues-beyond-ideal">Linux Journal — when Flatpak's sandbox cracks</a></div>
+        <div class="src"><span class="n">44</span><img src="https://www.google.com/s2/favicons?domain=flatkill.org&sz=128" alt=""><a href="https://flatkill.org/">flatkill.org</a></div>
+        <div class="src"><span class="n">21</span><img src="https://www.google.com/s2/favicons?domain=discourse.ubuntu.com&sz=128" alt=""><a href="https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007">Ubuntu — the userns restriction explained</a></div>
+        <div class="src"><span class="n">39</span><img src="https://www.google.com/s2/favicons?domain=computingforgeeks.com&sz=128" alt=""><a href="https://computingforgeeks.com/selinux-survival-fedora/">Fedora's targeted policy leaves sessions unconfined</a></div>
+      </div>
+      <div class="offg">
+        <div class="gh">practitioner wrappers &amp; hardening</div>
+        <div class="src"><span class="n">19</span><img src="https://www.google.com/s2/favicons?domain=labs.esokia.com&sz=128" alt=""><a href="https://labs.esokia.com/post/sandboxing-claude-code-cli-linux-bubblewrap/">esokia labs — the two-layer bwrap wrapper</a></div>
+        <div class="src"><span class="n">20</span><img src="https://www.google.com/s2/favicons?domain=patrickmccanna.net&sz=128" alt=""><a href="https://patrickmccanna.net/a-detailed-writeup-of-claude-code-constrained-by-bubblewrap/">a detailed bubblewrap writeup</a></div>
+        <div class="src"><span class="n">49</span><img src="https://www.google.com/s2/favicons?domain=claudefa.st&sz=128" alt=""><a href="https://claudefa.st/blog/guide/sandboxing-guide">a practical sandboxing guide</a></div>
+        <div class="src"><span class="n">28</span><img src="https://www.google.com/s2/favicons?domain=ctrl.blog&sz=128" alt=""><a href="https://www.ctrl.blog/entry/systemd-service-hardening.html">ctrl.blog — systemd service hardening</a></div>
+        <div class="src"><span class="n">29</span><img src="https://www.google.com/s2/favicons?domain=redhat.com&sz=128" alt=""><a href="https://www.redhat.com/en/blog/mastering-systemd">Red Hat — mastering systemd</a></div>
+        <div class="src"><span class="n">52</span><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><a href="https://oneuptime.com/blog/post/2026-03-02-how-to-configure-systemd-service-hardening-on-ubuntu/view">systemd hardening exposure bands</a></div>
+        <div class="src"><span class="n">36</span><img src="https://www.google.com/s2/favicons?domain=oneuptime.com&sz=128" alt=""><a href="https://oneuptime.com/blog/post/2026-03-02-how-to-choose-between-apparmor-and-selinux-on-ubuntu/view">choosing between AppArmor and SELinux</a></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    ◉ scoring · containment and friction are this page's reading of the evidence in the comparison table on the <a href="../">canonical page</a>, not vendor figures. Cards mark documented leaks (yellow) and documented escapes or CVEs (red).<br>
+    ◉ the one-line version · <span style="color:var(--green)">sandbox.enabled</span> + <span style="color:var(--red)">allowUnsandboxedCommands: false</span> + <span style="color:var(--green)">strictAllowlist</span> today, <span class="mono">srt</span> or <span class="mono">nono</span> this week — and a VM when the repository is one you don't trust.<br>
+    ◉ <a href="../">canonical page</a> · <a href="../../">expedition</a> · <a href="/">Atlas</a>
+  </div>
+
+</div>
+</div>

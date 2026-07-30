@@ -1,0 +1,1141 @@
+---
+layout: view
+view_name: "Dossier"
+view_of: ../
+title: "Threat model and blast radius: what actually goes wrong running an agentic coding CLI on your workstation — Dossier"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+.dossier {
+  --paper: #e4dccb;
+  --paper-hi: #f2ece0;
+  --paper-lo: #d5cbb4;
+  --ink: #211d16;
+  --ink-soft: #5b5344;
+  --ink-faint: #8b8271;
+  --red: #a8221c;
+  --red-soft: #c9564f;
+  --blue: #2c4a76;
+  --amber: #96601a;
+  --grey: #7a7466;
+  --font-stamp: 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --font-type: 'Courier Prime', 'Courier New', ui-monospace, monospace;
+  --font-data: 'IBM Plex Mono', 'Courier Prime', monospace;
+
+  margin: 0;
+  padding: 0;
+  background-color: var(--paper);
+  background-image:
+    repeating-linear-gradient(92deg, rgba(120,108,84,.055) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(3deg, rgba(120,108,84,.04) 0 1px, transparent 1px 7px),
+    radial-gradient(140% 80% at 50% -10%, rgba(255,252,244,.75), transparent 60%),
+    radial-gradient(120% 90% at 100% 110%, rgba(90,76,50,.16), transparent 55%);
+  color: var(--ink);
+  font-family: var(--font-type);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.dossier *, .dossier *::before, .dossier *::after { box-sizing: border-box; }
+.dossier a { color: var(--red); text-decoration: none; border-bottom: 1px solid rgba(168,34,28,.35); }
+.dossier a:hover { background: rgba(168,34,28,.09); }
+.dossier sup { font-size: .68em; letter-spacing: .02em; }
+.dossier sup a { border-bottom: none; font-family: var(--font-data); }
+.dossier p { margin: 0 0 .9em; }
+.dossier strong { font-weight: 700; }
+
+.d-wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px 90px; }
+
+/* ── classification banners ─────────────────────────────── */
+.d-class {
+  background: #17140f;
+  color: var(--paper);
+  font-family: var(--font-stamp);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  padding: 11px 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  flex-wrap: wrap;
+  border-bottom: 3px solid var(--red);
+}
+.d-class span { white-space: nowrap; }
+.d-class .cx { color: var(--red-soft); }
+.d-class--foot { border-bottom: none; border-top: 3px solid var(--red); justify-content: center; margin-top: 60px; }
+
+/* ── cover sheet ────────────────────────────────────────── */
+.cover { padding: 46px 0 30px; position: relative; }
+.cover-agency {
+  font-family: var(--font-stamp);
+  font-size: 12px;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid rgba(33,29,22,.3);
+  padding-bottom: 10px;
+  margin-bottom: 26px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cover-grid { display: grid; grid-template-columns: minmax(0,1fr) 250px; gap: 34px; align-items: start; }
+@media (max-width: 860px) { .cover-grid { grid-template-columns: 1fr; } }
+
+.cover-kicker {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 12px;
+}
+.cover h1 {
+  font-family: var(--font-stamp);
+  font-weight: 700;
+  font-size: clamp(34px, 6vw, 62px);
+  line-height: .96;
+  letter-spacing: -.005em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.cover h1 em { font-style: normal; color: var(--red); }
+.cover-sub {
+  font-size: 16px;
+  line-height: 1.55;
+  max-width: 56ch;
+  color: var(--ink-soft);
+  margin-top: 16px;
+  padding-left: 14px;
+  border-left: 3px solid rgba(33,29,22,.25);
+}
+
+.dossier dl { margin: 0; }
+.dossier dd { margin: 0; }
+.form-block { margin-top: 30px; border-top: 1px solid rgba(33,29,22,.25); }
+.form-row {
+  display: grid;
+  grid-template-columns: 168px minmax(0,1fr);
+  gap: 12px;
+  border-bottom: 1px dotted rgba(33,29,22,.32);
+  padding: 7px 0;
+  font-size: 13.5px;
+}
+.form-row dt, .form-row .k {
+  font-family: var(--font-stamp);
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: 3px;
+}
+.form-row .v { font-family: var(--font-data); font-size: 13px; }
+@media (max-width: 560px) { .form-row { grid-template-columns: 1fr; gap: 2px; } }
+
+.stamp-col { display: flex; flex-direction: column; gap: 22px; align-items: center; padding-top: 8px; }
+.stamp {
+  font-family: var(--font-stamp);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  border: 3px double var(--red);
+  color: var(--red);
+  padding: 10px 14px;
+  text-align: center;
+  line-height: 1.1;
+  transform: rotate(-6deg);
+  opacity: .88;
+  font-size: 17px;
+  max-width: 230px;
+}
+.stamp small { display: block; font-size: 10.5px; letter-spacing: .18em; font-weight: 400; margin-top: 5px; }
+.stamp--blue { border-color: var(--blue); color: var(--blue); transform: rotate(4deg); }
+.cover-seal { width: 132px; height: auto; opacity: .72; mix-blend-mode: multiply; }
+
+/* ── BLUF ───────────────────────────────────────────────── */
+.bluf {
+  background: #17140f;
+  color: #ece5d6;
+  padding: 34px 30px 30px;
+  margin-top: 12px;
+  box-shadow: 7px 7px 0 rgba(33,29,22,.22);
+}
+.bluf-label {
+  font-family: var(--font-stamp);
+  font-size: 12px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--red-soft);
+  border-bottom: 1px solid rgba(236,229,214,.28);
+  padding-bottom: 9px;
+  margin-bottom: 20px;
+}
+.bluf p { font-size: 17px; line-height: 1.62; max-width: 74ch; }
+.bluf a { color: #f0a49e; border-bottom-color: rgba(240,164,158,.4); }
+.bluf a:hover { background: rgba(240,164,158,.14); }
+.bluf-orders { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 26px; }
+@media (max-width: 760px) { .bluf-orders { grid-template-columns: 1fr; } }
+.order { background: rgba(236,229,214,.07); padding: 18px 16px; border-top: 3px solid var(--red); }
+.order b {
+  display: block;
+  font-family: var(--font-stamp);
+  font-size: 44px;
+  line-height: .85;
+  color: var(--red-soft);
+  margin-bottom: 8px;
+}
+.order .ot {
+  font-family: var(--font-stamp);
+  font-size: 15px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+.order .od { font-size: 12.5px; color: #b8b0a0; line-height: 1.5; }
+
+/* ── part headers ───────────────────────────────────────── */
+.part { margin-top: 62px; }
+.part-head { display: flex; align-items: baseline; gap: 16px; border-bottom: 3px solid var(--ink); padding-bottom: 8px; flex-wrap: wrap; }
+.part-no {
+  font-family: var(--font-stamp);
+  font-size: 11px;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 4px 9px;
+}
+.part-head h2 {
+  font-family: var(--font-stamp);
+  font-weight: 600;
+  font-size: clamp(21px, 3.2vw, 31px);
+  text-transform: uppercase;
+  letter-spacing: .015em;
+  margin: 0;
+}
+.part-note { font-size: 13px; color: var(--ink-soft); margin: 14px 0 26px; max-width: 76ch; }
+
+/* ── operator profile strip ─────────────────────────────── */
+.profile { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 26px; align-items: start; }
+@media (max-width: 860px) { .profile { grid-template-columns: 1fr; } }
+.figs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: rgba(33,29,22,.28); border: 1px solid rgba(33,29,22,.28); }
+.fig { background: var(--paper-hi); padding: 16px 14px; }
+.fig b { display: block; font-family: var(--font-stamp); font-size: 38px; line-height: .9; color: var(--red); }
+.fig span { display: block; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); margin-top: 7px; }
+.trifecta { margin-top: 22px; border: 1px solid rgba(33,29,22,.3); padding: 16px 18px; background: rgba(242,236,224,.55); }
+.trifecta h3, .annex h3, .flow h3 {
+  font-family: var(--font-stamp);
+  font-size: 13px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+}
+.tri-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.tri { flex: 1 1 130px; text-align: center; border: 1px dashed rgba(33,29,22,.4); padding: 12px 8px; }
+.tri i { font-style: normal; font-size: 30px; display: block; color: var(--red); line-height: 1; }
+.tri span { display: block; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; font-family: var(--font-stamp); margin-top: 8px; }
+
+/* ── exhibits (clipped press images) ────────────────────── */
+.exhibit { background: #fbf7ee; padding: 8px 8px 0; border: 1px solid rgba(33,29,22,.22); box-shadow: 3px 4px 0 rgba(33,29,22,.14); position: relative; }
+.exhibit img { display: block; width: 100%; height: auto; filter: grayscale(.55) contrast(1.06) sepia(.14) brightness(.99); }
+.exhibit figcaption {
+  font-family: var(--font-data);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 7px 2px 8px;
+  border-top: 1px solid rgba(33,29,22,.14);
+  margin-top: 8px;
+}
+.exhibit::before {
+  content: "";
+  position: absolute;
+  top: -11px; left: 50%;
+  width: 78px; height: 22px;
+  transform: translateX(-50%) rotate(-2.5deg);
+  background: linear-gradient(180deg, rgba(226,214,182,.9), rgba(206,192,158,.82));
+  border-left: 1px solid rgba(255,255,255,.5);
+  border-right: 1px solid rgba(140,128,100,.4);
+}
+
+/* ── incident cards ─────────────────────────────────────── */
+.incidents { display: grid; gap: 26px; }
+.inc {
+  background: var(--paper-hi);
+  border: 1px solid rgba(33,29,22,.3);
+  box-shadow: 6px 7px 0 rgba(33,29,22,.16);
+  display: grid;
+  grid-template-columns: 320px minmax(0,1fr);
+}
+.inc--wide { grid-template-columns: 1fr; }
+@media (max-width: 800px) { .inc { grid-template-columns: 1fr; } }
+.inc-photo { padding: 22px 18px; border-right: 1px dashed rgba(33,29,22,.3); background: rgba(213,203,180,.4); }
+@media (max-width: 800px) { .inc-photo { border-right: none; border-bottom: 1px dashed rgba(33,29,22,.3); } }
+.inc-photo .exhibit + .exhibit { margin-top: 20px; }
+.inc-body { padding: 20px 24px 24px; }
+.inc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid rgba(33,29,22,.22); padding-bottom: 10px; }
+.inc-id { font-family: var(--font-data); font-size: 11.5px; font-weight: 600; letter-spacing: .17em; text-transform: uppercase; color: var(--ink-faint); }
+.inc h3 { font-family: var(--font-stamp); font-weight: 600; font-size: clamp(19px, 2.6vw, 26px); text-transform: uppercase; margin: 6px 0 0; line-height: 1.06; }
+.tag {
+  font-family: var(--font-stamp);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 2px solid currentColor;
+  white-space: nowrap;
+}
+.tag--hard { color: var(--red); }
+.tag--adjacent { color: var(--amber); border-style: dashed; }
+.tag--poc { color: var(--blue); border-style: dotted; }
+.tag--none { color: var(--grey); border-style: dotted; }
+
+.inc-fields { margin: 14px 0 0; }
+.inc-fields .form-row { grid-template-columns: 120px minmax(0,1fr); }
+@media (max-width: 560px) { .inc-fields .form-row { grid-template-columns: 1fr; } }
+.evidence {
+  margin: 18px 0 0;
+  border-left: 4px solid var(--red);
+  background: rgba(168,34,28,.05);
+  padding: 12px 16px;
+  font-size: 13.5px;
+}
+.evidence .el { display: block; font-family: var(--font-stamp); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+.evidence code, .dossier code { font-family: var(--font-data); font-size: .92em; background: rgba(33,29,22,.08); padding: 1px 4px; }
+.inc-so { margin-top: 14px; font-size: 12.5px; color: var(--ink-soft); }
+.inc-so b { font-family: var(--font-stamp); letter-spacing: .14em; text-transform: uppercase; font-size: 10.5px; color: var(--ink-faint); display: block; margin-bottom: 3px; }
+
+/* ── CVE register ledger ────────────────────────────────── */
+.ledger-scroll { overflow-x: auto; border: 1px solid rgba(33,29,22,.3); background: var(--paper-hi); }
+.ledger { width: 100%; min-width: 760px; border-collapse: collapse; font-family: var(--font-data); font-size: 12.5px; }
+.ledger th {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-stamp);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+.ledger td { padding: 11px 12px; border-bottom: 1px solid rgba(33,29,22,.16); vertical-align: top; }
+.ledger tbody tr:nth-child(even) { background: rgba(213,203,180,.28); }
+.ledger .cve { font-weight: 600; white-space: nowrap; }
+.ledger .cvss { font-weight: 700; text-align: center; white-space: nowrap; }
+.ledger .what { font-family: var(--font-type); line-height: 1.5; min-width: 300px; }
+.st { font-family: var(--font-stamp); font-size: 10px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; border: 2px solid currentColor; padding: 3px 6px; white-space: nowrap; display: inline-block; }
+.st--fixed { color: var(--grey); }
+.st--quiet { color: var(--amber); border-style: dashed; }
+.st--open { color: var(--red); }
+.cve-thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 26px; }
+@media (max-width: 760px) { .cve-thumbs { grid-template-columns: 1fr; } }
+
+/* ── matrix ─────────────────────────────────────────────── */
+.matrix-scroll { overflow-x: auto; padding-bottom: 6px; }
+.matrix { min-width: 780px; display: grid; grid-template-columns: 178px repeat(3, minmax(190px, 1fr)); gap: 2px; background: rgba(33,29,22,.3); border: 1px solid rgba(33,29,22,.3); }
+.mx-corner, .mx-col, .mx-row { background: var(--ink); color: var(--paper); padding: 11px 12px; font-family: var(--font-stamp); text-transform: uppercase; }
+.mx-corner { font-size: 10px; letter-spacing: .14em; color: #a89f8c; line-height: 1.4; }
+.mx-col { font-size: 13px; letter-spacing: .2em; text-align: center; }
+.mx-row { font-size: 12.5px; letter-spacing: .1em; line-height: 1.2; }
+.mx-row span { display: block; font-family: var(--font-type); font-size: 10.5px; letter-spacing: 0; text-transform: none; color: #a89f8c; margin-top: 5px; }
+.mx-cell { background: var(--paper-hi); padding: 12px 11px; display: flex; flex-direction: column; gap: 9px; min-height: 104px; }
+.mx-cell--hot { background: rgba(168,34,28,.09); }
+.mx-cell--empty { color: rgba(33,29,22,.22); align-items: center; justify-content: center; font-size: 20px; }
+.chit { border: 2px solid var(--red); padding: 7px 9px; background: rgba(255,252,244,.7); }
+.chit .cn { font-family: var(--font-stamp); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--red); display: block; margin-bottom: 3px; }
+.chit .cl { font-size: 12.5px; line-height: 1.35; display: block; }
+.chit--poc { border-color: var(--blue); border-style: dotted; }
+.chit--poc .cn { color: var(--blue); }
+.chit--adjacent { border-color: var(--amber); border-style: dashed; }
+.chit--adjacent .cn { color: var(--amber); }
+.chit--none { border-color: var(--grey); border-style: dotted; opacity: .8; }
+.chit--none .cn { color: var(--grey); }
+.legend { display: flex; gap: 22px; flex-wrap: wrap; margin: 22px 0 0; font-size: 12.5px; }
+.legend div { display: flex; align-items: center; gap: 9px; }
+.legend i { width: 26px; height: 14px; border: 2px solid var(--red); display: block; flex: none; }
+.legend .lg-poc i { border-color: var(--blue); border-style: dotted; }
+.legend .lg-adj i { border-color: var(--amber); border-style: dashed; }
+.legend .lg-none i { border-color: var(--grey); border-style: dotted; }
+.offmatrix { margin-top: 26px; border: 2px solid var(--ink); background: rgba(33,29,22,.06); padding: 18px 20px; }
+.offmatrix h3 { font-family: var(--font-stamp); font-size: 15px; letter-spacing: .13em; text-transform: uppercase; margin: 0 0 8px; }
+.offmatrix p { font-size: 13.5px; margin: 0; }
+
+/* ── analyst notes ──────────────────────────────────────── */
+.notes { display: grid; gap: 18px; }
+.note { border: 1px solid rgba(33,29,22,.26); border-left: 5px solid var(--amber); background: var(--paper-hi); padding: 16px 20px; }
+.note h3 { font-family: var(--font-stamp); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 8px; }
+.note p { font-size: 13.5px; margin: 0; }
+.note--wide { display: grid; grid-template-columns: minmax(0,1fr) 230px; gap: 22px; align-items: center; }
+@media (max-width: 760px) { .note--wide { grid-template-columns: 1fr; } }
+.rating { margin-top: 14px; display: grid; gap: 6px; }
+.rate-row { display: grid; grid-template-columns: 132px minmax(0,1fr) 84px; gap: 10px; align-items: center; font-size: 12px; }
+@media (max-width: 560px) { .rate-row { grid-template-columns: 100px minmax(0,1fr) 70px; } }
+.rate-row .rn { font-family: var(--font-data); font-weight: 600; }
+.rate-bar { height: 14px; background: rgba(33,29,22,.1); }
+.rate-bar b { display: block; height: 100%; background: var(--red); }
+.rate-row .rv { font-family: var(--font-stamp); font-size: 10.5px; letter-spacing: .15em; text-transform: uppercase; text-align: right; }
+
+/* ── standing data flow ─────────────────────────────────── */
+.flow { border: 1px solid rgba(33,29,22,.3); background: var(--paper-hi); padding: 22px 24px; }
+.flow-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: rgba(33,29,22,.16); }
+.flow-list li { background: var(--paper-hi); padding: 12px 0 12px 40px; position: relative; font-size: 13.5px; }
+.flow-list li::before {
+  content: "☐";
+  position: absolute;
+  left: 8px; top: 9px;
+  font-size: 19px;
+  color: var(--ink-faint);
+}
+.flow-list li.no-fix::before { content: "⊠"; color: var(--red); }
+.flow-list b { font-family: var(--font-data); font-size: 12.5px; }
+.retention { margin-top: 20px; border: 3px double var(--red); padding: 15px 18px; background: rgba(168,34,28,.06); font-size: 13.5px; }
+.retention .rl { font-family: var(--font-stamp); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--red); display: block; margin-bottom: 6px; }
+
+/* ── tasking ────────────────────────────────────────────── */
+.tasks { display: grid; gap: 2px; background: rgba(33,29,22,.28); border: 1px solid rgba(33,29,22,.28); }
+.task { background: var(--paper-hi); display: grid; grid-template-columns: 62px minmax(0,1fr) 250px; gap: 18px; padding: 17px 20px; align-items: start; }
+@media (max-width: 860px) { .task { grid-template-columns: 46px minmax(0,1fr); } }
+.task .tn { font-family: var(--font-stamp); font-size: 34px; line-height: .85; color: var(--red); }
+.task .tt { font-family: var(--font-stamp); font-size: 16px; letter-spacing: .03em; text-transform: uppercase; line-height: 1.15; display: block; margin-bottom: 6px; }
+.task .tb { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.task .tr { font-size: 12px; border-left: 2px solid rgba(33,29,22,.25); padding-left: 14px; }
+@media (max-width: 860px) { .task .tr { grid-column: 2; border-left: none; padding-left: 0; border-top: 1px dotted rgba(33,29,22,.3); padding-top: 9px; } }
+.task .tr b { font-family: var(--font-stamp); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 4px; }
+.scope-out { margin-top: 22px; font-size: 13px; color: var(--ink-soft); border-top: 1px solid rgba(33,29,22,.22); padding-top: 14px; }
+
+/* ── annex: sources ─────────────────────────────────────── */
+.annex { margin-top: 62px; }
+.src-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; background: rgba(33,29,22,.2); border: 1px solid rgba(33,29,22,.24); }
+@media (max-width: 760px) { .src-grid { grid-template-columns: 1fr; } }
+.src { background: var(--paper-hi); padding: 10px 12px; display: grid; grid-template-columns: 20px 20px minmax(0,1fr); gap: 10px; align-items: start; font-size: 12.5px; }
+.src .sn { font-family: var(--font-data); font-weight: 600; color: var(--ink-faint); }
+.src img { width: 20px; height: 20px; border: 1px solid rgba(33,29,22,.2); background: #fff; }
+.src .stype { display: block; font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); margin-top: 2px; }
+
+/* ── related files (folder tabs) ────────────────────────── */
+.files { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.file-tab {
+  background: var(--paper-lo);
+  border: 1px solid rgba(33,29,22,.32);
+  border-bottom-width: 3px;
+  padding: 11px 15px;
+  max-width: 330px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+.file-tab:hover { background: var(--paper-hi); }
+.file-tab .ft { font-family: var(--font-stamp); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; display: block; }
+.file-tab .fd { font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-top: 4px; }
+
+.redact { background: #17140f; color: transparent; user-select: none; padding: 0 .35em; border-radius: 1px; }
+.colophon { margin-top: 42px; font-size: 12px; color: var(--ink-faint); display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; border-top: 1px solid rgba(33,29,22,.22); padding-top: 14px; }
+</style>
+
+<div class="dossier">
+
+  <div class="d-class">
+    <span>Open-source intelligence</span>
+    <span class="cx">// no classified material //</span>
+    <span>Case 2026-07-30 / TM-01</span>
+  </div>
+
+  <div class="d-wrap">
+
+    <!-- ════════ COVER SHEET ════════ -->
+    <section class="cover">
+      <div class="cover-agency">
+        <span>Atlas Threat Intelligence · Workstation Desk</span>
+        <span>Sheet 1 of 1 · Annex A attached</span>
+      </div>
+
+      <div class="cover-grid">
+        <div>
+          <div class="cover-kicker">Subject assessment — agentic coding CLI on a daily driver</div>
+          <h1>What actually goes<br>wrong <em>(and what only<br>goes wrong in a lab)</em></h1>
+          <p class="cover-sub">
+            An agentic coding CLI on your own Linux workstation holds all three legs of the lethal trifecta by
+            default. This file separates what has already cost people work and credentials from what exists
+            only as a researcher's proof-of-concept — and converts the difference into containment tasking.
+          </p>
+
+          <dl class="form-block">
+            <div class="form-row"><dt>File</dt><dd class="v">Threat model and blast radius for an agentic coding CLI</dd></div>
+            <div class="form-row"><dt>Parent case</dt><dd class="v"><a href="../../">Running Claude Code safely on a Linux workstation, and where Proxmox actually helps</a></dd></div>
+            <div class="form-row"><dt>Date of report</dt><dd class="v">30 July 2026</dd></div>
+            <div class="form-row"><dt>Depth</dt><dd class="v">survey · 10 min read</dd></div>
+            <div class="form-row"><dt>Sources cited</dt><dd class="v">28 (see Annex A)</dd></div>
+            <div class="form-row"><dt>Confirmed loss classes</dt><dd class="v">2 &nbsp;— destructive <code>git</code>, supply-chain malware weaponising the CLI</dd></div>
+            <div class="form-row"><dt>Distribution</dt><dd class="v"><span class="redact">operator only</span> operator, own workstation</dd></div>
+          </dl>
+        </div>
+
+        <div class="stamp-col">
+          <div class="stamp">Confirmed<br>losses<small>Two classes · real victims</small></div>
+          <img class="cover-seal" src="../cover.svg" alt="Case file seal">
+          <div class="stamp stamp--blue">Injection<br>proven<small>PoC-led · few victims</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ BLUF ════════ -->
+    <section class="bluf">
+      <div class="bluf-label">Bottom line up front</div>
+      <p>
+        Two things have actually destroyed people's data in the wild: the agent running
+        <code>git reset --hard</code> / <code>git checkout</code> unprompted and permanently eating uncommitted
+        work <sup><a href="https://github.com/anthropics/claude-code/issues/34327">[2]</a></sup><sup><a href="https://github.com/anthropics/claude-code/issues/11237">[3]</a></sup>,
+        and npm supply-chain malware that finds an installed agent CLI on the box and re-invokes it with
+        <code>--dangerously-skip-permissions</code> as a credential-hunting tool <sup><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">[6]</a></sup>.
+        Indirect prompt injection is fully proven — five-plus real CVEs, working exfil channels — but the public
+        record is still dominated by researcher PoCs rather than mass victim counts <sup><a href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/">[12]</a></sup><sup><a href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/">[17]</a></sup>.
+        Rank containment accordingly.
+      </p>
+      <div class="bluf-orders">
+        <div class="order"><b>01</b><span class="ot">Stop writes outside the workspace</span><span class="od">Including via symlink. This is what protects <code>~/.bashrc</code>, cron, and the agent's own settings file.</span></div>
+        <div class="order"><b>02</b><span class="ot">Stop arbitrary egress</span><span class="od">Enforced below the agent, at the kernel or network layer. DNS counts.</span></div>
+        <div class="order"><b>03</b><span class="ot">Stop reads of <code>~/.ssh</code> and <code>~/.aws</code></span><span class="od">Long-lived credentials are what turn a local incident into a downstream one.</span></div>
+      </div>
+    </section>
+
+    <!-- ════════ PART I — THE ROOM ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part I</span>
+        <h2>The room this happens in</h2>
+      </div>
+      <p class="part-note">
+        Anthropic's own threat model names four failure classes — <strong>overeager behaviour</strong>,
+        <strong>honest mistakes</strong>, <strong>prompt injection</strong>, and <strong>model misalignment</strong>,
+        which they note is not observed in practice <sup><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">[1]</a></sup>.
+        Useful scaffold, because it separates "the model meant well" from "someone else is driving." What it
+        doesn't model is the human at the keyboard, and the human is where the numbers get uncomfortable.
+      </p>
+
+      <div class="profile">
+        <div>
+          <div class="figs">
+            <div class="fig"><b>93%</b><span>of permission prompts are approved by users <sup><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">[1]</a></sup></span></div>
+            <div class="fig"><b>17%</b><span>false-negative rate of the auto-mode classifier on genuinely overeager actions <sup><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">[1]</a></sup></span></div>
+            <div class="fig"><b>22.2%</b><span>of 18,470 public <code>.claude/settings.local.json</code> files grant <code>Bash(rm:*)</code> — 4,101 users <sup><a href="https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions">[5]</a></sup></span></div>
+            <div class="fig"><b>1.1%</b><span>of those same files define <em>any</em> deny rule at all <sup><a href="https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions">[5]</a></sup></span></div>
+          </div>
+          <div class="trifecta">
+            <h3>Why prompting cannot fix it</h3>
+            <div class="tri-row">
+              <div class="tri"><i>▤</i><span>Private data<br>access</span></div>
+              <div class="tri"><i>⚠</i><span>Untrusted<br>content</span></div>
+              <div class="tri"><i>↗</i><span>Outbound<br>communication</span></div>
+            </div>
+            <p style="margin:14px 0 0;font-size:13px;">
+              A coding CLI on your daily driver has all three by default. The reason it can't be prompted away is
+              structural: "LLMs are unable to reliably distinguish the importance of instructions based on where
+              they came from" <sup><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">[9]</a></sup>.
+            </p>
+          </div>
+        </div>
+        <div>
+          <figure class="exhibit">
+            <img src="dossier/images/yolo-permissions.webp" alt="Analysis of permission settings granted in public Claude Code configuration files">
+            <figcaption>Exhibit A — 18,470 public permission files audited. 21.3% grant <code>curl</code>; 19.7% grant unchecked <code>git push</code> <sup><a href="https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions">[5]</a></sup></figcaption>
+          </figure>
+          <figure class="exhibit" style="margin-top:22px;">
+            <img src="dossier/images/auto-mode.webp" alt="Anthropic engineering post on Claude Code auto mode and its threat model">
+            <figcaption>Exhibit B — the vendor's own four-class threat model and its honest classifier numbers <sup><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">[1]</a></sup></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ PART II — INCIDENTS ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part II</span>
+        <h2>Confirmed incidents — realized 2026 losses</h2>
+      </div>
+      <p class="part-note">
+        Cards below are incidents with named victims, counted damage, or a shipped malicious artifact. The stamp
+        in the top-right of each card is the evidentiary status: <strong>confirmed</strong> means somebody lost
+        something, <strong>adjacent</strong> means the loss is real but happened on a different agent product.
+      </p>
+
+      <div class="incidents">
+
+        <article class="inc">
+          <div class="inc-photo">
+            <figure class="exhibit">
+              <img src="dossier/images/exhibit-34327.webp" alt="GitHub issue: Claude Code destroyed uncommitted work by running git reset --hard on session startup, twice">
+              <figcaption>Exhibit 1 — issue #34327</figcaption>
+            </figure>
+            <figure class="exhibit">
+              <img src="dossier/images/exhibit-11237.webp" alt="GitHub issue: Claude Code ran a git command without prompting resulting in catastrophic data loss">
+              <figcaption>Exhibit 2 — issue #11237</figcaption>
+            </figure>
+          </div>
+          <div class="inc-body">
+            <div class="inc-top">
+              <div>
+                <span class="inc-id">INC-01 · not an attack</span>
+                <h3>The agent's own destructive <code>git</code></h3>
+              </div>
+              <span class="tag tag--hard">Confirmed · real victims</span>
+            </div>
+            <dl class="inc-fields">
+              <div class="form-row"><dt>Mechanism</dt><dd class="v">Unprompted <code>git reset --hard origin/main</code> at session startup; <code>git checkout &lt;file&gt;</code> without a prompt</dd></div>
+              <div class="form-row"><dt>Counted loss</dt><dd class="v">12 unpushed commits + uncommitted work, on two consecutive days <sup><a href="https://github.com/anthropics/claude-code/issues/34327">[2]</a></sup>; separately, 4 days of work <sup><a href="https://github.com/anthropics/claude-code/issues/11237">[3]</a></sup></dd></div>
+              <div class="form-row"><dt>Recovery</dt><dd class="v">Reflog only, and only for objects that were already committed</dd></div>
+              <div class="form-row"><dt>Disposition</dt><dd class="v">Reports closed as not planned; a third issue shows the destructive command chosen over a safe one for a rollback request <sup><a href="https://github.com/anthropics/claude-code/issues/17190">[4]</a></sup></dd></div>
+            </dl>
+            <div class="evidence">
+              <span class="el">Evidence</span>
+              "Claude Code destroyed user's uncommitted work by running <code>git reset --hard</code> on session startup — TWICE." This is the most-realized harm in the whole file, and it isn't an adversary. It is Anthropic's own category 1 and 2: overeager behaviour and honest mistakes <sup><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">[1]</a></sup>.
+            </div>
+          </div>
+        </article>
+
+        <article class="inc">
+          <div class="inc-photo">
+            <figure class="exhibit">
+              <img src="dossier/images/s1ngularity.webp" alt="Wiz analysis of the s1ngularity Nx supply-chain attack and its use of AI CLI tooling">
+              <figcaption>Exhibit 3 — s1ngularity aftermath, AI TTPs</figcaption>
+            </figure>
+          </div>
+          <div class="inc-body">
+            <div class="inc-top">
+              <div>
+                <span class="inc-id">INC-02 · ~1,000+ victims</span>
+                <h3>Malware that weaponised the installed CLI</h3>
+              </div>
+              <span class="tag tag--hard">Confirmed · real victims</span>
+            </div>
+            <dl class="inc-fields">
+              <div class="form-row"><dt>Mechanism</dt><dd class="v">A compromised npm package enumerated installed AI CLIs and re-invoked them with permission-skipping flags as a credential-hunting agent</dd></div>
+              <div class="form-row"><dt>Targets hunted</dt><dd class="v"><code>id_rsa</code>, <code>.env</code>, wallet keystores</dd></div>
+              <div class="form-row"><dt>Blast radius</dt><dd class="v">Every credential the agent could read → downstream GitHub / npm / cloud. Phase 2 made 6,700+ private repositories public <sup><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">[6]</a></sup></dd></div>
+              <div class="form-row"><dt>Guardrail effect</dt><dd class="v">~50% of victims had an AI CLI installed; roughly 25% of Claude invocations were refused outright; the AI path succeeded in under 25% of cases — and the campaign still netted 2,000+ verified secrets</dd></div>
+            </dl>
+            <div class="evidence">
+              <span class="el">Evidence — the actual invocation table</span>
+              <code>claude: { cmd: 'claude', args: ['--dangerously-skip-permissions', '-p', PROMPT] }, gemini: { cmd: 'gemini', args: ['--yolo', …] }, q: { cmd: 'q', args: ['chat', '--trust-all-tools', …] }</code> <sup><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">[6]</a></sup>
+            </div>
+            <p class="inc-so"><b>So what</b>Your installed agent is an asset on the attacker's target list, not only a tool you drive. Guardrails degraded the attacker here; they did not stop the campaign.</p>
+          </div>
+        </article>
+
+        <article class="inc">
+          <div class="inc-photo">
+            <figure class="exhibit">
+              <img src="dossier/images/shai-hulud.webp" alt="Datadog Security Labs report on the Shai-Hulud 2.0 npm worm">
+              <figcaption>Exhibit 4 — Shai-Hulud 2.0 worm</figcaption>
+            </figure>
+            <figure class="exhibit">
+              <img src="dossier/images/npm-waves.webp" alt="Unit 42 monitoring of npm supply-chain attack waves">
+              <figcaption>Exhibit 5 — 2026 npm publication waves</figcaption>
+            </figure>
+          </div>
+          <div class="inc-body">
+            <div class="inc-top">
+              <div>
+                <span class="inc-id">INC-03 · industrial scale, ongoing</span>
+                <h3>The dependency, not the model, is the attacker</h3>
+              </div>
+              <span class="tag tag--hard">Confirmed · real victims</span>
+            </div>
+            <dl class="inc-fields">
+              <div class="form-row"><dt>Scale</dt><dd class="v">796 npm packages backdoored (20M weekly downloads) <sup><a href="https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/">[7]</a></sup>; 2026 waves reached 639 malicious versions across 323 packages in about an hour <sup><a href="https://unit42.paloaltonetworks.com/monitoring-npm-supply-chain-attacks/">[8]</a></sup></dd></div>
+              <div class="form-row"><dt>On-host actions</dt><dd class="v">Ran TruffleHog locally, installed a self-hosted GitHub runner, and <strong>deleted the home directory</strong> when exfiltration failed <sup><a href="https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/">[7]</a></sup></dd></div>
+              <div class="form-row"><dt>Trigger</dt><dd class="v"><code>preinstall</code> / <code>postinstall</code> lifecycle scripts <sup><a href="https://unit42.paloaltonetworks.com/monitoring-npm-supply-chain-attacks/">[8]</a></sup></dd></div>
+            </dl>
+            <div class="evidence">
+              <span class="el">Why this is rank 1</span>
+              You do not need to be targeted, and <code>preinstall</code> fires <em>before</em> any agent guardrail is consulted. The permission model never sees it. If the agent can run <code>npm install</code>, the boundary around the agent has to include the build.
+            </div>
+          </div>
+        </article>
+
+        <article class="inc">
+          <div class="inc-photo">
+            <figure class="exhibit">
+              <img src="dossier/images/postmark-mcp.webp" alt="Snyk report on the malicious postmark-mcp npm package harvesting emails">
+              <figcaption>Exhibit 6 — first tracked malicious MCP server</figcaption>
+            </figure>
+          </div>
+          <div class="inc-body">
+            <div class="inc-top">
+              <div>
+                <span class="inc-id">INC-04 · one line of code</span>
+                <h3>A backdoored MCP server, shipped and installed</h3>
+              </div>
+              <span class="tag tag--hard">Confirmed · real victims</span>
+            </div>
+            <dl class="inc-fields">
+              <div class="form-row"><dt>Mechanism</dt><dd class="v">Version 1.0.16 of an email MCP server added a single BCC line to its <code>send_email</code> tool</dd></div>
+              <div class="form-row"><dt>Effect</dt><dd class="v">Every message the agent sent was silently forwarded to the attacker's address <sup><a href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">[19]</a></sup></dd></div>
+              <div class="form-row"><dt>Detectability</dt><dd class="v">None from the agent's side — the tool did exactly what its name said, plus one thing</dd></div>
+            </dl>
+            <div class="evidence">
+              <span class="el">Evidence</span>
+              "Perhaps the first media coverage case for supply chain security incident involving a known and tracked malicious MCP Server" <sup><a href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">[19]</a></sup>. An MCP server is a dependency with tool-call privileges; treat its review as dependency-grade.
+            </div>
+          </div>
+        </article>
+
+        <article class="inc">
+          <div class="inc-photo">
+            <figure class="exhibit">
+              <img src="dossier/images/pocketos.webp" alt="Zenity write-up of an AI agent deleting a production database and its backups">
+              <figcaption>Exhibit 7 — nine seconds to total loss</figcaption>
+            </figure>
+          </div>
+          <div class="inc-body">
+            <div class="inc-top">
+              <div>
+                <span class="inc-id">INC-05 · 25 Apr 2026</span>
+                <h3>Stray token → production wiped, backups included</h3>
+              </div>
+              <span class="tag tag--adjacent">Confirmed · other agent product</span>
+            </div>
+            <dl class="inc-fields">
+              <div class="form-row"><dt>Mechanism</dt><dd class="v">An agent found a hosting-platform API token sitting in an unrelated file and called <code>volumeDelete</code></dd></div>
+              <div class="form-row"><dt>Counted loss</dt><dd class="v">Production volume <em>and</em> volume-level backups destroyed in 9 seconds; newest usable backup was 3 months old <sup><a href="https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos">[24]</a></sup></dd></div>
+              <div class="form-row"><dt>Caveat</dt><dd class="v">Both catastrophic agent-deletes-production stories in the public record involved editor-based agents, not the CLI — the pattern transfers, the attribution does not</dd></div>
+            </dl>
+            <div class="evidence">
+              <span class="el">Evidence</span>
+              "The agent knew the rules, yet it violated every one of them, and the only thing standing between those rules and a production database was a system prompt" <sup><a href="https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos">[24]</a></sup>.
+            </div>
+          </div>
+        </article>
+
+        <article class="inc">
+          <div class="inc-photo">
+            <figure class="exhibit">
+              <img src="dossier/images/fake-installers.webp" alt="Survey of 2026 campaigns targeting Claude Code users with fake installers and repositories">
+              <figcaption>Exhibit 8 — pre-execution campaigns, Q2 2026</figcaption>
+            </figure>
+          </div>
+          <div class="inc-body">
+            <div class="inc-top">
+              <div>
+                <span class="inc-id">INC-06 · active campaigns</span>
+                <h3>Attacked before the binary ever runs</h3>
+              </div>
+              <span class="tag tag--hard">Confirmed · real victims</span>
+            </div>
+            <dl class="inc-fields">
+              <div class="form-row"><dt>Mechanism</dt><dd class="v">SEO-seeded fake "leaked Claude Code" repositories dropping Vidar / GhostSocks, and search-ad-driven fake installers dropping MacSync / Amatera</dd></div>
+              <div class="form-row"><dt>Blast radius</dt><dd class="v">Full infostealer on the workstation</dd></div>
+            </dl>
+            <div class="evidence">
+              <span class="el">Evidence</span>
+              "Both campaigns exploit the pre-execution install phase, bypassing all Claude Code built-in controls entirely" <sup><a href="https://kikipreteau.medium.com/claude-code-threat-landscape-q2-2026-b29dddb9bf18">[27]</a></sup>. No sandbox setting helps with a fake install; only where you get the package from.
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ════════ PART III — CVE REGISTER ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part III</span>
+        <h2>Vulnerability register</h2>
+      </div>
+      <p class="part-note">
+        Injection against the CLI is not speculative — it is a patch history. What the register shows is a
+        recurring theme rather than isolated bugs: <em>the boundary is consulted too late</em>, and
+        <em>in-process allowlists get bypassed by whoever looks at them first</em>.
+      </p>
+
+      <div class="ledger-scroll">
+        <table class="ledger">
+          <thead>
+            <tr><th>Identifier</th><th>CVSS</th><th>What it did</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cve">CVE-2025-55284</td><td class="cvss">7.1</td>
+              <td class="what">Injected file content made the agent <code>grep</code> <code>.env</code> and encode it into a <code>ping</code> subdomain. <code>ping</code>/<code>nslookup</code>/<code>dig</code>/<code>host</code> were default-allowlisted <sup><a href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/">[12]</a></sup></td>
+              <td><span class="st st--fixed">Fixed v1.0.4</span></td>
+            </tr>
+            <tr>
+              <td class="cve">CVE-2025-59536</td><td class="cvss">—</td>
+              <td class="what">A <code>.mcp.json</code> in an untrusted directory executed shell commands <strong>at tool init</strong> <sup><a href="https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html">[15]</a></sup></td>
+              <td><span class="st st--fixed">Fixed</span></td>
+            </tr>
+            <tr>
+              <td class="cve">CVE-2026-21852</td><td class="cvss">—</td>
+              <td class="what">A repo-set <code>ANTHROPIC_BASE_URL</code> leaked API keys <strong>before the trust prompt rendered</strong> <sup><a href="https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html">[15]</a></sup></td>
+              <td><span class="st st--fixed">Fixed</span></td>
+            </tr>
+            <tr>
+              <td class="cve">CVE-2025-66032</td><td class="cvss">8.7</td>
+              <td class="what">PR titles interpolated into the GitHub Action prompt unsanitised; malicious issue bodies got the agent to read <code>/proc/self/environ</code> <sup><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-claude-code-github-action-prompt-injection/">[16]</a></sup></td>
+              <td><span class="st st--fixed">Fixed</span></td>
+            </tr>
+            <tr>
+              <td class="cve">CVE-2026-39861</td><td class="cvss">7.7</td>
+              <td class="what">A sandboxed process created a symlink out of the workspace; a later unsandboxed write followed it to <code>~/.bashrc</code> or cron <sup><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-39861/">[14]</a></sup></td>
+              <td><span class="st st--fixed">Fixed 2.1.64</span></td>
+            </tr>
+            <tr>
+              <td class="cve">CVE-2026-35020<br>/35021/35022</td><td class="cvss">chain</td>
+              <td class="what">Env-var command injection gains execution → writes a malicious <code>.claude/settings.json</code> <code>apiKeyHelper</code> → on next start it reads <code>~/.ssh/id_rsa</code> and <code>~/.aws/credentials</code> and POSTs them out <sup><a href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/">[17]</a></sup></td>
+              <td><span class="st st--fixed">Fixed (chain)</span></td>
+            </tr>
+            <tr>
+              <td class="cve">No CVE assigned</td><td class="cvss">—</td>
+              <td class="what">SOCKS5 hostname null-byte parser differential: <code>attacker.com\x00.google.com</code> passes <code>endsWith()</code> and resolves to <code>attacker.com</code>. Vulnerable v2.0.24 → v2.1.89 — roughly 130 releases over 5.5 months <sup><a href="https://oddguan.com/blog/second-time-same-sandbox-anthropic-claude-code-network-allowlist-bypass-data-exfiltration/">[13]</a></sup></td>
+              <td><span class="st st--quiet">Silently patched v2.1.90</span></td>
+            </tr>
+            <tr>
+              <td class="cve">No CVE assigned</td><td class="cvss">—</td>
+              <td class="what">Hard cap of 50 security subcommands in <code>bashPermissions.ts</code>: 50 no-ops plus a denied <code>curl</code> downgrades <em>deny</em> to <em>ask</em> — and users approve 93% of asks <sup><a href="https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit">[23]</a></sup></td>
+              <td><span class="st st--open">Unpatched publicly · Apr 2026</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cve-thumbs">
+        <figure class="exhibit">
+          <img src="dossier/images/dns-exfil.webp" alt="Research write-up on Claude Code data exfiltration via DNS requests">
+          <figcaption>Exhibit 9 — DNS is egress. Disclosed 26 May 2025, fixed 6 June <sup><a href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/">[12]</a></sup></figcaption>
+        </figure>
+        <figure class="exhibit">
+          <img src="dossier/images/sandbox-bypass.webp" alt="Research write-up on a second network allowlist bypass in the Claude Code sandbox">
+          <figcaption>Exhibit 10 — "One outside report is luck. Two is implementation." <sup><a href="https://oddguan.com/blog/second-time-same-sandbox-anthropic-claude-code-network-allowlist-bypass-data-exfiltration/">[13]</a></sup></figcaption>
+        </figure>
+        <figure class="exhibit">
+          <img src="dossier/images/cve-chain.webp" alt="Phoenix Security analysis of three chained CVEs in the Claude Code CLI">
+          <figcaption>Exhibit 11 — the config-write → <code>apiKeyHelper</code> → SSH-key chain <sup><a href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/">[17]</a></sup></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ════════ PART IV — MATRIX ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part IV</span>
+        <h2>Likelihood × blast radius</h2>
+      </div>
+      <p class="part-note">
+        The ranking that containment should be built against. Chit border tells you how much of the assessment is
+        victim data and how much is laboratory work — the single most important distinction in this file, because
+        PoC-led risks are real but not where your first hour of hardening goes.
+      </p>
+
+      <div class="matrix-scroll">
+        <div class="matrix">
+          <div class="mx-corner">Blast radius ↓<br>Likelihood →</div>
+          <div class="mx-col">Low</div>
+          <div class="mx-col">Medium</div>
+          <div class="mx-col">High</div>
+
+          <div class="mx-row">Beyond the machine<span>git remotes → CI → production, with backups</span></div>
+          <div class="mx-cell">
+            <div class="chit chit--adjacent"><span class="cn">Rank 7 · adjacent</span><span class="cl">Agent reaches a live production system through a stray token</span></div>
+          </div>
+          <div class="mx-cell mx-cell--hot">
+            <div class="chit"><span class="cn">Rank 3 · confirmed</span><span class="cl">Credential exfil — SSH key, cloud creds, tokens — via injection or a poisoned config</span></div>
+          </div>
+          <div class="mx-cell mx-cell--empty">—</div>
+
+          <div class="mx-row">Whole user account<span>everything <code>$HOME</code> can reach</span></div>
+          <div class="mx-cell">
+            <div class="chit"><span class="cn">Rank 9 · confirmed</span><span class="cl">Malicious installer or fake "leaked" build</span></div>
+            <div class="chit chit--poc"><span class="cn">Slopsquatting · PoC</span><span class="cl">Hallucinated package names, registered and waiting — 43% recur on every one of ten identical runs <sup><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-slopsquatting-ai-supply-chain-20260419-csa/">[26]</a></sup>, and the academic PoC used "harmless placeholders, not real malware" <sup><a href="https://thehackernews.com/2026/07/new-hallusquatting-attack-could-trick.html">[25]</a></sup></span></div>
+          </div>
+          <div class="mx-cell mx-cell--hot">
+            <div class="chit chit--poc"><span class="cn">Rank 4 · PoC-led</span><span class="cl">Injection via content the agent fetches — page, README, issue. Exposure is rising: a measured <strong>32% relative increase</strong> in malicious injection content Nov 2025 → Feb 2026 across 2–3 billion pages a month <sup><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-indirect-prompt-injection-in-the-wild-2026/">[11]</a></sup></span></div>
+            <div class="chit"><span class="cn">Rank 5 · confirmed</span><span class="cl">Third-party MCP server, malicious or merely sloppy</span></div>
+            <div class="chit chit--poc"><span class="cn">Rank 6 · PoC-led</span><span class="cl">Untrusted-repo cold start — one <code>cd</code> away</span></div>
+          </div>
+          <div class="mx-cell mx-cell--hot">
+            <div class="chit"><span class="cn">Rank 1 · confirmed</span><span class="cl">Malicious dependency executed by a build the agent runs</span></div>
+          </div>
+
+          <div class="mx-row">This working tree<span>the repo in front of you</span></div>
+          <div class="mx-cell">
+            <div class="chit chit--none"><span class="cn">Not observed</span><span class="cl">Model misalignment — agent pursuing its own goal <sup><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">[1]</a></sup></span></div>
+          </div>
+          <div class="mx-cell mx-cell--empty">—</div>
+          <div class="mx-cell mx-cell--hot">
+            <div class="chit"><span class="cn">Rank 2 · confirmed</span><span class="cl">Agent destroys uncommitted / unpushed work</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div><i></i> Realized harm, CLI victims</div>
+        <div class="lg-adj"><i></i> Realized harm, other agent product</div>
+        <div class="lg-poc"><i></i> Proven end-to-end, researcher PoC</div>
+        <div class="lg-none"><i></i> Named but not observed in practice</div>
+      </div>
+
+      <div class="offmatrix">
+        <h3>Off the matrix — Rank 8, certainty 1.0</h3>
+        <p>
+          Data leaving through the agent's <em>legitimate</em> channel doesn't belong in a likelihood grid: it is
+          certain, by design, and containment cannot fix it. Only configuration can. See Part VI.
+        </p>
+      </div>
+    </section>
+
+    <!-- ════════ PART V — ANALYST NOTES ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part V</span>
+        <h2>Analyst notes — what's overstated</h2>
+      </div>
+      <p class="part-note">
+        Four places where the public numbers are softer than they look. Reading the register above without these
+        produces a threat model calibrated to headlines.
+      </p>
+
+      <div class="notes">
+        <div class="note">
+          <h3>MCP vulnerability percentages are soft</h3>
+          <p>
+            A hands-on audit of 33 local MCP servers (433 tools) found a <strong>~78% false-positive rate</strong>
+            in pattern-based MCP scanners — only 6 of 27 flagged detections were genuine, and all 8 "prompt
+            injection" hits were false <sup><a href="https://appsecsanta.com/research/mcp-server-security-audit-2026">[21]</a></sup>.
+            Treat the 34% command-injectable / 82% path-traversal-prone / 36.7% SSRF figures <sup><a href="https://www.practical-devsecops.com/mcp-security-statistics-2026-report/">[20]</a></sup>
+            as upper bounds on <em>attack surface</em>, not on exploitability.
+          </p>
+        </div>
+
+        <div class="note note--wide">
+          <div>
+            <h3>Least-bad of its peers is not safe</h3>
+            <p>
+              The 2026 systematic analysis of agentic coding assistants rates the CLI <strong>Low</strong> risk and
+              editor-integrated agents far worse — while also measuring that adaptive attacks exceed
+              <strong>85% success</strong> and that all 12 evaluated defenses were bypassed at
+              &gt;78% <sup><a href="https://arxiv.org/html/2601.17548v1">[22]</a></sup>. Both readings are true at once.
+            </p>
+            <div class="rating">
+              <div class="rate-row"><span class="rn">Claude Code</span><span class="rate-bar"><b style="width:25%"></b></span><span class="rv">Low</span></div>
+              <div class="rate-row"><span class="rn">Codex CLI</span><span class="rate-bar"><b style="width:70%"></b></span><span class="rv">High</span></div>
+              <div class="rate-row"><span class="rn">Copilot</span><span class="rate-bar"><b style="width:70%"></b></span><span class="rv">High</span></div>
+              <div class="rate-row"><span class="rn">Cursor</span><span class="rate-bar"><b style="width:100%"></b></span><span class="rv">Critical</span></div>
+            </div>
+          </div>
+          <figure class="exhibit">
+            <img src="dossier/images/gtg-1002.webp" alt="Anthropic report on disrupting an AI-orchestrated cyber espionage campaign">
+            <figcaption>Exhibit 12 — GTG-1002 <sup><a href="https://www.anthropic.com/news/disrupting-AI-espionage">[28]</a></sup></figcaption>
+          </figure>
+        </div>
+
+        <div class="note">
+          <h3>Guardrails degrade the attacker; they don't stop them</h3>
+          <p>
+            In the s1ngularity campaign roughly 25% of Claude invocations were refused outright and the AI-assisted
+            path succeeded in under 25% of cases — and it still produced 2,000+ verified
+            secrets <sup><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">[6]</a></sup>. A refusal rate is a
+            tax on the attacker, not a boundary.
+          </p>
+        </div>
+
+        <div class="note">
+          <h3>"AI-orchestrated attack" headlines are about the CLI as a <em>weapon</em></h3>
+          <p>
+            GTG-1002 (Nov 2025) was a state actor jailbreaking the CLI to attack ~30 organisations with 80–90% of
+            tactical work automated <sup><a href="https://www.anthropic.com/news/disrupting-AI-espionage">[28]</a></sup>.
+            That matters for how fast an adversary moves <em>after</em> they have your keys. It is not a workstation
+            threat in itself, and confusing the two inflates the local risk picture.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ PART VI — STANDING FLOW ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part VI</span>
+        <h2>Standing data flow — not a breach</h2>
+      </div>
+      <p class="part-note">
+        Per the vendor's own data-usage documentation <sup><a href="https://code.claude.com/docs/en/data-usage">[10]</a></sup>.
+        Worth separating from attacks because no sandbox addresses it — this is a settings decision, made once.
+        ☐ = there is a switch. ⊠ = there is no switch.
+      </p>
+
+      <div class="flow">
+        <h3>Disposition of outbound data</h3>
+        <ul class="flow-list">
+          <li>Prompts, model outputs, and <strong>every file the agent reads in full</strong> go over TLS to the model API. This is the product working.</li>
+          <li>Telemetry and metrics never include code, prompts, or file paths — and can be turned off entirely with <b>DISABLE_TELEMETRY=1</b>.</li>
+          <li><code>/feedback</code>, <code>/bug</code> and <code>/share</code> <strong>do</strong> send conversation history including code, optionally opening a public issue. Disable with <b>DISABLE_FEEDBACK_COMMAND=1</b>.</li>
+          <li class="no-fix"><code>WebFetch</code> sends the target <strong>hostname</strong> to the vendor API for a blocklist check regardless of which model provider you use — and this is <em>not</em> covered by <b>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</b>.</li>
+        </ul>
+
+        <div class="retention">
+          <span class="rl">Local half — this is the part that matters for blast radius</span>
+          Session transcripts are cached <strong>in plaintext under <code>~/.claude/projects/</code> for 30 days</strong>
+          by default <sup><a href="https://code.claude.com/docs/en/data-usage">[10]</a></sup>. Any infostealer that reads
+          that directory gets a replay of every file the agent touched, including secrets it printed — which is
+          exactly why the credential-stealer families target agent config paths. On consumer accounts with the
+          training toggle on, server-side retention is <strong>5 years</strong>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ PART VII — TASKING ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Part VII</span>
+        <h2>Containment tasking</h2>
+      </div>
+      <p class="part-note">
+        Derived from Part IV, in priority order. This file specifies the requirement only; each one is referred to
+        a sibling file in the same case for the mechanism.
+      </p>
+
+      <div class="tasks">
+        <div class="task">
+          <span class="tn">1</span>
+          <div>
+            <span class="tt">Writes outside the working tree must be structurally impossible</span>
+            <span class="tb">Including via symlink <sup><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-39861/">[14]</a></sup>. This is what protects <code>~/.bashrc</code>, cron, and the agent's own <code>.claude/settings.json</code> <sup><a href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/">[17]</a></sup>.</span>
+          </div>
+          <div class="tr"><b>Referred to</b><a href="../../linux-native-sandboxing-on-the-workstation/">Linux-native sandboxing on the workstation</a></div>
+        </div>
+
+        <div class="task">
+          <span class="tn">2</span>
+          <div>
+            <span class="tt">Uncommitted work must survive the agent</span>
+            <span class="tb">Because <code>git reset --hard</code> will happen, and those reports are closed as not planned <sup><a href="https://github.com/anthropics/claude-code/issues/34327">[2]</a></sup><sup><a href="https://github.com/anthropics/claude-code/issues/11237">[3]</a></sup>.</span>
+          </div>
+          <div class="tr"><b>Referred to</b><a href="../../audit-trail-and-recovery-drills/">Audit trail and recovery drills</a></div>
+        </div>
+
+        <div class="task">
+          <span class="tn">3</span>
+          <div>
+            <span class="tt">Long-lived credentials must not be readable from the agent's process</span>
+            <span class="tb"><code>~/.ssh/id_rsa</code>, <code>~/.aws/credentials</code>, git remotes' push tokens, and any stray API token in an unrelated file <sup><a href="https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos">[24]</a></sup>.</span>
+          </div>
+          <div class="tr"><b>Referred to</b><a href="../../credential-and-secret-isolation/">Credential isolation for an agentic coding CLI</a></div>
+        </div>
+
+        <div class="task">
+          <span class="tn">4</span>
+          <div>
+            <span class="tt">Egress must be enforced below the agent</span>
+            <span class="tb">At the kernel or network layer, because in-process allowlists have been bypassed twice by outside researchers on first look <sup><a href="https://oddguan.com/blog/second-time-same-sandbox-anthropic-claude-code-network-allowlist-bypass-data-exfiltration/">[13]</a></sup> and deny rules can be padded out of existence <sup><a href="https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit">[23]</a></sup>. DNS counts as egress <sup><a href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/">[12]</a></sup>.</span>
+          </div>
+          <div class="tr"><b>Referred to</b><a href="../../proxmox-as-the-isolation-boundary/">Proxmox as the isolation boundary</a></div>
+        </div>
+
+        <div class="task">
+          <span class="tn">5</span>
+          <div>
+            <span class="tt"><code>npm install</code> and build steps need the same boundary as the agent</span>
+            <span class="tb">Since the dependency, not the model, is the highest-likelihood attacker <sup><a href="https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/">[7]</a></sup><sup><a href="https://unit42.paloaltonetworks.com/monitoring-npm-supply-chain-attacks/">[8]</a></sup>.</span>
+          </div>
+          <div class="tr"><b>Referred to</b><a href="../../containerized-dev-environments/">Containers as the containment layer</a></div>
+        </div>
+
+        <div class="task">
+          <span class="tn">6</span>
+          <div>
+            <span class="tt">Third-party MCP servers deserve dependency-grade review</span>
+            <span class="tb">And their config file (<code>~/.claude.json</code>) deserves integrity monitoring — a <code>postinstall</code> hook rewriting MCP URLs proxies OAuth exchanges and survives token rotation <sup><a href="https://www.esecurityplanet.com/threats/claude-code-mcp-attack-enables-persistent-token-theft/">[18]</a></sup><sup><a href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">[19]</a></sup>.</span>
+          </div>
+          <div class="tr"><b>Referred to</b><a href="../../claude-code-native-guardrails-and-permission-model/">Native guardrails and the permission model</a></div>
+        </div>
+      </div>
+
+      <p class="scope-out">
+        <strong>Out of scope in this file:</strong> the CLI's own permission and sandbox features, Linux-native
+        sandboxing primitives, container isolation, Proxmox VM/LXC separation, credential-isolation patterns, and
+        audit/recovery tooling. All of those are sibling files in the same case — the folder tabs below.
+      </p>
+    </section>
+
+    <!-- ════════ RELATED FILES ════════ -->
+    <section class="part">
+      <div class="part-head">
+        <span class="part-no">Case</span>
+        <h2>Other files in this case</h2>
+      </div>
+      <div class="files">
+        <a class="file-tab" href="../../claude-code-native-guardrails-and-permission-model/"><span class="ft">Native guardrails &amp; permission model</span><span class="fd">expedition · in-process policy, not a boundary</span></a>
+        <a class="file-tab" href="../../linux-native-sandboxing-on-the-workstation/"><span class="ft">Linux-native sandboxing</span><span class="fd">expedition · bubblewrap, namespaces, Landlock</span></a>
+        <a class="file-tab" href="../../containerized-dev-environments/"><span class="ft">Containerized dev environments</span><span class="fd">survey · rootless Podman, proxy-only network</span></a>
+        <a class="file-tab" href="../../proxmox-as-the-isolation-boundary/"><span class="ft">Proxmox as the isolation boundary</span><span class="fd">expedition · KVM VM, never LXC</span></a>
+        <a class="file-tab" href="../../credential-and-secret-isolation/"><span class="ft">Credential &amp; secret isolation</span><span class="fd">survey · short-lived, narrowly scoped</span></a>
+        <a class="file-tab" href="../../audit-trail-and-recovery-drills/"><span class="ft">Audit trail &amp; recovery drills</span><span class="fd">recon · commits are the real undo</span></a>
+      </div>
+    </section>
+
+    <!-- ════════ ANNEX A ════════ -->
+    <section class="annex">
+      <div class="part-head">
+        <span class="part-no">Annex A</span>
+        <h2>Source register · 28 entries</h2>
+      </div>
+      <p class="part-note">Every claim in this file traces to a numbered entry here.</p>
+
+      <div class="src-grid">
+        <div class="src"><span class="sn">1</span><img src="https://www.google.com/s2/favicons?domain=anthropic.com&amp;sz=128" alt=""><span><a href="https://www.anthropic.com/engineering/claude-code-auto-mode">Anthropic Engineering — Claude Code auto mode threat model</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">2</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><a href="https://github.com/anthropics/claude-code/issues/34327">Issue #34327 — <code>git reset --hard</code> at session startup, twice</a><span class="stype">forum · ⭐ 140k</span></span></div>
+        <div class="src"><span class="sn">3</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><a href="https://github.com/anthropics/claude-code/issues/11237">Issue #11237 — <code>git checkout</code> ate four days of work</a><span class="stype">forum · ⭐ 140k</span></span></div>
+        <div class="src"><span class="sn">4</span><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=128" alt=""><span><a href="https://github.com/anthropics/claude-code/issues/17190">Issue #17190 — destructive reset chosen over safe checkout</a><span class="stype">forum · ⭐ 140k</span></span></div>
+        <div class="src"><span class="sn">5</span><img src="https://www.google.com/s2/favicons?domain=upguard.com&amp;sz=128" alt=""><span><a href="https://www.upguard.com/blog/yolo-mode-hidden-risks-in-claude-code-permissions">UpGuard — YOLO mode: hidden risks in Claude Code permissions</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">6</span><img src="https://www.google.com/s2/favicons?domain=wiz.io&amp;sz=128" alt=""><span><a href="https://www.wiz.io/blog/s1ngularitys-aftermath">Wiz — s1ngularity's aftermath</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">7</span><img src="https://www.google.com/s2/favicons?domain=securitylabs.datadoghq.com&amp;sz=128" alt=""><span><a href="https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/">Datadog Security Labs — Shai-Hulud 2.0 npm worm</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">8</span><img src="https://www.google.com/s2/favicons?domain=unit42.paloaltonetworks.com&amp;sz=128" alt=""><span><a href="https://unit42.paloaltonetworks.com/monitoring-npm-supply-chain-attacks/">Unit 42 — Monitoring npm supply-chain attacks</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">9</span><img src="https://www.google.com/s2/favicons?domain=simonwillison.net&amp;sz=128" alt=""><span><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">Simon Willison — The lethal trifecta</a><span class="stype">analyst blog</span></span></div>
+        <div class="src"><span class="sn">10</span><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=128" alt=""><span><a href="https://code.claude.com/docs/en/data-usage">Claude Code documentation — Data usage</a><span class="stype">official</span></span></div>
+        <div class="src"><span class="sn">11</span><img src="https://www.google.com/s2/favicons?domain=cloudsecurityalliance.org&amp;sz=128" alt=""><span><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-indirect-prompt-injection-in-the-wild-2026/">CSA Labs — Indirect prompt injection in the wild (2026)</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">12</span><img src="https://www.google.com/s2/favicons?domain=embracethered.com&amp;sz=128" alt=""><span><a href="https://embracethered.com/blog/posts/2025/claude-code-exfiltration-via-dns-requests/">Embrace The Red — exfiltration via DNS requests (CVE-2025-55284)</a><span class="stype">researcher blog</span></span></div>
+        <div class="src"><span class="sn">13</span><img src="https://www.google.com/s2/favicons?domain=oddguan.com&amp;sz=128" alt=""><span><a href="https://oddguan.com/blog/second-time-same-sandbox-anthropic-claude-code-network-allowlist-bypass-data-exfiltration/">oddguan — Second time, same sandbox: allowlist bypass</a><span class="stype">researcher blog</span></span></div>
+        <div class="src"><span class="sn">14</span><img src="https://www.google.com/s2/favicons?domain=sentinelone.com&amp;sz=128" alt=""><span><a href="https://www.sentinelone.com/vulnerability-database/cve-2026-39861/">SentinelOne vulnerability database — CVE-2026-39861</a><span class="stype">vendor database</span></span></div>
+        <div class="src"><span class="sn">15</span><img src="https://www.google.com/s2/favicons?domain=thehackernews.com&amp;sz=128" alt=""><span><a href="https://thehackernews.com/2026/02/claude-code-flaws-allow-remote-code.html">The Hacker News — Claude Code flaws allow remote code execution</a><span class="stype">news</span></span></div>
+        <div class="src"><span class="sn">16</span><img src="https://www.google.com/s2/favicons?domain=cloudsecurityalliance.org&amp;sz=128" alt=""><span><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-claude-code-github-action-prompt-injection/">CSA Labs — GitHub Action prompt injection (CVE-2025-66032)</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">17</span><img src="https://www.google.com/s2/favicons?domain=phoenix.security&amp;sz=128" alt=""><span><a href="https://phoenix.security/claude-code-leak-to-vulnerability-three-cves-in-claude-code-cli-and-the-chain-that-connects-them/">Phoenix Security — three CVEs and the chain that connects them</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">18</span><img src="https://www.google.com/s2/favicons?domain=esecurityplanet.com&amp;sz=128" alt=""><span><a href="https://www.esecurityplanet.com/threats/claude-code-mcp-attack-enables-persistent-token-theft/">eSecurity Planet — MCP attack enables persistent token theft</a><span class="stype">news</span></span></div>
+        <div class="src"><span class="sn">19</span><img src="https://www.google.com/s2/favicons?domain=snyk.io&amp;sz=128" alt=""><span><a href="https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/">Snyk — malicious MCP server on npm harvests emails</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">20</span><img src="https://www.google.com/s2/favicons?domain=practical-devsecops.com&amp;sz=128" alt=""><span><a href="https://www.practical-devsecops.com/mcp-security-statistics-2026-report/">Practical DevSecOps — MCP security statistics 2026</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">21</span><img src="https://www.google.com/s2/favicons?domain=appsecsanta.com&amp;sz=128" alt=""><span><a href="https://appsecsanta.com/research/mcp-server-security-audit-2026">AppSec Santa — MCP server security audit 2026</a><span class="stype">researcher audit</span></span></div>
+        <div class="src"><span class="sn">22</span><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=128" alt=""><span><a href="https://arxiv.org/html/2601.17548v1">arXiv 2601.17548 — systematic analysis of agentic coding assistants</a><span class="stype">peer-reviewed</span></span></div>
+        <div class="src"><span class="sn">23</span><img src="https://www.google.com/s2/favicons?domain=scworld.com&amp;sz=128" alt=""><span><a href="https://www.scworld.com/brief/claude-code-vulnerable-to-prompt-injection-due-to-subcommand-limit">SC World — deny rules bypassed via the subcommand limit</a><span class="stype">news</span></span></div>
+        <div class="src"><span class="sn">24</span><img src="https://www.google.com/s2/favicons?domain=zenity.io&amp;sz=128" alt=""><span><a href="https://zenity.io/blog/current-events/ai-agent-database-deletion-pocketos">Zenity — AI agent database deletion at PocketOS</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">25</span><img src="https://www.google.com/s2/favicons?domain=thehackernews.com&amp;sz=128" alt=""><span><a href="https://thehackernews.com/2026/07/new-hallusquatting-attack-could-trick.html">The Hacker News — new HalluSquatting attack</a><span class="stype">news</span></span></div>
+        <div class="src"><span class="sn">26</span><img src="https://www.google.com/s2/favicons?domain=cloudsecurityalliance.org&amp;sz=128" alt=""><span><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-slopsquatting-ai-supply-chain-20260419-csa/">CSA Labs — slopsquatting and the AI supply chain</a><span class="stype">vendor blog</span></span></div>
+        <div class="src"><span class="sn">27</span><img src="https://www.google.com/s2/favicons?domain=medium.com&amp;sz=128" alt=""><span><a href="https://kikipreteau.medium.com/claude-code-threat-landscape-q2-2026-b29dddb9bf18">Claude Code threat landscape, Q2 2026</a><span class="stype">analyst post</span></span></div>
+        <div class="src"><span class="sn">28</span><img src="https://www.google.com/s2/favicons?domain=anthropic.com&amp;sz=128" alt=""><span><a href="https://www.anthropic.com/news/disrupting-AI-espionage">Anthropic — disrupting AI espionage (GTG-1002)</a><span class="stype">official</span></span></div>
+      </div>
+
+      <div class="colophon">
+        <span>Atlas Threat Intelligence · case 2026-07-30 / TM-01 · assessment depth: survey</span>
+        <span><a href="../">Canonical page</a> · <a href="../../">Parent case file</a> · <a href="/">Atlas</a></span>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="d-class d-class--foot">
+    <span>End of file</span>
+    <span class="cx">// no classified material //</span>
+    <span>28 sources · 14 exhibits</span>
+  </div>
+
+</div>
