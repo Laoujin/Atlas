@@ -1,0 +1,772 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Naxos in 3–4 days: where to base yourself — Scoreboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+.sb {
+  --lime: #f4f1e8;
+  --lime-2: #ebe6d8;
+  --aegean: #0d3b63;
+  --aegean-2: #17679f;
+  --sky: #3fa7d6;
+  --ink: #17181a;
+  --muted: #6b6a63;
+  --rule: #cfc7b4;
+  --bougain: #c0296b;
+  --sand: #e6b96b;
+
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--lime);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.sb *, .sb *::before, .sb *::after { box-sizing: border-box; }
+.sb a { color: inherit; }
+.sb .wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem); }
+
+/* ── board header ───────────────────────────────────────────── */
+.sb-head {
+  background: var(--aegean);
+  color: #fff;
+  border-bottom: 6px solid var(--sand);
+  padding: clamp(1.5rem, 4vw, 3rem) 0 clamp(1.25rem, 3vw, 2rem);
+  position: relative;
+  overflow: hidden;
+}
+.sb-head::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, transparent 2px 7px);
+  pointer-events: none;
+}
+.sb-head .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: end; }
+.kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--sand); margin: 0 0 .6rem;
+}
+.verdict-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(255,255,255,.6); margin: 0 0 .1rem;
+}
+.verdict {
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  font-size: clamp(3.6rem, 12vw, 8.5rem);
+  line-height: .84; letter-spacing: .01em;
+  margin: 0 0 .5rem;
+}
+.verdict small {
+  display: block;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: clamp(.95rem, 1.8vw, 1.15rem);
+  font-weight: 400; line-height: 1.45; letter-spacing: 0;
+  color: rgba(255,255,255,.86);
+  max-width: 46ch; margin-top: .9rem;
+}
+.head-cover { width: 210px; opacity: .85; display: block; }
+@media (max-width: 780px) { .sb-head .wrap { grid-template-columns: 1fr; } .head-cover { display: none; } }
+
+/* ── ruling chips ───────────────────────────────────────────── */
+.rulings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; border-bottom: 2px solid var(--aegean); background: #fff; }
+.ruling { padding: 1.1rem 1.25rem; border-right: 1px solid var(--rule); }
+.ruling:last-child { border-right: 0; }
+.ruling.win { background: var(--aegean); color: #fff; }
+.ruling.skip { background: var(--bougain); color: #fff; }
+.ruling h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  margin: 0 0 .45rem; opacity: .75;
+}
+.ruling p { margin: 0; font-size: .93rem; line-height: 1.4; }
+.ruling strong { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; font-weight: 400; letter-spacing: .02em; display: block; margin-bottom: .2rem; }
+
+/* ── section furniture ──────────────────────────────────────── */
+.sec { margin-top: clamp(2.2rem, 5vw, 3.4rem); }
+.sec-title {
+  font-family: 'Bebas Neue', sans-serif; font-weight: 400;
+  font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: .02em;
+  margin: 0 0 .25rem; color: var(--aegean);
+}
+.sec-note { margin: 0 0 1.2rem; font-size: .86rem; color: var(--muted); max-width: 74ch; }
+
+/* ── the board ──────────────────────────────────────────────── */
+.board-scroll { overflow-x: auto; background: #fff; border: 2px solid var(--aegean); }
+table.board { border-collapse: collapse; width: 100%; min-width: 1030px; }
+table.board th, table.board td { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.board th:last-child, table.board td:last-child { border-right: 0; }
+
+th.axis, td.axis {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--lime-2);
+  width: 176px; min-width: 176px;
+  text-align: left; padding: .7rem .8rem;
+  border-right: 2px solid var(--aegean);
+}
+td.axis .axis-name { font-weight: 700; font-size: .88rem; display: block; line-height: 1.25; }
+td.axis .axis-best {
+  display: block; margin-top: .18rem;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+
+th.col { padding: 0; width: 122px; min-width: 122px; background: #fff; }
+th.col .shot { display: block; width: 100%; height: 84px; object-fit: cover; }
+th.col .name {
+  display: block; padding: .45rem .5rem .55rem;
+  font-family: 'Bebas Neue', sans-serif; font-weight: 400;
+  font-size: 1.12rem; line-height: 1.02; letter-spacing: .02em;
+  text-align: center; border-top: 3px solid var(--rule);
+}
+th.col .rank {
+  display: block; font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .14em; color: var(--muted);
+  margin-top: .22rem;
+}
+th.col.champ .name { border-top-color: var(--bougain); background: var(--aegean); color: #fff; }
+th.col.champ .rank { color: var(--sand); }
+th.axis.corner { background: var(--aegean); border-bottom: 1px solid var(--aegean); }
+th.axis.corner span {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--sand);
+  display: block; padding-top: 4.6rem;
+}
+
+td.cell { padding: .55rem .5rem .6rem; text-align: center; background: #fff; }
+td.cell.champ { background: #eef4f9; }
+tr.zebra td.cell { background: #fbfaf6; }
+tr.zebra td.cell.champ { background: #e7eff7; }
+
+.pips { display: flex; gap: 3px; justify-content: center; margin-bottom: .3rem; }
+.pip { width: 12px; height: 12px; border: 1.5px solid var(--aegean); }
+.pip.on { background: var(--aegean); }
+.pip.zero { border-color: var(--rule); }
+.champ .pip.on { background: var(--bougain); border-color: var(--bougain); }
+.champ .pip { border-color: var(--bougain); }
+.nodata { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--rule); display: block; margin-bottom: .1rem; }
+
+.val { font-size: 10.5px; line-height: 1.3; color: var(--muted); display: block; }
+.val b { color: var(--ink); font-weight: 600; }
+.sb sup a { color: var(--aegean-2); text-decoration: none; font-size: 8.5px; padding-left: 1px; }
+.sb sup a:hover { text-decoration: underline; }
+
+tr.labelrow td.cell { background: var(--lime-2); padding-top: .5rem; padding-bottom: .5rem; }
+tr.labelrow td.cell.champ { background: #dfe8f1; }
+.tag { font-size: 10.5px; line-height: 1.28; display: block; color: var(--ink); }
+
+tr.total td { border-bottom: 0; background: var(--aegean); color: #fff; padding: .7rem .5rem .8rem; }
+tr.total td.axis { background: var(--aegean); color: var(--sand); border-right-color: var(--sand); }
+tr.total td.axis .axis-name { color: var(--sand); }
+tr.total td.axis .axis-best { color: rgba(255,255,255,.55); }
+.score { font-family: 'Bebas Neue', sans-serif; font-size: 2.35rem; line-height: .9; letter-spacing: .02em; }
+.score span { font-size: .95rem; opacity: .5; }
+tr.total td.champ .score { color: var(--sand); }
+.bar { height: 5px; background: rgba(255,255,255,.18); margin-top: .4rem; }
+.bar i { display: block; height: 100%; background: var(--sky); }
+tr.total td.champ .bar i { background: var(--sand); }
+
+/* ── winner panel ───────────────────────────────────────────── */
+.winner {
+  display: grid; grid-template-columns: 1.15fr .85fr; gap: 0;
+  border: 2px solid var(--aegean); background: #fff; margin-top: 1.5rem;
+}
+@media (max-width: 720px) { .winner { grid-template-columns: 1fr; } }
+.winner-txt { padding: clamp(1.2rem, 3vw, 2rem); }
+.winner-txt h3 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 2rem; letter-spacing: .02em; margin: 0 0 .6rem; color: var(--aegean); }
+.winner-txt p { margin: 0 0 .8rem; font-size: .95rem; }
+.winner-txt p:last-child { margin-bottom: 0; }
+.winner-shot { position: relative; }
+.winner-shot img { width: 100%; height: 100%; min-height: 220px; object-fit: cover; display: block; }
+.winner-shot figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: rgba(13,59,99,.88); color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: .1em; text-transform: uppercase; padding: .5rem .7rem;
+}
+.winner-shot figcaption a { color: var(--sand); }
+
+/* ── properties ─────────────────────────────────────────────── */
+.props { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.prop { background: #fff; padding: .95rem 1rem 1rem; }
+.prop.champ { background: #eef4f9; }
+.prop-base {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+  margin: 0 0 .4rem;
+}
+.prop-name { display: flex; align-items: center; gap: .5rem; margin: 0 0 .4rem; }
+.prop-name img { width: 20px; height: 20px; flex: 0 0 20px; }
+.prop-name a { font-family: 'Bebas Neue', sans-serif; font-size: 1.28rem; letter-spacing: .02em; color: var(--aegean); text-decoration: none; }
+.prop-name a:hover { text-decoration: underline; }
+.prop p { margin: 0; font-size: .84rem; line-height: 1.4; color: var(--muted); }
+.prop p b { color: var(--ink); font-weight: 600; }
+
+/* ── split panel ────────────────────────────────────────────── */
+.split { display: grid; grid-template-columns: minmax(120px, 200px) 1fr; align-items: center; gap: clamp(1rem, 3vw, 2.4rem); background: var(--bougain); color: #fff; padding: clamp(1.4rem, 3.5vw, 2.4rem); }
+@media (max-width: 620px) { .split { grid-template-columns: 1fr; } }
+.split .no { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5rem, 16vw, 9rem); line-height: .78; }
+.split p { margin: 0 0 .7rem; font-size: .97rem; }
+.split p:last-child { margin-bottom: 0; }
+.split .h { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; opacity: .8; display: block; margin-bottom: .5rem; }
+.split a { color: #ffd9a8; }
+
+/* ── legend ─────────────────────────────────────────────────── */
+.legend { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; margin-top: .9rem; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.legend .swatch { display: inline-flex; gap: 3px; vertical-align: -1px; margin-right: .35rem; }
+.legend .swatch i { width: 9px; height: 9px; border: 1.5px solid var(--aegean); display: block; }
+.legend .swatch i.on { background: var(--aegean); }
+
+/* ── sources ────────────────────────────────────────────────── */
+.srcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.src { background: #fff; padding: .7rem .8rem .75rem; display: grid; grid-template-columns: 18px 1fr; gap: .55rem; }
+.src img { width: 18px; height: 18px; margin-top: 2px; }
+.src .n { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--bougain); letter-spacing: .1em; }
+.src a { font-size: .82rem; font-weight: 600; color: var(--aegean); text-decoration: none; display: block; word-break: break-word; }
+.src a:hover { text-decoration: underline; }
+.src p { margin: .2rem 0 0; font-size: .74rem; line-height: 1.35; color: var(--muted); }
+
+/* ── siblings ───────────────────────────────────────────────── */
+.sibs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.sib { background: #fff; padding: .9rem 1rem 1rem; text-decoration: none; display: block; }
+.sib:hover { background: var(--lime-2); }
+.sib .d { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--bougain); }
+.sib h4 { margin: .25rem 0 .3rem; font-size: .92rem; color: var(--aegean); line-height: 1.25; }
+.sib p { margin: 0; font-size: .78rem; line-height: 1.38; color: var(--muted); }
+
+.colophon { margin-top: 2.4rem; padding-top: 1rem; border-top: 2px solid var(--aegean); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap; gap: 1.2rem; }
+.colophon a { color: var(--aegean); }
+</style>
+
+<div class="sb">
+
+<header class="sb-head">
+  <div class="wrap">
+    <div>
+      <p class="kicker">Naxos · 3–4 nights · first visit · 2026</p>
+      <p class="verdict-label">The board says</p>
+      <h1 class="verdict">Chora
+        <small>Port in town, all 14 bus routes, the island's best dinner and a beach — all on foot. It also happens to be the cheapest area on Naxos <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup>.</small>
+      </h1>
+    </div>
+    <img class="head-cover" src="../cover.svg" alt="">
+  </div>
+</header>
+
+<section class="rulings">
+  <div class="ruling win">
+    <h3>Winner · 26 / 30</h3>
+    <p><strong>Chora (Naxos Town)</strong>Ferry port is in town <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup>, Agios Georgios beach ~5 min on foot <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup>.</p>
+  </div>
+  <div class="ruling">
+    <h3>Unless · pure swim-and-sleep</h3>
+    <p><strong>Ag. Prokopios / Agia Anna</strong>Sand at the door, 15–17 min and €1.80 back to town <sup><a href="https://naxosbuses.com/">[3]</a></sup>.</p>
+  </div>
+  <div class="ruling">
+    <h3>Unless · best sand, and you drive</h3>
+    <p><strong>Plaka</strong>Quiet going south, but the bus timetable dictates a car-free day <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup>.</p>
+  </div>
+  <div class="ruling skip">
+    <h3>Skip as a base</h3>
+    <p><strong>Mountains · far south</strong>30–45 min to any beach <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup>; "little or no bus service" in the south <sup><a href="https://naxosinsider.com/naxos-bus-timetable/">[4]</a></sup>.</p>
+  </div>
+</section>
+
+<div class="wrap">
+
+<section class="sec">
+  <h2 class="sec-title">The board</h2>
+  <p class="sec-note">Seven candidate bases, eight axes. Filled marks always mean <em>better for a car-free 3–4 night first visit</em> — so quiet counts as a virtue and a cheap bed counts as a win. Every mark is a rendering of the cited fact printed beneath it; where the ledger has no number, the cell says so rather than guessing.</p>
+
+  <div class="board-scroll">
+  <table class="board">
+    <thead>
+      <tr>
+        <th class="axis corner"><span>Axis / base</span></th>
+        <th class="col champ">
+          <img class="shot" src="scoreboard/images/chora.webp" alt="Chora of Naxos seen from the harbour">
+          <span class="name">Chora<span class="rank">1st · Naxos Town</span></span>
+        </th>
+        <th class="col">
+          <img class="shot" src="scoreboard/images/agia-anna.webp" alt="The small harbour at Agia Anna, Naxos">
+          <span class="name">Agia Anna<span class="rank">2nd · beach strip</span></span>
+        </th>
+        <th class="col">
+          <img class="shot" src="scoreboard/images/agios-prokopios.webp" alt="The main street of Agios Prokopios lined with tavernas">
+          <span class="name">Ag. Prokopios<span class="rank">3rd · beach strip</span></span>
+        </th>
+        <th class="col">
+          <img class="shot" src="scoreboard/images/plaka.webp" alt="Plaka beach, Naxos">
+          <span class="name">Plaka<span class="rank">4th · beach strip</span></span>
+        </th>
+        <th class="col">
+          <img class="shot" src="scoreboard/images/mikri-vigla.webp" alt="Kitesurfers off Mikri Vigla, Naxos">
+          <span class="name">Mikri Vigla<span class="rank">5th · south-west</span></span>
+        </th>
+        <th class="col">
+          <img class="shot" src="scoreboard/images/pyrgaki-agiassos.webp" alt="The bay at Agiassos in the far south of Naxos">
+          <span class="name">Pyrgaki<span class="rank">6th · far south</span></span>
+        </th>
+        <th class="col">
+          <img class="shot" src="scoreboard/images/halki-filoti.webp" alt="Chalki village in the Naxos interior">
+          <span class="name">Halki / Filoti<span class="rank">7th · mountains</span></span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td class="axis"><span class="axis-name">Walk to the port</span><span class="axis-best">Full = in town</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>In town</b> <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val">No <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>5.6 km</b> to port <sup><a href="https://www.melidronnaxos.gr/location/">[8]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val">No <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val">No <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>~45 min</b> drive <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>30–45 min</b> drive <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr class="zebra">
+        <td class="axis"><span class="axis-name">Walk to a beach</span><span class="axis-best">Full = on the sand</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val"><b>~5 min</b> to Agios Georgios <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>10 m</b> to the public beach <sup><a href="https://www.iriabeach-naxos.com/">[9]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val"><b>150 m</b> / ~3 min <sup><a href="https://www.melidronnaxos.gr/location/">[8]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>On the sand</b> <sup><a href="https://ammothinesnaxos.com/">[10]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>On the sand</b> <sup><a href="https://www.mikriviglahotel.com/">[11]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>On the sand</b>, shallow <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup><sup><a href="https://www.finikashotel.gr/">[13]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>None</b> — beach is a day trip <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="axis"><span class="axis-name">Walk to dinner + a bar</span><span class="axis-best">Full = best on the island</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>Best on the island</b> — harbour south end + old-town alleys <sup><a href="https://travel-greece.org/nightlife-naxos-island-2026">[15]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Beach tavernas + one late beach club <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Beach restaurants; thin late without transport <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">North end only; south stretch empty <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Few independent restaurants <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Limited tavernas <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Village tavernas, limited <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr class="zebra">
+        <td class="axis"><span class="axis-name">Bus link to Chora</span><span class="axis-best">Full = it is the hub</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>All 14 routes</b> radiate from here; 91 stops <sup><a href="https://greekislandbuses.com/islands/naxos/buses">[16]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val"><b>17 min · €1.80</b> <sup><a href="https://naxosbuses.com/">[3]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val"><b>15 min · €1.80</b>, ~every 30 min in summer <sup><a href="https://naxosbuses.com/">[3]</a></sup><sup><a href="https://naxosinsider.com/naxos-bus-timetable/">[4]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val"><b>25 min · €2.00</b> <sup><a href="https://naxosbuses.com/">[3]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val"><b>35 min · €2.60</b> <sup><a href="https://naxosbuses.com/">[3]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val">"Little or no bus service" <sup><a href="https://naxosinsider.com/naxos-bus-timetable/">[4]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val"><b>30–35 min · €2.30–2.60</b>, only a handful a day <sup><a href="https://naxosbuses.com/">[3]</a></sup><sup><a href="https://naxosinsider.com/naxos-bus-timetable/">[4]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="axis"><span class="axis-name">Car-free viable</span><span class="axis-best">Full = no car at all</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>Yes</b> <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>Yes</b> <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>Yes</b> <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Only just — "the bus timetable will dictate your day" <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>Car essential</b> <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>Car required</b> <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i><i class="pip zero"></i></span>
+          <span class="val"><b>Car essential</b> <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr class="zebra">
+        <td class="axis"><span class="axis-name">Quiet at night</span><span class="axis-best">Full = very quiet</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Waterfront busy, old town quieter <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val">Calmer, village-ish <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val">Moderate, resort-like <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val">Low, quieter going south <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val">Quiet <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val">Very quiet <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val">Very quiet <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="axis"><span class="axis-name">Nightly rate</span><span class="axis-best">Full = cheapest · not scored</span></td>
+        <td class="cell champ">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></span>
+          <span class="val"><b>Cheapest area on the island</b> <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span>
+          <span class="val"><b>Cheapest of the beach strip</b> <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val"><b>€60–120</b> shoulder, "climbing considerably" in Aug <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val"><b>€80–150</b> shoulder <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span>
+        </td>
+        <td class="cell">
+          <span class="nodata">—</span>
+          <span class="val">No rate in the ledger</span>
+        </td>
+        <td class="cell">
+          <span class="nodata">—</span>
+          <span class="val">No rate in the ledger</span>
+        </td>
+        <td class="cell">
+          <span class="pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+          <span class="val"><b>From ~$338</b> at the top end <sup><a href="https://www.tripadvisor.com/Hotel_Review-g12591112-d12563157-Reviews-ELaiolithos-Moni_Naxos_Cyclades_South_Aegean.html">[14]</a></sup></span>
+        </td>
+      </tr>
+
+      <tr class="labelrow">
+        <td class="axis"><span class="axis-name">Who it fits</span><span class="axis-best">Not scored</span></td>
+        <td class="cell champ"><span class="tag">Couples + first-timers <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+        <td class="cell"><span class="tag">Families <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span></td>
+        <td class="cell"><span class="tag">Families + couples <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+        <td class="cell"><span class="tag">Couples, slow travel <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup></span></td>
+        <td class="cell"><span class="tag">Wind-sports, active <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+        <td class="cell"><span class="tag">Calm-water families <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+        <td class="cell"><span class="tag">Repeat visitors <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+      </tr>
+
+      <tr class="labelrow">
+        <td class="axis"><span class="axis-name">Driving tax over 3–4 days</span><span class="axis-best">Not scored</span></td>
+        <td class="cell champ"><span class="tag">Zero baseline — everything radiates out</span></td>
+        <td class="cell"><span class="tag">+4.7 km each way to Chora <sup><a href="https://www.melidronnaxos.gr/location/">[8]</a></sup></span></td>
+        <td class="cell"><span class="tag">+4.7 km each way to Chora <sup><a href="https://www.melidronnaxos.gr/location/">[8]</a></sup></span></td>
+        <td class="cell"><span class="tag">Every dinner out is a drive</span></td>
+        <td class="cell"><span class="tag">All meals + all sights</span></td>
+        <td class="cell"><span class="tag">~45 min to town, both ways <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+        <td class="cell"><span class="tag">30–45 min to any beach, both ways, daily <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup></span></td>
+      </tr>
+
+      <tr class="total">
+        <td class="axis"><span class="axis-name">Board total</span><span class="axis-best">6 scored axes · max 30</span></td>
+        <td class="cell champ"><span class="score">26<span>/30</span></span><span class="bar"><i style="width:87%"></i></span></td>
+        <td class="cell"><span class="score">21<span>/30</span></span><span class="bar"><i style="width:70%"></i></span></td>
+        <td class="cell"><span class="score">19<span>/30</span></span><span class="bar"><i style="width:63%"></i></span></td>
+        <td class="cell"><span class="score">16<span>/30</span></span><span class="bar"><i style="width:53%"></i></span></td>
+        <td class="cell"><span class="score">13<span>/30</span></span><span class="bar"><i style="width:43%"></i></span></td>
+        <td class="cell"><span class="score">11<span>/30</span></span><span class="bar"><i style="width:37%"></i></span></td>
+        <td class="cell"><span class="score">8<span>/30</span></span><span class="bar"><i style="width:27%"></i></span></td>
+      </tr>
+
+    </tbody>
+  </table>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Filled = better for a car-free first visit</span>
+    <span>Total = the six scored axes, unweighted</span>
+    <span>Rate row excluded — two bases have no rate in the ledger</span>
+    <span>Island anchor: avg Naxos hotel <b>~$157</b>/night, high season <b>~$292</b> <sup><a href="https://www.budgetyourtrip.com/hotels/greece/naxos-256632">[5]</a></sup></span>
+  </div>
+</section>
+
+<section class="sec">
+  <h2 class="sec-title">Why Chora takes it</h2>
+  <div class="winner">
+    <div class="winner-txt">
+      <h3>One base, zero transfers, everything on foot</h3>
+      <p>The ferry drops you in the middle of it <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup>, so night one costs you no transfer. Every KTEL line starts here — 14 routes, 91 stops, summer 2026 schedules already published <sup><a href="https://greekislandbuses.com/islands/naxos/buses">[16]</a></sup> — so the beach strip, the Tragaea and Apeiranthos are all day-trips from your own door.</p>
+      <p>Dinner is the tiebreak. The island's restaurants and bars concentrate at the south end of the harbour and through the old-town alleys <sup><a href="https://travel-greece.org/nightlife-naxos-island-2026">[15]</a></sup>. On the beach strip the same evening needs transport <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup>.</p>
+      <p>And it is the cheapest area on the island <sup><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></sup>. The only axis Chora loses is quiet: the waterfront is busy, the old town less so <sup><a href="https://santorinidave.com/best-places-naxos">[1]</a></sup>.</p>
+    </div>
+    <figure class="winner-shot" style="margin:0">
+      <img src="scoreboard/images/agios-georgios.webp" alt="Agios Georgios, the town beach at Naxos Chora">
+      <figcaption>Agios Georgios — the town beach, ~5 minutes on foot from the old town <a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">[2]</a></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="sec">
+  <h2 class="sec-title">One verified property per base</h2>
+  <p class="sec-note">Each of these is in the citation ledger with its own official site — not a booking aggregator. Nothing here is a rate quote; the ledger only carries what each hotel says about where it stands.</p>
+  <div class="props">
+
+    <div class="prop champ">
+      <p class="prop-base">Chora · 1st</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=hotelgrotta.gr&sz=128" alt=""><a href="https://www.hotelgrotta.gr/">Hotel Grotta</a></p>
+      <p>Family-run in the Grotta area, <b>~5-minute walk</b> to the town centre <sup><a href="https://www.hotelgrotta.gr/">[6]</a></sup></p>
+    </div>
+
+    <div class="prop champ">
+      <p class="prop-base">Chora · 1st</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=nissaki-beach.com&sz=128" alt=""><a href="https://www.nissaki-beach.com/">Nissaki Beach</a></p>
+      <p><b>5-star beachfront</b> in Naxos Town <sup><a href="https://www.nissaki-beach.com/">[7]</a></sup></p>
+    </div>
+
+    <div class="prop">
+      <p class="prop-base">Agia Anna · 2nd</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=iriabeach-naxos.com&sz=128" alt=""><a href="https://www.iriabeach-naxos.com/">Iria Beach Art Hotel</a></p>
+      <p>Boutique, <b>10 m</b> from the Agia Anna public beach <sup><a href="https://www.iriabeach-naxos.com/">[9]</a></sup></p>
+    </div>
+
+    <div class="prop">
+      <p class="prop-base">Agios Prokopios · 3rd</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=melidronnaxos.gr&sz=128" alt=""><a href="https://www.melidronnaxos.gr/location/">Melidron</a></p>
+      <p><b>3-min walk</b> to the beach; 4.7 km to town, 5.6 km to the port <sup><a href="https://www.melidronnaxos.gr/location/">[8]</a></sup></p>
+    </div>
+
+    <div class="prop">
+      <p class="prop-base">Plaka · 4th</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=ammothinesnaxos.com&sz=128" alt=""><a href="https://ammothinesnaxos.com/">Ammothines Cycladic Suites</a></p>
+      <p>On the dunes — "<b>a breath away</b>" from Plaka's water <sup><a href="https://ammothinesnaxos.com/">[10]</a></sup></p>
+    </div>
+
+    <div class="prop">
+      <p class="prop-base">Mikri Vigla · 5th</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=mikriviglahotel.com&sz=128" alt=""><a href="https://www.mikriviglahotel.com/">Mikri Vigla Hotel</a></p>
+      <p>On the beach, geared to <b>wind- and kitesurfers</b>; "an easy drive" from town <sup><a href="https://www.mikriviglahotel.com/">[11]</a></sup></p>
+    </div>
+
+    <div class="prop">
+      <p class="prop-base">Pyrgaki · 6th</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=finikashotel.gr&sz=128" alt=""><a href="https://www.finikashotel.gr/">Finikas Beach Hotel</a></p>
+      <p>Beachfront at Pyrgaki, <b>far south</b> <sup><a href="https://www.finikashotel.gr/">[13]</a></sup></p>
+    </div>
+
+    <div class="prop">
+      <p class="prop-base">Mountains · 7th</p>
+      <p class="prop-name"><img src="https://www.google.com/s2/favicons?domain=elaiolithos.com&sz=128" alt=""><a href="https://www.elaiolithos.com/">ELaiolithos</a></p>
+      <p>Moni, <b>500 m elevation</b>, five suites, "far from coastal lights" <sup><a href="https://www.elaiolithos.com/">[12]</a></sup> — from ~$338 <sup><a href="https://www.tripadvisor.com/Hotel_Review-g12591112-d12563157-Reviews-ELaiolithos-Moni_Naxos_Cyclades_South_Aegean.html">[14]</a></sup></p>
+    </div>
+
+  </div>
+</section>
+
+<section class="sec">
+  <h2 class="sec-title">Split the stay?</h2>
+  <div class="split">
+    <div class="no">No</div>
+    <div>
+      <span class="h">The second check-in costs a half-day</span>
+      <p>Over 3–4 nights the payoff is small: the whole beach strip is <b>15–25 minutes</b> and <b>€1.80–2.00</b> from Chora <sup><a href="https://naxosbuses.com/">[3]</a></sup>, on a bus that runs roughly every 30 minutes in summer <sup><a href="https://naxosinsider.com/naxos-bus-timetable/">[4]</a></sup>.</p>
+      <p>Base once in Chora and day-trip. Split only at 5+ nights — and then Chora → Plaka, not Chora → mountains.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <h2 class="sec-title">The board's sources</h2>
+  <p class="sec-note">16 sources. Every mark above traces to one of these.</p>
+  <div class="srcs">
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=santorinidave.com&sz=128" alt=""><div>
+      <span class="n">[1]</span><a href="https://santorinidave.com/best-places-naxos">santorinidave.com — Best places to stay on Naxos</a>
+      <p>Per-area breakdown: ferry access, beach, dining, noise, car requirement, who each suits.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=thecommonwanderer.com&sz=128" alt=""><div>
+      <span class="n">[2]</span><a href="https://www.thecommonwanderer.com/blog/best-naxos-hotels-where-to-stay">The Common Wanderer — Best Naxos hotels &amp; where to stay</a>
+      <p>Chora is cheapest and the bus hub; shoulder-season price bands; Plaka is timetable-bound without a car.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=naxosbuses.com&sz=128" alt=""><div>
+      <span class="n">[3]</span><a href="https://naxosbuses.com/">KTEL Naxos — official bus site</a>
+      <p>2026 fares and journey times from Chora to the beach strip and the villages.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=naxosinsider.com&sz=128" alt=""><div>
+      <span class="n">[4]</span><a href="https://naxosinsider.com/naxos-bus-timetable/">Naxos Insider — bus timetable</a>
+      <p>Beach lines ~every 30 min in summer; village lines a handful a day; far south little or none.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=budgetyourtrip.com&sz=128" alt=""><div>
+      <span class="n">[5]</span><a href="https://www.budgetyourtrip.com/hotels/greece/naxos-256632">Budget Your Trip — Naxos hotel prices</a>
+      <p>Island-wide anchor: average $157/night, high season ~$292, median $111.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=hotelgrotta.gr&sz=128" alt=""><div>
+      <span class="n">[6]</span><a href="https://www.hotelgrotta.gr/">Hotel Grotta (official)</a>
+      <p>Grotta area, Naxos Town; ~5-minute walk to the centre.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=nissaki-beach.com&sz=128" alt=""><div>
+      <span class="n">[7]</span><a href="https://www.nissaki-beach.com/">Nissaki Beach Hotel (official)</a>
+      <p>5-star beachfront hotel in Naxos Town.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=melidronnaxos.gr&sz=128" alt=""><div>
+      <span class="n">[8]</span><a href="https://www.melidronnaxos.gr/location/">Melidron Hotel (official) — location</a>
+      <p>150 m from Agios Prokopios beach; 4.7 km to town, 5.6 km to the port.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=iriabeach-naxos.com&sz=128" alt=""><div>
+      <span class="n">[9]</span><a href="https://www.iriabeach-naxos.com/">Iria Beach Art Hotel (official)</a>
+      <p>10 metres from the Agia Anna public beach.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=ammothinesnaxos.com&sz=128" alt=""><div>
+      <span class="n">[10]</span><a href="https://ammothinesnaxos.com/">Ammothines Cycladic Suites (official)</a>
+      <p>Directly on the dunes of Plaka beach.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=mikriviglahotel.com&sz=128" alt=""><div>
+      <span class="n">[11]</span><a href="https://www.mikriviglahotel.com/">Mikri Vigla Hotel (official)</a>
+      <p>On the beach at Mikri Vigla, a drive from Naxos Town.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=elaiolithos.com&sz=128" alt=""><div>
+      <span class="n">[12]</span><a href="https://www.elaiolithos.com/">ELaiolithos (official)</a>
+      <p>Five-suite adults-only retreat in Moni at 500 m elevation.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=finikashotel.gr&sz=128" alt=""><div>
+      <span class="n">[13]</span><a href="https://www.finikashotel.gr/">Finikas Beach Hotel (official)</a>
+      <p>Beachfront at Pyrgaki in the far south.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=tripadvisor.com&sz=128" alt=""><div>
+      <span class="n">[14]</span><a href="https://www.tripadvisor.com/Hotel_Review-g12591112-d12563157-Reviews-ELaiolithos-Moni_Naxos_Cyclades_South_Aegean.html">Tripadvisor — ELaiolithos, Moni</a>
+      <p>Indicative 2026 rate for the top mountain-village property: from $338.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=travel-greece.org&sz=128" alt=""><div>
+      <span class="n">[15]</span><a href="https://travel-greece.org/nightlife-naxos-island-2026">travel-greece.org — Naxos nightlife 2026</a>
+      <p>Restaurants and bars concentrate at the harbour's south end and the old-town alleys.</p></div></div>
+
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=greekislandbuses.com&sz=128" alt=""><div>
+      <span class="n">[16]</span><a href="https://greekislandbuses.com/islands/naxos/buses">Greek Island Buses — Naxos</a>
+      <p>14 routes, 91 stops, summer 2026 schedules live, all radiating from Naxos Town.</p></div></div>
+
+  </div>
+</section>
+
+<section class="sec">
+  <h2 class="sec-title">The rest of the trip</h2>
+  <div class="sibs">
+    <a class="sib" href="../../getting-there-and-getting-around/"><span class="d">Recon</span><h4>Getting there, and whether you need a car</h4><p>Fast ferry from Piraeus, rent a car for 2 of your 3–4 days, bus the beach days.</p></a>
+    <a class="sib" href="../../chora-kastro-the-portara-and-the-town-core/"><span class="d">Survey</span><h4>Chora on foot: Kastro, the Portara and the town core</h4><p>One long day on foot — Old Market early, Kastro mid-morning, Portara at sunset.</p></a>
+    <a class="sib" href="../../the-beaches-coast-by-coast/"><span class="d">Survey</span><h4>Naxos beaches, coast by coast</h4><p>The west-coast strip carries the trip; the east coast and remote south are day-eaters.</p></a>
+    <a class="sib" href="../../the-interior-mountain-villages-marble-country-and-mt-zas/"><span class="d">Expedition</span><h4>The Naxos interior: villages, marble country and Mt Zas</h4><p>Two driving loops and one dawn climb cover the whole interior.</p></a>
+    <a class="sib" href="../../eating-and-drinking-naxian/"><span class="d">Survey</span><h4>Eating and drinking Naxian</h4><p>Two PDO cheeses, a PGI potato, a PGI citron liqueur — and the eating is inland.</p></a>
+    <a class="sib" href="../../day-trips-off-island/"><span class="d">Recon</span><h4>Day trips off Naxos: which one earns a day of four</h4><p>No off-island ferry beats Naxos itself on a 3–4 day first visit.</p></a>
+  </div>
+</section>
+
+<div class="colophon">
+  <span><a href="../">Default view</a></span>
+  <span><a href="../../">Expedition: Naxos in 3–4 days</a></span>
+  <span><a href="/">Atlas</a></span>
+  <span>Recon · 16 sources · scored 2026-08-14</span>
+</div>
+
+</div>
+</div>
