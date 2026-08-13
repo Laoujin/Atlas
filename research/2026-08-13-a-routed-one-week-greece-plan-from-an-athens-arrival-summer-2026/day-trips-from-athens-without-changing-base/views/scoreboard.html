@@ -1,0 +1,701 @@
+---
+layout: view
+view_name: "Scoreboard"
+view_of: ../
+title: "Day trips from Athens without changing base — summer 2026 — Scoreboard"
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+.sb {
+  --ink:      #080d11;
+  --board:    #0e161d;
+  --board-2:  #131f28;
+  --rule:     rgba(255,255,255,.10);
+  --rule-2:   rgba(255,255,255,.18);
+  --paper:    #e9e4d8;
+  --mute:     #8b9aa5;
+  --amber:    #ffb02e;
+  --amber-dk: #7a5313;
+  --sea:      #35b0dc;
+  --green:    #4fc47a;
+  --red:      #ef4b3c;
+  --transit:  #35424c;
+
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+.sb * { box-sizing: border-box; }
+.sb a { color: inherit; }
+.sb h1, .sb h2, .sb h3, .sb h4 {
+  font-family: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin: 0;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.25rem; }
+
+/* ── board head ─────────────────────────────────────────── */
+.head {
+  background: linear-gradient(180deg, #16232d 0%, var(--board) 100%);
+  border-bottom: 3px solid var(--amber);
+  padding: 2.5rem 0 1.75rem;
+}
+.kicker {
+  font-size: .72rem; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 1rem;
+}
+.flaps { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 1.1rem; }
+.flaps span {
+  position: relative;
+  display: inline-block;
+  min-width: 44px;
+  padding: .35rem .2rem .4rem;
+  text-align: center;
+  background: #1b2b36;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 2px 0 rgba(0,0,0,.5);
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 700; font-size: 2.1rem; line-height: 1;
+  color: var(--amber);
+}
+.flaps span::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 52%;
+  height: 1px; background: rgba(0,0,0,.65);
+}
+.flaps .gap { min-width: 18px; background: none; box-shadow: none; }
+.flaps .gap::after { display: none; }
+.head h1 { font-size: clamp(1.5rem, 4.4vw, 2.6rem); line-height: 1.06; max-width: 24ch; }
+.head .strapline { color: var(--mute); margin: .85rem 0 0; max-width: 62ch; font-size: .9rem; }
+.tally { display: flex; flex-wrap: wrap; gap: 0 2.2rem; margin-top: 1.6rem; }
+.tally div { border-top: 1px solid var(--rule-2); padding-top: .45rem; min-width: 90px; }
+.tally b { display: block; font-family: 'Oswald', sans-serif; font-size: 1.9rem; color: var(--paper); line-height: 1; }
+.tally span { font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); }
+
+/* ── verdict slab ───────────────────────────────────────── */
+.verdict {
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: 0;
+  background: var(--board-2);
+  border: 1px solid var(--rule);
+  border-left: 6px solid var(--amber);
+  margin: 2.25rem 0 2.5rem;
+}
+.verdict .copy { padding: 1.9rem 1.9rem 1.6rem; }
+.verdict h2 { font-size: 1.05rem; color: var(--amber); letter-spacing: .22em; margin-bottom: .9rem; }
+.verdict p { margin: 0 0 .85rem; font-size: .96rem; }
+.verdict p:last-child { margin-bottom: 0; }
+.verdict strong { color: var(--amber); }
+.verdict figure { margin: 0; position: relative; }
+.verdict img { width: 100%; height: 100%; min-height: 260px; object-fit: cover; display: block; filter: saturate(.9) contrast(1.05); }
+.verdict figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(8,13,17,0) 0%, rgba(8,13,17,.92) 100%);
+  padding: 2.5rem .9rem .7rem;
+  font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--paper);
+}
+
+/* ── legend ─────────────────────────────────────────────── */
+.legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.8rem;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  padding: .8rem 0; margin-bottom: 1.6rem;
+  font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--mute);
+}
+.legend i { display: inline-block; width: 34px; height: 11px; vertical-align: -1px; margin-right: .5rem; border-radius: 1px; }
+.legend .k-site { background: var(--amber); }
+.legend .k-move { background: var(--transit); }
+
+/* ── the rows ───────────────────────────────────────────── */
+.rows { list-style: none; margin: 0; padding: 0; }
+.row {
+  display: grid;
+  grid-template-columns: 46px 108px minmax(180px, 1.15fr) minmax(240px, 2.1fr) 104px 96px 116px;
+  align-items: center;
+  gap: 1rem;
+  padding: .95rem 0;
+  border-bottom: 1px dotted var(--rule-2);
+}
+.row:hover { background: rgba(255,255,255,.028); }
+.rank {
+  font-family: 'Oswald', sans-serif; font-size: 1.55rem; font-weight: 300;
+  color: var(--mute); text-align: right; font-variant-numeric: tabular-nums;
+}
+.shot {
+  width: 108px; height: 72px; object-fit: cover; display: block;
+  border-radius: 2px; filter: saturate(.85) contrast(1.06);
+  border: 1px solid var(--rule-2);
+}
+.who h3 { font-size: 1.08rem; letter-spacing: .02em; }
+.who .mode { margin: .22rem 0 0; font-size: .74rem; color: var(--mute); letter-spacing: .04em; }
+
+.meter { min-width: 0; }
+.track {
+  position: relative; height: 26px; border-radius: 2px;
+  background:
+    repeating-linear-gradient(to right, rgba(255,255,255,.10) 0 1px, transparent 1px 7.1428%),
+    rgba(255,255,255,.035);
+}
+.bar { display: flex; height: 100%; overflow: hidden; border-radius: 2px; }
+.seg { position: relative; height: 100%; }
+.seg.site { background: var(--amber); }
+.seg.move {
+  background: var(--transit);
+  background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.22) 0 4px, transparent 4px 8px);
+}
+.seg.shards { background: none; display: flex; gap: 3px; }
+.seg.shards b { display: block; height: 100%; background: var(--amber); }
+.meter .nums {
+  display: flex; justify-content: space-between; gap: .6rem;
+  margin-top: .3rem; font-size: .68rem; color: var(--mute); letter-spacing: .06em;
+}
+.meter .nums .on { color: var(--amber); }
+.row.v-trap .seg.site, .row.v-trap .seg.shards b { background: var(--red); }
+.row.v-trap .meter .nums .on { color: var(--red); }
+
+.cost { font-size: .92rem; font-variant-numeric: tabular-nums; }
+.cost span { display: block; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+
+.sun { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.pips { display: flex; gap: 3px; margin-bottom: .3rem; }
+.pips b { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.14); display: block; }
+.pips b.on { background: var(--sea); }
+.pips.hot b.on { background: var(--red); }
+.pips.warm b.on { background: var(--amber); }
+
+.stamp {
+  justify-self: start;
+  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .95rem;
+  letter-spacing: .14em; padding: .35rem .7rem;
+  border: 2px solid currentColor; border-radius: 3px;
+  transform: rotate(-4deg);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.35);
+}
+.v-pick  .stamp { color: var(--green); }
+.v-solid .stamp { color: var(--amber); }
+.v-bench .stamp { color: var(--mute); }
+.v-skip  .stamp { color: #b46b5e; }
+.v-trap  .stamp { color: var(--red); border-style: double; border-width: 4px; }
+
+.note { grid-column: 3 / -1; font-size: .78rem; color: var(--mute); margin: .1rem 0 0; }
+.note sup a, .who sup a, .verdict sup a, .band sup a, .trap-card sup a { color: var(--sea); text-decoration: none; }
+sup { font-size: .62em; }
+
+/* ── trap panels ────────────────────────────────────────── */
+.section-title {
+  margin: 3rem 0 1.2rem; font-size: 1.15rem; letter-spacing: .24em;
+  display: flex; align-items: center; gap: 1rem;
+}
+.section-title::after { content: ""; flex: 1; height: 1px; background: var(--rule-2); }
+.traps { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.trap-card { border: 1px solid rgba(239,75,60,.45); background: #150f0f; }
+.trap-card img { width: 100%; height: 200px; object-fit: cover; display: block; filter: saturate(.75) contrast(1.05); }
+.trap-card .body { padding: 1.15rem 1.25rem 1.35rem; }
+.trap-card h3 { font-size: 1.15rem; color: var(--red); margin-bottom: .5rem; }
+.trap-card p { margin: 0 0 .7rem; font-size: .86rem; }
+.trap-card p:last-child { margin-bottom: 0; }
+.trap-card q { color: var(--paper); font-style: italic; }
+.arith {
+  display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0;
+}
+.arith b {
+  font-family: 'Oswald', sans-serif; font-weight: 500; font-size: .72rem;
+  letter-spacing: .1em; padding: .25rem .5rem; border: 1px solid var(--rule-2);
+  color: var(--mute);
+}
+.arith b.bad { color: var(--red); border-color: rgba(239,75,60,.5); }
+
+/* ── heat band ──────────────────────────────────────────── */
+.band {
+  margin-top: 3rem; border: 1px solid var(--rule);
+  background: var(--board-2);
+  display: grid; grid-template-columns: 240px 1fr;
+}
+.band img { width: 100%; height: 100%; min-height: 220px; object-fit: cover; display: block; }
+.band .body { padding: 1.6rem 1.8rem; }
+.band h3 { font-size: 1.15rem; color: var(--amber); letter-spacing: .18em; margin-bottom: .8rem; }
+.band p { margin: 0 0 .8rem; font-size: .9rem; }
+.band .temp {
+  font-family: 'Oswald', sans-serif; font-size: 3.2rem; font-weight: 700;
+  color: var(--red); line-height: 1; float: right; margin: 0 0 .4rem 1.2rem;
+}
+.band ul { margin: 0; padding-left: 1.1rem; font-size: .88rem; }
+.band li { margin-bottom: .4rem; }
+
+/* ── if the board says no ───────────────────────────────── */
+.fallback { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+.fb-card { border: 1px solid var(--rule); background: var(--board); }
+.fb-card img { width: 100%; height: 170px; object-fit: cover; display: block; filter: saturate(.85); }
+.fb-card .body { padding: 1.1rem 1.2rem 1.3rem; }
+.fb-card h4 { font-size: 1rem; margin-bottom: .45rem; }
+.fb-card p { margin: 0; font-size: .85rem; color: var(--paper); }
+
+/* ── ledger ─────────────────────────────────────────────── */
+.ledger { display: flex; flex-wrap: wrap; gap: .5rem; }
+.src {
+  display: flex; align-items: center; gap: .5rem;
+  border: 1px solid var(--rule); padding: .4rem .65rem;
+  font-size: .72rem; color: var(--mute); text-decoration: none;
+  background: var(--board);
+}
+.src:hover { border-color: var(--amber); color: var(--paper); }
+.src img { width: 15px; height: 15px; display: block; border-radius: 2px; }
+.src b { color: var(--amber); font-weight: 600; }
+
+/* ── nav ────────────────────────────────────────────────── */
+.nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .8rem; margin-top: 1.2rem; }
+.nav a {
+  border: 1px solid var(--rule); padding: .9rem 1rem; text-decoration: none;
+  background: var(--board); display: block;
+}
+.nav a:hover { border-color: var(--amber); }
+.nav .d { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
+.nav .t { display: block; margin-top: .35rem; font-size: .85rem; line-height: 1.35; }
+.nav a.up { border-color: var(--rule-2); background: var(--board-2); }
+.colophon { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: .7rem; color: var(--mute); letter-spacing: .08em; }
+
+@media (max-width: 940px) {
+  .row {
+    grid-template-columns: 40px 84px 1fr;
+    grid-template-areas:
+      "rank shot who"
+      "meter meter meter"
+      "facts facts facts";
+    row-gap: .7rem;
+  }
+  .rank { grid-area: rank; }
+  .shot { grid-area: shot; width: 84px; height: 60px; }
+  .who  { grid-area: who; }
+  .meter { grid-area: meter; }
+  .cost { grid-area: facts; display: flex; gap: .5rem; align-items: baseline; }
+  .cost span { display: inline; }
+  .sun, .stamp { grid-area: facts; justify-self: end; }
+  .sun { margin-right: 130px; }
+  .note { grid-column: 1 / -1; }
+  .verdict, .traps, .band, .fallback { grid-template-columns: 1fr; }
+  .band img { min-height: 160px; }
+}
+</style>
+
+<div class="sb">
+
+<header class="head">
+  <div class="wrap">
+    <p class="kicker">Athens · one spare day · august 2026</p>
+    <div class="flaps" aria-hidden="true">
+      <span>H</span><span>Y</span><span>D</span><span>R</span><span>A</span>
+      <span class="gap"></span><span>0</span><span>7</span><span>:</span><span>3</span><span>0</span>
+    </div>
+    <h1>The day-trip board</h1>
+    <p class="strapline">Fourteen day trips from a central-Athens base, ranked on the only number that matters in August — how many of the hours you spend are actually spent <em>somewhere</em>, and how many are spent getting there.</p>
+    <div class="tally">
+      <div><b>14</b><span>runners</span></div>
+      <div><b>3</b><span>picks</span></div>
+      <div><b>2</b><span>traps</span></div>
+      <div><b>25</b><span>sources</span></div>
+      <div><b>survey</b><span>depth</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="verdict">
+    <div class="copy">
+      <h2>The call</h2>
+      <p><strong>One spare day → Hydra on the early hydrofoil.</strong> 07:30 out, 17:00 or 18:30 back, 7–8 hours ashore on a car-free island for €60–120 all-in <sup><a href="https://www.athenstravelguides.com/posts/athens-to-hydra-guide/">[24]</a></sup>. If you want antiquity instead of swimming, <strong>Delphi</strong> — 8–10 hours organised, €33–84 with entry included <sup><a href="https://www.delphi-tours.com/athens-to-delphi/">[25]</a></sup>.</p>
+      <p><strong>Half a day only → Cape Sounion at sunset</strong>, not at midday <sup><a href="https://athenstravelguides.com/posts/cape-sounion-day-trip-athens/">[2]</a></sup>.</p>
+      <p>Two entries on this board are traps: <strong>Meteora in a day</strong> — the direct train is suspended until late 2026/mid-2027 <sup><a href="https://www.davestravelpages.com/athens-to-meteora-train/">[4]</a></sup> — and the <strong>one-day three-island cruise</strong>, 11 hours bought for 4.5 hours ashore <sup><a href="https://www.athenstravelguides.com/posts/saronic-islands-cruise-athens/">[6]</a></sup>.</p>
+    </div>
+    <figure>
+      <img src="scoreboard/images/hydra-port.webp" alt="Stone houses stacked above the harbour at Hydra">
+      <figcaption>01 · Hydra — first on the board</figcaption>
+    </figure>
+  </section>
+
+  <div class="legend">
+    <span><i class="k-site"></i>hours on site</span>
+    <span><i class="k-move"></i>hours in transit</span>
+    <span>bar length = door-to-door, scaled to a 14-hour day · one tick = 1 hour</span>
+  </div>
+
+  <ol class="rows">
+
+    <li class="row v-pick">
+      <div class="rank">01</div>
+      <img class="shot" src="scoreboard/images/hydra.webp" alt="Hydra town seen from the water">
+      <div class="who">
+        <h3>Hydra</h3>
+        <p class="mode">Hydrofoil 07:30 → 18:30 · Piraeus</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:85.7%">
+          <span class="seg site" style="width:62.5%"></span><span class="seg move" style="width:37.5%"></span>
+        </div></div>
+        <p class="nums"><span class="on">7–8 h ashore</span><span>11–12 h door-to-door</span></p>
+      </div>
+      <div class="cost">€60–120<span>all-in</span></div>
+      <div class="sun"><div class="pips warm"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></div>harbour shade</div>
+      <div class="stamp">PICK</div>
+      <p class="note">No cars, no motorbikes, no scooters anywhere on the island; water taxis €8–15 to the swimming beaches, and up to 12 daily sailings if one boat sells out <sup><a href="https://www.athenstravelguides.com/posts/athens-to-hydra-guide/">[24]</a></sup><sup><a href="https://www.ferryhopper.com/en/ferry-routes/direct/athens-to-hydra">[8]</a></sup>.</p>
+    </li>
+
+    <li class="row v-pick">
+      <div class="rank">02</div>
+      <img class="shot" src="scoreboard/images/delphi.webp" alt="The tholos at the sanctuary of Athena Pronaia, Delphi">
+      <div class="who">
+        <h3>Delphi</h3>
+        <p class="mode">Organised coach · 2.5 h each way</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:64.3%">
+          <span class="seg site" style="width:44.4%"></span><span class="seg move" style="width:55.6%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~4 h on site</span><span>8–10 h door-to-door</span></p>
+      </div>
+      <div class="cost">€33–84<span>incl. entry</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></div>600 m altitude</div>
+      <div class="stamp">PICK</div>
+      <p class="note">The one classical day trip that justifies the drive. Public KTEL is four buses a day from Liosion, ~3 h each way, €33 return, €20 entry, site open 08:00–20:00 April–October <sup><a href="https://www.timetravelturtle.com/greece/delphi-day-trip-from-athens/">[3]</a></sup> — the coach is faster and often cheaper once entry is counted <sup><a href="https://www.delphi-tours.com/athens-to-delphi/">[25]</a></sup>.</p>
+    </li>
+
+    <li class="row v-pick">
+      <div class="rank">03</div>
+      <img class="shot" src="scoreboard/images/sounion.webp" alt="The Temple of Poseidon at Cape Sounion">
+      <div class="who">
+        <h3>Cape Sounion</h3>
+        <p class="mode">KTEL from Pedion tou Areos · or sunset tour</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:39.3%">
+          <span class="seg site" style="width:27.3%"></span><span class="seg move" style="width:72.7%"></span>
+        </div></div>
+        <p class="nums"><span class="on">1.5–2 h on site</span><span>5–6 h door-to-door</span></p>
+      </div>
+      <div class="cost">€33<span>bus + entry</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></div>zero shade</div>
+      <div class="stamp">PICK</div>
+      <p class="note">€6.30 each way, ~2 h by bus, €20 summer entry, open 09:30 to sunset <sup><a href="https://realgreekexperiences.com/the-temple-of-poseidon-at-sounion">[1]</a></sup>. Go for the 20:15–20:45 sunset: <q>There is almost zero shade at the site. Zero.</q> <sup><a href="https://athenstravelguides.com/posts/cape-sounion-day-trip-athens/">[2]</a></sup></p>
+    </li>
+
+    <li class="row v-solid">
+      <div class="rank">04</div>
+      <img class="shot" src="scoreboard/images/aegina.webp" alt="Columns of the Temple of Aphaia on Aegina">
+      <div class="who">
+        <h3>Aegina</h3>
+        <p class="mode">Fast ferry · 40 min</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:57.1%">
+          <span class="seg site" style="width:68.8%"></span><span class="seg move" style="width:31.2%"></span>
+        </div></div>
+        <p class="nums"><span class="on">5–6 h ashore</span><span>7–9 h door-to-door</span></p>
+      </div>
+      <div class="cost">€25–40<span>ferry return</span></div>
+      <div class="sun"><div class="pips warm"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></div>island breeze</div>
+      <div class="stamp">SOLID</div>
+      <p class="note">The budget substitute for Hydra: €11.50–19.50 each way, 9+ daily high-speed departures <sup><a href="https://www.greeka.com/saronic/aegina/ferries/">[9]</a></sup>. Island buses €1.80–2.00 reach the Temple of Aphaia on the Agia Marina line — check the departure, some services skip it <sup><a href="https://www.greeka.com/saronic/aegina/car-bus/">[11]</a></sup>.</p>
+    </li>
+
+    <li class="row v-solid">
+      <div class="rank">05</div>
+      <img class="shot" src="scoreboard/images/riviera.webp" alt="Beach on the Athens Riviera at Glyfada">
+      <div class="who">
+        <h3>Athens Riviera beach</h3>
+        <p class="mode">Tram T3 · 35–60 min</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:42.9%">
+          <span class="seg site" style="width:66.7%"></span><span class="seg move" style="width:33.3%"></span>
+        </div></div>
+        <p class="nums"><span class="on">3–5 h on the sand</span><span>4–7 h door-to-door</span></p>
+      </div>
+      <div class="cost">€2.40<span>tram return</span></div>
+      <div class="sun"><div class="pips"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></div>self-managed</div>
+      <div class="stamp">SOLID</div>
+      <p class="note">The default when the forecast breaks 40 °C: Glyfada in 35–45 min, Voula in 50–60, on a €1.20 90-minute integrated ticket, with free public beaches at Edem, Kalamaki and parts of Glyfada <sup><a href="https://www.athenstourism.org/athens-tram-beaches-coastal-line/">[21]</a></sup>.</p>
+    </li>
+
+    <li class="row v-solid">
+      <div class="rank">06</div>
+      <img class="shot" src="scoreboard/images/mycenae.webp" alt="The Lion Gate at Mycenae">
+      <div class="who">
+        <h3>Nafplio + Mycenae + Epidaurus</h3>
+        <p class="mode">Self-drive or full-day tour</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:78.6%">
+          <span class="seg site" style="width:45.5%"></span><span class="seg move" style="width:54.5%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~5 h across 3 stops</span><span>10–12 h door-to-door</span></p>
+      </div>
+      <div class="cost">€85–130<span>guided tour</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></div>35 °C+, exposed</div>
+      <div class="stamp">SOLID</div>
+      <p class="note">120 km, 2–2.5 h each way, €12 summer combined ticket at each site, both open 08:00–19:30 <sup><a href="https://www.athenstourism.org/day-trips-from-athens/mycenae-epidaurus-day-trip-athens/">[13]</a></sup>. KTEL reaches Nafplio in ~2 h for €15–19 but not the two sites <sup><a href="https://www.rome2rio.com/Bus/N%C3%A1fplio/Athens">[14]</a></sup> — without a car or a tour this collapses to an afternoon in Nafplio.</p>
+    </li>
+
+    <li class="row v-bench">
+      <div class="rank">07</div>
+      <img class="shot" src="scoreboard/images/poros.webp" alt="Boats moored along the Poros waterfront">
+      <div class="who">
+        <h3>Poros</h3>
+        <p class="mode">Ferry · 55 min – 2.5 h</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:57.1%">
+          <span class="seg site" style="width:62.5%"></span><span class="seg move" style="width:37.5%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~5 h ashore</span><span>7–9 h door-to-door</span></p>
+      </div>
+      <div class="cost">€17+<span>each way</span></div>
+      <div class="sun"><div class="pips warm"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></div>island breeze</div>
+      <div class="stamp">BENCH</div>
+      <p class="note">Up to 6 daily crossings <sup><a href="https://www.ferryhopper.com/en/ferry-routes/direct/piraeus-poros">[10]</a></sup>. A perfectly good island — but it is the one you take when the Hydra boat is sold out, not the one you choose first.</p>
+    </li>
+
+    <li class="row v-bench">
+      <div class="rank">08</div>
+      <img class="shot" src="scoreboard/images/corinth.webp" alt="The Corinth Canal cut through rock">
+      <div class="who">
+        <h3>Ancient Corinth + the Canal</h3>
+        <p class="mode">Proastiakos + taxi for the last 7 km</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:53.6%">
+          <span class="seg site" style="width:46.7%"></span><span class="seg move" style="width:53.3%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~3.5 h on site</span><span>7–8 h door-to-door</span></p>
+      </div>
+      <div class="cost">~€35<span>rail + taxi + entry</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></div>no shade on Acrocorinth</div>
+      <div class="stamp">BENCH</div>
+      <p class="note">1.5 h on the suburban rail to New Corinth, then a €10–12 taxi; €8 entry with the museum, open 08:00–20:00 in summer, and the best part — the fortress — has no shade at all <sup><a href="https://www.athenstravelguides.com/posts/ancient-corinth-day-trip-athens/">[12]</a></sup>. Good with a rental car en route to the Peloponnese; mediocre as a standalone rail day.</p>
+    </li>
+
+    <li class="row v-bench">
+      <div class="rank">09</div>
+      <img class="shot" src="scoreboard/images/daphni.webp" alt="The walls of Daphni Monastery">
+      <div class="who">
+        <h3>Kaisariani + Daphni</h3>
+        <p class="mode">Bus 224 · metro · both inside Attica</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:28.6%">
+          <span class="seg site" style="width:62.5%"></span><span class="seg move" style="width:37.5%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~2.5 h on site</span><span>3–5 h door-to-door</span></p>
+      </div>
+      <div class="cost">€9<span>both entries</span></div>
+      <div class="sun"><div class="pips"><b class="on"></b><b></b><b></b><b></b><b></b></div>shaded grounds</div>
+      <div class="stamp">BENCH</div>
+      <p class="note">The Byzantine pair: Kaisariani €3, 08:30–16:00, closed Tuesdays, bus 224 from Syntagma then a 40-minute uphill walk into cypress shade <sup><a href="https://takemetogreece.com/kaisariani-monastery-athens/">[15]</a></sup>; Daphni is UNESCO-listed, €6, 08:00–16:00 Tuesday–Sunday <sup><a href="https://greekdestinations.gr/places-and-attractio/dafni-monastery/">[16]</a></sup>. Best half-day filler on the board.</p>
+    </li>
+
+    <li class="row v-bench">
+      <div class="rank">10</div>
+      <img class="shot" src="scoreboard/images/vravrona.webp" alt="The sanctuary of Artemis at Brauron">
+      <div class="who">
+        <h3>Vravrona (Brauron)</h3>
+        <p class="mode">Car · 30 min</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:25%">
+          <span class="seg site" style="width:57.1%"></span><span class="seg move" style="width:42.9%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~2 h on site</span><span>3–4 h door-to-door</span></p>
+      </div>
+      <div class="cost">€6<span>site + museum</span></div>
+      <div class="sun"><div class="pips warm"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></div>wetland, part shade</div>
+      <div class="stamp">BENCH</div>
+      <p class="note">Half an hour by car and genuinely pretty — but it closes at 15:30 and bus 304 leaves you 2 km short, so it is a car-only entry <sup><a href="https://justforonesummer.com/vravrona-archaeological-site-and-wetlands/">[18]</a></sup>.</p>
+    </li>
+
+    <li class="row v-skip">
+      <div class="rank">11</div>
+      <img class="shot" src="scoreboard/images/rhamnous.webp" alt="The sanctuary of Nemesis at Rhamnous">
+      <div class="who">
+        <h3>Marathon / Rhamnous</h3>
+        <p class="mode">Car · KTEL Attikis + €15 taxi</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:42.9%">
+          <span class="seg site" style="width:33.3%"></span><span class="seg move" style="width:66.7%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~2 h on site</span><span>5–7 h door-to-door</span></p>
+      </div>
+      <div class="cost">€5–11<span>entries</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></div>open ground</div>
+      <div class="stamp">SKIP</div>
+      <p class="note">Rhamnous is €5, closed Tuesdays, 08:30–15:30, and needs a KTEL to Marathon plus a €15 taxi for the last 15 km <sup><a href="https://daytripsfromathens.com/articles/ramnous-temple-of-nemesis">[17]</a></sup>. At Marathon itself, per visitors, <q>you have the hill (tumulus)… and nothing more</q> <sup><a href="https://airial.travel/attractions/greece/marathon/marathon-tomb-and-museum-athens-OwUkAgAO">[19]</a></sup>. Specialists only.</p>
+    </li>
+
+    <li class="row v-skip">
+      <div class="rank">12</div>
+      <img class="shot" src="scoreboard/images/vouliagmeni.webp" alt="Lake Vouliagmeni under its cliff">
+      <div class="who">
+        <h3><a href="https://vouliagmeni.app/lake-tickets/">Lake Vouliagmeni</a></h3>
+        <p class="mode">Tram T3 → bus 122 at Asklipieio Voulas</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:35.7%">
+          <span class="seg site" style="width:70%"></span><span class="seg move" style="width:30%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~3.5 h at the lake</span><span>4–6 h door-to-door</span></p>
+      </div>
+      <div class="cost">€17–19<span>+ €70–90 sunbeds</span></div>
+      <div class="sun"><div class="pips"><b class="on"></b><b class="on"></b><b></b><b></b><b></b></div>managed shade</div>
+      <div class="stamp">SKIP</div>
+      <p class="note">€17 weekdays, €19 weekends, 08:00–19:00, and a weekend sunbed set for two adds €70–90 <sup><a href="https://vouliagmeni.app/lake-tickets/">[20]</a></sup> — after a tram plus a bus transfer <sup><a href="https://www.athenstourism.org/athens-tram-beaches-coastal-line/">[21]</a></sup>. The same tram line drops you at a free beach for €1.20.</p>
+    </li>
+
+    <li class="row v-trap">
+      <div class="rank">13</div>
+      <img class="shot" src="scoreboard/images/ferry.webp" alt="Saronic Gulf ferries at their berths">
+      <div class="who">
+        <h3>One-day three-island cruise</h3>
+        <p class="mode">Piraeus coach transfer + boat · 07:00–18:00</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:78.6%">
+          <span class="seg shards" style="width:40.9%"><b style="flex:1"></b><b style="flex:1.5"></b><b style="flex:2"></b></span><span class="seg move" style="width:59.1%"></span>
+        </div></div>
+        <p class="nums"><span class="on">1 h + 1.5 h + 2 h ashore</span><span>~11 h door-to-door</span></p>
+      </div>
+      <div class="cost">€110–130<span>per person</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></div>open deck + smoke</div>
+      <div class="stamp">TRAP</div>
+      <p class="note">The only bar on this board whose on-site block is not one block: Poros 1 h, Hydra 1.5 h, Aegina 2 h <sup><a href="https://www.athenstravelguides.com/posts/saronic-islands-cruise-athens/">[6]</a></sup>.</p>
+    </li>
+
+    <li class="row v-trap">
+      <div class="rank">14</div>
+      <img class="shot" src="scoreboard/images/meteora.webp" alt="A monastery perched on the rock pillars of Meteora">
+      <div class="who">
+        <h3>Meteora in a day</h3>
+        <p class="mode">Express coach · 4 h 30 each way</p>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="bar" style="width:100%">
+          <span class="seg site" style="width:21.4%"></span><span class="seg move" style="width:78.6%"></span>
+        </div></div>
+        <p class="nums"><span class="on">~3 h at the monasteries</span><span>14 h+ door-to-door</span></p>
+      </div>
+      <div class="cost">€54+<span>each way</span></div>
+      <div class="sun"><div class="pips hot"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></div>inland heat</div>
+      <div class="stamp">TRAP</div>
+      <p class="note">Nine hours of transit before you see anything, against monasteries that shut at 15:00–16:00 <sup><a href="https://visitmeteora.travel/monasteries-opening-hours-and-days/">[5]</a></sup>. Meteora is an overnight, not a day trip.</p>
+    </li>
+
+  </ol>
+
+  <h2 class="section-title">The two traps, in full</h2>
+  <div class="traps">
+
+    <article class="trap-card">
+      <img src="scoreboard/images/meteora.webp" alt="Meteora monastery on its rock pillar seen from above">
+      <div class="body">
+        <h3>Meteora as a day trip</h3>
+        <div class="arith">
+          <b class="bad">9 h transit</b><b class="bad">~3 h on site</b><b>€54+ each way</b><b>€5 cash per monastery</b>
+        </div>
+        <p>The direct Athens–Kalambaka train is suspended until late 2026/mid-2027; what remains is a 4 h 30 express coach <sup><a href="https://www.davestravelpages.com/athens-to-meteora-train/">[4]</a></sup>. The <a href="https://visitmeteora.travel/monasteries-opening-hours-and-days/">Meteora monasteries</a> then work against you: Great Meteoron 09:30–15:00, Holy Trinity 10:00–16:00, each closed on a different weekday, each cash-only at the gate <sup><a href="https://visitmeteora.travel/monasteries-opening-hours-and-days/">[5]</a></sup>.</p>
+        <p>The guide who mapped the route is blunt about it: <q>I personally wouldn't do it… it's a LONG day!</q> <sup><a href="https://www.davestravelpages.com/athens-to-meteora-train/">[4]</a></sup></p>
+      </div>
+    </article>
+
+    <article class="trap-card">
+      <img src="scoreboard/images/ferry.webp" alt="Ferries in the Saronic Gulf">
+      <div class="body">
+        <h3>The one-day three-island cruise</h3>
+        <div class="arith">
+          <b class="bad">6.5 h afloat</b><b class="bad">4.5 h ashore, in 3 pieces</b><b>€110–130</b>
+        </div>
+        <p>07:00 to 18:00 for one hour at Poros, an hour and a half at Hydra and two hours at Aegina <sup><a href="https://www.athenstravelguides.com/posts/saronic-islands-cruise-athens/">[6]</a></sup>. Travellers who booked it in the Rick Steves forum: <q>It appears you'll spend more time on a boat than actual time on each island</q>, plus <q>non-stop smoking</q> on the open rear deck where the views are <sup><a href="https://community.ricksteves.com/travel-forum/greece/hydra-poros-and-aegina-day-cruise-from-athens-vs-hydra-only">[7]</a></sup>.</p>
+        <p>The hydrofoil to one island costs less and buys 6–7 hours ashore instead of 1.5 <sup><a href="https://www.athenstravelguides.com/posts/saronic-islands-cruise-athens/">[6]</a></sup>.</p>
+      </div>
+    </article>
+
+  </div>
+
+  <section class="band">
+    <img src="scoreboard/images/epidaurus.webp" alt="The exposed stone tiers of the theatre at Epidaurus">
+    <div class="body">
+      <h3>The heat overrides the ranking</h3>
+      <p><span class="temp">43.5&nbsp;°C</span>Greece's first 2026 heatwave peaked at 43.5 °C on 22 July, and fires reached Psatha near Athens on 2 August before being contained by 4 August <sup><a href="https://en.wikipedia.org/wiki/2026_European_heatwaves">[22]</a></sup>. Forecasters expect August 2026 to run hotter than July <sup><a href="https://blog.wego.com/athens-heatwave/">[23]</a></sup>.</p>
+      <p>On extreme-heat days the Culture Ministry shuts the Acropolis <em>and other archaeological sites</em> from roughly midday to 17:00 <sup><a href="https://blog.wego.com/athens-heatwave/">[23]</a></sup> — a ruins day trip can arrive to a closed gate. Two consequences:</p>
+      <ul>
+        <li>Front-load any archaeology to 08:00–12:00. Delphi opens 08:00 in summer <sup><a href="https://www.timetravelturtle.com/greece/delphi-day-trip-from-athens/">[3]</a></sup>; Mycenae and Epidaurus open 08:00 <sup><a href="https://www.athenstourism.org/day-trips-from-athens/mycenae-epidaurus-day-trip-athens/">[13]</a></sup>.</li>
+        <li>Trips whose payoff is water or altitude — Hydra, Aegina, the Riviera, Delphi at 600 m — beat trips whose payoff is a bare exposed field: Corinth, Mycenae, Marathon.</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2 class="section-title">When the board says stay</h2>
+  <div class="fallback">
+    <article class="fb-card">
+      <img src="scoreboard/images/kaisariani.webp" alt="Kaisariani Monastery among cypresses on Mount Hymettus">
+      <div class="body">
+        <h4>Kaisariani, €3, 08:30–16:00</h4>
+        <p>Bus 224 from Syntagma to the last stop, then a 40-minute uphill walk; 1–2 hours inside walled, shaded cypress grounds. Closed Tuesdays <sup><a href="https://takemetogreece.com/kaisariani-monastery-athens/">[15]</a></sup>.</p>
+      </div>
+    </article>
+    <article class="fb-card">
+      <img src="scoreboard/images/nafplio.webp" alt="The Palamidi fortress above Nafplio">
+      <div class="body">
+        <h4>Or move the trip to the tail</h4>
+        <p>Nafplio, Mycenae and Epidaurus stop being a 10–12 hour day the moment they stop being a day trip <sup><a href="https://www.athenstourism.org/day-trips-from-athens/mycenae-epidaurus-day-trip-athens/">[13]</a></sup> — see the mainland tail and the island cluster angles below.</p>
+      </div>
+    </article>
+  </div>
+
+  <h2 class="section-title">Ledger · 25 sources</h2>
+  <div class="ledger">
+    <a class="src" href="https://realgreekexperiences.com/the-temple-of-poseidon-at-sounion"><img src="https://www.google.com/s2/favicons?domain=realgreekexperiences.com&sz=128" alt=""><b>1</b> realgreekexperiences.com</a>
+    <a class="src" href="https://athenstravelguides.com/posts/cape-sounion-day-trip-athens/"><img src="https://www.google.com/s2/favicons?domain=athenstravelguides.com&sz=128" alt=""><b>2</b> athenstravelguides.com</a>
+    <a class="src" href="https://www.timetravelturtle.com/greece/delphi-day-trip-from-athens/"><img src="https://www.google.com/s2/favicons?domain=timetravelturtle.com&sz=128" alt=""><b>3</b> timetravelturtle.com</a>
+    <a class="src" href="https://www.davestravelpages.com/athens-to-meteora-train/"><img src="https://www.google.com/s2/favicons?domain=davestravelpages.com&sz=128" alt=""><b>4</b> davestravelpages.com</a>
+    <a class="src" href="https://visitmeteora.travel/monasteries-opening-hours-and-days/"><img src="https://www.google.com/s2/favicons?domain=visitmeteora.travel&sz=128" alt=""><b>5</b> visitmeteora.travel</a>
+    <a class="src" href="https://www.athenstravelguides.com/posts/saronic-islands-cruise-athens/"><img src="https://www.google.com/s2/favicons?domain=athenstravelguides.com&sz=128" alt=""><b>6</b> athenstravelguides.com</a>
+    <a class="src" href="https://community.ricksteves.com/travel-forum/greece/hydra-poros-and-aegina-day-cruise-from-athens-vs-hydra-only"><img src="https://www.google.com/s2/favicons?domain=community.ricksteves.com&sz=128" alt=""><b>7</b> ricksteves.com · forum</a>
+    <a class="src" href="https://www.ferryhopper.com/en/ferry-routes/direct/athens-to-hydra"><img src="https://www.google.com/s2/favicons?domain=ferryhopper.com&sz=128" alt=""><b>8</b> ferryhopper.com</a>
+    <a class="src" href="https://www.greeka.com/saronic/aegina/ferries/"><img src="https://www.google.com/s2/favicons?domain=greeka.com&sz=128" alt=""><b>9</b> greeka.com</a>
+    <a class="src" href="https://www.ferryhopper.com/en/ferry-routes/direct/piraeus-poros"><img src="https://www.google.com/s2/favicons?domain=ferryhopper.com&sz=128" alt=""><b>10</b> ferryhopper.com</a>
+    <a class="src" href="https://www.greeka.com/saronic/aegina/car-bus/"><img src="https://www.google.com/s2/favicons?domain=greeka.com&sz=128" alt=""><b>11</b> greeka.com</a>
+    <a class="src" href="https://www.athenstravelguides.com/posts/ancient-corinth-day-trip-athens/"><img src="https://www.google.com/s2/favicons?domain=athenstravelguides.com&sz=128" alt=""><b>12</b> athenstravelguides.com</a>
+    <a class="src" href="https://www.athenstourism.org/day-trips-from-athens/mycenae-epidaurus-day-trip-athens/"><img src="https://www.google.com/s2/favicons?domain=athenstourism.org&sz=128" alt=""><b>13</b> athenstourism.org</a>
+    <a class="src" href="https://www.rome2rio.com/Bus/N%C3%A1fplio/Athens"><img src="https://www.google.com/s2/favicons?domain=rome2rio.com&sz=128" alt=""><b>14</b> rome2rio.com</a>
+    <a class="src" href="https://takemetogreece.com/kaisariani-monastery-athens/"><img src="https://www.google.com/s2/favicons?domain=takemetogreece.com&sz=128" alt=""><b>15</b> takemetogreece.com</a>
+    <a class="src" href="https://greekdestinations.gr/places-and-attractio/dafni-monastery/"><img src="https://www.google.com/s2/favicons?domain=greekdestinations.gr&sz=128" alt=""><b>16</b> greekdestinations.gr</a>
+    <a class="src" href="https://daytripsfromathens.com/articles/ramnous-temple-of-nemesis"><img src="https://www.google.com/s2/favicons?domain=daytripsfromathens.com&sz=128" alt=""><b>17</b> daytripsfromathens.com</a>
+    <a class="src" href="https://justforonesummer.com/vravrona-archaeological-site-and-wetlands/"><img src="https://www.google.com/s2/favicons?domain=justforonesummer.com&sz=128" alt=""><b>18</b> justforonesummer.com</a>
+    <a class="src" href="https://airial.travel/attractions/greece/marathon/marathon-tomb-and-museum-athens-OwUkAgAO"><img src="https://www.google.com/s2/favicons?domain=airial.travel&sz=128" alt=""><b>19</b> airial.travel</a>
+    <a class="src" href="https://vouliagmeni.app/lake-tickets/"><img src="https://www.google.com/s2/favicons?domain=vouliagmeni.app&sz=128" alt=""><b>20</b> vouliagmeni.app</a>
+    <a class="src" href="https://www.athenstourism.org/athens-tram-beaches-coastal-line/"><img src="https://www.google.com/s2/favicons?domain=athenstourism.org&sz=128" alt=""><b>21</b> athenstourism.org</a>
+    <a class="src" href="https://en.wikipedia.org/wiki/2026_European_heatwaves"><img src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=128" alt=""><b>22</b> wikipedia.org</a>
+    <a class="src" href="https://blog.wego.com/athens-heatwave/"><img src="https://www.google.com/s2/favicons?domain=blog.wego.com&sz=128" alt=""><b>23</b> blog.wego.com</a>
+    <a class="src" href="https://www.athenstravelguides.com/posts/athens-to-hydra-guide/"><img src="https://www.google.com/s2/favicons?domain=athenstravelguides.com&sz=128" alt=""><b>24</b> athenstravelguides.com</a>
+    <a class="src" href="https://www.delphi-tours.com/athens-to-delphi/"><img src="https://www.google.com/s2/favicons?domain=delphi-tours.com&sz=128" alt=""><b>25</b> delphi-tours.com</a>
+  </div>
+
+  <h2 class="section-title">Rest of the expedition</h2>
+  <nav class="nav">
+    <a class="up" href="../../"><span class="d">Up one level</span><span class="t">A routed one-week Greece plan from an Athens arrival, summer 2026</span></a>
+    <a href="../../athens-the-non-negotiables/"><span class="d">Expedition</span><span class="t">Athens non-negotiables: the summer 2026 field manual</span></a>
+    <a href="../../after-athens-island-clusters-compared/"><span class="d">Expedition</span><span class="t">After Athens: Greek island clusters compared for a 3–5 day August 2026 tail</span></a>
+    <a href="../../the-mainland-alternative-peloponnese-and-meteora/"><span class="d">Survey</span><span class="t">The mainland tail: a Peloponnese loop and/or Meteora after Athens</span></a>
+    <a href="../../getting-between-legs-ferries-and-domestic-flights/"><span class="d">Survey</span><span class="t">Athens to the islands, summer 2026: ferries, ports and when to fly instead</span></a>
+    <a href="../../eating-and-drinking-in-athens-and-the-islands/"><span class="d">Recon</span><span class="t">Eating and Drinking in Athens and the Islands, Summer 2026</span></a>
+  </nav>
+
+  <p class="colophon">Door-to-door hours assume a central-Athens start and are computed from the cited leg times; costs are per person excluding food. Full working in the <a href="../">default view</a> · <a href="/">Atlas</a></p>
+
+</div>
+</div>

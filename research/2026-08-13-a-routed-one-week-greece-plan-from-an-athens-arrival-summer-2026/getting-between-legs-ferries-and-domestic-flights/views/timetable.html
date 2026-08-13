@@ -1,0 +1,744 @@
+---
+layout: view
+view_name: "Departure Board"
+view_of: ../
+title: "Athens to the islands, summer 2026: ferries, ports and when to fly instead — Departure Board"
+---
+
+<style>
+.dbx {
+  --board: #0a0c0e;
+  --flap-top: #22262a;
+  --flap-bot: #14171a;
+  --panel: #101316;
+  --panel-2: #171b1f;
+  --edge: #2a2f35;
+  --amber: #f5b323;
+  --amber-dim: #a9791a;
+  --chalk: #e8eaec;
+  --mute: #8b949c;
+  --sea: #4aa8e0;
+  --sea-dim: #1f4d68;
+  --alert: #e0503c;
+  --go: #46bd82;
+  --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+  --sign: "Helvetica Neue", "Arial Narrow", Arial, sans-serif;
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--board);
+  color: var(--chalk);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.dbx * { box-sizing: border-box; }
+.dbx a { color: inherit; }
+.dbx sup a { color: var(--amber-dim); text-decoration: none; font-size: .62em; padding: 0 .1em; }
+.dbx sup a:hover { color: var(--amber); }
+.dbx .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ---- split-flap primitives ---- */
+.dbx .flaps { display: flex; flex-wrap: wrap; gap: 3px; }
+.dbx .fl {
+  display: inline-block;
+  min-width: .78em;
+  padding: .16em .18em .2em;
+  text-align: center;
+  background: linear-gradient(180deg, var(--flap-top) 0 49.5%, #0b0e10 49.5% 51%, var(--flap-bot) 51% 100%);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 2px 4px rgba(0,0,0,.5);
+  color: var(--amber);
+  letter-spacing: .02em;
+}
+.dbx .fl.sp { background: none; box-shadow: none; min-width: .45em; }
+.dbx .fl.blue { color: var(--sea); }
+
+/* ---- masthead ---- */
+.dbx .hero { position: relative; border-bottom: 3px solid var(--amber-dim); overflow: hidden; }
+.dbx .hero img { width: 100%; height: 340px; object-fit: cover; display: block; filter: grayscale(.35) contrast(1.05) brightness(.5); }
+.dbx .hero-in { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.4rem 0 1.6rem; }
+.dbx .railtop {
+  display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; align-items: baseline;
+  font-family: var(--sign); text-transform: uppercase; letter-spacing: .22em; font-size: .68rem; color: var(--amber);
+}
+.dbx .railtop .dot { color: var(--mute); }
+.dbx h1 { margin: 0; font-family: var(--sign); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: clamp(1.9rem, 5.2vw, 3.4rem); line-height: .98; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.8); }
+.dbx .kicker { margin: .7rem 0 0; max-width: 46rem; color: #cfd4d8; font-size: .92rem; text-shadow: 0 1px 8px rgba(0,0,0,.9); }
+
+/* ---- announce ---- */
+.dbx .announce { background: #06080a; border-bottom: 1px solid var(--edge); padding: 2rem 0 2.2rem; }
+.dbx .announce .lbl { font-family: var(--sign); text-transform: uppercase; letter-spacing: .28em; font-size: .64rem; color: var(--mute); margin-bottom: .9rem; }
+.dbx .announce .flaps { font-size: clamp(1.1rem, 3.6vw, 2.1rem); font-weight: 600; margin-bottom: .5rem; }
+.dbx .announce .under { margin-top: 1.3rem; display: grid; gap: .55rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.dbx .announce .under div { border-left: 3px solid var(--amber-dim); padding: .1rem 0 .1rem .7rem; font-size: .85rem; color: #c3c9ce; }
+.dbx .announce .under b { color: #fff; font-weight: 600; }
+.dbx .announce .split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 1.8rem; align-items: start; }
+@media (max-width: 820px) { .dbx .announce .split { grid-template-columns: 1fr; } }
+.dbx .netmap { border: 1px solid var(--edge); border-radius: 4px; overflow: hidden; background: #0d1013; }
+.dbx .netmap img { width: 100%; display: block; filter: brightness(.9) saturate(.95); }
+.dbx .netmap p { margin: 0; padding: .55rem .7rem; font-size: .69rem; color: var(--mute); border-top: 1px solid var(--edge); line-height: 1.45; }
+
+/* ---- section chrome ---- */
+.dbx section { padding: 2.6rem 0 .4rem; }
+.dbx .sechead { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.2rem; }
+.dbx .sechead h2 { margin: 0; font-family: var(--sign); text-transform: uppercase; letter-spacing: .2em; font-size: .82rem; color: var(--amber); white-space: nowrap; }
+.dbx .sechead .line { flex: 1; height: 1px; background: var(--edge); }
+.dbx .sechead .no { font-family: var(--sign); font-size: .7rem; color: var(--mute); letter-spacing: .14em; }
+.dbx .sechead.air h2 { color: var(--sea); }
+
+/* ---- terminal panels ---- */
+.dbx .terms { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+.dbx .term { background: var(--panel); border: 1px solid var(--edge); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; }
+.dbx .term img { width: 100%; height: 152px; object-fit: cover; display: block; filter: saturate(.85) brightness(.86); }
+.dbx .term .code { display: flex; align-items: baseline; gap: .6rem; padding: .7rem .9rem .3rem; }
+.dbx .term .code b { font-size: 1.45rem; letter-spacing: .12em; color: var(--amber); }
+.dbx .term .code span { font-family: var(--sign); text-transform: uppercase; letter-spacing: .14em; font-size: .66rem; color: var(--mute); }
+.dbx .term .serves { padding: 0 .9rem .7rem; font-size: .82rem; color: #c3c9ce; border-bottom: 1px dashed var(--edge); }
+.dbx .term dl { margin: 0; padding: .55rem .9rem .9rem; display: grid; gap: .35rem; font-size: .79rem; }
+.dbx .term dl div { display: grid; grid-template-columns: 4.7rem 1fr auto; gap: .5rem; align-items: baseline; }
+.dbx .term dt { color: var(--mute); text-transform: uppercase; font-size: .64rem; letter-spacing: .1em; font-family: var(--sign); }
+.dbx .term dd { margin: 0; color: #dfe3e6; }
+.dbx .term .fare { color: var(--amber); }
+
+.dbx .trap { margin-top: 1rem; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.dbx .trap article { display: grid; grid-template-columns: 92px 1fr; gap: .9rem; background: var(--panel-2); border: 1px solid var(--edge); border-left: 3px solid var(--alert); border-radius: 4px; overflow: hidden; }
+.dbx .trap img { width: 92px; height: 100%; min-height: 96px; object-fit: cover; display: block; filter: saturate(.7) brightness(.8); }
+.dbx .trap .t { padding: .7rem .9rem .8rem 0; font-size: .81rem; color: #c8ced3; }
+.dbx .trap .t b { display: block; font-family: var(--sign); text-transform: uppercase; letter-spacing: .14em; font-size: .64rem; color: var(--alert); margin-bottom: .25rem; }
+
+/* ---- main board + wind strip ---- */
+.dbx .boardgrid { display: grid; gap: 1.2rem; grid-template-columns: minmax(0,1fr) 268px; align-items: start; }
+@media (max-width: 900px) { .dbx .boardgrid { grid-template-columns: 1fr; } }
+
+.dbx .board { background: #06080a; border: 1px solid var(--edge); border-radius: 4px; overflow-x: auto; }
+.dbx table.dep { width: 100%; border-collapse: collapse; min-width: 660px; font-size: .84rem; }
+.dbx table.dep th {
+  font-family: var(--sign); text-transform: uppercase; letter-spacing: .16em; font-size: .6rem; color: var(--mute);
+  text-align: left; padding: .7rem .8rem; border-bottom: 1px solid var(--edge); font-weight: 500; white-space: nowrap;
+}
+.dbx table.dep td { padding: .5rem .8rem; border-bottom: 1px solid rgba(42,47,53,.5); vertical-align: middle; }
+.dbx table.dep tr:last-child td { border-bottom: none; }
+.dbx table.dep tr:hover td { background: rgba(245,179,35,.045); }
+.dbx .dest { display: flex; align-items: center; gap: .6rem; }
+.dbx .dest img { width: 34px; height: 26px; object-fit: cover; border-radius: 2px; display: block; filter: saturate(.8) brightness(.9); }
+.dbx .dest b { color: #fff; letter-spacing: .06em; font-weight: 600; }
+.dbx .dest small { display: block; color: var(--mute); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; font-family: var(--sign); }
+.dbx .gate { display: inline-block; min-width: 2.6rem; text-align: center; padding: .12em .35em; border-radius: 3px; background: linear-gradient(180deg, var(--flap-top) 0 49.5%, #0b0e10 49.5% 51%, var(--flap-bot) 51% 100%); color: var(--amber); font-size: .8rem; letter-spacing: .06em; }
+.dbx .gate.raf { color: var(--go); }
+.dbx .gate.lav { color: var(--sea); }
+.dbx .dur { color: var(--chalk); white-space: nowrap; }
+.dbx .from { color: var(--amber); white-space: nowrap; }
+.dbx .risk { display: inline-flex; gap: 2px; align-items: center; font-size: .66rem; letter-spacing: .12em; font-family: var(--sign); text-transform: uppercase; }
+.dbx .pips { letter-spacing: 1px; }
+.dbx .r-hi .pips { color: var(--alert); }
+.dbx .r-md .pips { color: var(--amber); }
+.dbx .r-lo .pips { color: var(--go); }
+.dbx .r-hi { color: var(--alert); } .dbx .r-md { color: var(--amber-dim); } .dbx .r-lo { color: var(--go); }
+.dbx .boardnote { padding: .7rem .9rem; font-size: .74rem; color: var(--mute); border-top: 1px solid var(--edge); }
+
+.dbx .wind { background: linear-gradient(180deg, #14100a, #0b0d0f); border: 1px solid var(--edge); border-top: 3px solid var(--alert); border-radius: 4px; overflow: hidden; }
+.dbx .wind img { width: 100%; height: 108px; object-fit: cover; display: block; filter: grayscale(.3) brightness(.7); }
+.dbx .wind .hd { padding: .8rem .9rem .2rem; font-family: var(--sign); text-transform: uppercase; letter-spacing: .2em; font-size: .66rem; color: var(--alert); }
+.dbx .wind .big { padding: 0 .9rem; font-size: 2.6rem; line-height: 1; color: var(--amber); letter-spacing: -.02em; }
+.dbx .wind .big small { font-size: .8rem; color: var(--mute); letter-spacing: .1em; display: block; margin-top: .25rem; text-transform: uppercase; font-family: var(--sign); }
+.dbx .beau { display: grid; gap: 3px; padding: .9rem .9rem .4rem; }
+.dbx .beau .b { display: grid; grid-template-columns: 1.7rem 1fr; gap: .5rem; align-items: center; font-size: .66rem; color: var(--mute); }
+.dbx .beau .bar { height: 9px; border-radius: 2px; background: #1c2126; }
+.dbx .beau .bar i { display: block; height: 100%; border-radius: 2px; background: var(--sea-dim); }
+.dbx .beau .on .bar i { background: var(--alert); }
+.dbx .beau .on { color: var(--alert); }
+.dbx .wind ul { margin: .3rem 0 0; padding: 0 .9rem .9rem 1.9rem; font-size: .78rem; color: #c3c9ce; }
+.dbx .wind ul li { margin-bottom: .4rem; }
+.dbx .rights { margin: 0 .9rem .9rem; padding: .7rem .8rem; background: #06080a; border: 1px dashed var(--amber-dim); border-radius: 3px; font-size: .76rem; color: #cdd2d6; }
+.dbx .rights b { display: block; font-family: var(--sign); text-transform: uppercase; letter-spacing: .14em; font-size: .62rem; color: var(--amber); margin-bottom: .3rem; }
+
+/* ---- vessel compare ---- */
+.dbx .vs { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.dbx .ves { background: var(--panel); border: 1px solid var(--edge); border-radius: 4px; overflow: hidden; }
+.dbx .ves img { width: 100%; height: 190px; object-fit: cover; display: block; filter: saturate(.9) brightness(.88); }
+.dbx .ves .cap { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; padding: .8rem .9rem .5rem; }
+.dbx .ves .cap b { font-family: var(--sign); text-transform: uppercase; letter-spacing: .16em; font-size: .78rem; color: #fff; }
+.dbx .ves .cap span { font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; font-family: var(--sign); }
+.dbx .ves.slow { border-top: 3px solid var(--go); }
+.dbx .ves.fast { border-top: 3px solid var(--alert); }
+.dbx .ves.slow .cap span { color: var(--go); }
+.dbx .ves.fast .cap span { color: var(--alert); }
+.dbx .ves .rows { padding: 0 .9rem 1rem; display: grid; gap: .5rem; }
+.dbx .ves .rows > div { display: grid; grid-template-columns: 8.2rem 1fr; gap: .6rem; align-items: baseline; font-size: .81rem; border-top: 1px solid rgba(42,47,53,.7); padding-top: .5rem; }
+.dbx .ves .rows k { font-family: var(--sign); text-transform: uppercase; letter-spacing: .1em; font-size: .62rem; color: var(--mute); }
+.dbx .ves .rows v { color: #dfe3e6; }
+.dbx .warn { margin-top: 1rem; background: #1a0f0c; border: 1px solid #4a2018; border-radius: 4px; color: #f0c9c2; font-size: .88rem; display: grid; grid-template-columns: 140px minmax(0,1fr); overflow: hidden; }
+.dbx .warn img { width: 140px; height: 100%; min-height: 110px; object-fit: cover; display: block; filter: grayscale(.25) brightness(.75); }
+.dbx .warn .wt { padding: .9rem 1.1rem; }
+.dbx .warn b { color: var(--alert); }
+@media (max-width: 620px) { .dbx .warn { grid-template-columns: 1fr; } .dbx .warn img { width: 100%; height: 120px; } }
+
+.dbx .passband { display: block; width: 100%; height: 128px; object-fit: cover; filter: saturate(.85) brightness(.8); border: 1px solid var(--edge); border-bottom: none; border-radius: 5px 5px 0 0; }
+.dbx .passband + .pass { border-radius: 0 0 5px 5px; border-top: none; }
+
+.dbx .isle { display: grid; grid-template-columns: 160px minmax(0,1fr); border-top: 1px solid #1b3346; }
+.dbx .isle img { width: 160px; height: 100%; min-height: 100px; object-fit: cover; display: block; filter: saturate(.85) brightness(.8); }
+.dbx .isle .t { padding: .85rem 1rem; font-size: .8rem; color: #b9c4cc; }
+@media (max-width: 620px) { .dbx .isle { grid-template-columns: 1fr; } .dbx .isle img { width: 100%; height: 120px; } }
+
+/* ---- gates ---- */
+.dbx .gatewrap { display: grid; gap: 1rem; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); }
+@media (max-width: 860px) { .dbx .gatewrap { grid-template-columns: 1fr; } }
+.dbx .gates { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.dbx .gt { background: linear-gradient(180deg, var(--flap-top) 0 49.5%, #0b0e10 49.5% 51%, var(--flap-bot) 51% 100%); border-radius: 3px; padding: .55rem .5rem .6rem; text-align: center; }
+.dbx .gt b { display: block; font-size: 1.1rem; letter-spacing: .1em; color: var(--amber); }
+.dbx .gt span { display: block; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; font-family: var(--sign); color: var(--mute); margin-top: .2rem; line-height: 1.3; min-height: 2.1em; }
+.dbx .gt.known b { color: #fff; }
+.dbx .gt.known span { color: var(--amber); }
+.dbx .buffers { display: grid; gap: .55rem; align-content: start; }
+.dbx .buf { background: var(--panel); border: 1px solid var(--edge); border-left: 3px solid var(--amber); border-radius: 4px; padding: .7rem .9rem; display: grid; grid-template-columns: auto 1fr; gap: .9rem; align-items: center; }
+.dbx .buf em { font-style: normal; font-size: 1.6rem; color: var(--amber); letter-spacing: -.01em; white-space: nowrap; }
+.dbx .buf p { margin: 0; font-size: .79rem; color: #c3c9ce; }
+
+/* ---- tickets ---- */
+.dbx .pass { display: grid; grid-template-columns: minmax(0,1fr) 230px; background: var(--panel); border: 1px solid var(--edge); border-radius: 5px; overflow: hidden; }
+@media (max-width: 760px) { .dbx .pass { grid-template-columns: 1fr; } }
+.dbx .pass .main { padding: 1.1rem 1.2rem 1.2rem; }
+.dbx .pass .main h3 { margin: 0 0 .8rem; font-family: var(--sign); text-transform: uppercase; letter-spacing: .18em; font-size: .74rem; color: var(--amber); }
+.dbx .pass .steps { display: grid; gap: .6rem; }
+.dbx .pass .steps div { display: grid; grid-template-columns: 3.6rem 1fr; gap: .8rem; font-size: .84rem; color: #c8ced3; align-items: baseline; }
+.dbx .pass .steps b { color: var(--chalk); font-size: .78rem; letter-spacing: .04em; }
+.dbx .pass .stub { border-left: 2px dashed var(--edge); background: repeating-linear-gradient(180deg, var(--panel-2) 0 22px, #13161a 22px 24px); padding: 1.1rem 1rem; }
+.dbx .pass .stub h4 { margin: 0 0 .6rem; font-family: var(--sign); text-transform: uppercase; letter-spacing: .16em; font-size: .64rem; color: var(--mute); }
+.dbx .pass .stub p { margin: 0 0 .6rem; font-size: .78rem; color: #c8ced3; }
+.dbx .pass .stub .amt { font-size: 1.5rem; color: var(--amber); }
+
+/* ---- air side ---- */
+.dbx .airboard { background: #05090d; border: 1px solid #1b3346; border-top: 3px solid var(--sea); border-radius: 4px; overflow: hidden; }
+.dbx .airhead { display: grid; grid-template-columns: minmax(0,1fr) 220px; }
+@media (max-width: 760px) { .dbx .airhead { grid-template-columns: 1fr; } }
+.dbx .airhead img { width: 100%; height: 100%; min-height: 130px; object-fit: cover; display: block; filter: saturate(.8) brightness(.75); }
+.dbx .airhead .t { padding: 1rem 1.1rem; }
+.dbx .airhead .t p { margin: .5rem 0 0; font-size: .84rem; color: #b9c4cc; }
+.dbx .airhead .t .flaps { font-size: 1.15rem; }
+.dbx table.air { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.dbx table.air th { font-family: var(--sign); text-transform: uppercase; letter-spacing: .16em; font-size: .6rem; color: #6f8494; text-align: left; padding: .7rem .9rem; border-top: 1px solid #1b3346; border-bottom: 1px solid #1b3346; font-weight: 500; }
+.dbx table.air td { padding: .55rem .9rem; border-bottom: 1px solid rgba(27,51,70,.6); }
+.dbx table.air tr:last-child td { border-bottom: none; }
+.dbx table.air .car { color: #fff; letter-spacing: .05em; }
+.dbx table.air .pr { color: var(--sea); white-space: nowrap; }
+
+.dbx .d2d { margin-top: 1rem; background: var(--panel); border: 1px solid var(--edge); border-radius: 4px; padding: 1.1rem 1.2rem 1.3rem; }
+.dbx .d2d h3 { margin: 0 0 .3rem; font-family: var(--sign); text-transform: uppercase; letter-spacing: .18em; font-size: .74rem; color: var(--amber); }
+.dbx .d2d .sub { margin: 0 0 1rem; font-size: .78rem; color: var(--mute); }
+.dbx .lane { margin-bottom: 1rem; }
+.dbx .lane .lab { display: flex; justify-content: space-between; align-items: baseline; font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; font-family: var(--sign); color: var(--mute); margin-bottom: .3rem; }
+.dbx .lane .lab b { color: #fff; letter-spacing: .14em; }
+.dbx .lane .lab em { font-style: normal; color: var(--amber); font-family: var(--mono); font-size: .9rem; letter-spacing: 0; }
+.dbx .segs { display: flex; height: 30px; border-radius: 3px; overflow: hidden; background: #0a0d0f; border: 1px solid var(--edge); }
+.dbx .segs i { display: block; height: 100%; font-style: normal; }
+.dbx .s-transfer { background: #35414a; }
+.dbx .s-buffer { background: #6b4f14; }
+.dbx .s-move { background: var(--amber-dim); }
+.dbx .s-air { background: var(--sea); }
+.dbx .s-last { background: #2b5a72; }
+.dbx .segs .empty { background: repeating-linear-gradient(45deg, #0d1012 0 6px, #0a0d0f 6px 12px); }
+.dbx .key { display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; font-size: .68rem; color: var(--mute); text-transform: uppercase; letter-spacing: .1em; font-family: var(--sign); margin-top: .2rem; }
+.dbx .key span { display: inline-flex; align-items: center; gap: .35rem; }
+.dbx .key b { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
+
+/* ---- rule of thumb ---- */
+.dbx .thumbs { display: grid; gap: .7rem; }
+.dbx .th { display: grid; grid-template-columns: minmax(0,15rem) minmax(0,1fr) auto; gap: 1rem; align-items: center; background: var(--panel); border: 1px solid var(--edge); border-radius: 4px; padding: .7rem .9rem; }
+@media (max-width: 700px) { .dbx .th { grid-template-columns: 1fr; } }
+.dbx .th .n { font-size: .84rem; color: #fff; letter-spacing: .04em; }
+.dbx .th .n small { display: block; color: var(--mute); font-size: .72rem; letter-spacing: 0; }
+.dbx .daybar { height: 16px; background: repeating-linear-gradient(90deg, #12161a 0 calc(12.5% - 1px), #0a0d0f calc(12.5% - 1px) 12.5%); border: 1px solid var(--edge); border-radius: 2px; overflow: hidden; }
+.dbx .daybar i { display: block; height: 100%; background: linear-gradient(90deg, var(--amber-dim), var(--amber)); }
+.dbx .daybar.airy i { background: linear-gradient(90deg, var(--sea-dim), var(--sea)); }
+.dbx .th .v { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; font-family: var(--sign); color: var(--amber); white-space: nowrap; }
+.dbx .verdict { margin-top: 1.2rem; padding: 1.2rem 1.3rem; background: #0f1418; border: 1px solid var(--edge); border-left: 4px solid var(--amber); border-radius: 4px; }
+.dbx .verdict p { margin: 0; font-size: 1.02rem; color: #eef1f3; }
+.dbx .verdict p + p { margin-top: .5rem; color: var(--mute); font-size: .86rem; }
+
+/* ---- connections ---- */
+.dbx .conn { display: grid; gap: .5rem; }
+.dbx .conn a { display: grid; grid-template-columns: 5.6rem minmax(0,1fr); gap: 1rem; align-items: center; background: var(--panel); border: 1px solid var(--edge); border-radius: 4px; padding: .7rem .9rem; text-decoration: none; }
+.dbx .conn a:hover { border-color: var(--amber-dim); background: var(--panel-2); }
+.dbx .conn .dep-lbl { font-family: var(--sign); text-transform: uppercase; letter-spacing: .14em; font-size: .6rem; color: var(--amber); text-align: right; }
+.dbx .conn .ttl { color: #fff; font-size: .88rem; }
+.dbx .conn .sm { color: var(--mute); font-size: .78rem; margin-top: .15rem; display: block; }
+.dbx .conn .up { border-left: 3px solid var(--sea); }
+.dbx .conn .up .dep-lbl { color: var(--sea); }
+
+/* ---- sources ---- */
+.dbx .srcs { display: grid; gap: .45rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.dbx .src { display: grid; grid-template-columns: 20px 1.6rem minmax(0,1fr); gap: .6rem; align-items: center; background: var(--panel); border: 1px solid var(--edge); border-radius: 3px; padding: .45rem .6rem; text-decoration: none; font-size: .76rem; }
+.dbx .src:hover { border-color: var(--amber-dim); }
+.dbx .src img { width: 20px; height: 20px; border-radius: 3px; display: block; }
+.dbx .src .n { color: var(--amber); font-size: .7rem; text-align: right; }
+.dbx .src .h { color: #c3c9ce; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbx .colophon { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--edge); font-size: .72rem; color: var(--mute); display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; text-transform: uppercase; letter-spacing: .14em; font-family: var(--sign); }
+</style>
+
+<div class="dbx">
+
+  <div class="hero">
+    <img src="timetable/images/piraeus-quay.webp" alt="Ferries alongside the quay at Piraeus">
+    <div class="hero-in">
+      <div class="wrap">
+        <div class="railtop">
+          <span>Departures · Athens ⇄ Aegean</span>
+          <span class="dot">•</span><span>Summer 2026</span>
+          <span class="dot">•</span><span>survey · 25 sources</span>
+          <span class="dot">•</span><span>6 min read</span>
+        </div>
+      </div>
+      <div class="wrap">
+        <h1>Piraeus · Rafina · Lavrio</h1>
+        <p class="kicker">Three ports, two vessel classes, one wind. The board below is the whole decision: which quay, which hull, how much of your week each crossing eats — and the four legs where the aeroplane finally wins.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="announce">
+    <div class="wrap">
+      <div class="lbl">Service announcement</div>
+      <div class="split">
+      <div>
+      <div class="flaps" aria-label="Ferry by default">
+        <span class="fl">F</span><span class="fl">E</span><span class="fl">R</span><span class="fl">R</span><span class="fl">Y</span><span class="fl sp"></span><span class="fl">B</span><span class="fl">Y</span><span class="fl sp"></span><span class="fl">D</span><span class="fl">E</span><span class="fl">F</span><span class="fl">A</span><span class="fl">U</span><span class="fl">L</span><span class="fl">T</span>
+      </div>
+      <div class="flaps" aria-label="Fly over 7 hours">
+        <span class="fl blue">F</span><span class="fl blue">L</span><span class="fl blue">Y</span><span class="fl sp"></span><span class="fl blue">O</span><span class="fl blue">V</span><span class="fl blue">E</span><span class="fl blue">R</span><span class="fl sp"></span><span class="fl blue">7</span><span class="fl sp"></span><span class="fl blue">H</span><span class="fl blue">O</span><span class="fl blue">U</span><span class="fl blue">R</span><span class="fl blue">S</span>
+      </div>
+      <div class="under">
+        <div><b>Piraeus</b> for everything except Mykonos, Tinos and Andros <sup><a href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/">[1]</a></sup></div>
+        <div><b>Rafina</b> for those three — 30 min from the airport by KTEL bus at €4–5.50 <sup><a href="https://myartemida.gr/en/article/direct-bus-from-athens-airport-to-rafina-and-artemida---timetable-prices--stops/">[13]</a></sup></div>
+        <div><b>Fly</b> only where the crossing passes ~7 h: Crete 7–13 h, Rhodes 12–22 h <sup><a href="https://www.ferryhopper.com/en/ferries/greece/piraeus">[4]</a></sup></div>
+        <div><b>Never</b> put the return leg on the day you fly home — a weather cancellation makes you a no-show and nobody pays <sup><a href="https://greece-trips.com/travel-guide/when-a-ferry-is-cancelled/">[9]</a></sup></div>
+      </div>
+      </div>
+      <div class="netmap">
+        <img src="timetable/images/ferry-routes-map.webp" alt="The Greek ferry network, with routes fanning out from Athens">
+        <p>The network Athens sits at the middle of — most of those lines start at one of three quays <sup><a href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/">[1]</a></sup>.</p>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Terminals</h2><span class="line"></span><span class="no">01 / 07</span></div>
+      <div class="terms">
+
+        <div class="term">
+          <img src="timetable/images/piraeus-port.webp" alt="The harbour at Piraeus">
+          <div class="code"><b>PIR</b><span>Piraeus</span></div>
+          <div class="serves">Cyclades, Crete, Dodecanese, Saronic, NE Aegean <sup><a href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/">[1]</a></sup></div>
+          <dl>
+            <div><dt>Metro L3</dt><dd>from ATH ~60 min</dd><dd class="fare">€9</dd></div>
+            <div><dt>Metro</dt><dd>from centre 15–25 min</dd><dd class="fare">€1.20</dd></div>
+            <div><dt>Bus X96</dt><dd>from ATH 90–120 min</dd><dd class="fare">€5.50</dd></div>
+            <div><dt>Taxi</dt><dd>from ATH, metered by day</dd><dd class="fare">€50–58</dd></div>
+          </dl>
+          <div class="boardnote">Fares and times <sup><a href="https://athensbylocals.com/ports-of-athens/">[2]</a></sup> <sup><a href="https://publictransportguide.com/athens-metro-ticket-prices-2026/">[24]</a></sup> <sup><a href="https://taxitoathens.com/athens-airport-to-piraeus-port/">[11]</a></sup></div>
+        </div>
+
+        <div class="term">
+          <img src="timetable/images/rafina-port.webp" alt="Rafina from the air, with two ferries alongside">
+          <div class="code"><b>RAF</b><span>Rafina</span></div>
+          <div class="serves">Andros, Tinos, Mykonos; summer Paros, Naxos, Ios, Santorini <sup><a href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/">[1]</a></sup></div>
+          <dl>
+            <div><dt>KTEL bus</dt><dd>from ATH ~30 min, hourly</dd><dd class="fare">€4–5.50</dd></div>
+            <div><dt>KTEL bus</dt><dd>Pedion Areos ~70 min</dd><dd class="fare">€3</dd></div>
+            <div><dt>First / last</dt><dd>04:30 / 23:00 from ATH</dd><dd class="fare">cash</dd></div>
+            <div><dt>Stand</dt><dd>arrivals, Exits 2–3</dd><dd class="fare">—</dd></div>
+          </dl>
+          <div class="boardnote">Timetable and stand <sup><a href="https://myartemida.gr/en/article/direct-bus-from-athens-airport-to-rafina-and-artemida---timetable-prices--stops/">[13]</a></sup> <sup><a href="https://athensbylocals.com/ports-of-athens/">[2]</a></sup></div>
+        </div>
+
+        <div class="term">
+          <img src="timetable/images/lavrio-port.webp" alt="The waterfront at Lavrio">
+          <div class="code"><b>LAV</b><span>Lavrio</span></div>
+          <div class="serves">Kea, Kythnos; seasonal Andros, Syros, Milos <sup><a href="https://www.athenstourism.org/getting-around-athens/athens-to-greek-islands-ferry-guide/">[25]</a></sup></div>
+          <dl>
+            <div><dt>KTEL bus</dt><dd>from ATH ~60 min via Markopoulo</dd><dd class="fare">€4</dd></div>
+            <div><dt>KTEL bus</dt><dd>Nomismatokopiou ~2 h</dd><dd class="fare">€5.30</dd></div>
+            <div><dt>Use for</dt><dd>Kea only, realistically</dd><dd class="fare">—</dd></div>
+            <div><dt>Note</dt><dd>slowest of the three from town</dd><dd class="fare">—</dd></div>
+          </dl>
+          <div class="boardnote">Routes and fares <sup><a href="https://athensbylocals.com/ports-of-athens/">[2]</a></sup></div>
+        </div>
+
+      </div>
+
+      <div class="trap">
+        <article>
+          <img src="timetable/images/athens-metro.webp" alt="An Athens Metro train">
+          <div class="t"><b>Fare trap · the airport zone</b>The airport metro is a separate zone starting at Doukissis Plakentias: €9 single, €16 return. A normal €1.20 city ticket will not open the barrier. <sup><a href="https://publictransportguide.com/athens-metro-ticket-prices-2026/">[24]</a></sup></div>
+        </article>
+        <article>
+          <img src="timetable/images/ktel-rafina-bus.webp" alt="The KTEL bus that links Athens airport with Rafina">
+          <div class="t"><b>Fare trap · the €40 flat fare</b>The airport taxi flat fare covers central Athens only. Piraeus sits outside the zone, so the meter runs: €50–58 by day. The X96 alternative runs 24 h from between Exits 4 and 5, every 30–40 min. <sup><a href="https://taxitoathens.com/athens-airport-to-piraeus-port/">[11]</a></sup> <sup><a href="https://www.athensairportbus.com/en/timetable/x96airporttopiraeusport.html">[12]</a></sup></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Departures — summer 2026</h2><span class="line"></span><span class="no">02 / 07</span></div>
+      <div class="boardgrid">
+
+        <div class="board">
+          <table class="dep">
+            <thead>
+              <tr><th>Destination</th><th>Gate</th><th>Duration</th><th>From</th><th>Frequency</th><th>Meltemi risk</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="dest"><span><b>AEGINA</b><small>Saronic · Piraeus</small></span></div></td>
+                <td><span class="gate">E9</span></td><td class="dur">30 min – 1 h 30</td><td class="from">€9.50</td><td>frequent</td>
+                <td><span class="risk r-lo"><span class="pips">▲</span> low</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><img src="timetable/images/hydra-port.webp" alt="Hydra town and its harbour"><span><b>HYDRA</b><small>Saronic · Piraeus</small></span></div></td>
+                <td><span class="gate">E9</span></td><td class="dur">1 – 2 h</td><td class="from">€15</td><td>6–8 daily</td>
+                <td><span class="risk r-lo"><span class="pips">▲</span> low</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><img src="timetable/images/milos-firopotamos.webp" alt="Firopotamos on Milos"><span><b>MILOS</b><small>Cyclades · Piraeus</small></span></div></td>
+                <td><span class="gate">E6/E7</span></td><td class="dur">2 h 30 – 7 h 30</td><td class="from">€33</td><td>daily</td>
+                <td><span class="risk r-md"><span class="pips">▲▲</span> medium</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><span><b>PAROS</b><small>Cyclades · Piraeus</small></span></div></td>
+                <td><span class="gate">E6/E7</span></td><td class="dur">2 h 45 – 5 h</td><td class="from">€40.50</td><td>daily</td>
+                <td><span class="risk r-md"><span class="pips">▲▲</span> medium</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><img src="timetable/images/naxos-port.webp" alt="A Blue Star ferry arriving in the Cyclades"><span><b>NAXOS</b><small>Cyclades · Piraeus</small></span></div></td>
+                <td><span class="gate">E6/E7</span></td><td class="dur">3 h 15 – 6 h</td><td class="from">€42</td><td>daily</td>
+                <td><span class="risk r-md"><span class="pips">▲▲</span> medium</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><img src="timetable/images/mykonos-port-night.webp" alt="Mykonos harbour at night"><span><b>MYKONOS</b><small>Cyclades · Piraeus</small></span></div></td>
+                <td><span class="gate">E6/E7</span></td><td class="dur">2 h 40 – 6 h</td><td class="from">€43</td><td>daily</td>
+                <td><span class="risk r-hi"><span class="pips">▲▲▲</span> high</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><img src="timetable/images/santorini-port.webp" alt="The ferry ramp at Athinios, Santorini"><span><b>SANTORINI</b><small>Cyclades · Piraeus</small></span></div></td>
+                <td><span class="gate">E1</span></td><td class="dur">3 h 55 – 8 h</td><td class="from">€39</td><td>up to 9 daily</td>
+                <td><span class="risk r-md"><span class="pips">▲▲</span> medium</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><span><b>HERAKLION</b><small>Crete · Piraeus</small></span></div></td>
+                <td><span class="gate">E1</span></td><td class="dur">7 – 13 h</td><td class="from">€27.50</td><td>up to 6 daily</td>
+                <td><span class="risk r-lo"><span class="pips">▲</span> fly instead</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><span><b>RHODES</b><small>Dodecanese · Piraeus</small></span></div></td>
+                <td><span class="gate">E1</span></td><td class="dur">12 – 22 h</td><td class="from">€46.50</td><td>1–2 daily</td>
+                <td><span class="risk r-lo"><span class="pips">▲</span> fly instead</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><span><b>ANDROS</b><small>Cyclades · Rafina</small></span></div></td>
+                <td><span class="gate raf">RAF</span></td><td class="dur">—</td><td class="from">€25</td><td>up to 11 daily</td>
+                <td><span class="risk r-hi"><span class="pips">▲▲▲</span> high</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><span><b>TINOS</b><small>Cyclades · Rafina</small></span></div></td>
+                <td><span class="gate raf">RAF</span></td><td class="dur">—</td><td class="from">€30</td><td>up to 12 daily</td>
+                <td><span class="risk r-hi"><span class="pips">▲▲▲</span> high</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><img src="timetable/images/mykonos-port.webp" alt="Mykonos harbour"><span><b>MYKONOS</b><small>Cyclades · Rafina</small></span></div></td>
+                <td><span class="gate raf">RAF</span></td><td class="dur">2 h 05 – 4 h 40</td><td class="from">€35.50</td><td>up to 10 daily</td>
+                <td><span class="risk r-hi"><span class="pips">▲▲▲</span> high</span></td>
+              </tr>
+              <tr>
+                <td><div class="dest"><span><b>KEA</b><small>Cyclades · Lavrio</small></span></div></td>
+                <td><span class="gate lav">LAV</span></td><td class="dur">—</td><td class="from">—</td><td>seasonal</td>
+                <td><span class="risk r-md"><span class="pips">▲▲</span> medium</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="boardnote">
+            Durations, frequencies and 2026 starting fares from <a href="https://www.ferryhopper.com/en/ferries/greece/piraeus">Ferryhopper</a> <sup><a href="https://www.ferryhopper.com/en/ferries/greece/piraeus">[4]</a></sup> <sup><a href="https://www.ferryhopper.com/en/blog/ferry-news/greek-islands-ferry-schedules-2026">[6]</a></sup> <sup><a href="https://www.ferryhopper.com/en/ferry-routes/direct/rafina-athens-to-mykonos">[5]</a></sup>.
+            Gates follow the pattern on <a href="https://www.bluestarferries.com/en-gb/piraeus-port-map">Blue Star's own Piraeus map</a> — E1 for Santorini, Crete and the Dodecanese, E6 and E7 for the Cyclades, E9 for Saronic high-speeds <sup><a href="https://www.bluestarferries.com/en-gb/piraeus-port-map">[3]</a></sup>. Assignments shift in summer; your gate is printed on the ticket and confirmed on the electronic boards on the day <sup><a href="https://www.athenstourism.org/getting-around-athens/athens-to-greek-islands-ferry-guide/">[25]</a></sup>.
+            Risk column is this view's reading of where the meltemi bites hardest <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup>.
+          </div>
+        </div>
+
+        <aside class="wind">
+          <img src="timetable/images/meltemi-wind.webp" alt="The meltemi blowing across the Aegean">
+          <div class="hd">Cancellation risk · meltemi</div>
+          <div class="big">7–8<small>Beaufort, Jul–Aug peak</small></div>
+          <div class="beau">
+            <div class="b"><span>3–4</span><span class="bar"><i style="width:32%"></i></span></div>
+            <div class="b"><span>5–6</span><span class="bar"><i style="width:50%"></i></span></div>
+            <div class="b on"><span>7</span><span class="bar"><i style="width:70%"></i></span></div>
+            <div class="b on"><span>8</span><span class="bar"><i style="width:82%"></i></span></div>
+            <div class="b"><span>9+</span><span class="bar"><i style="width:100%"></i></span></div>
+          </div>
+          <ul>
+            <li>Blows June–September, occasionally over 120 km/h <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></li>
+            <li>Strengthens mid-morning, eases by sunset — so book morning departures <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></li>
+            <li>Runs in spells of up to a week <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></li>
+            <li>Mykonos, Tinos and Andros take the worst of it <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></li>
+            <li>High-speed hulls cancel before the big ones do <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></li>
+          </ul>
+          <div class="rights">
+            <b>If it cancels</b>
+            EU Regulation 1177/2010 gives you a choice of “reimbursement of your ticket within seven days, or re-routing to your final destination under comparable conditions at the earliest opportunity, at no extra cost.” <sup><a href="https://greece-trips.com/travel-guide/when-a-ferry-is-cancelled/">[9]</a></sup>
+            Weather is an extraordinary circumstance, so the operator owes you the fare or a seat — not your hotel, not your missed flight <sup><a href="https://greece-trips.com/travel-guide/when-a-ferry-is-cancelled/">[9]</a></sup>. Refunds are not automatic: request one and keep the cancellation notice. Operators notify by email or SMS <sup><a href="https://santorinidave.com/greek-ferries">[7]</a></sup>.
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Two hulls</h2><span class="line"></span><span class="no">03 / 07</span></div>
+      <div class="vs">
+
+        <div class="ves slow">
+          <img src="timetable/images/blue-star-ferry.webp" alt="A conventional Blue Star car ferry">
+          <div class="cap"><b>Conventional</b><span>Blue Star · Minoan · Anek</span></div>
+          <div class="rows">
+            <div><k>Piraeus→Santorini</k><v>7 h 30 – 8 h, from ~€46.50 <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup></v></div>
+            <div><k>Piraeus→Mykonos</k><v>~5–6 h <sup><a href="https://www.ferryhopper.com/en/ferries/greece/piraeus">[4]</a></sup></v></div>
+            <div><k>Price</k><v>the baseline <sup><a href="https://santorinidave.com/greek-ferries">[7]</a></sup></v></div>
+            <div><k>Motion</k><v>large, stable, open decks <sup><a href="https://community.ricksteves.com/travel-forum/greece/island-ferries-and-motion-sickness">[23]</a></sup></v></div>
+            <div><k>Wind</k><v>sails in most conditions <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></v></div>
+            <div><k>August sell-out</k><v>deck seats rarely; cabins and cars do <sup><a href="https://santorinidave.com/greek-ferries">[7]</a></sup></v></div>
+          </div>
+        </div>
+
+        <div class="ves fast">
+          <img src="timetable/images/worldchampion-jet.webp" alt="A high-speed catamaran running at speed">
+          <div class="cap"><b>High-speed</b><span>SeaJets · Golden Star · Fast Ferries</span></div>
+          <div class="rows">
+            <div><k>Piraeus→Santorini</k><v>4 h 50 – 5 h 35, from ~€79.70 <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup>; 5 h 30 on WorldChampion Jet <sup><a href="https://www.ferryhopper.com/en/blog/featured/seajets-fast-ferry-mykonos-santorini-world-champion-jet">[21]</a></sup></v></div>
+            <div><k>Piraeus→Mykonos</k><v>2 h 30 – 3 h <sup><a href="https://www.ferryhopper.com/en/blog/featured/seajets-fast-ferry-mykonos-santorini-world-champion-jet">[21]</a></sup></v></div>
+            <div><k>Price</k><v>~2× a conventional car ferry <sup><a href="https://santorinidave.com/greek-ferries">[7]</a></sup></v></div>
+            <div><k>Motion</k><v>every wave felt, airline-style indoor seating, no deck <sup><a href="https://community.ricksteves.com/travel-forum/greece/island-ferries-and-motion-sickness">[23]</a></sup></v></div>
+            <div><k>Wind</k><v>more affected; cancels first in a meltemi <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup></v></div>
+            <div><k>August sell-out</k><v>frequently — seats, cabins and vehicle spaces <sup><a href="https://santorinidave.com/greek-ferries">[7]</a></sup></v></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="warn">
+        <img src="timetable/images/aegean-waves.webp" alt="The Aegean seen from orbit, the water the meltemi crosses">
+        <div class="wt">⚠ <b>The catamaran trade is worse than it looks.</b> In a July or August meltemi the ~€35 the fast boat saves you against the flight buys the rougher ride <em>and</em> the higher cancellation odds <sup><a href="https://community.ricksteves.com/travel-forum/greece/island-ferries-and-motion-sickness">[23]</a></sup> <sup><a href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/">[10]</a></sup>.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Gates &amp; buffer</h2><span class="line"></span><span class="no">04 / 07</span></div>
+      <div class="gatewrap">
+        <div>
+          <div class="gates">
+            <div class="gt known"><b>E1</b><span>Santorini · Crete · Dodecanese</span></div>
+            <div class="gt"><b>E2</b><span>—</span></div>
+            <div class="gt"><b>E3</b><span>—</span></div>
+            <div class="gt"><b>E4</b><span>—</span></div>
+            <div class="gt"><b>E5</b><span>—</span></div>
+            <div class="gt known"><b>E6</b><span>Cyclades · foot passengers</span></div>
+            <div class="gt known"><b>E7</b><span>Cyclades · passengers + vehicles</span></div>
+            <div class="gt"><b>E8</b><span>—</span></div>
+            <div class="gt known"><b>E9</b><span>Saronic high-speeds · Aegina · Hydra · Spetses</span></div>
+            <div class="gt"><b>E10</b><span>—</span></div>
+            <div class="gt"><b>E11</b><span>—</span></div>
+            <div class="gt"><b>E12</b><span>—</span></div>
+          </div>
+          <div class="boardnote" style="border-top:none;padding-left:0">Twelve gates spread around a working harbour; the labelled four are the pattern published by <a href="https://www.bluestarferries.com/en-gb/piraeus-port-map">Blue Star Ferries</a> <sup><a href="https://www.bluestarferries.com/en-gb/piraeus-port-map">[3]</a></sup> <sup><a href="https://www.athenstourism.org/getting-around-athens/athens-to-greek-islands-ferry-guide/">[25]</a></sup>.</div>
+        </div>
+        <div class="buffers">
+          <div class="buf"><em>60–90′</em><p>At the gate before departure. Piraeus is big and finding your berth takes time <sup><a href="https://www.athenstourism.org/getting-around-athens/athens-to-greek-islands-ferry-guide/">[25]</a></sup>.</p></div>
+          <div class="buf"><em>90′–2 h</em><p>Door-to-departure from central Athens in July and August. Ferries do not wait <sup><a href="https://taxitoathens.com/athens-airport-to-piraeus-port/">[11]</a></sup>.</p></div>
+          <div class="buf"><em>≥ 4 h</em><p>From an international arrival to a <b>Rafina</b> sailing <sup><a href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/">[1]</a></sup>.</p></div>
+          <div class="buf"><em>≥ 5 h</em><p>From an international arrival to a <b>Piraeus</b> sailing <sup><a href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/">[1]</a></sup>.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Booking &amp; boarding</h2><span class="line"></span><span class="no">05 / 07</span></div>
+      <img class="passband" src="timetable/images/seajets-cat.webp" alt="A high-speed catamaran alongside in a Greek port">
+      <div class="pass">
+        <div class="main">
+          <h3>Ticket sequence</h3>
+          <div class="steps">
+            <div><b>−3 mo</b><span>Book. Two to three months ahead for a July/August crossing; three to four if you need a cabin or a car slot. Cabins vanish first, and ferry prices do not surge like airfares — early booking costs nothing <sup><a href="https://www.go-ferry.com/trends-and-insights/greek-ferries">[8]</a></sup>.</span></div>
+            <div><b>−48 h</b><span><a href="https://www.bluestarferries.com/en-gb/online-booking-web-check-in">Blue Star</a> web check-in opens <sup><a href="https://www.bluestarferries.com/en-gb/online-booking-web-check-in">[15]</a></sup>.</span></div>
+            <div><b>−2 h</b><span>Web check-in closes. You get a QR e-ticket shown with ID or passport — no printing <sup><a href="https://www.bluestarferries.com/en-gb/online-booking-web-check-in">[15]</a></sup>.</span></div>
+            <div><b>−1 h</b><span>Last moment to collect paper at the port office with your reservation code, if you skipped web check-in <sup><a href="https://ferries-greece.com/ferry-companies/blue-star-ferries/ticket-collection/">[14]</a></sup>. Smaller operators and third-party bookings are less forgiving — verify per operator, not per booking site.</span></div>
+            <div><b>Sold out?</b><span>Blue Star deck seats rarely go. SeaJets seats, cabins and vehicle spaces routinely do in July–August <sup><a href="https://santorinidave.com/greek-ferries">[7]</a></sup>.</span></div>
+          </div>
+        </div>
+        <div class="stub">
+          <h4>Vehicle supplement</h4>
+          <div class="amt">€30–74</div>
+          <p>Taking a rental car across needs the rental company's permission <em>in writing</em>, and standard insurance may lapse while the car is at sea <sup><a href="https://santorinidave.com/rent-car-greece">[16]</a></sup> <sup><a href="https://koscarhire.com/taking-rental-cars-ferry/">[17]</a></sup>.</p>
+          <p>Unauthorised crossings void all protection <sup><a href="https://koscarhire.com/taking-rental-cars-ferry/">[17]</a></sup>. Island one-way drop-offs are almost never permitted — rent fresh on each island <sup><a href="https://santorinidave.com/rent-car-greece">[16]</a></sup>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead air"><h2>Air side</h2><span class="line"></span><span class="no">06 / 07</span></div>
+      <div class="airboard">
+        <div class="airhead">
+          <div class="t">
+            <div class="flaps" aria-label="ATH to JTR">
+              <span class="fl blue">A</span><span class="fl blue">T</span><span class="fl blue">H</span><span class="fl sp"></span><span class="fl blue">→</span><span class="fl sp"></span><span class="fl blue">J</span><span class="fl blue">T</span><span class="fl blue">R</span>
+            </div>
+            <p>About 50 minutes in the air on Aegean, Sky Express, Volotea or Ryanair <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup> — the same money as a SeaJets seat <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup>. The argument for flying is time, not price.</p>
+          </div>
+          <img src="timetable/images/sky-express.webp" alt="Sky Express ATR 72 turboprops on stand">
+        </div>
+        <table class="air">
+          <thead><tr><th>Carrier</th><th>One-way from</th><th>August 2026 range</th><th>Air time</th></tr></thead>
+          <tbody>
+            <tr><td class="car"><a href="https://flights.aegeanair.com/en/flights-from-athens-to-santorini">AEGEAN</a></td><td class="pr">€50 <sup><a href="https://flights.aegeanair.com/en/flights-from-athens-to-santorini">[19]</a></sup></td><td>€50–106 <sup><a href="https://flights.aegeanair.com/en/flights-from-athens-to-santorini">[19]</a></sup></td><td>~50 min <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup></td></tr>
+            <tr><td class="car"><a href="https://www.skyexpress.gr/en/flights-from-athens-to-santorini">SKY EXPRESS</a></td><td class="pr">€44 <sup><a href="https://www.skyexpress.gr/en/flights-from-athens-to-santorini">[20]</a></sup></td><td>€52–99 <sup><a href="https://www.skyexpress.gr/en/flights-from-athens-to-santorini">[20]</a></sup></td><td>~50 min <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup></td></tr>
+            <tr><td class="car">VOLOTEA · RYANAIR</td><td class="pr">—</td><td>—</td><td>~50 min <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup></td></tr>
+          </tbody>
+        </table>
+        <div class="isle">
+          <img src="timetable/images/jtr-santorini.webp" alt="Santorini, the island end of the ATH–JTR hop">
+          <div class="t"><b>The island end is where the saving leaks.</b> Santorini airport wants 1 h before a carry-on-only departure and 2 h+ with checked bags, and about 40 taxis serve the whole island at €30–45 to Fira or Oia <sup><a href="https://santorinidave.com/santorini-airport">[22]</a></sup>.</div>
+        </div>
+      </div>
+
+      <div class="d2d">
+        <h3>Door to door · central Athens → Fira</h3>
+        <p class="sub">Both lanes on the same eight-hour axis. The 50-minute flight is the small blue block.</p>
+
+        <div class="lane">
+          <div class="lab"><b>Fast ferry</b><em>~8 h</em></div>
+          <div class="segs">
+            <i class="s-transfer" style="width:5%" title="metro to Piraeus"></i>
+            <i class="s-buffer" style="width:19%" title="gate buffer"></i>
+            <i class="s-move" style="width:66%" title="crossing"></i>
+            <i class="s-last" style="width:10%" title="port to Fira"></i>
+          </div>
+        </div>
+
+        <div class="lane">
+          <div class="lab"><b>Flight</b><em>~4 h</em></div>
+          <div class="segs">
+            <i class="s-transfer" style="width:12.5%" title="transfer to ATH"></i>
+            <i class="s-buffer" style="width:19%" title="security and bag claim"></i>
+            <i class="s-air" style="width:10.5%" title="50 minutes in the air"></i>
+            <i class="s-last" style="width:8%" title="JTR to Fira by taxi"></i>
+            <i class="empty" style="width:50%"></i>
+          </div>
+        </div>
+
+        <div class="key">
+          <span><b class="s-transfer"></b>transfer to port/airport</span>
+          <span><b class="s-buffer"></b>buffer, security, bag claim</span>
+          <span><b class="s-move"></b>crossing</span>
+          <span><b class="s-air"></b>in the air</span>
+          <span><b class="s-last"></b>island end</span>
+        </div>
+        <div class="boardnote" style="border-top:none;padding-left:0">Ferry lane: 8 h at sea plus buffer and transfers <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup> <sup><a href="https://taxitoathens.com/athens-airport-to-piraeus-port/">[11]</a></sup>. Flight lane: 50 min airborne <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup> against 90+ min of security and bag claim <sup><a href="https://www.athenstourism.org/getting-around-athens/athens-to-greek-islands-ferry-guide/">[25]</a></sup>, plus the ATH transfer and the taxi at the far end <sup><a href="https://santorinidave.com/santorini-airport">[22]</a></sup>.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>What a transfer actually costs you</h2><span class="line"></span><span class="no">07 / 07</span></div>
+      <div class="thumbs">
+        <div class="th">
+          <div class="n">Fast ferry, near Cyclades<small>Paros, Naxos, Mykonos</small></div>
+          <div class="daybar"><i style="width:50%"></i></div>
+          <div class="v">half a day</div>
+        </div>
+        <div class="th">
+          <div class="n">Any Piraeus → Santorini sailing<small>conventional or high-speed <sup><a href="https://blog.wego.com/athens-to-santorini/">[18]</a></sup> <sup><a href="https://taxitoathens.com/athens-airport-to-piraeus-port/">[11]</a></sup></small></div>
+          <div class="daybar"><i style="width:100%"></i></div>
+          <div class="v">a whole day</div>
+        </div>
+        <div class="th">
+          <div class="n">Flight to Santorini or Mykonos<small>saved only if you are already near ATH</small></div>
+          <div class="daybar airy"><i style="width:50%"></i></div>
+          <div class="v">half a day</div>
+        </div>
+        <div class="th">
+          <div class="n">Crete or Rhodes<small>fly, or take the overnight boat as transfer <em>and</em> hotel night <sup><a href="https://www.ferryhopper.com/en/ferries/greece/piraeus">[4]</a></sup></small></div>
+          <div class="daybar"><i style="width:100%"></i></div>
+          <div class="v">a whole day</div>
+        </div>
+      </div>
+      <div class="verdict">
+        <p>Leave the hotel at 07:00 for a near-Cyclades fast boat and you are swimming by 14:00. Everything else eats the day.</p>
+        <p>On a seven-night trip, budget one full day per island change. Three islands means three lost days — two is the honest maximum.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Connecting services</h2><span class="line"></span><span class="no">—</span></div>
+      <div class="conn">
+        <a class="up" href="../../"><span class="dep-lbl">Main line</span><span><span class="ttl">A routed one-week Greece plan from an Athens arrival, summer 2026</span><span class="sm">The expedition this board belongs to.</span></span></a>
+        <a href="../../athens-the-non-negotiables/"><span class="dep-lbl">expedition</span><span><span class="ttl">Athens non-negotiables: the summer 2026 field manual</span><span class="sm">Book the 08:00 Acropolis slot, pair it with the Acropolis Museum and the Ancient Agora, and treat almost everything else as optional.</span></span></a>
+        <a href="../../after-athens-island-clusters-compared/"><span class="dep-lbl">expedition</span><span><span class="ttl">After Athens: Greek island clusters compared for a 3–5 day August 2026 tail</span><span class="sm">One Cyclades island beats any two-island hop; the Saronic is the only cluster where two islands in four days is not a trap.</span></span></a>
+        <a href="../../day-trips-from-athens-without-changing-base/"><span class="dep-lbl">survey</span><span><span class="ttl">Day trips from Athens without changing base</span><span class="sm">The early hydrofoil to Hydra, or Delphi if you want antiquity — and skip Meteora and the three-island cruise.</span></span></a>
+        <a href="../../the-mainland-alternative-peloponnese-and-meteora/"><span class="dep-lbl">survey</span><span><span class="ttl">The mainland tail: a Peloponnese loop and/or Meteora after Athens</span><span class="sm">Cheaper and emptier than the Cyclades in August, but far hotter and more driving.</span></span></a>
+        <a href="../../eating-and-drinking-in-athens-and-the-islands/"><span class="dep-lbl">recon</span><span><span class="ttl">Eating and drinking in Athens and the islands</span><span class="sm">Souvlaki row, one mezedopoleio dinner and one rooftop — and Sifnos or Naxos on the ferry list.</span></span></a>
+        <a href="../"><span class="dep-lbl">Source page</span><span><span class="ttl">Read the full write-up</span><span class="sm">The canonical survey behind every number on this board.</span></span></a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sechead"><h2>Manifest · 25 sources</h2><span class="line"></span><span class="no">—</span></div>
+      <div class="srcs">
+        <a class="src" href="https://ferrygogo.com/athens-ferry-ports-compared-piraeus-rafina-or-lavrio/"><img src="https://www.google.com/s2/favicons?domain=ferrygogo.com&sz=128" alt=""><span class="n">01</span><span class="h">Athens ferry ports compared</span></a>
+        <a class="src" href="https://athensbylocals.com/ports-of-athens/"><img src="https://www.google.com/s2/favicons?domain=athensbylocals.com&sz=128" alt=""><span class="n">02</span><span class="h">Ports of Athens</span></a>
+        <a class="src" href="https://www.bluestarferries.com/en-gb/piraeus-port-map"><img src="https://www.google.com/s2/favicons?domain=bluestarferries.com&sz=128" alt=""><span class="n">03</span><span class="h">Blue Star — Piraeus port map</span></a>
+        <a class="src" href="https://www.ferryhopper.com/en/ferries/greece/piraeus"><img src="https://www.google.com/s2/favicons?domain=ferryhopper.com&sz=128" alt=""><span class="n">04</span><span class="h">Ferryhopper — ferries from Piraeus</span></a>
+        <a class="src" href="https://www.ferryhopper.com/en/ferry-routes/direct/rafina-athens-to-mykonos"><img src="https://www.google.com/s2/favicons?domain=ferryhopper.com&sz=128" alt=""><span class="n">05</span><span class="h">Ferryhopper — Rafina to Mykonos</span></a>
+        <a class="src" href="https://www.ferryhopper.com/en/blog/ferry-news/greek-islands-ferry-schedules-2026"><img src="https://www.google.com/s2/favicons?domain=ferryhopper.com&sz=128" alt=""><span class="n">06</span><span class="h">Greek island ferry schedules 2026</span></a>
+        <a class="src" href="https://santorinidave.com/greek-ferries"><img src="https://www.google.com/s2/favicons?domain=santorinidave.com&sz=128" alt=""><span class="n">07</span><span class="h">Santorini Dave — Greek ferries</span></a>
+        <a class="src" href="https://www.go-ferry.com/trends-and-insights/greek-ferries"><img src="https://www.google.com/s2/favicons?domain=go-ferry.com&sz=128" alt=""><span class="n">08</span><span class="h">Go-Ferry — booking windows</span></a>
+        <a class="src" href="https://greece-trips.com/travel-guide/when-a-ferry-is-cancelled/"><img src="https://www.google.com/s2/favicons?domain=greece-trips.com&sz=128" alt=""><span class="n">09</span><span class="h">When a ferry is cancelled</span></a>
+        <a class="src" href="https://www.davestravelpages.com/what-are-the-meltemi-winds-in-greece/"><img src="https://www.google.com/s2/favicons?domain=davestravelpages.com&sz=128" alt=""><span class="n">10</span><span class="h">What are the meltemi winds</span></a>
+        <a class="src" href="https://taxitoathens.com/athens-airport-to-piraeus-port/"><img src="https://www.google.com/s2/favicons?domain=taxitoathens.com&sz=128" alt=""><span class="n">11</span><span class="h">Airport to Piraeus by taxi</span></a>
+        <a class="src" href="https://www.athensairportbus.com/en/timetable/x96airporttopiraeusport.html"><img src="https://www.google.com/s2/favicons?domain=athensairportbus.com&sz=128" alt=""><span class="n">12</span><span class="h">X96 timetable</span></a>
+        <a class="src" href="https://myartemida.gr/en/article/direct-bus-from-athens-airport-to-rafina-and-artemida---timetable-prices--stops/"><img src="https://www.google.com/s2/favicons?domain=myartemida.gr&sz=128" alt=""><span class="n">13</span><span class="h">Airport → Rafina bus</span></a>
+        <a class="src" href="https://ferries-greece.com/ferry-companies/blue-star-ferries/ticket-collection/"><img src="https://www.google.com/s2/favicons?domain=ferries-greece.com&sz=128" alt=""><span class="n">14</span><span class="h">Blue Star ticket collection</span></a>
+        <a class="src" href="https://www.bluestarferries.com/en-gb/online-booking-web-check-in"><img src="https://www.google.com/s2/favicons?domain=bluestarferries.com&sz=128" alt=""><span class="n">15</span><span class="h">Blue Star web check-in</span></a>
+        <a class="src" href="https://santorinidave.com/rent-car-greece"><img src="https://www.google.com/s2/favicons?domain=santorinidave.com&sz=128" alt=""><span class="n">16</span><span class="h">Renting a car in Greece</span></a>
+        <a class="src" href="https://koscarhire.com/taking-rental-cars-ferry/"><img src="https://www.google.com/s2/favicons?domain=koscarhire.com&sz=128" alt=""><span class="n">17</span><span class="h">Taking rental cars on a ferry</span></a>
+        <a class="src" href="https://blog.wego.com/athens-to-santorini/"><img src="https://www.google.com/s2/favicons?domain=blog.wego.com&sz=128" alt=""><span class="n">18</span><span class="h">Athens to Santorini</span></a>
+        <a class="src" href="https://flights.aegeanair.com/en/flights-from-athens-to-santorini"><img src="https://www.google.com/s2/favicons?domain=aegeanair.com&sz=128" alt=""><span class="n">19</span><span class="h">Aegean — ATH to Santorini</span></a>
+        <a class="src" href="https://www.skyexpress.gr/en/flights-from-athens-to-santorini"><img src="https://www.google.com/s2/favicons?domain=skyexpress.gr&sz=128" alt=""><span class="n">20</span><span class="h">Sky Express — ATH to Santorini</span></a>
+        <a class="src" href="https://www.ferryhopper.com/en/blog/featured/seajets-fast-ferry-mykonos-santorini-world-champion-jet"><img src="https://www.google.com/s2/favicons?domain=ferryhopper.com&sz=128" alt=""><span class="n">21</span><span class="h">SeaJets WorldChampion Jet</span></a>
+        <a class="src" href="https://santorinidave.com/santorini-airport"><img src="https://www.google.com/s2/favicons?domain=santorinidave.com&sz=128" alt=""><span class="n">22</span><span class="h">Santorini airport</span></a>
+        <a class="src" href="https://community.ricksteves.com/travel-forum/greece/island-ferries-and-motion-sickness"><img src="https://www.google.com/s2/favicons?domain=community.ricksteves.com&sz=128" alt=""><span class="n">23</span><span class="h">Island ferries and motion sickness</span></a>
+        <a class="src" href="https://publictransportguide.com/athens-metro-ticket-prices-2026/"><img src="https://www.google.com/s2/favicons?domain=publictransportguide.com&sz=128" alt=""><span class="n">24</span><span class="h">Athens metro ticket prices 2026</span></a>
+        <a class="src" href="https://www.athenstourism.org/getting-around-athens/athens-to-greek-islands-ferry-guide/"><img src="https://www.google.com/s2/favicons?domain=athenstourism.org&sz=128" alt=""><span class="n">25</span><span class="h">Athens to Greek islands ferry guide</span></a>
+      </div>
+
+      <div class="colophon">
+        <span>Departure Board · a view of a Scout survey</span>
+        <span>Board data current for summer 2026</span>
+        <span>Confirm your gate on the day</span>
+      </div>
+    </div>
+  </section>
+
+</div>
